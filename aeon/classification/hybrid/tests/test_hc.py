@@ -59,3 +59,30 @@ def test_hc2_defaults_and_verbosity():
     HIVECOTEV2._DEFAULT_N_PARA_SAMPLES = 250
     HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE = 50
     HIVECOTEV2._DEFAULT_RAND_PARAMS = 50
+
+
+@pytest.mark.skipif(PR_TESTING, reason="slow test, run overnight only")
+def test_hc2_logging(capsys):
+    """Test logging for HC2."""
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=10, n_labels=2)
+    hc2 = HIVECOTEV2(verbose=1)
+    hc2.fit(X, y)
+
+    out = capsys.readouterr().out
+
+    assert "[HC2] Starting fit:" in out
+
+    assert "[HC2] Starting STC..." in out
+    assert "[HC2] Finished STC in " in out
+
+    assert "[HC2] Starting DrCIF..." in out
+    assert "[HC2] Finished DrCIF in " in out
+
+    assert "[HC2] Starting Arsenal..." in out
+    assert "[HC2] Finished Arsenal in " in out
+
+    assert "[HC2] Starting TDE..." in out
+    assert "[HC2] Finished TDE in " in out
+
+    assert "[HC2] Finished fit in " in out
+    assert "[HC2] Component summary:" in out
