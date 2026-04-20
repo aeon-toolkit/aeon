@@ -27,7 +27,7 @@ used by `aeon`.
     load_rehab_pile_regression_datasets
     load_monster_dataset
     load_monster_dataset_names
-    write_to_ts_file
+    save_to_ts_file
     write_to_arff_file
     load_airline
     load_arrow_head
