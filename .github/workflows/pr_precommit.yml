@@ -4,10 +4,19 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -15,19 +24,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Create app token
-        uses: actions/create-github-app-token@v3
-        id: app-token
-        with:
-          app-id: ${{ vars.PR_APP_ID }}
-          private-key: ${{ secrets.PR_APP_KEY }}
-
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.head_ref }}
-          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Setup Python 3.12
         uses: actions/setup-python@v6
@@ -35,49 +35,43 @@ jobs:
           python-version: "3.12"
 
       - name: Get changed files
-        uses: tj-actions/changed-files@v47.0.5
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: tj-actions/changed-files@2f7246cb26e8bb6709b6cbfc1fec7febfe82e96a  # v47.0.5
         id: changed-files
 
       - name: List changed files
+        if: ${{ github.event_name == 'pull_request' }}
         run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
 
-      # only check the full repository if PR and correctly labelled
-      - if: ${{ github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
-        name: Full pre-commit
+      # Check the full repository on pushes to main
+      - name: Full pre-commit
+        if: ${{ github.event_name == 'push' }}
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
-      - if: ${{ github.event_name == 'pull_request_target' && !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
-        name: Local pre-commit
+
+      # Check the full repository on PRs that are explicitly labelled
+      - name: Full pre-commit on labelled PR
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      # Otherwise only check changed files on PRs
+      - name: Local pre-commit
+        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
-
-      # push fixes if pre-commit fails and PR is eligible
-      - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes') }}
-        name: Push pre-commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: Automatic `pre-commit` fixes
-          commit_user_name: aeon-actions-bot[bot]
 
   codespell-annotations:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Create app token
-        uses: actions/create-github-app-token@v3
-        id: app-token
-        with:
-          app-id: ${{ vars.PR_APP_ID }}
-          private-key: ${{ secrets.PR_APP_KEY }}
-
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.head_ref }}
-          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Annotate locations with typos
         uses: codespell-project/codespell-problem-matcher@v1
