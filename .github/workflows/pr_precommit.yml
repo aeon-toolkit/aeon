@@ -11,8 +11,6 @@ on:
       - reopened
       - labeled
       - unlabeled
-      - ready_for_review
-      - converted_to_draft
 
 permissions:
   contents: read
@@ -38,7 +36,7 @@ jobs:
 
       - name: Get changed files
         if: ${{ github.event_name == 'pull_request' }}
-        uses: tj-actions/changed-files@v47.0.5
+        uses: tj-actions/changed-files@2f7246cb26e8bb6709b6cbfc1fec7febfe82e96a  # v47.0.5
         id: changed-files
 
       - name: List changed files
