@@ -272,6 +272,7 @@ class MUSE(BaseClassifier):
                 class_weight=self.class_weight,
                 penalty="l2",
                 random_state=self.random_state,
+                n_jobs=self.n_jobs,
             )
             if self.n_classes_ > 2:
                 self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)
