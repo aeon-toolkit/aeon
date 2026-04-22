@@ -244,7 +244,7 @@ class WEASEL(BaseClassifier):
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
-            all_words = all_words.astype(np.float64, copy=False)
+            all_words = all_words.astype(np.float32, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
