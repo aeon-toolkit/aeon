@@ -4,6 +4,7 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["LogTransformer"]
 
 import numpy as np
+from numpy import ndarray
 
 from aeon.transformations.series.base import (
     BaseSeriesTransformer,
@@ -46,12 +47,12 @@ class LogTransformer(SeriesInverseTransformerMixin, BaseSeriesTransformer):
         "capability:multivariate": True,
     }
 
-    def __init__(self, offset=0, scale=1):
+    def __init__(self, offset: float = 0, scale: float = 1) -> None:
         self.offset = offset
         self.scale = scale
         super().__init__(axis=1)
 
-    def _transform(self, X, y=None):
+    def _transform(self, X: ndarray, y: None = None) -> ndarray:
         """Transform X and return a transformed version.
 
         private _transform containing the core logic, called from transform
@@ -73,7 +74,7 @@ class LogTransformer(SeriesInverseTransformerMixin, BaseSeriesTransformer):
         Xt = np.log(scale * (X + offset))
         return Xt
 
-    def _inverse_transform(self, X, y=None):
+    def _inverse_transform(self, X: ndarray, y: None = None) -> ndarray:
         """Inverse transform X and return an inverse transformed version.
 
         core logic
