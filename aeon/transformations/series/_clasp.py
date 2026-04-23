@@ -1,16 +1,4 @@
-"""
-ClaSP (Classification Score Profile) Transformer implementation.
-
-Notes
------
-As described in
-@inproceedings{clasp2021,
-  title={ClaSP - Time Series Segmentation},
-  author={Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf},
-  booktitle={CIKM},
-  year={2021}
-}
-"""
+"""ClaSP (Classification Score Profile) Transformer implementation."""
 
 __maintainer__ = []
 __all__ = ["ClaSPTransformer"]
@@ -26,7 +14,7 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import check_n_jobs
 
 
-def _sliding_window(X, m):
+def _sliding_window(X, m: int):
     """Return the sliding windows for a time series and a window size.
 
     Parameters
@@ -74,7 +62,7 @@ def _sliding_dot_product(query, time_series):
 
 
 @njit(fastmath=True, cache=True)
-def _sliding_mean_std(X, m):
+def _sliding_mean_std(X, m: int):
     """Return the sliding mean and std for a time series and a window size.
 
     Parameters
@@ -102,7 +90,9 @@ def _sliding_mean_std(X, m):
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def _compute_distances_iterative(X, m, k, n_jobs=1, slack=0.5):
+def _compute_distances_iterative(
+    X, m: int, k: int, n_jobs: int = 1, slack: float = 0.5
+):
     """Compute kNN indices with dot-product.
 
     No-loops implementation for a time series, given
@@ -176,7 +166,7 @@ def _compute_distances_iterative(X, m, k, n_jobs=1, slack=0.5):
 
 
 @njit(fastmath=True, cache=True)
-def _calc_knn_labels(knn_mask, split_idx, m):
+def _calc_knn_labels(knn_mask, split_idx: int, m: int):
     """Compute kNN indices relabeling at a given split index.
 
     Parameters
@@ -318,7 +308,7 @@ def _roc_auc_score(y_score, y_true):
 
 
 @njit(fastmath=True)
-def _calc_profile(m, knn_mask, score, exclusion_zone):
+def _calc_profile(m: int, knn_mask, score, exclusion_zone: int):
     """Calculate ClaSP profile for the kNN indices and a score.
 
     Parameters
@@ -349,12 +339,12 @@ def _calc_profile(m, knn_mask, score, exclusion_zone):
 
 def clasp(
     X,
-    m,
-    k_neighbours=3,
+    m: int,
+    k_neighbours: int = 3,
     score=_roc_auc_score,
-    interpolate=True,
-    exclusion_radius=0.05,
-    n_jobs=1,
+    interpolate: bool = True,
+    exclusion_radius: float = 0.05,
+    n_jobs: int = 1,
 ):
     """Calculate ClaSP for a time series and a window size.
 
@@ -368,9 +358,9 @@ def clasp(
         The number of knn to use
     score : function
         Scoring method used
-    interpolate:
+    interpolate : bool
         Interpolate the profile
-    exclusion_radius : int
+    exclusion_radius : float
         Blind spot of the profile to the corners
     n_jobs : int
         Number of jobs to be used.
@@ -403,13 +393,13 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
     Parameters
     ----------
-    window_length :       int, default = 10
+    window_length : int, default = 10
         size of window for sliding.
-    scoring_metric :      string, default = ROC_AUC
+    scoring_metric : str, default = "ROC_AUC"
         the scoring metric to use in ClaSP - choose from ROC_AUC or F1
-    exclusion_radius : int
+    exclusion_radius : float, default = 0.05
         Exclusion Radius for change points to be non-trivial matches
-    n_jobs : int
+    n_jobs : int, default = 1
         Number of jobs to be used.
 
     Notes
@@ -444,10 +434,10 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
     def __init__(
         self,
-        window_length=10,
-        scoring_metric="ROC_AUC",
-        exclusion_radius=0.05,
-        n_jobs=1,
+        window_length: int = 10,
+        scoring_metric: str = "ROC_AUC",
+        exclusion_radius: float = 0.05,
+        n_jobs: int = 1,
     ):
         self.window_length = int(window_length)
         self.scoring_metric = scoring_metric
@@ -479,14 +469,17 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
         if len(X) - self.window_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
-                "Period-Length is larger than size of the time series", stacklevel=1
+                "Period-Length is larger than size of the time series",
+                stacklevel=2,
             )
 
         if X.dtype != np.float64:
             warnings.warn(
-                f"dtype is {X.dtype} but should be {np.float64}. "
-                f"Will apply conversion to float64 now",
-                stacklevel=1,
+                (
+                    f"dtype is {X.dtype} but should be {np.float64}. "
+                    "Will apply conversion to float64 now"
+                ),
+                stacklevel=2,
             )
 
         scoring_metric_call = self._check_scoring_metric(self.scoring_metric)
@@ -504,12 +497,12 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
         return Xt
 
-    def _check_scoring_metric(self, scoring_metric):
+    def _check_scoring_metric(self, scoring_metric: str):
         """Check which scoring metric to use.
 
         Parameters
         ----------
-        scoring_metric : string
+        scoring_metric : str
             Choose from "ROC_AUC" or "F1"
 
         Returns

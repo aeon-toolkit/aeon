@@ -12,6 +12,7 @@ example can be found [here](https://gist.github.com/nateGeorge/5455d2c57fb33c1ae
 - Code formatting according to [black](https://black.readthedocs.io/) and [flake8](https://flake8.pycqa.org/en/)
 - Documentation formatting using the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html)
 style
+- Guidelines for [referencing externally written code](referencing_code)
 
 ## Code formatting and linting
 
@@ -25,7 +26,7 @@ We adhere to the code formatting standards using the following `pre-commit` hook
 - [nbQA](https://github.com/nbQA-dev/nbQA) to lint and format Jupyter notebooks using
 the above hooks
 - [ruff](https://docs.astral.sh/ruff/)'s [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
-module to enforce the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
+module to enforce the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard)
 documentation style
 - [pyupgrade](https://github.com/asottile/pyupgrade) to upgrade Python syntax to modern
 standards
