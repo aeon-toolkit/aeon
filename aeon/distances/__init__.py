@@ -82,6 +82,10 @@ __all__ = [
     "soft_dtw_pairwise_distance",
     "soft_dtw_alignment_path",
     "soft_dtw_cost_matrix",
+    "kdtw_distance",
+    "kdtw_alignment_path",
+    "kdtw_cost_matrix",
+    "kdtw_pairwise_distance",
 ]
 
 from aeon.distances._distance import (
@@ -156,6 +160,12 @@ from aeon.distances.elastic import (
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
+)
+from aeon.distances.kernel import (
+    kdtw_alignment_path,
+    kdtw_cost_matrix,
+    kdtw_distance,
+    kdtw_pairwise_distance,
 )
 from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
