@@ -54,11 +54,6 @@ class BaseHIVECOTE(BaseClassifier):
         self.n_jobs = n_jobs
         self.verbose = verbose
 
-        # Internal state variables
-        self.fitted_estimators_ = []
-        self.weights_ = []
-        self.component_names_ = []
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -67,6 +62,11 @@ class BaseHIVECOTE(BaseClassifier):
 
         if self.estimators is None or len(self.estimators) == 0:
             raise ValueError("No estimators provided to BaseHIVECOTE.")
+
+        # Reset fitted state to avoid accumulation on re-fit
+        self.fitted_estimators_ = []
+        self.weights_ = []
+        self.component_names_ = []
 
         # Dynamically traverse and train all the underlying components
         for name, estimator in self.estimators:
