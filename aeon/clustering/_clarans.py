@@ -128,7 +128,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         j = 0
         X_indexes = np.arange(X.shape[0], dtype=int)
         if isinstance(self._init, Callable):
-            best_medoids = self._init(X)
+            best_medoids = self._init(X=X)
         else:
             best_medoids = self._init
         best_non_medoids = np.setdiff1d(X_indexes, best_medoids)

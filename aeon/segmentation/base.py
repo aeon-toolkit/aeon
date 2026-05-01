@@ -11,6 +11,7 @@ import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
 from aeon.utils.data_types import VALID_SERIES_INPUT_TYPES
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSegmenter(BaseSeriesEstimator):
@@ -77,6 +78,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         super().__init__(axis=axis)
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None, axis=1):
         """Fit time series segmenter to X.
 

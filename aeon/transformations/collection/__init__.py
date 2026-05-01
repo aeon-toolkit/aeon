@@ -1,9 +1,9 @@
 """Collection transformations."""
 
 __all__ = [
-    # base class and series broadcaster
+    # base class
     "BaseCollectionTransformer",
-    "SeriesToCollectionBroadcaster",
+    "CollectionInverseTransformerMixin",
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
@@ -35,4 +35,7 @@ from aeon.transformations.collection._series_broadcaster import (
     SeriesToCollectionBroadcaster,
 )
 from aeon.transformations.collection._slope import SlopeTransformer
-from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.collection.base import (
+    BaseCollectionTransformer,
+    CollectionInverseTransformerMixin,
+)

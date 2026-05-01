@@ -2794,6 +2794,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Nithurshen",
+      "name": "Nithurshen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75428875?v=4",
+      "profile": "https://linktr.ee/nithurshen",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kennaruk",
+      "name": "Ken Wuttisasiwat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21194034?v=4",
+      "profile": "https://github.com/kennaruk",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

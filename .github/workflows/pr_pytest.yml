@@ -36,7 +36,7 @@ jobs:
           python_version: "3.12"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -198,6 +198,6 @@ jobs:
         run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -10,6 +10,7 @@ import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseSeriesEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
@@ -78,6 +79,7 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
         super().__init__(axis=axis)
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None, axis=1):
         """Fit time series anomaly detector to X.
 

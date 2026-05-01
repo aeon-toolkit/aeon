@@ -5,7 +5,7 @@ from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -155,7 +155,7 @@ def _univariate_shift_scale_invariant_distance(
     return min_dist, best_shifted_y
 
 
-@threaded
+@numba_thread_handler
 def shift_scale_invariant_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,

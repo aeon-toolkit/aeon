@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.base import ClusterMixin
 
 from aeon.base import BaseCollectionEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
@@ -30,6 +31,7 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None) -> BaseCollectionEstimator:
         """Fit time series clusterer to training data.
 
