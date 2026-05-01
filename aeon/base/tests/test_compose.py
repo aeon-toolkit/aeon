@@ -77,6 +77,7 @@ def test_get_fitted_params():
         "metadata_",
         "n_classes_",
         "weights_",
+        "fit_time_millis_",
     }
 
     assert isinstance(params, dict)
@@ -92,11 +93,13 @@ def test_get_fitted_params():
             "clf1__foo_",
             "clf1__metadata_",
             "clf1__n_classes_",
+            "clf1__fit_time_millis_",
             "clf2",
             "clf2__classes_",
             "clf2__foo_",
             "clf2__metadata_",
             "clf2__n_classes_",
+            "clf2__fit_time_millis_",
         }
     )
 

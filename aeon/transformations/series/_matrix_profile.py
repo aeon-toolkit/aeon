@@ -76,7 +76,7 @@ class MatrixProfileTransformer(BaseSeriesTransformer):
 
 # TODO: remove in v1.5.0
 @deprecated(
-    version="1.3.0",
+    version="1.4.0",
     reason="MatrixProfileSeriesTransformer has been replaced by "
     "MatrixProfileTransformer, this version will be removed in v1.5.0.",
     category=FutureWarning,

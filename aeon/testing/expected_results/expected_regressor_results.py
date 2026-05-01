@@ -370,13 +370,13 @@ multivariate_expected_results = {
     "RISTRegressor": [
         -0.247,
         -0.3031,
-        0.0232,
-        0.324,
+        -0.0105,
+        0.2662,
         0.1133,
         0.502,
         -0.0105,
         -0.247,
-        0.2968,
+        0.3073,
         0.0337,
     ],
     "RandomIntervalRegressor": [

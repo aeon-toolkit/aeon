@@ -1,552 +1,337 @@
-"""Wrapped version of original KShape.
+"""Time series K-Shape clustering."""
 
-This version wraps the KShape implementation in aeon Base class so we can run
-experiments. Minor modifications have been made to allow the passing of a
-random_state and additionally allow to pass in precomputed centroids. This
-allows the use of kmeans++ initialisation.
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["KShape"]
 
-Original code: https://github.com/TheDatumOrg/kshape-python
-"""
-
-import multiprocessing
-from typing import Optional
+from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 from numpy.fft import fft, ifft
-from numpy.linalg import eigh, norm
-from sklearn.base import BaseEstimator, ClusterMixin
+from numpy.linalg import eigh
 from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
+from aeon.distances import sbd_pairwise_distance
+from aeon.utils.numba.general import (
+    z_normalise_series,
+    z_normalise_series_2d,
+    z_normalise_series_3d,
+)
+from aeon.utils.validation import check_n_jobs
 
 
-class TimeSeriesKShape(BaseClusterer):
+@dataclass(frozen=True)
+class _KShapeRunResult:
+    labels: np.ndarray
+    centres: np.ndarray
+    inertia: float
+    n_iter: int
+
+
+class KShape(BaseClusterer):
+    """K-Shape [1]_ clustering for equal-length time series.
+
+    K-Shape is a k-means based clustering algorithm that employs Shape-Based
+    Distance (SBD) for assignment and shape extraction via leading eigenvector
+    of a centred covariance-like matrix for centroid forming. This implementation is
+    based on the implementation from TheDatumOrg/kshape-python (MIT License)
+    adapted to use aeon SBD distance and to be compliant with aeon BaseClusterer API.
+
+    Parameters
+    ----------
+    n_clusters : int, default=8
+        Number of clusters.
+    init : {"random", "zero"} or np.ndarray, default="random"
+        Initialisation for cluster centres. If array, must be shape
+        ``(n_clusters, n_channels, n_timepoints)``.
+    n_init : int, default=1
+        Number of runs with different random initialisations. Best inertia kept.
+    max_iter : int, default=100
+        Maximum number of iterations per run.
+    tol : float, default=1e-6
+        Convergence tolerance on inertia improvement (in addition to label stability).
+    z_normalise : bool, default=True
+        If True, z-normalise each (case, channel) over time before clustering.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+    random_state : int, RandomState, or None, default=None
+        Random seed/control.
+    verbose: bool, default=False
+        Print out debugging info when True.
+
+    Attributes
+    ----------
+    cluster_centres_ : np.ndarray of shape (n_clusters, n_channels, n_timepoints)
+        Cluster centres.
+    labels_ : np.ndarray of shape (n_cases,)
+        Cluster labels for training set.
+    inertia_ : float
+        Sum of distances to closest centre.
+    n_iter_ : int
+        Iterations run for best initialisation.
+
+    References
+    ----------
+    .. [1] Paparrizos, J. and Gravano, L. (2015). k-Shape: Efficient and Accurate
+    Clustering of Time Series. Proceedings of ACM SIGMOD
+    """
+
     _tags = {
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "algorithm_type": "distance",
-        "python_dependencies": "kshape",
     }
 
     def __init__(
         self,
         n_clusters: int = 8,
-        centroid_init: str = "random",
-        max_iter: int = 100,
+        init: Literal["random", "zero"] | np.ndarray = "random",
         n_init: int = 1,
-        random_state: int | np.random.RandomState | None = None,
+        max_iter: int = 100,
         tol: float = 1e-6,
+        z_normalise: bool = True,
+        n_jobs: int = 1,
+        random_state=None,
         verbose: bool = False,
     ):
         self.n_clusters = n_clusters
-        self.centroid_init = centroid_init
-        self.max_iter = max_iter
+        self.init = init
         self.n_init = n_init
+        self.max_iter = max_iter
+        self.tol = tol
+        self.z_normalise = z_normalise
+        self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
-        self.tol = tol
 
-        # Fitted attributes
+        self.cluster_centres_ = None
         self.labels_ = None
-        self.cluster_centers_ = None
         self.inertia_ = None
         self.n_iter_ = 0
 
-        self._ks = None  # underlying package model
+        self._rng = None
+        self._init_centres = None
 
         super().__init__()
 
-    def _fit(self, X, y=None):
-        """
-        Fit the K-Shape model using the `kshape`-style implementation.
+    def _fit(self, X: np.ndarray, y=None):
+        self._check_params(X)
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        if self.z_normalise:
+            X = z_normalise_series_3d(X)
 
-        Parameters
-        ----------
-        X : np.ndarray, shape (n_cases, n_channels, n_timepoints)
-        """
-        X_ntc = np.swapaxes(X, 1, 2)  # package expects (N, T, C)
+        best: _KShapeRunResult | None = None
+        for _ in range(self.n_init):
+            run_rng = check_random_state(self._rng.randint(0, np.iinfo(np.int32).max))
+            res = self._fit_one_init(X, run_rng)
+            if best is None or res.inertia < best.inertia:
+                best = res
 
-        best = {
-            "inertia": np.inf,
-            "labels": None,
-            "centroids_ntc": None,
-            "model": None,
-        }
-        base_rng = check_random_state(self.random_state)
-
-        for i in range(self.n_init):
-            # per-run seed and RNG
-            run_seed = int(base_rng.randint(0, 2**31 - 1))
-            run_rng = np.random.RandomState(run_seed)
-
-            if self.centroid_init == "random":
-                indices = run_rng.choice(X.shape[0], self.n_clusters)
-                centroids = X_ntc[indices].copy()
-            elif self.centroid_init == "kmeans++":
-                centroids, _, _ = self._sbd_kmeans_plus_plus(X_ntc, rng=run_rng)
-            else:
-                raise ValueError(f"Unknown centroid init: {self.centroid_init}")
-
-            ks = KShapeClusteringCPU(
-                self.n_clusters,
-                centroid_init=centroids,
-                max_iter=self.max_iter,
-                n_jobs=1,
-                random_state=run_seed,  # pass a seed, not the shared RNG
-            )
-
-            ks.fit(X_ntc)
-
-            labels = ks.labels_.astype(int)
-            centroids_ntc = ks.centroids_
-
-            # inertia = sum distances to closest centroid under SBD
-            distances = original_pairwise_sbd(X_ntc, centroids_ntc)
-            inertia = float(np.sum(distances[np.arange(X_ntc.shape[0]), labels]))
-
-            if self.verbose:
-                print(f"[KShape run {i + 1}/{self.n_init}] inertia={inertia:.6f}")
-
-            if inertia < best["inertia"]:
-                best.update(
-                    {
-                        "inertia": inertia,
-                        "labels": labels,
-                        "centroids_ntc": centroids_ntc,
-                        "model": ks,
-                    }
-                )
-
-        self._ks = best["model"]
-        self.labels_ = best["labels"]
-        # convert back to (k, C, T)
-        self.cluster_centers_ = np.transpose(best["centroids_ntc"], (0, 2, 1))
-        self.inertia_ = best["inertia"]
+        self.labels_ = best.labels
+        self.cluster_centres_ = best.centres
+        self.inertia_ = float(best.inertia)
+        self.n_iter_ = int(best.n_iter)
         return self
 
-    def _sbd_kmeans_plus_plus(
-        self,
-        X_ntc: np.ndarray,
-        rng: np.random.RandomState | None = None,
-    ):
-        """K-means++ initialisation using original SBD distances.
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
+        if self.z_normalise:
+            X = z_normalise_series_3d(X)
+        dists = self._pairwise_sbd_distance(X, self.cluster_centres_)
+        return dists.argmin(axis=1)
 
-        Parameters
-        ----------
-        X_ntc : np.ndarray of shape (N, T, C)
-            Time series dataset (time-major for this wrapper).
-        rng : np.random.RandomState, optional
-            Random number generator to use. If None, derived from self.random_state.
+    def _check_params(self, X: np.ndarray) -> None:
+        if not isinstance(self.n_clusters, int) or self.n_clusters < 1:
+            raise ValueError("n_clusters must be a positive integer.")
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than"
+                f" n_cases ({X.shape[0]})."
+            )
+        if not isinstance(self.max_iter, int) or self.max_iter < 1:
+            raise ValueError("max_iter must be a positive integer.")
+        if not isinstance(self.n_init, int) or self.n_init < 1:
+            raise ValueError("n_init must be a positive integer.")
+        if self.tol < 0:
+            raise ValueError("tol must be non-negative.")
 
-        Returns
-        -------
-        centers_ntc : np.ndarray of shape (n_clusters, T, C)
-            Chosen initial centres.
-        min_distances : np.ndarray of shape (N,)
-            Distance from each point to its nearest chosen centre.
-        labels : np.ndarray of shape (N,)
-            Index of nearest chosen centre for each point.
-        """
-        if rng is None:
-            rng = check_random_state(self.random_state)
+        self._rng = check_random_state(self.random_state)
 
-        n_samples = X_ntc.shape[0]
-
-        def _pairwise_sbd_against_index(idx: int) -> np.ndarray:
-            """Compute SBD distances from all series to X_ntc[idx]."""
-            dists = original_pairwise_sbd(
-                X_ntc,
-                X_ntc[[idx]],
-            ).reshape(n_samples)
-            # Clamp tiny negatives from numerical issues
-            return np.maximum(dists, 0.0)
-
-        # 1. Choose first centre uniformly at random
-        initial_center_idx = rng.randint(n_samples)
-        indexes = [initial_center_idx]
-
-        # 2. Distances to the first centre
-        min_distances = _pairwise_sbd_against_index(initial_center_idx)
-        labels = np.zeros(n_samples, dtype=int)
-
-        # 3. Iteratively choose the remaining centres (k-means++ style)
-        for i in range(1, self.n_clusters):
-            d = min_distances.copy()
-            chosen = np.asarray(indexes, dtype=int)
-            finite_mask = np.isfinite(d)
-
-            if not np.any(finite_mask):
-                # No finite distances left → choose uniformly from unchosen indices
-                candidates = np.setdiff1d(
-                    np.arange(n_samples), chosen, assume_unique=False
+        if isinstance(self.init, str):
+            if self.init not in {"random", "zero"}:
+                raise ValueError(
+                    "init must be 'random', 'zero', or an ndarray of initial centres."
                 )
-                next_center_idx = rng.choice(candidates)
-                indexes.append(next_center_idx)
-
-                new_distances = _pairwise_sbd_against_index(next_center_idx)
-                closer_points = new_distances < min_distances
-                min_distances[closer_points] = new_distances[closer_points]
-                labels[closer_points] = i
-                continue
-
-            # Shift distances for numerical stability (same as generic k-means++)
-            min_val = d[finite_mask].min()
-            w = d - min_val
-            w[~np.isfinite(w)] = 0.0
-            w = np.clip(w, 0.0, None)
-            w[chosen] = 0.0
-
-            total = w.sum()
-            if total <= 0.0:
-                # Degenerate case → choose uniformly from unchosen indices
-                candidates = np.setdiff1d(
-                    np.arange(n_samples), chosen, assume_unique=False
+            self._init_centres = self.init
+        else:
+            init = np.asarray(self.init, dtype=np.float64)
+            if init.shape != (self.n_clusters, X.shape[1], X.shape[2]):
+                raise ValueError(
+                    "If init is an array it must have shape "
+                    f"(n_clusters, n_channels, n_timepoints) = "
+                    f"({self.n_clusters}, {X.shape[1]}, {X.shape[2]})."
                 )
-                next_center_idx = rng.choice(candidates)
-            else:
-                p = w / total
-                p = np.clip(p, 0.0, None)
-                p_sum = p.sum()
-                if p_sum <= 0.0:
-                    candidates = np.setdiff1d(
-                        np.arange(n_samples), chosen, assume_unique=False
-                    )
-                    next_center_idx = rng.choice(candidates)
-                else:
-                    p = p / p_sum
-                    next_center_idx = rng.choice(n_samples, p=p)
+            self._init_centres = init.copy()
 
-            indexes.append(next_center_idx)
+    def _fit_one_init(
+        self, X: np.ndarray, rng: np.random.RandomState
+    ) -> _KShapeRunResult:
+        n_cases, n_channels, L = X.shape
 
-            # Update distances to include the new centre
-            new_distances = _pairwise_sbd_against_index(next_center_idx)
-            closer_points = new_distances < min_distances
-            min_distances[closer_points] = new_distances[closer_points]
-            labels[closer_points] = i
+        # Precompute centring matrix P = I - (1/L) 11^T
+        P = np.eye(L, dtype=np.float64) - (1.0 / L) * np.ones((L, L), dtype=np.float64)
 
-        centers_ntc = X_ntc[indexes].copy()
-        return centers_ntc, min_distances, labels
+        # Initialise centres
+        if isinstance(self._init_centres, str):
+            if self._init_centres == "zero":
+                centres = np.zeros((self.n_clusters, n_channels, L), dtype=np.float64)
+            else:  # random train instances
+                idx = rng.choice(n_cases, self.n_clusters, replace=False)
+                centres = X[idx].copy()
+        else:
+            centres = self._init_centres.copy()
 
-    def _predict(self, X, y=None) -> np.ndarray:
-        """
-        Assign each series to its nearest centroid using SBD = 1 - max(NCC).
-        """
-        self._check_is_fitted()
-        X_ntc = np.swapaxes(X, 1, 2)  # (N, T, C)
-        return self._ks.predict(X_ntc)
+        # Random initial assignment
+        labels = rng.randint(0, self.n_clusters, size=n_cases, dtype=np.int64)
 
-    # ---------------------- helpers ----------------------
+        prev_inertia = np.inf
+        for it in range(self.max_iter):
+            old_labels = labels.copy()
+
+            # Update centres (shape extraction per cluster, per channel)
+            for j in range(self.n_clusters):
+                members = np.flatnonzero(labels == j)
+                if members.size == 0:
+                    centres[j] = X[rng.randint(0, n_cases)].copy()
+                    continue
+
+                for ch in range(n_channels):
+                    cur_c = centres[j, ch]
+                    m = members.size
+                    aligned = np.empty((m, L), dtype=np.float64)
+                    for r in range(m):
+                        aligned[r] = _sbd_align_1d(cur_c, X[members[r], ch])
+                    centres[j, ch] = _shape_extraction(aligned, P)
+
+            # Assignment step using aeon SBD
+            dists = self._pairwise_sbd_distance(X, centres)
+            labels = dists.argmin(axis=1).astype(np.int64, copy=False)
+            inertia = float(dists.min(axis=1).sum())
+
+            if self.verbose:
+                print(f"iter={it + 1}, inertia={inertia:.6f}")  # noqa: T201
+
+            # Convergence: label stability OR small inertia improvement
+            if np.array_equal(labels, old_labels):
+                return _KShapeRunResult(
+                    labels=labels, centres=centres, inertia=inertia, n_iter=it + 1
+                )
+
+            if (prev_inertia - inertia) >= 0 and (prev_inertia - inertia) < self.tol:
+                return _KShapeRunResult(
+                    labels=labels, centres=centres, inertia=inertia, n_iter=it + 1
+                )
+
+            prev_inertia = inertia
+
+        return _KShapeRunResult(
+            labels=labels, centres=centres, inertia=prev_inertia, n_iter=self.max_iter
+        )
+
+    def _pairwise_sbd_distance(self, X: np.ndarray, centres: np.ndarray) -> np.ndarray:
+        """Compute SBD distances between all cases and all centres using aeon."""
+        # If we've already z-normalised do not ask SBD to standardise again
+        standardise = not self.z_normalise
+        return sbd_pairwise_distance(
+            X, centres, standardize=standardise, n_jobs=self._n_jobs
+        )
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         return {
             "n_clusters": 2,
-            "centroid_init": "random",
-            "max_iter": 2,
+            "init": "random",
             "n_init": 1,
-            "random_state": 1,
-            "tol": 1e-3,
-            "verbose": False,
+            "max_iter": 2,
+            "random_state": 0,
+            "z_normalise": True,
         }
 
 
-def original_sbd_distance(x_ntc: np.ndarray, c_ntc: np.ndarray) -> float:
-    """
-    Compute shape-based distance (SBD) between two series.
-
-    SBD(x, y) = 1 - max(NCC(x, y))
-    """
-    ncc = _ncc_c_3dim([x_ntc, c_ntc])
-    return 1.0 - float(np.max(ncc))
-
-
-def original_pairwise_sbd(X_ntc: np.ndarray, C_ntc: np.ndarray) -> np.ndarray:
-    """
-    Compute SBD distance between all series and centroids.
-
-    Parameters
-    ----------
-    X_ntc : np.ndarray of shape (N, T, C)
-    C_ntc : np.ndarray of shape (k, T, C)
-
-    Returns
-    -------
-    distances : np.ndarray of shape (N, k)
-    """
-    N, K = X_ntc.shape[0], C_ntc.shape[0]
-    distances = np.empty((N, K), dtype=float)
-    for i in range(N):
-        for k in range(K):
-            distances[i, k] = original_sbd_distance(X_ntc[i], C_ntc[k])
-    return distances
-
-
-def zscore(a, axis=0, ddof=0):
-    a = np.asanyarray(a)
-    mns = a.mean(axis=axis)
-    sstd = a.std(axis=axis, ddof=ddof)
-
-    if axis and mns.ndim < a.ndim:
-        res = (a - np.expand_dims(mns, axis=axis)) / np.expand_dims(sstd, axis=axis)
-    else:
-        res = (a - mns) / sstd
-
-    return np.nan_to_num(res)
-
-
-def roll_zeropad(a, shift, axis=None):
-    a = np.asanyarray(a)
-
+def _shift_zeropad_1d(x: np.ndarray, shift: int) -> np.ndarray:
+    """Shift a 1D array with zero padding, not circular."""
     if shift == 0:
-        return a
+        return x.astype(np.float64, copy=False)
 
-    if axis is None:
-        n = a.size
-        reshape = True
+    L = x.shape[0]
+    out = np.zeros(L, dtype=np.float64)
+    if shift > 0:
+        if shift < L:
+            out[shift:] = x[: L - shift]
     else:
-        n = a.shape[axis]
-        reshape = False
-
-    if np.abs(shift) > n:
-        res = np.zeros_like(a)
-    elif shift < 0:
-        shift += n
-        zeros = np.zeros_like(a.take(np.arange(n - shift), axis))
-        res = np.concatenate((a.take(np.arange(n - shift, n), axis), zeros), axis)
-    else:
-        zeros = np.zeros_like(a.take(np.arange(n - shift, n), axis))
-        res = np.concatenate((zeros, a.take(np.arange(n - shift), axis)), axis)
-
-    if reshape:
-        return res.reshape(a.shape)
-    else:
-        return res
+        s = -shift
+        if s < L:
+            out[: L - s] = x[s:]
+    return out
 
 
-def _ncc_c_3dim(data):
-    x, y = data[0], data[1]
-    den = norm(x, axis=(0, 1)) * norm(y, axis=(0, 1))
+def _ncc_time_major(x_t: np.ndarray, y_t: np.ndarray, eps: float = 1e-9) -> np.ndarray:
+    """Normalised cross-correlation over all lags for (L, C) arrays."""
+    den = np.linalg.norm(x_t) * np.linalg.norm(y_t)
+    if not np.isfinite(den) or den < eps:
+        return np.zeros(2 * x_t.shape[0] - 1, dtype=np.float64)
 
-    if den < 1e-9:
-        den = np.inf
+    L = x_t.shape[0]
+    fft_size = 1 << (2 * L - 1).bit_length()
 
-    x_len = x.shape[0]
-    fft_size = 1 << (2 * x_len - 1).bit_length()
-
-    cc = ifft(fft(x, fft_size, axis=0) * np.conj(fft(y, fft_size, axis=0)), axis=0)
-    cc = np.concatenate((cc[-(x_len - 1) :], cc[:x_len]), axis=0)
-
-    return np.real(cc).sum(axis=-1) / den
-
-
-def _sbd(x, y):
-    ncc = _ncc_c_3dim([x, y])
-    idx = np.argmax(ncc)
-    yshift = roll_zeropad(y, (idx + 1) - max(len(x), len(y)))
-
-    return yshift
+    cc = ifft(fft(x_t, fft_size, axis=0) * np.conj(fft(y_t, fft_size, axis=0)), axis=0)
+    # Re-order to lags: -(L-1) ... 0 ... (L-1)
+    cc = np.concatenate((cc[-(L - 1) :], cc[:L]), axis=0)
+    return (np.real(cc).sum(axis=-1) / den).astype(np.float64, copy=False)
 
 
-def collect_shift(data):
-    x, cur_center = data[0], data[1]
-    if np.all(cur_center == 0):
-        return x
-    else:
-        return _sbd(cur_center, x)
+def _sbd_align_1d(centre: np.ndarray, x: np.ndarray) -> np.ndarray:
+    """Align 1D series x to centre using max NCC lag, then zero-pad shift."""
+    if np.all(centre == 0):
+        return x.astype(np.float64, copy=False)
+
+    c_t = centre.reshape(-1, 1)  # (L, 1)
+    x_t = x.reshape(-1, 1)  # (L, 1)
+    ncc = _ncc_time_major(c_t, x_t)
+    idx = int(np.argmax(ncc))
+    shift = idx - (len(centre) - 1)
+    return _shift_zeropad_1d(x, shift)
 
 
-def _extract_shape(idx, x, j, cur_center, rng):  # CHANGED: added rng argument
-    _a = []
-    for i in range(len(idx)):
-        if idx[i] == j:
-            _a.append(collect_shift([x[i], cur_center]))
+def _shape_extraction(aligned: np.ndarray, P: np.ndarray) -> np.ndarray:
+    """Extract centroid shape from aligned series using leading eigenvector.
 
-    a = np.array(_a)
+    Note: we re-normalise each aligned member series because zero-padding alignment
+    changes mean and variance, even if the originals were z-normalised.
+    """
+    if aligned.size == 0:
+        raise ValueError("aligned cannot be empty")
+    if aligned.ndim != 2:
+        raise ValueError("aligned must be 2D, shape (n_members, n_timepoints)")
+    n_members, L = aligned.shape
 
-    if len(a) == 0:
-        indices = rng.choice(x.shape[0], 1)  # CHANGED: use rng instead of np.random
-        return np.squeeze(x[indices].copy())
-        # return np.zeros((x.shape[1]))
+    # Normalise each member (rows) across time
+    Y = z_normalise_series_2d(np.ascontiguousarray(aligned, dtype=np.float64))  # (n, L)
 
-    columns = a.shape[1]
-    y = zscore(a, axis=1, ddof=1)
+    S = Y.T @ Y  # (L, L)
+    M = P @ S @ P
 
-    s = np.dot(y[:, :, 0].transpose(), y[:, :, 0])
-    p = np.empty((columns, columns))
-    p.fill(1.0 / columns)
-    p = np.eye(columns) - p
-    m = np.dot(np.dot(p, s), p)
+    # Leading eigenvector
+    _, vecs = eigh(M)
+    centre = vecs[:, -1].astype(np.float64, copy=True)
 
-    _, vec = eigh(m)
-    centroid = vec[:, -1]
+    # Sign correction
+    d1 = np.linalg.norm(aligned - centre[None, :], axis=1).sum()
+    d2 = np.linalg.norm(aligned + centre[None, :], axis=1).sum()
+    if d1 >= d2:
+        centre *= -1.0
 
-    finddistance1 = np.sum(
-        np.linalg.norm(a - centroid.reshape((x.shape[1], 1)), axis=(1, 2))
-    )
-    finddistance2 = np.sum(
-        np.linalg.norm(a + centroid.reshape((x.shape[1], 1)), axis=(1, 2))
-    )
-
-    if finddistance1 >= finddistance2:
-        centroid *= -1
-
-    return zscore(centroid, ddof=1)
-
-
-def _kshape(
-    x, k, centroid_init="zero", max_iter=100, n_jobs=1, random_state=None
-):  # CHANGED: added random_state param
-    rng = check_random_state(random_state)  # CHANGED: create RNG from random_state
-
-    m = x.shape[0]
-    idx = rng.randint(0, k, size=m)  # CHANGED: use rng instead of global randint
-
-    if isinstance(centroid_init, np.ndarray):
-        centroids = centroid_init
-    elif centroid_init == "zero":
-        centroids = np.zeros((k, x.shape[1], x.shape[2]))
-    elif centroid_init == "random":
-        indices = rng.choice(x.shape[0], k)  # CHANGED: use rng instead of np.random
-        centroids = x[indices].copy()
-    distances = np.empty((m, k))
-
-    for it in range(max_iter):
-        old_idx = idx
-
-        for j in range(k):
-            for d in range(x.shape[2]):
-                centroids[j, :, d] = _extract_shape(
-                    idx,
-                    np.expand_dims(x[:, :, d], axis=2),
-                    j,
-                    np.expand_dims(centroids[j, :, d], axis=1),
-                    rng,  # CHANGED: pass rng through
-                )
-                # centroids[j] = np.expand_dims(_extract_shape(idx, x, j, centroids[j]), axis=1)
-
-        pool = multiprocessing.Pool(n_jobs)
-        args = []
-        for p in range(m):
-            for q in range(k):
-                args.append([x[p, :], centroids[q, :]])
-        result = pool.map(_ncc_c_3dim, args)
-        pool.close()
-        r = 0
-        for p in range(m):
-            for q in range(k):
-                distances[p, q] = 1 - result[r].max()
-                r = r + 1
-
-        idx = distances.argmin(1)
-        if np.array_equal(old_idx, idx):
-            break
-
-    return idx, centroids
-
-
-def kshape(
-    x, k, centroid_init="zero", max_iter=100, random_state=None
-):  # CHANGED: added random_state param
-    idx, centroids = _kshape(
-        np.array(x),
-        k,
-        centroid_init=centroid_init,
-        max_iter=max_iter,
-        n_jobs=1,
-        random_state=random_state,  # CHANGED: pass random_state through
-    )
-    clusters = []
-    for i, centroid in enumerate(centroids):
-        series = []
-        for j, val in enumerate(idx):
-            if i == val:
-                series.append(j)
-        clusters.append((centroid, series))
-
-    return clusters
-
-
-class KShapeClusteringCPU(ClusterMixin, BaseEstimator):
-    labels_ = None
-    centroids_ = None
-
-    def __init__(
-        self,
-        n_clusters,
-        centroid_init="zero",
-        max_iter=100,
-        n_jobs=None,
-        random_state=None,
-    ):  # CHANGED: added random_state param
-        self.n_clusters = n_clusters
-        self.centroid_init = centroid_init
-        self.max_iter = max_iter
-        self.random_state = random_state  # CHANGED: store random_state
-        if n_jobs is None:
-            self.n_jobs = 1
-        elif n_jobs == -1:
-            self.n_jobs = multiprocessing.cpu_count()
-        else:
-            self.n_jobs = n_jobs
-
-    def fit(self, X, y=None):
-        clusters = self._fit(
-            X,
-            self.n_clusters,
-            self.centroid_init,
-            self.max_iter,
-            self.n_jobs,
-        )
-        self.labels_ = np.zeros(X.shape[0])
-        self.centroids_ = np.zeros((self.n_clusters, X.shape[1], X.shape[2]))
-        for i in range(self.n_clusters):
-            self.labels_[clusters[i][1]] = i
-            self.centroids_[i] = clusters[i][0]
-        return self
-
-    def predict(self, X):
-        labels, _ = self._predict(X, self.centroids_)
-        return labels
-
-    def _predict(self, x, centroids):
-        m = x.shape[0]
-        rng = check_random_state(self.random_state)  # CHANGED: create RNG here
-        idx = rng.randint(
-            0, self.n_clusters, size=m
-        )  # CHANGED: use rng instead of randint
-        distances = np.empty((m, self.n_clusters))
-
-        pool = multiprocessing.Pool(self.n_jobs)
-        args = []
-        for p in range(m):
-            for q in range(self.n_clusters):
-                args.append([x[p, :], centroids[q, :]])
-        result = pool.map(_ncc_c_3dim, args)
-        pool.close()
-        r = 0
-        for p in range(m):
-            for q in range(self.n_clusters):
-                distances[p, q] = 1 - result[r].max()
-                r = r + 1
-
-        idx = distances.argmin(1)
-
-        return idx, centroids
-
-    def _fit(self, x, k, centroid_init="zero", max_iter=100, n_jobs=1):
-        idx, centroids = _kshape(
-            np.array(x),
-            k,
-            centroid_init=centroid_init,
-            max_iter=max_iter,
-            n_jobs=n_jobs,
-            random_state=self.random_state,  # CHANGED: pass random_state through
-        )
-        clusters = []
-        for i, centroid in enumerate(centroids):
-            series = []
-            for j, val in enumerate(idx):
-                if i == val:
-                    series.append(j)
-            clusters.append((centroid, series))
-
-        return clusters
+    # Eigenvectors have arbitrary scale, enforce z-normalisation
+    return z_normalise_series(centre)

@@ -69,7 +69,7 @@ def test_list_available_tser_datasets():
 def test_list_available_tsf_datasets():
     """Test recovering lists of available data sets."""
     res = get_available_tsf_datasets()
-    assert len(res) == 53
+    assert len(res) == 62
     res = get_available_tsf_datasets("FOO")
     assert not res
     res = get_available_tsf_datasets("m1_monthly_dataset")
