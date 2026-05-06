@@ -5,6 +5,7 @@ __all__ = ["Rocket"]
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer, Normalizer
 from aeon.utils.validation import check_n_jobs
@@ -101,10 +102,9 @@ class Rocket(BaseCollectionTransformer):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        if isinstance(self.random_state, int):
-            self._random_state = self.random_state
-        else:
-            self._random_state = None
+        rng = check_random_state(self.random_state)
+        self._random_state = rng.randint(np.iinfo(np.int32).max)
+
         n_channels = X[0].shape[0]
 
         # The only use of n_timepoints is to set the maximum dilation

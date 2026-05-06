@@ -8,6 +8,7 @@ from itertools import combinations
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -108,9 +109,9 @@ class MiniRocket(BaseCollectionTransformer):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        random_state = (
-            np.int32(self.random_state) if isinstance(self.random_state, int) else None
-        )
+        rng = check_random_state(self.random_state)
+        self._random_state = rng.randint(np.iinfo(np.int32).max)
+
         _, n_channels, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
@@ -123,7 +124,7 @@ class MiniRocket(BaseCollectionTransformer):
         else:
             self.n_kernels_ = self.n_kernels
         self.parameters = _static_fit(
-            X, self.n_kernels_, self.max_dilations_per_kernel, random_state
+            X, self.n_kernels_, self.max_dilations_per_kernel, self._random_state
         )
         return self
 

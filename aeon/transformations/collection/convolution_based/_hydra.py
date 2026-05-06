@@ -5,6 +5,7 @@ __all__ = ["HydraTransformer"]
 
 import numpy as np
 import pandas as pd
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -105,8 +106,9 @@ class HydraTransformer(BaseCollectionTransformer):
 
         import torch
 
-        if isinstance(self.random_state, int):
-            torch.manual_seed(self.random_state)
+        rng = check_random_state(self.random_state)
+        seed = rng.randint(np.iinfo(np.int32).max)
+        torch.manual_seed(seed)
 
         torch.set_num_threads(self._n_jobs)
 
