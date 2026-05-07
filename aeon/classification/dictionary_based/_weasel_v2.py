@@ -185,6 +185,7 @@ class WEASEL_V2(BaseClassifier):
             n_jobs=self._n_jobs,
         )
         words = self.transform.fit_transform(X, y)
+        words = words.astype(np.float32, copy=False)
 
         # use RidgeClassifierCV for classification
         self.clf = RidgeClassifierCV(
@@ -426,7 +427,6 @@ class WEASELTransformerV2:
             all_words = np.concatenate(sfa_words, axis=1)
         else:
             all_words = hstack(sfa_words)
-
         self.total_features_count = all_words.shape[1]
 
         return all_words
