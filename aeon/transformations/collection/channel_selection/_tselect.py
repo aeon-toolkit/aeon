@@ -59,12 +59,16 @@ class TSelect(BaseChannelSelector):
     clusters_ : list[list[int]]
         Clusters of relevant channels before selecting the best channel from
         each cluster.
-    estimators_ : list
-        Fitted per-channel logistic regression models.
-    feature_scalers_ : list
-        Fitted per-channel feature scalers.
-    dropped_nan_columns_ : list
-        Boolean masks identifying all-NaN feature columns dropped per channel.
+    channel_min_ : np.ndarray of shape (n_channels,)
+        Per-channel minima used for fit-time preprocessing.
+    channel_max_ : np.ndarray of shape (n_channels,)
+        Per-channel maxima used for fit-time preprocessing.
+    rank_correlations_ : dict
+        Pairwise rank correlations computed during redundant-channel filtering.
+    removed_series_auc_ : set
+        Channels removed by AUC filtering, with their AUC scores.
+    removed_series_corr_ : set
+        Channels removed by correlation filtering.
 
     References
     ----------
@@ -75,6 +79,9 @@ class TSelect(BaseChannelSelector):
 
     Notes
     -----
+    ``transform`` only subsets the input collection using ``channels_selected_``.
+    Other fitted attributes are retained for inspection of the selection process.
+
     This implementation is based on the TSelect method and credits the original
     ML-KULeuven implementation:
     https://github.com/ML-KULeuven/TSelect
@@ -132,9 +139,6 @@ class TSelect(BaseChannelSelector):
         self.channel_correlations_ = np.full((n_channels, n_channels), np.nan)
         np.fill_diagonal(self.channel_correlations_, 1.0)
 
-        self.estimators_ = [None] * n_channels
-        self.feature_scalers_ = [None] * n_channels
-        self.dropped_nan_columns_ = [None] * n_channels
         self.rank_correlations_ = {}
         self.removed_series_auc_ = set()
         self.removed_series_corr_ = set()
@@ -161,7 +165,6 @@ class TSelect(BaseChannelSelector):
             proba = clf.predict_proba(features_valid)
             auc = _roc_auc_score_like_tselect(y_valid, proba, clf.classes_)
 
-            self.estimators_[channel] = clf
             self.channel_scores_[channel] = auc
             probabilities[channel] = proba
 
@@ -270,13 +273,8 @@ class TSelect(BaseChannelSelector):
 
         if np.isnan(features_train).any():
             nan_columns = np.isnan(features_train).all(axis=0)
-            self.dropped_nan_columns_[channel] = nan_columns
             features_train = features_train[:, ~nan_columns]
             features_valid = features_valid[:, ~nan_columns]
-        else:
-            self.dropped_nan_columns_[channel] = np.zeros(
-                features_train.shape[1], dtype=bool
-            )
 
         if features_train.shape[1] == 0:
             raise ValueError(f"All extracted features for channel {channel} were NaN.")
@@ -291,7 +289,6 @@ class TSelect(BaseChannelSelector):
             features_train = scaler.fit_transform(features_train)
             features_valid = scaler.transform(features_valid)
 
-        self.feature_scalers_[channel] = scaler
         return features_train, features_valid
 
     def _filter_auc_percentage(self, ranks):
