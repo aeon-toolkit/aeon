@@ -166,7 +166,7 @@ class TSelect(BaseChannelSelector):
             probabilities[channel] = proba
 
             if self.irrelevant_selector and auc < self.irrelevant_hard_threshold:
-                self.removed_series_auc_.add((channel, auc))
+                self.removed_series_auc_.add((int(channel), float(auc)))
                 removed_predictions[channel] = proba
                 highest_removed_auc = max(highest_removed_auc, auc)
                 continue
@@ -315,7 +315,9 @@ class TSelect(BaseChannelSelector):
         removed = sorted_channels[n_keep:]
 
         for channel in removed:
-            self.removed_series_auc_.add((channel, self.channel_scores_[channel]))
+            self.removed_series_auc_.add(
+                (int(channel), float(self.channel_scores_[channel]))
+            )
 
         return {channel: ranks[channel] for channel in kept}
 
@@ -337,7 +339,7 @@ class TSelect(BaseChannelSelector):
 
             for channel in cluster:
                 if channel != selected_channel:
-                    self.removed_series_corr_.add(channel)
+                    self.removed_series_corr_.add(int(channel))
 
         return selected
 
