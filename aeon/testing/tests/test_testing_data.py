@@ -23,10 +23,7 @@ from aeon.testing.testing_data import (
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 from aeon.utils.validation.collection import has_missing as has_missing_collection
-from aeon.utils.validation.collection import (
-    is_collection,
-    is_equal_length,
-)
+from aeon.utils.validation.collection import is_collection, is_equal_length
 from aeon.utils.validation.collection import is_univariate as is_univariate_collection
 from aeon.utils.validation.labels import (
     check_anomaly_detection_y,
@@ -34,9 +31,7 @@ from aeon.utils.validation.labels import (
     check_regression_y,
 )
 from aeon.utils.validation.series import has_missing as has_missing_series
-from aeon.utils.validation.series import (
-    is_series,
-)
+from aeon.utils.validation.series import is_series
 from aeon.utils.validation.series import is_univariate as is_univariate_series
 
 

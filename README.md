@@ -1,33 +1,29 @@
 <p align="center">
-    <a href="https://aeon-toolkit.org"><img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
+<a href="https://www.aeon-toolkit.org/">
+  <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" alt="aeon logo" width="400">
+</a>
 </p>
 
-# ⌛ Welcome to aeon
+<p align="center">
+<strong>Time series machine learning, built by the researchers behind the algorithms.
+</strong>
+</p>
 
-`aeon` is an open-source toolkit for time series machine learning.
- Fully compatible with [scikit-learn](https://scikit-learn.org), it brings together
-the latest machine learning methods alongside a wide range of classical approaches
-for tasks such as forecasting, clustering, and classification.
+`aeon` is a scikit-learn compatible Python library for learning from time series.
+It covers classification, regression, clustering, forecasting, anomaly detection, distances,
+segmentation, similarity search, transformations and benchmarking.
 
-Our goal is to provide a comprehensive collection of state-of-the-art time
-series algorithms, with efficient implementations powered by `numba`, and to promote
-reproducible research in the field of time series machine learning.
+Many implementations in `aeon` are contributed and maintained by the researchers who developed the original methods. These include state-of-the-art models for forecasting, classification, regression, and clustering, including deep learning approaches.
 
-The latest `aeon` release is `v1.4.0`. You can view the full changelog
-[here](https://www.aeon-toolkit.org/en/stable/changelog.html).
+[Documentation](https://www.aeon-toolkit.org/) ·
+[Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
+[API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html) ·
+[Getting started](https://www.aeon-toolkit.org/en/stable/getting_started.html) ·
+[Discussions](https://github.com/aeon-toolkit/aeon/discussions) ·
+[Discord](https://discord.gg/D6rzqHGKRJ)
 
-Our webpage and documentation is available at https://aeon-toolkit.org.
-
-The following modules are still considered experimental, and the [deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html)
-does not apply:
-
-- `anomaly_detection`
-- `forecasting`
-- `segmentation`
-- `similarity_search`
-- `visualisation`
-- `transformations.collection.self_supervised`
-- `transformations.collection.imbalance`
+> 📄 Published in the **Journal of Machine Learning Research** (2024) —
+> [aeon: a Python Toolkit for Learning from Time Series](http://jmlr.org/papers/v25/23-1444.html)
 
 | Overview        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -36,121 +32,237 @@ does not apply:
 | **Community**   | [![!discord](https://img.shields.io/static/v1?logo=discord&label=discord&message=chat&color=lightgreen)](https://discord.gg/D6rzqHGKRJ) [![!linkedin](https://img.shields.io/static/v1?logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIGZpbGw9IiNmZmZmZmYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+TGlua2VkSW48L3RpdGxlPjxwYXRoIGQ9Ik0yMC40NDcgMjAuNDUyaC0zLjU1NHYtNS41NjljMC0xLjMyOC0uMDI3LTMuMDM3LTEuODUyLTMuMDM3LTEuODUzIDAtMi4xMzYgMS40NDUtMi4xMzYgMi45Mzl2NS42NjdIOS4zNTFWOWgzLjQxNHYxLjU2MWguMDQ2Yy40NzctLjkgMS42MzctMS44NSAzLjM3LTEuODUgMy42MDEgMCA0LjI2NyAyLjM3IDQuMjY3IDUuNDU1djYuMjg2ek01LjMzNyA3LjQzM2MtMS4xNDQgMC0yLjA2My0uOTI2LTIuMDYzLTIuMDY1IDAtMS4xMzguOTItMi4wNjMgMi4wNjMtMi4wNjMgMS4xNCAwIDIuMDY0LjkyNSAyLjA2NCAyLjA2MyAwIDEuMTM5LS45MjUgMi4wNjUtMi4wNjQgMi4wNjV6bTEuNzgyIDEzLjAxOUgzLjU1NVY5aDMuNTY0djExLjQ1MnpNMjIuMjI1IDBIMS43NzFDLjc5MiAwIDAgLjc3NCAwIDEuNzI5djIwLjU0MkMwIDIzLjIyNy43OTIgMjQgMS43NzEgMjRoMjAuNDUxQzIzLjIgMjQgMjQgMjMuMjI3IDI0IDIyLjI3MVYxLjcyOUMyNCAuNzc0IDIzLjIgMCAyMi4yMjIgMGguMDAzeiIvPjwvc3ZnPgo=&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!medium](https://img.shields.io/static/v1?logo=medium&label=Medium&message=blog&color=darkblue)](https://medium.com/@aeon.toolkit)   |
 | **Affiliation** | [![numfocus](https://img.shields.io/badge/NumFOCUS-Affiliated%20Project-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org/sponsored-projects/affiliated-projects)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
-## ⚙️ Installation
+<h4>Supported by</h4>
+<p>
+  <a href="https://www.inria.fr/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/inria.png" alt="INRIA" height="50">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.ukri.org/councils/epsrc/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/epsrc.png" alt="UKRI" height="50">
+</a>
+</p>
 
-`aeon` requires a Python version of 3.10 or greater. Our full installation guide is
-available in our [documentation](https://www.aeon-toolkit.org/en/stable/installation.html).
+## From paper to `pip install`
 
-The easiest way to install `aeon` is via pip:
+`aeon` is developed in close contact with the time series research community.
+Many of its algorithms are contributed or maintained by their original authors,
+and the same team behind `aeon` runs the [benchmarks](https://timeseriesclassification.com/) that the field uses to
+evaluate new methods. That means:
+
+- **Faithful implementations.** Algorithms reflect what the papers actually describe.
+- **State of the art, sooner.** New methods often land in `aeon` alongside publication.
+- **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
+
+
+A selection of algorithms available in `aeon` written by `aeon` core developers or contributors:
+
+| Method                 | Reference                                                                                 | Task                   |
+|------------------------|-------------------------------------------------------------------------------------------|------------------------|
+| **InceptionTime**      | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification         |
+| **Hydra-MultiRocket**  | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification         |
+| **SETAR-Tree**         | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting            |
+| **KASBA**              | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering             |
+| **CLASP**              | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation           |
+| **DrCIF**              | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
+| **TDE**                | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
+
+Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies:
+
+
+| Study                             | Reference                                                                                 | Area         |
+|-----------------------------------|-------------------------------------------------------------------------------------------|--------------|
+| Clustering                        | [Holder et al., 2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)       | Benchmarking |
+| Anomaly detection                 | [Schmidl et al., 2022](https://vldb.org/pvldb/vol15/p1779-wenig.pdf)                      | Benchmarking |
+| Classification (the "bake off")   | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking |
+| Classification ("bake off redux") | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/s10618-024-01022-1)  | Benchmarking |
+| Deep learning for classification  | [Ismail-Fawaz et al., 2019](https://link.springer.com/article/10.1007/s10618-019-00619-1) | Benchmarking |
+
+
+See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
+for the full list of estimators across all tasks.
+
+## Installation
+
+`aeon` requires Python 3.10 or newer.
+
+Install the latest release from PyPI:
 
 ```bash
 pip install aeon
 ```
 
-Some estimators require additional packages to be installed. If you want to install
-the full package with all optional dependencies, you can use:
+To install with all optional dependencies (including deep learning):
 
 ```bash
 pip install aeon[all_extras]
 ```
 
-Instructions for installation from the [GitHub source](https://github.com/aeon-toolkit/aeon)
-can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_installation.html).
+For development installs and platform-specific notes, see the
+[installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
 
-## ⏲️ Getting started
+## Quick start
+Fit a classifier on a standard UCR dataset:
+```python
+from aeon.classification.convolution_based import RocketClassifier
+from aeon.datasets import load_gunpoint
 
-The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
+X_train, y_train = load_gunpoint(split="train")
+X_test, y_test = load_gunpoint(split="test")
 
-Below we provide a quick example of how to use `aeon` for classification and clustering.
+clf = RocketClassifier()
+clf.fit(X_train, y_train)
 
-### Classification/Regression
+print("Accuracy:", clf.score(X_test, y_test))
+```
 
-Time series classification looks to predict class labels fore unseen series using a
-model fitted from a collection of time series. The framework for regression is similar,
-replace the classifier with a regressor and the labels with continuous values.
+## Tasks supported
+
+Ten task areas, one consistent API:
+
+| Task | What it does | |
+| --- | --- | --- |
+| **Classification** | Predict labels for time series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/classification.html) |
+| **Regression** | Predict continuous values from time series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/regression.html) |
+| **Clustering** | Group similar series without labels | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/clustering.html) |
+| **Forecasting** | Predict future values | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/forecasting.html) |
+| **Anomaly detection** | Find unusual points or subsequences | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/anomaly_detection.html) |
+| **Segmentation** | Split a series into homogeneous regions | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/segmentation.html) |
+| **Similarity search** | Find similar subsequences in long series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/similarity_search.html) |
+| **Transformations** | Feature extraction and preprocessing | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/transformations.html) |
+| **Distances & kernels** | Time series similarity measures | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/distances.html) |
+| **Benchmarking** | Reproducible experimental evaluation | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/benchmarking.html) |
+
+## Getting started examples
+
+### Classification
+
+Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series.
 
 ```python
 import numpy as np
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+from aeon.classification.convolution_based import MultiRocketHydraClassifier
 
-X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-             [[1, 2, 3, 4, 4, 2]],   # Three samples, one channel,
-             [[8, 7, 6, 5, 4, 4]]])  # six series length
-y = np.array(['low', 'low', 'high'])  # class labels for each sample
+X = np.array([
+    [[1, 2, 3, 4, 5, 5]],
+    [[1, 2, 3, 4, 4, 2]],
+    [[8, 7, 6, 5, 4, 4]],
+])
+y = np.array(["low", "low", "high"])
 
-clf = KNeighborsTimeSeriesClassifier(distance="dtw")
-clf.fit(X, y)  # fit the classifier on train data
->>> KNeighborsTimeSeriesClassifier()
+clf = MultiRocketHydraClassifier(n_kernels=100)
+clf.fit(X, y)
 
-X_test = np.array(
-    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
-)
-y_pred = clf.predict(X_test)  # make class predictions on new data
->>> ['low' 'high' 'high']
+X_test = np.array([
+    [[2, 2, 2, 2, 2, 2]],
+    [[5, 5, 5, 5, 5, 5]],
+    [[6, 6, 6, 6, 6, 6]],
+])
+
+y_pred = clf.predict(X_test)
+print(y_pred)
+# ['low' 'low' 'high']
 ```
+
 
 ### Clustering
 
-Time series clustering groups similar time series together from a collection of
-time series.
+Time series clustering groups similar time series together from an unlabelled collection.
 
 ```python
-import numpy as np
-from aeon.clustering import TimeSeriesKMeans
+from aeon.clustering import KASBA
+from aeon.datasets import load_gunpoint
 
-X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-             [[1, 2, 3, 4, 4, 2]],   # Three samples, one channel,
-             [[8, 7, 6, 5, 4, 4]]])  # six series length
+X, _ = load_gunpoint()
+clu = KASBA(n_clusters=2)
+clu.fit(X)
 
-clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
-clu.fit(X)  # fit the clusterer on train data
->>> TimeSeriesKMeans(distance='dtw', n_clusters=2)
-
-clu.labels_ # get training cluster labels
->>> array([0, 0, 1])
-
-X_test = np.array(
-    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
-)
-clu.predict(X_test)  # Assign clusters to new data
->>> array([1, 0, 0])
+print(clu.labels_)
 ```
 
-## 💬 Where to ask questions
+### Forecasting
 
-| Type                               | Platforms                         |
-|------------------------------------|-----------------------------------|
-| 🐛 **Bug Reports**                 | [GitHub Issue Tracker]            |
-| ✨ **Feature Requests & Ideas**     | [GitHub Issue Tracker] & [Discord]  |
-| 💻 **Usage Questions**             | [GitHub Discussions] & [Discord]    |
-| 💬 **General Discussion**          | [GitHub Discussions] & [Discord]    |
-| 🏭 **Contribution & Development**  | [Discord]                           |
+`aeon` provides a wide range of forecasting algorithms, including classic
+statistical models and modern deep learning approaches.
 
-[GitHub Issue Tracker]: https://github.com/aeon-toolkit/aeon/issues
-[GitHub Discussions]: https://github.com/aeon-toolkit/aeon/discussions
-[Discord]: https://discord.gg/D6rzqHGKRJ
+```python
+from aeon.datasets import load_airline
+from aeon.forecasting.stats import ARIMA
 
-For enquiries about the project or collaboration, our email is
-[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org).
+y = load_airline()
 
-## 🔨 Contributing to aeon
+forecaster = ARIMA(1, 1, 1)
+pred = forecaster.forecast(y)
 
-If you are interested in contributing to `aeon`, please see our [contributing guide](https://www.aeon-toolkit.org/en/latest/contributing.html)
-and have a read through before assigning an issue and creating a pull request. Be
-aware that the `latest` version of the docs is the development version, and the `stable`
-version is the latest release.
+print(pred)
+```
+For more advanced forecasting, `aeon` also includes deep learning and machine learning methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
 
-The `aeon` developers are volunteers so please be patient with responses to comments and
-pull request reviews. If you have any questions, feel free to ask using the above
-mediums.
+### Deep learning
 
-## 📚 Citation
+`aeon` provides Keras/TensorFlow implementations of leading deep learning
+architectures for time series through the `networks` module, with a consistent scikit-learn compatible API
+and many models contributed by their original authors:
 
-If you use `aeon` we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html):
+- **Classification:** InceptionTime, H-InceptionTime, LITE, LITETime, ResNet, FCN, MLP, CNN, Disjoint-CNN, and more
+- **Regression:** the same backbone architectures, adapted for continuous targets
+- **Clustering:** deep learning based clustering via learned representations
+- **Forecasting:** deep learning based forecasting
+
+A minimal example:
+
+```python
+from aeon.datasets import load_basic_motions
+from aeon.classification.deep_learning import InceptionTimeClassifier
+
+X_train, y_train = load_basic_motions(split="train")
+X_test, y_test = load_basic_motions(split="test")
+
+clf = InceptionTimeClassifier(n_epochs=10)
+clf.fit(X_train, y_train)
+print(clf.score(X_test, y_test))
+```
+
+See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
+for GPU usage, custom architectures, and benchmarking against classical methods.
+
+For more examples across tasks, visit the
+[examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
+
+## Support aeon
+
+There are several ways to engage with the project:
+
+- ⭐ **Star this repository** to help others discover it
+- 👀 **Watch releases** to get notified when new versions ship
+- 📝 **[Cite](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff) `aeon`** in academic work if you use it
+- 🐛 **Report bugs or request features** via [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
+- 💬 **Ask questions or join the discussion** on [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.gg/D6rzqHGKRJ)
+- 🛠️ **Contribute** code, tests, documentation, or examples — see the [contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
+
+For project or collaboration enquiries, contact **[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)**.
+
+## Contributing to aeon
+
+If you are interested in contributing, please read the
+[contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
+before opening a pull request or taking ownership of an issue.
+
+Useful links:
+
+- [Code of conduct](https://github.com/aeon-toolkit/aeon/blob/main/CODE_OF_CONDUCT.md)
+- [Governance](https://github.com/aeon-toolkit/aeon/blob/main/GOVERNANCE.md)
+- [Project website](https://www.aeon-toolkit.org/)
+
+The `aeon` developers are volunteers, so please be patient with issue triage and pull request review.
+
+## Citation
+
+If you use `aeon` in academic work, please cite the project:
 
 ```bibtex
 @article{aeon24jmlr,
-  author  = {Matthew Middlehurst and Ali Ismail-Fawaz and Antoine Guillaume and Christopher Holder and David Guijo-Rubio and Guzal Bulatova and Leonidas Tsaprounis and Lukasz Mentel and Martin Walter and Patrick Sch{{\"a}}fer and Anthony Bagnall},
+  author  = {Matthew Middlehurst and Ali Ismail-Fawaz and Antoine Guillaume and Christopher Holder and David Guijo-Rubio and Guzal Bulatova and Leonidas Tsaprounis and Lukasz Mentel and Martin Walter and Patrick Sch{\"a}fer and Anthony Bagnall},
   title   = {aeon: a Python Toolkit for Learning from Time Series},
   journal = {Journal of Machine Learning Research},
   year    = {2024},
@@ -161,10 +273,16 @@ If you use `aeon` we would appreciate a citation of the following [paper](https:
 }
 ```
 
-If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).
+If you let us know about your paper using `aeon`, we will happily list it on the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
 
-## 👥 Further information
+## Project history
 
-`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
-developers. You can read more about the project's history and governance structure in
-our [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core developers, and has since been substantially rewritten and extended.
+Our core development team of 13 spans academia and industry, representing seven nationalities across the globe.
+You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+
+## Project status
+
+`aeon` is under active development. The core package is stable and widely used. The following modules are currently considered in development, and the deprecation policy does not necessarily apply (although we only rarely make non-compatible changes): `anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`, `visualisation`, `transformations.collection.self_supervised`, `transformations.collection.imbalance`.
+
+Please check the documentation for task-specific capabilities, limitations, and current status.
