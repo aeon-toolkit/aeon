@@ -65,6 +65,19 @@ class TSelect(BaseChannelSelector):
         Fitted per-channel feature scalers.
     dropped_nan_columns_ : list
         Boolean masks identifying all-NaN feature columns dropped per channel.
+
+    References
+    ----------
+    .. [1] Nufyts, L., Perini, L. and Davis, J. "TSelect: selecting relevant and
+        non-redundant channels for multivariate time series classification."
+        Data Mining and Knowledge Discovery, 39, 76, 2025.
+        https://doi.org/10.1007/s10618-025-01132-4
+
+    Notes
+    -----
+    This implementation is based on the TSelect method and credits the original
+    ML-KULeuven implementation:
+    https://github.com/ML-KULeuven/TSelect
     """
 
     _tags = {
@@ -339,30 +352,61 @@ class TSelect(BaseChannelSelector):
 
 
 def _extract_single_pass_statistics(X):
-    """Extract simple per-case statistics for one channel.
+    """Extract TSFuse-style SinglePassStatistics for one channel.
 
-    This mirrors the default TSelect idea of using cheap single-pass summary
-    features while avoiding the external TSFuse dependency.
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_cases, n_timepoints)
+        One channel from a collection of time series.
+
+    Returns
+    -------
+    features : np.ndarray of shape (n_cases, 8)
+        Features in TSFuse order: length, sum, min, max, mean, variance,
+        skewness and kurtosis.
     """
-    X = np.asarray(X, dtype=float)
+    X = np.asarray(X, dtype=np.float64)
 
-    minimum = np.nanmin(X, axis=1)
-    maximum = np.nanmax(X, axis=1)
-    mean = np.nanmean(X, axis=1)
-    var = np.nanvar(X, axis=1)
+    n_cases = X.shape[0]
+    features = np.empty((n_cases, 8), dtype=np.float64)
 
-    std = np.sqrt(var)
-    safe_std = np.where(std > 0, std, 1.0)
-    centred = X - mean[:, None]
-    z = centred / safe_std[:, None]
+    for i in range(n_cases):
+        values = X[i]
+        valid = values[(~np.isnan(values)) & (values != np.inf) & (values != -np.inf)]
 
-    skewness = np.nanmean(z**3, axis=1)
-    kurtosis = np.nanmean(z**4, axis=1) - 3.0
+        n = valid.shape[0]
 
-    skewness = np.where(std > 0, skewness, 0.0)
-    kurtosis = np.where(std > 0, kurtosis, 0.0)
+        features[i, 0] = n
+        features[i, 1] = np.sum(valid) if n > 0 else 0.0
 
-    features = np.column_stack([minimum, maximum, mean, var, skewness, kurtosis])
+        if n == 0:
+            features[i, 2:] = np.nan
+            continue
+
+        minimum = np.min(valid)
+        maximum = np.max(valid)
+        mean = np.mean(valid)
+
+        centred = valid - mean
+        m2 = np.sum(centred**2)
+        m3 = np.sum(centred**3)
+        m4 = np.sum(centred**4)
+
+        variance = m2 / n
+
+        if m2 != 0:
+            skewness = (np.sqrt(n) * m3) / (m2**1.5)
+            kurtosis = (n * m4) / (m2 * m2) - 3.0
+        else:
+            skewness = np.nan
+            kurtosis = np.nan
+
+        features[i, 2] = minimum
+        features[i, 3] = maximum
+        features[i, 4] = mean
+        features[i, 5] = variance
+        features[i, 6] = skewness
+        features[i, 7] = kurtosis
 
     return features
 
