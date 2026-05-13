@@ -68,7 +68,7 @@ class TSelect(BaseChannelSelector):
 
     References
     ----------
-    .. [1] Nufyts, L., Perini, L. and Davis, J. "TSelect: selecting relevant and
+    .. [1] Nuyts, L., Perini, L. and Davis, J. "TSelect: selecting relevant and
         non-redundant channels for multivariate time series classification."
         Data Mining and Knowledge Discovery, 39, 76, 2025.
         https://doi.org/10.1007/s10618-025-01132-4
@@ -188,6 +188,7 @@ class TSelect(BaseChannelSelector):
             self.removed_series_auc_ = set()
 
         if self.irrelevant_selector:
+            hard_threshold_ranks = ranks.copy()
             ranks = self._filter_auc_percentage(ranks)
             if len(ranks) == 0:
                 warnings.warn(
@@ -195,11 +196,7 @@ class TSelect(BaseChannelSelector):
                     "channels that passed the hard AUC threshold.",
                     stacklevel=2,
                 )
-                ranks = {
-                    channel: _probabilities_to_rank(probabilities[channel])
-                    for channel in range(n_channels)
-                    if not np.isnan(self.channel_scores_[channel])
-                }
+                ranks = hard_threshold_ranks
 
         if len(ranks) == 0:
             raise RuntimeError("TSelect failed to retain any channels.")
@@ -253,7 +250,7 @@ class TSelect(BaseChannelSelector):
     def _train_validation_split(self, n_cases):
         if self.validation_size is not None:
             test_size = self.validation_size
-        elif n_cases < 100:
+        elif n_cases <= 100:
             test_size = 0.25
         else:
             n_train = max(100, round(0.25 * n_cases))
@@ -307,12 +304,19 @@ class TSelect(BaseChannelSelector):
             reverse=True,
         )
 
-        n_keep = ceil(len(sorted_channels) * self.irrelevant_percentage_to_keep)
-        if n_keep == 0:
-            return {}
+        n_remove = len(sorted_channels) - ceil(
+            len(sorted_channels) * self.irrelevant_percentage_to_keep
+        )
+        if n_remove == 0:
+            return ranks
 
-        kept = sorted_channels[:n_keep]
-        removed = sorted_channels[n_keep:]
+        threshold = self.channel_scores_[sorted_channels[-n_remove]]
+        kept = [
+            channel
+            for channel in sorted_channels
+            if self.channel_scores_[channel] > threshold
+        ]
+        removed = [channel for channel in sorted_channels if channel not in kept]
 
         for channel in removed:
             self.removed_series_auc_.add(
@@ -540,7 +544,7 @@ def _cluster_correlations(rank_correlations, included_channels, threshold=0.7):
     unallocated = set(included_channels)
 
     for channel_a, channel_b in rank_correlations.keys():
-        if channel_a in included_channels and channel_b not in included_channels:
+        if channel_a not in included_channels or channel_b not in included_channels:
             continue
 
         corr = np.mean(np.abs(rank_correlations[(channel_a, channel_b)]))
