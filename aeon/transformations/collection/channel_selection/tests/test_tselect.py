@@ -93,7 +93,7 @@ def test_tselect_percentage_filter_removes_cutoff_ties():
     """Test percentage filtering follows TSelect cutoff-threshold semantics."""
     selector = TSelect(irrelevant_percentage_to_keep=0.5)
     selector.channel_scores_ = np.array([0.9, 0.7, 0.7, 0.6])
-    selector.removed_series_auc_ = set()
+    selector.removed_series_auc_ = {}
 
     filtered = selector._filter_auc_percentage(
         {
@@ -105,4 +105,4 @@ def test_tselect_percentage_filter_removes_cutoff_ties():
     )
 
     assert list(filtered.keys()) == [0]
-    assert selector.removed_series_auc_ == {(1, 0.7), (2, 0.7), (3, 0.6)}
+    assert selector.removed_series_auc_ == {1: 0.7, 2: 0.7, 3: 0.6}

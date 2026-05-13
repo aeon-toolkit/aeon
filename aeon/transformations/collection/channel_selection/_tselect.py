@@ -65,8 +65,10 @@ class TSelect(BaseChannelSelector):
         Per-channel maxima used for fit-time preprocessing.
     rank_correlations_ : dict
         Pairwise rank correlations computed during redundant-channel filtering.
-    removed_series_auc_ : set
-        Channels removed by AUC filtering, with their AUC scores.
+        Empty if redundant-channel filtering is skipped.
+    removed_series_auc_ : dict
+        Mapping from channel index to AUC score for channels removed by AUC
+        filtering.
     removed_series_corr_ : set
         Channels removed by correlation filtering.
 
@@ -81,6 +83,8 @@ class TSelect(BaseChannelSelector):
     -----
     ``transform`` only subsets the input collection using ``channels_selected_``.
     Other fitted attributes are retained for inspection of the selection process.
+    If redundant-channel filtering is skipped, off-diagonal entries in
+    ``channel_correlations_`` remain ``np.nan`` and ``rank_correlations_`` is empty.
 
     This implementation is based on the TSelect method and credits the original
     ML-KULeuven implementation:
@@ -140,7 +144,7 @@ class TSelect(BaseChannelSelector):
         np.fill_diagonal(self.channel_correlations_, 1.0)
 
         self.rank_correlations_ = {}
-        self.removed_series_auc_ = set()
+        self.removed_series_auc_ = {}
         self.removed_series_corr_ = set()
 
         ranks = {}
@@ -169,7 +173,7 @@ class TSelect(BaseChannelSelector):
             probabilities[channel] = proba
 
             if self.irrelevant_selector and auc < self.irrelevant_hard_threshold:
-                self.removed_series_auc_.add((int(channel), float(auc)))
+                self.removed_series_auc_[int(channel)] = float(auc)
                 removed_predictions[channel] = proba
                 highest_removed_auc = max(highest_removed_auc, auc)
                 continue
@@ -184,11 +188,11 @@ class TSelect(BaseChannelSelector):
                 stacklevel=2,
             )
 
-            for channel, auc in self.removed_series_auc_:
+            for channel, auc in self.removed_series_auc_.items():
                 ranks[channel] = _probabilities_to_rank(removed_predictions[channel])
                 self.channel_scores_[channel] = auc
 
-            self.removed_series_auc_ = set()
+            self.removed_series_auc_ = {}
 
         if self.irrelevant_selector:
             hard_threshold_ranks = ranks.copy()
@@ -316,8 +320,8 @@ class TSelect(BaseChannelSelector):
         removed = [channel for channel in sorted_channels if channel not in kept]
 
         for channel in removed:
-            self.removed_series_auc_.add(
-                (int(channel), float(self.channel_scores_[channel]))
+            self.removed_series_auc_[int(channel)] = float(
+                self.channel_scores_[channel]
             )
 
         return {channel: ranks[channel] for channel in kept}
@@ -723,7 +727,12 @@ def _find_uncorrelated_signals(cluster_a, cluster_b, rank_correlations, threshol
 
 
 def _check_correlated(test_channel, corr_channels, rank_correlations, threshold):
-    """Check whether one channel is correlated with a list of channels."""
+    """Check whether one channel is correlated with a list of channels.
+
+    Upstream TSelect treats missing pairwise correlations as correlated. This
+    can happen when optimized rank-correlation computation skips pairs that
+    cannot affect the chosen channels.
+    """
     result = []
     corrs = []
 
