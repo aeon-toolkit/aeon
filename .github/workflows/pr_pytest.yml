@@ -46,7 +46,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical
+        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' }}
 
   pytest:
     runs-on: ${{ matrix.os }}
