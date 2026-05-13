@@ -90,11 +90,9 @@ def plot_series(
     # labels
     if labels is not None:
         if n_series != len(labels):
-            raise ValueError(
-                """There must be one label for each time series,
+            raise ValueError("""There must be one label for each time series,
                 but found inconsistent numbers of series and
-                labels."""
-            )
+                labels.""")
         legend = True
     else:
         labels = ["" for _ in range(n_series)]
@@ -103,11 +101,9 @@ def plot_series(
     # markers
     if markers is not None:
         if n_series != len(markers):
-            raise ValueError(
-                """There must be one marker for each time series,
+            raise ValueError("""There must be one marker for each time series,
                 but found inconsistent numbers of series and
-                markers."""
-            )
+                markers.""")
     else:
         markers = ["o" for _ in range(n_series)]
 

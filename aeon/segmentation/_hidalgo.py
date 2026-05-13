@@ -170,7 +170,9 @@ class HidalgoSegmenter(BaseSegmenter):
             n_neighbors=q + 1, algorithm="ball_tree", metric=metric
         ).fit(X)
         distances, Iin = nbrs.kneighbors(X)
-        mu = np.divide(distances[:, 2], distances[:, 1])
+        eps = 1e-12
+        # stabilise r2/r1 ratio; protect against zero or near-zero r1
+        mu = np.divide(distances[:, 2], distances[:, 1] + eps)
 
         nbrmat = np.zeros((m, m))
         for n in range(q):
@@ -505,7 +507,7 @@ class HidalgoSegmenter(BaseSegmenter):
             d = sample_d(K, a1, b1, _rng)
             sampling = np.append(sampling, d)
 
-            (p, pp) = sample_p(K, p, pp, c1, _rng)
+            p, pp = sample_p(K, p, pp, c1, _rng)
             sampling = np.append(sampling, p[: K - 1])
             sampling = np.append(sampling, (1 - pp))
 
@@ -591,7 +593,7 @@ class HidalgoSegmenter(BaseSegmenter):
         V, NN, a1, b1, c1, Z, f1, N_in = self._initialise_params(N, mu, Iin, _rng)
 
         Npar = N + 2 * K + 2 + 1
-        bestsampling = np.zeros(shape=0)
+        bestsampling = None
         maxlik = -1e10
 
         for _ in range(n_replicas):
@@ -619,6 +621,10 @@ class HidalgoSegmenter(BaseSegmenter):
                 for it in range(n_iter)
                 if it % sampling_rate == 0 and it >= n_iter * burn_in
             ]
+
+            if len(idx) == 0:
+                continue
+
             sampling = sampling[idx,]
 
             likelihood = np.mean(sampling[:, -1], axis=0)
@@ -626,6 +632,12 @@ class HidalgoSegmenter(BaseSegmenter):
             if likelihood > maxlik:
                 bestsampling = sampling
                 maxlik = likelihood
+
+        if bestsampling is None:
+            raise ValueError(
+                f"No valid samples after burn-in and sampling_rate filtering. "
+                f"Try reducing burn_in ({burn_in}) or sampling_rate ({sampling_rate})."
+            )
 
         self._d = np.mean(bestsampling[:, :K], axis=0)
         self._derr = np.std(bestsampling[:, :K], axis=0)
@@ -639,7 +651,7 @@ class HidalgoSegmenter(BaseSegmenter):
         for k in range(K):
             Pi[k, :] = np.sum(bestsampling[:, (2 * K) + 1 : 2 * K + N + 1] == k, axis=0)
 
-        Pi = Pi / len(idx)
+        Pi = Pi / bestsampling.shape[0]
         self._Pi = Pi
 
         Z = np.argmax(Pi, axis=0)

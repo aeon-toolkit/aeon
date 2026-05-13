@@ -9,6 +9,7 @@ from sklearn.tree import DecisionTreeClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
+from aeon.datasets import load_italy_power_demand
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.feature_based import Catch22, SevenNumberSummary
@@ -259,3 +260,25 @@ def test_interval_features():
 
     assert est._interval_function == [True]
     assert est._interval_transformer == [True]
+
+
+@pytest.mark.parametrize(
+    "base_estimator",
+    [DecisionTreeClassifier(), ContinuousIntervalTree()],
+)
+def test_temporal_importance_curves(base_estimator):
+    """Test temporal_importance_curves for supported base estimators."""
+    X, y = load_italy_power_demand(split="train")
+
+    est = IntervalForestClassifier(base_estimator=base_estimator)
+    est.fit(X, y)
+
+    names, curves = est.temporal_importance_curves()
+
+    assert isinstance(names, list)
+    assert isinstance(curves, list)
+    assert len(names) == len(curves) > 0
+    assert isinstance(curves[0], np.ndarray)
+    assert curves[0].ndim == 1
+    assert len(curves[0]) == X.shape[2]
+    assert all(np.all(c >= 0) for c in curves)

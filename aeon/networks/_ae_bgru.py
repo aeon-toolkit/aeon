@@ -63,10 +63,8 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
 
         if self.n_layers is None:
             if self.n_units is not None:
-                raise ValueError(
-                    """Cannot pass number of units without specifying
-                            number of layers."""
-                )
+                raise ValueError("""Cannot pass number of units without specifying
+                            number of layers.""")
             elif self.n_units is None:
                 self._n_layers, self._n_units = 2, [50, self.latent_space_dim // 2]
         elif self.n_layers is not None:

@@ -7,10 +7,10 @@ from aeon.clustering.averaging._ba_utils import (
     _get_alignment_path,
 )
 from aeon.distances import pairwise_distance
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 
 
-@threaded
+@numba_thread_handler
 def kasba_average(
     X: np.ndarray,
     init_barycenter: np.ndarray | None = "mean",
@@ -248,7 +248,7 @@ def _kasba_refine_one_iter(
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, _ = _get_alignment_path(
-            center=barycenter,
+            center=barycenter_copy,
             ts=curr_ts,
             distance=distance,
             window=window,

@@ -246,7 +246,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
             )(output)
 
         encoder = tf.keras.Model(
-            inputs=encoder_input_layer, outputs=encoder_output_layer
+            inputs=encoder_input_layer, outputs=encoder_output_layer, name="encoder"
         )
 
         if not self.temporal_latent_space:
@@ -278,7 +278,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         )(decoder_gru)
 
         decoder = tf.keras.Model(
-            inputs=decoder_input_layer, outputs=decoder_output_layer
+            inputs=decoder_input_layer, outputs=decoder_output_layer, name="decoder"
         )
 
         return encoder, decoder

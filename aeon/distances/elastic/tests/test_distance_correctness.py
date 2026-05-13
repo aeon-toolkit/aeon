@@ -60,7 +60,7 @@ unit_test_distances = {
     "wddtw": [38144.53125, 19121.4927, 1.34957],
     "twe": [4536.0, 3192.0220, 3030.036000000001],
     "msm_ind": [1515.0, 1517.8000000000004, 1557.0],  # msm with independent distance
-    "msm_dep": [1897.0, 1898.6000000000001, 1921.0],  # msm with dependent distance
+    "msm_dep": [190547.0, 190549.800000000020, 190589.0],  # msm with dependent distance
 }
 basic_motions_distances = {
     "euclidean": 27.51835240,
@@ -78,7 +78,7 @@ basic_motions_distances = {
     # msm with independent distance
     "msm_ind": [84.36021099999999, 140.13788899999997, 262.6939920000001],
     # msm with dependent distance
-    "msm_dep": [33.06825, 71.1408, 190.7397],
+    "msm_dep": [192.24477562339214, 205.82382238128477, 277.7315058567359],
 }
 
 

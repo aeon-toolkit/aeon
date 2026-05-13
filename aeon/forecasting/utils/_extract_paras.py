@@ -39,7 +39,7 @@ def _extract_ets_params(params, model):
         beta = 0
         phi = 1
     if seasonality_type != 0:
-        gamma = params[1 + 2 * (seasonality_type != 0)]
+        gamma = params[1 + 2 * (trend_type != 0)]
     else:
         gamma = 0
     return alpha, beta, gamma, phi

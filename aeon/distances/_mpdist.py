@@ -7,7 +7,7 @@ from numba import njit
 
 # TODO: remove in v1.5.0
 @deprecated(
-    version="1.3.0",
+    version="1.4.0",
     reason="mp_distance will be removed in v1.5.0. We recommend using the stumpy "
     "version instead, see "
     "https://stumpy.readthedocs.io/en/latest/api.html#stumpy.mpdist.",
@@ -288,7 +288,7 @@ def _stomp_ab(
 
 # TODO: remove in v1.5.0
 @deprecated(
-    version="1.3.0",
+    version="1.4.0",
     reason="mp_pairwise_distance will be removed in v1.5.0.",
     category=FutureWarning,
 )

@@ -12,6 +12,7 @@ import numpy as np
 
 from aeon.base import BaseCollectionEstimator
 from aeon.similarity_search._base import BaseSimilaritySearch
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySearch):
@@ -30,6 +31,7 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
     }
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(
         self,
         X: np.ndarray,
