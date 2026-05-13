@@ -106,3 +106,27 @@ def test_tselect_percentage_filter_removes_cutoff_ties():
 
     assert list(filtered.keys()) == [0]
     assert selector.removed_series_auc_ == {1: 0.7, 2: 0.7, 3: 0.6}
+
+
+def test_tselect_replaces_validation_only_nans():
+    """Test validation-only NaN features are replaced before prediction."""
+    selector = TSelect()
+
+    features = np.array(
+        [
+            [0.0, 1.0],
+            [1.0, 2.0],
+            [2.0, 3.0],
+            [3.0, np.nan],
+        ]
+    )
+
+    features_train, features_valid = selector._prepare_channel_features(
+        features,
+        np.array([0, 1]),
+        np.array([2, 3]),
+        channel=0,
+    )
+
+    assert not np.isnan(features_train).any()
+    assert not np.isnan(features_valid).any()

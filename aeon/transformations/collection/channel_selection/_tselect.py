@@ -258,6 +258,7 @@ class TSelect(BaseChannelSelector):
         if self.validation_size is not None:
             test_size = self.validation_size
         elif n_cases <= 100:
+            # Upstream uses < 100, which makes n_cases == 100 produce test_size=0.
             test_size = 0.25
         else:
             n_train = max(100, round(0.25 * n_cases))
@@ -292,6 +293,9 @@ class TSelect(BaseChannelSelector):
             warnings.simplefilter("ignore")
             features_train = scaler.fit_transform(features_train)
             features_valid = scaler.transform(features_valid)
+
+        if np.isnan(features_valid).any():
+            _replace_nans_by_column_mean(features_valid)
 
         return features_train, features_valid
 
