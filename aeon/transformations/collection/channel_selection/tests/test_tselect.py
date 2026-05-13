@@ -11,7 +11,11 @@ def test_tselect_fit_transform_shape():
     X = rng.normal(size=(30, 5, 20))
     y = np.array([0, 1] * 15)
 
-    selector = TSelect(alpha=0.4, corr_threshold=0.7, random_state=0)
+    selector = TSelect(
+        irrelevant_percentage_to_keep=0.4,
+        redundant_correlation_threshold=0.7,
+        random_state=0,
+    )
     Xt = selector.fit_transform(X, y)
 
     assert Xt.shape[0] == X.shape[0]
@@ -43,7 +47,11 @@ def test_tselect_keeps_predictive_channel():
 
     X[y == 1, 0, :] += 2.0
 
-    selector = TSelect(alpha=0.0, corr_threshold=0.95, random_state=0)
+    selector = TSelect(
+        irrelevant_percentage_to_keep=0.0,
+        redundant_correlation_threshold=0.95,
+        random_state=0,
+    )
     selector.fit(X, y)
 
     assert 0 in selector.channels_selected_
