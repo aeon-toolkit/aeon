@@ -9,9 +9,9 @@ from aeon.classification.base import BaseClassifier
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseHIVECOTE(BaseClassifier):
+class _BaseHIVECOTE(BaseClassifier):
     """
-    Modular Base class for HIVE-COTE ensembles.
+    Modular base class for HIVE-COTE ensembles.
 
     This class handles the core logic of the CAWPE (Cross-validation Accuracy
     Weighted Probabilistic Ensemble) structure. It accepts a list of base
@@ -23,6 +23,7 @@ class BaseHIVECOTE(BaseClassifier):
     ----------
     estimators : list of tuples
         List of (name, estimator) tuples representing the ensemble components.
+        Each estimator must be an instance of BaseClassifier.
     alpha : int or float, default=4
         The power parameter for the CAWPE weight calculation.
     random_state : int, RandomState instance or None, default=None
@@ -34,15 +35,15 @@ class BaseHIVECOTE(BaseClassifier):
     """
 
     _tags = {
-        "capability:multivariate": True,
-        "capability:contractable": True,
+        "capability:multivariate": False,
+        "capability:contractable": False,
         "capability:multithreading": True,
         "algorithm_type": "hybrid",
     }
 
     def __init__(
         self,
-        estimators=None,
+        estimators,
         alpha=4,
         random_state=None,
         n_jobs=1,
@@ -61,7 +62,14 @@ class BaseHIVECOTE(BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self.estimators is None or len(self.estimators) == 0:
-            raise ValueError("No estimators provided to BaseHIVECOTE.")
+            raise ValueError("No estimators provided to _BaseHIVECOTE.")
+
+        for name, estimator in self.estimators:
+            if not isinstance(estimator, BaseClassifier):
+                raise TypeError(
+                    f"Estimator '{name}' is not a BaseClassifier instance. "
+                    "All components must be aeon classifiers."
+                )
 
         # Reset fitted state to avoid accumulation on re-fit
         self.fitted_estimators_ = []
@@ -75,8 +83,10 @@ class BaseHIVECOTE(BaseClassifier):
             # Pass global parameters to the cloned estimator
             if hasattr(est, "random_state") and self.random_state is not None:
                 est.random_state = self.random_state
-            if hasattr(est, "n_jobs") and self.n_jobs is not None:
+            if hasattr(est, "n_jobs"):
                 est.n_jobs = self._n_jobs
+            if hasattr(est, "verbose"):
+                est.verbose = self.verbose
 
             # Get OOB/CV predictions and calculate CAWPE weight
             train_preds = est.fit_predict(X, y)
@@ -90,7 +100,6 @@ class BaseHIVECOTE(BaseClassifier):
 
     def _predict(self, X) -> np.ndarray:
         """Predict class labels for X."""
-        # Predict based on the final probabilities calculated by _predict_proba
         dists = self._predict_proba(X)
         rng = check_random_state(self.random_state)
 
@@ -104,8 +113,6 @@ class BaseHIVECOTE(BaseClassifier):
         """Predict class probabilities for X using CAWPE."""
         dists = np.zeros((X.shape[0], self.n_classes_))
 
-        # Multiply each component's probabilities by
-        # its corresponding weight and accumulate
         for i, est in enumerate(self.fitted_estimators_):
             weight = self.weights_[i]
             probas = est.predict_proba(X)
@@ -113,7 +120,6 @@ class BaseHIVECOTE(BaseClassifier):
 
         sums = dists.sum(axis=1, keepdims=True)
         sums[sums == 0] = 1.0
-        # Normalize to ensure probabilities sum to 1 for each instance
         return dists / sums
 
     def get_component_weights(self):

@@ -10,7 +10,7 @@ __all__ = ["HIVECOTEV1"]
 from aeon.classification.dictionary_based import ContractableBOSS
 
 # import base
-from aeon.classification.hybrid._base_hive_cote import BaseHIVECOTE
+from aeon.classification.hybrid._base_hive_cote import _BaseHIVECOTE
 from aeon.classification.interval_based import (
     RandomIntervalSpectralEnsembleClassifier,
     TimeSeriesForestClassifier,
@@ -18,7 +18,7 @@ from aeon.classification.interval_based import (
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
-class HIVECOTEV1(BaseHIVECOTE):
+class HIVECOTEV1(_BaseHIVECOTE):
     """
     Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
@@ -99,11 +99,6 @@ class HIVECOTEV1(BaseHIVECOTE):
        and Anthony Bagnall. "HIVE-COTE 2.0: a new meta ensemble for time series
        classification." Machine Learning (2021).
     """
-
-    _tags = {
-        "capability:multivariate": False,
-        "capability:contractable": False,
-    }
 
     def __init__(
         self,

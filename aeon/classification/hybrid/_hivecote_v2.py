@@ -11,12 +11,12 @@ import numpy as np
 
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
-from aeon.classification.hybrid._base_hive_cote import BaseHIVECOTE
+from aeon.classification.hybrid._base_hive_cote import _BaseHIVECOTE
 from aeon.classification.interval_based._drcif import DrCIFClassifier
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
-class HIVECOTEV2(BaseHIVECOTE):
+class HIVECOTEV2(_BaseHIVECOTE):
     """
     Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
@@ -40,9 +40,6 @@ class HIVECOTEV2(BaseHIVECOTE):
         Time contract to limit build time in minutes, overriding
         n_estimators/n_parameter_samples for each component.
         Default of 0 means n_estimators/n_parameter_samples for each component is used.
-    save_component_probas : bool, default=False
-        When predict/predict_proba is called, save each HIVE-COTEV2 component
-        probability predictions in component_probas.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     random_state : int, RandomState instance or None, default=None
@@ -73,9 +70,6 @@ class HIVECOTEV2(BaseHIVECOTE):
         The weight for Arsenal probabilities.
     tde_weight_ : float
         The weight for TDE probabilities.
-    component_probas : dict
-        Only used if save_component_probas is true. Saved probability predictions for
-        each HIVE-COTEV2 component.
 
     See Also
     --------
@@ -117,7 +111,6 @@ class HIVECOTEV2(BaseHIVECOTE):
         arsenal_params=None,
         tde_params=None,
         time_limit_in_minutes=0,
-        save_component_probas=False,
         verbose=0,
         random_state=None,
         n_jobs=1,
@@ -128,7 +121,6 @@ class HIVECOTEV2(BaseHIVECOTE):
         self.arsenal_params = arsenal_params
         self.tde_params = tde_params
         self.time_limit_in_minutes = time_limit_in_minutes
-        self.save_component_probas = save_component_probas
         self.parallel_backend = parallel_backend
 
         super().__init__(
@@ -194,6 +186,7 @@ class HIVECOTEV2(BaseHIVECOTE):
             self._arsenal_params["time_limit_in_minutes"] = ct
             self._tde_params["time_limit_in_minutes"] = ct
 
+        # Build component estimators
         self.estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
             ("DrCIF", DrCIFClassifier(**self._drcif_params)),
@@ -203,32 +196,42 @@ class HIVECOTEV2(BaseHIVECOTE):
 
         return super()._fit(X, y)
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+    def predict_proba_with_components(self, X):
+        """Predict class probabilities and return per-component probabilities.
+
+        Returns both the final ensemble probabilities and a dictionary mapping
+        each component name to its individual probability predictions, without
+        modifying object state.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predict probabilities for.
+            The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        final_probas : np.ndarray of shape (n_cases, n_classes)
+            The CAWPE-weighted ensemble probability predictions.
+        component_probas : dict
+            Dictionary mapping each component name to its probability predictions
+            of shape (n_cases, n_classes).
         """
-        dists = np.zeros((X.shape[0], self.n_classes_))
-        if self.save_component_probas:
-            self.component_probas = {}
+        self.check_is_fitted()
 
-        for i, est in enumerate(self.fitted_estimators_):
-            probas = est.predict_proba(X)
-            dists = np.add(dists, probas * self.weights_[i])
-            if self.save_component_probas:
-                self.component_probas[self.component_names_[i]] = probas
+        component_probas = {
+            name: est.predict_proba(X)
+            for name, est in zip(self.component_names_, self.fitted_estimators_)
+        }
+
+        dists = np.zeros((X.shape[0], self.n_classes_))
+        for i, name in enumerate(self.component_names_):
+            dists = np.add(dists, component_probas[name] * self.weights_[i])
 
         sums = dists.sum(axis=1, keepdims=True)
         sums[sums == 0] = 1.0
-        return dists / sums
+        final_probas = dists / sums
+
+        return final_probas, component_probas
 
     @property
     def stc_weight_(self):
