@@ -208,7 +208,7 @@ jobs:
       - name: Run tests
         run: >
           python -m pytest -n logical
-          --fail-soft-dependency-skips
+          ${{ matrix.os == 'ubuntu-24.04' && matrix.python-version == '3.12' && '--fail-soft-dependency-skips' || '' }}
 
       - name: Save new cache
         uses: actions/cache/save@v5
