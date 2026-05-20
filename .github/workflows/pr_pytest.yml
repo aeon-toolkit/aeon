@@ -104,7 +104,10 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: >
+          python -m pytest -n logical
+          --fail-soft-dependency-skips
+          --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   doctests:
     runs-on: ubuntu-24.04

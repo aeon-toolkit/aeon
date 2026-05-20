@@ -10,6 +10,20 @@ least once, but not necessarily on each operating system / python version combin
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
+import pytest
+
+
+def _is_soft_dependency_skip(report):
+    if not report.skipped:
+        return False
+
+    skip_reason = (
+        report.longrepr[2]
+        if isinstance(report.longrepr, tuple)
+        else str(report.longrepr)
+    )
+    return "soft dependency" in skip_reason.lower()
+
 
 def pytest_addoption(parser):
     """Pytest command line parser options adder."""
@@ -35,6 +49,32 @@ def pytest_addoption(parser):
             "version."
         ),
     )
+    parser.addoption(
+        "--fail-soft-dependency-skips",
+        action="store_true",
+        default=False,
+        help=(
+            "Fail tests skipped by soft dependency checks. Use only in environments "
+            "where soft dependencies are installed."
+        ),
+    )
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Turn soft dependency skips into failures when requested."""
+    outcome = yield
+    report = outcome.get_result()
+
+    if item.config.getoption(
+        "--fail-soft-dependency-skips"
+    ) and _is_soft_dependency_skip(report):
+        report.outcome = "failed"
+        report.longrepr = (
+            "Test skipped because a soft dependency check failed while "
+            "--fail-soft-dependency-skips is enabled. "
+            f"Original skip reason: {report.longrepr}"
+        )
 
 
 def pytest_configure(config):

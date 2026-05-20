@@ -206,7 +206,9 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical
+        run: >
+          python -m pytest -n logical
+          --fail-soft-dependency-skips
 
       - name: Save new cache
         uses: actions/cache/save@v5
