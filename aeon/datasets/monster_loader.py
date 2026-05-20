@@ -21,7 +21,7 @@ def load_monster_dataset_names() -> list[str]:
     list of str
         A list of available Monster dataset names.
     """
-    _check_soft_dependencies("huggingface-hub")
+    _check_soft_dependencies("huggingface_hub")
     from huggingface_hub import list_datasets
 
     datasets = list_datasets(author=ORG_ID)
@@ -87,7 +87,7 @@ def load_monster_dataset(
         Time Series Evaluation Repository. arXiv preprint arXiv:2502.15122.
 
     """
-    _check_soft_dependencies("huggingface-hub")
+    _check_soft_dependencies("huggingface_hub")
     from huggingface_hub import hf_hub_download
     from huggingface_hub.utils import HfHubDownloadError
 
