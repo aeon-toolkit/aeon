@@ -14,7 +14,12 @@ import pytest
 
 
 def _is_soft_dependency_skip(report):
+    """
+    When a test function is skipped, this inspect the skip reason to pickup
+    the soft dependency term, and return true if found.
+    """
     if not report.skipped:
+        # The test was not skipped, so we return false
         return False
 
     skip_reason = (
@@ -22,6 +27,7 @@ def _is_soft_dependency_skip(report):
         if isinstance(report.longrepr, tuple)
         else str(report.longrepr)
     )
+    # If the test was skipped, check for the term in reason.
     return "soft dependency" in skip_reason.lower()
 
 
@@ -65,7 +71,7 @@ def pytest_runtest_makereport(item, call):
     """Turn soft dependency skips into failures when requested."""
     outcome = yield
     report = outcome.get_result()
-
+    # When the flag is on, and test was a softdep skip, flag it as failed.
     if item.config.getoption(
         "--fail-soft-dependency-skips"
     ) and _is_soft_dependency_skip(report):
