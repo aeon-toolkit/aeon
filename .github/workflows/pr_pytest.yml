@@ -69,7 +69,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }} --fail-soft-dependency-skips
+        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }} --check-soft-dependency-skips
 
   pytest:
     runs-on: ${{ matrix.os }}
