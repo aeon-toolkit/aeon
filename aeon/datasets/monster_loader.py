@@ -89,7 +89,6 @@ def load_monster_dataset(
     """
     _check_soft_dependencies("huggingface_hub")
     from huggingface_hub import hf_hub_download
-    from huggingface_hub.utils import HfHubDownloadError
 
     repo_id = f"{ORG_ID}/{dataset_name}"
 
@@ -106,7 +105,7 @@ def load_monster_dataset(
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
         )
-    except HfHubDownloadError:
+    except Exception as e:
         label_filename = f"{dataset_name}_y.npy"
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
