@@ -279,9 +279,17 @@ def _check_if_skip_pytest(estimator, check, has_dependencies):
     """Check if a check should be skipped in a pytest setting."""
     import pytest
 
-    skip, reason, _ = _should_be_skipped(estimator, check, has_dependencies)
+    skip, reason, check_name = _should_be_skipped(estimator, check, has_dependencies)
     if skip:
-        return pytest.param(check, marks=pytest.mark.skip(reason=reason))
+        est_name = (
+            estimator.__name__ if isclass(estimator) else estimator.__class__.__name__
+        )
+        return pytest.param(
+            check,
+            marks=pytest.mark.skip(
+                reason=f"Skipping test {check_name} for {est_name}: {reason}"
+            ),
+        )
 
     return check
 
@@ -298,7 +306,7 @@ def _check_if_skip_wrapper(estimator, check, has_dependencies):
                 if isclass(estimator)
                 else estimator.__class__.__name__
             )
-            raise SkipTest(f"Skipping {check_name} for {est_name}: {reason}")
+            raise SkipTest(f"Skipping test {check_name} for {est_name}: {reason}")
 
         return wrapped
     return check

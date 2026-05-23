@@ -63,7 +63,7 @@ jobs:
       - name: Install aeon and dependencies
         uses: ./.github/actions/cpu_all_extras
         with:
-          additional_extras: "dev"
+          additional_extras: "dev,unstable_extras"
 
       - name: Show dependencies
         run: python -m pip list
