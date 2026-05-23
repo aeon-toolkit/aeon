@@ -111,10 +111,7 @@ class _CheckSoftDependencySkips:
 
     @pytest.hookimpl(trylast=True)
     def pytest_runtest_setup(self, item):
-        pytest.skip(
-            "Skipping test. --check-soft-dependency-skips only audits test"
-            " skipping without running tests."
-        )
+        pytest.skip("Tests are not run in current testing setup.")
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_makereport(self, item, call):

@@ -177,7 +177,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --check-soft-dependency-skips
+        run: python -m pytest --check-soft-dependency-skips
 
   pytest:
     runs-on: ${{ matrix.os }}
