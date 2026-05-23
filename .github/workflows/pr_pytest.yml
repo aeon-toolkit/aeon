@@ -63,13 +63,13 @@ jobs:
       - name: Install aeon and dependencies
         uses: ./.github/actions/cpu_all_extras
         with:
-          additional_extras: "dev,unstable_extras"
+          additional_extras: "dev"
 
       - name: Show dependencies
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }} --check-soft-dependency-skips
+        run: python -m pytest --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }} --check-soft-dependency-skips -q
 
   pytest:
     runs-on: ${{ matrix.os }}
