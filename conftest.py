@@ -13,24 +13,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 import pytest
 
 
-def _is_soft_dependency_skip(report):
-    """
-    When a test function is skipped, this inspect the skip reason to pickup
-    the soft dependency term, and return true if found.
-    """
-    if not report.skipped:
-        # The test was not skipped, so we return false
-        return False
-
-    skip_reason = (
-        report.longrepr[2]
-        if isinstance(report.longrepr, tuple)
-        else str(report.longrepr)
-    )
-    # If the test was skipped, check for the term in reason.
-    return "soft dependency" in skip_reason.lower()
-
-
 def pytest_addoption(parser):
     """Pytest command line parser options adder."""
     parser.addoption(
@@ -56,31 +38,14 @@ def pytest_addoption(parser):
         ),
     )
     parser.addoption(
-        "--fail-soft-dependency-skips",
+        "--check-soft-dependency-skips",
         action="store_true",
         default=False,
         help=(
-            "Fail tests skipped by soft dependency checks. Use only in environments "
-            "where soft dependencies are installed."
+            "Fail tests skipped by soft dependency checks. Skips all other tests. "
+            "Use only in environments where soft dependencies are installed."
         ),
     )
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """Turn soft dependency skips into failures when requested."""
-    outcome = yield
-    report = outcome.get_result()
-    # When the flag is on, and test was a softdep skip, flag it as failed.
-    if item.config.getoption(
-        "--fail-soft-dependency-skips"
-    ) and _is_soft_dependency_skip(report):
-        report.outcome = "failed"
-        report.longrepr = (
-            "Test skipped because a soft dependency check failed while "
-            "--fail-soft-dependency-skips is enabled. "
-            f"Original skip reason: {report.longrepr}"
-        )
 
 
 def pytest_configure(config):
@@ -126,3 +91,58 @@ def pytest_configure(config):
         from aeon.testing import testing_config
 
         testing_config.PR_TESTING = True
+
+    if config.getoption("--check-soft-dependency-skips"):
+        config.pluginmanager.register(
+            _CheckSoftDependencySkips(),
+            name="check-soft-dependency-skips",
+        )
+
+
+class _CheckSoftDependencySkips:
+    _SOFT_DEPENDENCY_TERMS = (
+        "soft dependency",
+        "soft dependencies",
+        "soft-dependency",
+        "soft-dependencies",
+        "softdep",
+        "softdeps",
+    )
+
+    @pytest.hookimpl(trylast=True)
+    def pytest_runtest_setup(self, item):
+        pytest.skip(
+            "Skipping test. --check-soft-dependency-skips only audits test"
+            " skipping without running tests."
+        )
+
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_runtest_makereport(self, item, call):
+        outcome = yield
+        report = outcome.get_result()
+
+        if self._is_soft_dependency_skip(report):
+            skip_reason = self._get_skip_reason(report)
+            report.outcome = "failed"
+            report.longrepr = (
+                "Test skipped because a soft dependency check failed while "
+                "--check-soft-dependency-skips is enabled. "
+                f"Original skip reason: {skip_reason}"
+            )
+
+    @staticmethod
+    def _get_skip_reason(report):
+        """Extract the skip reason across pytest longrepr formats."""
+        if isinstance(report.longrepr, tuple) and len(report.longrepr) >= 3:
+            return str(report.longrepr[2])
+
+        return str(report.longrepr)
+
+    @classmethod
+    def _is_soft_dependency_skip(cls, report):
+        """Check if a soft dependency related test is skipped."""
+        if not report.skipped:
+            return False
+
+        reason = cls._get_skip_reason(report).lower()
+        return any(term in reason for term in cls._SOFT_DEPENDENCY_TERMS)

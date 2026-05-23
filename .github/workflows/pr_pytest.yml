@@ -48,6 +48,29 @@ jobs:
       - name: Run tests
         run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
+  test_soft_dep_skips:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
+        with:
+          additional_extras: "dev,unstable_extras"
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -n logical --prtesting --fail-soft-dependency-skips
+
   pytest:
     runs-on: ${{ matrix.os }}
 
@@ -104,10 +127,7 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: >
-          python -m pytest -n logical
-          ${{ matrix.os == 'ubuntu-24.04' && matrix.python-version == '3.11' && '--fail-soft-dependency-skips' || '' }}
-          --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   doctests:
     runs-on: ubuntu-24.04
