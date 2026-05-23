@@ -105,7 +105,7 @@ def load_monster_dataset(
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
         )
-    except Exception as e:
+    except Exception:
         label_filename = f"{dataset_name}_y.npy"
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
