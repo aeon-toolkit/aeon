@@ -105,8 +105,6 @@ class _CheckSoftDependencySkips:
         "soft dependencies",
         "soft-dependency",
         "soft-dependencies",
-        "softdep",
-        "softdeps",
     )
 
     @pytest.hookimpl(trylast=True)
