@@ -294,7 +294,6 @@ html_favicon = "images/logo/aeon-favicon.ico"
 html_static_path = ["_static"]
 html_css_files = [
     "css/custom.css",
-    "css/aeon_gallery.css",
 ]
 
 html_show_sourcelink = False

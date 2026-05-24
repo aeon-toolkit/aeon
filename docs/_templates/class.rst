@@ -5,4 +5,4 @@
 
 .. autoclass:: {{ objname }}
 
-.. aeon-mini-gallery:: {{ objname }}
+.. aeon-mini-gallery:: {{ module }}.{{ objname }}

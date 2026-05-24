@@ -41,22 +41,22 @@ class AeonUsageVisitor(ast.NodeVisitor):
         if node.module and node.module.startswith("aeon"):
             for alias in node.names:
                 local = alias.asname or alias.name
-                fq = f"{node.module}.{alias.name}"
-                self.symbol_table[local] = fq
+                fq_name = f"{node.module}.{alias.name}"
+                self.symbol_table[local] = fq_name
         self.generic_visit(node)
 
     def visit_Call(self, node):
         """Detect function/method calls and record used Aeon objects."""
-        fq = self._resolve(node.func)
-        if fq:
-            self.used_objects.add(fq)
+        fq_name = self._resolve(node.func)
+        if fq_name:
+            self.used_objects.add(fq_name)
         self.generic_visit(node)
 
     def visit_Attribute(self, node):
-        """Resolve chained attribute access like aeon.x.Y to fully-qualified names."""
-        fq = self._resolve(node)
-        if fq:
-            self.used_objects.add(fq)
+        """Resolve chained attribute access to fully-qualified names."""
+        fq_name = self._resolve(node)
+        if fq_name:
+            self.used_objects.add(fq_name)
         self.generic_visit(node)
 
     def visit_Name(self, node):
@@ -66,20 +66,20 @@ class AeonUsageVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _resolve(self, node):
-        """Resolve an AST node to its fully-qualified Aeon object name.
-
-        Handles direct names, module aliases, and chained attribute access.
-        """
+        """Resolve an AST node to its fully-qualified Aeon object name."""
         if isinstance(node, ast.Name):
             return self.symbol_table.get(node.id)
 
         if isinstance(node, ast.Attribute):
             chain = []
+
             while isinstance(node, ast.Attribute):
                 chain.append(node.attr)
                 node = node.value
+
             if isinstance(node, ast.Name):
                 chain.append(node.id)
+
             chain.reverse()
 
             root = chain[0]
@@ -92,20 +92,17 @@ class AeonUsageVisitor(ast.NodeVisitor):
             if root in self.module_aliases:
                 base = self.module_aliases[root]
                 suffix = ".".join(chain[1:])
-                return f"{base}.{suffix}"
+                return f"{base}.{suffix}" if suffix else base
 
         return None
 
 
 def scan_notebooks(app):
-    """Scan all notebooks in examples directory and build class→notebook mapping.
-
-    Parses each notebook's code cells using AST, detects Aeon object usage,
-    and stores the mapping in app.env.aeon_example_map for later use.
-    """
+    """Scan notebooks and build fully-qualified object → notebook mapping."""
     logger.info("Scanning notebooks for aeon object usage...")
 
     example_dir = (Path(app.srcdir) / "../examples").resolve()
+
     mapping = {}
 
     for nb_path in example_dir.rglob("*.ipynb"):
@@ -119,6 +116,7 @@ def scan_notebooks(app):
         for cell in nb.cells:
             if cell.cell_type != "code":
                 continue
+
             try:
                 visitor.visit(ast.parse(cell.source))
             except Exception:
@@ -130,15 +128,12 @@ def scan_notebooks(app):
             mapping.setdefault(fq_name, []).append(str(rel_path))
 
     app.env.aeon_example_map = mapping
+
     logger.info(f"Object-example mapping built: {len(mapping)} objects found.")
 
 
 def build_thumbnail_map(app):
-    """Parse examples.md to build notebook→thumbnail image mapping.
-
-    Extracts :img-top: and :link: fields from MyST grid cards and stores
-    the mapping in app.env.aeon_thumbnail_map for gallery rendering.
-    """
+    """Parse examples.md and build notebook → thumbnail mapping."""
     logger.info("Building thumbnail map from examples.md")
 
     examples_md = Path(app.srcdir) / "examples.md"
@@ -160,6 +155,7 @@ def build_thumbnail_map(app):
     for match in pattern.finditer(content):
         img = match.group("img").strip()
         nb = match.group("nb").strip()
+
         thumbnail_map[nb] = img
 
     app.env.aeon_thumbnail_map = thumbnail_map
@@ -168,41 +164,67 @@ def build_thumbnail_map(app):
 
 
 class AeonMiniGalleryDirective(Directive):
-    """Sphinx directive that renders a mini-gallery of example notebooks.
-
-    Usage: .. aeon-mini-gallery:: ClassName
-
-    Looks up relevant examples from the scanned notebook mapping and
-    renders clickable cards with thumbnails linking to the example pages.
-    """
+    """Render mini-gallery of related example notebooks."""
 
     required_arguments = 1
 
     def run(self):
-        """Execute the directive: look up examples and render gallery HTML."""
+        """Execute directive and render gallery cards."""
         env = self.state.document.settings.env
         app = env.app
         builder = app.builder
 
-        object_name = self.arguments[0]
+        fq_name = self.arguments[0]
 
         example_map = getattr(env, "aeon_example_map", {})
         thumbnail_map = getattr(env, "aeon_thumbnail_map", {})
 
-        fq_name = None
-        for key in example_map:
-            if key.endswith(f".{object_name}"):
-                fq_name = key
-                break
-
-        if not fq_name:
-            return []
-
         examples = sorted(set(example_map.get(fq_name, [])))
+
         if not examples:
             return []
 
         page_uri = builder.get_target_uri(env.docname)
+
+        cards = []
+
+        for ex in examples:
+            thumb_path = thumbnail_map.get(ex)
+
+            if not thumb_path:
+                continue
+
+            example_doc = f"examples/{ex}"
+            example_uri = builder.get_relative_uri(
+                env.docname,
+                example_doc,
+            )
+
+            thumb_uri = relative_uri(
+                page_uri,
+                f"_images/{Path(thumb_path).name}",
+            )
+
+            card_title = Path(ex).name.replace("_", " ").capitalize()
+
+            cards.append(f"""
+                <a class="aeon-mini-card" href="{example_uri}">
+                    <div class="aeon-mini-image">
+                        <img
+                            src="{thumb_uri}"
+                            loading="lazy"
+                            alt="{card_title}"
+                        >
+                    </div>
+                    <div class="aeon-mini-title">
+                        {card_title}
+                    </div>
+                </a>
+                """)
+
+        # Avoiding empty gallery sections
+        if not cards:
+            return []
 
         section = nodes.section()
         section["ids"].append("gallery-examples")
@@ -211,42 +233,28 @@ class AeonMiniGalleryDirective(Directive):
         section += title
 
         html_blocks = ['<div class="aeon-mini-gallery">']
-
-        for ex in examples:
-            example_doc = f"examples/{ex}"
-            example_uri = builder.get_relative_uri(env.docname, example_doc)
-
-            thumb_path = thumbnail_map.get(ex)
-            if not thumb_path:
-                continue
-
-            thumb_uri = relative_uri(page_uri, f"_images/{Path(thumb_path).name}")
-
-            card_title = Path(ex).name.replace("_", " ").capitalize()
-
-            html_blocks.append(f"""
-                <a class="aeon-mini-card" href="{example_uri}">
-                    <div class="aeon-mini-image">
-                        <img src="{thumb_uri}" loading="lazy" alt="{card_title}">
-                    </div>
-                    <div class="aeon-mini-title">
-                        {card_title}
-                    </div>
-                </a>
-            """)
-
+        html_blocks.extend(cards)
         html_blocks.append("</div>")
 
-        section += nodes.raw("", "\n".join(html_blocks), format="html")
+        section += nodes.raw(
+            "",
+            "\n".join(html_blocks),
+            format="html",
+        )
 
         return [section]
 
 
-def setup(app):  # noqa: D103
+def setup(app):
+    """Register extension."""
     app.connect("builder-inited", scan_notebooks)
     app.connect("builder-inited", build_thumbnail_map)
 
-    app.add_directive("aeon-mini-gallery", AeonMiniGalleryDirective)
+    app.add_directive(
+        "aeon-mini-gallery",
+        AeonMiniGalleryDirective,
+    )
+
     app.add_css_file("css/aeon_gallery.css")
 
     return {
