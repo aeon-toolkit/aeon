@@ -48,7 +48,7 @@ jobs:
       - name: Run tests
         run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
-  test_soft_dep_skips:
+  test-soft-dep-skips:
     runs-on: ubuntu-24.04
 
     steps:

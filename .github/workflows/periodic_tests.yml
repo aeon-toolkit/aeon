@@ -156,7 +156,7 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-test-no-soft-deps-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
 
-  test_soft_dep_skips:
+  test-soft-dep-skips:
     runs-on: ubuntu-24.04
 
     steps:
