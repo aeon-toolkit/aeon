@@ -49,7 +49,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         Number of candidate shapelets to assess. Ignored when
         ``time_limit_in_minutes > 0``.
     max_shapelets : int or None, default=None
-        Maximum number of shapelets to keep. If None, set to
+        Maximum number of shapelets to keep. Each class value will
+        have its own max, set to n_classes / max_shapelets. If None, set to
         ``min(10 * n_cases, 1000)`` during fit.
     min_shapelet_length : int, default=3
         Lower bound on candidate shapelet lengths.
@@ -74,7 +75,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a
         ``prefer="threads"`` value is used by default. Valid options are "loky",
-        "multiprocessing", "threading" or a custom backend.
+        "multiprocessing", "threading" or a custom backend. See the joblib Parallel
+        documentation for more details.
     random_state : int or None, default=None
         Seed for random number generation.
 
