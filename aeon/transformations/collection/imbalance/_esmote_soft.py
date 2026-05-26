@@ -1,201 +1,175 @@
-"""Elastic SMOTE for time series classification using Soft-MSM distances."""
+"""Elastic SMOTE for time series classification using Soft-MSM alignments."""
+
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["ESMOTE_SOFT"]
+
+from collections import OrderedDict
 
 import numpy as np
 
 from aeon.distances import msm_distance
-from aeon.distances.elastic.soft import (
-    soft_msm_alignment_matrix,
-    soft_msm_distance,
-    soft_msm_grad_x,
-)
+from aeon.distances.elastic.soft import soft_msm_alignment_matrix
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class ESMOTE_SOFT:
-    """Elastic SMOTE with Soft-MSM synthetic generation.
+class ESMOTE_SOFT(BaseCollectionTransformer):
+    """Elastic SMOTE with hard MSM neighbours and Soft-MSM alignment generation.
 
-    Extends the SMOTE oversampling idea to time series by using elastic distances
-    to find neighbours and to interpolate synthetic samples between a minority-class
-    series and one of its nearest neighbours.
+    This is the minimal Soft-MSM variant of e-SMOTE. It keeps the neighbour
+    search fixed to the paper setting, hard MSM with c=1 by default, and changes
+    only the alignment-generation step.
 
-    Three generation strategies are supported:
+    For each minority-class case x, a minority-class neighbour y is selected from
+    the k nearest neighbours under hard MSM. A Soft-MSM alignment matrix A is
+    then used to compute the expected aligned value from y for each index of x.
 
-    ``"soft_path"``
-        Use the row-normalised Soft-MSM alignment matrix ``A`` to compute an
-        *expected* target for each index ``i``:
-        ``y_expected[i] = (A[i,:] @ y) / sum(A[i,:])``.
-        The synthetic is ``x + λ * (y_expected – x)``.
+    The synthetic case is generated as
 
-    ``"soft_barycenter"``
-        Find the weighted Fréchet mean ``z`` that minimises
-        ``(1–λ) * soft_msm(z, x) + λ * soft_msm(z, y)``
-        by gradient descent, initialised from the soft-path interpolant.
+        x_new = x + lambda * direction
+
+    where direction points from x towards its Soft-MSM expected alignment in y.
+    This sign is chosen to match the negative gradient direction: the gradient of
+    a pointwise match loss with respect to x points away from the aligned y value,
+    so the interpolation step should move towards y.
 
     Parameters
     ----------
     k_neighbors : int, default=3
         Number of nearest neighbours to consider within the minority class.
     sampling_strategy : str, default="balance"
-        Only ``"balance"`` is currently supported; generates exactly enough
-        synthetic samples to match the majority-class count.
-    distance : {"msm", "soft_msm"}, default="soft_msm"
-        Distance used for nearest-neighbour search among minority samples.
-        ``"soft_path"`` and ``"soft_barycenter"`` generation modes require
-        ``"soft_msm"``.
-    generation : {"hard_path", "soft_path", "soft_barycenter"},
-        default="soft_path"
-        Method used to create each synthetic sample.
+        Only "balance" is currently supported. This generates enough synthetic
+        samples to match the majority-class count.
     msm_cost : float, default=1.0
-        The MSM split/merge penalty ``c``.  Must be non-negative.
-    gamma : float, default=1.0
-        Temperature parameter for Soft-MSM.  Smaller values produce sharper
-        (closer to hard) alignments; larger values smooth the distribution over
-        all alignments.  Must be positive.
+        The MSM split/merge penalty c used for hard MSM neighbour search and
+        Soft-MSM alignment.
+    gamma : float, default=0.1
+        Temperature parameter for Soft-MSM alignment. Smaller values produce
+        sharper alignments; larger values smooth the distribution over alignments.
     window : float or None, default=None
-        Warping-window fraction passed to the distance functions.
+        Warping-window fraction passed to the Soft-MSM alignment function.
     itakura_max_slope : float or None, default=None
-        Itakura parallelogram slope limit passed to the distance functions.
-    max_iter : int, default=50
-        Maximum gradient-descent iterations for ``"soft_barycenter"`` generation.
-    learning_rate : float, default=0.05
-        Step size for gradient descent in ``"soft_barycenter"`` generation.
-    tol : float, default=1e-6
-        Convergence tolerance (RMS gradient norm) for ``"soft_barycenter"``.
+        Itakura parallelogram slope limit passed to the Soft-MSM alignment
+        function.
     random_state : int or None, default=None
-        Seed for the random number generator used to sample ``λ`` and to choose
-        among tied neighbours.
+        Seed for the random number generator used to sample lambda and
+        neighbours.
     """
+
+    _tags = {
+        "capability:multivariate": False,
+        "capability:unequal_length": False,
+        "requires_y": True,
+    }
 
     def __init__(
         self,
-        k_neighbors=3,
+        k_neighbors: int = 3,
         sampling_strategy="balance",
-        distance="soft_msm",
-        generation="soft_path",
         msm_cost=1.0,
-        gamma=1.0,
+        gamma=0.1,
         window=None,
         itakura_max_slope=None,
-        max_iter=50,
-        learning_rate=0.05,
-        tol=1e-6,
         random_state=None,
     ):
         self.k_neighbors = k_neighbors
         self.sampling_strategy = sampling_strategy
-        self.distance = distance
-        self.generation = generation
         self.msm_cost = msm_cost
         self.gamma = gamma
         self.window = window
         self.itakura_max_slope = itakura_max_slope
-        self.max_iter = max_iter
-        self.learning_rate = learning_rate
-        self.tol = tol
         self.random_state = random_state
+        super().__init__()
 
-    def fit_transform(self, X, y):
-        """Return a rebalanced training set.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_cases, n_timepoints) or
-            (n_cases, 1, n_timepoints)
-            Univariate time series collection.
-        y : array-like of shape (n_cases,)
-            Class labels.  Exactly two distinct values are required.
-
-        Returns
-        -------
-        X_out : ndarray, same dimensionality as input X
-            Original samples followed by the synthetic minority samples.
-        y_out : ndarray of shape (n_cases + n_synthetic,)
-            Corresponding labels.
-        """
+    def _fit(self, X, y=None):
+        """Fit the Soft-MSM e-SMOTE resampling strategy."""
         self._validate_params()
+        self._rng = np.random.default_rng(self.random_state)
+
+        if y is None:
+            raise ValueError("ESMOTE_SOFT requires y during fit.")
+
+        classes, counts = np.unique(y, return_counts=True)
+        if len(classes) != 2:
+            raise ValueError(
+                "ESMOTE_SOFT currently supports binary classification only."
+            )
+
+        self.sampling_strategy_ = self._get_sampling_strategy(y)
+
+        return self
+
+    def _transform(self, X, y=None):
+        """Return a rebalanced collection and labels."""
+        if y is None:
+            raise ValueError("ESMOTE_SOFT requires y during transform.")
 
         X = np.asarray(X)
         y = np.asarray(y)
 
-        input_was_2d = X.ndim == 2
-        if input_was_2d:
-            X = X[:, None, :]
-
         if X.ndim != 3:
             raise ValueError(
-                "X must be 2D or 3D, with shape " "(n_cases, n_channels, n_timepoints)."
+                "ESMOTE_SOFT expects X with shape "
+                "(n_cases, n_channels, n_timepoints)."
             )
 
         if X.shape[1] != 1:
-            raise ValueError(
-                "This ESMOTE implementation currently supports univariate series only."
-            )
+            raise ValueError("ESMOTE_SOFT currently supports univariate series only.")
 
+        X_resampled = [X.astype(np.float64, copy=False)]
+        y_resampled = [y.copy()]
+
+        for class_sample, n_samples in self._get_sampling_strategy(y).items():
+            if n_samples == 0:
+                continue
+
+            target_class_indices = np.flatnonzero(y == class_sample)
+            X_class = X[target_class_indices]
+            n_class = len(X_class)
+
+            if n_class < 2:
+                raise ValueError(
+                    "At least two minority cases are required for ESMOTE_SOFT."
+                )
+
+            neighbour_indices = self._find_minority_neighbours(X_class)
+            X_synth = np.empty((n_samples, 1, X.shape[-1]), dtype=np.float64)
+
+            # Round-robin over minority samples, matching the paper's equal
+            # contribution idea while allowing exact balancing when p is not
+            # divisible by the number of minority cases.
+            for i in range(n_samples):
+                source_idx = i % n_class
+                neighbour_idx = self._rng.choice(neighbour_indices[source_idx])
+
+                x = X_class[source_idx, 0].astype(np.float64, copy=False)
+                y_neighbour = X_class[neighbour_idx, 0].astype(np.float64, copy=False)
+
+                X_synth[i, 0] = self._generate_soft_path(x, y_neighbour)
+
+            y_synth = np.full(n_samples, class_sample, dtype=y.dtype)
+            X_resampled.append(X_synth)
+            y_resampled.append(y_synth)
+
+        return np.vstack(X_resampled), np.hstack(y_resampled)
+
+    def _get_sampling_strategy(self, y):
+        """Return number of synthetic cases to generate for each class."""
         classes, counts = np.unique(y, return_counts=True)
-        if len(classes) != 2:
-            raise ValueError("ESMOTE currently supports binary classification only.")
+        target_stats = dict(zip(classes, counts))
+        n_sample_majority = max(target_stats.values())
+        class_majority = max(target_stats, key=target_stats.get)
 
-        minority_class = classes[np.argmin(counts)]
-        majority_class = classes[np.argmax(counts)]
-
-        X_min = X[y == minority_class]
-        n_min = len(X_min)
-        n_maj = np.sum(y == majority_class)
-        n_to_generate = n_maj - n_min
-
-        if n_to_generate <= 0:
-            return (X[:, 0, :] if input_was_2d else X), y
-
-        if n_min < 2:
-            raise ValueError("At least two minority cases are required for ESMOTE.")
-
-        rng = np.random.default_rng(self.random_state)
-        neighbour_indices = self._find_minority_neighbours(X_min)
-
-        X_synth = np.empty((n_to_generate, 1, X.shape[-1]), dtype=np.float64)
-
-        # Round-robin over minority samples so every seed contributes equally.
-        for i in range(n_to_generate):
-            source_idx = i % n_min
-            neighbour_idx = rng.choice(neighbour_indices[source_idx])
-
-            x = X_min[source_idx, 0].astype(np.float64, copy=False)
-            y_neighbour = X_min[neighbour_idx, 0].astype(np.float64, copy=False)
-
-            X_synth[i, 0] = self._generate_synthetic(x, y_neighbour, rng)
-
-        y_synth = np.full(n_to_generate, minority_class, dtype=y.dtype)
-
-        X_out = np.concatenate([X.astype(np.float64, copy=False), X_synth], axis=0)
-        y_out = np.concatenate([y, y_synth])
-
-        if input_was_2d:
-            X_out = X_out[:, 0, :]
-
-        return X_out, y_out
+        sampling_strategy = {
+            key: n_sample_majority - value
+            for key, value in target_stats.items()
+            if key != class_majority
+        }
+        return OrderedDict(sorted(sampling_strategy.items()))
 
     def _validate_params(self):
-        valid_distances = {"soft_msm"}
-        valid_generations = {"soft_path", "soft_barycenter"}
-
+        """Validate estimator parameters."""
         if self.sampling_strategy != "balance":
             raise ValueError("Only sampling_strategy='balance' is currently supported.")
-
-        if self.distance not in valid_distances:
-            raise ValueError(
-                f"distance must be one of {valid_distances}, got {self.distance!r}."
-            )
-
-        if self.generation not in valid_generations:
-            raise ValueError(
-                f"generation must be one of {valid_generations}, "
-                f"got {self.generation!r}."
-            )
-
-        if self.generation in {"soft_path", "soft_barycenter"}:
-            if self.distance != "soft_msm":
-                raise ValueError(
-                    "soft_path and soft_barycenter require distance='soft_msm'."
-                )
 
         if self.k_neighbors < 1:
             raise ValueError("k_neighbors must be at least 1.")
@@ -207,64 +181,38 @@ class ESMOTE_SOFT:
             raise ValueError("msm_cost must be non-negative.")
 
     def _find_minority_neighbours(self, X_min):
-        """Compute the k nearest neighbours within the minority class.
+        """Compute hard MSM nearest neighbours within the minority class.
 
         Parameters
         ----------
-        X_min : ndarray of shape (n_min, 1, n_timepoints)
+        X_min : ndarray of shape (n_minority, 1, n_timepoints)
             Minority-class samples.
 
         Returns
         -------
-        indices : ndarray of shape (n_min, k)
-            Indices of the k nearest neighbours for each sample.
-            Self-distances are never filled in (they stay at ``np.inf``),
-            so the self-index is always excluded.
+        indices : ndarray of shape (n_minority, k)
+            Indices of the k nearest neighbours for each minority case.
         """
         n_cases = len(X_min)
         k = min(self.k_neighbors, n_cases - 1)
 
-        # Upper-triangular fill; diagonal stays inf so self is never a neighbour.
-        distances = np.full((n_cases, n_cases), np.inf)
+        distances = np.full((n_cases, n_cases), np.inf, dtype=np.float64)
 
         for i in range(n_cases):
             for j in range(i + 1, n_cases):
-                dist = self._distance(X_min[i, 0], X_min[j, 0])
+                dist = msm_distance(
+                    X_min[i, 0],
+                    X_min[j, 0],
+                    c=self.msm_cost,
+                )
                 distances[i, j] = dist
                 distances[j, i] = dist
 
         return np.argsort(distances, axis=1)[:, :k]
 
-    def _distance(self, x, y):
-        """Compute the configured distance between two univariate series."""
-        if self.distance == "msm":
-            return msm_distance(x, y, c=self.msm_cost)
-
-        if self.distance == "soft_msm":
-            return soft_msm_distance(
-                x,
-                y,
-                window=self.window,
-                c=self.msm_cost,
-                itakura_max_slope=self.itakura_max_slope,
-                gamma=self.gamma,
-            )
-
-        raise RuntimeError("Unreachable distance branch.")
-
-    def _generate_synthetic(self, x, y, rng):
-        """Dispatch to the configured generation method."""
-        if self.generation == "soft_path":
-            return self._generate_soft_path(x, y, rng)
-
-        if self.generation == "soft_barycenter":
-            return self._generate_soft_barycenter(x, y, rng)
-
-        raise RuntimeError("Unreachable generation branch.")
-
-    def _generate_soft_path(self, x, y, rng, lam=None):
-        if lam is None:
-            lam = rng.random()
+    def _generate_soft_path(self, x, y):
+        """Generate a synthetic case using the Soft-MSM expected alignment."""
+        lam = self._rng.random()
 
         result = soft_msm_alignment_matrix(
             x,
@@ -275,71 +223,61 @@ class ESMOTE_SOFT:
             gamma=self.gamma,
         )
 
-        if isinstance(result, tuple):
-            A = result[0]
-        else:
-            A = result
-
-        A = np.asarray(A, dtype=np.float64)
-
-        if A.shape != (len(x), len(y)):
-            raise ValueError(
-                "soft_msm_alignment_matrix must return shape "
-                f"{(len(x), len(y))}, got {A.shape}."
-            )
+        A = self._extract_alignment_matrix(result, len(x), len(y))
 
         row_sums = A.sum(axis=1)
-        row_sums[row_sums == 0.0] = 1.0
+        valid_rows = row_sums > 0.0
 
-        y_expected = (A @ y) / row_sums
+        direction = np.zeros_like(x, dtype=np.float64)
 
-        return x + lam * (y_expected - x)
+        # Expected aligned value in y for each index of x.
+        #
+        # The sign is important. The gradient with respect to x points from the
+        # aligned y value towards x, so a synthetic interpolation step should
+        # move in the opposite direction, i.e. towards the expected aligned y.
+        y_expected = np.zeros_like(x, dtype=np.float64)
+        y_expected[valid_rows] = (A[valid_rows] @ y) / row_sums[valid_rows]
+        direction[valid_rows] = y_expected[valid_rows] - x[valid_rows]
 
-    def _generate_soft_barycenter(self, x, y, rng):
-        """Generate a synthetic series as the Soft-MSM two-series Fréchet mean.
+        return x + lam * direction
 
-        Finds the series ``z`` that minimises
+    @staticmethod
+    def _extract_alignment_matrix(result, n_timepoints_x, n_timepoints_y):
+        """Extract the alignment matrix from the Soft-MSM return value."""
+        expected_shape = (n_timepoints_x, n_timepoints_y)
 
-            (1 - λ) * soft_msm(z, x) + λ * soft_msm(z, y)
+        if isinstance(result, tuple):
+            for item in result:
+                candidate = np.asarray(item)
+                if candidate.shape == expected_shape:
+                    return candidate.astype(np.float64, copy=False)
 
-        by gradient descent, initialised from the soft-path interpolant.
+            raise ValueError(
+                "soft_msm_alignment_matrix returned a tuple, but none of its "
+                f"entries had shape {expected_shape}."
+            )
+
+        A = np.asarray(result, dtype=np.float64)
+        if A.shape != expected_shape:
+            raise ValueError(
+                "soft_msm_alignment_matrix must return shape "
+                f"{expected_shape}, got {A.shape}."
+            )
+
+        return A
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return.
+
+        Returns
+        -------
+        params : dict
+            Parameters to create testing instances of the class.
         """
-        lam = rng.random()
-        z = self._generate_soft_path(x, y, rng, lam=lam).astype(np.float64, copy=True)
-
-        for _ in range(self.max_iter):
-            grad_x = soft_msm_grad_x(
-                z,
-                x,
-                window=self.window,
-                c=self.msm_cost,
-                itakura_max_slope=self.itakura_max_slope,
-                gamma=self.gamma,
-            )
-            grad_y = soft_msm_grad_x(
-                z,
-                y,
-                window=self.window,
-                c=self.msm_cost,
-                itakura_max_slope=self.itakura_max_slope,
-                gamma=self.gamma,
-            )
-
-            # soft_msm_grad_x may return either grad or (grad, distance/objective).
-            if isinstance(grad_x, tuple):
-                grad_x = grad_x[0]
-            if isinstance(grad_y, tuple):
-                grad_y = grad_y[0]
-
-            grad_x = np.asarray(grad_x, dtype=np.float64)
-            grad_y = np.asarray(grad_y, dtype=np.float64)
-
-            grad = (1.0 - lam) * grad_x + lam * grad_y
-
-            grad_norm = np.linalg.norm(grad) / np.sqrt(len(grad))
-            z -= self.learning_rate * grad
-
-            if grad_norm < self.tol:
-                break
-
-        return z
+        return {"k_neighbors": 1, "random_state": 0}

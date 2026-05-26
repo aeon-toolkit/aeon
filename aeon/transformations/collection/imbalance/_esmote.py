@@ -1,6 +1,6 @@
 """Elastic Synthetic Minority Over-sampling Technique (ESMOTE)."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["ESMOTE"]
 
 from collections import OrderedDict
@@ -16,8 +16,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 class ESMOTE(BaseCollectionTransformer):
-    """
-    Elastic Synthetic Minority Over-sampling Technique (ESMOTE).
+    """Elastic Synthetic Minority Over-sampling Technique (ESMOTE).
 
     Parameters
     ----------
@@ -39,13 +38,26 @@ class ESMOTE(BaseCollectionTransformer):
 
     See Also
     --------
-    ADASYN
+    SMOTE : Synthetic Minority Over-sampling Technique.
+    ADASYN : Adaptive Synthetic Sampling.
 
     References
     ----------
     .. [1] Chawla et al. SMOTE: synthetic minority over-sampling technique, Journal
     of Artificial Intelligence Research 16(1): 321–357, 2002.
         https://dl.acm.org/doi/10.5555/1622407.1622416
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection.imbalance import ESMOTE
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
+    >>> import numpy as np
+    >>> X = make_example_3d_numpy(n_cases=100, return_y=False, random_state=49)
+    >>> y = np.array([0] * 90 + [1] * 10)
+    >>> sampler = ESMOTE(n_neighbors=1, random_state=49)
+    >>> X_res, y_res = sampler.fit_transform(X, y)
+    >>> y_res.shape
+    (180,)
     """
 
     _tags = {
@@ -57,7 +69,7 @@ class ESMOTE(BaseCollectionTransformer):
 
     def __init__(
         self,
-        n_neighbors=5,
+        n_neighbors: int = 5,
         distance: str | Callable = "twe",
         distance_params: dict | None = None,
         weights: str | Callable = "uniform",
@@ -71,15 +83,12 @@ class ESMOTE(BaseCollectionTransformer):
         self.distance_params = distance_params
         self.n_jobs = n_jobs
 
-        self._random_state = None
-        self._distance_params = distance_params or {}
-
-        self.nn_ = None
         super().__init__()
 
     def _fit(self, X, y=None):
         self._random_state = check_random_state(self.random_state)
         self._n_jobs = check_n_jobs(self.n_jobs)
+        self._distance_params = self.distance_params or {}
         self.nn_ = _Single_Class_KNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
@@ -227,3 +236,19 @@ class ESMOTE(BaseCollectionTransformer):
 
         new_ts = new_ts - bias
         return new_ts
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+        """
+        return {"n_neighbors": 1}
