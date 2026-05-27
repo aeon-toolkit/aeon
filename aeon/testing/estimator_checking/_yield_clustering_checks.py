@@ -145,12 +145,9 @@ def check_clusterer_output(estimator, datatype):
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
     """Test Deep Clusterer saving."""
     with tempfile.TemporaryDirectory() as tmp:
-        if not (
-            estimator_class.__name__
-            in [
-                "BaseDeepClusterer",
-            ]
-        ):
+        if estimator_class.__name__ not in [
+            "BaseDeepClusterer",
+        ]:
             if tmp[-1] != "/":
                 tmp = tmp + "/"
             curr_time = str(time.time_ns())
