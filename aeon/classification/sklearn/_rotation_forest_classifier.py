@@ -200,7 +200,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         # normalise the data.
         X = (X - self._min) / self._ptp
 
-        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+        y_probas = Parallel(n_jobs=self._n_jobs)(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -270,7 +270,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
 
         rng = check_random_state(self.random_state)
 
-        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+        p = Parallel(n_jobs=self._n_jobs)(
             delayed(self._train_probas_for_estimator)(
                 X_t,
                 y,
@@ -354,7 +354,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                fit = Parallel(n_jobs=self._n_jobs)(
                     delayed(self._fit_estimator)(
                         X,
                         X_cls_split,
@@ -377,7 +377,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         else:
             self._n_estimators = self.n_estimators
 
-            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+            fit = Parallel(n_jobs=self._n_jobs)(
                 delayed(self._fit_estimator)(
                     X,
                     X_cls_split,
