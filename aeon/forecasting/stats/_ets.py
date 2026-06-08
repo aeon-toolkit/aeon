@@ -105,6 +105,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         trend_type: int | str | None = 0,
         seasonality_type: int | str | None = 0,
         seasonal_period: int = 1,
+        damped_trend: bool = False,
         iterations: int = 200,
     ):
         self.forecast_val_ = 0.0
@@ -115,6 +116,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
+        self.damped_trend = damped_trend
         self.iterations = iterations
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
@@ -167,6 +169,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self._seasonality_type = _get_int(self.seasonality_type)
         self._trend_type = _get_int(self.trend_type)
         self._seasonal_period = self.seasonal_period
+        self._damped_trend = int(self.damped_trend)
         if self._seasonal_period < 1 or self._seasonality_type == 0:
             self._seasonal_period = 1
         self._model = np.array(
@@ -175,13 +178,17 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
                 self._trend_type,
                 self._seasonality_type,
                 self._seasonal_period,
+                self._damped_trend,
             ],
             dtype=np.int32,
         )
         data = y.squeeze()
         self.parameters_, self.aic_ = nelder_mead(
             1,
-            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
+            1
+            + (self._trend_type != 0)
+            + (self._seasonality_type != 0)
+            + (self._damped_trend != 0 and self._trend_type != 0),
             data,
             self._model,
             max_iter=self.iterations,
@@ -357,12 +364,13 @@ class AutoETS(BaseForecaster):
         "capability:horizon": False,
     }
 
-    def __init__(self):
+    def __init__(self, model_type="ZAZ"):
         self.error_type_ = 0
         self.trend_type_ = 0
         self.seasonality_type_ = 0
         self.seasonal_period_ = 0
         self.wrapped_model_ = None
+        self.model_type = model_type
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
@@ -383,16 +391,18 @@ class AutoETS(BaseForecaster):
             Fitted AutoETS.
         """
         data = y.squeeze()
-        best_model = auto_ets(data)
+        best_model = auto_ets(data, self.model_type)
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
         self.seasonality_type_ = int(best_model[2])
         self.seasonal_period_ = int(best_model[3])
+        self.damped_trend_ = bool(best_model[4])
         self.wrapped_model_ = ETS(
             self.error_type_,
             self.trend_type_,
             self.seasonality_type_,
             self.seasonal_period_,
+            self.damped_trend_,
         )
         self.wrapped_model_.fit(y, exog)
         self.forecast_ = self.wrapped_model_.forecast_
@@ -431,36 +441,86 @@ class AutoETS(BaseForecaster):
 
 
 @njit(fastmath=True, cache=True)
-def auto_ets(data):
+def auto_ets(data, model_type):
     """Calculate model parameters based on the internal nelder-mead implementation."""
+    error_index = model_type[0]
+
+    if model_type[2] == "d":
+        trend_index = model_type[1:3]
+        season_index = model_type[3]
+    else:
+        trend_index = model_type[1]
+        season_index = model_type[2]
+
+    # --- error ---
+    if error_index == "M":
+        error_range = range(2, 3)
+    elif error_index == "A":
+        error_range = range(1, 2)
+    else:  # Z
+        error_range = range(1, 3)
+
+    # --- trend ---
+    if trend_index == "Zd":
+        trend_range = range(0, 3)
+        damped = True
+    elif trend_index == "N":
+        trend_range = range(0, 1)
+        damped = False
+    elif trend_index == "A":
+        trend_range = range(1, 2)
+        damped = False
+    elif trend_index == "M":
+        trend_range = range(2, 3)
+        damped = False
+    elif trend_index == "Ad":
+        trend_range = range(1, 2)
+        damped = True
+    elif trend_index == "Md":
+        trend_range = range(2, 3)
+        damped = True
+    else:  # 'Z'
+        trend_range = range(0, 3)
+        damped = False
+
+    # --- season ---
+    if season_index == "M":
+        season_range = range(2, 3)
+    elif season_index == "N":
+        season_range = range(0, 1)
+    elif season_index == "A":
+        season_range = range(1, 2)
+    else:  # 'Z'
+        season_range = range(0, 3)
     seasonal_period = calc_seasonal_period(data)
     # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
     # but makes no sense to run a seasonal model with any less than 2 seasonal periods
     # worth of usable data even that might be a bit low
     seasonal_enabled = seasonal_period > 1 and len(data) > seasonal_period * 4
-    s_max = 3 if seasonal_enabled else 1
+    season_range = season_range if seasonal_enabled else range(0, 1)
     all_pos = True
     for i in range(len(data)):
         if data[i] <= 0.0:
             all_pos = False
             break
-    model = np.empty(4, dtype=np.int32)
-    best_model = np.empty(4, dtype=np.int32)
+    model = np.empty(5, dtype=np.int32)
+    best_model = np.empty(5, dtype=np.int32)
     best_aic = np.inf
-    for error_type in range(1, 3):
+    for error_type in error_range:
         if error_type == 2 and not all_pos:
             continue
-        for trend_type in range(0, 3):
+        for trend_type in trend_range:
             if trend_type == 2 and not all_pos:
                 continue
-            k_base = 1 + (2 if (trend_type != 0) else 0)
-            for seasonality_type in range(0, s_max):
+            k_base = 1 + ((2 if (damped != 0) else 1) if (trend_type != 0) else 0)
+            for seasonality_type in season_range:
                 if seasonality_type == 2 and not all_pos:
                     continue
                 model[0] = error_type
                 model[1] = trend_type
                 model[2] = seasonality_type
                 model[3] = seasonal_period if (seasonality_type != 0) else 1
+                model[4] = 1 if damped else 0
                 k = k_base + (1 if seasonality_type != 0 else 0)
                 _, aic = nelder_mead(1, k, data, model)
                 if aic < best_aic:
