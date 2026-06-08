@@ -7,13 +7,17 @@ from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 
 
 @njit(cache=True, fastmath=True)
-def compute_min_return_path(cost_matrix: np.ndarray) -> list[tuple]:
+def compute_min_return_path(
+    cost_matrix: np.ndarray, larger_is_better: bool = False
+) -> list[tuple]:
     """Compute the minimum return path through a cost matrix.
 
     Parameters
     ----------
     cost_matrix : np.ndarray, of shape (n_timepoints_x, n_timepoints_y)
         Cost matrix.
+    larger_is_better : bool, default=False
+        If True, the path will be computed for the maximum cost instead of the minimum.
 
     Returns
     -------
@@ -32,15 +36,17 @@ def compute_min_return_path(cost_matrix: np.ndarray) -> list[tuple]:
         elif j == 0:
             i -= 1
         else:
-            min_index = np.argmin(
-                np.array(
-                    [
-                        cost_matrix[i - 1, j - 1],
-                        cost_matrix[i - 1, j],
-                        cost_matrix[i, j - 1],
-                    ]
-                )
+            costs = np.array(
+                [
+                    cost_matrix[i - 1, j - 1],
+                    cost_matrix[i - 1, j],
+                    cost_matrix[i, j - 1],
+                ]
             )
+            if larger_is_better:
+                min_index = np.argmax(costs)
+            else:
+                min_index = np.argmin(costs)
 
             if min_index == 0:
                 i, j = i - 1, j - 1

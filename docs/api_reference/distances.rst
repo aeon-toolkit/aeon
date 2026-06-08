@@ -222,6 +222,20 @@ Weighted Dynamic Time Warping (DTW)
     wdtw_cost_matrix
     wdtw_alignment_path
 
+Dynamic Time Warping kernel distance (KDTW)
+-------------------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    kdtw_distance
+    kdtw_pairwise_distance
+    kdtw_cost_matrix
+    kdtw_alignment_path
+
 General methods with distance argument
 --------------------------------------
 
