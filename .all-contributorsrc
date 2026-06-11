@@ -2821,6 +2821,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "SotonSweetXss",
+      "name": "Zhehao Qian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/241214270?v=4",
+      "profile": "https://www.southampton.ac.uk/",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
