@@ -147,6 +147,10 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     Attributes
     ----------
+    kernel_ : string or callable
+        The kernel resolved during ``fit``. This is identical to ``kernel``
+        unless ``kernel="kdtw"``, in which case it is the callable used
+        internally to compute the KDTW similarity.
     labels_: np.ndarray (1d array of shape (n_case,))
         Labels that is the index each time series belongs to.
     inertia_: float
@@ -235,6 +239,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         if self.verbose is True:
             verbose = 1
 
+        self.kernel_ = self.kernel
         if self.kernel == "kdtw":
             n_channels = X.shape[1]
 
@@ -247,11 +252,11 @@ class TimeSeriesKernelKMeans(BaseClusterer):
                     y = y.reshape(T, n_channels)
                 return _kdtw(x, y, sigma=sigma, epsilon=epsilon)
 
-            self.kernel = kdtw_kernel
+            self.kernel_ = kdtw_kernel
 
         self._tslearn_kernel_k_means = TsLearnKernelKMeans(
             n_clusters=self.n_clusters,
-            kernel=self.kernel,
+            kernel=self.kernel_,
             max_iter=self.max_iter,
             tol=self.tol,
             n_init=self.n_init,
