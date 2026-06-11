@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 
 
 def check_n_jobs(n_jobs):
@@ -32,10 +32,12 @@ def test_basic_functionality():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
-            @threaded
+            @numba_thread_handler
             def sample_func(n_jobs=None):
                 return "executed"
 
@@ -53,10 +55,12 @@ def test_numba_env_variable(clean_env):
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
-            @threaded
+            @numba_thread_handler
             def sample_func(n_jobs=None):
                 return "executed"
 
@@ -72,13 +76,16 @@ def test_fallback_to_threading_count(clean_env):
     set_threads_mock = MagicMock()
 
     # Mock the new fallback mechanism
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
             with patch(
-                "aeon.utils.numba._threading._num_threads_default", return_value=3
+                "aeon.utils.decorators.numba_threading._num_threads_default",
+                return_value=3,
             ):
 
-                @threaded
+                @numba_thread_handler
                 def sample_func(n_jobs=None):
                     return "executed"
 
@@ -91,7 +98,7 @@ def test_positional_argument():
     """
     Test the extraction of n_jobs when passed as a positional argument.
 
-    The threaded decorator needs to correctly identify the n_jobs parameter
+    The numba_thread_handler decorator needs to correctly identify the n_jobs parameter
     regardless of how it's passed to the function. This test verifies that
     when n_jobs is passed as a positional argument, the decorator correctly
     extracts its value and uses it to configure the thread count.
@@ -99,10 +106,12 @@ def test_positional_argument():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
-            @threaded
+            @numba_thread_handler
             def sample_func(data, n_jobs=None):
                 return data
 
@@ -115,7 +124,7 @@ def test_keyword_argument():
     """
     Test the extraction of n_jobs when passed as a keyword argument.
 
-    Functions decorated with the threaded decorator can receive the n_jobs
+    Functions decorated with the numba_thread_handler decorator can receive the n_jobs
     parameter as a keyword argument. This test ensures that the decorator
     correctly identifies and extracts the n_jobs value when passed this way,
     demonstrating the decorator's flexibility in handling different calling styles.
@@ -123,10 +132,12 @@ def test_keyword_argument():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
-            @threaded
+            @numba_thread_handler
             def sample_func(data, n_jobs=None):
                 return data
 
@@ -140,17 +151,19 @@ def test_default_value():
     Test the use of default n_jobs value when not explicitly provided.
 
     When a function has a default value for the n_jobs parameter and is called
-    without specifying this parameter, the threaded decorator should use the
-    function's default value. This test verifies this behavior, ensuring that
+    without specifying this parameter, the numba_thread_handler decorator should use
+    the function's default value. This test verifies this behavior, ensuring that
     default function parameters are properly respected by the decorator.
     """
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
-            @threaded
+            @numba_thread_handler
             def sample_func(data, n_jobs=2):
                 return data
 
@@ -165,16 +178,18 @@ def test_exception_handling():
 
     A robust decorator must ensure resources are properly managed even when
     the decorated function raises an exception. This test verifies that the
-    threaded decorator correctly restores the original thread count even when
-    the function execution fails with an exception, preventing resource leaks.
+    numba_thread_handler decorator correctly restores the original thread count even
+    when the function execution fails with an exception, preventing resource leaks.
     """
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
-            @threaded
+            @numba_thread_handler
             def sample_func(n_jobs=None):
                 raise ValueError("Test exception")
 
@@ -188,7 +203,7 @@ def test_class_attribute():
     """
     Test the extraction of n_jobs from a class attribute.
 
-    The threaded decorator should be able to extract the n_jobs value from
+    The numba_thread_handler decorator should be able to extract the n_jobs value from
     the first argument (typically 'self' in class methods) when it has an
     n_jobs attribute. This test verifies that the decorator correctly identifies
     and uses this attribute when the n_jobs parameter is not explicitly passed.
@@ -196,14 +211,16 @@ def test_class_attribute():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
             class TestClass:
                 def __init__(self, n_jobs):
                     self.n_jobs = n_jobs
 
-                @threaded
+                @numba_thread_handler
                 def process_data(self, data):
                     return data
 
@@ -227,14 +244,16 @@ def test_parameter_precedence_over_attribute():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
             class TestClass:
                 def __init__(self, n_jobs):
                     self.n_jobs = n_jobs
 
-                @threaded
+                @numba_thread_handler
                 def process_data(self, data, n_jobs=None):
                     return data
 
@@ -258,14 +277,16 @@ def test_fallback_when_no_attribute():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.decorators.numba_threading.check_n_jobs", check_jobs_mock):
+        with patch(
+            "aeon.utils.decorators.numba_threading.set_num_threads", set_threads_mock
+        ):
 
             class TestClass:
                 # No n_jobs attribute
                 pass
 
-                @threaded
+                @numba_thread_handler
                 def process_data(self, data):
                     return data
 

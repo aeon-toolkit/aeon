@@ -9,7 +9,7 @@ from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._dtw import dtw_alignment_path, dtw_cost_matrix
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -323,7 +323,7 @@ def dtw_gi_cost_matrix(
     return dtw_cost_matrix(xnew, y_trans, window, itakura_max_slope)
 
 
-@threaded
+@numba_thread_handler
 def dtw_gi_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,

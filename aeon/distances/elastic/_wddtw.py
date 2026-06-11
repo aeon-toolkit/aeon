@@ -11,7 +11,7 @@ from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._wdtw import _wdtw_cost_matrix, _wdtw_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.numba.general import slope_derivative_2d
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -171,7 +171,7 @@ def wddtw_cost_matrix(
     raise ValueError("x and y must be 1D or 2D")
 
 
-@threaded
+@numba_thread_handler
 def wddtw_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
