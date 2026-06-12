@@ -8,8 +8,6 @@ __maintainer__ = []
 __all__ = ["HIVECOTEV1"]
 
 from aeon.classification.dictionary_based import ContractableBOSS
-
-# import base
 from aeon.classification.hybrid._base_hive_cote import _BaseHIVECOTE
 from aeon.classification.interval_based import (
     RandomIntervalSpectralEnsembleClassifier,
@@ -168,7 +166,7 @@ class HIVECOTEV1(_BaseHIVECOTE):
         else:
             self._cboss_params = self.cboss_params
 
-        self.estimators = [
+        self._estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
             ("TSF", TimeSeriesForestClassifier(**self._tsf_params)),
             ("RISE", RandomIntervalSpectralEnsembleClassifier(**self._rise_params)),

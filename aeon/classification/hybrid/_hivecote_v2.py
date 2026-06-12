@@ -7,6 +7,8 @@ representations, using the weighted probabilistic CAWPE as an ensemble controlle
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["HIVECOTEV2"]
 
+import warnings
+
 import numpy as np
 
 from aeon.classification.convolution_based import Arsenal
@@ -40,6 +42,15 @@ class HIVECOTEV2(_BaseHIVECOTE):
         Time contract to limit build time in minutes, overriding
         n_estimators/n_parameter_samples for each component.
         Default of 0 means n_estimators/n_parameter_samples for each component is used.
+    save_component_probas : bool, default=False
+        When predict/predict_proba is called, save each HIVE-COTEV2 component
+        probability predictions in component_probas.
+
+        .. deprecated::
+            ``save_component_probas`` is deprecated because it mutates object
+            state during prediction. Use ``predict_proba_with_components(X)``
+            instead, which returns per-component probabilities without
+            modifying the fitted estimator.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     random_state : int, RandomState instance or None, default=None
@@ -70,6 +81,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
         The weight for Arsenal probabilities.
     tde_weight_ : float
         The weight for TDE probabilities.
+    component_probas : dict
+        Only used if save_component_probas is true. Saved probability predictions for
+        each HIVE-COTEV2 component.
 
     See Also
     --------
@@ -111,6 +125,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         arsenal_params=None,
         tde_params=None,
         time_limit_in_minutes=0,
+        save_component_probas=False,
         verbose=0,
         random_state=None,
         n_jobs=1,
@@ -121,6 +136,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         self.arsenal_params = arsenal_params
         self.tde_params = tde_params
         self.time_limit_in_minutes = time_limit_in_minutes
+        self.save_component_probas = save_component_probas
         self.parallel_backend = parallel_backend
 
         super().__init__(
@@ -186,8 +202,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
             self._arsenal_params["time_limit_in_minutes"] = ct
             self._tde_params["time_limit_in_minutes"] = ct
 
-        # Build component estimators
-        self.estimators = [
+        # Build component estimators (stored in _estimators to avoid mutating
+        # the self.estimators init parameter, for scikit-learn compatibility)
+        self._estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
             ("DrCIF", DrCIFClassifier(**self._drcif_params)),
             ("Arsenal", Arsenal(**self._arsenal_params)),
@@ -195,6 +212,33 @@ class HIVECOTEV2(_BaseHIVECOTE):
         ]
 
         return super()._fit(X, y)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class probabilities for X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predict probabilities for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_cases, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        if self.save_component_probas:
+            warnings.warn(
+                "save_component_probas is deprecated because it mutates "
+                "object state during prediction. Use "
+                "predict_proba_with_components(X) instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            final_probas, component_probas = self.predict_proba_with_components(X)
+            self.component_probas = component_probas
+            return final_probas
+
+        return super()._predict_proba(X)
 
     def predict_proba_with_components(self, X):
         """Predict class probabilities and return per-component probabilities.

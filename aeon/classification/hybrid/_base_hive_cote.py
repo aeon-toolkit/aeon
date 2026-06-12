@@ -61,10 +61,18 @@ class _BaseHIVECOTE(BaseClassifier):
         """Fit the ensemble to training data and calculate CAWPE weights."""
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        if self.estimators is None or len(self.estimators) == 0:
+        # Subclasses may construct their estimator list during fit and store it
+        # in self._estimators to avoid mutating the init parameter self.estimators
+        # (required for scikit-learn compatibility: __init__ parameters must not
+        # be modified by fit).
+        estimators = getattr(self, "_estimators", None)
+        if estimators is None:
+            estimators = self.estimators
+
+        if estimators is None or len(estimators) == 0:
             raise ValueError("No estimators provided to _BaseHIVECOTE.")
 
-        for name, estimator in self.estimators:
+        for name, estimator in estimators:
             if not isinstance(estimator, BaseClassifier):
                 raise TypeError(
                     f"Estimator '{name}' is not a BaseClassifier instance. "
@@ -77,7 +85,7 @@ class _BaseHIVECOTE(BaseClassifier):
         self.component_names_ = []
 
         # Dynamically traverse and train all the underlying components
-        for name, estimator in self.estimators:
+        for name, estimator in estimators:
             est = clone(estimator)
 
             # Pass global parameters to the cloned estimator
