@@ -40,6 +40,25 @@ expected_correct_window = {
 }
 
 
+@pytest.mark.parametrize("weights", ["uniform", "distance"])
+def test_predict_uses_all_neighbors(weights):
+    """Test predict uses the configured neighbor count and weighting."""
+    X_train = np.array([0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16]).reshape(7, 1, 1)
+    y_train = np.array([0, 1, 1, 1, 1, 1, 1])
+    X_test = np.zeros((1, 1, 1))
+
+    knn = KNeighborsTimeSeriesClassifier(
+        distance="euclidean", n_neighbors=7, weights=weights
+    )
+    knn.fit(X_train, y_train)
+
+    probabilities = knn.predict_proba(X_test)
+    expected = knn.classes_[np.argmax(probabilities, axis=1)]
+
+    np.testing.assert_array_equal(knn.predict(X_test), expected)
+    np.testing.assert_array_equal(expected, np.array([1]))
+
+
 @pytest.mark.parametrize("distance_key", distance_functions)
 def test_knn_on_unit_test(distance_key):
     """Test function for elastic knn, to be reinstated soon."""
