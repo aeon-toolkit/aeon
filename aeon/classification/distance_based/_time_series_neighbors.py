@@ -182,13 +182,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        self._check_is_fitted()
-
-        neigh_ind = self._kneighbors(
-            X, n_neighbors=1, return_distance=False, query_is_train=False
-        )
-        indexes = neigh_ind[:, 0]
-        return self.classes_[self.y_[indexes]]
+        return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
 
     def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
         """Find the K-neighbors of a point.
