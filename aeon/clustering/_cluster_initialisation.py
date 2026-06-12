@@ -398,6 +398,12 @@ def resolve_center_initialiser(
                     f"The value provided for init: {init} is invalid. "
                     f"Values must be in the range [0, {X.shape[0]})."
                 )
+            if len(np.unique(init)) != n_clusters:
+                raise ValueError(
+                    f"The value provided for init: {init} is invalid. "
+                    f"Expected {n_clusters} unique indices, got "
+                    f"{len(np.unique(init))}."
+                )
             return init
         else:
             if init.ndim == 1:
