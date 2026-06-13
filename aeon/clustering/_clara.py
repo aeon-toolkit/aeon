@@ -38,8 +38,8 @@ class TimeSeriesCLARA(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
-        If a np.ndarray provided it must be of shape (n_clusters,) and contain
-        the indexes of the time series to use as centroids.
+        If an np.ndarray is provided it must be of shape (n_clusters,) and contain
+        the indices of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -48,10 +48,10 @@ class TimeSeriesCLARA(BaseClusterer):
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_cases, 40 + 2 * n_clusters) is used.
-    n_sampling_iters : int, default=5,
+    n_sampling_iters : int, default=10
         Number of different subsets of samples to try. The best subset cluster centers
         are used.
-    n_init : int, default=5
+    n_init : int, default=1
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
@@ -78,8 +78,8 @@ class TimeSeriesCLARA(BaseClusterer):
     ----------
     cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    labels_ : np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.

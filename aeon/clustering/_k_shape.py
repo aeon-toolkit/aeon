@@ -34,7 +34,7 @@ class KShape(BaseClusterer):
 
     K-Shape is a k-means based clustering algorithm that employs Shape-Based
     Distance (SBD) for assignment and shape extraction via leading eigenvector
-    of a centred covariance-like matrix for centroid forming. This implementation is
+    of a centred covariance-like matrix for forming centroids. This implementation is
     based on the implementation from TheDatumOrg/kshape-python (MIT License)
     adapted to use aeon SBD distance and to be compliant with aeon BaseClusterer API.
 
