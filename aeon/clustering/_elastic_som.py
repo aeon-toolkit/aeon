@@ -119,8 +119,9 @@ class ElasticSOM(BaseClusterer):
         distances that have an elastic alignment path.
         The alignment path function takes the form
         Callable[[np.ndarray, np.ndarray, dict], tuple[list, float]], where the dict
-        contains the kwargs for the distance function. See documentation of aeon.distances for example alignment
-        path functions. The alignment path function must return a full alignment path
+        contains the kwargs for the distance function. See documentation of
+        aeon.distances for example alignment path functions. The alignment path
+        function must return a full alignment path
         with no gaps.
     verbose : bool, default=False
         Verbosity mode.

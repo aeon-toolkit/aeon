@@ -17,7 +17,8 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     """Time series CLARANS implementation.
 
     Clustering Large Applications based upon RANdomized Search (CLARANS) [1]
-    adapts the swap operation of PAM to use a more greedy approach. This is done by only performing the first swap which
+    adapts the swap operation of PAM to use a more greedy approach. This is done
+    by only performing the first swap which
     results in a reduction in total deviation before continuing evaluation. It limits
     the number of attempts known as max neighbours to randomly select and check if
     total deviation is reduced. This random selection gives CLARANS an advantage when
