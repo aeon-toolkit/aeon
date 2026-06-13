@@ -38,7 +38,7 @@ class TEASER(BaseEarlyClassifier):
 
         While a prediction is still deemed unsafe:
             Make a prediction using the series length at classification point i.
-            Decide whether the predcition is safe or not using decide_prediction_safety.
+            Decide whether the prediction is safe or not using decide_prediction_safety.
 
     Parameters
     ----------
@@ -582,7 +582,7 @@ class TEASER(BaseEarlyClassifier):
         return preds, out[1]
 
     def compute_harmonic_mean(self, state_info, y) -> tuple[float, float, float]:
-        """Calculate harmonic mean from a state info matrix and array of class labeles.
+        """Calculate harmonic mean from a state info matrix and array of class labels.
 
         Parameters
         ----------

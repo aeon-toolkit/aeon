@@ -74,7 +74,7 @@ class WEASEL(BaseClassifier):
         Number of possible letters (values) for each word.
     feature_selection : str, default: "chi2"
         Sets the feature selections strategy to be used. One of {"chi2", "none",
-        "random"}.  Large amounts of memory may beneeded depending on the setting of
+        "random"}.  Large amounts of memory may be needed depending on the setting of
         bigrams (true is more) or alpha (larger is more).
         'chi2' reduces the number of words, keeping those above the 'p_threshold'.
         'random' reduces the number to at most 'max_feature_count',
