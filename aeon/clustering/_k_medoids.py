@@ -34,7 +34,8 @@ class TimeSeriesKMedoids(BaseClusterer):
     been a number of algorithms published to solve the problem. The most common is the
     PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
     implementation. However, an adaptation of Lloyd's method classically used
-    for k-means is also available by specifying method='alternate'. Alternate is faster but less
+    for k-means is also available by specifying method='alternate'. Alternate is
+    faster but less
     accurate than PAM. For a full review of variations of k-medoids for time series
     see [5]_.
 
