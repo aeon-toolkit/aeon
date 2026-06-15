@@ -247,9 +247,9 @@ class Catch22Classifier(BaseClassifier):
         if callable(m):
             return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists = np.zeros((len(X), self.n_classes_))
             preds = self.estimator_.predict(self._transformer.transform(X))
-            for i in range(0, X.shape[0]):
+            for i in range(0, len(X)):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
 
