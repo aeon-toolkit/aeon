@@ -2830,6 +2830,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "SSDWGG",
+      "name": "Ren yiwei",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85666259?v=4",
+      "profile": "https://aiwgg.cn",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
