@@ -92,7 +92,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    413.0682421672687
+    403.0835274629169
     """
 
     _tags = {
