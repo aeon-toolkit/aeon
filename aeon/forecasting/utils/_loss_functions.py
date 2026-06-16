@@ -198,14 +198,14 @@ def _ets_aic(params, data, model):
             )
         sse_ += error**2
     variance = sse_ / n_timepoints
-    liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
+    likelihood = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     k_ = (
         seasonal_period * (seasonality_type != 0)
         + (1 + (phi != 1)) * (trend_type != 0)
         + 2
     )
-    aic_ = -2 * liklihood_ + 2 * k_
-    return aic_
+    aic = -2 * likelihood + 2 * k_
+    return aic
 
 
 @njit(fastmath=True, cache=True)
@@ -322,17 +322,17 @@ def _ets_fit(params, data, model):
             )
     avg_mean_sq_err_ /= n_timepoints
     variance = sse_ / n_timepoints
-    liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
+    likelihood = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     if error_type == 2:
-        liklihood_ -= log_fitted_sum
+        likelihood -= log_fitted_sum
     k_ = (
         seasonal_period * (seasonality_type != 0)
         + (1 + (phi != 1)) * (trend_type != 0)
         + 2
     )
-    aic_ = -2 * liklihood_ + 2 * k_
+    aic = -2 * likelihood + 2 * k_
     return (
-        aic_,
+        aic,
         level,
         trend,
         seasonality,
@@ -340,7 +340,7 @@ def _ets_fit(params, data, model):
         residuals_,
         fitted_values_,
         avg_mean_sq_err_,
-        liklihood_,
+        likelihood,
         k_,
     )
 

@@ -71,7 +71,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Residuals from the fitted model.
     fitted_values_ : list of float
         Fitted values for the training data.
-    liklihood_ : float
+    likelihood_ : float
         Log-likelihood of the fitted model.
     n_timepoints_ : int
         Number of time points in the training series.
@@ -118,6 +118,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.iterations = iterations
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
+        self.likelihood_ = 0
         self.liklihood_ = 0
         self.k_ = 0
         self.aic_ = 0
@@ -198,9 +199,10 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.residuals_,
             self.fitted_values_,
             self.avg_mean_sq_err_,
-            self.liklihood_,
+            self.likelihood_,
             self.k_,
         ) = _ets_fit(self.parameters_, data, self._model)
+        self.liklihood_ = self.likelihood_
         self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,

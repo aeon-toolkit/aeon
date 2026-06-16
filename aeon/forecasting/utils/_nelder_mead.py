@@ -6,7 +6,7 @@ from numba import njit
 from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dispatch_loss(fn_id, params, data, model):
     if fn_id == 0:
         value = _arima_fit(params, data, model)
@@ -21,14 +21,19 @@ def dispatch_loss(fn_id, params, data, model):
 
 @njit(cache=True, fastmath=True)
 def _init_ets_simplex(points, model):
+    alpha_idx = 0
+    beta_idx = 1
+    phi_idx = 2
     error_type = model[0]
     trend_type = model[1]
     seasonality_type = model[2]
     points[:] = 0.0
     base = points[0]
+    # Multiplicative-error/additive-seasonal models are especially sensitive to
+    # invalid fitted states from a large initial level/seasonal smoothing value.
     base_alpha = 0.1 if error_type == 2 and seasonality_type == 1 else 0.5
     base_level = 0.01 if error_type == 2 and seasonality_type == 1 else 0.1
-    base[0] = base_alpha
+    base[alpha_idx] = base_alpha
     param_index = 1
     if trend_type != 0:
         base[param_index] = base_level
@@ -41,11 +46,11 @@ def _init_ets_simplex(points, model):
     for i in range(1, len(points)):
         points[i] = base
         param = i - 1
-        if param == 0:
+        if param == alpha_idx:
             points[i, param] = base_alpha * 1.2
-        elif trend_type != 0 and param == 1:
+        elif trend_type != 0 and param == beta_idx:
             points[i, param] = base_level * 1.2
-        elif trend_type != 0 and param == 2:
+        elif trend_type != 0 and param == phi_idx:
             points[i, param] = 0.9
         else:
             points[i, param] = base_level * 1.2

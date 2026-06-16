@@ -248,9 +248,10 @@ def test_autoets_uses_provided_seasonal_period():
 def test_autoets_invalid_seasonal_period_raises():
     """AutoETS should reject invalid supplied seasonal periods."""
     forecaster = AutoETS(seasonal_period=0)
+    y = np.array([10.0, 11.0, 12.0, 13.0])
 
     with pytest.raises(ValueError, match="seasonal_period must be"):
-        forecaster.fit(y_pos)
+        forecaster.fit(y)
 
 
 @pytest.mark.parametrize(
