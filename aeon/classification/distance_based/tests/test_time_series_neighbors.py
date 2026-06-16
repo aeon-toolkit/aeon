@@ -153,3 +153,37 @@ def test_knn_kneighbors(distance_key):
     # Each point should not be its own neighbor (diagonal should be excluded)
     for i in range(len(X_train)):
         assert i not in train_ind[i]
+
+
+def test_predict_callable_weights():
+    """A callable ``weights`` is accepted and used to weight the vote.
+
+    Regression test for issue #3426: the constructor documented ``callable``
+    weights but rejected them.
+    """
+    X_train = np.array([0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16]).reshape(7, 1, 1)
+    y_train = np.array([0, 1, 1, 1, 1, 1, 1])
+    X_test = np.zeros((1, 1, 1))
+
+    def nearest_only(distances):
+        # Put all weight on the single closest neighbour.
+        w = np.zeros_like(distances)
+        w[np.argmin(distances)] = 1.0
+        return w
+
+    knn = KNeighborsTimeSeriesClassifier(
+        distance="euclidean", n_neighbors=7, weights=nearest_only
+    )
+    knn.fit(X_train, y_train)
+
+    probabilities = knn.predict_proba(X_test)
+    # Only the closest neighbour (class 0) carries weight, so class 0 wins;
+    # uniform weighting over the 7 neighbours would instead predict class 1.
+    np.testing.assert_array_equal(knn.predict(X_test), np.array([0]))
+    np.testing.assert_allclose(probabilities.sum(axis=1), 1.0)
+
+
+def test_invalid_weights_string_raises():
+    """An unrecognised ``weights`` string is still rejected."""
+    with pytest.raises(ValueError, match="Unrecognised kNN weights"):
+        KNeighborsTimeSeriesClassifier(weights="not_a_weighting")
