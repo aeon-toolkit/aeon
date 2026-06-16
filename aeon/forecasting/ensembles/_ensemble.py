@@ -3,6 +3,8 @@
 __maintainer__ = []
 __all__ = ["EnsembleForecaster"]
 
+import inspect
+
 import numpy as np
 
 from aeon.base._base import _clone_estimator
@@ -13,7 +15,7 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     """Ensemble forecaster that combines predictions from multiple forecasters.
 
     Fits each component forecaster independently on the same series and combines
-    their point forecasts using a specified aggregation method.  Equal weights and
+    their point forecasts using a specified averaging method. Equal weights and
     the mean are used by default; the median is recommended when robustness to a
     single poorly-fitted component is desired (as in SCUM).
 
@@ -23,12 +25,13 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         Named forecaster instances to include in the ensemble.  Each element is a
         ``(name, estimator)`` pair.  Names must be unique.
     weights : array-like of float or None, default=None
-        Per-forecaster weights used when ``method="mean"``.  Must be non-negative
-        and have the same length as ``forecasters``.  Weights are normalised to sum
-        to one before use.  Ignored when ``method="median"`` or ``method`` is
-        callable.  If ``None``, equal weights are used.
-    method : {"mean", "median"} or callable, default="mean"
-        How to combine the component forecasts at each horizon:
+        Per-forecaster weights used when ``averaging_method="mean"``. Must be
+        non-negative and have the same length as ``forecasters``. Weights are
+        normalised to sum to one before use. Ignored when
+        ``averaging_method="median"`` or ``averaging_method`` is callable. If
+        ``None``, equal weights are used.
+    averaging_method : {"mean", "median"} or callable, default="mean"
+        How to average the component forecasts at each horizon:
 
         - ``"mean"``   : (weighted) arithmetic mean.
         - ``"median"`` : element-wise median; ``weights`` is ignored.
@@ -42,8 +45,8 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     forecasters_ : list of (str, BaseForecaster) tuples
         Fitted copies of the component forecasters.
     weights_ : np.ndarray or None
-        Normalised weights used for combination, or ``None`` when ``method`` is not
-        ``"mean"`` or when ``weights`` was not supplied.
+        Normalised weights used for combination, or ``None`` when
+        ``averaging_method`` is not ``"mean"`` or when ``weights`` was not supplied.
     n_forecasters_ : int
         Number of component forecasters.
 
@@ -57,7 +60,7 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     ...     ("last", NaiveForecaster(strategy="last")),
     ...     ("mean", NaiveForecaster(strategy="mean")),
     ... ]
-    >>> ens = EnsembleForecaster(forecasters=forecasters, method="mean")
+    >>> ens = EnsembleForecaster(forecasters=forecasters, averaging_method="mean")
     >>> preds = ens.iterative_forecast(y, prediction_horizon=3)
     """
 
@@ -65,45 +68,15 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         "capability:horizon": False,
     }
 
-    def __init__(self, forecasters, weights=None, method="mean"):
+    def __init__(self, forecasters, weights=None, averaging_method="mean"):
         self.forecasters = forecasters
         self.weights = weights
-        self.method = method
+        self.averaging_method = averaging_method
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit each component forecaster on y."""
-        if not callable(self.method) and self.method not in ("mean", "median"):
-            raise ValueError(
-                f"method must be 'mean', 'median', or a callable, got {self.method!r}"
-            )
-
-        if len(self.forecasters) == 0:
-            raise ValueError("forecasters must not be empty.")
-
-        names = [name for name, _ in self.forecasters]
-        if len(names) != len(set(names)):
-            raise ValueError("Forecaster names in forecasters must be unique.")
-
-        if self.method == "mean" and self.weights is not None:
-            w = np.asarray(self.weights, dtype=float)
-            if w.ndim != 1:
-                raise ValueError("weights must be a one-dimensional array.")
-            if w.shape[0] != len(self.forecasters):
-                raise ValueError(
-                    f"weights has length {w.shape[0]} but there are "
-                    f"{len(self.forecasters)} forecasters."
-                )
-            if not np.all(np.isfinite(w)):
-                raise ValueError("All weights must be finite.")
-            if np.any(w < 0):
-                raise ValueError("All weights must be non-negative.")
-            weight_sum = w.sum()
-            if weight_sum <= 0:
-                raise ValueError("At least one weight must be positive.")
-            self.weights_ = w / weight_sum
-        else:
-            self.weights_ = None
+        self.weights_ = self._validate_parameters()
 
         self.forecasters_ = []
         for name, forecaster in self.forecasters:
@@ -122,8 +95,9 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Forecast ``prediction_horizon`` steps ahead by combining component forecasts.
 
-        Fits all component forecasters on ``y`` once, then recursively calls each
-        fitted component's ``predict`` method on an extended copy of the series.
+        Fits all component forecasters on ``y`` once, then asks each fitted component
+        for its own full ``prediction_horizon`` forecast trajectory before combining
+        those trajectories horizon by horizon.
 
         Parameters
         ----------
@@ -139,34 +113,103 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         np.ndarray
             Shape ``(prediction_horizon,)`` combined forecast.
         """
-        if prediction_horizon < 1:
-            raise ValueError("prediction_horizon must be greater than or equal to 1.")
+        self._validate_prediction_horizon(prediction_horizon)
 
         self.fit(y, exog)
 
-        y_values = np.asarray(y, dtype=float).ravel()
-        n_timepoints = y_values.shape[0]
-        all_preds = np.empty((self.n_forecasters_, prediction_horizon))
-        for i, (_, f) in enumerate(self.forecasters_):
-            y_ext = np.empty(n_timepoints + prediction_horizon, dtype=float)
-            y_ext[:n_timepoints] = y_values
-            for j in range(prediction_horizon):
-                pred = f.predict(y_ext[: n_timepoints + j], exog)
-                all_preds[i, j] = pred
-                y_ext[n_timepoints + j] = pred
+        component_forecasts = []
+        for _, forecaster in self.forecasters_:
+            preds = self._component_iterative_forecast(
+                forecaster,
+                y,
+                prediction_horizon,
+                exog,
+            )
+            preds = np.asarray(preds, dtype=float).reshape(-1)
+            if preds.shape[0] != prediction_horizon:
+                raise ValueError(
+                    "Component forecaster returned a forecast with length "
+                    f"{preds.shape[0]}, expected {prediction_horizon}."
+                )
+            component_forecasts.append(preds)
 
+        all_preds = np.stack(component_forecasts, axis=0)
         return self._combine(all_preds)
 
     def _combine(self, preds):
         """Combine a ``(n_forecasters, ...)`` array along axis 0."""
-        if callable(self.method):
-            return self.method(preds)
-        if self.method == "median":
+        if callable(self.averaging_method):
+            return self.averaging_method(preds)
+        if self.averaging_method == "median":
             return np.median(preds, axis=0)
         # mean, weighted or unweighted
         if self.weights_ is not None:
             return np.average(preds, weights=self.weights_, axis=0)
         return np.mean(preds, axis=0)
+
+    def _validate_parameters(self):
+        """Validate forecaster, averaging, and weight parameters."""
+        if not callable(self.averaging_method) and self.averaging_method not in (
+            "mean",
+            "median",
+        ):
+            raise ValueError(
+                "averaging_method must be 'mean', 'median', or a callable, "
+                f"got {self.averaging_method!r}"
+            )
+
+        if len(self.forecasters) == 0:
+            raise ValueError("forecasters must not be empty.")
+
+        names = [name for name, _ in self.forecasters]
+        if len(names) != len(set(names)):
+            raise ValueError("Forecaster names in forecasters must be unique.")
+
+        if self.averaging_method != "mean" or self.weights is None:
+            return None
+
+        weights = np.asarray(self.weights, dtype=float)
+        if weights.ndim != 1:
+            raise ValueError("weights must be a one-dimensional array.")
+        if weights.shape[0] != len(self.forecasters):
+            raise ValueError(
+                f"weights has length {weights.shape[0]} but there are "
+                f"{len(self.forecasters)} forecasters."
+            )
+        if not np.all(np.isfinite(weights)):
+            raise ValueError("All weights must be finite.")
+        if np.any(weights < 0):
+            raise ValueError("All weights must be non-negative.")
+        weight_sum = weights.sum()
+        if weight_sum <= 0:
+            raise ValueError("At least one weight must be positive.")
+        return weights / weight_sum
+
+    def _validate_prediction_horizon(self, prediction_horizon):
+        """Validate the iterative forecast horizon."""
+        if prediction_horizon < 1:
+            raise ValueError("prediction_horizon must be greater than or equal to 1.")
+
+    def _component_iterative_forecast(
+        self, forecaster, y, prediction_horizon, exog=None
+    ):
+        """Call a component's full-horizon iterative forecast method."""
+        parameters = inspect.signature(forecaster.iterative_forecast).parameters
+        accepts_exog = "exog" in parameters or any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in parameters.values()
+        )
+        if accepts_exog:
+            return forecaster.iterative_forecast(
+                y,
+                prediction_horizon=prediction_horizon,
+                exog=exog,
+            )
+        if exog is not None:
+            raise TypeError(
+                f"{forecaster.__class__.__name__}.iterative_forecast does not "
+                "accept exog."
+            )
+        return forecaster.iterative_forecast(y, prediction_horizon=prediction_horizon)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -189,5 +232,5 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
                 ("last", NaiveForecaster(strategy="last")),
                 ("mean", NaiveForecaster(strategy="mean")),
             ],
-            "method": "mean",
+            "averaging_method": "mean",
         }

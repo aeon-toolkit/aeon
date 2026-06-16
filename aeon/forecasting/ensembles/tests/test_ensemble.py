@@ -13,20 +13,34 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ensembles import EnsembleForecaster
 
 
-class _CountingForecaster(BaseForecaster):
-    """Small test forecaster that records fit calls on the fitted clone."""
+class _TrajectoryForecaster(BaseForecaster):
+    """Small test forecaster with different predict and iterative paths."""
 
-    def __init__(self, prediction=1.0):
-        self.prediction = prediction
-        self.fit_calls_ = 0
+    def __init__(self, start=1.0, predict_value=-999.0):
+        self.start = start
+        self.predict_value = predict_value
+        self.predict_calls_ = 0
+        self.iterative_forecast_calls_ = 0
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
-        self.fit_calls_ += 1
         return self
 
     def _predict(self, y, exog=None):
-        return float(self.prediction)
+        self.predict_calls_ += 1
+        return float(self.predict_value)
+
+    def iterative_forecast(self, y, prediction_horizon, exog=None):
+        self.iterative_forecast_calls_ += 1
+        return self.start + np.arange(prediction_horizon, dtype=float)
+
+
+class _NoExogTrajectoryForecaster(_TrajectoryForecaster):
+    """Test forecaster with an iterative_forecast signature without exog."""
+
+    def iterative_forecast(self, y, prediction_horizon):
+        self.iterative_forecast_calls_ += 1
+        return self.start + np.arange(prediction_horizon, dtype=float)
 
 
 def _default_forecasters():
@@ -38,12 +52,12 @@ def _default_forecasters():
 
 
 # ---------------------------------------------------------------------------
-# Combination methods
+# Averaging methods
 # ---------------------------------------------------------------------------
 
 
 def test_predict_mean_default():
-    """Default ``method='mean'`` averages the component predictions."""
+    """Default ``averaging_method='mean'`` averages component predictions."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
     # last -> 50, mean -> 30, average -> 40
     ens = EnsembleForecaster(forecasters=_default_forecasters())
@@ -52,10 +66,12 @@ def test_predict_mean_default():
 
 
 def test_predict_median():
-    """``method='median'`` returns the component-wise median."""
+    """``averaging_method='median'`` returns the component-wise median."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
     # last -> 50, mean -> 30, median -> 40
-    ens = EnsembleForecaster(forecasters=_default_forecasters(), method="median")
+    ens = EnsembleForecaster(
+        forecasters=_default_forecasters(), averaging_method="median"
+    )
     ens.fit(y)
     assert ens.predict(y) == pytest.approx(40.0)
 
@@ -73,7 +89,9 @@ def test_weights_ignored_for_median():
     """Weights are only used by the mean combiner."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
     ens = EnsembleForecaster(
-        forecasters=_default_forecasters(), method="median", weights=[np.nan, -1.0]
+        forecasters=_default_forecasters(),
+        averaging_method="median",
+        weights=[np.nan, -1.0],
     )
 
     ens.fit(y)
@@ -82,14 +100,16 @@ def test_weights_ignored_for_median():
     assert ens.predict(y) == pytest.approx(40.0)
 
 
-def test_predict_callable_method():
-    """A callable ``method`` is applied to the stacked predictions."""
+def test_predict_callable_averaging_method():
+    """A callable ``averaging_method`` is applied to the stacked predictions."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
 
     def maximum(preds):
         return float(np.max(preds, axis=0))
 
-    ens = EnsembleForecaster(forecasters=_default_forecasters(), method=maximum)
+    ens = EnsembleForecaster(
+        forecasters=_default_forecasters(), averaging_method=maximum
+    )
     ens.fit(y)
     # last -> 50, mean -> 30, max -> 50
     assert ens.predict(y) == pytest.approx(50.0)
@@ -124,7 +144,9 @@ def test_iterative_forecast_shape_and_values():
 def test_iterative_forecast_median():
     """Median combination works for multi-step output."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    ens = EnsembleForecaster(forecasters=_default_forecasters(), method="median")
+    ens = EnsembleForecaster(
+        forecasters=_default_forecasters(), averaging_method="median"
+    )
     preds = ens.iterative_forecast(y, prediction_horizon=3)
     np.testing.assert_allclose(preds, np.full(3, 40.0))
 
@@ -138,21 +160,36 @@ def test_iterative_forecast_horizon_one():
     assert preds[0] == pytest.approx(40.0)
 
 
-def test_iterative_forecast_fits_each_component_once():
-    """The ensemble iterative path should not refit components per horizon."""
+def test_iterative_forecast_combines_component_full_trajectories():
+    """The ensemble should combine component iterative_forecast trajectories."""
     y = np.array([10.0, 20.0, 30.0])
     ens = EnsembleForecaster(
         forecasters=[
-            ("one", _CountingForecaster(prediction=1.0)),
-            ("two", _CountingForecaster(prediction=2.0)),
-        ]
+            ("low", _TrajectoryForecaster(start=1.0, predict_value=-100.0)),
+            ("mid", _TrajectoryForecaster(start=10.0, predict_value=-200.0)),
+            ("high", _TrajectoryForecaster(start=20.0, predict_value=-300.0)),
+        ],
+        averaging_method="median",
     )
 
     preds = ens.iterative_forecast(y, prediction_horizon=4)
 
-    np.testing.assert_allclose(preds, np.full(4, 1.5))
+    np.testing.assert_allclose(preds, np.array([10.0, 11.0, 12.0, 13.0]))
     for _, forecaster in ens.forecasters_:
-        assert forecaster.fit_calls_ == 1
+        assert forecaster.iterative_forecast_calls_ == 1
+        assert forecaster.predict_calls_ == 0
+
+
+def test_iterative_forecast_supports_component_without_exog_keyword():
+    """Components can expose iterative_forecast without an exog parameter."""
+    y = np.array([10.0, 20.0, 30.0])
+    ens = EnsembleForecaster(
+        forecasters=[("no_exog", _NoExogTrajectoryForecaster(start=5.0))]
+    )
+
+    preds = ens.iterative_forecast(y, prediction_horizon=3)
+
+    np.testing.assert_allclose(preds, np.array([5.0, 6.0, 7.0]))
 
 
 # ---------------------------------------------------------------------------
@@ -258,11 +295,13 @@ def test_fit_rejects_invalid_weights(weights, message):
         ens.fit(y)
 
 
-def test_fit_rejects_invalid_method_string():
-    """Unknown string ``method`` values are rejected."""
+def test_fit_rejects_invalid_averaging_method_string():
+    """Unknown string ``averaging_method`` values are rejected."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    ens = EnsembleForecaster(forecasters=_default_forecasters(), method="not_a_method")
-    with pytest.raises(ValueError, match="method must be"):
+    ens = EnsembleForecaster(
+        forecasters=_default_forecasters(), averaging_method="not_an_averaging_method"
+    )
+    with pytest.raises(ValueError, match="averaging_method must be"):
         ens.fit(y)
 
 
@@ -298,7 +337,7 @@ def test_three_forecasters_median_picks_middle():
             NaiveForecaster(strategy="seasonal_last", seasonal_period=1),
         ),  # 50
     ]
-    ens = EnsembleForecaster(forecasters=forecasters, method="median")
+    ens = EnsembleForecaster(forecasters=forecasters, averaging_method="median")
     ens.fit(y)
     # sorted predictions: [30, 50, 50] -> median 50
     assert ens.predict(y) == pytest.approx(50.0)
