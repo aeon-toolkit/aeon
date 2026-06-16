@@ -9,11 +9,14 @@ from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
 @njit(cache=True, fastmath=True)
 def dispatch_loss(fn_id, params, data, model):
     if fn_id == 0:
-        return _arima_fit(params, data, model)
-    if fn_id == 1:
-        return _ets_fit(params, data, model)[0]
+        value = _arima_fit(params, data, model)
+    elif fn_id == 1:
+        value = _ets_fit(params, data, model)[0]
     else:
         raise ValueError("Unknown loss function ID")
+    if np.isnan(value) or np.isinf(value):
+        return np.inf
+    return value
 
 
 @njit(cache=True, fastmath=True)
@@ -136,6 +139,13 @@ def nelder_mead(
             values[i] = dispatch_loss(loss_id, points[i], data, model)
 
         # Convergence check
-        if np.max(np.abs(values - values[0])) < tol:
+        if (
+            not np.isnan(values[0])
+            and not np.isinf(values[0])
+            and np.max(np.abs(values - values[0])) < tol
+        ):
             break
+    order = np.argsort(values)
+    points = points[order]
+    values = values[order]
     return points[0], values[0]

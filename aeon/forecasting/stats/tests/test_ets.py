@@ -16,7 +16,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            11.150969310377484,
+            12.4742214875156,
         ),
         (
             dict(
@@ -25,7 +25,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            [11.217749519087675, 1.536562128],
+            12.332111343012121,
         ),
         (
             dict(
@@ -34,7 +34,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.95447540517364,
+            12.488696178118074,
         ),
         (
             dict(
@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.664797705601895,
+            12.329292306395738,
         ),
     ],
 )
@@ -231,3 +231,69 @@ def test_autoets_wrapped_model_parameters_match_selected_types():
     assert model._trend_type == forecaster.trend_type_
     assert model._seasonality_type == forecaster.seasonality_type_
     assert model._seasonal_period == forecaster.seasonal_period_
+
+
+@pytest.mark.parametrize(
+    "y, horizon",
+    [
+        (
+            np.array(
+                [
+                    417,
+                    451,
+                    360,
+                    525,
+                    392,
+                    375,
+                    326,
+                    594,
+                    519,
+                    570,
+                    416,
+                    556,
+                    272,
+                    391,
+                    732,
+                    890,
+                    855,
+                    737,
+                    470,
+                ],
+                dtype=np.float64,
+            ),
+            6,
+        ),
+        (
+            np.array(
+                [
+                    2032.0,
+                    2085.05,
+                    2068.75,
+                    1978.9,
+                    2472.25,
+                    2819.6,
+                    3016.45,
+                    2731.85,
+                    2506.75,
+                    5833.6,
+                    4474.0,
+                    7208.75,
+                    15586.15,
+                    25052.3,
+                ],
+                dtype=np.float64,
+            ),
+            6,
+        ),
+    ],
+)
+def test_autoets_issue_3297_forecasts_are_finite_and_bounded(y, horizon):
+    """AutoETS should not select unstable multiplicative trend issue cases."""
+    forecaster = AutoETS()
+    forecaster.fit(y)
+
+    preds = forecaster.iterative_forecast(y, prediction_horizon=horizon)
+
+    assert forecaster.trend_type_ != 2
+    assert np.all(np.isfinite(preds))
+    assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))

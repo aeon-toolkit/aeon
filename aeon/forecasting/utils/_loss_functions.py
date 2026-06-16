@@ -44,6 +44,7 @@ def _arima_fit(params, data, model):
 
 
 EPS = 1e-6
+LARGE_LOSS = np.inf
 
 
 @njit(inline="always", cache=True)
@@ -52,6 +53,54 @@ def safe_div(num, den):
         return num / EPS
     else:
         return num / den
+
+
+@njit(inline="always", cache=True)
+def _is_finite(value):
+    return not (np.isnan(value) or np.isinf(value))
+
+
+@njit(inline="always", cache=True)
+def _ets_params_are_valid(alpha, beta, gamma, phi, trend_type, seasonality_type):
+    if not _is_finite(alpha) or alpha < 0.0 or alpha > 1.0:
+        return False
+    if trend_type != 0:
+        if not _is_finite(beta) or beta < 0.0 or beta > 1.0:
+            return False
+        if not _is_finite(phi) or phi <= 0.0 or phi > 1.0:
+            return False
+    if seasonality_type != 0:
+        if not _is_finite(gamma) or gamma < 0.0 or gamma > 1.0:
+            return False
+    return True
+
+
+@njit(inline="always", cache=True)
+def _ets_state_is_valid(
+    error_type,
+    trend_type,
+    seasonality_type,
+    level,
+    trend,
+    seasonality,
+    fitted_value,
+    error,
+):
+    if not (
+        _is_finite(level)
+        and _is_finite(trend)
+        and _is_finite(seasonality)
+        and _is_finite(fitted_value)
+        and _is_finite(error)
+    ):
+        return False
+    if error_type == 2 and fitted_value <= EPS:
+        return False
+    if trend_type == 2 and (level <= EPS or trend <= EPS):
+        return False
+    if seasonality_type == 2 and seasonality <= EPS:
+        return False
+    return True
 
 
 @njit(fastmath=True, cache=True)
@@ -172,8 +221,44 @@ def _ets_fit(params, data, model):
     )
     avg_mean_sq_err_ = 0
     sse_ = 0
+    log_fitted_sum = 0.0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
     fitted_values_ = np.zeros(n_timepoints)
+    if not _ets_params_are_valid(alpha, beta, gamma, phi, trend_type, seasonality_type):
+        return (
+            LARGE_LOSS,
+            level,
+            trend,
+            seasonality,
+            n_timepoints,
+            residuals_,
+            fitted_values_,
+            LARGE_LOSS,
+            -LARGE_LOSS,
+            0,
+        )
+    if not _ets_state_is_valid(
+        error_type,
+        trend_type,
+        seasonality_type,
+        level,
+        trend,
+        seasonality[0],
+        level,
+        0.0,
+    ):
+        return (
+            LARGE_LOSS,
+            level,
+            trend,
+            seasonality,
+            n_timepoints,
+            residuals_,
+            fitted_values_,
+            LARGE_LOSS,
+            -LARGE_LOSS,
+            0,
+        )
     for t in range(n_timepoints):
         index = t + seasonal_period
         s_index = t % seasonal_period
@@ -194,13 +279,52 @@ def _ets_fit(params, data, model):
             gamma,
             phi,
         )
+        if not _ets_state_is_valid(
+            error_type,
+            trend_type,
+            seasonality_type,
+            level,
+            trend,
+            seasonality[s_index],
+            fitted_value,
+            error,
+        ):
+            return (
+                LARGE_LOSS,
+                level,
+                trend,
+                seasonality,
+                n_timepoints,
+                residuals_,
+                fitted_values_,
+                LARGE_LOSS,
+                -LARGE_LOSS,
+                0,
+            )
         residuals_[t] = error
         fitted_values_[t] = fitted_value
         avg_mean_sq_err_ += (time_point - fitted_value) ** 2
         sse_ += error**2
+        if error_type == 2:
+            log_fitted_sum += np.log(fitted_value)
+        if not _is_finite(sse_):
+            return (
+                LARGE_LOSS,
+                level,
+                trend,
+                seasonality,
+                n_timepoints,
+                residuals_,
+                fitted_values_,
+                LARGE_LOSS,
+                -LARGE_LOSS,
+                0,
+            )
     avg_mean_sq_err_ /= n_timepoints
     variance = sse_ / n_timepoints
     liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
+    if error_type == 2:
+        liklihood_ -= log_fitted_sum
     k_ = (
         seasonal_period * (seasonality_type != 0)
         + (1 + (phi != 1)) * (trend_type != 0)

@@ -178,7 +178,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             ],
             dtype=np.int32,
         )
-        data = y.squeeze()
+        data = np.asarray(y.squeeze(), dtype=np.float64)
         self.parameters_, self.aic_ = nelder_mead(
             1,
             1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
@@ -326,9 +326,10 @@ class AutoETS(BaseForecaster):
     """Automatic Exponential Smoothing forecaster.
 
     An implementation of the exponential smoothing statistics forecasting algorithm.
-    Chooses betweek additive and multiplicative error models,
-    None, additive and multiplicative (including damped) trend and
-    None, additive and multiplicative seasonality [1]_.
+    Chooses between additive and multiplicative error models, None and additive trend,
+    and None, additive and multiplicative seasonality [1]_. Multiplicative trend is
+    supported by :class:`ETS`, but is excluded from the automatic search by default
+    because it is numerically fragile.
 
     There are issues relating to stability
     and efficiency discussed here https://github.com/aeon-toolkit/aeon/issues/3294.
@@ -336,8 +337,8 @@ class AutoETS(BaseForecaster):
 
     Parameters
     ----------
-    horizon : int, default = 1
-        The horizon to forecast to.
+    allow_multiplicative_trend : bool, default=False
+        Whether to include multiplicative trend models in the automatic model search.
 
     References
     ----------
@@ -357,7 +358,8 @@ class AutoETS(BaseForecaster):
         "capability:horizon": False,
     }
 
-    def __init__(self):
+    def __init__(self, allow_multiplicative_trend: bool = False):
+        self.allow_multiplicative_trend = allow_multiplicative_trend
         self.error_type_ = 0
         self.trend_type_ = 0
         self.seasonality_type_ = 0
@@ -382,8 +384,8 @@ class AutoETS(BaseForecaster):
         self
             Fitted AutoETS.
         """
-        data = y.squeeze()
-        best_model = auto_ets(data)
+        data = np.asarray(y.squeeze(), dtype=np.float64)
+        best_model = auto_ets(data, self.allow_multiplicative_trend)
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
         self.seasonality_type_ = int(best_model[2])
@@ -431,7 +433,7 @@ class AutoETS(BaseForecaster):
 
 
 @njit(fastmath=True, cache=True)
-def auto_ets(data):
+def auto_ets(data, allow_multiplicative_trend=False):
     """Calculate model parameters based on the internal nelder-mead implementation."""
     seasonal_period = calc_seasonal_period(data)
     # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
@@ -447,10 +449,11 @@ def auto_ets(data):
     model = np.empty(4, dtype=np.int32)
     best_model = np.empty(4, dtype=np.int32)
     best_aic = np.inf
+    t_max = 3 if allow_multiplicative_trend else 2
     for error_type in range(1, 3):
         if error_type == 2 and not all_pos:
             continue
-        for trend_type in range(0, 3):
+        for trend_type in range(0, t_max):
             if trend_type == 2 and not all_pos:
                 continue
             k_base = 1 + (2 if (trend_type != 0) else 0)
