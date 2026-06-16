@@ -62,15 +62,15 @@ def _is_finite(value):
 
 @njit(inline="always", cache=True)
 def _ets_params_are_valid(alpha, beta, gamma, phi, trend_type, seasonality_type):
-    if not _is_finite(alpha) or alpha < 0.0 or alpha > 1.0:
+    if not _is_finite(alpha) or alpha < 0.0 or alpha >= 1.0:
         return False
     if trend_type != 0:
-        if not _is_finite(beta) or beta < 0.0 or beta > 1.0:
+        if not _is_finite(beta) or beta < 0.0 or beta >= alpha:
             return False
         if not _is_finite(phi) or phi <= 0.0 or phi > 1.0:
             return False
     if seasonality_type != 0:
-        if not _is_finite(gamma) or gamma < 0.0 or gamma > 1.0:
+        if not _is_finite(gamma) or gamma < 0.0 or gamma >= 1.0 - alpha:
             return False
     return True
 

@@ -16,7 +16,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            12.4742214875156,
+            11.900326351628069,
         ),
         (
             dict(
@@ -25,7 +25,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            12.332111343012121,
+            12.03610521881817,
         ),
         (
             dict(
@@ -34,7 +34,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            12.488696178118074,
+            12.116446361161152,
         ),
         (
             dict(
@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            12.329292306395738,
+            10.158588233985748,
         ),
     ],
 )

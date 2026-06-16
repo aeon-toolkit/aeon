@@ -20,6 +20,38 @@ def dispatch_loss(fn_id, params, data, model):
 
 
 @njit(cache=True, fastmath=True)
+def _init_ets_simplex(points, model):
+    error_type = model[0]
+    trend_type = model[1]
+    seasonality_type = model[2]
+    points[:] = 0.0
+    base = points[0]
+    base_alpha = 0.1 if error_type == 2 and seasonality_type == 1 else 0.5
+    base_level = 0.01 if error_type == 2 and seasonality_type == 1 else 0.1
+    base[0] = base_alpha
+    param_index = 1
+    if trend_type != 0:
+        base[param_index] = base_level
+        param_index += 1
+        base[param_index] = 0.98
+        param_index += 1
+    if seasonality_type != 0:
+        base[param_index] = base_level
+
+    for i in range(1, len(points)):
+        points[i] = base
+        param = i - 1
+        if param == 0:
+            points[i, param] = base_alpha * 1.2
+        elif trend_type != 0 and param == 1:
+            points[i, param] = base_level * 1.2
+        elif trend_type != 0 and param == 2:
+            points[i, param] = 0.9
+        else:
+            points[i, param] = base_level * 1.2
+
+
+@njit(cache=True, fastmath=True)
 def nelder_mead(
     loss_id,
     num_params,
@@ -83,8 +115,11 @@ def nelder_mead(
        https://doi.org/10.1093/comjnl/7.4.308
     """
     points = np.full((num_params + 1, num_params), simplex_init)
-    for i in range(num_params):
-        points[i + 1][i] = simplex_init * 1.2
+    if loss_id == 1:
+        _init_ets_simplex(points, model)
+    else:
+        for i in range(num_params):
+            points[i + 1][i] = simplex_init * 1.2
     values = np.empty(len(points), dtype=np.float64)
     for i in range(len(points)):
         values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
