@@ -3,8 +3,6 @@
 __maintainer__ = []
 __all__ = ["EnsembleForecaster"]
 
-import inspect
-
 import numpy as np
 
 from aeon.base._base import _clone_estimator
@@ -77,14 +75,10 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     def _fit(self, y, exog=None):
         """Fit each component forecaster on y."""
         self.weights_ = self._validate_parameters()
+        self._clone_forecasters()
+        for _, f in self.forecasters_:
+            f.fit(y)
 
-        self.forecasters_ = []
-        for name, forecaster in self.forecasters:
-            f = _clone_estimator(forecaster)
-            f.fit(y, exog)
-            self.forecasters_.append((name, f))
-
-        self.n_forecasters_ = len(self.forecasters_)
         return self
 
     def _predict(self, y, exog=None):
@@ -95,9 +89,9 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Forecast ``prediction_horizon`` steps ahead by combining component forecasts.
 
-        Fits all component forecasters on ``y`` once, then asks each fitted component
-        for its own full ``prediction_horizon`` forecast trajectory before combining
-        those trajectories horizon by horizon.
+        Clones each component forecaster, then asks each clone for its own full
+        ``prediction_horizon`` forecast trajectory before combining those
+        trajectories horizon by horizon.
 
         Parameters
         ----------
@@ -106,7 +100,8 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         prediction_horizon : int
             Number of future steps to forecast.
         exog : np.ndarray or None, default=None
-            Optional exogenous series aligned with ``y``.
+            Exogenous series are not currently supported by
+            ``EnsembleForecaster``; non-None values are rejected during validation.
 
         Returns
         -------
@@ -115,15 +110,15 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         """
         self._validate_prediction_horizon(prediction_horizon)
 
-        self.fit(y, exog)
+        self._preprocess_forecasting_input(y, exog, self.axis, True)
+        self.weights_ = self._validate_parameters()
+        self._clone_forecasters()
 
         component_forecasts = []
         for _, forecaster in self.forecasters_:
-            preds = self._component_iterative_forecast(
-                forecaster,
+            preds = forecaster.iterative_forecast(
                 y,
-                prediction_horizon,
-                exog,
+                prediction_horizon=prediction_horizon,
             )
             preds = np.asarray(preds, dtype=float).reshape(-1)
             if preds.shape[0] != prediction_horizon:
@@ -131,9 +126,12 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
                     "Component forecaster returned a forecast with length "
                     f"{preds.shape[0]}, expected {prediction_horizon}."
                 )
+            if not forecaster.is_fitted:
+                forecaster.fit(y)
             component_forecasts.append(preds)
 
         all_preds = np.stack(component_forecasts, axis=0)
+        self.is_fitted = True
         return self._combine(all_preds)
 
     def _combine(self, preds):
@@ -190,26 +188,13 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         if prediction_horizon < 1:
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
 
-    def _component_iterative_forecast(
-        self, forecaster, y, prediction_horizon, exog=None
-    ):
-        """Call a component's full-horizon iterative forecast method."""
-        parameters = inspect.signature(forecaster.iterative_forecast).parameters
-        accepts_exog = "exog" in parameters or any(
-            p.kind == inspect.Parameter.VAR_KEYWORD for p in parameters.values()
-        )
-        if accepts_exog:
-            return forecaster.iterative_forecast(
-                y,
-                prediction_horizon=prediction_horizon,
-                exog=exog,
-            )
-        if exog is not None:
-            raise TypeError(
-                f"{forecaster.__class__.__name__}.iterative_forecast does not "
-                "accept exog."
-            )
-        return forecaster.iterative_forecast(y, prediction_horizon=prediction_horizon)
+    def _clone_forecasters(self):
+        """Clone component forecasters into ensemble state."""
+        self.forecasters_ = [
+            (name, _clone_estimator(forecaster))
+            for name, forecaster in self.forecasters
+        ]
+        self.n_forecasters_ = len(self.forecasters_)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

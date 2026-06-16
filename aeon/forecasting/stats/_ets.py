@@ -123,6 +123,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
+        self._series = []
         self._model = []
         self.parameters_ = []
         self.alpha_ = 0
@@ -179,6 +180,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
         data = y.squeeze()
+        self._series = np.asarray(data, dtype=np.float64)
         self.parameters_, self.aic_ = nelder_mead(
             1,
             1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
@@ -253,7 +255,14 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Overrides the base class iterative_forecast to avoid refitting on each step.
         This simply rolls the ETS model forward
         """
-        self.fit(y, exog=exog)
+        y_inner, _ = self._preprocess_forecasting_input(y, exog, self.axis, False)
+        data = np.asarray(y_inner).squeeze().astype(np.float64)
+        needs_fit = True
+        if self.is_fitted and len(self._series) == len(data):
+            if np.allclose(self._series, data, equal_nan=True):
+                needs_fit = False
+        if needs_fit:
+            self.fit(y, exog=exog)
         preds = np.zeros(prediction_horizon)
         preds[0] = self.forecast_
         for i in range(1, prediction_horizon):
@@ -427,6 +436,8 @@ class AutoETS(BaseForecaster):
         Overrides the base class iterative_forecast to avoid refitting on each step.
         This simply rolls the ETS model forward
         """
+        if self.wrapped_model_ is None:
+            self.fit(y)
         return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
 
 

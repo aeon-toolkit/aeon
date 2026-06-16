@@ -19,11 +19,13 @@ class _TrajectoryForecaster(BaseForecaster):
     def __init__(self, start=1.0, predict_value=-999.0):
         self.start = start
         self.predict_value = predict_value
+        self.fit_calls_ = 0
         self.predict_calls_ = 0
         self.iterative_forecast_calls_ = 0
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
+        self.fit_calls_ += 1
         return self
 
     def _predict(self, y, exog=None):
@@ -32,6 +34,7 @@ class _TrajectoryForecaster(BaseForecaster):
 
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         self.iterative_forecast_calls_ += 1
+        self.fit(y)
         return self.start + np.arange(prediction_horizon, dtype=float)
 
 
@@ -40,6 +43,7 @@ class _NoExogTrajectoryForecaster(_TrajectoryForecaster):
 
     def iterative_forecast(self, y, prediction_horizon):
         self.iterative_forecast_calls_ += 1
+        self.fit(y)
         return self.start + np.arange(prediction_horizon, dtype=float)
 
 
@@ -176,6 +180,7 @@ def test_iterative_forecast_combines_component_full_trajectories():
 
     np.testing.assert_allclose(preds, np.array([10.0, 11.0, 12.0, 13.0]))
     for _, forecaster in ens.forecasters_:
+        assert forecaster.fit_calls_ == 1
         assert forecaster.iterative_forecast_calls_ == 1
         assert forecaster.predict_calls_ == 0
 
@@ -311,6 +316,16 @@ def test_iterative_forecast_rejects_horizon_below_one():
     ens = EnsembleForecaster(forecasters=_default_forecasters())
     with pytest.raises(ValueError, match="prediction_horizon"):
         ens.iterative_forecast(y, prediction_horizon=0)
+
+
+def test_iterative_forecast_rejects_exog():
+    """``EnsembleForecaster`` does not currently support exogenous variables."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    exog = np.arange(y.shape[0], dtype=float)
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    with pytest.raises(ValueError, match="cannot handle exogenous variables"):
+        ens.iterative_forecast(y, prediction_horizon=2, exog=exog)
 
 
 # ---------------------------------------------------------------------------

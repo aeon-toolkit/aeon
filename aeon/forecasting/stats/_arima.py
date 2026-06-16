@@ -489,6 +489,8 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ValueError
             if prediction_horizon` less than 1.
         """
+        if self.final_model_ is None:
+            self.fit(y, exog=exog)
         return self.final_model_.iterative_forecast(y, prediction_horizon, exog=exog)
 
 
