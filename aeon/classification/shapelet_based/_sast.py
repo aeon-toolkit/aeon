@@ -20,7 +20,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 class SASTClassifier(BaseClassifier):
-    """Classification pipeline using SAST [1]_ transformer and an sklean classifier.
+    """Classification pipeline using SAST [1]_ transformer and a sklearn classifier.
 
     Parameters
     ----------
@@ -28,7 +28,7 @@ class SASTClassifier(BaseClassifier):
         an array containing the lengths of the subsequences to be generated.
         If None, will be inferred during fit as np.arange(3, X.shape[1])
     stride : int, default = 1
-        the stride used when generating subsquences
+        the stride used when generating subsequences
     nb_inst_per_class : int default = 1
         the number of reference time series to select per class
     random_state : int, default = None

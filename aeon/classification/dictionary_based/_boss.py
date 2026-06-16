@@ -59,7 +59,7 @@ class BOSSEnsemble(BaseClassifier):
     min_window : int, default=10
         Minimum window size.
     feature_selection : str, default: "none"
-        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        Sets the feature selections strategy to be used from {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
@@ -68,7 +68,7 @@ class BOSSEnsemble(BaseClassifier):
         Number of possible letters (values) for each word.
     use_boss_distance : bool, default=True
         The Boss-distance is an asymmetric distance measure. It provides higher
-        accuracy, yet is signifaicantly slower to compute.
+        accuracy, yet is significantly slower to compute.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -471,7 +471,7 @@ class IndividualBOSS(BaseClassifier):
         can shorten the time to calculate dictionaries using a shorter
         `word_length` (since the last "n" letters can be removed).
     feature_selection : str, default: "none"
-        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        Sets the feature selections strategy to be used from {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
@@ -480,7 +480,7 @@ class IndividualBOSS(BaseClassifier):
         Number of possible letters (values) for each word.
     use_boss_distance : bool, default=True
          The Boss-distance is an asymmetric distance measure. It provides higher
-         accuracy, yet is signifaicantly slower to compute.
+         accuracy, yet is significantly slower to compute.
     n_jobs : int, default=1
          The number of jobs to run in parallel for both `fit` and `predict`.
          ``-1`` means using all processors.
