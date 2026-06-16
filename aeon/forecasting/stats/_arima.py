@@ -269,19 +269,33 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         return float(self.forecast_)
 
     def iterative_forecast(self, y, prediction_horizon, exog=None):
-        """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
+        """Fit once on y and recursively forecast multiple steps ahead."""
+        if prediction_horizon < 1:
+            raise ValueError("prediction_horizon must be greater than or equal to 1.")
 
-        This handles the logic for iteratively forecasting into the future, including
-        adding the exogenous regression component at each step.
-        """
-        y_array = np.array(y.squeeze(), dtype=np.float64)
-        needs_fit = True
-        if self.is_fitted and hasattr(self, "_series"):
-            if len(self._series) == len(y_array):
-                if np.allclose(self._series, y_array, equal_nan=True):
-                    needs_fit = False
-        if needs_fit:
-            self.fit(y, exog=exog)
+        fit_exog = exog
+        if exog is not None and self.is_fitted and self.beta_ is not None:
+            exog_array = np.asarray(exog)
+            if exog_array.ndim == 1:
+                exog_array = exog_array.reshape(-1, self.exog_n_features_)
+            n_timepoints = len(np.asarray(y).squeeze())
+            # Preserve fitted-exog usage where exog contains only future rows.
+            if exog_array.shape[0] == prediction_horizon:
+                fit_exog = self.exog_
+            elif exog_array.shape[0] >= n_timepoints + prediction_horizon:
+                fit_exog = exog_array[:n_timepoints]
+        self.fit(y, exog=fit_exog)
+        return self._iterative_forecast_from_fitted(
+            prediction_horizon=prediction_horizon,
+            exog=exog,
+        )
+
+    def _iterative_forecast_from_fitted(self, prediction_horizon, exog=None):
+        """Recursively forecast from the fitted ARIMA state without refitting."""
+        if prediction_horizon < 1:
+            raise ValueError("prediction_horizon must be greater than or equal to 1.")
+        self._check_is_fitted()
+
         h = prediction_horizon
         p, q, d = self.p, self.q, self.d
         phi, theta = self.phi_, self.theta_
@@ -298,7 +312,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
                 exog = exog.reshape(-1, self.exog_n_features_)
             if exog.shape[0] == h:
                 future_exog = exog
-            elif exog.shape[0] >= len(y_array) + h:
+            elif exog.shape[0] >= len(self._series) + h:
                 future_exog = exog[-h:]
             else:
                 raise ValueError(

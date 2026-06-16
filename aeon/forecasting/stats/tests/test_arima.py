@@ -10,6 +10,24 @@ y = np.array(
 )
 
 
+class _FitCountingARIMA(ARIMA):
+    """ARIMA test double that counts internal fit calls."""
+
+    def __init__(self, p=0, d=0, q=0, use_constant=True, iterations=5):
+        self.fit_calls_ = 0
+        super().__init__(
+            p=p,
+            d=d,
+            q=q,
+            use_constant=use_constant,
+            iterations=iterations,
+        )
+
+    def _fit(self, y, exog=None):
+        self.fit_calls_ += 1
+        return super()._fit(y, exog=exog)
+
+
 def test_arima_zero_orders():
     """Test ARIMA(0,0,0) which should return the mean if constant is used."""
     model = ARIMA(p=0, d=0, q=0, use_constant=True)
@@ -46,6 +64,46 @@ def test_arima_iterative_forecast():
     model = ARIMA(p=1, d=0, q=1, use_constant=True)
     preds = model.iterative_forecast(y, prediction_horizon=horizon)
     assert preds.shape == (horizon,)
+
+
+def test_arima_iterative_forecast_fits_once_per_call():
+    """iterative_forecast should fit once before recursive forecasting."""
+    model = _FitCountingARIMA()
+    preds = model.iterative_forecast(y, prediction_horizon=3)
+
+    assert preds.shape == (3,)
+    assert model.fit_calls_ == 1
+
+
+def test_arima_iterative_forecast_refits_on_repeated_close_series():
+    """Repeated iterative_forecast calls should refit even for close series."""
+    model = _FitCountingARIMA()
+    y_close = y.copy()
+    y_close[0] += 1e-12
+
+    model.iterative_forecast(y, prediction_horizon=2)
+    model.iterative_forecast(y_close, prediction_horizon=2)
+
+    assert model.fit_calls_ == 2
+
+
+def test_arima_predict_does_not_refit():
+    """Predict should use the fitted ARIMA state without calling _fit."""
+    model = _FitCountingARIMA()
+    model.fit(y)
+    fit_calls = model.fit_calls_
+
+    model.predict(y)
+
+    assert model.fit_calls_ == fit_calls
+
+
+def test_arima_iterative_forecast_rejects_non_positive_horizon():
+    """iterative_forecast should reject horizons below one."""
+    model = ARIMA(p=1, d=0, q=0)
+
+    with pytest.raises(ValueError, match="prediction_horizon"):
+        model.iterative_forecast(y, prediction_horizon=0)
 
 
 @pytest.mark.parametrize(
