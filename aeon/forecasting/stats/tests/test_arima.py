@@ -75,6 +75,38 @@ def test_arima_iterative_forecast_fits_once_per_call():
     assert model.fit_calls_ == 1
 
 
+def test_arima_iterative_forecast_with_combined_exog_fits_once():
+    """iterative_forecast should split combined train and future exog."""
+    horizon = 3
+    combined_exog = np.random.RandomState(12).randn(len(y) + horizon, 2)
+    model = _FitCountingARIMA()
+
+    preds = model.iterative_forecast(y, prediction_horizon=horizon, exog=combined_exog)
+
+    assert preds.shape == (horizon,)
+    assert model.fit_calls_ == 1
+
+
+def test_arima_iterative_forecast_rejects_future_only_exog():
+    """iterative_forecast should reject future-only exog."""
+    horizon = 3
+    future_exog = np.random.RandomState(13).randn(horizon, 2)
+    model = ARIMA(p=1, d=0, q=1)
+
+    with pytest.raises(ValueError, match="only future rows"):
+        model.iterative_forecast(y, prediction_horizon=horizon, exog=future_exog)
+
+
+def test_arima_iterative_forecast_rejects_train_only_exog():
+    """iterative_forecast should reject training-only exog."""
+    horizon = 3
+    train_exog = np.random.RandomState(14).randn(len(y), 2)
+    model = ARIMA(p=1, d=0, q=1)
+
+    with pytest.raises(ValueError, match="only training rows"):
+        model.iterative_forecast(y, prediction_horizon=horizon, exog=train_exog)
+
+
 def test_arima_iterative_forecast_refits_on_repeated_close_series():
     """Repeated iterative_forecast calls should refit even for close series."""
     model = _FitCountingARIMA()
@@ -212,11 +244,27 @@ def test_autoarima_forecast_sets_wrapped_and_returns_forecast_float():
 
 
 def test_autoarima_iterative_forecast_shape_and_validity():
-    """iterative_forecast should delegate to wrapped model and return valid shape."""
+    """iterative_forecast should fit and return valid shape."""
     horizon = 4
     forecaster = AutoARIMA()
-    forecaster.fit(y)
     preds = forecaster.iterative_forecast(y, prediction_horizon=horizon)
+    assert isinstance(preds, np.ndarray)
+    assert preds.shape == (horizon,)
+    assert np.all(np.isfinite(preds))
+
+
+def test_autoarima_iterative_forecast_with_combined_exog():
+    """AutoARIMA.iterative_forecast should split combined exog."""
+    horizon = 3
+    combined_exog = np.random.RandomState(15).randn(len(y) + horizon, 1)
+    forecaster = AutoARIMA(max_p=1, max_d=1, max_q=1)
+
+    preds = forecaster.iterative_forecast(
+        y,
+        prediction_horizon=horizon,
+        exog=combined_exog,
+    )
+
     assert isinstance(preds, np.ndarray)
     assert preds.shape == (horizon,)
     assert np.all(np.isfinite(preds))
@@ -274,14 +322,12 @@ def test_arima_exog_shape_mismatch_raises():
 
 
 def test_arima_iterative_forecast_with_exog():
-    """Test multi-step forecast with future exogenous variables."""
+    """Test multi-step forecast with combined exogenous variables."""
     y_local = np.arange(40, dtype=float)
-    exog = np.random.RandomState(1).randn(40, 2)
-    model = ARIMA(p=1, d=1, q=1)
-    model.fit(y_local, exog=exog)
     h = 5
-    future_exog = np.random.RandomState(2).randn(h, 2)
-    preds = model.iterative_forecast(y_local, prediction_horizon=h, exog=future_exog)
+    exog = np.random.RandomState(1).randn(len(y_local) + h, 2)
+    model = ARIMA(p=1, d=1, q=1)
+    preds = model.iterative_forecast(y_local, prediction_horizon=h, exog=exog)
     assert preds.shape == (h,)
     assert np.all(np.isfinite(preds))
 
