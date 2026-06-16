@@ -119,7 +119,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
         self.likelihood_ = 0
-        self.liklihood_ = 0
         self.k_ = 0
         self.aic_ = 0
         self.residuals_ = []
@@ -202,7 +201,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.likelihood_,
             self.k_,
         ) = _ets_fit(self.parameters_, data, self._model)
-        self.liklihood_ = self.likelihood_
         self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
@@ -341,7 +339,10 @@ class AutoETS(BaseForecaster):
     ----------
     seasonal_period : int or None, default=None
         The seasonal period to use in automatic model selection. If ``None``,
-        the seasonal period is estimated from the data.
+        the seasonal period is estimated from the data. Seasonal candidate models
+        are only considered when the series length is greater than four times the
+        selected seasonal period; otherwise AutoETS falls back to non-seasonal
+        candidates.
     allow_multiplicative_trend : bool, default=False
         Whether to include multiplicative trend models in the automatic model search.
 

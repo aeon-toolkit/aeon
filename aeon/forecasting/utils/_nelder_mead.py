@@ -44,6 +44,7 @@ def _init_ets_simplex(points, model):
         base[param_index] = base_level
 
     for i in range(1, len(points)):
+        # Numba row assignment copies the base vertex before perturbing one slot.
         points[i] = base
         param = i - 1
         if param == alpha_idx:
