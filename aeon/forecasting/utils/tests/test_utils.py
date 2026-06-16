@@ -122,11 +122,20 @@ def test_nelder_mead(loss_id, num_params, data, model, tol, max_iter):
     assert not np.isnan(best_value), "Best value should not be NaN."
 
 
-def test_dispatch_loss_converts_non_finite_ets_loss_to_inf():
-    """Non-finite ETS objective values should be rejected by the optimiser."""
+@pytest.mark.parametrize(
+    "params, model",
+    [
+        (np.array([-0.1]), np.array([1, 0, 0, 1], dtype=np.int32)),
+        (np.array([1.0]), np.array([1, 0, 0, 1], dtype=np.int32)),
+        (np.array([0.5, 0.5, 0.98]), np.array([1, 1, 0, 1], dtype=np.int32)),
+        (np.array([0.5, 0.1, 0.0]), np.array([1, 1, 0, 1], dtype=np.int32)),
+        (np.array([0.5, 0.5]), np.array([1, 0, 1, 1], dtype=np.int32)),
+    ],
+)
+def test_dispatch_loss_rejects_invalid_ets_params(params, model):
+    """Invalid finite ETS parameters should be rejected by the optimiser."""
     data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    model = np.array([1, 0, 0, 1], dtype=np.int32)
 
-    result = dispatch_loss(1, np.array([np.nan]), data, model)
+    result = dispatch_loss(1, params, data, model)
 
     assert np.isinf(result)
