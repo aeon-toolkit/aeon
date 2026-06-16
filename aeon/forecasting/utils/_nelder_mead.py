@@ -145,7 +145,10 @@ def nelder_mead(
             and np.max(np.abs(values - values[0])) < tol
         ):
             break
-    order = np.argsort(values)
-    points = points[order]
-    values = values[order]
-    return points[0], values[0]
+    best_index = 0
+    best_value = values[0]
+    for i in range(1, len(values)):
+        if values[i] < best_value:
+            best_index = i
+            best_value = values[i]
+    return points[best_index], best_value
