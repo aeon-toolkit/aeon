@@ -337,6 +337,9 @@ class AutoETS(BaseForecaster):
 
     Parameters
     ----------
+    seasonal_period : int or None, default=None
+        The seasonal period to use in automatic model selection. If ``None``,
+        the seasonal period is estimated from the data.
     allow_multiplicative_trend : bool, default=False
         Whether to include multiplicative trend models in the automatic model search.
 
@@ -358,7 +361,12 @@ class AutoETS(BaseForecaster):
         "capability:horizon": False,
     }
 
-    def __init__(self, allow_multiplicative_trend: bool = False):
+    def __init__(
+        self,
+        seasonal_period: int | None = None,
+        allow_multiplicative_trend: bool = False,
+    ):
+        self.seasonal_period = seasonal_period
         self.allow_multiplicative_trend = allow_multiplicative_trend
         self.error_type_ = 0
         self.trend_type_ = 0
@@ -385,7 +393,20 @@ class AutoETS(BaseForecaster):
             Fitted AutoETS.
         """
         data = np.asarray(y.squeeze(), dtype=np.float64)
-        best_model = auto_ets(data, self.allow_multiplicative_trend)
+        if self.seasonal_period is None:
+            seasonal_period = 0
+        elif self.seasonal_period < 1:
+            raise ValueError(
+                f"seasonal_period must be a positive integer or None, "
+                f"but saw {self.seasonal_period}"
+            )
+        else:
+            seasonal_period = self.seasonal_period
+        best_model = auto_ets(
+            data,
+            self.allow_multiplicative_trend,
+            seasonal_period,
+        )
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
         self.seasonality_type_ = int(best_model[2])
@@ -433,9 +454,10 @@ class AutoETS(BaseForecaster):
 
 
 @njit(fastmath=True, cache=True)
-def auto_ets(data, allow_multiplicative_trend=False):
+def auto_ets(data, allow_multiplicative_trend=False, seasonal_period=0):
     """Calculate model parameters based on the internal nelder-mead implementation."""
-    seasonal_period = calc_seasonal_period(data)
+    if seasonal_period < 1:
+        seasonal_period = calc_seasonal_period(data)
     # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
     # but makes no sense to run a seasonal model with any less than 2 seasonal periods
     # worth of usable data even that might be a bit low

@@ -233,6 +233,26 @@ def test_autoets_wrapped_model_parameters_match_selected_types():
     assert model._seasonal_period == forecaster.seasonal_period_
 
 
+def test_autoets_uses_provided_seasonal_period():
+    """AutoETS should use a provided seasonal period instead of inferring one."""
+    y = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+
+    assert forecaster.seasonality_type_ != 0
+    assert forecaster.seasonal_period_ == 4
+    assert forecaster.wrapped_model_._seasonal_period == 4
+
+
+def test_autoets_invalid_seasonal_period_raises():
+    """AutoETS should reject invalid supplied seasonal periods."""
+    forecaster = AutoETS(seasonal_period=0)
+
+    with pytest.raises(ValueError, match="seasonal_period must be"):
+        forecaster.fit(y_pos)
+
+
 @pytest.mark.parametrize(
     "y, horizon",
     [
