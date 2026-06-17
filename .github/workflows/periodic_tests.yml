@@ -156,6 +156,29 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-test-no-soft-deps-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
 
+  test-soft-dep-skips:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
+        with:
+          additional_extras: "dev,unstable_extras"
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest --check-soft-dependency-skips -q
+
   pytest:
     runs-on: ${{ matrix.os }}
 
