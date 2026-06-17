@@ -105,10 +105,6 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
     def _fit(self, y, exog=None):
         """Fit DOTM to a univariate series."""
-        if exog is not None:
-            raise NotImplementedError("DOTM does not support exog.")
-
-        y = _validate_dotm_y(y)
         fixed_mask, fixed_values, lower, upper = self._parameter_arrays()
         x0 = np.array([y[0] / 2.0, 0.5, 2.0], dtype=np.float64)
         for i in range(3):
