@@ -27,10 +27,11 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
     Seasonality is handled as an outer transformation: when seasonal
     adjustment is requested or detected, the input series is decomposed into
     a seasonal component and a seasonally adjusted component using classical
-    (additive or multiplicative) decomposition. The DOTM core is then fitted
-    to the adjusted series, and forecasts are produced by recombining the
-    DOTM forecast with a seasonal naive forecast of the seasonal component.
-    The default behaviour remains non-seasonal because ``season_length=1``.
+    (additive or multiplicative) decomposition with a centred moving-average
+    trend estimate. The DOTM core is then fitted to the adjusted series, and
+    forecasts are produced by recombining the DOTM forecast with a seasonal
+    naive forecast of the seasonal component. The default behaviour remains
+    non-seasonal because ``season_length=1``.
 
     Exogenous variables and prediction intervals are not supported.
 
@@ -60,9 +61,10 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
         - ``False`` : never deseasonalise.
         - ``True``  : always deseasonalise when ``season_length > 1``.
-        - ``"auto"``: apply a simple ACF-based seasonal test at lag
-          ``season_length`` and deseasonalise only when seasonal evidence is
-          present.
+        - ``"auto"``: apply an ACF-based seasonal test at lag ``season_length``
+          to the first-differenced series and deseasonalise only when seasonal
+          evidence is present. First differencing removes a constant trend, so
+          monotone series do not trigger spurious seasonal detection.
     max_iter : int, default=500
         Maximum number of Nelder-Mead iterations.
     tol : float, default=1e-6
@@ -399,19 +401,76 @@ def _acf_at_lags(y, max_lag):
 
 
 def _acf_seasonal_test(y, season_length):
-    """Return True if the ACF at lag ``season_length`` is significantly large."""
-    n = y.shape[0]
-    acf = _acf_at_lags(y, season_length)
+    """Return True if ``y`` shows significant seasonality at lag ``season_length``.
+
+    The ACF is computed on the first-differenced series rather than the raw
+    levels. This removes a constant trend (which otherwise produces a near-one
+    ACF at every lag and yields false-positive seasonal detections on monotone
+    series).
+    """
+    if y.shape[0] <= season_length + 1:
+        return False
+    dy = np.diff(y)
+    n = dy.shape[0]
+    acf = _acf_at_lags(dy, season_length)
     # Bartlett-type standard error for the ACF at lag m given earlier lags.
     prior_sq = float(np.sum(acf[:-1] ** 2))
     se = np.sqrt((1.0 + 2.0 * prior_sq) / n)
     if se <= 0.0 or not np.isfinite(se):
         return False
-    return abs(acf[-1]) / se > _ACF_TEST_QUANTILE
+    return bool(abs(acf[-1]) / se > _ACF_TEST_QUANTILE)
+
+
+def _centred_moving_average(y, season_length):
+    """Centred moving average of period ``season_length``.
+
+    Uses the standard symmetric kernel:
+
+    * odd ``m``: equal weights over a window of length ``m`` centred on ``t``;
+    * even ``m``: a 2×m smoothing equivalent to weights
+      ``[0.5, 1, ..., 1, 0.5] / m`` over a window of length ``m + 1``.
+
+    Returns an array of the same length as ``y`` with ``NaN`` outside the
+    range where the smoother is defined (i.e. at the first and last ``m // 2``
+    points).
+    """
+    n = y.shape[0]
+    ma = np.full(n, np.nan)
+    m = int(season_length)
+    half = m // 2
+    if m % 2 == 1:
+        if n < m:
+            return ma
+        kernel = np.full(m, 1.0 / m)
+    else:
+        if n < m + 1:
+            return ma
+        kernel = np.empty(m + 1, dtype=np.float64)
+        kernel[0] = 0.5 / m
+        kernel[m] = 0.5 / m
+        kernel[1:m] = 1.0 / m
+    smoothed = np.convolve(y, kernel, mode="valid")
+    ma[half : half + smoothed.shape[0]] = smoothed
+    return ma
 
 
 def _seasonal_decompose(y, season_length, requested_type):
-    """Classical seasonal decomposition with multiplicative-to-additive fallback.
+    """Classical seasonal decomposition with centred-MA detrending.
+
+    Implements the standard approach used by statsmodels' ``seasonal_decompose``
+    and forecTheta:
+
+    1. Estimate a trend via the centred moving average of period
+       ``season_length``.
+    2. Detrend ``y`` against that trend (subtractively for additive,
+       multiplicatively for multiplicative).
+    3. Estimate seasonal indices as the per-position mean of the detrended
+       series, ignoring points where the MA is undefined.
+    4. Normalise the indices (sum-zero for additive, mean-one for multiplicative).
+
+    Multiplicative decomposition falls back to additive when ``y`` contains
+    non-positive values, when the MA contains non-positive values, or when the
+    resulting factors are non-finite or below ``_MULTIPLICATIVE_FLOOR``.
 
     Returns
     -------
@@ -427,38 +486,40 @@ def _seasonal_decompose(y, season_length, requested_type):
     """
     m = int(season_length)
     n = y.shape[0]
-    overall = float(np.mean(y))
+
+    ma = _centred_moving_average(y, m)
+    valid = np.isfinite(ma)
+    if not np.any(valid):
+        return None, y.copy(), "none"
 
     use_mult = requested_type == "multiplicative"
-    if use_mult and (np.any(y <= 0.0) or overall <= 0.0):
+    if use_mult and (np.any(y <= 0.0) or np.any(ma[valid] <= 0.0)):
         use_mult = False
 
     if use_mult:
-        factors = np.empty(m, dtype=np.float64)
-        for pos in range(m):
-            factors[pos] = float(np.mean(y[pos::m])) / overall
-        factor_mean = float(np.mean(factors))
-        if not np.isfinite(factor_mean) or factor_mean <= _MULTIPLICATIVE_FLOOR:
-            use_mult = False
-        else:
-            factors /= factor_mean
-            if (
-                not np.all(np.isfinite(factors))
-                or float(np.min(factors)) < _MULTIPLICATIVE_FLOOR
-            ):
-                use_mult = False
-            else:
-                rep = factors[np.arange(n) % m]
-                adjusted = y / rep
-                if np.all(np.isfinite(adjusted)):
-                    return factors, adjusted, "multiplicative"
-                use_mult = False
+        detrended = np.full(n, np.nan)
+        detrended[valid] = y[valid] / ma[valid]
+        factors = _position_means(detrended, m)
+        if factors is not None:
+            factor_mean = float(np.mean(factors))
+            if np.isfinite(factor_mean) and factor_mean > _MULTIPLICATIVE_FLOOR:
+                factors = factors / factor_mean
+                if (
+                    np.all(np.isfinite(factors))
+                    and float(np.min(factors)) >= _MULTIPLICATIVE_FLOOR
+                ):
+                    rep = factors[np.arange(n) % m]
+                    adjusted = y / rep
+                    if np.all(np.isfinite(adjusted)):
+                        return factors, adjusted, "multiplicative"
 
-    # Additive path (also reached as a fallback from multiplicative).
-    factors = np.empty(m, dtype=np.float64)
-    for pos in range(m):
-        factors[pos] = float(np.mean(y[pos::m])) - overall
-    factors -= float(np.mean(factors))
+    # Additive path (also reached as a multiplicative fallback).
+    detrended = np.full(n, np.nan)
+    detrended[valid] = y[valid] - ma[valid]
+    factors = _position_means(detrended, m)
+    if factors is None:
+        return None, y.copy(), "none"
+    factors = factors - float(np.mean(factors))
     if not np.all(np.isfinite(factors)):
         return None, y.copy(), "none"
     rep = factors[np.arange(n) % m]
@@ -466,6 +527,22 @@ def _seasonal_decompose(y, season_length, requested_type):
     if not np.all(np.isfinite(adjusted)):
         return None, y.copy(), "none"
     return factors, adjusted, "additive"
+
+
+def _position_means(detrended, season_length):
+    """Mean of finite ``detrended`` values within each modular position.
+
+    Returns ``None`` if any position has no finite samples.
+    """
+    m = int(season_length)
+    factors = np.empty(m, dtype=np.float64)
+    for pos in range(m):
+        cohort = detrended[pos::m]
+        cohort = cohort[np.isfinite(cohort)]
+        if cohort.size == 0:
+            return None
+        factors[pos] = float(cohort.mean())
+    return factors
 
 
 def _seasonal_forecast(seasonal_factors, h, season_length, n_train):

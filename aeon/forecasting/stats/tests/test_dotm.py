@@ -252,6 +252,32 @@ def test_dotm_deseasonalised_true_when_seasonal_test_true():
     assert forecaster.seasonal_factors_.shape == (4,)
 
 
+def test_dotm_auto_seasonal_test_ignores_pure_linear_trend():
+    """Auto test must not detect seasonality in a series with no seasonal pattern.
+
+    Regression for Codex review point: applying the ACF test to raw levels of
+    a monotone series triggered a false positive, which then created a
+    spurious seasonal wave in the forecasts.
+    """
+    y = np.linspace(10.0, 20.0, 40)
+
+    forecaster = DOTM(
+        season_length=4,
+        decomposition_type="multiplicative",
+        seasonal_test="auto",
+    ).fit(y)
+
+    assert forecaster.deseasonalised_ is False
+    assert forecaster.season_length_ == 1
+    assert forecaster.seasonal_factors_ is None
+
+    preds = forecaster.iterative_forecast(y, prediction_horizon=8)
+    # A pure linear trend should produce roughly equal forecast increments,
+    # not the seasonal oscillation seen before the fix.
+    diffs = np.diff(preds)
+    np.testing.assert_allclose(diffs, diffs[0], rtol=0.05, atol=0.1)
+
+
 def test_dotm_auto_seasonal_test_returns_false_for_short_series():
     """``seasonal_test='auto'`` should not deseasonalise when ``len(y) < 2 * m``."""
     y = _Y_MULT[:7]  # < 2 * season_length = 8
