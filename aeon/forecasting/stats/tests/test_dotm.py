@@ -252,6 +252,39 @@ def test_dotm_deseasonalised_true_when_seasonal_test_true():
     assert forecaster.seasonal_factors_.shape == (4,)
 
 
+def test_dotm_seasonal_predict_matches_iterative_forecast_h1():
+    """Single-step ``predict`` must match ``iterative_forecast`` at h=1."""
+    f = DOTM(season_length=4, seasonal_test=True).fit(_Y_MULT)
+    h1_iter = f.iterative_forecast(_Y_MULT, prediction_horizon=1)[0]
+    # iterative_forecast refits internally; the fit state is therefore equivalent.
+    h1_pred = f.predict(_Y_MULT)
+    assert np.isclose(h1_pred, h1_iter, rtol=1e-10, atol=1e-10)
+    assert np.isclose(h1_pred, f.forecast_, rtol=1e-10, atol=1e-10)
+
+
+def test_dotm_seasonal_rolling_predict_matches_iterative_forecast():
+    """Rolling one-step ``predict`` matchees ``iterative_forecast`` step by step.
+
+    Regression for Codex review point: when ``_predict`` recomputed seasonal
+    factors from the supplied context, predict-on-extended-context drifted
+    away from the recursive forecast. The fix is to apply the fitted factors
+    by phase in ``_predict``.
+    """
+    h = 5
+    f = DOTM(season_length=4, seasonal_test=True).fit(_Y_MULT)
+    iterative = f.iterative_forecast(_Y_MULT, prediction_horizon=h)
+
+    # Rebuild f's state via iterative_forecast (which fits internally) and
+    # roll forward one step at a time using predict.
+    context = _Y_MULT.copy()
+    rolled = np.empty(h, dtype=np.float64)
+    for step in range(h):
+        rolled[step] = f.predict(context)
+        context = np.append(context, rolled[step])
+
+    np.testing.assert_allclose(rolled, iterative, rtol=1e-10, atol=1e-10)
+
+
 def test_dotm_auto_seasonal_test_ignores_pure_linear_trend():
     """Auto test must not detect seasonality in a series with no seasonal pattern.
 

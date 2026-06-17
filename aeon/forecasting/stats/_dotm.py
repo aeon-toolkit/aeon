@@ -60,7 +60,8 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         Controls whether to deseasonalise the series.
 
         - ``False`` : never deseasonalise.
-        - ``True``  : always deseasonalise when ``season_length > 1``.
+        - ``True``  : deseasonalise when ``season_length > 1`` and at least
+          two full seasonal cycles are available.
         - ``"auto"``: apply an ACF-based seasonal test at lag ``season_length``
           to the first-differenced series and deseasonalise only when seasonal
           evidence is present. First differencing removes a constant trend, so
@@ -243,25 +244,37 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         return self
 
     def _predict(self, y, exog=None):
-        """Predict one step ahead from context ``y`` using fitted parameters."""
+        """Predict one step ahead from context ``y`` using fitted parameters.
+
+        For seasonal models the supplied context is deseasonalised using the
+        *fitted* seasonal factors (applied by position), the DOTM core is run
+        on the adjusted context, and the result is re-seasonalised using the
+        factor at position ``len(y) % season_length_``. This makes rolling
+        one-step ``predict`` consistent with multi-step
+        ``iterative_forecast``, at the cost of assuming the supplied context
+        shares its seasonal phase with the training data.
+        """
         y = _prepare_dotm_y(y)
         if not self.deseasonalised_:
             return float(
                 _dotm_forecast(y, 1, self.initial_level_, self.alpha_, self.theta_)[0]
             )
 
-        factors, y_adjusted, used_type = _seasonal_decompose(
-            y, self.season_length_, self.decomposition_type_
-        )
+        n = y.shape[0]
+        m = self.season_length_
+        factors = self.seasonal_factors_
+        rep = factors[np.arange(n) % m]
+        if self.decomposition_type_ == "additive":
+            y_adjusted = y - rep
+        else:
+            y_adjusted = y / rep
         adjusted_fc = _dotm_forecast(
             y_adjusted, 1, self.initial_level_, self.alpha_, self.theta_
         )[0]
-        if used_type == "none" or factors is None:
-            return float(adjusted_fc)
-        idx = y.shape[0] % self.season_length_
-        if used_type == "additive":
-            return float(adjusted_fc + factors[idx])
-        return float(adjusted_fc * factors[idx])
+        next_factor = factors[n % m]
+        if self.decomposition_type_ == "additive":
+            return float(adjusted_fc + next_factor)
+        return float(adjusted_fc * next_factor)
 
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Fit DOTM on ``y`` and recursively forecast ``prediction_horizon`` steps."""
@@ -427,7 +440,7 @@ def _centred_moving_average(y, season_length):
     Uses the standard symmetric kernel:
 
     * odd ``m``: equal weights over a window of length ``m`` centred on ``t``;
-    * even ``m``: a 2×m smoothing equivalent to weights
+    * even ``m``: a 2 x m smoothing equivalent to weights
       ``[0.5, 1, ..., 1, 0.5] / m`` over a window of length ``m + 1``.
 
     Returns an array of the same length as ``y`` with ``NaN`` outside the
