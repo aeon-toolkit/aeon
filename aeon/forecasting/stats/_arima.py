@@ -33,6 +33,15 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
     ARIMA with fixed model structure and fitted parameters found with an
     Nelder Mead optimizer to minimise the AIC.
 
+    If exogenous variables are provided, they are used as target-time regressors
+    aligned with each observation in ``y``. The forecaster fits a linear
+    regression of ``y`` on the exogenous variables (with an intercept) and
+    models the residuals with the ARIMA process. Historical exogenous effects
+    should be represented by explicitly lagging exogenous variables before
+    passing them in; exogenous variables are not used as additional AR lags.
+    ``predict`` requires the exogenous values for the forecast time, supplied
+    either as a single row or as a series aligned with the prediction context.
+
     Parameters
     ----------
     p : int, default=1,
