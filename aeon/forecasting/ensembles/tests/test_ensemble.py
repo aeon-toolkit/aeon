@@ -47,6 +47,32 @@ class _NoExogTrajectoryForecaster(_TrajectoryForecaster):
         return self.start + np.arange(prediction_horizon, dtype=float)
 
 
+class _RecursiveRuleForecaster(BaseForecaster):
+    """Test forecaster with predictions based on the latest observed value."""
+
+    def __init__(self, multiplier=1.0, intercept=0.0):
+        self.multiplier = multiplier
+        self.intercept = intercept
+        super().__init__(horizon=1, axis=1)
+
+    def _fit(self, y, exog=None):
+        return self
+
+    def _predict(self, y, exog=None):
+        last_value = np.asarray(y, dtype=float).reshape(-1)[-1]
+        return float(self.multiplier * last_value + self.intercept)
+
+    def iterative_forecast(self, y, prediction_horizon, exog=None):
+        """Fit once, then recursively forecast using this component's own path."""
+        self.fit(y)
+        y_extended = np.asarray(y, dtype=float).reshape(-1)
+        predictions = np.zeros(prediction_horizon, dtype=float)
+        for i in range(prediction_horizon):
+            predictions[i] = self.predict(y_extended)
+            y_extended = np.append(y_extended, predictions[i])
+        return predictions
+
+
 def _default_forecasters():
     """Return two naive forecasters with different predictable strategies."""
     return [
@@ -145,6 +171,13 @@ def test_iterative_forecast_shape_and_values():
     np.testing.assert_allclose(preds, np.full(4, 40.0))
 
 
+def test_iterative_strategy_defaults_to_component():
+    """The default iterative strategy preserves component trajectory aggregation."""
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    assert ens.iterative_strategy == "component"
+
+
 def test_iterative_forecast_median():
     """Median combination works for multi-step output."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
@@ -195,6 +228,32 @@ def test_iterative_forecast_supports_component_without_exog_keyword():
     preds = ens.iterative_forecast(y, prediction_horizon=3)
 
     np.testing.assert_allclose(preds, np.array([5.0, 6.0, 7.0]))
+
+
+def test_component_and_ensemble_iterative_strategies_can_diverge():
+    """Component and ensemble recursion produce distinct nonlinear paths."""
+    y = np.array([1.0])
+    forecasters = [
+        ("linear", _RecursiveRuleForecaster(multiplier=1.0, intercept=1.0)),
+        ("double", _RecursiveRuleForecaster(multiplier=2.0, intercept=1.0)),
+    ]
+
+    component = EnsembleForecaster(
+        forecasters=forecasters,
+        averaging_method="mean",
+        iterative_strategy="component",
+    )
+    ensemble = EnsembleForecaster(
+        forecasters=forecasters,
+        averaging_method="mean",
+        iterative_strategy="ensemble",
+    )
+
+    component_preds = component.iterative_forecast(y, prediction_horizon=2)
+    ensemble_preds = ensemble.iterative_forecast(y, prediction_horizon=2)
+
+    np.testing.assert_allclose(component_preds, np.array([2.5, 5.0]))
+    np.testing.assert_allclose(ensemble_preds, np.array([2.5, 4.75]))
 
 
 # ---------------------------------------------------------------------------
@@ -307,6 +366,17 @@ def test_fit_rejects_invalid_averaging_method_string():
         forecasters=_default_forecasters(), averaging_method="not_an_averaging_method"
     )
     with pytest.raises(ValueError, match="averaging_method must be"):
+        ens.fit(y)
+
+
+def test_fit_rejects_invalid_iterative_strategy():
+    """Unknown ``iterative_strategy`` values are rejected."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    ens = EnsembleForecaster(
+        forecasters=_default_forecasters(), iterative_strategy="not_a_strategy"
+    )
+
+    with pytest.raises(ValueError, match="iterative_strategy must be"):
         ens.fit(y)
 
 

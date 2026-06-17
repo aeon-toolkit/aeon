@@ -30,13 +30,18 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         ``None``, equal weights are used.
     averaging_method : {"mean", "median"} or callable, default="mean"
         How to average the component forecasts at each horizon:
-
         - ``"mean"``   : (weighted) arithmetic mean.
         - ``"median"`` : element-wise median; ``weights`` is ignored.
         - callable     : receives an array of shape
           ``(n_forecasters, prediction_horizon)`` (or ``(n_forecasters,)`` for a
           single-step prediction) and must return a scalar or array of shape
           ``(prediction_horizon,)`` respectively.
+    iterative_strategy : {"component", "ensemble"}, default="component"
+        Strategy used by ``iterative_forecast``. If ``"component"``, each
+        component forecaster is iterated forward independently using its own
+        forecasts and the resulting forecast paths are aggregated at each horizon. If
+        ``"ensemble"``, the ensemble prediction at each step is appended to a shared
+        history and all forecasters use the same iterated forecasts.
 
     Attributes
     ----------
@@ -66,10 +71,17 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         "capability:horizon": False,
     }
 
-    def __init__(self, forecasters, weights=None, averaging_method="mean"):
+    def __init__(
+        self,
+        forecasters,
+        weights=None,
+        averaging_method="mean",
+        iterative_strategy="component",
+    ):
         self.forecasters = forecasters
         self.weights = weights
         self.averaging_method = averaging_method
+        self.iterative_strategy = iterative_strategy
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
@@ -89,9 +101,12 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Forecast ``prediction_horizon`` steps ahead by combining component forecasts.
 
-        Clones each component forecaster, then asks each clone for its own full
-        ``prediction_horizon`` forecast trajectory before combining those
-        trajectories horizon by horizon.
+        The ``iterative_strategy`` parameter controls the recursive semantics.
+        With ``"component"``, each component forecaster produces its own full
+        forecast path, then paths are aggregated horizon by horizon. With
+        ``"ensemble"``, the ensemble produces one aggregated prediction at a
+        time and appends that prediction to a shared history before predicting
+        the next horizon step.
 
         Parameters
         ----------
@@ -114,6 +129,12 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         self.weights_ = self._validate_parameters()
         self._clone_forecasters()
 
+        if self.iterative_strategy == "component":
+            return self._component_iterative_forecast(y, prediction_horizon)
+        return self._ensemble_iterative_forecast(y, prediction_horizon)
+
+    def _component_iterative_forecast(self, y, prediction_horizon):
+        """Iterate forecasts for each component path, then combine paths."""
         component_forecasts = []
         for _, forecaster in self.forecasters_:
             preds = forecaster.iterative_forecast(
@@ -126,13 +147,29 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
                     "Component forecaster returned a forecast with length "
                     f"{preds.shape[0]}, expected {prediction_horizon}."
                 )
-            if not forecaster.is_fitted:
-                forecaster.fit(y)
             component_forecasts.append(preds)
 
         all_preds = np.stack(component_forecasts, axis=0)
-        self.is_fitted = True
         return self._combine(all_preds)
+
+    def _ensemble_iterative_forecast(self, y, prediction_horizon):
+        """Iterate forecasts using the combined ensemble prediction as feedback."""
+        for _, forecaster in self.forecasters_:
+            forecaster.fit(y)
+
+        y_extended = np.asarray(y, dtype=float).reshape(-1)
+        predictions = np.zeros(prediction_horizon, dtype=float)
+        for i in range(prediction_horizon):
+            component_preds = np.array(
+                [forecaster.predict(y_extended) for _, forecaster in self.forecasters_],
+                dtype=float,
+            )
+            ensemble_pred = float(
+                np.asarray(self._combine(component_preds)).reshape(-1)[0]
+            )
+            predictions[i] = ensemble_pred
+            y_extended = np.append(y_extended, ensemble_pred)
+        return predictions
 
     def _combine(self, preds):
         """Combine a ``(n_forecasters, ...)`` array along axis 0."""
@@ -147,6 +184,12 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
 
     def _validate_parameters(self):
         """Validate forecaster, averaging, and weight parameters."""
+        if self.iterative_strategy not in ("component", "ensemble"):
+            raise ValueError(
+                "iterative_strategy must be one of {'component', 'ensemble'}, "
+                f"but found {self.iterative_strategy!r}."
+            )
+
         if not callable(self.averaging_method) and self.averaging_method not in (
             "mean",
             "median",
