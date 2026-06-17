@@ -187,9 +187,10 @@ def nelder_mead(
         ):
             break
     best_index = 0
-    best_value = values[0]
+    best_value = dispatch_loss(loss_id, points[0].copy(), data, model)
     for i in range(1, len(values)):
-        if values[i] < best_value:
+        value = dispatch_loss(loss_id, points[i].copy(), data, model)
+        if value < best_value:
             best_index = i
-            best_value = values[i]
+            best_value = value
     return points[best_index], best_value

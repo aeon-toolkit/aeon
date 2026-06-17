@@ -98,8 +98,42 @@ def _ets_state_is_valid(
         return False
     if trend_type == 2 and (level <= EPS or trend <= EPS):
         return False
-    if seasonality_type == 2 and seasonality <= EPS:
-        return False
+    if seasonality_type == 2:
+        if seasonality <= EPS or fitted_value <= EPS:
+            return False
+    return True
+
+
+@njit(cache=True)
+def _ets_forecast_cycle_is_valid(
+    error_type,
+    trend_type,
+    seasonality_type,
+    level,
+    trend,
+    seasonality,
+    phi,
+    n_timepoints,
+    seasonal_period,
+):
+    if error_type != 2 and seasonality_type != 2:
+        return True
+    for horizon in range(1, seasonal_period + 1):
+        if phi == 1.0:
+            phi_h = horizon
+        else:
+            phi_h = phi * (1.0 - phi**horizon) / (1.0 - phi)
+        seasonal_index = (n_timepoints + horizon - 1) % seasonal_period
+        fitted_value, _, _ = _ets_predict_value(
+            trend_type,
+            seasonality_type,
+            level,
+            trend,
+            seasonality[seasonal_index],
+            phi_h,
+        )
+        if not _is_finite(fitted_value) or fitted_value <= EPS:
+            return False
     return True
 
 
@@ -216,6 +250,29 @@ def _ets_fit(params, data, model):
                 0,
             )
     avg_mean_sq_err_ /= n_timepoints
+    if not _ets_forecast_cycle_is_valid(
+        error_type,
+        trend_type,
+        seasonality_type,
+        level,
+        trend,
+        seasonality,
+        phi,
+        n_timepoints,
+        seasonal_period,
+    ):
+        return (
+            LARGE_LOSS,
+            level,
+            trend,
+            seasonality,
+            n_timepoints,
+            residuals_,
+            fitted_values_,
+            LARGE_LOSS,
+            -LARGE_LOSS,
+            0,
+        )
     variance = sse_ / n_timepoints
     likelihood = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     if error_type == 2:

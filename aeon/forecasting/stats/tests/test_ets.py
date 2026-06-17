@@ -318,3 +318,45 @@ def test_autoets_issue_3297_forecasts_are_finite_and_bounded(y, horizon):
     assert forecaster.trend_type_ != 2
     assert np.all(np.isfinite(preds))
     assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
+
+
+def test_autoets_rejects_unstable_multiplicative_seasonal_state():
+    """AutoETS should reject multiplicative seasonal states with invalid support."""
+    y = np.array(
+        [
+            2100.0,
+            1700.0,
+            2500.0,
+            16400.0,
+            1500.0,
+            2700.0,
+            2400.0,
+            3600.0,
+            3000.0,
+            2300.0,
+            2900.0,
+            2700.0,
+            2200.0,
+            32700.0,
+            7400.0,
+            2300.0,
+            2400.0,
+            2600.0,
+            2800.0,
+            2900.0,
+            2700.0,
+            2900.0,
+            4200.0,
+            4100.0,
+            3000.0,
+            3300.0,
+        ],
+        dtype=np.float64,
+    )
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+    preds = forecaster.iterative_forecast(y, prediction_horizon=8)
+
+    assert np.all(np.isfinite(preds))
+    assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
