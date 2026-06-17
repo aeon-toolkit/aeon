@@ -92,8 +92,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         The minimum length of series in train data.
     classes_ : list
         The class labels.
-    shapelets : list
-        The stored shapelets and related information after a dataset has been processed.
+    shapelets : list of tuple
+        The stored shapelets and related information after
+        fitting. Each tuple is stored as ``(quality, length, position, channel,
+        case_index, class_label, shapelet)``, where ``shapelet`` is the z-normalised
+        subsequence extracted from the source case.
 
     See Also
     --------
@@ -269,7 +272,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.shapelets = [n for (n, b) in zip(self.shapelets, to_keep) if b]
 
         if self.verbose:
-            print(f"Final shapelet count: {len(self.shapelets)}", flush=True)  # noqa
+            print(f"Final shapelet count: {len(self.shapelets)}")  # noqa: T201
 
         self._sorted_indices = []
         for s in self.shapelets:
