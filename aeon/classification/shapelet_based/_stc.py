@@ -273,8 +273,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         ):
             if self.verbose:
                 print(  # noqa: T201
-                    "Fitting estimator and generating train set estimates "
-                    "(RotF OOB)..."
+                    "Fitting estimator and generating train set estimates (RotF OOB)..."
                 )
 
             proba = self._estimator.fit_predict_proba(X_t, y)

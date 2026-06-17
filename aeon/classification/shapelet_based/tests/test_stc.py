@@ -16,9 +16,9 @@ def test_predict_proba():
     stc = ShapeletTransformClassifier(estimator=SVC(probability=False))
     stc.fit(X, y)
     probas = stc._predict_proba(X)
-    assert np.all(
-        (probas == 0.0) | (probas == 1.0)
-    ), "Array contains values other than 0 and 1"
+    assert np.all((probas == 0.0) | (probas == 1.0)), (
+        "Array contains values other than 0 and 1"
+    )
     with pytest.raises(ValueError, match="Estimator must have a predict_proba method"):
         stc._fit_predict_proba(X, y)
     stc = ShapeletTransformClassifier(estimator=RandomForestClassifier(n_estimators=10))
