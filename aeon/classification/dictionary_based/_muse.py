@@ -36,7 +36,7 @@ class MUSE(BaseClassifier):
 
     There are these primary parameters:
              chi2-threshold: used for feature selection to select best words
-             binning_strategy: the binning strategy used to disctrtize into SFA words.
+             binning_strategy: the binning strategy used to discretize into SFA words.
 
     Parameters
     ----------
@@ -63,7 +63,7 @@ class MUSE(BaseClassifier):
         Sets the feature selections strategy to be used, one of
         {"chi2", "none", "random"}. "chi2" reduces the number of words significantly
         and is thus much faster (preferred). Random also reduces the number
-        significantly. None applies not feature selectiona and yields large
+        significantly. None applies no feature selection and yields large
         bag of words, e.g. much memory may be needed.
     p_threshold : int, default=0.05
         Used when feature selection is applied based on the chi-squared test.
@@ -104,7 +104,7 @@ class MUSE(BaseClassifier):
     See Also
     --------
     WEASEL
-        MUSE is the multivariare version of WEASEL.
+        MUSE is the multivariate version of WEASEL.
 
     References
     ----------
