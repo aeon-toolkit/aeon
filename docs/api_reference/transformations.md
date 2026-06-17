@@ -26,7 +26,6 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     DownsampleTransformer
     DWTTransformer
     HOG1DTransformer
-    MatrixProfile
     MinMaxScaler
     Normalizer
     PeriodogramTransformer
@@ -49,6 +48,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     ElbowClassPairwise
     ElbowClassSum
     RandomChannelSelector
+    TSelect
 ```
 
 ### Compose
@@ -217,7 +217,6 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     ClaSPTransformer
     DifferenceTransformer
     Dobin
-    MatrixProfileSeriesTransformer
     MatrixProfileTransformer
     LogTransformer
     PLASeriesTransformer

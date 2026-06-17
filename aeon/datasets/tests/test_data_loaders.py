@@ -5,6 +5,7 @@ __maintainer__ = ["TonyBagnall"]
 import os
 import shutil
 import tempfile
+from inspect import signature
 from urllib.error import URLError
 from zipfile import BadZipFile
 
@@ -34,6 +35,14 @@ from aeon.datasets._data_loaders import (
     download_dataset,
 )
 from aeon.testing.testing_config import PR_TESTING
+
+
+def test_collection_loader_defaults():
+    """Test collection loaders default to original archive data."""
+    for loader in [load_classification, load_regression]:
+        parameters = signature(loader).parameters
+        assert parameters["load_equal_length"].default is False
+        assert parameters["load_no_missing"].default is False
 
 
 @pytest.mark.skipif(

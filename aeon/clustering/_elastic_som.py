@@ -59,18 +59,18 @@ class ElasticSOM(BaseClusterer):
     init : str or np.ndarray, default='random'
         Random is the default and simply chooses k time series at random as
         centroids. It is fast but sometimes yields sub-optimal clustering.
-        Kmeans++ [2] and is slower but often more
+        K-means++ [2] is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another.
         First is the fastest method and simply chooses the first k time series as
         centroids.
-        If a np.ndarray provided it must be of shape (n_clusters, n_channels,
+        If an np.ndarray is provided it must be of shape (n_clusters, n_channels,
         n_timepoints)
         and contains the time series to use as centroids.
     sigma : float, default=1.0
         Spread of the neighborhood function.
     learning_rate : float, default=0.5
-        Initial learning rate. For a given iterations the learning rate is:
+        Initial learning rate. For a given iteration the learning rate is:
         learning_rate = learning_rate / (1 + iterations / max_iter)
     decay_function : Union[Callable, str], default='asymptotic_decay'
         Decay function to use for the learning rate. Valid strings are:
@@ -118,9 +118,10 @@ class ElasticSOM(BaseClusterer):
         be used. See aeon.clustering.elastic_som.VALID_ELASTIC_SOM_METRICS for a list of
         distances that have an elastic alignment path.
         The alignment path function takes the form
-        Callable[[np.ndarray, np.ndarray, dict], where the dict is the kwargs for the
-        distance function. See documentation of aeon.distances for example alignment
-        path functions. The alignment path function must return a a full alignment path
+        Callable[[np.ndarray, np.ndarray, dict], tuple[list, float]], where the dict
+        contains the kwargs for the distance function. See documentation of
+        aeon.distances for example alignment path functions. The alignment path
+        function must return a full alignment path
         with no gaps.
     verbose : bool, default=False
         Verbosity mode.
@@ -128,11 +129,11 @@ class ElasticSOM(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
-        Array of shape (n_clusters, n_channels, n_timepoints))
+        Array of shape (n_clusters, n_channels, n_timepoints)
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_case,)
-        Labels that is the index each time series belongs to.
+        1d array of shape (n_cases,)
+        Labels indicating the cluster index assigned to each time series.
 
     References
     ----------
