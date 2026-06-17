@@ -1,6 +1,6 @@
 """Dynamic Optimised Theta Model (DOTM) forecaster."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["DOTM"]
 
 import numpy as np
@@ -30,7 +30,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
     (additive or multiplicative) decomposition with a centred moving-average
     trend estimate. The DOTM core is then fitted to the adjusted series, and
     forecasts are produced by recombining the DOTM forecast with a seasonal
-    naive forecast of the seasonal component. The default behaviour remains
+    naive forecast of the seasonal component. The default behaviour is
     non-seasonal because ``season_length=1``.
 
     Exogenous variables and prediction intervals are not supported.
@@ -167,6 +167,10 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             factors, y_adjusted, used_type = _seasonal_decompose(
                 y, self.season_length, self.decomposition_type
             )
+            # If seasonality requested by could not be performed used_type is none.
+            # n is too short for a centred MA of period m
+            # one or more  positions ended up with no finite samples after MA-trim
+            # the normalised factors or the adjusted series came out non-finite.
             if used_type == "none":
                 deseasonalise = False
                 y_adjusted = y
@@ -244,7 +248,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         return self
 
     def _predict(self, y, exog=None):
-        """Predict one step ahead from context ``y`` using fitted parameters.
+        """Predict one step ahead from ``y`` using fitted parameters.
 
         For seasonal models the supplied context is deseasonalised using the
         *fitted* seasonal factors (applied by position), the DOTM core is run
@@ -285,17 +289,22 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         self.fit(y)
         h = int(prediction_horizon)
 
-        adjusted_fc = _dotm_forecast(
-            self._y_adjusted_,
+        # The recurrence state at position n - 1 is already stored after fit;
+        # extend forward from there rather than re-walking the in-sample series.
+        n = self._y_adjusted_.shape[0]
+        adjusted_fc = _dotm_forecast_from_state(
+            n,
             h,
-            self.initial_level_,
+            self.level_,
+            self.a_,
+            self.b_,
+            self.mean_y_,
             self.alpha_,
             self.theta_,
         )
         if not self.deseasonalised_:
             return adjusted_fc
 
-        n = self._y_adjusted_.shape[0]
         seasonal_fc = _seasonal_forecast(
             self.seasonal_factors_, h, self.season_length_, n
         )
@@ -374,7 +383,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
 
 # ---------------------------------------------------------------------------
-# Seasonal helpers (pure Python / numpy; not in numba)
+# Seasonal helpers
 # ---------------------------------------------------------------------------
 
 
@@ -387,7 +396,11 @@ def _prepare_dotm_y(y):
 
 
 def _should_deseasonalise(y, season_length, seasonal_test):
-    """Decide whether the series should be seasonally adjusted before fitting."""
+    """Decide whether the series should be seasonally adjusted before fitting.
+
+    The ``"auto"`` mode delegates the ACF significance test to the numba
+    implementation :func:`_acf_seasonal_test_numba`.
+    """
     if season_length <= 1:
         return False
     if y.shape[0] < 2 * season_length:
@@ -396,175 +409,243 @@ def _should_deseasonalise(y, season_length, seasonal_test):
         return True
     if seasonal_test is False:
         return False
-    # "auto": ACF-based seasonal test at lag season_length.
-    return _acf_seasonal_test(y, int(season_length))
-
-
-def _acf_at_lags(y, max_lag):
-    """ACF estimates for lags 1..max_lag using the biased estimator."""
-    y = np.asarray(y, dtype=np.float64)
-    y = y - np.mean(y)
-    denom = float(np.dot(y, y))
-    if denom <= 1e-12:
-        return np.zeros(max_lag)
-    acf = np.empty(max_lag, dtype=np.float64)
-    for lag in range(1, max_lag + 1):
-        acf[lag - 1] = float(np.dot(y[:-lag], y[lag:])) / denom
-    return acf
-
-
-def _acf_seasonal_test(y, season_length):
-    """Return True if ``y`` shows significant seasonality at lag ``season_length``.
-
-    The ACF is computed on the first-differenced series rather than the raw
-    levels. This removes a constant trend (which otherwise produces a near-one
-    ACF at every lag and yields false-positive seasonal detections on monotone
-    series).
-    """
-    if y.shape[0] <= season_length + 1:
-        return False
-    dy = np.diff(y)
-    n = dy.shape[0]
-    acf = _acf_at_lags(dy, season_length)
-    # Bartlett-type standard error for the ACF at lag m given earlier lags.
-    prior_sq = float(np.sum(acf[:-1] ** 2))
-    se = np.sqrt((1.0 + 2.0 * prior_sq) / n)
-    if se <= 0.0 or not np.isfinite(se):
-        return False
-    return bool(abs(acf[-1]) / se > _ACF_TEST_QUANTILE)
-
-
-def _centred_moving_average(y, season_length):
-    """Centred moving average of period ``season_length``.
-
-    Uses the standard symmetric kernel:
-
-    * odd ``m``: equal weights over a window of length ``m`` centred on ``t``;
-    * even ``m``: a 2 x m smoothing equivalent to weights
-      ``[0.5, 1, ..., 1, 0.5] / m`` over a window of length ``m + 1``.
-
-    Returns an array of the same length as ``y`` with ``NaN`` outside the
-    range where the smoother is defined (i.e. at the first and last ``m // 2``
-    points).
-    """
-    n = y.shape[0]
-    ma = np.full(n, np.nan)
-    m = int(season_length)
-    half = m // 2
-    if m % 2 == 1:
-        if n < m:
-            return ma
-        kernel = np.full(m, 1.0 / m)
-    else:
-        if n < m + 1:
-            return ma
-        kernel = np.empty(m + 1, dtype=np.float64)
-        kernel[0] = 0.5 / m
-        kernel[m] = 0.5 / m
-        kernel[1:m] = 1.0 / m
-    smoothed = np.convolve(y, kernel, mode="valid")
-    ma[half : half + smoothed.shape[0]] = smoothed
-    return ma
+    return bool(_acf_seasonal_test_numba(y, int(season_length), _ACF_TEST_QUANTILE))
 
 
 def _seasonal_decompose(y, season_length, requested_type):
-    """Classical seasonal decomposition with centred-MA detrending.
+    """Thin wrapper around :func:`_seasonal_decompose_numba`.
 
-    Implements the standard approach used by statsmodels' ``seasonal_decompose``
-    and forecTheta:
-
-    1. Estimate a trend via the centred moving average of period
-       ``season_length``.
-    2. Detrend ``y`` against that trend (subtractively for additive,
-       multiplicatively for multiplicative).
-    3. Estimate seasonal indices as the per-position mean of the detrended
-       series, ignoring points where the MA is undefined.
-    4. Normalise the indices (sum-zero for additive, mean-one for multiplicative).
-
-    Multiplicative decomposition falls back to additive when ``y`` contains
-    non-positive values, when the MA contains non-positive values, or when the
-    resulting factors are non-finite or below ``_MULTIPLICATIVE_FLOOR``.
-
-    Returns
-    -------
-    factors : np.ndarray or None
-        Seasonal factors of length ``season_length``. ``None`` if decomposition
-        could not be performed and the caller should treat the series as
-        non-seasonal.
-    adjusted : np.ndarray
-        Seasonally adjusted series of the same length as ``y``.
-    used_type : str
-        ``"multiplicative"``, ``"additive"`` or ``"none"`` indicating which
-        decomposition was actually applied.
+    Translates the integer type code returned from numba into the public
+    ``"multiplicative"`` / ``"additive"`` / ``"none"`` string and unifies the
+    ``None`` factor return when no decomposition was applied.
     """
-    m = int(season_length)
-    n = y.shape[0]
-
-    ma = _centred_moving_average(y, m)
-    valid = np.isfinite(ma)
-    if not np.any(valid):
-        return None, y.copy(), "none"
-
-    use_mult = requested_type == "multiplicative"
-    if use_mult and (np.any(y <= 0.0) or np.any(ma[valid] <= 0.0)):
-        use_mult = False
-
-    if use_mult:
-        detrended = np.full(n, np.nan)
-        detrended[valid] = y[valid] / ma[valid]
-        factors = _position_means(detrended, m)
-        if factors is not None:
-            factor_mean = float(np.mean(factors))
-            if np.isfinite(factor_mean) and factor_mean > _MULTIPLICATIVE_FLOOR:
-                factors = factors / factor_mean
-                if (
-                    np.all(np.isfinite(factors))
-                    and float(np.min(factors)) >= _MULTIPLICATIVE_FLOOR
-                ):
-                    rep = factors[np.arange(n) % m]
-                    adjusted = y / rep
-                    if np.all(np.isfinite(adjusted)):
-                        return factors, adjusted, "multiplicative"
-
-    # Additive path (also reached as a multiplicative fallback).
-    detrended = np.full(n, np.nan)
-    detrended[valid] = y[valid] - ma[valid]
-    factors = _position_means(detrended, m)
-    if factors is None:
-        return None, y.copy(), "none"
-    factors = factors - float(np.mean(factors))
-    if not np.all(np.isfinite(factors)):
-        return None, y.copy(), "none"
-    rep = factors[np.arange(n) % m]
-    adjusted = y - rep
-    if not np.all(np.isfinite(adjusted)):
-        return None, y.copy(), "none"
-    return factors, adjusted, "additive"
-
-
-def _position_means(detrended, season_length):
-    """Mean of finite ``detrended`` values within each modular position.
-
-    Returns ``None`` if any position has no finite samples.
-    """
-    m = int(season_length)
-    factors = np.empty(m, dtype=np.float64)
-    for pos in range(m):
-        cohort = detrended[pos::m]
-        cohort = cohort[np.isfinite(cohort)]
-        if cohort.size == 0:
-            return None
-        factors[pos] = float(cohort.mean())
-    return factors
+    type_code, factors, adjusted = _seasonal_decompose_numba(
+        y,
+        int(season_length),
+        requested_type == "multiplicative",
+        _MULTIPLICATIVE_FLOOR,
+    )
+    if type_code == 0:
+        return None, adjusted, "none"
+    if type_code == 1:
+        return factors, adjusted, "additive"
+    return factors, adjusted, "multiplicative"
 
 
 def _seasonal_forecast(seasonal_factors, h, season_length, n_train):
     """Repeat the learned seasonal cycle in phase for ``h`` future steps."""
-    h = int(h)
-    out = np.empty(h, dtype=np.float64)
-    for j in range(h):
-        out[j] = seasonal_factors[(n_train + j) % season_length]
-    return out
+    return seasonal_factors[(int(n_train) + np.arange(int(h))) % int(season_length)]
+
+
+@njit(cache=True, fastmath=True)
+def _acf_seasonal_test_numba(y, season_length, threshold):
+    """Single-pass ACF seasonal significance test on first-differenced ``y``.
+
+    Equivalent to the previous numpy implementation: compute ``dy = diff(y)``,
+    centre it, then compare the Bartlett-corrected ACF at lag ``season_length``
+    against ``threshold``. Implemented as one numba routine to avoid the
+    per-call numpy roundtrip overhead seen on short series.
+    """
+    n = y.shape[0]
+    if n <= season_length + 1:
+        return False
+
+    dy_len = n - 1
+    mean_dy = 0.0
+    for i in range(dy_len):
+        mean_dy += y[i + 1] - y[i]
+    mean_dy /= dy_len
+
+    dy_centred = np.empty(dy_len, dtype=np.float64)
+    denom = 0.0
+    for i in range(dy_len):
+        c = (y[i + 1] - y[i]) - mean_dy
+        dy_centred[i] = c
+        denom += c * c
+    if denom <= 1e-12:
+        return False
+
+    m = season_length
+    prior_sq = 0.0
+    acf_at_m = 0.0
+    for lag in range(1, m + 1):
+        s = 0.0
+        for i in range(dy_len - lag):
+            s += dy_centred[i] * dy_centred[i + lag]
+        acf = s / denom
+        if lag < m:
+            prior_sq += acf * acf
+        else:
+            acf_at_m = acf
+
+    se_sq = (1.0 + 2.0 * prior_sq) / dy_len
+    if se_sq <= 0.0 or not np.isfinite(se_sq):
+        return False
+    se = se_sq**0.5
+    return abs(acf_at_m) / se > threshold
+
+
+@njit(cache=True, fastmath=True)
+def _seasonal_decompose_numba(y, season_length, requested_mult, mult_floor):
+    """Classical seasonal decomposition with centred-MA detrending in one pass.
+
+    Steps mirror the previous numpy version:
+
+    1. Estimate a trend via the centred moving average of period
+       ``season_length`` (odd ``m``: uniform window; even ``m``: 2*m smoothing
+       with ``[0.5, 1, ..., 1, 0.5] / m`` weights).
+    2. Detrend additively or multiplicatively.
+    3. Estimate seasonal indices as the per-position mean of the detrended
+       series, ignoring positions where the MA is undefined.
+    4. Normalise (sum-zero for additive, mean-one for multiplicative).
+
+    Multiplicative falls back to additive when ``y`` contains non-positive
+    values, when the MA contains non-positive values, or when factors are
+    non-finite or below ``mult_floor``.
+
+    Returns
+    -------
+    type_code : int
+        ``0`` for "none" (no decomposition applied), ``1`` for additive,
+        ``2`` for multiplicative.
+    factors : np.ndarray
+        Seasonal factors of length ``season_length``. All zeros when
+        ``type_code == 0``; the caller should ignore the array in that case.
+    adjusted : np.ndarray
+        Seasonally adjusted series of the same length as ``y``. Equal to a
+        copy of ``y`` when ``type_code == 0``.
+    """
+    n = y.shape[0]
+    m = season_length
+    half = m // 2
+
+    factors = np.zeros(m, dtype=np.float64)
+
+    # Centred MA requires at least m points (odd m) or m + 1 points (even m).
+    if m % 2 == 1:
+        if n < m:
+            return 0, factors, y.copy()
+    else:
+        if n < m + 1:
+            return 0, factors, y.copy()
+
+    inv_m = 1.0 / m
+    ma = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        ma[i] = np.nan
+
+    if m % 2 == 1:
+        for t in range(half, n - half):
+            s = 0.0
+            for k in range(t - half, t + half + 1):
+                s += y[k]
+            ma[t] = s * inv_m
+    else:
+        for t in range(half, n - half):
+            s = 0.5 * (y[t - half] + y[t + half])
+            for k in range(t - half + 1, t + half):
+                s += y[k]
+            ma[t] = s * inv_m
+
+    # Multiplicative viability check.
+    use_mult = requested_mult
+    if use_mult:
+        for i in range(n):
+            if y[i] <= 0.0:
+                use_mult = False
+                break
+    if use_mult:
+        for t in range(half, n - half):
+            if ma[t] <= 0.0:
+                use_mult = False
+                break
+
+    sums = np.empty(m, dtype=np.float64)
+    counts = np.empty(m, dtype=np.int64)
+
+    if use_mult:
+        for p in range(m):
+            sums[p] = 0.0
+            counts[p] = 0
+        for t in range(half, n - half):
+            d = y[t] / ma[t]
+            if np.isfinite(d):
+                pos = t % m
+                sums[pos] += d
+                counts[pos] += 1
+
+        valid = True
+        for p in range(m):
+            if counts[p] == 0:
+                valid = False
+                break
+            factors[p] = sums[p] / counts[p]
+
+        if valid:
+            factor_sum = 0.0
+            for p in range(m):
+                factor_sum += factors[p]
+            factor_mean = factor_sum / m
+            if np.isfinite(factor_mean) and factor_mean > mult_floor:
+                ok = True
+                min_factor = 1e300
+                for p in range(m):
+                    f = factors[p] / factor_mean
+                    factors[p] = f
+                    if not np.isfinite(f):
+                        ok = False
+                        break
+                    if f < min_factor:
+                        min_factor = f
+                if ok and min_factor >= mult_floor:
+                    adjusted = np.empty(n, dtype=np.float64)
+                    all_finite = True
+                    for i in range(n):
+                        rep = factors[i % m]
+                        v = y[i] / rep
+                        adjusted[i] = v
+                        if not np.isfinite(v):
+                            all_finite = False
+                            break
+                    if all_finite:
+                        return 2, factors, adjusted
+        # Fall through to additive on any multiplicative failure.
+
+    # Additive path (also the multiplicative fallback).
+    for p in range(m):
+        sums[p] = 0.0
+        counts[p] = 0
+    for t in range(half, n - half):
+        d = y[t] - ma[t]
+        if np.isfinite(d):
+            pos = t % m
+            sums[pos] += d
+            counts[pos] += 1
+
+    for p in range(m):
+        if counts[p] == 0:
+            zeros = np.zeros(m, dtype=np.float64)
+            return 0, zeros, y.copy()
+        factors[p] = sums[p] / counts[p]
+
+    factor_sum = 0.0
+    for p in range(m):
+        factor_sum += factors[p]
+    factor_mean = factor_sum / m
+    for p in range(m):
+        factors[p] -= factor_mean
+        if not np.isfinite(factors[p]):
+            zeros = np.zeros(m, dtype=np.float64)
+            return 0, zeros, y.copy()
+
+    adjusted = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        v = y[i] - factors[i % m]
+        adjusted[i] = v
+        if not np.isfinite(v):
+            zeros = np.zeros(m, dtype=np.float64)
+            return 0, zeros, y.copy()
+    return 1, factors, adjusted
 
 
 # ---------------------------------------------------------------------------
@@ -591,8 +672,61 @@ def _fit_dotm_core(x0, y, fixed_mask, fixed_values, lower, upper, tol, max_iter)
         params[1],
         params[2],
     )
-    forecast = _dotm_forecast(y, 1, params[0], params[1], params[2])[0]
+    # Reuse the final state from _dotm_fitted_values to produce the 1-step
+    # forecast in O(1) rather than re-iterating through y from index 0.
+    forecast = _dotm_forecast_from_state(
+        y.shape[0], 1, level, a, b, mean_y, params[1], params[2]
+    )[0]
     return params, sse, fitted, residuals, level, a, b, mean_y, forecast
+
+
+@njit(cache=True, fastmath=True)
+def _dotm_forecast_from_state(
+    n, h, level, a_state, b_state, mean_y_state, alpha, theta
+):
+    """Project ``h`` DOTM forecasts forward from the state at position ``n - 1``.
+
+    ``level``, ``a_state``, ``b_state`` and ``mean_y_state`` are the values
+    stored by :func:`_dotm_fitted_values` after consuming ``y[0..n-1]``.
+    Forecasting from the saved state is O(h) and avoids re-walking the
+    in-sample series, which is the dominant cost of repeated fit-then-forecast
+    use such as :meth:`DOTM.iterative_forecast`.
+    """
+    forecast = np.empty(h, dtype=np.float64)
+    omega = 1.0 - 1.0 / theta
+    one_minus_alpha = 1.0 - alpha
+
+    ell = level
+    a = a_state
+    b = b_state
+    mean_y = mean_y_state
+
+    # The first forecast is computed at i = n - 1, so power = (1 - alpha) ** n.
+    # We then update power = power * (1 - alpha) each iteration to avoid the
+    # ``**`` call that the original recurrence performed inside the loop.
+    power = one_minus_alpha**n
+
+    for k in range(h):
+        i = n - 1 + k
+        next_power = power * one_minus_alpha
+        if alpha > 0.0:
+            slope_term = b * (1.0 - next_power) / alpha
+        else:
+            slope_term = 0.0
+        mu = ell + omega * (a * power + slope_term)
+        forecast[k] = mu
+
+        # Update state to position i + 1, mirroring _dotm_fitted_values but
+        # with ``next_y = mu`` since we are extending past the end of y.
+        ell = alpha * mu + one_minus_alpha * ell
+        previous_mean = mean_y
+        mean_y = ((i + 1) * mean_y + mu) / (i + 2)
+        b = (i * b + 6.0 * (mu - previous_mean) / (i + 2)) / (i + 3)
+        a = mean_y - b * (i + 3) / 2.0
+
+        power = next_power
+
+    return forecast
 
 
 @njit(cache=True, fastmath=True)
