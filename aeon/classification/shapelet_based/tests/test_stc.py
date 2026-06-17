@@ -16,9 +16,9 @@ def test_predict_proba():
     stc = ShapeletTransformClassifier(estimator=SVC(probability=False))
     stc.fit(X, y)
     probas = stc._predict_proba(X)
-    assert np.all((probas == 0.0) | (probas == 1.0)), (
-        "Array contains values other than 0 and 1"
-    )
+    assert np.all(
+        (probas == 0.0) | (probas == 1.0)
+    ), "Array contains values other than 0 and 1"
     with pytest.raises(ValueError, match="Estimator must have a predict_proba method"):
         stc._fit_predict_proba(X, y)
     stc = ShapeletTransformClassifier(estimator=RandomForestClassifier(n_estimators=10))
@@ -31,6 +31,7 @@ def test_predict_proba_unequal_length_list():
     """Test predict_proba on unequal-length list input (gh#3447)."""
     import numpy as np
     from sklearn.svm import LinearSVC
+
     from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
     X = [np.random.RandomState(i).rand(1, 8 + i) for i in range(6)]
