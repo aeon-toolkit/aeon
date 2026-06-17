@@ -1,7 +1,7 @@
-"""Dynamic Optimised Theta Model forecaster."""
+"""Dynamic Optimised Theta Model (DOTM) forecaster."""
 
 __maintainer__ = []
-__all__ = ["DynamicOptimisedThetaForecaster"]
+__all__ = ["DOTM"]
 
 import numpy as np
 from numba import njit
@@ -9,8 +9,8 @@ from numba import njit
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
-class DynamicOptimisedThetaForecaster(BaseForecaster, IterativeForecastingMixin):
-    """Dynamic Optimised Theta Model forecaster.
+class DOTM(BaseForecaster, IterativeForecastingMixin):
+    """Dynamic Optimised Theta Model (DOTM) forecaster.
 
     Non-seasonal implementation of the Dynamic Optimised Theta Model (DOTM)
     proposed by Fiorucci et al. (2016). DOTM is a local univariate forecaster
@@ -72,9 +72,9 @@ class DynamicOptimisedThetaForecaster(BaseForecaster, IterativeForecastingMixin)
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.forecasting.stats import DynamicOptimisedThetaForecaster
+    >>> from aeon.forecasting.stats import DOTM
     >>> y = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1])
-    >>> forecaster = DynamicOptimisedThetaForecaster()
+    >>> forecaster = DOTM()
     >>> pred = forecaster.iterative_forecast(y, prediction_horizon=2)
     >>> pred.shape
     (2,)
@@ -106,9 +106,7 @@ class DynamicOptimisedThetaForecaster(BaseForecaster, IterativeForecastingMixin)
     def _fit(self, y, exog=None):
         """Fit DOTM to a univariate series."""
         if exog is not None:
-            raise NotImplementedError(
-                "DynamicOptimisedThetaForecaster does not support exog."
-            )
+            raise NotImplementedError("DOTM does not support exog.")
 
         y = _validate_dotm_y(y)
         fixed_mask, fixed_values, lower, upper = self._parameter_arrays()
@@ -157,9 +155,7 @@ class DynamicOptimisedThetaForecaster(BaseForecaster, IterativeForecastingMixin)
     def _predict(self, y, exog=None):
         """Predict one step ahead from context ``y`` using fitted parameters."""
         if exog is not None:
-            raise NotImplementedError(
-                "DynamicOptimisedThetaForecaster does not support exog."
-            )
+            raise NotImplementedError("DOTM does not support exog.")
         y = _validate_dotm_y(y)
         return float(
             _dotm_forecast(y, 1, self.initial_level_, self.alpha_, self.theta_)[0]
@@ -170,9 +166,7 @@ class DynamicOptimisedThetaForecaster(BaseForecaster, IterativeForecastingMixin)
         if prediction_horizon < 1:
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
         if exog is not None:
-            raise NotImplementedError(
-                "DynamicOptimisedThetaForecaster does not support exog."
-            )
+            raise NotImplementedError("DOTM does not support exog.")
         self.fit(y)
         return _dotm_forecast(
             _validate_dotm_y(y),
@@ -232,13 +226,11 @@ def _validate_dotm_y(y):
     """Convert and validate DOTM input series."""
     y = np.asarray(y, dtype=np.float64).squeeze()
     if y.ndim != 1:
-        raise ValueError("DynamicOptimisedThetaForecaster requires univariate y.")
+        raise ValueError("DOTM requires univariate y.")
     if y.shape[0] < 4:
-        raise ValueError(
-            "DynamicOptimisedThetaForecaster requires at least 4 observations."
-        )
+        raise ValueError("DOTM requires at least 4 observations.")
     if not np.all(np.isfinite(y)):
-        raise ValueError("DynamicOptimisedThetaForecaster requires finite y values.")
+        raise ValueError("DOTM requires finite y values.")
     return y
 
 
