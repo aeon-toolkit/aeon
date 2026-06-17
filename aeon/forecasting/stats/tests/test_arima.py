@@ -75,16 +75,41 @@ def test_arima_iterative_forecast_fits_once_per_call():
     assert model.fit_calls_ == 1
 
 
-def test_arima_iterative_forecast_with_combined_exog_fits_once():
-    """iterative_forecast should split combined train and future exog."""
+def test_arima_iterative_forecast_with_future_exog_fits_once():
+    """iterative_forecast should use training exog and future exog."""
     horizon = 3
-    combined_exog = np.random.RandomState(12).randn(len(y) + horizon, 2)
+    rng = np.random.RandomState(12)
+    exog = rng.randn(len(y), 2)
+    future_exog = rng.randn(horizon, 2)
     model = _FitCountingARIMA()
 
-    preds = model.iterative_forecast(y, prediction_horizon=horizon, exog=combined_exog)
+    preds = model.iterative_forecast(
+        y,
+        prediction_horizon=horizon,
+        exog=exog,
+        future_exog=future_exog,
+    )
 
     assert preds.shape == (horizon,)
     assert model.fit_calls_ == 1
+
+
+def test_arima_iterative_forecast_accepts_one_dimensional_exog():
+    """iterative_forecast should accept 1D train and future exog arrays."""
+    horizon = 3
+    train_exog = np.arange(len(y), dtype=float)
+    future_exog = np.arange(len(y), len(y) + horizon, dtype=float)
+    model = ARIMA(p=1, d=0, q=1)
+
+    preds = model.iterative_forecast(
+        y,
+        prediction_horizon=horizon,
+        exog=train_exog,
+        future_exog=future_exog,
+    )
+
+    assert preds.shape == (horizon,)
+    assert np.all(np.isfinite(preds))
 
 
 def test_arima_iterative_forecast_rejects_future_only_exog():
@@ -93,8 +118,8 @@ def test_arima_iterative_forecast_rejects_future_only_exog():
     future_exog = np.random.RandomState(13).randn(horizon, 2)
     model = ARIMA(p=1, d=0, q=1)
 
-    with pytest.raises(ValueError, match="only future rows"):
-        model.iterative_forecast(y, prediction_horizon=horizon, exog=future_exog)
+    with pytest.raises(ValueError, match="provided together"):
+        model.iterative_forecast(y, prediction_horizon=horizon, future_exog=future_exog)
 
 
 def test_arima_iterative_forecast_rejects_train_only_exog():
@@ -103,7 +128,7 @@ def test_arima_iterative_forecast_rejects_train_only_exog():
     train_exog = np.random.RandomState(14).randn(len(y), 2)
     model = ARIMA(p=1, d=0, q=1)
 
-    with pytest.raises(ValueError, match="only training rows"):
+    with pytest.raises(ValueError, match="provided together"):
         model.iterative_forecast(y, prediction_horizon=horizon, exog=train_exog)
 
 
@@ -253,16 +278,19 @@ def test_autoarima_iterative_forecast_shape_and_validity():
     assert np.all(np.isfinite(preds))
 
 
-def test_autoarima_iterative_forecast_with_combined_exog():
-    """AutoARIMA.iterative_forecast should split combined exog."""
+def test_autoarima_iterative_forecast_with_future_exog():
+    """AutoARIMA.iterative_forecast should use training exog and future exog."""
     horizon = 3
-    combined_exog = np.random.RandomState(15).randn(len(y) + horizon, 1)
+    rng = np.random.RandomState(15)
+    exog = rng.randn(len(y), 1)
+    future_exog = rng.randn(horizon, 1)
     forecaster = AutoARIMA(max_p=1, max_d=1, max_q=1)
 
     preds = forecaster.iterative_forecast(
         y,
         prediction_horizon=horizon,
-        exog=combined_exog,
+        exog=exog,
+        future_exog=future_exog,
     )
 
     assert isinstance(preds, np.ndarray)
@@ -322,12 +350,19 @@ def test_arima_exog_shape_mismatch_raises():
 
 
 def test_arima_iterative_forecast_with_exog():
-    """Test multi-step forecast with combined exogenous variables."""
+    """Test multi-step forecast with training and future exogenous variables."""
     y_local = np.arange(40, dtype=float)
     h = 5
-    exog = np.random.RandomState(1).randn(len(y_local) + h, 2)
+    rng = np.random.RandomState(1)
+    exog = rng.randn(len(y_local), 2)
+    future_exog = rng.randn(h, 2)
     model = ARIMA(p=1, d=1, q=1)
-    preds = model.iterative_forecast(y_local, prediction_horizon=h, exog=exog)
+    preds = model.iterative_forecast(
+        y_local,
+        prediction_horizon=h,
+        exog=exog,
+        future_exog=future_exog,
+    )
     assert preds.shape == (h,)
     assert np.all(np.isfinite(preds))
 

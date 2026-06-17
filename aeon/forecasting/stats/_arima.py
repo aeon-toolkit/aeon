@@ -27,36 +27,6 @@ def _exog_as_timepoint_rows(exog):
     return exog
 
 
-def _split_iterative_exog(y, prediction_horizon, exog):
-    """Split combined iterative exog into training and future rows."""
-    if exog is None:
-        return None, None
-
-    exog = _exog_as_timepoint_rows(exog)
-    y_array = np.asarray(y).squeeze()
-    n_timepoints = y_array.shape[0] if y_array.ndim > 0 else 1
-    exog_length = exog.shape[0]
-    required_length = n_timepoints + prediction_horizon
-
-    if exog_length == required_length:
-        return exog[:n_timepoints], exog[n_timepoints:]
-    if exog_length == prediction_horizon:
-        raise ValueError(
-            "exog contains only future rows. ARIMA.iterative_forecast refits on y, "
-            f"so exog must include both {n_timepoints} training rows and "
-            f"{prediction_horizon} future rows."
-        )
-    if exog_length == n_timepoints:
-        raise ValueError(
-            "exog contains only training rows. ARIMA.iterative_forecast requires "
-            f"{prediction_horizon} future exog rows for recursive forecasting."
-        )
-    raise ValueError(
-        "exog must have length len(y) + prediction_horizon; "
-        f"got {exog_length}, expected {required_length}."
-    )
-
-
 class ARIMA(BaseForecaster, IterativeForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
@@ -308,13 +278,22 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Fit once on y and recursively forecast multiple steps ahead."""
-        if prediction_horizon < 1:
-            raise ValueError("prediction_horizon must be greater than or equal to 1.")
-
-        fit_exog, future_exog = _split_iterative_exog(y, prediction_horizon, exog)
-        self.fit(y, exog=fit_exog)
+        y, exog, future_exog = self._check_iterative_forecast_inputs(
+            y, prediction_horizon, exog, future_exog
+        )
+        if exog is not None:
+            exog = _exog_as_timepoint_rows(exog)
+            future_exog = _exog_as_timepoint_rows(future_exog)
+        self.fit(y, exog=exog)
         return self._iterative_forecast_from_fitted(
             prediction_horizon=prediction_horizon,
             exog=future_exog,
@@ -496,7 +475,14 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.final_model_.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Fit once on y and recursively forecast multiple steps ahead.
 
         This function implements the iterative forecasting strategy (also called
@@ -522,13 +508,15 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         Raises
         ------
         ValueError
-            if prediction_horizon` less than 1.
+            If ``prediction_horizon`` is less than 1.
         """
-        if prediction_horizon < 1:
-            raise ValueError("prediction_horizon must be greater than or equal to 1.")
-
-        fit_exog, future_exog = _split_iterative_exog(y, prediction_horizon, exog)
-        self.fit(y, exog=fit_exog)
+        y, exog, future_exog = self._check_iterative_forecast_inputs(
+            y, prediction_horizon, exog, future_exog
+        )
+        if exog is not None:
+            exog = _exog_as_timepoint_rows(exog)
+            future_exog = _exog_as_timepoint_rows(future_exog)
+        self.fit(y, exog=exog)
         return self.final_model_._iterative_forecast_from_fitted(
             prediction_horizon=prediction_horizon,
             exog=future_exog,
