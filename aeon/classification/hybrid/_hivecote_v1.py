@@ -177,18 +177,26 @@ class HIVECOTEV1(_BaseHIVECOTE):
 
     @property
     def stc_weight_(self):
+        if not hasattr(self, "_stc_weight_"):
+            return 0.0
         return self.get_component_weights().get("STC", 0.0)
 
     @property
     def tsf_weight_(self):
+        if not hasattr(self, "_tsf_weight_"):
+            return 0.0
         return self.get_component_weights().get("TSF", 0.0)
 
     @property
     def rise_weight_(self):
+        if not hasattr(self, "_rise_weight_"):
+            return 0.0
         return self.get_component_weights().get("RISE", 0.0)
 
     @property
     def cboss_weight_(self):
+        if not hasattr(self, "_cboss_weight_"):
+            return 0.0
         return self.get_component_weights().get("cBOSS", 0.0)
 
     @classmethod
