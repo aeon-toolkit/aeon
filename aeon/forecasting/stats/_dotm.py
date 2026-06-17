@@ -105,6 +105,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
     def _fit(self, y, exog=None):
         """Fit DOTM to a univariate series."""
+        y = _prepare_dotm_y(y)
         fixed_mask, fixed_values, lower, upper = self._parameter_arrays()
         x0 = np.array([y[0] / 2.0, 0.5, 2.0], dtype=np.float64)
         for i in range(3):
@@ -150,9 +151,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
     def _predict(self, y, exog=None):
         """Predict one step ahead from context ``y`` using fitted parameters."""
-        if exog is not None:
-            raise NotImplementedError("DOTM does not support exog.")
-        y = _validate_dotm_y(y)
+        y = _prepare_dotm_y(y)
         return float(
             _dotm_forecast(y, 1, self.initial_level_, self.alpha_, self.theta_)[0]
         )
@@ -165,7 +164,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             raise NotImplementedError("DOTM does not support exog.")
         self.fit(y)
         return _dotm_forecast(
-            _validate_dotm_y(y),
+            _prepare_dotm_y(y),
             int(prediction_horizon),
             self.initial_level_,
             self.alpha_,
@@ -218,15 +217,11 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         return fixed_mask, fixed_values, lower, upper
 
 
-def _validate_dotm_y(y):
-    """Convert and validate DOTM input series."""
+def _prepare_dotm_y(y):
+    """Convert DOTM input to a 1D array and check minimum length."""
     y = np.asarray(y, dtype=np.float64).squeeze()
-    if y.ndim != 1:
-        raise ValueError("DOTM requires univariate y.")
     if y.shape[0] < 4:
         raise ValueError("DOTM requires at least 4 observations.")
-    if not np.all(np.isfinite(y)):
-        raise ValueError("DOTM requires finite y values.")
     return y
 
 
