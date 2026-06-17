@@ -1,6 +1,7 @@
 """Tests for time series k-medoids."""
 
 import numpy as np
+import pytest
 from sklearn import metrics
 
 from aeon.clustering._clara import TimeSeriesCLARA
@@ -95,3 +96,20 @@ def test_clara_multi():
     assert isinstance(clara.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
+
+
+def test_clara_rejects_array_init():
+    """Test CLARA rejects array initialisation."""
+    X = np.random.RandomState(0).random(size=(10, 1, 8))
+
+    clara = TimeSeriesCLARA(
+        n_clusters=2,
+        init=np.array([6, 7]),
+        n_samples=4,
+        n_sampling_iters=1,
+        distance="euclidean",
+        random_state=0,
+    )
+
+    with pytest.raises(ValueError, match="Array initialisation is not supported"):
+        clara.fit(X)

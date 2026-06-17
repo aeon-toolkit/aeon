@@ -29,7 +29,7 @@ class TimeSeriesCLARA(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init : str or np.ndarray, default='random'
+    init : str, default='random'
         Method for initialising cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
@@ -38,8 +38,6 @@ class TimeSeriesCLARA(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
-        If an np.ndarray is provided it must be of shape (n_clusters,) and contain
-        the indices of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -154,6 +152,13 @@ class TimeSeriesCLARA(BaseClusterer):
         return self._kmedoids_instance.predict(X)
 
     def _fit(self, X: np.ndarray, y=None):
+        if isinstance(self.init, np.ndarray):
+            raise ValueError(
+                "Array initialisation is not supported for TimeSeriesCLARA "
+                "because CLARA fits PAM on sampled subsets. Use a string "
+                "initialisation method instead."
+            )
+
         self._random_state = check_random_state(self.random_state)
         n_cases = X.shape[0]
         if self.n_samples is None:
