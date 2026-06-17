@@ -118,6 +118,7 @@ def test_regressor_cloned_not_mutated():
     """Test RegressionForecaster clones the regressor instead of mutating it."""
     import numpy as np
     from sklearn.linear_model import Ridge
+
     from aeon.forecasting._regression import RegressionForecaster
 
     reg = Ridge()
