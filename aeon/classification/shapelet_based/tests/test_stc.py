@@ -25,3 +25,18 @@ def test_predict_proba():
     y = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
     with pytest.raises(ValueError, match="All classes must have at least 2 values"):
         stc._fit_predict_proba(X, y)
+
+
+def test_predict_proba_unequal_length_list():
+    """Test predict_proba on unequal-length list input (gh#3447)."""
+    import numpy as np
+    from sklearn.svm import LinearSVC
+    from aeon.classification.shapelet_based import ShapeletTransformClassifier
+
+    X = [np.random.RandomState(i).rand(1, 8 + i) for i in range(6)]
+    y = np.array([0, 1, 0, 1, 0, 1])
+
+    clf = ShapeletTransformClassifier(estimator=LinearSVC(), random_state=0)
+    clf.fit(X, y)
+    proba = clf.predict_proba(X[:2])
+    assert proba.shape == (2, clf.n_classes_)
