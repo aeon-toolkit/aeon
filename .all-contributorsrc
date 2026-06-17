@@ -2839,6 +2839,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "islem-esi",
+      "name": "Islem BOUZENIA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/61057090?v=4",
+      "profile": "https://github.com/islem-esi",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Booyaka101",
+      "name": "Christo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1064588?v=4",
+      "profile": "https://github.com/Booyaka101",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"

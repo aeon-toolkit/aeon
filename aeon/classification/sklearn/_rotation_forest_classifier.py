@@ -282,17 +282,17 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         y_probas, oobs = zip(*p)
 
         results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(self.n_cases_)
-        for oob in oobs:
-            for inst in oob:
-                divisors[inst] += 1
+        oob_arrays = [np.asarray(o, dtype=np.intp) for o in oobs if len(o) > 0]
+        if oob_arrays:
+            divisors = np.bincount(
+                np.concatenate(oob_arrays), minlength=self.n_cases_
+            ).astype(float)
+        else:
+            divisors = np.zeros(self.n_cases_, dtype=float)
 
-        for i in range(self.n_cases_):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
+        nonzero = divisors > 0
+        results[nonzero] = results[nonzero] / divisors[nonzero, None]
+        results[~nonzero] = 1 / self.n_classes_
 
         return results
 

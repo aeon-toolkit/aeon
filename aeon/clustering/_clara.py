@@ -165,13 +165,17 @@ class TimeSeriesCLARA(BaseClusterer):
         best_pam = None
         best_labels = None
         for _ in range(self.n_sampling_iters):
-            sample_idxs = np.arange(n_samples)
+
             if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
-                    sample_idxs,
+                    np.arange(n_cases),
                     size=n_samples,
                     replace=False,
                 )
+
+            else:
+                sample_idxs = np.arange(n_cases)
+
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
                 init=self.init,
