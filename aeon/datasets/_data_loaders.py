@@ -30,7 +30,6 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -1075,20 +1074,13 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
     return False
 
 
-# TODO: Change default values to False in v1.5.0
-@deprecated(
-    version="1.4.0",
-    reason="load_regression parameters load_equal_length and load_no_missing "
-    "will default to False in version 1.5.0",
-    category=FutureWarning,
-)
 def load_regression(
     name: str,
     split=None,
     extract_path=None,
     return_metadata: bool = False,
-    load_equal_length: bool = True,
-    load_no_missing: bool = True,
+    load_equal_length: bool = False,
+    load_no_missing: bool = False,
 ):
     """Download/load a TSML regression collection.
 
@@ -1113,14 +1105,14 @@ def load_regression(
         format <name>_TRAIN.ts or <name>_TEST.ts.
     return_metadata : boolean, default = False
         If True, returns a tuple (X, y, metadata)
-    load_equal_length : boolean, default=True
+    load_equal_length : boolean, default=False
         This is for the case when the standard release has unequal length series. The
         downloaded zip for these contain a version made equal length through
         truncation. These versions all have the suffix _eq after the name. If this
         flag is set to True, the function first attempts to load files called
         <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
-    load_no_missing : boolean, default=True
+    load_no_missing : boolean, default=False
         This is for the case when the standard release has missing values. The
         downloaded zip for these contain a version with imputed missing values. These
         versions all have the suffix _nmv after the name. If this
@@ -1175,20 +1167,13 @@ def load_regression(
     return X, y
 
 
-# TODO: Change default values to False in v1.5.0
-@deprecated(
-    version="1.4.0",
-    reason="load_classification parameters load_equal_length and load_no_missing "
-    "will default to False in version 1.5.0",
-    category=FutureWarning,
-)
 def load_classification(
     name,
     split=None,
     extract_path=None,
     return_metadata=False,
-    load_equal_length: bool = True,
-    load_no_missing: bool = True,
+    load_equal_length: bool = False,
+    load_no_missing: bool = False,
 ):
     """Download/load a TSML classification collection.
 
@@ -1217,14 +1202,14 @@ def load_classification(
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)
-    load_equal_length : boolean, default=True
+    load_equal_length : boolean, default=False
         This is for the case when the standard release has unequal length series. The
         downloaded zip for these contain a version made equal length through
         truncation. These versions all have the suffix _eq after the name. If this
         flag is set to True, the function first attempts to load files called
         <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
-    load_no_missing : boolean, default=True
+    load_no_missing : boolean, default=False
         This is for the case when the standard release has missing values. The
         downloaded zip for these contain a version with imputed missing values. These
         versions all have the suffix _nmv after the name. If this

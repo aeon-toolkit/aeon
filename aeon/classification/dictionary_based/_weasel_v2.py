@@ -40,7 +40,7 @@ class WEASEL_V2(BaseClassifier):
     for different window lengths and learns a logistic regression classifier
     on this bag.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -258,7 +258,7 @@ class WEASEL_V2(BaseClassifier):
 class WEASELTransformerV2:
     """The Word Extraction for Time Series Classifier v2.0 Transformation.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
