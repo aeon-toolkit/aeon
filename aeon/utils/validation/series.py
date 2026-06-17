@@ -8,6 +8,7 @@ __all__ = [
     "has_missing",
     "is_univariate",
     "get_type",
+    "check_series_variance",
 ]
 
 import numpy as np
@@ -119,7 +120,7 @@ def get_n_channels(X, axis=None):
     ----------
     X : series
         See aeon.utils.data_types.SERIES_DATA_TYPES for details.
-    axis : int
+    axis : int or None, default=None
         The time point axis of the input series if it is 2D. If ``axis==0``, it is
         assumed each column is a time series and each row is a time point. i.e. the
         shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
@@ -209,7 +210,7 @@ def is_univariate(X, axis=None):
     ----------
     X : series
         See aeon.utils.data_types.SERIES_DATA_TYPES for details.
-    axis : int
+    axis : int or None, default=None
         The time point axis of the input series if it is 2D. If ``axis==0``, it is
         assumed each column is a time series and each row is a time point. i.e. the
         shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
@@ -306,3 +307,85 @@ def get_type(X, raise_error=True):
     if raise_error and msg is not None:
         raise TypeError(msg)
     return None
+
+
+def check_series_variance(X, threshold=1e-7, axis=None, raise_error=True):
+    """Check a series has sufficient variation.
+
+    Checks series is constant or per-channel std is greater than threshold.
+    Some aeon numba utilities treat very low-variance series as effectively constant.
+    This check allows early rejection of extremely small-scale series.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    threshold : float, default=1e-7
+        Minimum allowed standard deviation per channel.
+    axis : int or None, default=None
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
+    raise_error : bool, default=True
+        If True, raise a ValueError when any channel violates the threshold.
+
+        Will always raise an error if the data input type is invalid.
+
+    Returns
+    -------
+    bool
+        True if all channels have std > threshold, else False.
+
+    Raises
+    ------
+    ValueError
+        If any channel has std <= threshold and raise_error=True.
+        threshold is negative.
+        Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
+    """
+    if threshold < 0:
+        raise ValueError("threshold must be non-negative.")
+
+    t = get_type(X)
+    if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
+        0,
+        1,
+    ]:
+        raise ValueError("axis must be 0 or 1 for 2D inputs.")
+
+    if t == "pd.Series":
+        ranges = np.array([X.max(skipna=True) - X.min(skipna=True)], dtype=float)
+        stds = np.array([X.std(skipna=True, ddof=0)], dtype=float)
+    elif t == "np.ndarray":
+        if X.ndim == 1:
+            ranges = np.array([np.nanmax(X) - np.nanmin(X)], dtype=float)
+            stds = np.array([np.nanstd(X, ddof=0)], dtype=float)
+        elif X.ndim == 2:
+            ranges = (np.nanmax(X, axis=axis) - np.nanmin(X, axis=axis)).astype(
+                float, copy=False
+            )
+            stds = np.nanstd(X, ddof=0, axis=axis).astype(float, copy=False)
+    elif t == "pd.DataFrame":
+        ranges = (
+            X.max(axis=axis, skipna=True) - X.min(axis=axis, skipna=True)
+        ).to_numpy(dtype=float)
+        stds = X.std(ddof=0, axis=axis, skipna=True).to_numpy(dtype=float)
+
+    bad = np.where((stds <= threshold) & (ranges != 0))[0]
+    if bad.size > 0:
+        if raise_error:
+            bad_list = ", ".join(map(str, bad[:10]))
+            extra = "" if bad.size <= 10 else f" (and {bad.size - 10} more)"
+            raise ValueError(
+                f"Input series has too little variation: std <= {threshold} "
+                f"for channel(s) {bad_list}{extra}. "
+                "Rescale (e.g., multiply by a constant) or normalise your data."
+            )
+        return False
+    return True

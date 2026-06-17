@@ -32,7 +32,7 @@ from sklearn.model_selection import cross_val_predict
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.decorators.method_timer import method_timer
 from aeon.utils.validation.labels import check_classification_y
 
 
@@ -69,6 +69,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series classifier to training data.
 
@@ -101,15 +102,25 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         self : BaseClassifier
             Reference to self.
 
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        TypeError
+            If ``y`` is a ``pd.DataFrame`` with more than one column.
+
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        X, y, single_class = self._fit_setup(X, y)
+        X, y = self._fit_setup(X, y)
 
-        if not single_class:
-            self._fit(X, y)
+        self._fit(X, y)
 
         # this should happen last
         self.is_fitted = True
@@ -145,13 +156,25 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         predictions : np.ndarray
             1D np.array of float, of shape (n_cases) - predicted class labels
             indices correspond to instance indices in X
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        ValueError
+            If the time series length of ``X`` does not match the length seen
+            during fit.
+        ValueError
+            If the number of channels in ``X`` does not match the number of
+            channels seen during fit (for multivariate estimators).
+        NotFittedError
+            If the classifier has not been fitted yet (``fit`` not called).
         """
         self._check_is_fitted()
-
-        # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
-            n_cases = get_n_cases(X)
-            return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
         X = self._preprocess_collection(X, store_metadata=False)
         # Check if X is equal length but that is different to the length seen in fit
@@ -190,13 +213,25 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        ValueError
+            If the time series length of ``X`` does not match the length seen
+            during fit.
+        ValueError
+            If the number of channels in ``X`` does not match the number of
+            channels seen during fit (for multivariate estimators).
+        NotFittedError
+            If the classifier has not been fitted yet (``fit`` not called).
         """
         self._check_is_fitted()
-
-        # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
-            n_cases = get_n_cases(X)
-            return np.repeat([[1]], n_cases, axis=0)
 
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
@@ -255,13 +290,24 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         predictions : np.ndarray
             shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        ValueError
+            If ``cv_size`` is not an integer greater than 0.
+        ValueError
+            If all classes have fewer than 2 samples, making cross-validation
+            impossible.
         """
-        X, y, single_class = self._fit_setup(X, y)
-        if single_class:
-            n_cases = get_n_cases(X)
-            y_pred = np.repeat(list(self._class_dictionary.keys()), n_cases)
-        else:
-            y_pred = self._fit_predict(X, y, **kwargs)
+        X, y = self._fit_setup(X, y)
+
+        y_pred = self._fit_predict(X, y, **kwargs)
 
         # this should happen last
         self.is_fitted = True
@@ -323,14 +369,24 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
-        """
-        X, y, single_class = self._fit_setup(X, y)
 
-        if single_class:
-            n_cases = get_n_cases(X)
-            y_proba = np.repeat([[1]], n_cases, axis=0)
-        else:
-            y_proba = self._fit_predict_proba(X, y, **kwargs)
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        ValueError
+            If ``cv_size`` is not an integer greater than 0.
+        ValueError
+            If all classes have fewer than 2 samples, making cross-validation
+            impossible.
+        """
+        X, y = self._fit_setup(X, y)
+
+        y_proba = self._fit_predict_proba(X, y, **kwargs)
 
         # this should happen last
         self.is_fitted = True
@@ -377,6 +433,16 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         -------
         score : float
              Accuracy score of predict(X) vs y.
+
+        Raises
+        ------
+        ValueError
+            If ``metric`` is a string not found in
+            ``sklearn.metrics.get_scorer_names()``.
+        ValueError
+            If ``metric`` is not a string or callable.
+        NotFittedError
+            If the classifier has not been fitted yet (``fit`` not called).
         """
         self._check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
@@ -547,12 +613,23 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 
-        # return processed X and y, and whether there is only one class
-        return X, y, len(self.classes_) == 1
+        return X, y
 
-    def _check_y(self, y, n_cases, update_classes=True):
-        # Check y valid input for classification
-        check_classification_y(y)
+    def _check_y(self, y, n_cases, update_classes=True, allow_single_class=False):
+        """Check y input is valid.
+
+        Must be 1-dimensional and contain only binary or multiclass values.
+        """
+        if isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
+            if y.shape[1] > 1:
+                raise TypeError(
+                    "Error in input type for y: y input as pd.DataFrame should have a "
+                    "single column series."
+                )
+            y = y.squeeze().values
+
+        check_classification_y(y, allow_single_class=allow_single_class)
 
         # Check matching number of labels
         n_labels = y.shape[0]

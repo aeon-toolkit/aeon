@@ -20,7 +20,7 @@ def plot_temporal_importance_curves(
         The temporal importance curves for each attribute.
     curve_names : list of str of shape (n_curves)
         The names of the attributes.
-    top_curves_shown : int, default=None
+    top_curves_shown : int or None, default=None
         The number of curves to show. If None, all curves are shown.
     plot_mean : bool, default=True
         Whether to plot the mean temporal importance curve.
@@ -36,6 +36,9 @@ def plot_temporal_importance_curves(
     import matplotlib.pyplot as plt
 
     top_curves_shown = len(curves) if top_curves_shown is None else top_curves_shown
+    top_curves_shown = (
+        len(curves) if top_curves_shown > len(curves) else top_curves_shown
+    )
     max_ig = [max(i) for i in curves]
     top = sorted(range(len(max_ig)), key=lambda i: max_ig[i], reverse=True)[
         :top_curves_shown

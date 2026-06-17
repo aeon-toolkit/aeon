@@ -9,6 +9,9 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
+from aeon.clustering._cluster_initialisation import (
+    resolve_center_initialiser,
+)
 from aeon.clustering.averaging import (
     VALID_BA_DISTANCE_METHODS,
     elastic_barycenter_average,
@@ -38,7 +41,7 @@ class TimeSeriesKMeans(BaseClusterer):
     particular MSM/TWE [1]_). K-means for time series can further be improved by using
     an elastic averaging method. The most common one is dynamic barycenter averaging
     [3]_ however, in recent years alternates using other elastic distances such as
-    ShapeDBA [4]_ (Shape DTW DBA) and MBA (Msm DBA) [5]_ have shown signicant
+    ShapeDBA [4]_ (Shape DTW DBA) and MBA (MSM DBA) [5]_ have shown significant
     performance benefits.
 
     Parameters
@@ -48,12 +51,12 @@ class TimeSeriesKMeans(BaseClusterer):
     init : str or np.ndarray, default='random'
         Random is the default and simply chooses k time series at random as
         centroids. It is fast but sometimes yields sub-optimal clustering.
-        Kmeans++ [2] and is slower but often more
+        K-means++ [2] is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another.
         First is the fastest method and simply chooses the first k time series as
         centroids.
-        If a np.ndarray provided it must be of shape (n_clusters, n_channels,
+        If an np.ndarray is provided it must be of shape (n_clusters, n_channels,
         n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='msm'
@@ -111,11 +114,11 @@ class TimeSeriesKMeans(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
-        Array of shape (n_clusters, n_channels, n_timepoints))
+        Array of shape (n_clusters, n_channels, n_timepoints)
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_case,)
-        Labels that is the index each time series belongs to.
+        1d array of shape (n_cases,)
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -239,7 +242,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
     def _fit_one_init(self, X: np.ndarray) -> tuple:
         if isinstance(self._init, Callable):
-            cluster_centres = self._init(X)
+            cluster_centres = self._init(X=X)
         else:
             cluster_centres = self._init.copy()
         prev_inertia = np.inf
@@ -299,36 +302,22 @@ class TimeSeriesKMeans(BaseClusterer):
         self._random_state = check_random_state(self.random_state)
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        _incorrect_init_str = (
-            f"The value provided for init: {self.init} is "
-            f"invalid. The following are a list of valid init algorithms "
-            f"strings: random, kmeans++, first. You can also pass a "
-            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-        )
-
-        if isinstance(self.init, str):
-            if self.init == "random":
-                self._init = self._random_center_initializer
-            elif self.init == "kmeans++":
-                self._init = self._kmeans_plus_plus_center_initializer
-            elif self.init == "first":
-                self._init = self._first_center_initializer
-            else:
-                raise ValueError(_incorrect_init_str)
-        else:
-            if (
-                isinstance(self.init, np.ndarray)
-                and len(self.init) == self.n_clusters
-                and self.init.shape[1:] == X.shape[1:]
-            ):
-                self._init = self.init.copy()
-            else:
-                raise ValueError(_incorrect_init_str)
-
+        # Set up distance_params before init logic (needed for kmeans++ initializer)
         if self.distance_params is None:
             self._distance_params = {}
         else:
             self._distance_params = self.distance_params.copy()
+
+        self._init = resolve_center_initialiser(
+            init=self.init,
+            X=X,
+            n_clusters=self.n_clusters,
+            random_state=self._random_state,
+            distance=self.distance,
+            distance_params=self._distance_params,
+            n_jobs=self._n_jobs,
+            use_indexes=False,
+        )
         if self.average_params is None:
             self._average_params = {}
         else:
@@ -374,32 +363,6 @@ class TimeSeriesKMeans(BaseClusterer):
         # Mean is the only one that n_jobs doesn't support
         if isinstance(self.averaging_method, str) and self.averaging_method != "mean":
             self._average_params["n_jobs"] = self._n_jobs
-
-    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return X[self._random_state.choice(X.shape[0], self.n_clusters, replace=False)]
-
-    def _first_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return X[list(range(self.n_clusters))]
-
-    def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
-        indexes = [initial_center_idx]
-
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
-                X,
-                X[indexes],
-                method=self.distance,
-                n_jobs=self._n_jobs,
-                **self._distance_params,
-            )
-            min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
-
-        centers = X[indexes]
-        return centers
 
     def _handle_empty_cluster(
         self,
