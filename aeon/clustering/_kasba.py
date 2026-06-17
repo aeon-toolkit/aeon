@@ -33,12 +33,12 @@ class KASBA(BaseClusterer):
         The number of clusters to form as well as the number of centroids to generate.
     distance : str or callable, default='msm'
         The distance metric to use. If a string, must be one of the following:
-        'msm', 'twe'. The distance measure use MUST be a metric.
+        'msm', 'twe'. The distance measure used MUST be a metric.
     ba_subset_size : float, default=0.5
         The proportion of the data to use in the barycenter average step. For the first
         iteration all the data will be used however, on subsequent iterations a subset
         of the data will be used. This will be a % of the data passed (e.g. 0.5 = 50%).
-        If there are less than 10 data points, all the available data will be used
+        If there are fewer than 10 data points, all the available data will be used
         every iteration.
     initial_step_size : float, default=0.05
         The initial step size for the stochastic gradient descent in the
@@ -72,11 +72,11 @@ class KASBA(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
-        Array of shape (n_clusters, n_channels, n_timepoints))
+        Array of shape (n_clusters, n_channels, n_timepoints)
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_case,)
-        Labels that is the index each time series belongs to.
+        1d array of shape (n_cases,)
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center.
     n_iter_ : int
@@ -96,7 +96,7 @@ class KASBA(BaseClusterer):
     >>> import numpy as np
     >>> from aeon.clustering import KASBA
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= KASBA(distance="msm",n_clusters=2)
+    >>> clst = KASBA(distance="msm", n_clusters=2)
     >>> clst.fit(X)
     KASBA(n_clusters=2)
     >>> preds = clst.predict(X)

@@ -82,65 +82,58 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
         self.share_weights = share_weights
         self.share_coefficients = share_coefficients
 
-    def _trend_model(self, theta, t_, p):
+    def _get_trend_matrix(self, p, t_):
         """
-        Generate the trend backcast or forecast.
+        Precompute the static trend basis expansion matrix.
 
         Parameters
         ----------
-        theta : tf.Tensor
-            Basis expansion coefficients, 2-dimensional tensor with shape (N, p)
-            where N is the batch size and p is the number of polynomial terms.
+        p : int
+            Number of polynomial terms.
         t_ : tf.Tensor
             Time index, 1-dimensional tensor with length t for the trend backcast
             or with length H for the trend forecast.
-        p : int
-            Number of polynomial terms.
 
         Returns
         -------
         tf.Tensor
-            Predicted trend, 2-dimensional tensor with shape (N, t) when
-            backcasting and (N, H) when forecasting where N is the batch size.
+            Trend basis expansion matrix, 2-dimensional tensor with shape
+            (p, t) when backcasting and (p, H) when forecasting, where t is the
+            length of the lookback period and H is the length of the forecast
+            horizon.
         """
         import tensorflow as tf
 
-        T_ = tf.map_fn(lambda i: t_**i, tf.range(p, dtype=tf.float32))
-        return tf.tensordot(theta, T_, axes=1)
+        T = [t_ ** float(i) for i in range(p)]
+        return tf.stack(T, axis=0)
 
-    def _seasonality_model(self, theta, t_, p):
+    def _get_seasonality_matrix(self, p, t_):
         """
-        Generate the seasonality backcast or forecast.
+        Precompute the static seasonality basis expansion matrix.
 
         Parameters
         ----------
-        theta : tf.Tensor
-            Basis expansion coefficients, 2-dimensional tensor with shape
-            (N, 2 * p) where N is the batch size and 2 * p is the total number of
-            Fourier terms, that is p sine functions plus p cosine functions.
+        p : int
+            Number of Fourier terms. Note that the total number of rows generated
+            is 2 * p (p cosine functions stacked on top of p sine functions).
         t_ : tf.Tensor
             Time index, 1-dimensional tensor with length t for the seasonality
             backcast or with length H for the seasonality forecast.
-        p : int
-            Number of Fourier terms.
 
         Returns
         -------
         tf.Tensor
-            Predicted seasonality, 2-dimensional tensor with shape (N, t) when
-            backcasting and (N, H) when forecasting where N is the batch size.
+            Seasonality basis expansion matrix, 2-dimensional tensor with shape
+            (2 * p, t) when backcasting and (2 * p, H) when forecasting, where t
+            is the length of the lookback period and H is the length of the
+            forecast horizon.
         """
         import numpy as np
         import tensorflow as tf
 
-        s1 = tf.map_fn(
-            lambda i: tf.math.cos(2 * np.pi * i * t_), tf.range(p, dtype=tf.float32)
-        )
-        s2 = tf.map_fn(
-            lambda i: tf.math.sin(2 * np.pi * i * t_), tf.range(p, dtype=tf.float32)
-        )
-        S = tf.concat([s1, s2], axis=0)
-        return tf.tensordot(theta, S, axes=1)
+        s1 = [tf.math.cos(2.0 * np.pi * float(i) * t_) for i in range(p)]
+        s2 = [tf.math.sin(2.0 * np.pi * float(i) * t_) for i in range(p)]
+        return tf.concat([tf.stack(s1, axis=0), tf.stack(s2, axis=0)], axis=0)
 
     def _trend_block(self, h, p, t_b, t_f):
         """
@@ -174,23 +167,32 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
+        T_b = self._get_trend_matrix(p, t_b)
+        T_f = self._get_trend_matrix(p, t_f)
+
+        backcast_proj = tf.keras.layers.Dense(
+            units=self.lookback_period,
+            use_bias=False,
+            kernel_initializer=tf.keras.initializers.Constant(T_b),
+            trainable=False,
+        )
+        forecast_proj = tf.keras.layers.Dense(
+            units=self.horizon,
+            use_bias=False,
+            kernel_initializer=tf.keras.initializers.Constant(T_f),
+            trainable=False,
+        )
+
         if self.share_coefficients:
             theta = tf.keras.layers.Dense(units=p, use_bias=False)(h)
-            backcast = tf.keras.layers.Lambda(
-                self._trend_model, arguments={"p": p, "t_": t_b}
-            )(theta)
-            forecast = tf.keras.layers.Lambda(
-                self._trend_model, arguments={"p": p, "t_": t_f}
-            )(theta)
+            backcast = backcast_proj(theta)
+            forecast = forecast_proj(theta)
         else:
             theta_b = tf.keras.layers.Dense(units=p, use_bias=False)(h)
             theta_f = tf.keras.layers.Dense(units=p, use_bias=False)(h)
-            backcast = tf.keras.layers.Lambda(
-                self._trend_model, arguments={"p": p, "t_": t_b}
-            )(theta_b)
-            forecast = tf.keras.layers.Lambda(
-                self._trend_model, arguments={"p": p, "t_": t_f}
-            )(theta_f)
+            backcast = backcast_proj(theta_b)
+            forecast = forecast_proj(theta_f)
+
         return backcast, forecast
 
     def _seasonality_block(self, h, p, t_b, t_f):
@@ -225,23 +227,32 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
+        S_b = self._get_seasonality_matrix(p, t_b)
+        S_f = self._get_seasonality_matrix(p, t_f)
+
+        backcast_proj = tf.keras.layers.Dense(
+            units=self.lookback_period,
+            use_bias=False,
+            kernel_initializer=tf.keras.initializers.Constant(S_b),
+            trainable=False,
+        )
+        forecast_proj = tf.keras.layers.Dense(
+            units=self.horizon,
+            use_bias=False,
+            kernel_initializer=tf.keras.initializers.Constant(S_f),
+            trainable=False,
+        )
+
         if self.share_coefficients:
             theta = tf.keras.layers.Dense(units=2 * p, use_bias=False)(h)
-            backcast = tf.keras.layers.Lambda(
-                self._seasonality_model, arguments={"p": p, "t_": t_b}
-            )(theta)
-            forecast = tf.keras.layers.Lambda(
-                self._seasonality_model, arguments={"p": p, "t_": t_f}
-            )(theta)
+            backcast = backcast_proj(theta)
+            forecast = forecast_proj(theta)
         else:
             theta_b = tf.keras.layers.Dense(units=2 * p, use_bias=False)(h)
             theta_f = tf.keras.layers.Dense(units=2 * p, use_bias=False)(h)
-            backcast = tf.keras.layers.Lambda(
-                self._seasonality_model, arguments={"p": p, "t_": t_b}
-            )(theta_b)
-            forecast = tf.keras.layers.Lambda(
-                self._seasonality_model, arguments={"p": p, "t_": t_f}
-            )(theta_f)
+            backcast = backcast_proj(theta_b)
+            forecast = forecast_proj(theta_f)
+
         return backcast, forecast
 
     def _generic_block(self, h, p, t_b, t_f):
