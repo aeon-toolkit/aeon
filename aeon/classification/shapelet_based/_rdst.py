@@ -46,7 +46,7 @@ class RDSTClassifier(BaseClassifier):
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
     threshold_percentiles : array, default=None
-        The two perceniles used to select the threshold used to compute the Shapelet
+        The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5

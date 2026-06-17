@@ -135,8 +135,8 @@ class BaseIntervalForest(ABC):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib.  If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -232,7 +232,6 @@ class BaseIntervalForest(ABC):
             y_preds = Parallel(
                 n_jobs=self._n_jobs,
                 backend=self.parallel_backend,
-                prefer="threads",
             )(
                 delayed(self._predict_for_estimator)(
                     Xt,
@@ -252,9 +251,7 @@ class BaseIntervalForest(ABC):
     def _predict_proba(self, X):
         Xt = self._predict_setup(X)
 
-        y_probas = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
+        y_probas = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(self._predict_for_estimator)(
                 Xt,
                 self.estimators_[i],
@@ -275,9 +272,7 @@ class BaseIntervalForest(ABC):
         if is_regressor(self):
             Xt = self._fit_forest(X, y, save_transformed_data=True)
 
-            p = Parallel(
-                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
+            p = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
                 delayed(self._train_estimate_for_estimator)(
                     Xt,
                     y,
@@ -319,9 +314,7 @@ class BaseIntervalForest(ABC):
 
         rng = check_random_state(self.random_state)
 
-        p = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
+        p = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(self._train_estimate_for_estimator)(
                 Xt,
                 y,
@@ -814,7 +807,6 @@ class BaseIntervalForest(ABC):
                 fit = Parallel(
                     n_jobs=self._n_jobs,
                     backend=self.parallel_backend,
-                    prefer="threads",
                 )(
                     delayed(self._fit_estimator)(
                         Xt,
@@ -843,7 +835,6 @@ class BaseIntervalForest(ABC):
             fit = Parallel(
                 n_jobs=self._n_jobs,
                 backend=self.parallel_backend,
-                prefer="threads",
             )(
                 delayed(self._fit_estimator)(
                     Xt,

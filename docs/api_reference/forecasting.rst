@@ -54,6 +54,7 @@ Deep Learning Models
     BaseDeepForecaster
     DeepARForecaster
     TCNForecaster
+    NBeatsForecaster
 
 Machine Learning Models
 ------------------------
