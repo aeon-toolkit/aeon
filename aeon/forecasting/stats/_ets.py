@@ -214,6 +214,24 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         )
         return self
 
+    @property
+    def liklihood_(self):
+        """Deprecated misspelled alias for :attr:`likelihood_`.
+
+        Kept for one release cycle so existing callers do not break when the
+        attribute name is corrected. Slated for removal in a future release;
+        switch to :attr:`likelihood_`.
+        """
+        import warnings
+
+        warnings.warn(
+            "ETS.liklihood_ is deprecated and will be removed in a future "
+            "release; use ETS.likelihood_ instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.likelihood_
+
     def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.

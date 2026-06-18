@@ -137,7 +137,7 @@ def _ets_forecast_cycle_is_valid(
     return True
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath={"contract"}, cache=True)
 def _ets_fit(params, data, model):
     alpha, beta, gamma, phi = _extract_ets_params(params, model)
     error_type = model[0]

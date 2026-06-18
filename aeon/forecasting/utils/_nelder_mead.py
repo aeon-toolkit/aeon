@@ -57,7 +57,7 @@ def _init_ets_simplex(points, model):
             points[i, param] = base_level * 1.2
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def nelder_mead(
     loss_id,
     num_params,
@@ -186,11 +186,10 @@ def nelder_mead(
             and np.max(np.abs(values - values[0])) < tol
         ):
             break
-    best_index = 0
-    best_value = dispatch_loss(loss_id, points[0].copy(), data, model)
-    for i in range(1, len(values)):
-        value = dispatch_loss(loss_id, points[i].copy(), data, model)
-        if value < best_value:
-            best_index = i
-            best_value = value
-    return points[best_index], best_value
+    # ``values`` is kept in sync with ``points`` at every exit of the main
+    # loop (sort, reflect/expand/contract write to both, shrink updates both
+    # per vertex). The previous implementation re-evaluated ``dispatch_loss``
+    # for all n+1 simplex vertices to pick the best, which was a wasted
+    # n+1 loss evaluations per optimiser call.
+    best = np.argmin(values)
+    return points[best], values[best]

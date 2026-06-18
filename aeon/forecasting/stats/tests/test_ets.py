@@ -360,3 +360,18 @@ def test_autoets_rejects_unstable_multiplicative_seasonal_state():
 
     assert np.all(np.isfinite(preds))
     assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
+
+
+def test_ets_liklihood_alias_is_deprecated():
+    """``ETS.liklihood_`` is a deprecated misspelled alias for ``likelihood_``.
+
+    The PR that introduced the rename keeps the old attribute name for one
+    release cycle as a property so callers do not break silently. Accessing
+    it must emit a :class:`DeprecationWarning` and return the same value as
+    :attr:`likelihood_`.
+    """
+    data = np.array([3.0, 10.0, 12.0, 13.0, 12.0, 10.0, 12.0, 3.0, 10.0, 12.0])
+    f = ETS().fit(data)
+    with pytest.warns(DeprecationWarning, match="liklihood_"):
+        deprecated_value = f.liklihood_
+    assert deprecated_value == f.likelihood_
