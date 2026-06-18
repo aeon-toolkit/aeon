@@ -450,7 +450,7 @@ def _seasonal_forecast(seasonal_factors, h, season_length, n_train):
     return seasonal_factors[(int(n_train) + np.arange(int(h))) % int(season_length)]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _acf_seasonal_test_numba(y, season_length, threshold):
     """Single-pass ACF seasonal significance test on first-differenced ``y``.
 
@@ -498,7 +498,7 @@ def _acf_seasonal_test_numba(y, season_length, threshold):
     return abs(acf_at_m) / se > threshold
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _seasonal_decompose_numba(y, season_length, requested_mult, mult_floor):
     """Classical seasonal decomposition with centred-MA detrending in one pass.
 
@@ -807,7 +807,7 @@ def _dotm_forecast(y, h, initial_level, alpha, theta):
     return forecast
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _dotm_sse(params, y, fixed_mask, fixed_values, lower, upper):
     """Scaled DOTM SSE objective with bound penalties."""
     initial_level = fixed_values[0] if fixed_mask[0] else params[0]
@@ -829,7 +829,7 @@ def _dotm_sse(params, y, fixed_mask, fixed_values, lower, upper):
     return _dotm_sse_values(initial_level, alpha, theta, y)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _dotm_sse_values(initial_level, alpha, theta, y):
     """Scaled DOTM SSE objective for concrete parameter values."""
     omega = 1.0 - 1.0 / theta
@@ -992,7 +992,7 @@ def _bounded_nelder_mead_dotm(
     return full_best, best_score
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _free_score(free_params, y, fixed_mask, fixed_values, lower, upper, free_idx):
     initial_level = fixed_values[0] if fixed_mask[0] else 0.0
     alpha = fixed_values[1] if fixed_mask[1] else 0.0
