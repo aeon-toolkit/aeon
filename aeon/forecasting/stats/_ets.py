@@ -71,7 +71,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Residuals from the fitted model.
     fitted_values_ : list of float
         Fitted values for the training data.
-    liklihood_ : float
+    likelihood_ : float
         Log-likelihood of the fitted model.
     n_timepoints_ : int
         Number of time points in the training series.
@@ -92,7 +92,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    413.0682421672687
+    403.0835274629169
     """
 
     _tags = {
@@ -118,12 +118,11 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.iterations = iterations
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
-        self.liklihood_ = 0
+        self.likelihood_ = 0
         self.k_ = 0
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
-        self._series = []
         self._model = []
         self.parameters_ = []
         self.alpha_ = 0
@@ -179,8 +178,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             ],
             dtype=np.int32,
         )
-        data = y.squeeze()
-        self._series = np.asarray(data, dtype=np.float64)
+        data = np.asarray(y.squeeze(), dtype=np.float64)
         self.parameters_, self.aic_ = nelder_mead(
             1,
             1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
@@ -200,7 +198,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.residuals_,
             self.fitted_values_,
             self.avg_mean_sq_err_,
-            self.liklihood_,
+            self.likelihood_,
             self.k_,
         ) = _ets_fit(self.parameters_, data, self._model)
         self.forecast_ = _numba_predict(
@@ -215,6 +213,24 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._seasonal_period,
         )
         return self
+
+    @property
+    def liklihood_(self):
+        """Deprecated misspelled alias for :attr:`likelihood_`.
+
+        Kept for one release cycle so existing callers do not break when the
+        attribute name is corrected. Slated for removal in a future release;
+        switch to :attr:`likelihood_`.
+        """
+        import warnings
+
+        warnings.warn(
+            "ETS.liklihood_ is deprecated and will be removed in a future "
+            "release; use ETS.likelihood_ instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.likelihood_
 
     def _predict(self, y, exog=None):
         """
@@ -249,20 +265,26 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Forecast with ETS specific iterative method.
 
-        Overrides the base class iterative_forecast to avoid refitting on each step.
-        This simply rolls the ETS model forward
+        Overrides the base class iterative_forecast to avoid refitting on each
+        step; rolls the fitted ETS model forward in closed form. ETS does not
+        support exogenous variables, so ``exog`` and ``future_exog`` are
+        accepted for signature compatibility with
+        :class:`~aeon.forecasting.base.IterativeForecastingMixin` only and
+        raise :class:`NotImplementedError` if either is provided.
         """
-        y_inner, _ = self._preprocess_forecasting_input(y, exog, self.axis, False)
-        data = np.asarray(y_inner).squeeze().astype(np.float64)
-        needs_fit = True
-        if self.is_fitted and len(self._series) == len(data):
-            if np.allclose(self._series, data, equal_nan=True):
-                needs_fit = False
-        if needs_fit:
-            self.fit(y, exog=exog)
+        if exog is not None or future_exog is not None:
+            raise NotImplementedError("ETS does not support exog.")
+        self.fit(y)
         preds = np.zeros(prediction_horizon)
         preds[0] = self.forecast_
         for i in range(1, prediction_horizon):
@@ -335,9 +357,10 @@ class AutoETS(BaseForecaster):
     """Automatic Exponential Smoothing forecaster.
 
     An implementation of the exponential smoothing statistics forecasting algorithm.
-    Chooses betweek additive and multiplicative error models,
-    None, additive and multiplicative (including damped) trend and
-    None, additive and multiplicative seasonality [1]_.
+    Chooses between additive and multiplicative error models, None and additive trend,
+    and None, additive and multiplicative seasonality [1]_. Multiplicative trend is
+    supported by :class:`ETS`, but is excluded from the automatic search by default
+    because it is numerically fragile.
 
     There are issues relating to stability
     and efficiency discussed here https://github.com/aeon-toolkit/aeon/issues/3294.
@@ -345,8 +368,14 @@ class AutoETS(BaseForecaster):
 
     Parameters
     ----------
-    horizon : int, default = 1
-        The horizon to forecast to.
+    seasonal_period : int or None, default=None
+        The seasonal period to use in automatic model selection. If ``None``,
+        the seasonal period is estimated from the data. Seasonal candidate models
+        are only considered when the series length is greater than four times the
+        selected seasonal period; otherwise AutoETS falls back to non-seasonal
+        candidates.
+    allow_multiplicative_trend : bool, default=False
+        Whether to include multiplicative trend models in the automatic model search.
 
     References
     ----------
@@ -366,7 +395,13 @@ class AutoETS(BaseForecaster):
         "capability:horizon": False,
     }
 
-    def __init__(self):
+    def __init__(
+        self,
+        seasonal_period: int | None = None,
+        allow_multiplicative_trend: bool = False,
+    ):
+        self.seasonal_period = seasonal_period
+        self.allow_multiplicative_trend = allow_multiplicative_trend
         self.error_type_ = 0
         self.trend_type_ = 0
         self.seasonality_type_ = 0
@@ -391,8 +426,21 @@ class AutoETS(BaseForecaster):
         self
             Fitted AutoETS.
         """
-        data = y.squeeze()
-        best_model = auto_ets(data)
+        data = np.asarray(y.squeeze(), dtype=np.float64)
+        if self.seasonal_period is None:
+            seasonal_period = 0
+        elif self.seasonal_period < 1:
+            raise ValueError(
+                f"seasonal_period must be a positive integer or None, "
+                f"but saw {self.seasonal_period}"
+            )
+        else:
+            seasonal_period = self.seasonal_period
+        best_model = auto_ets(
+            data,
+            self.allow_multiplicative_trend,
+            seasonal_period,
+        )
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
         self.seasonality_type_ = int(best_model[2])
@@ -430,21 +478,33 @@ class AutoETS(BaseForecaster):
         self.fit(y, exog=exog)
         return float(self.wrapped_model_.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Forecast with ETS specific iterative method.
 
-        Overrides the base class iterative_forecast to avoid refitting on each step.
-        This simply rolls the ETS model forward
+        Overrides the base class iterative_forecast to avoid refitting on each
+        step; simply delegates to the fitted wrapped ETS model. Exogenous
+        variables are not supported by AutoETS, so ``exog`` and ``future_exog``
+        are accepted for signature compatibility with
+        :class:`~aeon.forecasting.base.IterativeForecastingMixin` only and
+        raise :class:`NotImplementedError` if either is provided.
         """
-        if self.wrapped_model_ is None:
-            self.fit(y)
+        if exog is not None or future_exog is not None:
+            raise NotImplementedError("AutoETS does not support exog.")
         return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
 
 
 @njit(fastmath=True, cache=True)
-def auto_ets(data):
+def auto_ets(data, allow_multiplicative_trend=False, seasonal_period=0):
     """Calculate model parameters based on the internal nelder-mead implementation."""
-    seasonal_period = calc_seasonal_period(data)
+    if seasonal_period < 1:
+        seasonal_period = calc_seasonal_period(data)
     # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
     # but makes no sense to run a seasonal model with any less than 2 seasonal periods
     # worth of usable data even that might be a bit low
@@ -458,10 +518,11 @@ def auto_ets(data):
     model = np.empty(4, dtype=np.int32)
     best_model = np.empty(4, dtype=np.int32)
     best_aic = np.inf
+    t_max = 3 if allow_multiplicative_trend else 2
     for error_type in range(1, 3):
         if error_type == 2 and not all_pos:
             continue
-        for trend_type in range(0, 3):
+        for trend_type in range(0, t_max):
             if trend_type == 2 and not all_pos:
                 continue
             k_base = 1 + (2 if (trend_type != 0) else 0)
