@@ -1,7 +1,7 @@
 """Complex Exponential Smoothing (CES) forecaster (non-seasonal, Phase 1)."""
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["ComplexExponentialSmoothing", "CES"]
+__all__ = ["CES"]
 
 import numpy as np
 from numba import njit
@@ -10,7 +10,7 @@ from scipy.optimize import minimize
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
-class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
+class CES(BaseForecaster, IterativeForecastingMixin):
     r"""Complex Exponential Smoothing (CES) forecaster, non-seasonal.
 
     Implements the non-seasonal Complex Exponential Smoothing model proposed
@@ -102,9 +102,9 @@ class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.forecasting.stats import ComplexExponentialSmoothing
+    >>> from aeon.forecasting.stats import CES
     >>> y = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1, 4.4, 4.9, 5.3, 5.9])
-    >>> forecaster = ComplexExponentialSmoothing()
+    >>> forecaster = CES()
     >>> pred = forecaster.iterative_forecast(y, prediction_horizon=2)
     >>> pred.shape
     (2,)
@@ -140,9 +140,7 @@ class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
     def _fit(self, y, exog=None):
         """Fit non-seasonal CES to a univariate series."""
         if exog is not None:
-            raise NotImplementedError(
-                "ComplexExponentialSmoothing does not support exogenous variables."
-            )
+            raise NotImplementedError("CES does not support exogenous variables.")
 
         y = _prepare_ces_y(y)
         self._validate_ces_params()
@@ -206,9 +204,7 @@ class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
     def _predict(self, y, exog=None):
         """Predict one step ahead from the supplied context ``y``."""
         if exog is not None:
-            raise NotImplementedError(
-                "ComplexExponentialSmoothing does not support exogenous variables."
-            )
+            raise NotImplementedError("CES does not support exogenous variables.")
         y = _prepare_ces_y(y, min_length=1)
         # Replay the recurrence on the supplied context using fitted parameters,
         # then take the next one-step forecast from the resulting state.
@@ -242,9 +238,7 @@ class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
         if prediction_horizon < 1:
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
         if exog is not None or future_exog is not None:
-            raise NotImplementedError(
-                "ComplexExponentialSmoothing does not support exogenous variables."
-            )
+            raise NotImplementedError("CES does not support exogenous variables.")
         self.fit(y)
         return _ces_forecast_from_state(
             int(prediction_horizon),
@@ -319,9 +313,6 @@ class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
         return {"alpha_real": 0.5, "alpha_imag": 0.0, "initial_level": 0.0}
 
 
-CES = ComplexExponentialSmoothing
-
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -331,11 +322,9 @@ def _prepare_ces_y(y, min_length=2):
     """Validate and coerce ``y`` to a 1D float64 array."""
     y = np.asarray(y, dtype=np.float64).reshape(-1)
     if y.shape[0] < min_length:
-        raise ValueError(
-            f"ComplexExponentialSmoothing requires at least {min_length} observations."
-        )
+        raise ValueError(f"CES requires at least {min_length} observations.")
     if not np.all(np.isfinite(y)):
-        raise ValueError("ComplexExponentialSmoothing requires finite values.")
+        raise ValueError("CES requires finite values.")
     return y
 
 
