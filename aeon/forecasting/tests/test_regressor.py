@@ -2,14 +2,22 @@
 
 import numpy as np
 import pytest
+from sklearn.base import BaseEstimator
 from sklearn.linear_model import LinearRegression
 
 from aeon.forecasting import RegressionForecaster
 from aeon.regression import DummyRegressor
 
 
-class _LastFeatureRegressor:
-    """Test regressor that predicts from the final feature column."""
+class _LastFeatureRegressor(BaseEstimator):
+    """Test regressor that predicts from the final feature column.
+
+    Inherits :class:`sklearn.base.BaseEstimator` so that it satisfies
+    sklearn's ``clone()`` contract (introduced into
+    ``RegressionForecaster._fit`` by PR #3464 to prevent regressor
+    mutation). ``BaseEstimator`` provides default ``get_params`` /
+    ``set_params`` that are correct for this parameter-free class.
+    """
 
     def fit(self, X, y):
         """Fit no state and return self."""
