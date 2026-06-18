@@ -11,6 +11,9 @@ from numpy.random import RandomState
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
 
+from aeon.clustering._cluster_initialisation import (
+    resolve_center_initialiser,
+)
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
 
@@ -30,8 +33,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     Where n is the number of time series and k is the number of clusters. There have
     been a number of algorithms published to solve the problem. The most common is the
     PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
-    implementation. However, an adaptation of lloyds method classically used for k-means
-    is also available by specifying method='alternate'. Alternate is faster but less
+    implementation. However, an adaptation of Lloyd's method classically used
+    for k-means is also available by specifying method='alternate'. Alternate is
+    faster but less
     accurate than PAM. For a full review of variations of k-medoids for time series
     see [5]_.
 
@@ -53,11 +57,11 @@ class TimeSeriesKMedoids(BaseClusterer):
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids. Build [1] greedily selects the k medoids
         by first selecting the medoid that minimizes the sum of distances
-        to all other points(this point is the most centrally located) and then
+        to all other points (this point is the most centrally located) and then
         iteratively selects the next k-1 medoids that maximizes the decrease in sum
         of distances of all other points to their respective medoids selected so far.
-        If a np.ndarray provided it must be of shape (n_clusters,) and contain
-        the indexes of the time series to use as centroids.
+        If an np.ndarray is provided it must be of shape (n_clusters,) and contain
+        the indices of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for measures can be found in the documentation for
@@ -66,7 +70,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     method : str, default='pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
-        Alternate applies lloyds method to k-medoids and is faster but less accurate
+        Alternate applies Lloyd's method to k-medoids and is faster but less accurate
         than PAM.
         PAM is implemented using the fastpam1 algorithm which gives the same output
         as PAM but is faster.
@@ -97,8 +101,8 @@ class TimeSeriesKMedoids(BaseClusterer):
     ----------
     cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    labels_ : np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -107,7 +111,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     References
     ----------
-    .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
+    .. [1] Kaufman, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
     Data Analysis based on the L1-Norm and Related Methods. 405-416.
 
     .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).
@@ -235,7 +239,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         return np.array(new_center_indexes)
 
     def _compute_distance(self, X: np.ndarray, first_index: int, second_index: int):
-        # Check cache
         if np.isfinite(self._distance_cache[first_index, second_index]):
             return self._distance_cache[first_index, second_index]
         if np.isfinite(self._distance_cache[second_index, first_index]):
@@ -243,7 +246,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         dist = self._distance_callable(
             X[first_index], X[second_index], **self._distance_params
         )
-        # Update cache
         self._distance_cache[first_index, second_index] = dist
         self._distance_cache[second_index, first_index] = dist
         return dist
@@ -271,7 +273,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         n_cases = X.shape[0]
 
         if isinstance(self._init, Callable):
-            medoids_idxs = self._init(X)
+            medoids_idxs = self._init(X=X)
         else:
             medoids_idxs = self._init
         not_medoid_idxs = np.arange(n_cases, dtype=int)
@@ -282,7 +284,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         not_medoid_idxs = np.delete(np.arange(n_cases, dtype=int), medoids_idxs)
 
         for i in range(self.max_iter):
-            # Initialize best cost change and the associated swap couple.
             old_medoid_idxs = np.copy(medoids_idxs)
             best_cost_change = self._compute_optimal_swaps(
                 distance_matrix,
@@ -293,7 +294,6 @@ class TimeSeriesKMedoids(BaseClusterer):
             )
 
             inertia = np.inf
-            # If one of the swap decrease the objective, return that swap.
             if best_cost_change is not None and best_cost_change[2] < 0:
                 first, second, _ = best_cost_change
                 medoids_idxs[medoids_idxs == first] = second
@@ -393,7 +393,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _alternate_fit(self, X) -> tuple[np.ndarray, np.ndarray, float, int]:
         cluster_center_indexes = self._init
         if isinstance(self._init, Callable):
-            cluster_center_indexes = self._init(X)
+            cluster_center_indexes = self._init(X=X)
         old_inertia = np.inf
         old_indexes = None
         for i in range(self.max_iter):
@@ -431,32 +431,22 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
-        _incorrect_init_str = (
-            f"The value provided for init: {self.init} is "
-            f"invalid. The following are a list of valid init algorithms "
-            f"strings: random, kmedoids++, first, build. You can also pass a "
-            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-        )
-
-        if isinstance(self.init, str):
-            if self.init == "random":
-                self._init = self._random_center_initializer
-            elif self.init == "kmedoids++":
-                self._init = self._kmedoids_plus_plus_center_initializer
-            elif self.init == "first":
-                self._init = self._first_center_initializer
-            elif self.init == "build":
-                self._init = self._pam_build_center_initializer
-            else:
-                raise ValueError(_incorrect_init_str)
-        else:
-            if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
-                self._init = self.init
-            else:
-                raise ValueError(_incorrect_init_str)
-
         if self.distance_params is not None:
             self._distance_params = self.distance_params
+        else:
+            self._distance_params = {}
+
+        self._init = resolve_center_initialiser(
+            init=self.init,
+            X=X,
+            n_clusters=self.n_clusters,
+            random_state=self._random_state,
+            distance=self.distance,
+            distance_params=self._distance_params,
+            n_jobs=1,
+            custom_init_handlers={"build": self._pam_build_center_initializer},
+            use_indexes=True,
+        )
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
@@ -480,28 +470,6 @@ class TimeSeriesKMedoids(BaseClusterer):
                     "As such n_init will be set to 1.",
                     stacklevel=1,
                 )
-
-    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
-
-    def _first_center_initializer(self, _) -> np.ndarray:
-        return np.array(list(range(self.n_clusters)))
-
-    def _kmedoids_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
-        indexes = [initial_center_idx]
-
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
-                X, X[indexes], method=self.distance, **self._distance_params
-            )
-            min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
-
-        centers = X[indexes]
-        return centers
 
     def _pam_build_center_initializer(
         self,

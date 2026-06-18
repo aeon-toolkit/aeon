@@ -2794,6 +2794,78 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Nithurshen",
+      "name": "Nithurshen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75428875?v=4",
+      "profile": "https://linktr.ee/nithurshen",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kennaruk",
+      "name": "Ken Wuttisasiwat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21194034?v=4",
+      "profile": "https://github.com/kennaruk",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "maxime2476",
+      "name": "Maxime Gourguechon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/194831149?v=4",
+      "profile": "https://github.com/maxime2476",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "SotonSweetXss",
+      "name": "Zhehao Qian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/241214270?v=4",
+      "profile": "https://www.southampton.ac.uk/",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "SSDWGG",
+      "name": "Ren yiwei",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85666259?v=4",
+      "profile": "https://aiwgg.cn",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "islem-esi",
+      "name": "Islem BOUZENIA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/61057090?v=4",
+      "profile": "https://github.com/islem-esi",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Booyaka101",
+      "name": "Christo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1064588?v=4",
+      "profile": "https://github.com/Booyaka101",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Nandinisingh07",
+      "name": "Nandinisingh07",
+      "avatar_url": "https://avatars.githubusercontent.com/u/198433818?v=4",
+      "profile": "https://github.com/Nandinisingh07",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
