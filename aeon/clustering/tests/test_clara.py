@@ -115,3 +115,27 @@ def test_clara_samples_from_all_cases():
     clara.fit(X)
 
     assert np.max(clara.cluster_centers_) >= clara.n_samples
+
+
+def test_clara_init_indices_remapped():
+    """Test CLARA correctly remaps init indices when subsampling (issue #3423)."""
+    X = np.arange(40).reshape(20, 2, 1).astype(float)
+
+    # Use indices that would be out of bounds in a small sample
+    clara = TimeSeriesCLARA(
+        n_clusters=2,
+        init=np.array([5, 15]),
+        n_samples=4,
+        n_sampling_iters=1,
+        n_init=1,
+        max_iter=2,
+        distance="euclidean",
+        random_state=1,
+    )
+
+    clara.fit(X)
+
+    # Check that it fitted successfully and produced labels
+    assert clara.labels_ is not None
+    assert len(clara.labels_) == 20
+    assert clara.cluster_centers_ is not None

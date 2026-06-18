@@ -167,18 +167,39 @@ class TimeSeriesCLARA(BaseClusterer):
         for _ in range(self.n_sampling_iters):
 
             if n_samples < n_cases:
-                sample_idxs = self._random_state.choice(
-                    np.arange(n_cases),
-                    size=n_samples,
-                    replace=False,
-                )
-
+                n_init_indices = len(self.init) if isinstance(self.init, np.ndarray) else 0
+                if n_init_indices > 0:
+                    init_indices = self.init
+                    n_random = n_samples - n_init_indices
+                    remaining = np.setdiff1d(np.arange(n_cases), init_indices)
+                    if n_random > 0:
+                        random_sample = self._random_state.choice(
+                            remaining, size=n_random, replace=False
+                        )
+                        sample_idxs = np.concatenate([init_indices, random_sample])
+                    else:
+                        sample_idxs = init_indices
+                    self._random_state.shuffle(sample_idxs)
+                else:
+                    sample_idxs = self._random_state.choice(
+                        np.arange(n_cases),
+                        size=n_samples,
+                        replace=False,
+                    )
             else:
                 sample_idxs = np.arange(n_cases)
 
+            # Remap init indices from full-dataset space to sample space
+            if isinstance(self.init, np.ndarray):
+                sample_init = np.array(
+                    [np.where(sample_idxs == i)[0][0] for i in self.init]
+                )
+            else:
+                sample_init = self.init
+
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
-                init=self.init,
+                init=sample_init,
                 distance=self.distance,
                 n_init=self.n_init,
                 max_iter=self.max_iter,
