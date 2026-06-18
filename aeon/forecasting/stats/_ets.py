@@ -257,10 +257,16 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ):
         """Forecast with ETS specific iterative method.
 
-        Overrides the base class iterative_forecast to avoid refitting on each step.
-        This simply rolls the ETS model forward
+        Overrides the base class iterative_forecast to avoid refitting on each
+        step; rolls the fitted ETS model forward in closed form. ETS does not
+        support exogenous variables, so ``exog`` and ``future_exog`` are
+        accepted for signature compatibility with
+        :class:`~aeon.forecasting.base.IterativeForecastingMixin` only and
+        raise :class:`NotImplementedError` if either is provided.
         """
-        self.fit(y, exog=exog)
+        if exog is not None or future_exog is not None:
+            raise NotImplementedError("ETS does not support exog.")
+        self.fit(y)
         preds = np.zeros(prediction_horizon)
         preds[0] = self.forecast_
         for i in range(1, prediction_horizon):
@@ -454,12 +460,25 @@ class AutoETS(BaseForecaster):
         self.fit(y, exog=exog)
         return float(self.wrapped_model_.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Forecast with ETS specific iterative method.
 
-        Overrides the base class iterative_forecast to avoid refitting on each step.
-        This simply rolls the ETS model forward
+        Overrides the base class iterative_forecast to avoid refitting on each
+        step; simply delegates to the fitted wrapped ETS model. Exogenous
+        variables are not supported by AutoETS, so ``exog`` and ``future_exog``
+        are accepted for signature compatibility with
+        :class:`~aeon.forecasting.base.IterativeForecastingMixin` only and
+        raise :class:`NotImplementedError` if either is provided.
         """
+        if exog is not None or future_exog is not None:
+            raise NotImplementedError("AutoETS does not support exog.")
         return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
 
 
