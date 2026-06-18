@@ -98,20 +98,21 @@ def test_clara_multi():
         assert np.count_nonzero(val == 1.0) == 1
 
 
-def test_clara_rejects_array_init():
-    """Test CLARA rejects array initialisation."""
+@pytest.mark.parametrize("init", [np.array([6, 7]), [6, 7]])
+def test_clara_rejects_non_string_init(init):
+    """Test CLARA rejects non-string initialisation."""
     X = np.random.RandomState(0).random(size=(10, 1, 8))
 
     clara = TimeSeriesCLARA(
         n_clusters=2,
-        init=np.array([6, 7]),
+        init=init,
         n_samples=4,
         n_sampling_iters=1,
         distance="euclidean",
         random_state=0,
     )
 
-    with pytest.raises(ValueError, match="Array initialisation is not supported"):
+    with pytest.raises(ValueError, match="Non-string initialisation is not supported"):
         clara.fit(X)
 
 

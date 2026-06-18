@@ -115,7 +115,7 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: str | np.ndarray = "random",
+        init: str = "random",
         distance: str | Callable = "msm",
         n_samples: int | None = None,
         n_sampling_iters: int = 10,
@@ -152,9 +152,9 @@ class TimeSeriesCLARA(BaseClusterer):
         return self._kmedoids_instance.predict(X)
 
     def _fit(self, X: np.ndarray, y=None):
-        if isinstance(self.init, np.ndarray):
+        if not isinstance(self.init, str):
             raise ValueError(
-                "Array initialisation is not supported for TimeSeriesCLARA "
+                "Non-string initialisation is not supported for TimeSeriesCLARA "
                 "because CLARA fits PAM on sampled subsets. Use a string "
                 "initialisation method instead."
             )
