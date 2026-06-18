@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "1.2.0"
-description = "A toolkit for machine learning from time series"
+version = "1.4.0"
+description = "A toolkit for time series machine learning"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
@@ -28,7 +28,6 @@ keywords = [
 classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
@@ -38,27 +37,27 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.15"
 dependencies = [
-    "deprecated>=1.2.13",
-    "numba>=0.55,<0.62.0",
-    "numpy>=1.21.0,<2.3.0",
+    "numba>=0.55,<0.64.0",
+    "numpy>=2.0.0,<2.5.0",
     "packaging>=20.0",
     "pandas>=2.0.0,<2.4.0",
-    "scikit-learn>=1.0.0,<1.8.0",
-    "scipy>=1.9.0,<1.16.0",
+    "scikit-learn>=1.6.0,<1.9.0",
+    "scipy>=1.9.0,<1.18.0",
     "typing-extensions>=4.6.0",
 ]
 
 # soft dependencies
 [project.optional-dependencies]
 all_extras = [
-    "esig>=1.0.0; platform_system != 'Darwin'",
+    "esig>=1.0.0; platform_system != 'Darwin' and python_version < '3.14'",
+    "huggingface-hub>=0.20.0",
     "imbalanced-learn",
     "matplotlib>=3.3.2",
     "pycatch22>=0.4.5",
@@ -73,7 +72,7 @@ all_extras = [
     "keras>=3.6.0; python_version < '3.13'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
-    "tslearn>=0.5.2",
+    "tslearn>=0.5.2,<0.8.0",
 ]
 dl = [
     "tensorflow>=2.14; python_version < '3.13'",
@@ -101,6 +100,11 @@ dev = [
 binder = [
     "notebook",
     "jupyterlab",
+    "matplotlib>=3.3.2",
+    "seaborn>=0.11.0",
+    "statsmodels>=0.12.1",
+    "pyod>=1.1.3",
+    "tensorflow>=2.14; python_version < '3.13'",
 ]
 docs = [
     "sphinx<8.3.0",
@@ -156,7 +160,11 @@ ignore = [
 ]
 
 [tool.ruff.lint]
-select = ["D"]
+select = ["E", "F", "W", "B", "T20", "D"]
+ignore = ["E203", "E741", "B904", "B905", "B028"]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["T201", "E402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
@@ -178,8 +186,9 @@ addopts = [
     "--dist=worksteal",
     "--reruns=3",
     "--reruns-delay=3",
-    "--rerun-except=Error",
-    "--rerun-except=Exception",
+    "--rerun-except=^(?!PermissionError:).*Error:",
+    "--rerun-except=Exception:",
+    "--rerun-except=Skipping test",
 ]
 filterwarnings = [
     "ignore::UserWarning",
@@ -190,6 +199,6 @@ filterwarnings = [
 [tool.codespell]
 ignore-words = ".github/utilities/codespell_ignore_words.txt"
 ignore-regex = '(^\s*"image/\S+": ".*|Binay|Lamba|Mapp|Hart|Sch"afer|SOM|COO)'
-skip = ".venv,.mypy_cache,.git"
+skip = ".venv,.idea,.mypy_cache,.git"
 check-filenames = true
 check-hidden = true

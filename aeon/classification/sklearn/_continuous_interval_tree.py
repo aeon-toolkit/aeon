@@ -10,7 +10,6 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -27,9 +26,7 @@ from sklearn.utils.validation import validate_data
 class _TreeNode:
     """ContinuousIntervalTree tree node."""
 
-    def __init__(
-        self, random_state: Union[int, np.random.RandomState, None] = None
-    ) -> None:
+    def __init__(self, random_state: int | np.random.RandomState | None = None) -> None:
         self.random_state = random_state
 
         self.best_split = -1
@@ -342,7 +339,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         self,
         max_depth: int = sys.maxsize,
         thresholds: int = 20,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ) -> None:
         self.max_depth = max_depth
         self.thresholds = thresholds
@@ -380,7 +377,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
             X=X,
             y=y,
             ensure_min_samples=2,
-            force_all_finite="allow-nan",
+            ensure_all_finite="allow-nan",
             accept_sparse=False,
         )
         check_classification_targets(y)
@@ -467,7 +464,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         # data processing
         X = self._check_X(X)
         X = validate_data(
-            self, X=X, reset=False, force_all_finite="allow-nan", accept_sparse=False
+            self, X=X, reset=False, ensure_all_finite="allow-nan", accept_sparse=False
         )
 
         dists = np.zeros((X.shape[0], self.n_classes_))

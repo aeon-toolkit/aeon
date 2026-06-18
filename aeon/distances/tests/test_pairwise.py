@@ -8,7 +8,6 @@ from aeon.distances import pairwise_distance as compute_pairwise_distance
 from aeon.distances._distance import (
     DISTANCES,
     MIN_DISTANCES,
-    MP_DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
     SYMMETRIC_DISTANCES,
 )
@@ -20,6 +19,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
+from aeon.testing.testing_config import MULTITHREAD_TESTING
 
 
 def _make_3d_series(x: np.ndarray) -> np.ndarray:
@@ -238,7 +238,7 @@ def _supports_nonequal_length(dist) -> bool:
 def test_pairwise_distance(dist):
     """Test pairwise distance function."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    if dist["name"] in MIN_DISTANCES:
         return
     # ================== Test equal length ==================
     # Test collection of univariate time series in the shape (n_cases, n_timepoints)
@@ -311,7 +311,7 @@ def test_pairwise_distance(dist):
 def test_multiple_to_multiple_distances(dist):
     """Test multiple to multiple distances."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    if dist["name"] in MIN_DISTANCES:
         return
     # ================== Test equal length ==================
     # Test passing two singular univariate time series of shape (n_timepoints,)
@@ -422,7 +422,7 @@ def test_multiple_to_multiple_distances(dist):
 def test_single_to_multiple_distances(dist):
     """Test single to multiple distances."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    if dist["name"] in MIN_DISTANCES:
         return
     # ================== Test equal length ==================
     # Test passing a singular univariate time series of shape (n_timepoints,) compared
@@ -551,7 +551,7 @@ def test_single_to_multiple_distances(dist):
 def test_pairwise_distance_non_negative(dist, seed):
     """Most estimators require distances to be non-negative."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    if dist["name"] in MIN_DISTANCES:
         return
     X = make_example_3d_numpy(
         n_cases=5, n_channels=1, n_timepoints=10, random_state=seed, return_y=False
@@ -562,3 +562,21 @@ def test_pairwise_distance_non_negative(dist, seed):
     pairwise = dist["pairwise_distance"]
     Xt2 = pairwise(X2, X)
     assert Xt2.min() >= 0, f"Distance {dist['name']} is negative"
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("dist", DISTANCES)
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_pairwise_distance_n_jobs_equals_serial(dist, n_jobs):
+    """Ensure parallel n_jobs yields same result as serial (n_jobs=1)."""
+    if dist["name"] in MIN_DISTANCES:
+        return
+    X1 = make_example_2d_numpy_collection(5, 5, random_state=1, return_y=False)
+    X2 = make_example_3d_numpy(5, 3, 7, random_state=2, return_y=False)
+
+    for X in (X1, X2):
+        serial = dist["pairwise_distance"](X, n_jobs=1)
+        parallel = dist["pairwise_distance"](X, n_jobs=n_jobs)
+        assert isinstance(parallel, np.ndarray)
+        assert serial.shape == parallel.shape
+        assert_almost_equal(serial, parallel)

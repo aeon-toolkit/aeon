@@ -6,7 +6,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import RidgeClassifier
 
 from aeon.classification.feature_based import Catch22Classifier
-from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+)
 
 
 def test_catch22():
@@ -38,3 +41,17 @@ def test_catch22_classifier_with_class_weight(class_weight):
     predictions = clf.predict(X)
     assert len(predictions) == len(y)
     assert set(predictions).issubset(set(y))
+
+
+def test_catch22_predict_proba_unequal_length_list():
+    """predict_proba must accept unequal-length list input (#3427)."""
+    X, y = make_example_3d_numpy_list(
+        n_cases=10, min_n_timepoints=8, max_n_timepoints=14, random_state=0
+    )
+    # RidgeClassifier has no predict_proba, so the manual fallback that
+    # previously used X.shape[0] (invalid for a list) is exercised.
+    clf = Catch22Classifier(estimator=RidgeClassifier(), random_state=0)
+    clf.fit(X, y)
+    p = clf.predict_proba(X)
+    assert p.shape == (len(X), clf.n_classes_)
+    assert np.allclose(p.sum(axis=1), 1)

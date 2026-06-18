@@ -10,7 +10,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.clustering.deep_learning import BaseDeepClusterer
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
@@ -145,12 +145,9 @@ def check_clusterer_output(estimator, datatype):
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
     """Test Deep Clusterer saving."""
     with tempfile.TemporaryDirectory() as tmp:
-        if not (
-            estimator_class.__name__
-            in [
-                "BaseDeepClusterer",
-            ]
-        ):
+        if estimator_class.__name__ not in [
+            "BaseDeepClusterer",
+        ]:
             if tmp[-1] != "/":
                 tmp = tmp + "/"
             curr_time = str(time.time_ns())

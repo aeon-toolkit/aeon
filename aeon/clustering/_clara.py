@@ -1,10 +1,9 @@
 """Time series kmedoids."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesCLARA"]
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -39,8 +38,8 @@ class TimeSeriesCLARA(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
-        If a np.ndarray provided it must be of shape (n_clusters,) and contain
-        the indexes of the time series to use as centroids.
+        If an np.ndarray is provided it must be of shape (n_clusters,) and contain
+        the indices of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -49,10 +48,10 @@ class TimeSeriesCLARA(BaseClusterer):
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_cases, 40 + 2 * n_clusters) is used.
-    n_sampling_iters : int, default=5,
+    n_sampling_iters : int, default=10
         Number of different subsets of samples to try. The best subset cluster centers
         are used.
-    n_init : int, default=5
+    n_init : int, default=1
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
@@ -79,8 +78,8 @@ class TimeSeriesCLARA(BaseClusterer):
     ----------
     cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    labels_ : np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -118,16 +117,16 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
-        n_samples: Optional[int] = None,
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
+        n_samples: int | None = None,
         n_sampling_iters: int = 10,
         n_init: int = 1,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        distance_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        distance_params: dict | None = None,
     ):
         self.distance = distance
         self.init = init
@@ -166,13 +165,17 @@ class TimeSeriesCLARA(BaseClusterer):
         best_pam = None
         best_labels = None
         for _ in range(self.n_sampling_iters):
-            sample_idxs = np.arange(n_samples)
+
             if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
-                    sample_idxs,
+                    np.arange(n_cases),
                     size=n_samples,
                     replace=False,
                 )
+
+            else:
+                sample_idxs = np.arange(n_cases)
+
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
                 init=self.init,

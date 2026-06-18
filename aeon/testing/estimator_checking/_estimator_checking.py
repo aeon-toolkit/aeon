@@ -7,9 +7,9 @@ __all__ = [
 ]
 
 import re
+from collections.abc import Callable
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, Optional, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
@@ -31,7 +31,7 @@ from aeon.utils.validation._dependencies import (
 
 
 def parametrize_with_checks(
-    estimators: list[Union[BaseAeonEstimator, type[BaseAeonEstimator]]],
+    estimators: list[BaseAeonEstimator | type[BaseAeonEstimator]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
@@ -88,7 +88,7 @@ def parametrize_with_checks(
         ):
             # wrap check to skip if necessary (missing dependencies, on an exclude list
             # etc.)
-            checks.append(_check_if_xfail(est, check, has_dependencies))
+            checks.append(_check_if_skip_pytest(est, check, has_dependencies))
 
     # return a pytest parametrize decorator with custom ids
     return pytest.mark.parametrize(
@@ -99,13 +99,13 @@ def parametrize_with_checks(
 
 
 def check_estimator(
-    estimator: Union[BaseAeonEstimator, type[BaseAeonEstimator]],
+    estimator: BaseAeonEstimator | type[BaseAeonEstimator],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: Optional[Union[str, list[str]]] = None,
-    checks_to_exclude: Optional[Union[str, list[str]]] = None,
-    full_checks_to_run: Optional[Union[str, list[str]]] = None,
-    full_checks_to_exclude: Optional[Union[str, list[str]]] = None,
+    checks_to_run: str | list[str] | None = None,
+    checks_to_exclude: str | list[str] | None = None,
+    full_checks_to_run: str | list[str] | None = None,
+    full_checks_to_exclude: str | list[str] | None = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to `aeon` conventions.
@@ -204,7 +204,7 @@ def check_estimator(
         has_dependencies=True,
     ):
         # wrap check to skip if necessary (on an exclude list etc.)
-        checks.append(_check_if_skip(estimator, check, True))
+        checks.append(_check_if_skip_wrapper(estimator, check, True))
 
     # process run/exclude lists to filter checks
     if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
@@ -275,18 +275,26 @@ def check_estimator(
     return results
 
 
-def _check_if_xfail(estimator, check, has_dependencies):
-    """Check if a check should be xfailed."""
+def _check_if_skip_pytest(estimator, check, has_dependencies):
+    """Check if a check should be skipped in a pytest setting."""
     import pytest
 
-    skip, reason, _ = _should_be_skipped(estimator, check, has_dependencies)
+    skip, reason, check_name = _should_be_skipped(estimator, check, has_dependencies)
     if skip:
-        return pytest.param(check, marks=pytest.mark.xfail(reason=reason))
+        est_name = (
+            estimator.__name__ if isclass(estimator) else estimator.__class__.__name__
+        )
+        return pytest.param(
+            check,
+            marks=pytest.mark.skip(
+                reason=f"Skipping test {check_name} for {est_name}: {reason}"
+            ),
+        )
 
     return check
 
 
-def _check_if_skip(estimator, check, has_dependencies):
+def _check_if_skip_wrapper(estimator, check, has_dependencies):
     """Check if a check should be skipped by raising a SkipTest exception."""
     skip, reason, check_name = _should_be_skipped(estimator, check, has_dependencies)
     if skip:
@@ -298,7 +306,7 @@ def _check_if_skip(estimator, check, has_dependencies):
                 if isclass(estimator)
                 else estimator.__class__.__name__
             )
-            raise SkipTest(f"Skipping {check_name} for {est_name}: {reason}")
+            raise SkipTest(f"Skipping test {check_name} for {est_name}: {reason}")
 
         return wrapped
     return check
@@ -312,7 +320,12 @@ def _should_be_skipped(estimator, check, has_dependencies):
 
     # check estimator dependencies
     if not has_dependencies and "softdep" not in check_name:
-        return True, "Incompatible dependencies or Python version", check_name
+        return (
+            True,
+            "Incompatible dependencies or Python version. Check may require "
+            "a soft dependency.",
+            check_name,
+        )
 
     # check aeon exclude lists
     if est_name in EXCLUDE_ESTIMATORS:

@@ -8,7 +8,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
 
 import time
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -107,12 +106,12 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         min_group: int = 3,
         max_group: int = 3,
         remove_proportion: float = 0.5,
-        base_estimator: Optional[BaseEstimator] = None,
+        base_estimator: BaseEstimator | None = None,
         pca_solver: str = "auto",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -283,17 +282,17 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         y_probas, oobs = zip(*p)
 
         results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(self.n_cases_)
-        for oob in oobs:
-            for inst in oob:
-                divisors[inst] += 1
+        oob_arrays = [np.asarray(o, dtype=np.intp) for o in oobs if len(o) > 0]
+        if oob_arrays:
+            divisors = np.bincount(
+                np.concatenate(oob_arrays), minlength=self.n_cases_
+            ).astype(float)
+        else:
+            divisors = np.zeros(self.n_cases_, dtype=float)
 
-        for i in range(self.n_cases_):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
+        nonzero = divisors > 0
+        results[nonzero] = results[nonzero] / divisors[nonzero, None]
+        results[~nonzero] = 1 / self.n_classes_
 
         return results
 

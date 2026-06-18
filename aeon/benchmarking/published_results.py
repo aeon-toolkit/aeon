@@ -172,7 +172,7 @@ def load_classification_bake_off_2021_results(num_resamples=30, as_array=False):
     ... )
     >>> from aeon.visualisation import plot_critical_difference
     >>> # Load the results
-    >>> results, data, cls = load_classification_bake_off_2023_results(
+    >>> results, data, cls = load_classification_bake_off_2021_results(
     ...     num_resamples=30, as_array=True
     ... )  # doctest: +SKIP
     >>> # Plot the critical difference diagram
