@@ -8,6 +8,7 @@ to form ``X`` and trains to predict the next ``horizon`` points ahead.
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
+from aeon.base._base import _clone_estimator
 from aeon.forecasting.base import (
     BaseForecaster,
     DirectForecastingMixin,
@@ -77,7 +78,7 @@ class RegressionForecaster(
         if self.regressor is None:
             self.regressor_ = LinearRegression()
         else:
-            self.regressor_ = self.regressor
+            self.regressor_ = _clone_estimator(self.regressor)
         self._n_exog = 0
         y_1d = y.squeeze()
 
