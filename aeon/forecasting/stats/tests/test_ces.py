@@ -134,6 +134,15 @@ def test_ces_exog_raises_not_implemented():
         )
 
 
+def test_ces_future_exog_raises_not_implemented():
+    """``future_exog`` is also rejected in Phase 1."""
+    future = np.arange(3, dtype=float)
+    with pytest.raises(NotImplementedError, match="exogenous"):
+        ComplexExponentialSmoothing().iterative_forecast(
+            Y_EXAMPLE, prediction_horizon=3, future_exog=future
+        )
+
+
 def test_ces_invalid_horizon_raises():
     """A non-positive prediction horizon must raise."""
     with pytest.raises(ValueError, match="prediction_horizon"):

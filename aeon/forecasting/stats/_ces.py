@@ -223,11 +223,25 @@ class ComplexExponentialSmoothing(BaseForecaster, IterativeForecastingMixin):
             _ces_forecast_from_state(1, l1, l2, self.alpha_real_, self.alpha_imag_)[0]
         )
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
-        """Fit CES on ``y`` and produce ``prediction_horizon`` step forecasts."""
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
+        """Fit CES on ``y`` and produce ``prediction_horizon`` step forecasts.
+
+        ``exog`` and ``future_exog`` are accepted for signature compatibility
+        with :class:`~aeon.forecasting.base.IterativeForecastingMixin` but are
+        not yet supported by CES; passing either raises
+        :class:`NotImplementedError`. Exogenous-variable support is planned
+        for a later phase.
+        """
         if prediction_horizon < 1:
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
-        if exog is not None:
+        if exog is not None or future_exog is not None:
             raise NotImplementedError(
                 "ComplexExponentialSmoothing does not support exogenous variables."
             )
