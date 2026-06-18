@@ -280,11 +280,24 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             return float(adjusted_fc + next_factor)
         return float(adjusted_fc * next_factor)
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
-        """Fit DOTM on ``y`` and recursively forecast ``prediction_horizon`` steps."""
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
+        """Fit DOTM on ``y`` and recursively forecast ``prediction_horizon`` steps.
+
+        ``exog`` and ``future_exog`` are accepted for signature compatibility
+        with :class:`~aeon.forecasting.base.IterativeForecastingMixin` but are
+        not supported by DOTM; passing either raises
+        :class:`NotImplementedError`.
+        """
         if prediction_horizon < 1:
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
-        if exog is not None:
+        if exog is not None or future_exog is not None:
             raise NotImplementedError("DOTM does not support exog.")
         self.fit(y)
         h = int(prediction_horizon)

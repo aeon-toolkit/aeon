@@ -97,6 +97,18 @@ def test_dotm_exog_raises_not_implemented():
         )
 
 
+def test_dotm_future_exog_raises_not_implemented():
+    """``future_exog`` is also rejected (Phase 1 has no exog support)."""
+    future = np.arange(3, dtype=float)
+
+    with pytest.raises(NotImplementedError, match="does not support exog"):
+        DOTM().iterative_forecast(
+            Y_EXAMPLE,
+            prediction_horizon=3,
+            future_exog=future,
+        )
+
+
 def test_dotm_forecast_matches_statsforecast_reference():
     """Forecasts should be close to StatsForecast DynamicOptimizedTheta values."""
     expected = np.array([6.31989318, 6.74828469, 7.18045737, 7.61489322, 8.05073122])
