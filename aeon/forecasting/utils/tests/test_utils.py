@@ -6,7 +6,7 @@ from numpy.testing import assert_array_almost_equal
 
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._loss_functions import _arima_fit
-from aeon.forecasting.utils._nelder_mead import nelder_mead
+from aeon.forecasting.utils._nelder_mead import dispatch_loss, nelder_mead
 
 
 @pytest.mark.parametrize(
@@ -120,3 +120,22 @@ def test_nelder_mead(loss_id, num_params, data, model, tol, max_iter):
     assert len(best_params) == num_params, "Incorrect number of parameters returned."
     assert isinstance(best_value, float), "Best value should be a float."
     assert not np.isnan(best_value), "Best value should not be NaN."
+
+
+@pytest.mark.parametrize(
+    "params, model",
+    [
+        (np.array([-0.1]), np.array([1, 0, 0, 1], dtype=np.int32)),
+        (np.array([1.0]), np.array([1, 0, 0, 1], dtype=np.int32)),
+        (np.array([0.5, 0.5, 0.98]), np.array([1, 1, 0, 1], dtype=np.int32)),
+        (np.array([0.5, 0.1, 0.0]), np.array([1, 1, 0, 1], dtype=np.int32)),
+        (np.array([0.5, 0.5]), np.array([1, 0, 1, 1], dtype=np.int32)),
+    ],
+)
+def test_dispatch_loss_rejects_invalid_ets_params(params, model):
+    """Invalid finite ETS parameters should be rejected by the optimiser."""
+    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+
+    result = dispatch_loss(1, params, data, model)
+
+    assert np.isinf(result)
