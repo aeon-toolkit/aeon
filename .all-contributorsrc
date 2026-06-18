@@ -2866,6 +2866,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "ProfTrader",
+      "name": "ProfTrader",
+      "avatar_url": "https://avatars.githubusercontent.com/u/169579479?v=4",
+      "profile": "https://github.com/ProfTrader",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
