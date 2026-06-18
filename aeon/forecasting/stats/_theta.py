@@ -85,7 +85,23 @@ class Theta(BaseForecaster, IterativeForecastingMixin):
     def _predict(self, y, exog=None):
         return self.forecast_
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
+        """Closed-form multi-step Theta forecast (overrides the mixin).
+
+        ``exog`` and ``future_exog`` are accepted for signature compatibility
+        with :class:`~aeon.forecasting.base.IterativeForecastingMixin` only;
+        Theta does not support exogenous variables and either argument raises
+        :class:`NotImplementedError`.
+        """
+        if exog is not None or future_exog is not None:
+            raise NotImplementedError("Theta does not support exog.")
         y = np.asarray(y).squeeze().astype(np.float64)
         f, _, _, _ = _fit_predict_numba(y, prediction_horizon, self.theta, self.weight)
         return f
