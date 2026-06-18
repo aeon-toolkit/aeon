@@ -661,17 +661,47 @@ class ShapeletClassifierVisualizer:
     """
     A class to visualize the result from a fitted shapelet classifier.
 
+    This visualizer currently supports classifiers fitted on univariate time series
+    only.
+
     Parameters
     ----------
     estimator : object
-        A fitted shapelet classifier.
+        A fitted shapelet classifier trained on univariate time series.
+
+    Raises
+    ------
+    NotFittedError
+        If ``estimator`` has not been fitted.
+    ValueError
+        If ``estimator`` was fitted on multivariate time series.
     """
 
     def __init__(self, estimator):
         self.estimator = estimator
+        self.estimator._check_is_fitted()
+        n_channels = self.estimator.metadata_["n_channels"]
+        if n_channels > 1:
+            raise ValueError(
+                "ShapeletClassifierVisualizer only supports univariate time series, "
+                f"but the estimator was fitted with {n_channels} channels."
+            )
         self.transformer_vis = ShapeletTransformerVisualizer(
             self.estimator._transformer
         )
+
+    @staticmethod
+    def _check_univariate(X, is_collection):
+        if is_collection:
+            n_channels = X.shape[1]
+        else:
+            n_channels = 1 if X.ndim == 1 else X.shape[0]
+
+        if n_channels > 1:
+            raise ValueError(
+                "ShapeletClassifierVisualizer only supports univariate time series, "
+                f"but X has {n_channels} channels."
+            )
 
     def _get_shp_importance(self, class_id):
         """
@@ -873,9 +903,9 @@ class ShapeletClassifierVisualizer:
 
         Parameters
         ----------
-        X : array, shape=(n_samples, n_fetaures, n_timestamps)
-            A time series dataset. Can be the training set to visualize training
-            results, or testing to visualize generalization to unseen samples.
+        X : array, shape=(n_samples, 1, n_timestamps)
+            A univariate time series dataset. Can be the training set to visualize
+            training results, or testing to visualize generalization to unseen samples.
         y : array, shape=(n_samples)
             The true classes of the time series dataset.
         class_id : int
@@ -918,7 +948,14 @@ class ShapeletClassifierVisualizer:
         -------
         figures : list of matplotlib figure
             The resulting figures for each selected shapelets (list of size n_shp)
+
+        Raises
+        ------
+        ValueError
+            If ``X`` contains multivariate time series.
         """
+        self._check_univariate(X, is_collection=True)
+
         from sklearn.preprocessing import LabelEncoder
 
         _check_soft_dependencies("matplotlib")
@@ -1093,8 +1130,8 @@ class ShapeletClassifierVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        X : array, shape=(n_features, n_timestamps)
-            Input time series
+        X : array, shape=(1, n_timestamps)
+            Input univariate time series.
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
@@ -1116,7 +1153,13 @@ class ShapeletClassifierVisualizer:
             The resulting figure with S on its best match on X. A normalised
             shapelet will be scaled to match the scale of X.
 
+        Raises
+        ------
+        ValueError
+            If ``X`` is a multivariate time series.
         """
+        self._check_univariate(X, is_collection=False)
+
         return self.transformer_vis.plot_on_X(
             id_shapelet,
             X,
@@ -1156,8 +1199,8 @@ class ShapeletClassifierVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        X : array, shape=(n_timestamps) or shape=(n_features, n_timestamps)
-            Input time series
+        X : array, shape=(n_timestamps) or shape=(1, n_timestamps)
+            Input univariate time series.
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
@@ -1182,7 +1225,13 @@ class ShapeletClassifierVisualizer:
         fig : matplotlib figure
             The resulting figure with the distance vector obtained by d(S,X)
 
+        Raises
+        ------
+        ValueError
+            If ``X`` is a multivariate time series.
         """
+        self._check_univariate(X, is_collection=False)
+
         return self.transformer_vis.plot_distance_vector(
             id_shapelet,
             X,

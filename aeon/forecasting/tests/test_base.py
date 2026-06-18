@@ -8,6 +8,18 @@ from aeon.forecasting import NaiveForecaster, RegressionForecaster
 from aeon.forecasting.base import BaseForecaster
 
 
+class _FitCountingRegressionForecaster(RegressionForecaster):
+    """RegressionForecaster test double that counts internal fit calls."""
+
+    def __init__(self, window=4):
+        self.fit_calls_ = 0
+        super().__init__(window=window)
+
+    def _fit(self, y, exog=None):
+        self.fit_calls_ += 1
+        return super()._fit(y, exog=exog)
+
+
 def test_base_forecaster():
     """Test base forecaster functionality."""
     f = NaiveForecaster()
@@ -70,6 +82,63 @@ def test_iterative_forecast():
         p = f.predict(y)
         assert p == preds[i]
         y = np.append(y, p)
+
+
+def test_iterative_forecast_fits_once():
+    """Test iterative forecasting calls fit once."""
+    y = np.random.rand(50)
+    f = _FitCountingRegressionForecaster(window=4)
+
+    preds = f.iterative_forecast(y, prediction_horizon=10)
+
+    assert isinstance(preds, np.ndarray) and len(preds) == 10
+    assert f.fit_calls_ == 1
+
+
+def test_iterative_forecast_rejects_future_exog_without_exog():
+    """Test future_exog without exog is rejected."""
+    y = np.random.rand(50)
+    future_exog = np.random.rand(3, 2)
+    f = RegressionForecaster(window=4)
+
+    with pytest.raises(ValueError, match="provided together"):
+        f.iterative_forecast(y, prediction_horizon=3, future_exog=future_exog)
+
+
+def test_iterative_forecast_rejects_exog_without_future_exog():
+    """Test exog without future_exog is rejected."""
+    y = np.random.rand(50)
+    exog = np.random.rand(50, 2)
+    f = RegressionForecaster(window=4)
+
+    with pytest.raises(ValueError, match="provided together"):
+        f.iterative_forecast(y, prediction_horizon=3, exog=exog)
+
+
+def test_iterative_forecast_rejects_wrong_future_exog_length():
+    """Test future_exog length must match the forecast horizon."""
+    y = np.random.rand(50)
+    exog = np.random.rand(50, 2)
+    future_exog = np.random.rand(2, 2)
+    f = RegressionForecaster(window=4)
+
+    with pytest.raises(ValueError, match="forecast horizon step"):
+        f.iterative_forecast(
+            y, prediction_horizon=3, exog=exog, future_exog=future_exog
+        )
+
+
+def test_iterative_forecast_rejects_exog_feature_mismatch():
+    """Test exog and future_exog must have the same feature count."""
+    y = np.random.rand(50)
+    exog = np.random.rand(50, 2)
+    future_exog = np.random.rand(3, 3)
+    f = RegressionForecaster(window=4)
+
+    with pytest.raises(ValueError, match="same number of features"):
+        f.iterative_forecast(
+            y, prediction_horizon=3, exog=exog, future_exog=future_exog
+        )
 
 
 def test_output_equivalence():
