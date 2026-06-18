@@ -167,7 +167,9 @@ class TimeSeriesCLARA(BaseClusterer):
         for _ in range(self.n_sampling_iters):
 
             if n_samples < n_cases:
-                n_init_indices = len(self.init) if isinstance(self.init, np.ndarray) else 0
+                n_init_indices = (
+                    len(self.init) if isinstance(self.init, np.ndarray) else 0
+                )
                 if n_init_indices > 0:
                     init_indices = self.init
                     n_random = n_samples - n_init_indices
