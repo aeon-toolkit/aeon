@@ -30,7 +30,7 @@ from aeon.networks.auto_encoder._ae_dcnn import AEDCNNNetwork
 from aeon.networks.auto_encoder._ae_drnn import AEDRNNNetwork
 from aeon.networks.auto_encoder._ae_fcn import AEFCNNetwork
 from aeon.networks.auto_encoder._ae_resnet import AEResNetNetwork
-from aeon.networks.auto_encoder._nbeats import NBeatsNetwork
+from aeon.networks.encoder._nbeats import NBeatsNetwork
 from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.networks.encoder._cnn import TimeCNNNetwork
 from aeon.networks.encoder._dcnn import DCNNNetwork
