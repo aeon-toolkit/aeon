@@ -9,6 +9,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
+from aeon.clustering._cluster_initialisation import resolve_center_initialiser
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
@@ -39,7 +40,9 @@ class TimeSeriesCLARA(BaseClusterer):
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
         If an np.ndarray is provided it must be of shape (n_clusters,) and contain
-        the indices of the time series to use as centroids.
+        the indices of the time series to use as centroids.  The values are
+        interpreted as indices into the full dataset; when CLARA subsamples,
+        they are automatically remapped to sample-local coordinates.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -161,17 +164,29 @@ class TimeSeriesCLARA(BaseClusterer):
         else:
             n_samples = self.n_samples
 
+        # Validate ndarray init once, before the sampling loop, using the same
+        # validation path as TimeSeriesKMedoids (out-of-range, non-integer, shape).
+        if isinstance(self.init, np.ndarray):
+            self._init = resolve_center_initialiser(
+                init=self.init,
+                X=X,
+                n_clusters=self.n_clusters,
+                random_state=self._random_state,
+                use_indexes=True,
+            )
+        else:
+            self._init = self.init
+
         best_inertia = np.inf
         best_pam = None
         best_labels = None
         for _ in range(self.n_sampling_iters):
-
             if n_samples < n_cases:
                 n_init_indices = (
-                    len(self.init) if isinstance(self.init, np.ndarray) else 0
+                    len(self._init) if isinstance(self._init, np.ndarray) else 0
                 )
                 if n_init_indices > 0:
-                    init_indices = self.init
+                    init_indices = self._init
                     n_random = n_samples - n_init_indices
                     remaining = np.setdiff1d(np.arange(n_cases), init_indices)
                     if n_random > 0:
@@ -192,12 +207,12 @@ class TimeSeriesCLARA(BaseClusterer):
                 sample_idxs = np.arange(n_cases)
 
             # Remap init indices from full-dataset space to sample space
-            if isinstance(self.init, np.ndarray):
+            if isinstance(self._init, np.ndarray):
                 sample_init = np.array(
-                    [np.where(sample_idxs == i)[0][0] for i in self.init]
+                    [np.where(sample_idxs == i)[0][0] for i in self._init]
                 )
             else:
-                sample_init = self.init
+                sample_init = self._init
 
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,

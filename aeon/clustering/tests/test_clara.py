@@ -1,6 +1,7 @@
 """Tests for time series k-medoids."""
 
 import numpy as np
+import pytest
 from sklearn import metrics
 
 from aeon.clustering._clara import TimeSeriesCLARA
@@ -139,3 +140,30 @@ def test_clara_init_indices_remapped():
     assert clara.labels_ is not None
     assert len(clara.labels_) == 20
     assert clara.cluster_centers_ is not None
+
+
+@pytest.mark.parametrize(
+    "init, match",
+    [
+        (np.array([-1, 0]), "Values must be in the range"),
+        (np.array([0, 30]), "Values must be in the range"),
+        (np.array([0.5, 1.0]), "Expected an array of integers"),
+    ],
+)
+def test_clara_init_ndarray_validation(init, match):
+    """Test CLARA raises ValueError for invalid ndarray init values."""
+    X = np.arange(40).reshape(20, 2, 1).astype(float)
+
+    clara = TimeSeriesCLARA(
+        n_clusters=2,
+        init=init,
+        n_samples=5,
+        n_sampling_iters=1,
+        n_init=1,
+        max_iter=1,
+        distance="euclidean",
+        random_state=1,
+    )
+
+    with pytest.raises(ValueError, match=match):
+        clara.fit(X)
