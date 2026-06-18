@@ -147,7 +147,7 @@ class LearningShapeletClassifier(BaseClassifier):
         X_t = _X_transformed_tslearn(X)
         self.clf_.fit(X_t, y)
         if self.save_transformed_data:
-            self.transformed_data_ = X_t
+            self.transformed_data_ = self.clf_.transform(X_t)
 
         return self
 
@@ -181,7 +181,8 @@ class LearningShapeletClassifier(BaseClassifier):
                 "Set save_transformed_data=True in the constructor to save the "
                 "transformed data for later use"
             )
-        return self.transformed_data_
+        X_t = _X_transformed_tslearn(X)
+        return self.clf_.transform(X_t)
 
     def get_locations(self, X):
         """Compute shapelet match location for a set of time series.
@@ -205,7 +206,8 @@ class LearningShapeletClassifier(BaseClassifier):
                 "Set save_transformed_data=True in the constructor to save the "
                 "transformed data for later use"
             )
-        return self.clf_.locate(self.transformed_data_)
+        X_t = _X_transformed_tslearn(X)
+        return self.clf_.locate(X_t)
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
