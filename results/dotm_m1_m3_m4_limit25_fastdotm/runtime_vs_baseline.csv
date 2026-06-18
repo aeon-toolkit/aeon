@@ -1,0 +1,2 @@
+backend,baseline,n_pairs,mean_time_ratio,median_time_ratio,mean_seconds_diff,median_seconds_diff
+statsforecast,aeon,652,4.857622258672818,4.325849274270986,0.0637599533722676,0.010402999963844195

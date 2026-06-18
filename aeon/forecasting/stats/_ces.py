@@ -312,17 +312,12 @@ class CES(BaseForecaster, IterativeForecastingMixin):
             True,
         )
         return float(
-            _ces_forecast_from_states(
-                1,
+            _ces_one_step_forecast_from_states(
                 states,
                 int(y.shape[0]),
                 m,
                 season,
-                self.alpha_real_,
-                self.alpha_imag_,
-                self.beta_real_,
-                self.beta_imag_,
-            )[0]
+            )
         )
 
     def iterative_forecast(
@@ -382,36 +377,34 @@ class CES(BaseForecaster, IterativeForecastingMixin):
             params = fixed_values.copy()
             success, message, n_iter = True, "All parameters fixed.", 0
         else:
-
-            def objective(free):
-                full = _expand_params(free, fixed_mask, fixed_values)
-                alpha_0, alpha_1, beta_0, beta_1 = _unpack_ces_params(full, model_code)
-                return _ces_fit_objective(
-                    y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states
-                )
-
-            result = _run_nelder_mead(
-                objective, x0, lower, upper, self.max_iter, self.tol
+            free_params, n_iter, converged = _run_ces_nelder_mead(
+                x0,
+                lower,
+                upper,
+                fixed_mask,
+                fixed_values,
+                y,
+                m,
+                season,
+                init_states,
+                self.max_iter,
+                self.tol,
             )
-            params = _expand_params(result.x, fixed_mask, fixed_values)
-            success = bool(result.success)
-            message = str(result.message)
-            n_iter = int(getattr(result, "nit", 0))
+            params = _expand_params(free_params, fixed_mask, fixed_values)
+            success = bool(converged)
+            message = (
+                "Optimization converged." if success else "Maximum iterations reached."
+            )
 
         alpha_0, alpha_1, beta_0, beta_1 = _unpack_ces_params(params, model_code)
         fitted, residuals, states, likelihood_objective = _ces_fit_states(
             y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states, True
         )
-        forecast = _ces_forecast_from_states(
-            1,
+        forecast = _ces_one_step_forecast_from_states(
             states,
             int(y.shape[0]),
             m,
             season,
-            alpha_0,
-            alpha_1,
-            beta_0,
-            beta_1,
         )
 
         self.alpha_real_ = float(alpha_0)
@@ -435,7 +428,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         self.residuals_ = residuals
         self.sse_ = float(np.sum(residuals * residuals))
         self.loglikelihood_objective_ = float(likelihood_objective)
-        self.forecast_ = float(forecast[0])
+        self.forecast_ = float(forecast)
         self.n_params_ = _MODEL_COMPONENTS[model_code] + 1
         self.n_free_params_ = int(np.sum(~fixed_mask))
         self.optimization_success_ = success
@@ -947,7 +940,9 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
                     season_length=m if code != "N" else 1,
                     max_iter=self.max_iter,
                     tol=self.tol,
-                ).fit(y_arr)
+                )
+                fitted._fit(y_arr)
+                fitted.is_fitted = True
             except Exception as exc:  # noqa: BLE001
                 results[code] = _ic_failure("error", repr(exc))
                 continue
@@ -1148,12 +1143,222 @@ def _extract_seasonal_attrs(states, model_code):
 
 def _ces_fit_objective(y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states):
     """StatsForecast-style CES objective: final backfit pass ``n * log(SSE)``."""
-    _, _, _, likelihood_objective = _ces_fit_states(
-        y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states, True
-    )
+    if season == _CES_NONE:
+        likelihood_objective = _ces_n_fit_objective_numba(
+            y, alpha_0, alpha_1, init_states[0, 0], init_states[0, 1]
+        )
+    else:
+        likelihood_objective = _ces_fit_objective_numba(
+            y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states
+        )
     if not np.isfinite(likelihood_objective):
         return 1e300
     return float(likelihood_objective)
+
+
+@njit(cache=True, fastmath=True)
+def _clip_to_bounds(x, lower, upper):
+    """Clip an optimizer vector to box bounds in place."""
+    for i in range(x.shape[0]):
+        if x[i] < lower[i]:
+            x[i] = lower[i]
+        elif x[i] > upper[i]:
+            x[i] = upper[i]
+
+
+@njit(cache=True, fastmath=True)
+def _ces_objective_from_free(
+    free,
+    fixed_mask,
+    fixed_values,
+    y,
+    m,
+    season,
+    init_states,
+):
+    """Evaluate the CES objective from a free optimizer vector."""
+    n_total = fixed_mask.shape[0]
+    params = np.empty(n_total, dtype=np.float64)
+    j = 0
+    for i in range(n_total):
+        if fixed_mask[i]:
+            params[i] = fixed_values[i]
+        else:
+            params[i] = free[j]
+            j += 1
+
+    alpha_0 = params[0]
+    alpha_1 = params[1]
+    beta_0 = np.nan
+    beta_1 = np.nan
+    if n_total >= 3:
+        beta_0 = params[2]
+    if n_total >= 4:
+        beta_1 = params[3]
+
+    if season == _CES_NONE:
+        objective = _ces_n_fit_objective_numba(
+            y, alpha_0, alpha_1, init_states[0, 0], init_states[0, 1]
+        )
+    else:
+        objective = _ces_fit_objective_numba(
+            y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states
+        )
+    if not np.isfinite(objective):
+        return 1e300
+    return objective
+
+
+@njit(cache=True, fastmath=True)
+def _std_1d(values):
+    """Compute standard deviation for a 1D array."""
+    n = values.shape[0]
+    mean = 0.0
+    for i in range(n):
+        mean += values[i]
+    mean /= n
+    var = 0.0
+    for i in range(n):
+        diff = values[i] - mean
+        var += diff * diff
+    return (var / n) ** 0.5
+
+
+@njit(cache=True, fastmath=True)
+def _run_ces_nelder_mead(
+    x0,
+    lower,
+    upper,
+    fixed_mask,
+    fixed_values,
+    y,
+    m,
+    season,
+    init_states,
+    max_iter,
+    tol,
+):
+    """Run bounded adaptive Nelder-Mead for CES smoothing parameters."""
+    n = x0.shape[0]
+    simplex = np.empty((n + 1, n), dtype=np.float64)
+    for row in range(n + 1):
+        for col in range(n):
+            simplex[row, col] = x0[col]
+    _clip_to_bounds(simplex[n], lower, upper)
+    for i in range(n):
+        value = x0[i]
+        if value == 0.0:
+            value = 0.0001
+        else:
+            value *= 1.05
+        simplex[i, i] = value
+        _clip_to_bounds(simplex[i], lower, upper)
+
+    f_simplex = np.empty(n + 1, dtype=np.float64)
+    for row in range(n + 1):
+        f_simplex[row] = _ces_objective_from_free(
+            simplex[row], fixed_mask, fixed_values, y, m, season, init_states
+        )
+
+    alpha = 1.0
+    gamma = 1.0 + 2.0 / n
+    rho = 0.75 - 1.0 / (2.0 * n)
+    sigma = 1.0 - 1.0 / n
+    x_o = np.empty(n, dtype=np.float64)
+    x_r = np.empty(n, dtype=np.float64)
+    x_e = np.empty(n, dtype=np.float64)
+    x_c = np.empty(n, dtype=np.float64)
+
+    converged = False
+    it = 0
+    for _ in range(int(max_iter)):
+        order = np.argsort(f_simplex)
+        best_idx = order[0]
+        worst_idx = order[n]
+        second_worst_idx = order[n - 1]
+
+        if _std_1d(f_simplex) < tol:
+            converged = True
+            break
+
+        for col in range(n):
+            total = 0.0
+            for pos in range(n):
+                total += simplex[order[pos], col]
+            x_o[col] = total / n
+
+        for col in range(n):
+            x_r[col] = x_o[col] + alpha * (x_o[col] - simplex[worst_idx, col])
+        _clip_to_bounds(x_r, lower, upper)
+        f_r = _ces_objective_from_free(
+            x_r, fixed_mask, fixed_values, y, m, season, init_states
+        )
+
+        if f_simplex[best_idx] <= f_r < f_simplex[second_worst_idx]:
+            for col in range(n):
+                simplex[worst_idx, col] = x_r[col]
+            f_simplex[worst_idx] = f_r
+            continue
+
+        if f_r < f_simplex[best_idx]:
+            for col in range(n):
+                x_e[col] = x_o[col] + gamma * (x_r[col] - x_o[col])
+            _clip_to_bounds(x_e, lower, upper)
+            f_e = _ces_objective_from_free(
+                x_e, fixed_mask, fixed_values, y, m, season, init_states
+            )
+            if f_e < f_r:
+                for col in range(n):
+                    simplex[worst_idx, col] = x_e[col]
+                f_simplex[worst_idx] = f_e
+            else:
+                for col in range(n):
+                    simplex[worst_idx, col] = x_r[col]
+                f_simplex[worst_idx] = f_r
+            continue
+
+        if f_simplex[second_worst_idx] <= f_r < f_simplex[worst_idx]:
+            for col in range(n):
+                x_c[col] = x_o[col] + rho * (x_r[col] - x_o[col])
+            _clip_to_bounds(x_c, lower, upper)
+            f_c = _ces_objective_from_free(
+                x_c, fixed_mask, fixed_values, y, m, season, init_states
+            )
+            if f_c <= f_r:
+                for col in range(n):
+                    simplex[worst_idx, col] = x_c[col]
+                f_simplex[worst_idx] = f_c
+                continue
+        else:
+            for col in range(n):
+                x_c[col] = x_o[col] - rho * (x_r[col] - x_o[col])
+            _clip_to_bounds(x_c, lower, upper)
+            f_c = _ces_objective_from_free(
+                x_c, fixed_mask, fixed_values, y, m, season, init_states
+            )
+            if f_c < f_simplex[worst_idx]:
+                for col in range(n):
+                    simplex[worst_idx, col] = x_c[col]
+                f_simplex[worst_idx] = f_c
+                continue
+
+        for pos in range(1, n + 1):
+            row = order[pos]
+            for col in range(n):
+                simplex[row, col] = simplex[best_idx, col] + sigma * (
+                    simplex[row, col] - simplex[best_idx, col]
+                )
+            _clip_to_bounds(simplex[row], lower, upper)
+            f_simplex[row] = _ces_objective_from_free(
+                simplex[row], fixed_mask, fixed_values, y, m, season, init_states
+            )
+
+    order = np.argsort(f_simplex)
+    best_idx = order[0]
+    best = np.empty(n, dtype=np.float64)
+    for col in range(n):
+        best[col] = simplex[best_idx, col]
+    return best, it, converged
 
 
 def _seasonal_decompose_additive(y, period):
@@ -1296,6 +1501,23 @@ def _ces_forecast_from_states(
 
 
 @njit(cache=True, fastmath=True)
+def _ces_one_step_forecast_from_states(
+    states,
+    n,
+    m,
+    season,
+):
+    """Return the one-step recursive forecast from a fitted CES state array."""
+    if season == _CES_NONE or season == _CES_PARTIAL or season == _CES_FULL:
+        yhat = states[n + m - 1, 0]
+    else:
+        yhat = states[n, 0]
+    if season > _CES_SIMPLE:
+        yhat += states[n, 2]
+    return yhat
+
+
+@njit(cache=True, fastmath=True)
 def _ces_write_future_states(
     states,
     i,
@@ -1392,6 +1614,119 @@ def _ces_fit_pass(
             return np.inf
     _ces_write_future_states(states, n + m, m, season, alpha_0, alpha_1, beta_0, beta_1)
     return sse
+
+
+@njit(cache=True, fastmath=True)
+def _ces_fit_pass_sse(
+    y,
+    states,
+    m,
+    season,
+    alpha_0,
+    alpha_1,
+    beta_0,
+    beta_1,
+):
+    """Run one forward CES pass and return SSE without fitted arrays."""
+    n = y.shape[0]
+    sse = 0.0
+    for i in range(m, n + m):
+        yhat = _ces_yhat_from_states(states, i, m, season)
+        eps = y[i - m] - yhat
+        sse += eps * eps
+        _ces_update_state(
+            states,
+            i,
+            m,
+            season,
+            alpha_0,
+            alpha_1,
+            beta_0,
+            beta_1,
+            y[i - m],
+        )
+        if not np.isfinite(sse):
+            return np.inf
+    _ces_write_future_states(states, n + m, m, season, alpha_0, alpha_1, beta_0, beta_1)
+    return sse
+
+
+@njit(cache=True, fastmath=True)
+def _ces_n_pass_sse_future(y, reverse, alpha_0, alpha_1, l1, l2):
+    """Run one non-seasonal CES pass and return SSE plus future state."""
+    n = y.shape[0]
+    f12 = alpha_1 - 1.0
+    f22 = 1.0 - alpha_0
+    g1 = alpha_0 - alpha_1
+    g2 = alpha_0 + alpha_1
+    sse = 0.0
+    for t in range(n):
+        idx = n - 1 - t if reverse else t
+        yhat = l1
+        eps = y[idx] - yhat
+        sse += eps * eps
+        new_l1 = l1 + f12 * l2 + g1 * eps
+        new_l2 = l1 + f22 * l2 + g2 * eps
+        l1 = new_l1
+        l2 = new_l2
+        if not np.isfinite(sse):
+            return np.inf, l1, l2
+
+    new_l1 = l1 + f12 * l2
+    new_l2 = l1 + f22 * l2
+    return sse, new_l1, new_l2
+
+
+@njit(cache=True, fastmath=True)
+def _ces_n_fit_objective_numba(y, alpha_0, alpha_1, init_real, init_imag):
+    """Compute the non-seasonal CES backfit objective without state arrays."""
+    n = y.shape[0]
+    _, l1, l2 = _ces_n_pass_sse_future(y, False, alpha_0, alpha_1, init_real, init_imag)
+    _, l1, l2 = _ces_n_pass_sse_future(y, True, alpha_0, alpha_1, l1, l2)
+    sse, _, _ = _ces_n_pass_sse_future(y, False, alpha_0, alpha_1, l1, l2)
+
+    if sse <= 0.0:
+        return -np.inf
+    if not np.isfinite(sse):
+        return np.inf
+    return n * math.log(sse)
+
+
+@njit(cache=True, fastmath=True)
+def _ces_fit_objective_numba(
+    y,
+    m,
+    season,
+    alpha_0,
+    alpha_1,
+    beta_0,
+    beta_1,
+    init_states,
+):
+    """Compute the StatsForecast-style CES backfit objective."""
+    n = y.shape[0]
+    n_components = init_states.shape[1]
+    states = np.zeros((n + 2 * m, n_components), dtype=np.float64)
+    for r in range(m):
+        for c in range(n_components):
+            states[r, c] = init_states[r, c]
+
+    y_work = y.copy()
+    sse = _ces_fit_pass_sse(y_work, states, m, season, alpha_0, alpha_1, beta_0, beta_1)
+
+    _reverse_1d_inplace(y_work)
+    _reverse_rows_inplace(states)
+    sse = _ces_fit_pass_sse(y_work, states, m, season, alpha_0, alpha_1, beta_0, beta_1)
+
+    _reverse_1d_inplace(y_work)
+    _reverse_rows_inplace(states)
+    sse = _ces_fit_pass_sse(y_work, states, m, season, alpha_0, alpha_1, beta_0, beta_1)
+
+    if sse <= 0.0:
+        return -np.inf
+    if not np.isfinite(sse):
+        return np.inf
+    return n * math.log(sse)
 
 
 @njit(cache=True, fastmath=True)
