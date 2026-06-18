@@ -247,7 +247,14 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Forecast with ETS specific iterative method.
 
         Overrides the base class iterative_forecast to avoid refitting on each step.
