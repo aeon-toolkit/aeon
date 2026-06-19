@@ -16,7 +16,7 @@ from aeon.networks import AEDRNNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
-    from aeon.networks._ae_drnn import _TensorDilation
+    from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
@@ -352,7 +352,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         """
         import tensorflow as tf
 
-        from aeon.networks._ae_drnn import _TensorDilation
+        from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
 
         self.model_ = tf.keras.models.load_model(
             model_path, custom_objects={"_TensorDilation": _TensorDilation}
