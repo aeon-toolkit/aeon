@@ -750,6 +750,11 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
             best.beta_imag_,
         )
 
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings."""
+        return {"season_length": 1, "models": ("N",)}
+
 
 # ---------------------------------------------------------------------------
 # Module helpers (pure Python / numpy)
