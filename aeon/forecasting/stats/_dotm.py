@@ -167,10 +167,10 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             factors, y_adjusted, used_type = _seasonal_decompose(
                 y, self.season_length, self.decomposition_type
             )
-            # If seasonality requested by could not be performed used_type is none.
-            # n is too short for a centred MA of period m
-            # one or more  positions ended up with no finite samples after MA-trim
-            # the normalised factors or the adjusted series came out non-finite.
+            # If seasonality could not be performed, used_type is none: n is too
+            # short for a centred MA, at least one seasonal position has no
+            # finite samples after MA-trim, or factors/adjusted values are
+            # non-finite.
             if used_type == "none":
                 deseasonalise = False
                 y_adjusted = y

@@ -275,7 +275,7 @@ def test_dotm_seasonal_predict_matches_iterative_forecast_h1():
 
 
 def test_dotm_seasonal_rolling_predict_matches_iterative_forecast():
-    """Rolling one-step ``predict`` matchees ``iterative_forecast`` step by step.
+    """Rolling one-step ``predict`` matches ``iterative_forecast`` step by step.
 
     Regression for Codex review point: when ``_predict`` recomputed seasonal
     factors from the supplied context, predict-on-extended-context drifted
