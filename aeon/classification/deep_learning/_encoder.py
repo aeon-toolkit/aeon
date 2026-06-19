@@ -287,14 +287,15 @@ class EncoderClassifier(BaseDeepClassifier):
             callbacks=self.callbacks_,
         )
 
-        try:
+        model_path = self.file_path + self.file_name_ + ".keras"
+        if os.path.exists(model_path):
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras",
+                model_path,
                 compile=False,
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".keras")
-        except FileNotFoundError:
+                os.remove(model_path)
+        else:
             self.model_ = deepcopy(self.training_model_)
 
         if self.save_last_model:
