@@ -330,7 +330,7 @@ def test_components_are_cloned():
 
 def test_fit_rejects_empty_forecasters_list():
     """``forecasters=[]`` raises in fit."""
-    with pytest.raises(TypeError, match="forecasters should be a list"):
+    with pytest.raises(ValueError, match="forecasters must not be empty"):
         EnsembleForecaster(forecasters=[])
 
 

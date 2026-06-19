@@ -1,6 +1,6 @@
 """Ensemble forecaster combining multiple forecasters."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["EnsembleForecaster"]
 
 import numpy as np
@@ -44,7 +44,10 @@ class EnsembleForecaster(
         component forecaster is iterated forward independently using its own
         forecasts and the resulting forecast paths are aggregated at each horizon. If
         ``"ensemble"``, the ensemble prediction at each step is appended to a shared
-        history and all forecasters use the same iterated forecasts.
+        history and passed to each fitted component's ``predict`` method. The
+        default ``"component"`` strategy is the safer general-purpose choice for
+        stateful forecasters, because it delegates multi-step recursion to each
+        component.
 
     Attributes
     ----------
@@ -98,18 +101,24 @@ class EnsembleForecaster(
         if forecasters is not sentinel:
             self.forecasters = forecasters
             self._normalise_forecasters()
+
         forecaster_names = {name for name, _ in self._forecasters}
         direct_replacements = [
             name for name in params if "__" not in name and name in forecaster_names
         ]
         super().set_params(**params)
+
+        # The mixin replaces entries in ``_forecasters`` for direct component
+        # assignments. Keep the public constructor parameter in sync for clone().
         if direct_replacements:
             self.forecasters = list(self._forecasters)
-        self._normalise_forecasters()
+            self._normalise_forecasters()
         return self
 
     def _normalise_forecasters(self):
         """Validate and convert component forecasters to named tuples."""
+        if isinstance(self.forecasters, list) and len(self.forecasters) == 0:
+            raise ValueError("forecasters must not be empty.")
         self._check_estimators(
             self.forecasters,
             attr_name="forecasters",
@@ -148,8 +157,10 @@ class EnsembleForecaster(
         With ``"component"``, each component forecaster produces its own full
         forecast path, then paths are aggregated horizon by horizon. With
         ``"ensemble"``, the ensemble produces one aggregated prediction at a
-        time and appends that prediction to a shared history before predicting
-        the next horizon step.
+        time and appends that prediction to a shared history passed to
+        ``predict``. Components are fitted once on the original history; whether
+        the extended context affects later steps depends on the component's
+        ``predict`` implementation.
 
         Parameters
         ----------
@@ -176,7 +187,7 @@ class EnsembleForecaster(
                 "handle exogenous variables"
             )
 
-        self._preprocess_forecasting_input(y, exog, self.axis, True)
+        y, exog = self._preprocess_forecasting_input(y, exog, self.axis, True)
         self.weights_ = self._validate_parameters()
         self.forecasters_ = self._convert_estimators(self._forecasters)
         self.n_forecasters_ = len(self.forecasters_)
