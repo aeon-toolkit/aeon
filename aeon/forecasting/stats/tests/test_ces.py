@@ -367,40 +367,79 @@ def test_ces_long_form_aliases(alias, expected):
 @pytest.mark.parametrize("model", ["N", "S", "P", "F"])
 def test_ces_matches_statsforecast_reference_forecasts(model):
     """Aeon CES forecasts should broadly match StatsForecast for each model."""
-    statsforecast_models = pytest.importorskip("statsforecast.models")
     y = np.arange(1, 41, dtype=float) + np.tile([2.0, -1.0, -3.0, 2.0], 10)
     h = 6
     season_length = 1 if model == "N" else 4
+    expected = {
+        "N": np.array(
+            [
+                41.85697937,
+                43.72583389,
+                45.19671249,
+                46.90081406,
+                48.59828949,
+                50.38443375,
+            ]
+        ),
+        "S": np.array(
+            [
+                45.73162079,
+                43.33074188,
+                42.13030243,
+                49.33293533,
+                51.87839508,
+                49.27973175,
+            ]
+        ),
+        "P": np.array(
+            [
+                43.40628147,
+                41.74348927,
+                41.24865341,
+                47.73878479,
+                49.65604496,
+                48.18965244,
+            ]
+        ),
+        "F": np.array(
+            [
+                43.53254700,
+                41.98649168,
+                41.57613373,
+                48.11642694,
+                50.02698374,
+                48.71985292,
+            ]
+        ),
+    }
 
     aeon_pred = CES(model=model, season_length=season_length).iterative_forecast(
         y, prediction_horizon=h
     )
 
-    statsforecast_model = statsforecast_models.AutoCES(
-        season_length=season_length, model=model
-    )
-    statsforecast_model.fit(y)
-    statsforecast_pred = statsforecast_model.predict(h=h)["mean"]
-
-    np.testing.assert_allclose(aeon_pred, statsforecast_pred, rtol=1e-4, atol=5e-2)
+    np.testing.assert_allclose(aeon_pred, expected[model], rtol=1e-4, atol=5e-2)
 
 
 def test_autoces_matches_statsforecast_auto_reference():
     """Aeon AutoCES should select the same model and forecasts as SF AutoCES."""
-    statsforecast_models = pytest.importorskip("statsforecast.models")
     y = np.arange(1, 41, dtype=float) + np.tile([2.0, -1.0, -3.0, 2.0], 10)
     h = 6
+    expected = np.array(
+        [
+            43.40628147,
+            41.74348927,
+            41.24865341,
+            47.73878479,
+            49.65604496,
+            48.18965244,
+        ]
+    )
 
     aeon_auto = AutoCES(season_length=4)
     aeon_pred = aeon_auto.iterative_forecast(y, prediction_horizon=h)
 
-    statsforecast_auto = statsforecast_models.AutoCES(season_length=4, model="Z")
-    statsforecast_auto.fit(y)
-    statsforecast_pred = statsforecast_auto.predict(h=h)["mean"]
-    statsforecast_selected = statsforecast_auto.model_["seasontype"]
-
-    assert aeon_auto.best_model_name_ == statsforecast_selected
-    np.testing.assert_allclose(aeon_pred, statsforecast_pred, rtol=1e-4, atol=5e-2)
+    assert aeon_auto.best_model_name_ == "P"
+    np.testing.assert_allclose(aeon_pred, expected, rtol=1e-4, atol=5e-2)
 
 
 # ---------------------------------------------------------------------------
