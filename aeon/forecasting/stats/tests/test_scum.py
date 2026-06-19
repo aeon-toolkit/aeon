@@ -95,17 +95,18 @@ def test_scum_clips_negative_combined_forecasts():
     np.testing.assert_allclose(pred, [0.0, 0.0])
 
 
-def test_scum_default_pool_runs_with_branch_dummies():
-    """The default pool is usable before CES and DOTM merge onto this branch."""
+def test_scum_default_pool_uses_all_four_components():
+    """The default pool uses ETS, CES, ARIMA, and DOTM."""
     y = np.linspace(1.0, 20.0, 30)
 
-    pred = SCUM(season_length=4, error_policy="ignore").iterative_forecast(
-        y, prediction_horizon=4
-    )
+    scum = SCUM(season_length=4)
+    pred = scum.iterative_forecast(y, prediction_horizon=4)
 
     assert pred.shape == (4,)
     assert np.all(np.isfinite(pred))
     assert np.all(pred >= 0.0)
+    assert set(scum.component_forecasts_) == {"ets", "ces", "arima", "dotm"}
+    assert len(scum.forecasters_) == 4
 
 
 def test_scum_predict_matches_horizon_one_iterative_forecast():

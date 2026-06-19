@@ -9,6 +9,8 @@ import numpy as np
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.stats._arima import AutoARIMA
+from aeon.forecasting.stats._ces import AutoCES
+from aeon.forecasting.stats._dotm import DOTM
 from aeon.forecasting.stats._ets import AutoETS
 
 
@@ -20,21 +22,14 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
     horizon: automatic exponential smoothing (ETS), complex exponential
     smoothing (CES), automatic ARIMA, and dynamic optimized theta (DOTM).
 
-    This implementation is intentionally wired for the forecasting ensemble API
-    from PR #3452. While that API is not available on this branch, a private
-    compatibility median ensemble is used so the class remains importable and
-    testable. Once the ensemble PR is merged, the public ensemble will be used
-    automatically.
-
     Parameters
     ----------
     season_length : int, default=1
-        Seasonal period/frequency passed to CES and DOTM when available.
+        Seasonal period/frequency passed to seasonal-capable component models.
     forecasters : sequence or None, default=None
         Optional custom forecaster pool. Each entry can be either a forecaster
         instance or a ``(name, forecaster)`` tuple. If ``None``, the SCUM pool
-        ``(AutoETS, AutoCES, AutoARIMA, DOTM)`` is used. CES and DOTM fall back
-        to lightweight dummy forecasters on this branch until their PRs merge.
+        ``(AutoETS, AutoCES, AutoARIMA, DOTM)`` is used.
     clip_negative : bool, default=True
         If ``True``, replace negative combined forecasts with zero, following
         the M4 implementation for non-negative data.
@@ -43,17 +38,13 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
         applies DOTM only to the last 5000 observations for very long series.
         Set to ``None`` to disable this window.
     error_policy : {"raise", "ignore"}, default="raise"
-        How to handle individual model failures in the local compatibility
-        ensemble. ``"ignore"`` computes the median over successful models and
-        raises only if all models fail.
+        How to handle individual model failures. ``"ignore"`` computes the
+        median over successful models and raises only if all models fail.
 
     Attributes
     ----------
     forecasters_ : list of tuple
-        Fitted or configured ``(name, forecaster)`` pool used by SCUM.
-    ensemble_ : object
-        Forecasting ensemble instance. This is the PR #3452 ensemble when
-        available, otherwise the private compatibility ensemble.
+        Fitted ``(name, forecaster)`` pool used by SCUM.
     forecast_ : float
         Stored one-step-ahead combined forecast.
     component_forecasts_ : dict
@@ -91,13 +82,12 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
             raise NotImplementedError("SCUM does not support exogenous variables.")
         self._validate_parameters()
         y = _as_1d_float(y)
-        forecasts, component_forecasts, ensemble = self._fit_predict(y, 1)
+        forecasts, component_forecasts, forecasters = self._fit_predict(y, 1)
         self.forecast_ = float(forecasts[0])
         self.component_forecasts_ = {
             name: float(values[0]) for name, values in component_forecasts.items()
         }
-        self.ensemble_ = ensemble
-        self.forecasters_ = ensemble.forecasters_
+        self.forecasters_ = forecasters
         self._y_ = y.copy()
         return self
 
@@ -107,12 +97,11 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
             raise NotImplementedError("SCUM does not support exogenous variables.")
         self._validate_parameters()
         y = _as_1d_float(y)
-        forecasts, component_forecasts, ensemble = self._fit_predict(y, 1)
+        forecasts, component_forecasts, forecasters = self._fit_predict(y, 1)
         self.component_forecasts_ = {
             name: float(values[0]) for name, values in component_forecasts.items()
         }
-        self.ensemble_ = ensemble
-        self.forecasters_ = ensemble.forecasters_
+        self.forecasters_ = forecasters
         return float(forecasts[0])
 
     def iterative_forecast(
@@ -135,32 +124,29 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
 
         y = _as_1d_float(y)
-        forecasts, component_forecasts, ensemble = self._fit_predict(
+        forecasts, component_forecasts, forecasters = self._fit_predict(
             y, int(prediction_horizon)
         )
         self.forecast_ = float(forecasts[0])
         self.component_forecasts_ = component_forecasts
-        self.ensemble_ = ensemble
-        self.forecasters_ = ensemble.forecasters_
+        self.forecasters_ = forecasters
         self._y_ = y.copy()
         self.is_fitted = True
         return forecasts
 
     def _fit_predict(self, y, prediction_horizon):
-        """Fit the SCUM ensemble and return combined/component forecasts."""
+        """Fit SCUM components and return combined/component forecasts."""
         forecasters = self._build_forecaster_pool()
-        ensemble = _make_forecasting_ensemble(
-            forecasters=forecasters,
-            clip_negative=bool(self.clip_negative),
-            error_policy=self.error_policy,
+        forecasts, component_forecasts, fitted_forecasters = _fit_predict_components(
+            forecasters,
+            y,
+            prediction_horizon,
+            self.error_policy,
         )
-        forecasts = _forecast_with_ensemble(ensemble, y, prediction_horizon)
+        forecasts = np.median(np.vstack(forecasts), axis=0)
         if self.clip_negative:
             forecasts = np.maximum(forecasts, 0.0)
-        component_forecasts = getattr(ensemble, "component_forecasts_", {})
-        if not hasattr(ensemble, "forecasters_"):
-            ensemble.forecasters_ = forecasters
-        return forecasts, component_forecasts, ensemble
+        return forecasts, component_forecasts, fitted_forecasters
 
     def _build_forecaster_pool(self):
         """Build the default SCUM model pool or normalise the supplied pool."""
@@ -168,10 +154,10 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
             return _normalise_forecaster_pool(self.forecasters)
 
         forecasters = [
-            ("ets", AutoETS()),
-            ("ces", _make_ces_forecaster(self.season_length)),
+            ("ets", AutoETS(seasonal_period=int(self.season_length))),
+            ("ces", AutoCES(season_length=int(self.season_length))),
             ("arima", AutoARIMA()),
-            ("dotm", _make_dotm_forecaster(self.season_length)),
+            ("dotm", DOTM(season_length=int(self.season_length))),
         ]
         if self.dotm_max_length is not None:
             forecasters[-1] = (
@@ -210,46 +196,6 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
                 ("d", _ConstantDummyForecaster(4.0)),
             ]
         }
-
-
-class _MedianForecastingEnsemble:
-    """Private compatibility ensemble until PR #3452 is merged."""
-
-    def __init__(self, forecasters, clip_negative=True, error_policy="raise"):
-        self.forecasters = forecasters
-        self.clip_negative = clip_negative
-        self.error_policy = error_policy
-        self.forecasters_ = []
-        self.component_forecasts_ = {}
-
-    def iterative_forecast(self, y, prediction_horizon):
-        """Return median forecast across successful component forecasters."""
-        y = _as_1d_float(y)
-        forecasts = []
-        self.forecasters_ = []
-        self.component_forecasts_ = {}
-        errors = {}
-        for name, forecaster in self.forecasters:
-            model = deepcopy(forecaster)
-            try:
-                pred = _forecast_with_model(model, y, prediction_horizon)
-            except Exception as exc:  # noqa: BLE001
-                if self.error_policy == "raise":
-                    raise RuntimeError(
-                        f"SCUM component forecaster {name!r} failed."
-                    ) from exc
-                errors[name] = exc
-                continue
-            forecasts.append(pred)
-            self.forecasters_.append((name, model))
-            self.component_forecasts_[name] = pred
-
-        if not forecasts:
-            raise RuntimeError(f"All SCUM component forecasters failed: {errors!r}.")
-        combined = np.median(np.vstack(forecasts), axis=0)
-        if self.clip_negative:
-            combined = np.maximum(combined, 0.0)
-        return np.asarray(combined, dtype=np.float64)
 
 
 class _RecentWindowForecaster(BaseForecaster, IterativeForecastingMixin):
@@ -323,157 +269,21 @@ class _ConstantDummyForecaster(BaseForecaster, IterativeForecastingMixin):
         return np.full(int(prediction_horizon), float(self.value))
 
 
-class _DummyCESForecaster(BaseForecaster, IterativeForecastingMixin):
-    """Temporary CES stand-in until PR #3463 lands."""
-
-    _tags = {
-        "capability:horizon": False,
-        "capability:exogenous": False,
-    }
-
-    def __init__(self, season_length=1):
-        self.season_length = season_length
-        super().__init__(horizon=1, axis=1)
-
-    def _fit(self, y, exog=None):
-        y = _as_1d_float(y)
-        self.forecast_ = float(_seasonal_last_forecast(y, 1, self.season_length)[0])
-        return self
-
-    def _predict(self, y, exog=None):
-        return float(_seasonal_last_forecast(_as_1d_float(y), 1, self.season_length)[0])
-
-    def iterative_forecast(
-        self,
-        y,
-        prediction_horizon,
-        exog=None,
-        *,
-        future_exog=None,
-    ):
-        """Return a seasonal-naive dummy forecast."""
-        return _seasonal_last_forecast(
-            _as_1d_float(y), int(prediction_horizon), self.season_length
-        )
-
-
-class _DummyDOTMForecaster(BaseForecaster, IterativeForecastingMixin):
-    """Temporary DOTM stand-in until PR #3455 lands."""
-
-    _tags = {
-        "capability:horizon": False,
-        "capability:exogenous": False,
-    }
-
-    def __init__(self, season_length=1):
-        self.season_length = season_length
-        super().__init__(horizon=1, axis=1)
-
-    def _fit(self, y, exog=None):
-        y = _as_1d_float(y)
-        self.forecast_ = float(_linear_trend_forecast(y, 1)[0])
-        return self
-
-    def _predict(self, y, exog=None):
-        return float(_linear_trend_forecast(_as_1d_float(y), 1)[0])
-
-    def iterative_forecast(
-        self,
-        y,
-        prediction_horizon,
-        exog=None,
-        *,
-        future_exog=None,
-    ):
-        """Return a linear-trend dummy forecast."""
-        return _linear_trend_forecast(_as_1d_float(y), int(prediction_horizon))
-
-
-def _make_ces_forecaster(season_length):
-    """Return real AutoCES when available, otherwise a dummy CES forecaster."""
-    try:
-        from aeon.forecasting.stats import AutoCES
-
-        return AutoCES(season_length=season_length)
-    except ImportError:
-        try:
-            from aeon.forecasting.stats import CES
-
-            return CES(season_length=season_length)
-        except ImportError:
-            return _DummyCESForecaster(season_length=season_length)
-
-
-def _make_dotm_forecaster(season_length):
-    """Return real DOTM when available, otherwise a dummy DOTM forecaster."""
-    try:
-        from aeon.forecasting.stats import DOTM
-
-        return DOTM(season_length=season_length)
-    except ImportError:
-        return _DummyDOTMForecaster(season_length=season_length)
-
-
-def _make_forecasting_ensemble(forecasters, clip_negative, error_policy):
-    """Create the intended PR #3452 ensemble, falling back to a local shim."""
-    ensemble_cls = _get_forecasting_ensemble_class()
-    if ensemble_cls is None:
-        return _MedianForecastingEnsemble(
-            forecasters=forecasters,
-            clip_negative=clip_negative,
-            error_policy=error_policy,
-        )
-
-    for kwargs in (
-        {
-            "forecasters": forecasters,
-            "combination": "median",
-            "clip_negative": clip_negative,
-        },
-        {
-            "estimators": forecasters,
-            "combination": "median",
-            "clip_negative": clip_negative,
-        },
-        {"forecasters": forecasters, "aggfunc": "median"},
-        {"estimators": forecasters, "aggfunc": "median"},
-    ):
-        try:
-            return ensemble_cls(**kwargs)
-        except TypeError:
-            continue
-    return _MedianForecastingEnsemble(
-        forecasters=forecasters,
-        clip_negative=clip_negative,
-        error_policy=error_policy,
-    )
-
-
-def _get_forecasting_ensemble_class():
-    """Look up the forecasting ensemble planned in PR #3452."""
-    candidates = (
-        ("aeon.forecasting.ensemble", "ForecastingEnsemble"),
-        ("aeon.forecasting.ensemble", "ForecastingEnsembleForecaster"),
-        ("aeon.forecasting.compose", "ForecastingEnsemble"),
-        ("aeon.forecasting.compose", "ForecastingEnsembleForecaster"),
-    )
-    for module_name, class_name in candidates:
-        try:
-            module = __import__(module_name, fromlist=[class_name])
-            return getattr(module, class_name)
-        except (ImportError, AttributeError):
-            continue
-    return None
-
-
 def _forecast_with_model(model, y, prediction_horizon):
     """Fit a model and return a 1D forecast array."""
     y = _as_1d_float(y)
     h = int(prediction_horizon)
     if h < 1:
         raise ValueError("prediction_horizon must be greater than or equal to 1.")
-    if hasattr(model, "iterative_forecast"):
-        pred = model.iterative_forecast(y, h)
+    iterative_forecast = getattr(model, "iterative_forecast", None)
+    if callable(iterative_forecast):
+        try:
+            pred = iterative_forecast(y, h)
+        except AttributeError as exc:
+            if not _is_likely_unfitted_forecaster_error(exc):
+                raise
+            model.fit(y)
+            pred = model.iterative_forecast(y, h)
     else:
         model.fit(y)
         if h == 1:
@@ -493,34 +303,37 @@ def _forecast_with_model(model, y, prediction_horizon):
     return pred
 
 
-def _forecast_with_ensemble(ensemble, y, prediction_horizon):
-    """Return a 1D forecast array from a forecasting ensemble."""
+def _fit_predict_components(forecasters, y, prediction_horizon, error_policy):
+    """Fit component forecasters and return their forecasts."""
     y = _as_1d_float(y)
-    h = int(prediction_horizon)
-    if hasattr(ensemble, "iterative_forecast"):
-        pred = ensemble.iterative_forecast(y, h)
-    elif hasattr(ensemble, "fit") and hasattr(ensemble, "predict"):
-        ensemble.fit(y)
-        if h != 1:
-            raise ValueError(
-                f"{ensemble.__class__.__name__} cannot produce multi-step forecasts."
-            )
-        pred = np.asarray([ensemble.predict(y)], dtype=np.float64)
-    else:
-        raise ValueError(
-            f"{ensemble.__class__.__name__} does not expose a forecasting method."
-        )
-    pred = np.asarray(pred, dtype=np.float64).reshape(-1)
-    if pred.shape[0] != h:
-        raise ValueError(
-            f"{ensemble.__class__.__name__} returned {pred.shape[0]} forecasts; "
-            f"expected {h}."
-        )
-    if not np.all(np.isfinite(pred)):
-        raise ValueError(
-            f"{ensemble.__class__.__name__} returned non-finite forecasts."
-        )
-    return pred
+    forecasts = []
+    component_forecasts = {}
+    fitted_forecasters = []
+    errors = {}
+    for name, forecaster in forecasters:
+        model = deepcopy(forecaster)
+        try:
+            pred = _forecast_with_model(model, y, prediction_horizon)
+        except Exception as exc:  # noqa: BLE001
+            if error_policy == "raise":
+                raise RuntimeError(
+                    f"SCUM component forecaster {name!r} failed."
+                ) from exc
+            errors[name] = exc
+            continue
+        forecasts.append(pred)
+        component_forecasts[name] = pred
+        fitted_forecasters.append((name, model))
+
+    if not forecasts:
+        raise RuntimeError(f"All SCUM component forecasters failed: {errors!r}.")
+    return forecasts, component_forecasts, fitted_forecasters
+
+
+def _is_likely_unfitted_forecaster_error(exc):
+    """Return whether an AttributeError probably came from an unfitted delegate."""
+    message = str(exc)
+    return "'NoneType' object has no attribute" in message
 
 
 def _normalise_forecaster_pool(forecasters):
@@ -555,29 +368,3 @@ def _tail(y, max_length):
     """Return the most recent ``max_length`` values."""
     y = _as_1d_float(y)
     return y[-int(max_length) :]
-
-
-def _seasonal_last_forecast(y, prediction_horizon, season_length):
-    """Return seasonal-naive forecasts."""
-    y = _as_1d_float(y)
-    h = int(prediction_horizon)
-    m = max(1, int(season_length))
-    period = y[-m:] if y.shape[0] >= m else y
-    return np.asarray([period[i % period.shape[0]] for i in range(h)])
-
-
-def _linear_trend_forecast(y, prediction_horizon):
-    """Return a simple OLS linear-trend forecast."""
-    y = _as_1d_float(y)
-    h = int(prediction_horizon)
-    n = y.shape[0]
-    x = np.arange(n, dtype=np.float64)
-    x_mean = float(np.mean(x))
-    y_mean = float(np.mean(y))
-    denom = float(np.sum((x - x_mean) ** 2))
-    slope = (
-        0.0 if denom <= 1e-12 else float(np.sum((x - x_mean) * (y - y_mean)) / denom)
-    )
-    intercept = y_mean - slope * x_mean
-    future_x = np.arange(n, n + h, dtype=np.float64)
-    return intercept + slope * future_x

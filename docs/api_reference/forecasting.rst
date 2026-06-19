@@ -43,6 +43,7 @@ Statistical Models
     AutoTAR
     Theta
     DOTM
+    SCUM
     TVP
 
 Deep Learning Models
