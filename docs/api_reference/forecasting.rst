@@ -45,6 +45,17 @@ Statistical Models
     DOTM
     TVP
 
+Ensemble Models
+---------------
+
+.. currentmodule:: aeon.forecasting.ensembles
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    EnsembleForecaster
+
 Deep Learning Models
 --------------------
 

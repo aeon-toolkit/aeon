@@ -98,7 +98,14 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         preds = np.array([f.predict(y) for _, f in self.forecasters_])
         return float(self._combine(preds))
 
-    def iterative_forecast(self, y, prediction_horizon, exog=None):
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
         """Forecast ``prediction_horizon`` steps ahead by combining component forecasts.
 
         The ``iterative_strategy`` parameter controls the recursive semantics.
@@ -117,6 +124,9 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         exog : np.ndarray or None, default=None
             Exogenous series are not currently supported by
             ``EnsembleForecaster``; non-None values are rejected during validation.
+        future_exog : np.ndarray or None, default=None
+            Future exogenous values are not currently supported by
+            ``EnsembleForecaster``; non-None values are rejected during validation.
 
         Returns
         -------
@@ -124,14 +134,22 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
             Shape ``(prediction_horizon,)`` combined forecast.
         """
         self._validate_prediction_horizon(prediction_horizon)
+        if future_exog is not None:
+            raise ValueError(
+                f"Exogenous variables passed but {self.__class__.__name__} cannot "
+                "handle exogenous variables"
+            )
 
         self._preprocess_forecasting_input(y, exog, self.axis, True)
         self.weights_ = self._validate_parameters()
         self._clone_forecasters()
 
         if self.iterative_strategy == "component":
-            return self._component_iterative_forecast(y, prediction_horizon)
-        return self._ensemble_iterative_forecast(y, prediction_horizon)
+            predictions = self._component_iterative_forecast(y, prediction_horizon)
+        else:
+            predictions = self._ensemble_iterative_forecast(y, prediction_horizon)
+        self.is_fitted = True
+        return predictions
 
     def _component_iterative_forecast(self, y, prediction_horizon):
         """Iterate forecasts for each component path, then combine paths."""
@@ -164,9 +182,7 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
                 [forecaster.predict(y_extended) for _, forecaster in self.forecasters_],
                 dtype=float,
             )
-            ensemble_pred = float(
-                np.asarray(self._combine(component_preds)).reshape(-1)[0]
-            )
+            ensemble_pred = float(self._combine(component_preds))
             predictions[i] = ensemble_pred
             y_extended = np.append(y_extended, ensemble_pred)
         return predictions
@@ -174,13 +190,32 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     def _combine(self, preds):
         """Combine a ``(n_forecasters, ...)`` array along axis 0."""
         if callable(self.averaging_method):
-            return self.averaging_method(preds)
-        if self.averaging_method == "median":
-            return np.median(preds, axis=0)
-        # mean, weighted or unweighted
-        if self.weights_ is not None:
-            return np.average(preds, weights=self.weights_, axis=0)
-        return np.mean(preds, axis=0)
+            combined = self.averaging_method(preds)
+        elif self.averaging_method == "median":
+            combined = np.median(preds, axis=0)
+        elif self.weights_ is not None:
+            combined = np.average(preds, weights=self.weights_, axis=0)
+        else:
+            combined = np.mean(preds, axis=0)
+        return self._validate_combined_prediction(combined, preds)
+
+    def _validate_combined_prediction(self, combined, preds):
+        """Validate that a combiner returned the expected forecast shape."""
+        combined = np.asarray(combined, dtype=float)
+        expected_shape = preds.shape[1:]
+        if expected_shape == ():
+            if combined.shape not in ((), (1,)):
+                raise ValueError(
+                    "averaging_method callable must return a scalar for "
+                    "one-step prediction."
+                )
+            return float(combined.reshape(-1)[0])
+        if combined.shape != expected_shape:
+            raise ValueError(
+                "averaging_method callable must return an array with shape "
+                f"{expected_shape}, but got {combined.shape}."
+            )
+        return combined
 
     def _validate_parameters(self):
         """Validate forecaster, averaging, and weight parameters."""
@@ -206,6 +241,19 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         if len(names) != len(set(names)):
             raise ValueError("Forecaster names in forecasters must be unique.")
 
+        for name, forecaster in self.forecasters:
+            if not isinstance(forecaster, BaseForecaster):
+                raise TypeError(
+                    f"Forecaster {name!r} must be an instance of BaseForecaster."
+                )
+            if self.iterative_strategy == "component" and not callable(
+                getattr(forecaster, "iterative_forecast", None)
+            ):
+                raise TypeError(
+                    f"Forecaster {name!r} must implement iterative_forecast when "
+                    "iterative_strategy='component'."
+                )
+
         if self.averaging_method != "mean" or self.weights is None:
             return None
 
@@ -228,8 +276,18 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
 
     def _validate_prediction_horizon(self, prediction_horizon):
         """Validate the iterative forecast horizon."""
+        if isinstance(prediction_horizon, bool) or not isinstance(
+            prediction_horizon, (int, np.integer)
+        ):
+            raise TypeError(
+                "prediction_horizon must be an integer. If you intended to pass "
+                "future exogenous values, use future_exog=... and also provide "
+                "prediction_horizon."
+            )
         if prediction_horizon < 1:
-            raise ValueError("prediction_horizon must be greater than or equal to 1.")
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
 
     def _clone_forecasters(self):
         """Clone component forecasters into ensemble state."""

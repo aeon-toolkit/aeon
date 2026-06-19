@@ -145,6 +145,21 @@ def test_predict_callable_averaging_method():
     assert ens.predict(y) == pytest.approx(50.0)
 
 
+def test_callable_averaging_method_rejects_wrong_multi_step_shape():
+    """A callable combiner must return one value per horizon step."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+
+    def scalar_mean(preds):
+        return float(np.mean(preds))
+
+    ens = EnsembleForecaster(
+        forecasters=_default_forecasters(), averaging_method=scalar_mean
+    )
+
+    with pytest.raises(ValueError, match="shape"):
+        ens.iterative_forecast(y, prediction_horizon=3)
+
+
 def test_predict_returns_python_float():
     """``predict`` must return a Python float, not a numpy scalar."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
@@ -195,6 +210,17 @@ def test_iterative_forecast_horizon_one():
     preds = ens.iterative_forecast(y, prediction_horizon=1)
     assert preds.shape == (1,)
     assert preds[0] == pytest.approx(40.0)
+
+
+def test_iterative_forecast_leaves_ensemble_fitted():
+    """``iterative_forecast`` should follow the fitted-state mixin contract."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    ens.iterative_forecast(y, prediction_horizon=2)
+
+    assert ens.is_fitted
+    assert ens.predict(y) == pytest.approx(40.0)
 
 
 def test_iterative_forecast_combines_component_full_trajectories():
@@ -388,6 +414,16 @@ def test_iterative_forecast_rejects_horizon_below_one():
         ens.iterative_forecast(y, prediction_horizon=0)
 
 
+@pytest.mark.parametrize("prediction_horizon", [True, 2.5, np.float64(2.0)])
+def test_iterative_forecast_rejects_non_integer_horizon(prediction_horizon):
+    """``iterative_forecast`` should match the base mixin horizon contract."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    with pytest.raises(TypeError, match="prediction_horizon must be an integer"):
+        ens.iterative_forecast(y, prediction_horizon=prediction_horizon)
+
+
 def test_iterative_forecast_rejects_exog():
     """``EnsembleForecaster`` does not currently support exogenous variables."""
     y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
@@ -396,6 +432,25 @@ def test_iterative_forecast_rejects_exog():
 
     with pytest.raises(ValueError, match="cannot handle exogenous variables"):
         ens.iterative_forecast(y, prediction_horizon=2, exog=exog)
+
+
+def test_iterative_forecast_rejects_future_exog():
+    """``future_exog`` is also rejected because exogenous variables are unsupported."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    future_exog = np.arange(2, dtype=float)
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    with pytest.raises(ValueError, match="cannot handle exogenous variables"):
+        ens.iterative_forecast(y, prediction_horizon=2, future_exog=future_exog)
+
+
+def test_fit_rejects_non_forecaster_component():
+    """All components must be aeon forecasters."""
+    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    ens = EnsembleForecaster(forecasters=[("bad", object())])
+
+    with pytest.raises(TypeError, match="BaseForecaster"):
+        ens.fit(y)
 
 
 # ---------------------------------------------------------------------------
