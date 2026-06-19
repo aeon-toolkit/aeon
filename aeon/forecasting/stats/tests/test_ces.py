@@ -10,8 +10,9 @@ import pytest
 
 from aeon.forecasting.stats import CES, AutoCES
 from aeon.forecasting.stats._ces import (
-    _ces_full_recursion,
-    _ces_recursion,
+    _CES_FULL,
+    _CES_NONE,
+    _ces_fit_states,
 )
 
 Y_EXAMPLE = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1, 4.4, 4.9, 5.3, 5.9, 6.2, 6.8])
@@ -180,11 +181,22 @@ def test_ces_recursion_hand_calc_non_seasonal():
     ``t=2``: yhat=1, eps=2, new state (1+(-1)*2+2, 1+0*2+2) = (1, 3).
     """
     y = np.array([1.0, 2.0, 3.0])
-    fitted, residuals, l1_final, l2_final = _ces_recursion(y, 1.0, 0.0, 0.0, 0.0)
+    init_states = np.zeros((1, 2), dtype=np.float64)
+    fitted, residuals, states, _ = _ces_fit_states(
+        y,
+        1,
+        _CES_NONE,
+        1.0,
+        0.0,
+        np.nan,
+        np.nan,
+        init_states,
+        False,
+    )
     np.testing.assert_allclose(fitted, [0.0, 1.0, 1.0])
     np.testing.assert_allclose(residuals, [1.0, 1.0, 2.0])
-    assert l1_final == pytest.approx(1.0)
-    assert l2_final == pytest.approx(3.0)
+    assert states[y.shape[0], 0] == pytest.approx(1.0)
+    assert states[y.shape[0], 1] == pytest.approx(3.0)
 
 
 def test_ces_recursion_hand_calc_full_seasonal():
@@ -206,26 +218,25 @@ def test_ces_recursion_hand_calc_full_seasonal():
     Net fitted sequence: ``[0, 1, 1, 1, 2, 1, 3, 3]``.
     """
     y = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
-    l1_seed = np.zeros(4)
-    c1_seed = np.zeros(4)
-    fitted, residuals, l0_f, c0_f, l1_f, c1_f = _ces_full_recursion(
+    init_states = np.zeros((4, 4), dtype=np.float64)
+    fitted, residuals, states, _ = _ces_fit_states(
         y,
         4,
+        _CES_FULL,
         1.0,
         0.0,
         1.0,
         0.0,
-        0.0,
-        0.0,
-        l1_seed,
-        c1_seed,
+        init_states,
+        False,
     )
     expected_fitted = np.array([0.0, 1.0, 1.0, 1.0, 2.0, 1.0, 3.0, 3.0])
     np.testing.assert_allclose(fitted, expected_fitted)
     np.testing.assert_allclose(residuals, y - expected_fitted)
-    assert np.isfinite(l0_f) and np.isfinite(c0_f)
-    assert l1_f.shape == (4,)
-    assert c1_f.shape == (4,)
+    final_buffer = states[y.shape[0] : y.shape[0] + 4]
+    assert np.all(np.isfinite(final_buffer[:, :2]))
+    assert final_buffer[:, 2].shape == (4,)
+    assert final_buffer[:, 3].shape == (4,)
 
 
 # ---------------------------------------------------------------------------

@@ -12,7 +12,6 @@ import math
 
 import numpy as np
 from numba import njit
-from scipy.optimize import minimize
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
@@ -440,174 +439,6 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         self._initial_states_ = init_states.copy()
         self._states_ = states.copy()
 
-    def _fit_non_seasonal(self, y):
-        """Fit the Phase 1 non-seasonal CES recurrence."""
-        x0, lower, upper, fixed_mask, fixed_values = self._build_optimisation_inputs_n(
-            y
-        )
-        scale = _scale_for_sse(y)
-
-        if x0.shape[0] == 0:
-            params = fixed_values.copy()
-            success, message, n_iter = True, "All parameters fixed.", 0
-        else:
-
-            def objective(free):
-                full = _expand_params(free, fixed_mask, fixed_values)
-                return _ces_scaled_sse(full[0], full[1], full[2], full[3], y, scale)
-
-            result = _run_nelder_mead(
-                objective, x0, lower, upper, self.max_iter, self.tol
-            )
-            params = _expand_params(result.x, fixed_mask, fixed_values)
-            success = bool(result.success)
-            message = str(result.message)
-            n_iter = int(getattr(result, "nit", 0))
-
-        alpha_0 = float(params[0])
-        alpha_1 = float(params[1])
-        init_real = float(params[2])
-        init_imag = float(params[3])
-
-        fitted, residuals, l1_final, l2_final = _ces_recursion(
-            y, alpha_0, alpha_1, init_real, init_imag
-        )
-
-        self.alpha_real_ = alpha_0
-        self.alpha_imag_ = alpha_1
-        self.complex_alpha_ = alpha_0 + 1j * alpha_1
-        self.beta_real_ = math.nan
-        self.beta_imag_ = math.nan
-        self.complex_beta_ = complex(math.nan, math.nan)
-        self.initial_level_ = init_real
-        self.initial_level_imag_ = init_imag
-        self.initial_seasonal_real_ = None
-        self.initial_seasonal_imag_ = None
-        self.level_real_ = float(l1_final)
-        self.level_imag_ = float(l2_final)
-        self.seasonal_real_ = None
-        self.seasonal_imag_ = None
-        self.fitted_values_ = fitted
-        self.residuals_ = residuals
-        self.sse_ = float(np.sum(residuals * residuals))
-        self.forecast_ = float(
-            _ces_forecast_from_state(1, l1_final, l2_final, alpha_0, alpha_1)[0]
-        )
-        self.n_params_ = int(np.sum(~fixed_mask))
-        self.optimization_success_ = success
-        self.optimization_message_ = message
-        self.n_iter_ = n_iter
-        self._n_train_ = int(y.shape[0])
-
-    def _fit_seasonal_full(self, y):
-        """Fit the ``"F"`` (full seasonal) CES recurrence.
-
-        Optimises (alpha_real, alpha_imag, beta_real, beta_imag,
-        initial_level_real, initial_level_imag). The seasonal seed is
-        computed deterministically from the data unless the user has
-        supplied ``initial_seasonal_real`` / ``initial_seasonal_imag``;
-        Phase 2 does not optimise the seasonal seed.
-        """
-        m = int(self.season_length)
-        if y.shape[0] < 2 * m:
-            raise ValueError(
-                f"Seasonal CES (model='F') needs at least 2*season_length "
-                f"observations; got n={y.shape[0]}, season_length={m}."
-            )
-        l1_seed, c1_seed = self._build_seasonal_seed(y, m)
-
-        x0, lower, upper, fixed_mask, fixed_values = self._build_optimisation_inputs_f(
-            y
-        )
-        scale = _scale_for_sse(y)
-
-        if x0.shape[0] == 0:
-            params = fixed_values.copy()
-            success, message, n_iter = True, "All parameters fixed.", 0
-        else:
-
-            def objective(free):
-                full = _expand_params(free, fixed_mask, fixed_values)
-                return _ces_full_scaled_sse(
-                    full[0],
-                    full[1],
-                    full[2],
-                    full[3],
-                    full[4],
-                    full[5],
-                    l1_seed,
-                    c1_seed,
-                    m,
-                    y,
-                    scale,
-                )
-
-            result = _run_nelder_mead(
-                objective, x0, lower, upper, self.max_iter, self.tol
-            )
-            params = _expand_params(result.x, fixed_mask, fixed_values)
-            success = bool(result.success)
-            message = str(result.message)
-            n_iter = int(getattr(result, "nit", 0))
-
-        alpha_0 = float(params[0])
-        alpha_1 = float(params[1])
-        beta_0 = float(params[2])
-        beta_1 = float(params[3])
-        init_real = float(params[4])
-        init_imag = float(params[5])
-
-        fitted, residuals, l0_f, c0_f, l1_f, c1_f = _ces_full_recursion(
-            y,
-            m,
-            alpha_0,
-            alpha_1,
-            beta_0,
-            beta_1,
-            init_real,
-            init_imag,
-            l1_seed,
-            c1_seed,
-        )
-
-        self.alpha_real_ = alpha_0
-        self.alpha_imag_ = alpha_1
-        self.complex_alpha_ = alpha_0 + 1j * alpha_1
-        self.beta_real_ = beta_0
-        self.beta_imag_ = beta_1
-        self.complex_beta_ = beta_0 + 1j * beta_1
-        self.initial_level_ = init_real
-        self.initial_level_imag_ = init_imag
-        self.initial_seasonal_real_ = l1_seed.copy()
-        self.initial_seasonal_imag_ = c1_seed.copy()
-        self.level_real_ = float(l0_f)
-        self.level_imag_ = float(c0_f)
-        self.seasonal_real_ = l1_f.copy()
-        self.seasonal_imag_ = c1_f.copy()
-        self.fitted_values_ = fitted
-        self.residuals_ = residuals
-        self.sse_ = float(np.sum(residuals * residuals))
-        self.forecast_ = float(
-            _ces_full_forecast_from_state(
-                1,
-                m,
-                int(y.shape[0]),
-                l0_f,
-                c0_f,
-                l1_f,
-                c1_f,
-                alpha_0,
-                alpha_1,
-                beta_0,
-                beta_1,
-            )[0]
-        )
-        self.n_params_ = int(np.sum(~fixed_mask))
-        self.optimization_success_ = success
-        self.optimization_message_ = message
-        self.n_iter_ = n_iter
-        self._n_train_ = int(y.shape[0])
-
     # ------------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------------
@@ -736,92 +567,6 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         if not np.all(np.isfinite(states)):
             raise ValueError("Initial CES states contain non-finite values.")
         return states
-
-    def _build_optimisation_inputs_n(self, y):
-        """Build initial point, bounds and fixed mask for the ``"N"`` vector.
-
-        Layout: ``[alpha_real, alpha_imag, initial_level, initial_level_imag]``.
-        """
-        y_mean = float(np.mean(y))
-        return _pack_optimisation_inputs(
-            defaults=(1.0, 1.0, y_mean, y_mean),
-            user_values=(
-                self.alpha_real,
-                self.alpha_imag,
-                self.initial_level,
-                self.initial_level_imag,
-            ),
-            full_bounds=(
-                self.alpha_real_bounds,
-                self.alpha_imag_bounds,
-                self.initial_level_bounds,
-                self.initial_level_bounds,
-            ),
-        )
-
-    def _build_optimisation_inputs_f(self, y):
-        """Build initial point, bounds and fixed mask for the ``"F"`` vector.
-
-        Layout:
-        ``[alpha_real, alpha_imag, beta_real, beta_imag,
-           initial_level, initial_level_imag]``.
-        """
-        y_mean = float(np.mean(y))
-        return _pack_optimisation_inputs(
-            defaults=(1.0, 1.0, 1.0, 1.0, y_mean, y_mean),
-            user_values=(
-                self.alpha_real,
-                self.alpha_imag,
-                self.beta_real,
-                self.beta_imag,
-                self.initial_level,
-                self.initial_level_imag,
-            ),
-            full_bounds=(
-                self.alpha_real_bounds,
-                self.alpha_imag_bounds,
-                self.beta_real_bounds,
-                self.beta_imag_bounds,
-                self.initial_level_bounds,
-                self.initial_level_bounds,
-            ),
-        )
-
-    def _build_seasonal_seed(self, y, m):
-        """Return seasonal-state seed arrays of length ``m``.
-
-        If the user supplied ``initial_seasonal_real`` /
-        ``initial_seasonal_imag`` they are validated and used; otherwise a
-        deterministic seed is computed from the data: per-position mean
-        minus overall mean for the real component, zeros for the
-        correction component.
-        """
-        if self.initial_seasonal_real is not None:
-            real_seed = np.asarray(self.initial_seasonal_real, dtype=np.float64)
-            if real_seed.shape != (m,):
-                raise ValueError(
-                    "initial_seasonal_real must have length "
-                    f"season_length ({m}), got shape {real_seed.shape}."
-                )
-        else:
-            overall = float(np.mean(y))
-            real_seed = np.empty(m, dtype=np.float64)
-            for p in range(m):
-                real_seed[p] = float(np.mean(y[p::m])) - overall
-
-        if self.initial_seasonal_imag is not None:
-            imag_seed = np.asarray(self.initial_seasonal_imag, dtype=np.float64)
-            if imag_seed.shape != (m,):
-                raise ValueError(
-                    "initial_seasonal_imag must have length "
-                    f"season_length ({m}), got shape {imag_seed.shape}."
-                )
-        else:
-            imag_seed = np.zeros(m, dtype=np.float64)
-
-        if not (np.all(np.isfinite(real_seed)) and np.all(np.isfinite(imag_seed))):
-            raise ValueError("Seasonal seed contains non-finite values.")
-        return real_seed, imag_seed
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -997,7 +742,18 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
         if exog is not None or future_exog is not None:
             raise NotImplementedError("AutoCES does not support exogenous variables.")
         self.fit(y)
-        return self.best_model_.iterative_forecast(y, int(prediction_horizon))
+        best = self.best_model_
+        return _ces_forecast_from_states(
+            int(prediction_horizon),
+            best._states_,
+            int(best._n_train_),
+            best._fit_m_,
+            best._season_code_,
+            best.alpha_real_,
+            best.alpha_imag_,
+            best.beta_real_,
+            best.beta_imag_,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1013,14 +769,6 @@ def _prepare_ces_y(y, min_length=2):
     if not np.all(np.isfinite(y)):
         raise ValueError("CES requires finite values.")
     return y
-
-
-def _scale_for_sse(y):
-    """Scaling factor for SSE objective (mean absolute value, floored)."""
-    scale = float(np.mean(np.abs(y)))
-    if scale <= 1e-12 or not np.isfinite(scale):
-        scale = 1.0
-    return scale
 
 
 def _pack_optimisation_inputs(defaults, user_values, full_bounds):
@@ -1072,22 +820,6 @@ def _expand_params(free, fixed_mask, fixed_values):
             out[i] = free[j]
             j += 1
     return out
-
-
-def _run_nelder_mead(objective, x0, lower, upper, max_iter, tol):
-    """Run scipy bounded Nelder-Mead with the project's standard options."""
-    free_bounds = list(zip(lower.tolist(), upper.tolist()))
-    return minimize(
-        objective,
-        x0,
-        method="Nelder-Mead",
-        bounds=free_bounds,
-        options={
-            "maxiter": int(max_iter),
-            "xatol": float(tol),
-            "fatol": float(tol),
-        },
-    )
 
 
 def _information_criteria(n, sse, k):
@@ -1166,7 +898,7 @@ def _clip_to_bounds(x, lower, upper):
             x[i] = upper[i]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_objective_from_free(
     free,
     fixed_mask,
@@ -1270,8 +1002,9 @@ def _run_ces_nelder_mead(
     x_c = np.empty(n, dtype=np.float64)
 
     converged = False
-    it = 0
-    for _ in range(int(max_iter)):
+    n_iter = 0
+    for iteration in range(int(max_iter)):
+        n_iter = iteration + 1
         order = np.argsort(f_simplex)
         best_idx = order[0]
         worst_idx = order[n]
@@ -1358,7 +1091,7 @@ def _run_ces_nelder_mead(
     best = np.empty(n, dtype=np.float64)
     for col in range(n):
         best[col] = simplex[best_idx, col]
-    return best, it, converged
+    return best, n_iter, converged
 
 
 def _seasonal_decompose_additive(y, period):
@@ -1577,7 +1310,7 @@ def _reverse_1d_inplace(values):
         values[j] = tmp
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_fit_pass(
     y,
     states,
@@ -1616,7 +1349,7 @@ def _ces_fit_pass(
     return sse
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_fit_pass_sse(
     y,
     states,
@@ -1651,7 +1384,7 @@ def _ces_fit_pass_sse(
     return sse
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_n_pass_sse_future(y, reverse, alpha_0, alpha_1, l1, l2):
     """Run one non-seasonal CES pass and return SSE plus future state."""
     n = y.shape[0]
@@ -1677,7 +1410,7 @@ def _ces_n_pass_sse_future(y, reverse, alpha_0, alpha_1, l1, l2):
     return sse, new_l1, new_l2
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_n_fit_objective_numba(y, alpha_0, alpha_1, init_real, init_imag):
     """Compute the non-seasonal CES backfit objective without state arrays."""
     n = y.shape[0]
@@ -1692,7 +1425,7 @@ def _ces_n_fit_objective_numba(y, alpha_0, alpha_1, init_real, init_imag):
     return n * math.log(sse)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_fit_objective_numba(
     y,
     m,
@@ -1729,7 +1462,7 @@ def _ces_fit_objective_numba(
     return n * math.log(sse)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _ces_fit_states(
     y,
     m,
@@ -1805,281 +1538,3 @@ def _ces_fit_states(
     else:
         likelihood_objective = n * math.log(sse)
     return fitted, residuals, states, likelihood_objective
-
-
-@njit(cache=True, fastmath=True)
-def _ces_recursion(y, alpha_0, alpha_1, l1_0, l2_0):
-    """Non-seasonal CES recurrence over ``y``.
-
-    Uses the smooth/ADAM persistence form ``g = (alpha_0 - alpha_1,
-    alpha_0 + alpha_1)``, matching both the R ``smooth`` package and the
-    StatsForecast ``AutoCES`` implementation so that fitted alphas
-    transfer directly between libraries.
-
-    Returns
-    -------
-    fitted : np.ndarray
-        One-step-ahead in-sample fitted values.
-    residuals : np.ndarray
-        ``y - fitted``.
-    l1_final, l2_final : float
-        Final real and imaginary state components.
-    """
-    n = y.shape[0]
-    fitted = np.empty(n, dtype=np.float64)
-    residuals = np.empty(n, dtype=np.float64)
-    l1 = l1_0
-    l2 = l2_0
-    f12 = alpha_1 - 1.0
-    f22 = 1.0 - alpha_0
-    g1 = alpha_0 - alpha_1
-    g2 = alpha_0 + alpha_1
-    for t in range(n):
-        yhat = l1
-        fitted[t] = yhat
-        eps = y[t] - yhat
-        residuals[t] = eps
-        new_l1 = l1 + f12 * l2 + g1 * eps
-        new_l2 = l1 + f22 * l2 + g2 * eps
-        l1 = new_l1
-        l2 = new_l2
-    return fitted, residuals, l1, l2
-
-
-@njit(cache=True, fastmath=True)
-def _ces_forecast_from_state(h, l1, l2, alpha_0, alpha_1):
-    """Project ``h`` non-seasonal forecasts forward from a final state."""
-    forecast = np.empty(h, dtype=np.float64)
-    f12 = alpha_1 - 1.0
-    f22 = 1.0 - alpha_0
-    for k in range(h):
-        forecast[k] = l1
-        new_l1 = l1 + f12 * l2
-        new_l2 = l1 + f22 * l2
-        l1 = new_l1
-        l2 = new_l2
-    return forecast
-
-
-@njit(cache=True, fastmath=True)
-def _ces_spectral_radius(alpha_0, alpha_1):
-    """Spectral radius of the non-seasonal CES transition matrix ``F``."""
-    trace = 2.0 - alpha_0
-    det = 2.0 - alpha_0 - alpha_1
-    disc = trace * trace - 4.0 * det
-    if disc < 0.0:
-        if det < 0.0:
-            return 0.0
-        return det**0.5
-    sqrt_disc = disc**0.5
-    lam1 = abs((trace + sqrt_disc) * 0.5)
-    lam2 = abs((trace - sqrt_disc) * 0.5)
-    return lam1 if lam1 > lam2 else lam2
-
-
-@njit(cache=True, fastmath=True)
-def _ces_scaled_sse(alpha_0, alpha_1, init_real, init_imag, y, scale):
-    """Scaled in-sample SSE objective for ``"N"`` CES parameter optimisation.
-
-    Persistence uses the smooth/ADAM form ``g = (alpha_0 - alpha_1,
-    alpha_0 + alpha_1)`` so the optimiser explores the same parameter
-    space as smooth::ces and StatsForecast AutoCES.
-    """
-    rho = _ces_spectral_radius(alpha_0, alpha_1)
-    if not np.isfinite(rho) or rho > 1.5:
-        return 1e300
-
-    n = y.shape[0]
-    l1 = init_real
-    l2 = init_imag
-    f12 = alpha_1 - 1.0
-    f22 = 1.0 - alpha_0
-    g1 = alpha_0 - alpha_1
-    g2 = alpha_0 + alpha_1
-    sse = 0.0
-    for t in range(n):
-        yhat = l1
-        eps = y[t] - yhat
-        if not np.isfinite(yhat) or not np.isfinite(eps):
-            return 1e300
-        err = eps / scale
-        sse += err * err
-        new_l1 = l1 + f12 * l2 + g1 * eps
-        new_l2 = l1 + f22 * l2 + g2 * eps
-        l1 = new_l1
-        l2 = new_l2
-    if not np.isfinite(sse):
-        return 1e300
-    return sse
-
-
-# ---------------------------------------------------------------------------
-# Numba kernels — full seasonal ("F")
-# ---------------------------------------------------------------------------
-
-
-@njit(cache=True, fastmath=True)
-def _ces_full_recursion(
-    y,
-    m,
-    alpha_0,
-    alpha_1,
-    beta_0,
-    beta_1,
-    l0_init,
-    c0_init,
-    l1_seed,
-    c1_seed,
-):
-    """Full seasonal CES recurrence.
-
-    The observation equation is ``y_t = l0_{t-1} + l1_{t-m} + e_t``. Both the
-    non-seasonal pair ``(l0, c0)`` and the seasonal pair ``(l1, c1)`` follow a
-    CES-style two-component update driven by the same error series.
-
-    ``l1_seed`` and ``c1_seed`` are length-``m`` arrays seeding the seasonal
-    buffer for the first ``m`` observations. They are updated in place from
-    ``t=0`` onward. Returns the fitted-values / residuals and the final
-    non-seasonal and seasonal states.
-    """
-    n = y.shape[0]
-    fitted = np.empty(n, dtype=np.float64)
-    residuals = np.empty(n, dtype=np.float64)
-
-    l0 = l0_init
-    c0 = c0_init
-    l1 = l1_seed.copy()
-    c1 = c1_seed.copy()
-
-    fa12 = alpha_1 - 1.0
-    fa22 = 1.0 - alpha_0
-    fb12 = beta_1 - 1.0
-    fb22 = 1.0 - beta_0
-    # smooth/ADAM-style rotated persistence for both the non-seasonal
-    # and seasonal complex parameters.
-    ga0 = alpha_0 - alpha_1
-    ga1 = alpha_0 + alpha_1
-    gb0 = beta_0 - beta_1
-    gb1 = beta_0 + beta_1
-
-    for t in range(n):
-        idx = t % m
-        yhat = l0 + l1[idx]
-        fitted[t] = yhat
-        eps = y[t] - yhat
-        residuals[t] = eps
-
-        new_l0 = l0 + fa12 * c0 + ga0 * eps
-        new_c0 = l0 + fa22 * c0 + ga1 * eps
-        new_l1 = l1[idx] + fb12 * c1[idx] + gb0 * eps
-        new_c1 = l1[idx] + fb22 * c1[idx] + gb1 * eps
-
-        l0 = new_l0
-        c0 = new_c0
-        l1[idx] = new_l1
-        c1[idx] = new_c1
-
-    return fitted, residuals, l0, c0, l1, c1
-
-
-@njit(cache=True, fastmath=True)
-def _ces_full_forecast_from_state(
-    h,
-    m,
-    n_train,
-    l0,
-    c0,
-    l1,
-    c1,
-    alpha_0,
-    alpha_1,
-    beta_0,
-    beta_1,
-):
-    """Project ``h`` seasonal forecasts forward from a final state.
-
-    Errors are zero in the forecast horizon. The seasonal buffers are
-    copied so the caller's state arrays are not mutated.
-    """
-    forecast = np.empty(h, dtype=np.float64)
-    fa12 = alpha_1 - 1.0
-    fa22 = 1.0 - alpha_0
-    fb12 = beta_1 - 1.0
-    fb22 = 1.0 - beta_0
-    l1_buf = l1.copy()
-    c1_buf = c1.copy()
-    for k in range(h):
-        idx = (n_train + k) % m
-        forecast[k] = l0 + l1_buf[idx]
-        new_l0 = l0 + fa12 * c0
-        new_c0 = l0 + fa22 * c0
-        new_l1 = l1_buf[idx] + fb12 * c1_buf[idx]
-        new_c1 = l1_buf[idx] + fb22 * c1_buf[idx]
-        l0 = new_l0
-        c0 = new_c0
-        l1_buf[idx] = new_l1
-        c1_buf[idx] = new_c1
-    return forecast
-
-
-@njit(cache=True, fastmath=True)
-def _ces_full_scaled_sse(
-    alpha_0,
-    alpha_1,
-    beta_0,
-    beta_1,
-    init_real,
-    init_imag,
-    l1_seed,
-    c1_seed,
-    m,
-    y,
-    scale,
-):
-    """Scaled in-sample SSE objective for ``"F"`` CES parameter optimisation.
-
-    Mirrors the non-seasonal version but extends the recurrence by the
-    seasonal pair. The seasonal seed is provided by the caller (computed
-    once outside the optimiser loop) so the objective does not allocate
-    anything beyond the seasonal buffers it must update.
-    """
-    rho_a = _ces_spectral_radius(alpha_0, alpha_1)
-    rho_b = _ces_spectral_radius(beta_0, beta_1)
-    if not np.isfinite(rho_a) or not np.isfinite(rho_b) or rho_a > 1.5 or rho_b > 1.5:
-        return 1e300
-
-    n = y.shape[0]
-    l0 = init_real
-    c0 = init_imag
-    l1 = l1_seed.copy()
-    c1 = c1_seed.copy()
-
-    fa12 = alpha_1 - 1.0
-    fa22 = 1.0 - alpha_0
-    fb12 = beta_1 - 1.0
-    fb22 = 1.0 - beta_0
-    # smooth/ADAM-style rotated persistence (see _ces_full_recursion).
-    ga0 = alpha_0 - alpha_1
-    ga1 = alpha_0 + alpha_1
-    gb0 = beta_0 - beta_1
-    gb1 = beta_0 + beta_1
-    sse = 0.0
-    for t in range(n):
-        idx = t % m
-        yhat = l0 + l1[idx]
-        eps = y[t] - yhat
-        if not np.isfinite(yhat) or not np.isfinite(eps):
-            return 1e300
-        err = eps / scale
-        sse += err * err
-        new_l0 = l0 + fa12 * c0 + ga0 * eps
-        new_c0 = l0 + fa22 * c0 + ga1 * eps
-        new_l1 = l1[idx] + fb12 * c1[idx] + gb0 * eps
-        new_c1 = l1[idx] + fb22 * c1[idx] + gb1 * eps
-        l0 = new_l0
-        c0 = new_c0
-        l1[idx] = new_l1
-        c1[idx] = new_c1
-    if not np.isfinite(sse):
-        return 1e300
-    return sse
