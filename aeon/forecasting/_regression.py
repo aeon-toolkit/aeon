@@ -8,6 +8,7 @@ to form ``X`` and trains to predict the next ``horizon`` points ahead.
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
+from aeon.base._base import _clone_estimator
 from aeon.forecasting.base import (
     BaseForecaster,
     DirectForecastingMixin,
@@ -26,8 +27,10 @@ class RegressionForecaster(
     window to form training collection ``X``, take ``horizon`` points ahead to form
     ``y``, then apply an aeon or sklearn regressor.
 
-    If exogenous variables are provided, they are concatenated with the main series
-    and included in the regression windows.
+    If exogenous variables are provided, they are used as target-time features
+    aligned with the prediction target. Historical exogenous effects should be
+    represented by explicitly lagging exogenous variables before passing them to the
+    forecaster; exogenous variables are not treated as extra lag-window channels.
 
     Parameters
     ----------
@@ -75,43 +78,41 @@ class RegressionForecaster(
         if self.regressor is None:
             self.regressor_ = LinearRegression()
         else:
-            self.regressor_ = self.regressor
+            self.regressor_ = _clone_estimator(self.regressor)
         self._n_exog = 0
-        # Combine y and exog for windowing
+        y_1d = y.squeeze()
+
+        n_timepoints = y_1d.shape[0]
+        exog_target = None
         if exog is not None:
-            self._n_exog = exog.shape[0]
-            if exog.ndim == 1:
-                exog = exog.reshape(1, -1)
-            if exog.shape[1] != y.shape[1]:
-                raise ValueError("y and exog must have the same number of time points.")
-            combined_data = np.vstack([y, exog])
-        else:
-            combined_data = y
+            exog_target = self._format_fit_exog(exog, n_timepoints)
+            self._n_exog = exog_target.shape[1]
 
         # Enforce a minimum number of training samples, currently 3
-        if self.window < 1 or self.window >= combined_data.shape[1] - 3:
+        if self.window < 1 or self.window >= n_timepoints - self.horizon - 2:
             raise ValueError(
                 f"window value {self.window} is invalid for series length "
-                f"{combined_data.shape[1]}"
+                f"{n_timepoints}"
             )
 
-        # Create windowed data for X
-        X = np.lib.stride_tricks.sliding_window_view(
-            combined_data, window_shape=(combined_data.shape[0], self.window)
-        )
-        X = X.squeeze(axis=0)
-        X = X[:, :, :].reshape(X.shape[0], -1)
-
-        # Ignore the final horizon values for X
-        X_train = X[: -self.horizon]
+        # Create lagged y windows and append target-time exogenous features.
+        X_train = np.lib.stride_tricks.sliding_window_view(
+            y_1d, window_shape=self.window
+        )[: -self.horizon]
+        target_indices = np.arange(self.window + self.horizon - 1, n_timepoints)
+        if exog_target is not None:
+            X_train = np.hstack([X_train, exog_target[target_indices]])
 
         # Extract y_train from the original series
-        y_train = y.squeeze()[self.window + self.horizon - 1 :]
+        y_train = y_1d[target_indices]
 
         self.regressor_.fit(X=X_train, y=y_train)
 
-        last = X[[-1]]
-        self.forecast_ = self.regressor_.predict(last)[0]
+        last_y_window = y_1d[-self.window :].reshape(1, -1)
+        if exog_target is not None:
+            last_exog = exog_target[[-1]]
+            last_y_window = np.hstack([last_y_window, last_exog])
+        self.forecast_ = self.regressor_.predict(last_y_window)[0]
         return self
 
     def _predict(self, y, exog=None):
@@ -140,36 +141,24 @@ class RegressionForecaster(
                 f"RegressionForecaster was trained on window length = "
                 f"{self.window}"
             )
-        # Combine y and exog for prediction
+        features = y.reshape(1, -1)
         if exog is not None:
-            if exog.shape[0] != self._n_exog:
+            if self._n_exog == 0:
                 raise ValueError(
-                    f" Forecaster passed {exog.shape[0]} exogenous variables in "
-                    f"predict but this RegressionForecaster was trained on"
-                    f" {self._n_exog} variables in fit"
+                    "predict passed exogenous variables, but this "
+                    "RegressionForecaster was fitted without exog"
                 )
-
-            if exog.ndim == 1:
-                exog = exog.reshape(1, -1)
-            if exog.shape[1] < self.window:
-                raise ValueError(
-                    f" Exogenous variables passed in predict of length = {len(y)} but "
-                    f"this RegressionForecaster was trained on window length = "
-                    f"{self.window}"
-                )
-
-            exog = exog[:, -self.window :]
-            combined_data = np.vstack([y, exog])
+            exog_row = self._format_predict_exog(exog)
+            features = np.hstack([features, exog_row])
         else:
             if self._n_exog > 0:
                 raise ValueError(
                     f" predict passed no exogenous variables, but this "
                     f"RegressionForecaster was trained on {self._n_exog} exog in fit"
                 )
-            combined_data = y
 
         # Extract the last window and flatten for prediction
-        last_window = combined_data.reshape(1, -1)
+        last_window = features.reshape(1, -1)
 
         return self.regressor_.predict(last_window)[0]
 
@@ -177,6 +166,31 @@ class RegressionForecaster(
         """Forecast values for time series X."""
         self.fit(y, exog)
         return self.forecast_
+
+    @staticmethod
+    def _format_fit_exog(exog, n_timepoints):
+        """Convert fit exog to timepoint rows."""
+        exog = np.asarray(exog, dtype=float)
+        if exog.shape[0] == n_timepoints:
+            return exog
+        if exog.shape[0] == 1 and exog.shape[1] == n_timepoints:
+            return exog.T
+        raise ValueError(
+            "exog must contain one row per time point in y. "
+            f"Got {exog.shape[0]}, expected {n_timepoints}."
+        )
+
+    def _format_predict_exog(self, exog):
+        """Convert prediction exog to a single target-time row."""
+        exog = np.asarray(exog, dtype=float)
+        if exog.shape[0] != 1:
+            raise ValueError("exog for predict must contain a single target-time row.")
+        if exog.shape[1] != self._n_exog:
+            raise ValueError(
+                "exog for predict must contain a single target-time row "
+                f"with {self._n_exog} features, got {exog.shape[1]}."
+            )
+        return exog
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
