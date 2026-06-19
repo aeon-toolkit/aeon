@@ -34,7 +34,7 @@ class DeepARNetwork(BaseDeepLearningNetwork):
 
     Examples
     --------
-    >>> from aeon.networks._deepar import DeepARNetwork
+    >>> from aeon.networks.encoder_decoder._deepar import DeepARNetwork
     >>> network = DeepARNetwork()
     >>> input_layer, output = network.build_network(input_shape=(10, 3))
     >>> input_layer.shape, output.shape
@@ -42,8 +42,7 @@ class DeepARNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
+        **BaseDeepLearningNetwork._config,
         "structure": "encoder-decoder",
     }
 
@@ -64,10 +63,11 @@ class DeepARNetwork(BaseDeepLearningNetwork):
         dropout : float, default=0.1
             Dropout rate for LSTM regularization.
         """
-        super().__init__()
         self.lstm_units = lstm_units
         self.dense_units = dense_units
         self.dropout = dropout
+
+        super().__init__()
 
     def _calculate_units(self, n_features: int) -> tuple:
         """Calculate optimal number of units based on input features.

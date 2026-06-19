@@ -38,8 +38,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
+        **BaseDeepLearningNetwork._config,
         "structure": "auto-encoder",
     }
 
@@ -52,14 +51,14 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         activation_encoder="relu",
         activation_decoder="relu",
     ):
-        super().__init__()
-
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.activation_encoder = activation_encoder
         self.activation_decoder = activation_decoder
         self.n_layers_encoder = n_layers_encoder
         self.n_layers_decoder = n_layers_decoder
+
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
