@@ -3,7 +3,9 @@
 __all__ = [
     "ARIMA",
     "AutoARIMA",
+    "AutoCES",
     "AutoTAR",
+    "CES",
     "ETS",
     "AutoETS",
     "DOTM",
@@ -13,6 +15,7 @@ __all__ = [
 ]
 
 from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
+from aeon.forecasting.stats._ces import CES, AutoCES
 from aeon.forecasting.stats._dotm import DOTM
 from aeon.forecasting.stats._ets import ETS, AutoETS
 from aeon.forecasting.stats._tar import TAR, AutoTAR

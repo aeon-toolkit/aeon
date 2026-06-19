@@ -35,6 +35,8 @@ Statistical Models
 
     ARIMA
     AutoARIMA
+    CES
+    AutoCES
     ETS
     AutoETS
     TAR
