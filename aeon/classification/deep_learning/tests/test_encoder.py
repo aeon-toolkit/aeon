@@ -43,12 +43,19 @@ def test_encoder_uses_training_model_when_checkpoint_missing(monkeypatch, tmp_pa
         def __deepcopy__(self, memo):
             return fallback_model
 
-    classifier = EncoderClassifier(
-        batch_size=2,
-        file_path=str(tmp_path) + os.sep,
-        n_epochs=1,
-        random_state=0,
-    )
+    classifier = EncoderClassifier.__new__(EncoderClassifier)
+    classifier.batch_size = 2
+    classifier.best_file_name = "best_model"
+    classifier.callbacks = None
+    classifier.file_path = str(tmp_path) + os.sep
+    classifier.init_file_name = "init_model"
+    classifier.n_classes_ = 2
+    classifier.n_epochs = 1
+    classifier.save_best_model = False
+    classifier.save_init_model = False
+    classifier.save_last_model = False
+    classifier.verbose = False
+    monkeypatch.setattr(classifier, "convert_y_to_keras", lambda y: np.eye(2)[y])
     monkeypatch.setattr(
         classifier,
         "build_model",
