@@ -1,9 +1,4 @@
-"""Complex Exponential Smoothing (CES) forecaster.
-
-Phase 1: non-seasonal CES (model="N").
-Phase 2: seasonal CES (models="S", "P", "F") and automatic model selection
-(AutoCES).
-"""
+"""Complex Exponential Smoothing (CES) forecasters."""
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["CES", "AutoCES"]
@@ -139,8 +134,8 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     initial_seasonal_real, initial_seasonal_imag : array-like or None
         Length-``season_length`` initial seasonal state. If ``None`` the
         seasonal seed is computed deterministically from the data (per-
-        position mean minus overall mean; correction set to zero). Phase 2
-        does not optimise the seasonal seed.
+        position mean minus overall mean; correction set to zero). The
+        seasonal seed is deterministic and is not optimised.
     alpha_real_bounds : tuple of float, default=(0.01, 1.8)
         Box bounds for the optimisation of ``alpha_real``. Match
         StatsForecast's AutoCES non-seasonal optimiser bounds. These are
@@ -807,8 +802,7 @@ def _pack_optimisation_inputs(defaults, user_values, full_bounds):
 def _expand_params(free, fixed_mask, fixed_values):
     """Reassemble the full parameter vector from the free subset.
 
-    Phase 1 used length 4; Phase 2 ``"F"`` uses length 6. This helper works
-    for any length given by ``fixed_mask``.
+    This helper works for any length given by ``fixed_mask``.
     """
     n = fixed_mask.shape[0]
     out = np.empty(n, dtype=np.float64)

@@ -1,9 +1,4 @@
-"""Tests for Complex Exponential Smoothing (CES) forecaster.
-
-Phase 1 tests cover the non-seasonal ``model="N"`` recurrence; Phase 2
-tests cover the seasonal ``model="S"``, ``model="P"``, and ``model="F"``
-recurrences and the :class:`AutoCES` selector.
-"""
+"""Tests for Complex Exponential Smoothing (CES) forecasters."""
 
 import numpy as np
 import pytest
@@ -129,14 +124,14 @@ def test_ces_non_finite_series_raises():
 
 
 def test_ces_exog_raises_not_implemented():
-    """Exogenous variables are not supported in Phase 1."""
+    """Exogenous variables are not supported."""
     exog = np.arange(Y_EXAMPLE.shape[0], dtype=float)
     with pytest.raises(NotImplementedError, match="exogenous"):
         CES().iterative_forecast(Y_EXAMPLE, prediction_horizon=2, exog=exog)
 
 
 def test_ces_future_exog_raises_not_implemented():
-    """``future_exog`` is also rejected in Phase 1."""
+    """``future_exog`` is also rejected."""
     future = np.arange(3, dtype=float)
     with pytest.raises(NotImplementedError, match="exogenous"):
         CES().iterative_forecast(Y_EXAMPLE, prediction_horizon=3, future_exog=future)
@@ -164,7 +159,7 @@ def test_ces_fixed_out_of_bounds_raises():
 
 
 # ---------------------------------------------------------------------------
-# Phase 2: hand-calculated recurrence checks
+# Hand-calculated recurrence checks
 # ---------------------------------------------------------------------------
 
 
@@ -240,7 +235,7 @@ def test_ces_recursion_hand_calc_full_seasonal():
 
 
 # ---------------------------------------------------------------------------
-# Phase 2: full seasonal model ("F")
+# Full seasonal model ("F")
 # ---------------------------------------------------------------------------
 
 
