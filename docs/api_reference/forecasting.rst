@@ -40,6 +40,7 @@ Statistical Models
     TAR
     AutoTAR
     Theta
+    DOTM
     TVP
 
 Deep Learning Models
