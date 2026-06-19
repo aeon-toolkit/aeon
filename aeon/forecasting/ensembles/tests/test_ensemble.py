@@ -457,7 +457,7 @@ def test_nested_forecaster_params_are_exposed_and_settable():
 
     ens.set_params(last__strategy="mean")
 
-    assert ens.forecasters[0][1].strategy == "mean"
+    assert ens._forecasters[0][1].strategy == "mean"
 
 
 def test_set_params_forecasters_normalises_unnamed_components():
@@ -471,11 +471,21 @@ def test_set_params_forecasters_normalises_unnamed_components():
         ]
     )
 
-    assert [name for name, _ in ens.forecasters] == [
+    assert [name for name, _ in ens._forecasters] == [
         "NaiveForecaster_0",
         "NaiveForecaster_1",
     ]
     assert "NaiveForecaster_0__strategy" in ens.get_params(deep=True)
+
+
+def test_set_params_replaces_named_component():
+    """Direct component replacement updates the stored forecaster parameter."""
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    ens.set_params(last=NaiveForecaster(strategy="drift"))
+
+    assert ens.forecasters[0][1].strategy == "drift"
+    assert ens._forecasters[0][1].strategy == "drift"
 
 
 # ---------------------------------------------------------------------------

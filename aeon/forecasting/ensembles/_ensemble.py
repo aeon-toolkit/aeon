@@ -73,7 +73,7 @@ class EnsembleForecaster(
     _tags = {
         "capability:horizon": False,
     }
-    _estimators_attr = "forecasters"
+    _estimators_attr = "_forecasters"
     _fitted_estimators_attr = "forecasters_"
 
     def __init__(
@@ -95,9 +95,16 @@ class EnsembleForecaster(
         """Set estimator parameters, including nested forecaster parameters."""
         sentinel = object()
         forecasters = params.pop("forecasters", sentinel)
-        super().set_params(**params)
         if forecasters is not sentinel:
             self.forecasters = forecasters
+            self._normalise_forecasters()
+        forecaster_names = {name for name, _ in self._forecasters}
+        direct_replacements = [
+            name for name in params if "__" not in name and name in forecaster_names
+        ]
+        super().set_params(**params)
+        if direct_replacements:
+            self.forecasters = list(self._forecasters)
         self._normalise_forecasters()
         return self
 
@@ -108,14 +115,14 @@ class EnsembleForecaster(
             attr_name="forecasters",
             class_type=BaseForecaster,
         )
-        self.forecasters = self._convert_estimators(
+        self._forecasters = self._convert_estimators(
             self.forecasters, clone_estimators=False
         )
 
     def _fit(self, y, exog=None):
         """Fit each component forecaster on y."""
         self.weights_ = self._validate_parameters()
-        self.forecasters_ = self._convert_estimators(self.forecasters)
+        self.forecasters_ = self._convert_estimators(self._forecasters)
         self.n_forecasters_ = len(self.forecasters_)
         for _, f in self.forecasters_:
             f.fit(y)
@@ -171,7 +178,7 @@ class EnsembleForecaster(
 
         self._preprocess_forecasting_input(y, exog, self.axis, True)
         self.weights_ = self._validate_parameters()
-        self.forecasters_ = self._convert_estimators(self.forecasters)
+        self.forecasters_ = self._convert_estimators(self._forecasters)
         self.n_forecasters_ = len(self.forecasters_)
 
         if self.iterative_strategy == "component":
@@ -264,7 +271,7 @@ class EnsembleForecaster(
                 f"got {self.averaging_method!r}"
             )
 
-        for name, forecaster in self.forecasters:
+        for name, forecaster in self._forecasters:
             if self.iterative_strategy == "component" and not callable(
                 getattr(forecaster, "iterative_forecast", None)
             ):
@@ -279,10 +286,10 @@ class EnsembleForecaster(
         weights = np.asarray(self.weights, dtype=float)
         if weights.ndim != 1:
             raise ValueError("weights must be a one-dimensional array.")
-        if weights.shape[0] != len(self.forecasters):
+        if weights.shape[0] != len(self._forecasters):
             raise ValueError(
                 f"weights has length {weights.shape[0]} but there are "
-                f"{len(self.forecasters)} forecasters."
+                f"{len(self._forecasters)} forecasters."
             )
         if not np.all(np.isfinite(weights)):
             raise ValueError("All weights must be finite.")
