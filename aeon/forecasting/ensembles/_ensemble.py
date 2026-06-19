@@ -5,11 +5,13 @@ __all__ = ["EnsembleForecaster"]
 
 import numpy as np
 
-from aeon.base._base import _clone_estimator
+from aeon.base import ComposableEstimatorMixin
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
-class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
+class EnsembleForecaster(
+    ComposableEstimatorMixin, BaseForecaster, IterativeForecastingMixin
+):
     """Ensemble forecaster that combines predictions from multiple forecasters.
 
     Fits each component forecaster independently on the same series and combines
@@ -19,9 +21,10 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
 
     Parameters
     ----------
-    forecasters : list of (str, BaseForecaster) tuples
-        Named forecaster instances to include in the ensemble.  Each element is a
-        ``(name, estimator)`` pair.  Names must be unique.
+    forecasters : list of BaseForecaster or list of (str, BaseForecaster) tuples
+        Forecaster instances to include in the ensemble. Each element can be a
+        forecaster instance or a ``(name, estimator)`` pair. Names must be unique
+        when supplied.
     weights : array-like of float or None, default=None
         Per-forecaster weights used when ``averaging_method="mean"``. Must be
         non-negative and have the same length as ``forecasters``. Weights are
@@ -70,6 +73,8 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
     _tags = {
         "capability:horizon": False,
     }
+    _estimators_attr = "forecasters"
+    _fitted_estimators_attr = "forecasters_"
 
     def __init__(
         self,
@@ -82,12 +87,36 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
         self.weights = weights
         self.averaging_method = averaging_method
         self.iterative_strategy = iterative_strategy
-        super().__init__(horizon=1, axis=1)
+        BaseForecaster.__init__(self, horizon=1, axis=1)
+
+        self._normalise_forecasters()
+
+    def set_params(self, **params):
+        """Set estimator parameters, including nested forecaster parameters."""
+        sentinel = object()
+        forecasters = params.pop("forecasters", sentinel)
+        super().set_params(**params)
+        if forecasters is not sentinel:
+            self.forecasters = forecasters
+        self._normalise_forecasters()
+        return self
+
+    def _normalise_forecasters(self):
+        """Validate and convert component forecasters to named tuples."""
+        self._check_estimators(
+            self.forecasters,
+            attr_name="forecasters",
+            class_type=BaseForecaster,
+        )
+        self.forecasters = self._convert_estimators(
+            self.forecasters, clone_estimators=False
+        )
 
     def _fit(self, y, exog=None):
         """Fit each component forecaster on y."""
         self.weights_ = self._validate_parameters()
-        self._clone_forecasters()
+        self.forecasters_ = self._convert_estimators(self.forecasters)
+        self.n_forecasters_ = len(self.forecasters_)
         for _, f in self.forecasters_:
             f.fit(y)
 
@@ -142,7 +171,8 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
 
         self._preprocess_forecasting_input(y, exog, self.axis, True)
         self.weights_ = self._validate_parameters()
-        self._clone_forecasters()
+        self.forecasters_ = self._convert_estimators(self.forecasters)
+        self.n_forecasters_ = len(self.forecasters_)
 
         if self.iterative_strategy == "component":
             predictions = self._component_iterative_forecast(y, prediction_horizon)
@@ -234,18 +264,7 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
                 f"got {self.averaging_method!r}"
             )
 
-        if len(self.forecasters) == 0:
-            raise ValueError("forecasters must not be empty.")
-
-        names = [name for name, _ in self.forecasters]
-        if len(names) != len(set(names)):
-            raise ValueError("Forecaster names in forecasters must be unique.")
-
         for name, forecaster in self.forecasters:
-            if not isinstance(forecaster, BaseForecaster):
-                raise TypeError(
-                    f"Forecaster {name!r} must be an instance of BaseForecaster."
-                )
             if self.iterative_strategy == "component" and not callable(
                 getattr(forecaster, "iterative_forecast", None)
             ):
@@ -288,14 +307,6 @@ class EnsembleForecaster(BaseForecaster, IterativeForecastingMixin):
             raise ValueError(
                 "The `prediction_horizon` must be greater than or equal to 1."
             )
-
-    def _clone_forecasters(self):
-        """Clone component forecasters into ensemble state."""
-        self.forecasters_ = [
-            (name, _clone_estimator(forecaster))
-            for name, forecaster in self.forecasters
-        ]
-        self.n_forecasters_ = len(self.forecasters_)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

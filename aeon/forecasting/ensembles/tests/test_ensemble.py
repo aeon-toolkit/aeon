@@ -330,23 +330,19 @@ def test_components_are_cloned():
 
 def test_fit_rejects_empty_forecasters_list():
     """``forecasters=[]`` raises in fit."""
-    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    ens = EnsembleForecaster(forecasters=[])
-    with pytest.raises(ValueError, match="forecasters must not be empty"):
-        ens.fit(y)
+    with pytest.raises(TypeError, match="forecasters should be a list"):
+        EnsembleForecaster(forecasters=[])
 
 
 def test_fit_rejects_duplicate_names():
     """Duplicate component names are rejected."""
-    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    ens = EnsembleForecaster(
-        forecasters=[
-            ("naive", NaiveForecaster(strategy="last")),
-            ("naive", NaiveForecaster(strategy="mean")),
-        ]
-    )
     with pytest.raises(ValueError, match="unique"):
-        ens.fit(y)
+        EnsembleForecaster(
+            forecasters=[
+                ("naive", NaiveForecaster(strategy="last")),
+                ("naive", NaiveForecaster(strategy="mean")),
+            ]
+        )
 
 
 def test_fit_rejects_wrong_weights_length():
@@ -446,11 +442,40 @@ def test_iterative_forecast_rejects_future_exog():
 
 def test_fit_rejects_non_forecaster_component():
     """All components must be aeon forecasters."""
-    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    ens = EnsembleForecaster(forecasters=[("bad", object())])
+    with pytest.raises(ValueError, match="BaseForecaster"):
+        EnsembleForecaster(forecasters=[("bad", object())])
 
-    with pytest.raises(TypeError, match="BaseForecaster"):
-        ens.fit(y)
+
+def test_nested_forecaster_params_are_exposed_and_settable():
+    """Composable nested parameter interface exposes component parameters."""
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    params = ens.get_params(deep=True)
+
+    assert "last__strategy" in params
+    assert "mean__strategy" in params
+
+    ens.set_params(last__strategy="mean")
+
+    assert ens.forecasters[0][1].strategy == "mean"
+
+
+def test_set_params_forecasters_normalises_unnamed_components():
+    """Replacing forecasters through set_params preserves nested parameter access."""
+    ens = EnsembleForecaster(forecasters=_default_forecasters())
+
+    ens.set_params(
+        forecasters=[
+            NaiveForecaster(strategy="last"),
+            NaiveForecaster(strategy="mean"),
+        ]
+    )
+
+    assert [name for name, _ in ens.forecasters] == [
+        "NaiveForecaster_0",
+        "NaiveForecaster_1",
+    ]
+    assert "NaiveForecaster_0__strategy" in ens.get_params(deep=True)
 
 
 # ---------------------------------------------------------------------------
