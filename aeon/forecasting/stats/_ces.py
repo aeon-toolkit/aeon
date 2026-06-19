@@ -1385,6 +1385,43 @@ def _ces_fit_pass_sse(
 
 
 @njit(cache=True, fastmath={"contract"})
+def _ces_fit_pass_sse_ordered(
+    y,
+    states,
+    m,
+    season,
+    alpha_0,
+    alpha_1,
+    beta_0,
+    beta_1,
+    reverse,
+):
+    """Run one CES SSE pass over ``y`` in forward or reverse order."""
+    n = y.shape[0]
+    sse = 0.0
+    for i in range(m, n + m):
+        y_idx = n + m - 1 - i if reverse else i - m
+        yhat = _ces_yhat_from_states(states, i, m, season)
+        eps = y[y_idx] - yhat
+        sse += eps * eps
+        _ces_update_state(
+            states,
+            i,
+            m,
+            season,
+            alpha_0,
+            alpha_1,
+            beta_0,
+            beta_1,
+            y[y_idx],
+        )
+        if not np.isfinite(sse):
+            return np.inf
+    _ces_write_future_states(states, n + m, m, season, alpha_0, alpha_1, beta_0, beta_1)
+    return sse
+
+
+@njit(cache=True, fastmath={"contract"})
 def _ces_n_pass_sse_future(y, reverse, alpha_0, alpha_1, l1, l2):
     """Run one non-seasonal CES pass and return SSE plus future state."""
     n = y.shape[0]
@@ -1444,16 +1481,19 @@ def _ces_fit_objective_numba(
         for c in range(n_components):
             states[r, c] = init_states[r, c]
 
-    y_work = y.copy()
-    sse = _ces_fit_pass_sse(y_work, states, m, season, alpha_0, alpha_1, beta_0, beta_1)
+    sse = _ces_fit_pass_sse_ordered(
+        y, states, m, season, alpha_0, alpha_1, beta_0, beta_1, False
+    )
 
-    _reverse_1d_inplace(y_work)
     _reverse_rows_inplace(states)
-    sse = _ces_fit_pass_sse(y_work, states, m, season, alpha_0, alpha_1, beta_0, beta_1)
+    sse = _ces_fit_pass_sse_ordered(
+        y, states, m, season, alpha_0, alpha_1, beta_0, beta_1, True
+    )
 
-    _reverse_1d_inplace(y_work)
     _reverse_rows_inplace(states)
-    sse = _ces_fit_pass_sse(y_work, states, m, season, alpha_0, alpha_1, beta_0, beta_1)
+    sse = _ces_fit_pass_sse_ordered(
+        y, states, m, season, alpha_0, alpha_1, beta_0, beta_1, False
+    )
 
     if sse <= 0.0:
         return -np.inf
