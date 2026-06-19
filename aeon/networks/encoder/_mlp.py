@@ -42,8 +42,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
+        **BaseDeepLearningNetwork._config,
         "structure": "encoder",
     }
 
@@ -56,14 +55,14 @@ class MLPNetwork(BaseDeepLearningNetwork):
         dropout_last: float = None,
         use_bias: bool = True,
     ):
-        super().__init__()
-
         self.n_layers = n_layers
         self.n_units = n_units
         self.activation = activation
         self.dropout_rate = dropout_rate
         self.dropout_last = dropout_last
         self.use_bias = use_bias
+
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
