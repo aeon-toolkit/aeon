@@ -295,6 +295,14 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         not supported by DOTM; passing either raises
         :class:`NotImplementedError`.
         """
+        if isinstance(prediction_horizon, bool) or not isinstance(
+            prediction_horizon, (int, np.integer)
+        ):
+            raise TypeError(
+                "prediction_horizon must be an integer. If you intended to pass "
+                "future exogenous values, use future_exog=... and also provide "
+                "prediction_horizon."
+            )
         if prediction_horizon < 1:
             raise ValueError("prediction_horizon must be greater than or equal to 1.")
         if exog is not None or future_exog is not None:
@@ -393,6 +401,11 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         if lower[2] < 1.0:
             raise ValueError("theta lower bound must be at least 1.0.")
         return fixed_mask, fixed_values, lower, upper
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return fixed-parameter test settings."""
+        return {"initial_level": 1.0, "alpha": 0.5, "theta": 2.0}
 
 
 # ---------------------------------------------------------------------------
@@ -666,7 +679,7 @@ def _seasonal_decompose_numba(y, season_length, requested_mult, mult_floor):
 # ---------------------------------------------------------------------------
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _fit_dotm_core(x0, y, fixed_mask, fixed_values, lower, upper, tol, max_iter):
     """Fit DOTM and compute final fitted-state outputs in one numba call."""
     params, sse = _bounded_nelder_mead_dotm(
@@ -853,6 +866,8 @@ def _dotm_sse_values(initial_level, alpha, theta, y):
         residual = y[i + 1] - fitted
         if not np.isfinite(fitted) or not np.isfinite(residual):
             return 1e300
+        # Match the reference likelihood-style objective: the first two
+        # observations initialise DOTM's dynamic line states and are not scored.
         if i + 1 >= 2:
             err = residual / scale
             sse += err * err
@@ -866,7 +881,7 @@ def _dotm_sse_values(initial_level, alpha, theta, y):
     return sse
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _bounded_nelder_mead_dotm(
     x0, y, fixed_mask, fixed_values, lower, upper, tol, max_iter
 ):

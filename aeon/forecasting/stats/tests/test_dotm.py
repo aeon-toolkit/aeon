@@ -38,6 +38,16 @@ def test_dotm_iterative_forecast_shape():
     assert np.all(np.isfinite(pred))
 
 
+@pytest.mark.parametrize("prediction_horizon", [True, 2.5, np.float64(2.0)])
+def test_dotm_iterative_forecast_rejects_non_integer_horizon(prediction_horizon):
+    """``iterative_forecast`` should match the base mixin horizon contract."""
+    with pytest.raises(TypeError, match="prediction_horizon must be an integer"):
+        DOTM().iterative_forecast(
+            Y_EXAMPLE,
+            prediction_horizon=prediction_horizon,
+        )
+
+
 def test_dotm_forecast_matches_iterative_horizon_one():
     """forecast(y) should match iterative_forecast(y, 1)[0]."""
     forecaster = DOTM()
@@ -219,6 +229,20 @@ def test_dotm_multiplicative_falls_back_to_additive_when_y_non_positive():
     assert np.all(np.isfinite(forecaster.fitted_values_))
 
 
+def test_dotm_multiplicative_falls_back_to_additive_for_tiny_factors():
+    """Tiny positive multiplicative factors should fall back to additive."""
+    y = np.tile(np.array([1e-12, 1.0, 1.0, 1.0]), 10)
+    forecaster = DOTM(
+        season_length=4,
+        decomposition_type="multiplicative",
+        seasonal_test=True,
+    ).fit(y)
+
+    assert forecaster.deseasonalised_
+    assert forecaster.decomposition_type_ == "additive"
+    assert np.all(np.isfinite(forecaster.fitted_values_))
+
+
 def test_dotm_iterative_forecast_seasonal_shape_and_finite():
     """Seasonal ``iterative_forecast`` returns shape ``(h,)`` and finite values."""
     h = 12
@@ -272,6 +296,20 @@ def test_dotm_seasonal_predict_matches_iterative_forecast_h1():
     h1_pred = f.predict(_Y_MULT)
     assert np.isclose(h1_pred, h1_iter, rtol=1e-10, atol=1e-10)
     assert np.isclose(h1_pred, f.forecast_, rtol=1e-10, atol=1e-10)
+
+
+def test_dotm_fit_and_predict_do_not_mutate_input_y():
+    """DOTM fit and predict should leave caller-owned input arrays unchanged."""
+    y = _Y_MULT.copy()
+    original = y.copy()
+    forecaster = DOTM(season_length=4, seasonal_test=True).fit(y)
+    np.testing.assert_array_equal(y, original)
+
+    _ = forecaster.predict(y)
+    np.testing.assert_array_equal(y, original)
+
+    _ = forecaster.iterative_forecast(y, prediction_horizon=4)
+    np.testing.assert_array_equal(y, original)
 
 
 def test_dotm_seasonal_rolling_predict_matches_iterative_forecast():
