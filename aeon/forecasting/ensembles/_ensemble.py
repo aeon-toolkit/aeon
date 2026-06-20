@@ -180,14 +180,15 @@ class EnsembleForecaster(
         np.ndarray
             Shape ``(prediction_horizon,)`` combined forecast.
         """
-        self._validate_prediction_horizon(prediction_horizon)
-        if future_exog is not None:
+        y, _, _ = self._check_iterative_forecast_inputs(y, prediction_horizon)
+        prediction_horizon = int(prediction_horizon)
+        if exog is not None or future_exog is not None:
             raise ValueError(
                 f"Exogenous variables passed but {self.__class__.__name__} cannot "
                 "handle exogenous variables"
             )
 
-        y, exog = self._preprocess_forecasting_input(y, exog, self.axis, True)
+        y, exog = self._preprocess_forecasting_input(y, None, self.axis, True)
         self.weights_ = self._validate_parameters()
         self.forecasters_ = self._convert_estimators(self._forecasters)
         self.n_forecasters_ = len(self.forecasters_)
@@ -310,21 +311,6 @@ class EnsembleForecaster(
         if weight_sum <= 0:
             raise ValueError("At least one weight must be positive.")
         return weights / weight_sum
-
-    def _validate_prediction_horizon(self, prediction_horizon):
-        """Validate the iterative forecast horizon."""
-        if isinstance(prediction_horizon, bool) or not isinstance(
-            prediction_horizon, (int, np.integer)
-        ):
-            raise TypeError(
-                "prediction_horizon must be an integer. If you intended to pass "
-                "future exogenous values, use future_exog=... and also provide "
-                "prediction_horizon."
-            )
-        if prediction_horizon < 1:
-            raise ValueError(
-                "The `prediction_horizon` must be greater than or equal to 1."
-            )
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
