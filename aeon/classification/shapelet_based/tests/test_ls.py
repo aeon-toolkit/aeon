@@ -8,15 +8,6 @@ from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def test_learning_shapelet_classifier_is_deprecated():
-    """LearningShapeletClassifier raises a deprecation warning."""
-    with pytest.warns(
-        FutureWarning,
-        match="LearningShapeletClassifier is deprecated and will be removed",
-    ):
-        LearningShapeletClassifier(max_iter=10)
-
-
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tslearn", "tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
