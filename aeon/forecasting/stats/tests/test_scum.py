@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
+from aeon.forecasting.ensembles import EnsembleForecaster
 from aeon.forecasting.stats import SCUM
 
 
@@ -105,7 +106,9 @@ def test_scum_default_pool_uses_all_four_components():
     assert pred.shape == (4,)
     assert np.all(np.isfinite(pred))
     assert np.all(pred >= 0.0)
-    assert set(scum.component_forecasts_) == {"ets", "ces", "arima", "dotm"}
+    assert isinstance(scum.ensemble_, EnsembleForecaster)
+    assert scum.ensemble_.averaging_method == "median"
+    assert {name for name, _ in scum.forecasters_} == {"ets", "ces", "arima", "dotm"}
     assert len(scum.forecasters_) == 4
 
 
@@ -144,7 +147,7 @@ def test_scum_accepts_named_custom_pool():
     np.testing.assert_allclose(pred, [10.0])
 
 
-def test_scum_invalid_error_policy_raises():
-    """SCUM validates error policy."""
-    with pytest.raises(ValueError, match="error_policy"):
-        SCUM(error_policy="bad").fit(np.arange(5, dtype=np.float64))
+def test_scum_invalid_dotm_max_length_raises():
+    """SCUM validates the DOTM window length."""
+    with pytest.raises(ValueError, match="dotm_max_length"):
+        SCUM(dotm_max_length=0).fit(np.arange(5, dtype=np.float64))
