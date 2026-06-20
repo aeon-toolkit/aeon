@@ -47,6 +47,15 @@ class _NoExogTrajectoryForecaster(_TrajectoryForecaster):
         return self.start + np.arange(prediction_horizon, dtype=float)
 
 
+class _WrongLengthTrajectoryForecaster(_TrajectoryForecaster):
+    """Test forecaster that returns too few iterative predictions."""
+
+    def iterative_forecast(self, y, prediction_horizon, exog=None):
+        self.iterative_forecast_calls_ += 1
+        self.fit(y)
+        return self.start + np.arange(prediction_horizon - 1, dtype=float)
+
+
 class _RecursiveRuleForecaster(BaseForecaster):
     """Test forecaster with predictions based on the latest observed value."""
 
@@ -242,6 +251,17 @@ def test_iterative_forecast_combines_component_full_trajectories():
         assert forecaster.fit_calls_ == 1
         assert forecaster.iterative_forecast_calls_ == 1
         assert forecaster.predict_calls_ == 0
+
+
+def test_iterative_forecast_rejects_wrong_length_component_trajectory():
+    """Component iterative forecasts must match ``prediction_horizon``."""
+    y = np.array([10.0, 20.0, 30.0])
+    ens = EnsembleForecaster(
+        forecasters=[("bad", _WrongLengthTrajectoryForecaster(start=1.0))]
+    )
+
+    with pytest.raises(ValueError, match="returned a forecast with length 3"):
+        ens.iterative_forecast(y, prediction_horizon=4)
 
 
 def test_iterative_forecast_supports_component_without_exog_keyword():
