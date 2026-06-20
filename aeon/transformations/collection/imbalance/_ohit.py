@@ -28,7 +28,8 @@ class OHIT(BaseCollectionTransformer):
     Nearest Neighbor (DRSNN) clustering algorithm. It identifies high-density regions
     among the minority class using DRSNN, then produces synthetic samples within
     these clusters. Covariance estimation for high-dimensional data is performed using
-    shrinkage techniques.
+    shrinkage techniques. The current implementation supports univariate time series
+    only.
 
     The DRSNN procedure involves three main parameters:
     - `drT`: the density ratio threshold (typically set around 1).
