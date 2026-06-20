@@ -31,6 +31,21 @@ def test_create_distance_matrix():
     assert res.shape == (1, 1)
 
 
+def test_create_distance_matrix_uses_requested_distance():
+    """Test distance matrix uses the requested non-Euclidean distance."""
+    X = np.array(
+        [
+            [[0, 0, 0], [1, 2, 3]],
+            [[0, 1, 2], [1, 3, 5]],
+        ]
+    )
+
+    dtw_res = _create_distance_matrix(X, np.array([0, 1]), distance="dtw")
+    manhattan_res = _create_distance_matrix(X, np.array([0, 1]), distance="manhattan")
+
+    assert not np.array_equal(dtw_res.to_numpy(), manhattan_res.to_numpy())
+
+
 def test_prototype():
     """Test function in _ClassPrototype."""
     p = _ClassPrototype()
