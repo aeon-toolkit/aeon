@@ -370,10 +370,10 @@ class AutoETS(BaseForecaster):
     ----------
     seasonal_period : int or None, default=None
         The seasonal period to use in automatic model selection. If ``None``,
-        the seasonal period is estimated from the data. Seasonal candidate models
-        are only considered when the series length is greater than four times the
-        selected seasonal period; otherwise AutoETS falls back to non-seasonal
-        candidates.
+        the seasonal period is estimated from the data. If an integer is supplied,
+        AutoETS selects the best seasonal model when the series length is greater
+        than four times the supplied period, even if a non-seasonal candidate has
+        a lower AIC. Otherwise, AutoETS falls back to non-seasonal candidates.
     allow_multiplicative_trend : bool, default=False
         Whether to include multiplicative trend models in the automatic model search.
 
