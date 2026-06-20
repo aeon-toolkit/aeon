@@ -107,10 +107,11 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
         if exog is not None or future_exog is not None:
             raise NotImplementedError("SCUM does not support exogenous variables.")
         self._validate_parameters()
-        _validate_prediction_horizon(prediction_horizon)
+        y, _, _ = self._check_iterative_forecast_inputs(y, prediction_horizon)
+        prediction_horizon = int(prediction_horizon)
 
         y = _as_1d_float(y)
-        forecasts, ensemble = self._fit_predict(y, int(prediction_horizon))
+        forecasts, ensemble = self._fit_predict(y, prediction_horizon)
         self.forecast_ = float(forecasts[0])
         self.ensemble_ = ensemble
         self.forecasters_ = ensemble.forecasters_
@@ -214,14 +215,13 @@ class _RecentWindowForecaster(BaseForecaster, IterativeForecastingMixin):
         """Fit the wrapped forecaster on the recent window and forecast."""
         if exog is not None or future_exog is not None:
             raise NotImplementedError("Recent-window wrapper does not support exog.")
-        _validate_prediction_horizon(prediction_horizon)
+        y, _, _ = self._check_iterative_forecast_inputs(y, prediction_horizon)
+        prediction_horizon = int(prediction_horizon)
         y = _tail(_as_1d_float(y), self.max_length)
         self.forecaster_ = deepcopy(self.forecaster)
-        forecasts = self.forecaster_.iterative_forecast(y, int(prediction_horizon))
+        forecasts = self.forecaster_.iterative_forecast(y, prediction_horizon)
         self.is_fitted = True
-        return _validate_forecast_array(
-            forecasts, int(prediction_horizon), self.forecaster_
-        )
+        return _validate_forecast_array(forecasts, prediction_horizon, self.forecaster_)
 
 
 class _ConstantDummyForecaster(BaseForecaster, IterativeForecastingMixin):
@@ -249,18 +249,8 @@ class _ConstantDummyForecaster(BaseForecaster, IterativeForecastingMixin):
         future_exog=None,
     ):
         """Return a constant forecast for every horizon."""
-        _validate_prediction_horizon(prediction_horizon)
+        self._check_iterative_forecast_inputs(y, prediction_horizon)
         return np.full(int(prediction_horizon), float(self.value))
-
-
-def _validate_prediction_horizon(prediction_horizon):
-    """Validate an iterative forecast horizon."""
-    if isinstance(prediction_horizon, bool) or not isinstance(
-        prediction_horizon, (int, np.integer)
-    ):
-        raise TypeError("prediction_horizon must be an integer.")
-    if prediction_horizon < 1:
-        raise ValueError("prediction_horizon must be greater than or equal to 1.")
 
 
 def _validate_forecast_array(forecasts, prediction_horizon, model):
