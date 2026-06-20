@@ -71,6 +71,17 @@ class EnsembleForecaster(
     ... ]
     >>> ens = EnsembleForecaster(forecasters=forecasters, averaging_method="mean")
     >>> preds = ens.iterative_forecast(y, prediction_horizon=3)
+    >>> preds.shape
+    (3,)
+
+    See Also
+    --------
+    aeon.forecasting.stats.SCUM : Simple Combination of Univariate Models forecaster.
+
+    References
+    ----------
+    .. [1] Petropoulos, F. and Svetunkov, I. (2020). A simple combination of
+       univariate models. International Journal of Forecasting, 36(1), 110-115.
     """
 
     _tags = {
