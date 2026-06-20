@@ -155,6 +155,8 @@ class ESMOTE(BaseCollectionTransformer):
                 nn_ts,
                 distance=self.distance,
                 step=steps[count],
+                return_bias=False,
+                **self._distance_params,
             )
 
         y_new = np.full(n_samples, fill_value=y_type, dtype=y_dtype)
@@ -179,7 +181,7 @@ class ESMOTE(BaseCollectionTransformer):
         transformation_precomputed: bool = False,
         transformed_x: np.ndarray | None = None,
         transformed_y: np.ndarray | None = None,
-        return_bias=True,
+        return_bias=False,
     ):
         """
         Generate a single synthetic sample using soft distance.
