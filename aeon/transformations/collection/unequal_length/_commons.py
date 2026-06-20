@@ -4,7 +4,22 @@ These should ideally be incorporated into the collection data utilities in utils
 the future.
 """
 
+import numbers
+
 import numpy as np
+
+
+def _is_positive_integer_length(value):
+    return isinstance(value, numbers.Integral) and not isinstance(value, bool)
+
+
+def _validate_positive_integer_length(value, parameter_name):
+    """Validate an integer target length parameter."""
+    msg = f"{parameter_name} must be a positive integer, 'min' or 'max'."
+    if isinstance(value, bool):
+        raise ValueError(msg)
+    if isinstance(value, numbers.Integral) and value < 1:
+        raise ValueError(msg)
 
 
 def _get_min_length(X):

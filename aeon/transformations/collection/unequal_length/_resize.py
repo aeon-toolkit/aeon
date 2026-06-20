@@ -9,6 +9,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -47,11 +49,13 @@ class Resizer(BaseCollectionTransformer):
     }
 
     def __init__(self, resized_length="max"):
+        _validate_positive_integer_length(resized_length, "resized_length")
+
         self.resized_length = resized_length
 
         super().__init__()
 
-        self.set_tags(**{"fit_is_empty": isinstance(resized_length, int)})
+        self.set_tags(**{"fit_is_empty": _is_positive_integer_length(resized_length)})
 
     def _fit(self, X, y=None):
         if self.resized_length == "min":
@@ -77,7 +81,7 @@ class Resizer(BaseCollectionTransformer):
         """
         length = (
             self.resized_length
-            if isinstance(self.resized_length, int)
+            if _is_positive_integer_length(self.resized_length)
             else self._resized_length
         )
 
