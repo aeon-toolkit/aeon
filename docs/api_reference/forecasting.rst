@@ -35,11 +35,14 @@ Statistical Models
 
     ARIMA
     AutoARIMA
+    CES
+    AutoCES
     ETS
     AutoETS
     TAR
     AutoTAR
     Theta
+    DOTM
     TVP
 
 Deep Learning Models
