@@ -69,6 +69,16 @@ def test_tselect_default_validation_split_with_100_cases():
     assert len(selector.channels_selected_) >= 1
 
 
+def test_tselect_validation_split_is_stratified():
+    """Test TSelect keeps each class in the validation split when possible."""
+    y = np.array([0] * 10 + [1] * 2)
+    selector = TSelect(validation_size=0.25, random_state=1)
+
+    _, valid_idx = selector._train_validation_split(len(y), y)
+
+    assert set(y[valid_idx]) == {0, 1}
+
+
 def test_tselect_zero_percentage_keeps_hard_threshold_channels():
     """Test percentage-filter fallback keeps only hard-threshold channels."""
     rng = np.random.RandomState(2)
