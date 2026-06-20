@@ -328,13 +328,13 @@ def test_components_are_cloned():
 # ---------------------------------------------------------------------------
 
 
-def test_fit_rejects_empty_forecasters_list():
-    """``forecasters=[]`` raises in fit."""
+def test_init_rejects_empty_forecasters_list():
+    """``forecasters=[]`` raises during construction."""
     with pytest.raises(ValueError, match="forecasters must not be empty"):
         EnsembleForecaster(forecasters=[])
 
 
-def test_fit_rejects_duplicate_names():
+def test_init_rejects_duplicate_names():
     """Duplicate component names are rejected."""
     with pytest.raises(ValueError, match="unique"):
         EnsembleForecaster(
@@ -440,7 +440,7 @@ def test_iterative_forecast_rejects_future_exog():
         ens.iterative_forecast(y, prediction_horizon=2, future_exog=future_exog)
 
 
-def test_fit_rejects_non_forecaster_component():
+def test_init_rejects_non_forecaster_component():
     """All components must be aeon forecasters."""
     with pytest.raises(ValueError, match="BaseForecaster"):
         EnsembleForecaster(forecasters=[("bad", object())])
