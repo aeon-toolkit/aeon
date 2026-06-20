@@ -30,4 +30,4 @@ def test_random_channel_selector():
     with pytest.raises(
         ValueError, match="Proportion of channels to select should be in the range."
     ):
-        RandomChannelSelector(p=0)
+        RandomChannelSelector(p=0).fit(X)
