@@ -132,4 +132,9 @@ class _BaseHIVECOTE(BaseClassifier):
 
     def get_component_weights(self):
         """Return the calculated weights for each component."""
-        return dict(zip(self.component_names_, self.weights_))
+        return dict(
+            zip(
+                getattr(self, "component_names_", []),
+                getattr(self, "weights_", []),
+            )
+        )
