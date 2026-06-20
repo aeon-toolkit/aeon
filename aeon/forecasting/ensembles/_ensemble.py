@@ -130,9 +130,7 @@ class EnsembleForecaster(
 
     def _fit(self, y, exog=None):
         """Fit each component forecaster on y."""
-        self.weights_ = self._validate_parameters()
-        self.forecasters_ = self._convert_estimators(self._forecasters)
-        self.n_forecasters_ = len(self.forecasters_)
+        self._setup_components()
         for _, f in self.forecasters_:
             f.fit(y)
 
@@ -189,9 +187,7 @@ class EnsembleForecaster(
             )
 
         y, exog = self._preprocess_forecasting_input(y, None, self.axis, True)
-        self.weights_ = self._validate_parameters()
-        self.forecasters_ = self._convert_estimators(self._forecasters)
-        self.n_forecasters_ = len(self.forecasters_)
+        self._setup_components()
 
         if self.iterative_strategy == "component":
             predictions = self._component_iterative_forecast(y, prediction_horizon)
@@ -199,6 +195,12 @@ class EnsembleForecaster(
             predictions = self._ensemble_iterative_forecast(y, prediction_horizon)
         self.is_fitted = True
         return predictions
+
+    def _setup_components(self):
+        """Validate parameters and initialise fitted component clones."""
+        self.weights_ = self._validate_parameters()
+        self.forecasters_ = self._convert_estimators(self._forecasters)
+        self.n_forecasters_ = len(self.forecasters_)
 
     def _component_iterative_forecast(self, y, prediction_horizon):
         """Iterate forecasts for each component path, then combine paths."""
