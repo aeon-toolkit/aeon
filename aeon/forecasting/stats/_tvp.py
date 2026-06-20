@@ -9,7 +9,7 @@ from aeon.forecasting.base import (
 )
 
 
-class TVPForecaster(BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin):
+class TVP(BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin):
     r"""Time-Varying Parameter (TVP) Forecaster using Kalman filter as described in [1].
 
     This forecaster models the target series using a time-varying linear autoregression:

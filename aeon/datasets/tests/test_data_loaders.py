@@ -5,6 +5,7 @@ __maintainer__ = ["TonyBagnall"]
 import os
 import shutil
 import tempfile
+from inspect import signature
 from urllib.error import URLError
 from zipfile import BadZipFile
 
@@ -34,6 +35,14 @@ from aeon.datasets._data_loaders import (
     download_dataset,
 )
 from aeon.testing.testing_config import PR_TESTING
+
+
+def test_collection_loader_defaults():
+    """Test collection loaders default to original archive data."""
+    for loader in [load_classification, load_regression]:
+        parameters = signature(loader).parameters
+        assert parameters["load_equal_length"].default is False
+        assert parameters["load_no_missing"].default is False
 
 
 @pytest.mark.skipif(
@@ -70,21 +79,21 @@ def test_load_classification_from_repo():
     name = "FOO"
     with pytest.raises(ValueError):
         load_classification(name)
-    name = "SonyAIBORobotSurface1"
-    X, y, meta = load_classification(name, return_metadata=True)
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert isinstance(meta, dict)
-    assert len(X) == len(y)
-    assert X.shape == (621, 1, 70)
-    assert meta["problemname"] == "sonyaiborobotsurface1"
-    assert not meta["timestamps"]
-    assert meta["univariate"]
-    assert meta["equallength"]
-    assert meta["classlabel"]
-    assert not meta["targetlabel"]
-    assert meta["class_values"] == ["1", "2"]
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    with tempfile.TemporaryDirectory() as tmp:
+        name = "SonyAIBORobotSurface1"
+        X, y, meta = load_classification(name, return_metadata=True, extract_path=tmp)
+        assert isinstance(X, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(meta, dict)
+        assert len(X) == len(y)
+        assert X.shape == (621, 1, 70)
+        assert meta["problemname"] == "sonyaiborobotsurface1"
+        assert not meta["timestamps"]
+        assert meta["univariate"]
+        assert meta["equallength"]
+        assert meta["classlabel"]
+        assert not meta["targetlabel"]
+        assert meta["class_values"] == ["1", "2"]
 
 
 @pytest.mark.skipif(
@@ -423,11 +432,11 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
-    # Try load covid, should work
-    X, y, meta = load_classification("Covid3Month", return_metadata=True)
-
+    # Try load discrete version of covid
+    load_classification("Covid3Month_disc", return_metadata=True)
+    # Regression version should not work
     with pytest.raises(ValueError, match="You have tried to load a regression problem"):
-        X, y = load_classification("CardanoSentiment")
+        load_classification("Covid3Month")
 
 
 @pytest.mark.skipif(

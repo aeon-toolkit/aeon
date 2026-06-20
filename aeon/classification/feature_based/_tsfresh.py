@@ -83,8 +83,10 @@ class TSFreshClassifier(BaseClassifier):
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
@@ -122,6 +124,8 @@ class TSFreshClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The training data.
         y : array-like, shape = [n_cases]
             The class labels.
@@ -193,6 +197,8 @@ class TSFreshClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns
@@ -201,7 +207,7 @@ class TSFreshClassifier(BaseClassifier):
             Predicted class labels.
         """
         if self._return_majority_class:
-            return np.full(X.shape[0], self.classes_[self._majority_class])
+            return np.full(len(X), self.classes_[self._majority_class])
 
         return self.estimator_.predict(self._transformer.transform(X))
 
@@ -211,6 +217,8 @@ class TSFreshClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predict probabilities for.
 
         Returns
@@ -219,7 +227,7 @@ class TSFreshClassifier(BaseClassifier):
             Predicted probabilities using the ordering in classes_.
         """
         if self._return_majority_class:
-            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists = np.zeros((len(X), self.n_classes_))
             dists[:, self._majority_class] = 1
             return dists
 
@@ -227,9 +235,9 @@ class TSFreshClassifier(BaseClassifier):
         if callable(m):
             return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists = np.zeros((len(X), self.n_classes_))
             preds = self.estimator_.predict(self._transformer.transform(X))
-            for i in range(0, X.shape[0]):
+            for i in range(0, len(X)):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
 

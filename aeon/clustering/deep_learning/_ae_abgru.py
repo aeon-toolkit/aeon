@@ -41,6 +41,8 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
+    validation_split: float, default = 0
+        Fraction of the training data to be used as validation data.
     use_mini_batch_size : bool, default = True,
         Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
@@ -129,6 +131,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         activation_decoder="relu",
         n_epochs=2000,
         batch_size=32,
+        validation_split=0,
         use_mini_batch_size=False,
         random_state=None,
         verbose=False,
@@ -157,6 +160,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self.callbacks = callbacks
         self.file_path = file_path
         self.n_epochs = n_epochs
+        self.validation_split = validation_split
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.save_init_model = save_init_model
@@ -199,6 +203,13 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         import numpy as np
         import tensorflow as tf
 
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -214,15 +225,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
-
-        if self.metrics is None:
-            self._metrics = ["mean_squared_error"]
-        elif isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
-            raise ValueError("Metrics should be a list, string, or None.")
 
         model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
 
@@ -270,7 +272,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="loss",
+                    monitor="val_loss" if self.validation_split > 0 else "loss",
                     save_best_only=True,
                 ),
             ]
@@ -288,6 +290,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            validation_split=self.validation_split,
         )
 
         try:

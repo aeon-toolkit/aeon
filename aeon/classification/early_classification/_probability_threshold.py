@@ -31,7 +31,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         Build n classifiers, where n is the number of classification_points.
         While a prediction is still deemed unsafe:
             Make a prediction using the series length at classification point i.
-            Decide whether the predcition is safe or not using decide_prediction_safety.
+            Decide whether the prediction is safe or not using decide_prediction_safety.
 
     Parameters
     ----------
@@ -419,7 +419,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return preds, out[1]
 
     def compute_harmonic_mean(self, state_info, y) -> tuple[float, float, float]:
-        """Calculate harmonic mean from a state info matrix and array of class labeles.
+        """Calculate harmonic mean from a state info matrix and array of class labels.
 
         Parameters
         ----------

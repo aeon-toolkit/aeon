@@ -34,5 +34,51 @@ Statistical Models
     :template: class.rst
 
     ARIMA
+    AutoARIMA
+    CES
+    AutoCES
     ETS
-    TVPForecaster
+    AutoETS
+    TAR
+    AutoTAR
+    Theta
+    DOTM
+    TVP
+
+Ensemble Models
+---------------
+
+.. currentmodule:: aeon.forecasting.ensembles
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    EnsembleForecaster
+
+Deep Learning Models
+--------------------
+
+.. currentmodule:: aeon.forecasting.deep_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseDeepForecaster
+    DeepARForecaster
+    TCNForecaster
+    NBeatsForecaster
+
+Machine Learning Models
+------------------------
+
+.. currentmodule:: aeon.forecasting.machine_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SETAR
+    SETARForest
+    SETARTree

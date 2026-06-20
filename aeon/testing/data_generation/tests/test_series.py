@@ -12,7 +12,7 @@ from aeon.testing.data_generation import (
     make_example_dataframe_series,
     make_example_pandas_series,
 )
-from aeon.utils.validation import is_single_series
+from aeon.utils.validation.series import is_series
 
 N_CHANNELS = [1, 3]
 N_TIMEPOINTS = [6, 10]
@@ -25,13 +25,13 @@ def test_make_example_1d_numpy(n_timepoints):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_timepoints,)
-    assert is_single_series(X)
+    assert is_series(X)
 
     X, y = make_example_1d_numpy(n_timepoints=n_timepoints, return_y="anomaly")
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_timepoints,)
-    assert is_single_series(X)
+    assert is_series(X)
     assert isinstance(y, np.ndarray)
     assert y.shape == (n_timepoints,)
     assert np.all(np.isin(y, [0, 1]))
@@ -50,7 +50,7 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_timepoints, n_channels)
-    assert is_single_series(X)
+    assert is_series(X, include_2d=True)
 
     X = make_example_2d_numpy_series(
         n_timepoints=n_timepoints, n_channels=n_channels, axis=1
@@ -58,7 +58,7 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_single_series(X)
+    assert is_series(X, include_2d=True)
 
     (
         X,
@@ -69,7 +69,7 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_single_series(X)
+    assert is_series(X, include_2d=True)
     assert isinstance(y, np.ndarray)
     assert y.shape == (n_timepoints,)
     assert np.all(np.isin(y, [0, 1]))
@@ -87,13 +87,13 @@ def test_make_example_pandas_series(n_timepoints):
 
     assert isinstance(X, pd.Series)
     assert X.shape == (n_timepoints,)
-    assert is_single_series(X)
+    assert is_series(X)
 
     X, y = make_example_pandas_series(n_timepoints=n_timepoints, return_y="anomaly")
 
     assert isinstance(X, pd.Series)
     assert X.shape == (n_timepoints,)
-    assert is_single_series(X)
+    assert is_series(X)
     assert isinstance(y, np.ndarray)
     assert y.shape == (n_timepoints,)
     assert np.all(np.isin(y, [0, 1]))
@@ -112,7 +112,7 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
 
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_timepoints, n_channels)
-    assert is_single_series(X)
+    assert is_series(X, include_2d=True)
 
     X = make_example_dataframe_series(
         n_timepoints=n_timepoints, n_channels=n_channels, axis=1
@@ -120,7 +120,7 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
 
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_single_series(X)
+    assert is_series(X, include_2d=True)
 
     (
         X,
@@ -131,7 +131,7 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
 
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_single_series(X)
+    assert is_series(X, include_2d=True)
     assert isinstance(y, np.ndarray)
     assert y.shape == (n_timepoints,)
     assert np.all(np.isin(y, [0, 1]))

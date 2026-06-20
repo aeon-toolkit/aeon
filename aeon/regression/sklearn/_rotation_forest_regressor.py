@@ -75,6 +75,13 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
 
+    Notes
+    -----
+    Predictions may differ slightly between scikit-learn versions. In particular,
+    scikit-learn 1.8 fixed decision-tree handling of almost constant features, which
+    can change the fitted trees used by ``RotationForestRegressor`` and therefore
+    its output, even when using the same random state.
+
     References
     ----------
     .. [1] Rodriguez, Juan José, Ludmila I. Kuncheva, and Carlos J. Alonso. "Rotation
@@ -105,7 +112,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         max_group: int = 3,
         remove_proportion: float = 0.5,
         base_estimator: BaseEstimator | None = None,
-        pca_solver: str = "auto",
+        pca_solver: str = "full",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
@@ -207,15 +214,17 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         y_preds, oobs = zip(*p)
 
         results = np.sum(y_preds, axis=0)
-        divisors = np.zeros(self.n_cases_)
-        for oob in oobs:
-            for inst in oob:
-                divisors[inst] += 1
+        oob_arrays = [np.asarray(o, dtype=np.intp) for o in oobs if len(o) > 0]
+        if oob_arrays:
+            divisors = np.bincount(
+                np.concatenate(oob_arrays), minlength=self.n_cases_
+            ).astype(float)
+        else:
+            divisors = np.zeros(self.n_cases_, dtype=float)
 
-        for i in range(self.n_cases_):
-            results[i] = (
-                self._label_average if divisors[i] == 0 else results[i] / divisors[i]
-            )
+        nonzero = divisors > 0
+        results[nonzero] = results[nonzero] / divisors[nonzero]
+        results[~nonzero] = self._label_average
 
         return results
 
@@ -330,7 +339,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # differences between os occasionally. seems to happen when there
                     # are low amounts of cases in the fit
-                    pca = PCA(random_state=rng, svd_solver=self.pca_solver).fit(X_t)
+                    pca = PCA(random_state=rng, svd_solver="full").fit(X_t)
 
                 if not np.isnan(pca.explained_variance_ratio_).all():
                     break

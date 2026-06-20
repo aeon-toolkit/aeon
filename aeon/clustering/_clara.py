@@ -29,7 +29,7 @@ class TimeSeriesCLARA(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init : str or np.ndarray, default='random'
+    init : str, default='random'
         Method for initialising cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
@@ -38,8 +38,6 @@ class TimeSeriesCLARA(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
-        If a np.ndarray provided it must be of shape (n_clusters,) and contain
-        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -48,10 +46,10 @@ class TimeSeriesCLARA(BaseClusterer):
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_cases, 40 + 2 * n_clusters) is used.
-    n_sampling_iters : int, default=5,
+    n_sampling_iters : int, default=10
         Number of different subsets of samples to try. The best subset cluster centers
         are used.
-    n_init : int, default=5
+    n_init : int, default=1
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
@@ -78,8 +76,8 @@ class TimeSeriesCLARA(BaseClusterer):
     ----------
     cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    labels_ : np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -117,7 +115,7 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: str | np.ndarray = "random",
+        init: str = "random",
         distance: str | Callable = "msm",
         n_samples: int | None = None,
         n_sampling_iters: int = 10,
@@ -154,6 +152,13 @@ class TimeSeriesCLARA(BaseClusterer):
         return self._kmedoids_instance.predict(X)
 
     def _fit(self, X: np.ndarray, y=None):
+        if not isinstance(self.init, str):
+            raise ValueError(
+                "Non-string initialisation is not supported for TimeSeriesCLARA "
+                "because CLARA fits PAM on sampled subsets. Use a string "
+                "initialisation method instead."
+            )
+
         self._random_state = check_random_state(self.random_state)
         n_cases = X.shape[0]
         if self.n_samples is None:
@@ -165,13 +170,17 @@ class TimeSeriesCLARA(BaseClusterer):
         best_pam = None
         best_labels = None
         for _ in range(self.n_sampling_iters):
-            sample_idxs = np.arange(n_samples)
+
             if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
-                    sample_idxs,
+                    np.arange(n_cases),
                     size=n_samples,
                     replace=False,
                 )
+
+            else:
+                sample_idxs = np.arange(n_cases)
+
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
                 init=self.init,

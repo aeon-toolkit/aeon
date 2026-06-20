@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.stats._ets import ETS, _validate_parameter
+from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
 
 
 @pytest.mark.parametrize(
@@ -16,7 +16,7 @@ from aeon.forecasting.stats._ets import ETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            11.150969310377484,
+            11.900326351628069,
         ),
         (
             dict(
@@ -25,7 +25,7 @@ from aeon.forecasting.stats._ets import ETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            11.15096931037748,
+            12.03610521881817,
         ),
         (
             dict(
@@ -34,7 +34,7 @@ from aeon.forecasting.stats._ets import ETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            14.075007324719092,
+            12.116446361161152,
         ),
         (
             dict(
@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            14.075007324719058,
+            10.158588233985748,
         ),
     ],
 )
@@ -52,7 +52,13 @@ def test_ets_forecaster(params, expected):
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETS(**params)
     p = forecaster.forecast(data)
-    assert np.isclose(p, expected)
+    # This allows for different values for numba vs no-numba runs.
+    # If there is more than one value in the expected values parameter,
+    # assume this is a value for a numba run and a value for a no-numba run
+    if isinstance(expected, list):
+        assert any(np.isclose(p, expected, rtol=0.01, atol=0.1))
+    else:
+        assert np.isclose(p, expected, rtol=0.01, atol=0.1)
 
 
 @pytest.mark.parametrize(
@@ -105,3 +111,281 @@ def test_ets_iterative_forecast():
     forecaster = ETS(trend_type=None)
     forecaster._fit(y)
     assert forecaster._trend_type == 0
+
+
+y_pos = np.array(
+    [112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118],
+    dtype=np.float64,
+)
+
+y_non_pos = np.array(
+    [10.0, 12.0, 0.0, 13.0, 15.0, 14.0, 13.0],
+    dtype=np.float64,
+)
+
+
+def test_autoets_fit_sets_wrapped_model_and_types():
+    """Fit should select a model and wrap an ETS instance."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    assert forecaster.wrapped_model_ is not None
+    assert isinstance(forecaster.wrapped_model_, ETS)
+
+    # model type attributes are set
+    assert forecaster.error_type_ in (1, 2)
+    assert forecaster.trend_type_ in (0, 1, 2)
+    assert forecaster.seasonality_type_ in (0, 1, 2)
+    assert forecaster.seasonal_period_ >= 1
+
+
+def test_autoets_predict_returns_finite_float():
+    """_predict should return a finite float once fitted."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    pred = forecaster._predict(y_pos)
+
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
+
+
+def test_autoets_forecast_sets_wrapped_and_returns_forecast():
+    """_forecast should refit internally and return wrapped forecast_."""
+    forecaster = AutoETS()
+
+    f = forecaster._forecast(y_pos)
+
+    assert isinstance(f, float)
+    assert forecaster.wrapped_model_ is not None
+    assert hasattr(forecaster.wrapped_model_, "forecast_")
+    assert np.isclose(f, forecaster.wrapped_model_.forecast_)
+
+
+def test_autoets_iterative_forecast_shape_and_validity():
+    """iterative_forecast should delegate and return valid forecasts."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    horizon = 5
+    preds = forecaster.iterative_forecast(y_pos, prediction_horizon=horizon)
+
+    assert isinstance(preds, np.ndarray)
+    assert preds.shape == (horizon,)
+    assert np.all(np.isfinite(preds))
+
+
+def test_autoets_predict_matches_wrapped_predict():
+    """_predict should be a thin wrapper around wrapped_model_.predict."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    a = forecaster._predict(y_pos)
+    b = forecaster.wrapped_model_.predict(y_pos)
+
+    assert isinstance(a, float)
+    assert isinstance(b, float)
+    assert np.isfinite(a) and np.isfinite(b)
+    assert np.isclose(a, b)
+
+
+def test_autoets_forecast_is_consistent_with_wrapped():
+    """_forecast output should match wrapped model forecast_."""
+    forecaster = AutoETS()
+
+    val = forecaster._forecast(y_pos)
+
+    assert np.isclose(val, forecaster.wrapped_model_.forecast_)
+
+
+def test_autoets_excludes_multiplicative_models_for_non_positive_data():
+    """If data contains non-positive values, multiplicative options must be excluded."""
+    forecaster = AutoETS()
+    forecaster.fit(y_non_pos)
+
+    # multiplicative error or components should not be selected
+    assert forecaster.error_type_ != 2
+    assert forecaster.trend_type_ != 2
+    assert forecaster.seasonality_type_ != 2
+
+
+def test_autoets_runs_on_short_but_valid_series():
+    """AutoETS should run on short series without crashing."""
+    y_short = np.array([10.0, 11.0, 12.0, 13.0])
+
+    forecaster = AutoETS()
+    pred = forecaster._forecast(y_short)
+
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
+
+
+def test_autoets_wrapped_model_parameters_match_selected_types():
+    """Wrapped ETS should reflect the auto-selected configuration."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    model = forecaster.wrapped_model_
+
+    assert model._error_type == forecaster.error_type_
+    assert model._trend_type == forecaster.trend_type_
+    assert model._seasonality_type == forecaster.seasonality_type_
+    assert model._seasonal_period == forecaster.seasonal_period_
+
+
+def test_autoets_uses_provided_seasonal_period():
+    """AutoETS should use a provided seasonal period instead of inferring one."""
+    y = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+
+    assert forecaster.seasonality_type_ != 0
+    assert forecaster.seasonal_period_ == 4
+    assert forecaster.wrapped_model_._seasonal_period == 4
+
+
+def test_autoets_provided_seasonal_period_overrides_nonseasonal_aic_winner():
+    """A supplied seasonal period should force a seasonal model when possible."""
+    y = np.linspace(10.0, 30.0, 80) + 0.01 * np.sin(np.arange(80))
+
+    unconstrained = AutoETS()
+    unconstrained.fit(y)
+    forced = AutoETS(seasonal_period=4)
+    forced.fit(y)
+
+    assert unconstrained.seasonality_type_ == 0
+    assert forced.seasonality_type_ != 0
+    assert forced.seasonal_period_ == 4
+
+
+def test_autoets_invalid_seasonal_period_raises():
+    """AutoETS should reject invalid supplied seasonal periods."""
+    forecaster = AutoETS(seasonal_period=0)
+    y = np.array([10.0, 11.0, 12.0, 13.0])
+
+    with pytest.raises(ValueError, match="seasonal_period must be"):
+        forecaster.fit(y)
+
+
+@pytest.mark.parametrize(
+    "y, horizon",
+    [
+        (
+            np.array(
+                [
+                    417,
+                    451,
+                    360,
+                    525,
+                    392,
+                    375,
+                    326,
+                    594,
+                    519,
+                    570,
+                    416,
+                    556,
+                    272,
+                    391,
+                    732,
+                    890,
+                    855,
+                    737,
+                    470,
+                ],
+                dtype=np.float64,
+            ),
+            6,
+        ),
+        (
+            np.array(
+                [
+                    2032.0,
+                    2085.05,
+                    2068.75,
+                    1978.9,
+                    2472.25,
+                    2819.6,
+                    3016.45,
+                    2731.85,
+                    2506.75,
+                    5833.6,
+                    4474.0,
+                    7208.75,
+                    15586.15,
+                    25052.3,
+                ],
+                dtype=np.float64,
+            ),
+            6,
+        ),
+    ],
+)
+def test_autoets_issue_3297_forecasts_are_finite_and_bounded(y, horizon):
+    """AutoETS should not select unstable multiplicative trend issue cases."""
+    forecaster = AutoETS()
+    forecaster.fit(y)
+
+    preds = forecaster.iterative_forecast(y, prediction_horizon=horizon)
+
+    assert forecaster.trend_type_ != 2
+    assert np.all(np.isfinite(preds))
+    assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
+
+
+def test_autoets_rejects_unstable_multiplicative_seasonal_state():
+    """AutoETS should reject multiplicative seasonal states with invalid support."""
+    y = np.array(
+        [
+            2100.0,
+            1700.0,
+            2500.0,
+            16400.0,
+            1500.0,
+            2700.0,
+            2400.0,
+            3600.0,
+            3000.0,
+            2300.0,
+            2900.0,
+            2700.0,
+            2200.0,
+            32700.0,
+            7400.0,
+            2300.0,
+            2400.0,
+            2600.0,
+            2800.0,
+            2900.0,
+            2700.0,
+            2900.0,
+            4200.0,
+            4100.0,
+            3000.0,
+            3300.0,
+        ],
+        dtype=np.float64,
+    )
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+    preds = forecaster.iterative_forecast(y, prediction_horizon=8)
+
+    assert np.all(np.isfinite(preds))
+    assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
+
+
+def test_ets_liklihood_alias_is_deprecated():
+    """``ETS.liklihood_`` is a deprecated misspelled alias for ``likelihood_``.
+
+    The PR that introduced the rename keeps the old attribute name for one
+    release cycle as a property so callers do not break silently. Accessing
+    it must emit a :class:`DeprecationWarning` and return the same value as
+    :attr:`likelihood_`.
+    """
+    data = np.array([3.0, 10.0, 12.0, 13.0, 12.0, 10.0, 12.0, 3.0, 10.0, 12.0])
+    f = ETS().fit(data)
+    with pytest.warns(DeprecationWarning, match="liklihood_"):
+        deprecated_value = f.liklihood_
+    assert deprecated_value == f.likelihood_

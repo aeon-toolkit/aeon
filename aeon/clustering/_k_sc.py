@@ -60,6 +60,11 @@ class KSpectralCentroid(TimeSeriesKMeans):
         random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+
 
     Attributes
     ----------
@@ -94,6 +99,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "distance",
+        "capability:multithreading": True,
     }
 
     def __init__(
@@ -106,6 +112,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
         tol: float = 1e-6,
         verbose: bool = False,
         random_state: int | RandomState | None = None,
+        n_jobs: int | None = 1,
     ):
         self.max_shift = max_shift
 
@@ -119,6 +126,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
             random_state=random_state,
             distance="shift_scale",
             averaging_method="shift_scale",
+            n_jobs=n_jobs,
         )
 
     def _check_params(self, X: np.ndarray) -> None:
