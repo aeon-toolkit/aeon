@@ -71,6 +71,17 @@ class EnsembleForecaster(
     ... ]
     >>> ens = EnsembleForecaster(forecasters=forecasters, averaging_method="mean")
     >>> preds = ens.iterative_forecast(y, prediction_horizon=3)
+    >>> preds.shape
+    (3,)
+
+    See Also
+    --------
+    aeon.forecasting.stats.SCUM : Simple Combination of Univariate Models forecaster.
+
+    References
+    ----------
+    .. [1] Petropoulos, F. and Svetunkov, I. (2020). A simple combination of
+       univariate models. International Journal of Forecasting, 36(1), 110-115.
     """
 
     _tags = {
@@ -130,9 +141,7 @@ class EnsembleForecaster(
 
     def _fit(self, y, exog=None):
         """Fit each component forecaster on y."""
-        self.weights_ = self._validate_parameters()
-        self.forecasters_ = self._convert_estimators(self._forecasters)
-        self.n_forecasters_ = len(self.forecasters_)
+        self._setup_components()
         for _, f in self.forecasters_:
             f.fit(y)
 
@@ -141,7 +150,7 @@ class EnsembleForecaster(
     def _predict(self, y, exog=None):
         """Return the combined one-step-ahead prediction."""
         preds = np.array([f.predict(y) for _, f in self.forecasters_])
-        return float(self._combine(preds))
+        return self._combine(preds)
 
     def iterative_forecast(
         self,
@@ -180,17 +189,16 @@ class EnsembleForecaster(
         np.ndarray
             Shape ``(prediction_horizon,)`` combined forecast.
         """
-        self._validate_prediction_horizon(prediction_horizon)
-        if future_exog is not None:
+        y, _, _ = self._check_iterative_forecast_inputs(y, prediction_horizon)
+        prediction_horizon = int(prediction_horizon)
+        if exog is not None or future_exog is not None:
             raise ValueError(
                 f"Exogenous variables passed but {self.__class__.__name__} cannot "
                 "handle exogenous variables"
             )
 
-        y, exog = self._preprocess_forecasting_input(y, exog, self.axis, True)
-        self.weights_ = self._validate_parameters()
-        self.forecasters_ = self._convert_estimators(self._forecasters)
-        self.n_forecasters_ = len(self.forecasters_)
+        y, exog = self._preprocess_forecasting_input(y, None, self.axis, True)
+        self._setup_components()
 
         if self.iterative_strategy == "component":
             predictions = self._component_iterative_forecast(y, prediction_horizon)
@@ -198,6 +206,12 @@ class EnsembleForecaster(
             predictions = self._ensemble_iterative_forecast(y, prediction_horizon)
         self.is_fitted = True
         return predictions
+
+    def _setup_components(self):
+        """Validate parameters and initialise fitted component clones."""
+        self.weights_ = self._validate_parameters()
+        self.forecasters_ = self._convert_estimators(self._forecasters)
+        self.n_forecasters_ = len(self.forecasters_)
 
     def _component_iterative_forecast(self, y, prediction_horizon):
         """Iterate forecasts for each component path, then combine paths."""
@@ -230,7 +244,7 @@ class EnsembleForecaster(
                 [forecaster.predict(y_extended) for _, forecaster in self.forecasters_],
                 dtype=float,
             )
-            ensemble_pred = float(self._combine(component_preds))
+            ensemble_pred = self._combine(component_preds)
             predictions[i] = ensemble_pred
             y_extended = np.append(y_extended, ensemble_pred)
         return predictions
@@ -310,21 +324,6 @@ class EnsembleForecaster(
         if weight_sum <= 0:
             raise ValueError("At least one weight must be positive.")
         return weights / weight_sum
-
-    def _validate_prediction_horizon(self, prediction_horizon):
-        """Validate the iterative forecast horizon."""
-        if isinstance(prediction_horizon, bool) or not isinstance(
-            prediction_horizon, (int, np.integer)
-        ):
-            raise TypeError(
-                "prediction_horizon must be an integer. If you intended to pass "
-                "future exogenous values, use future_exog=... and also provide "
-                "prediction_horizon."
-            )
-        if prediction_horizon < 1:
-            raise ValueError(
-                "The `prediction_horizon` must be greater than or equal to 1."
-            )
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

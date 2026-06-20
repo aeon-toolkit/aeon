@@ -47,6 +47,15 @@ class _NoExogTrajectoryForecaster(_TrajectoryForecaster):
         return self.start + np.arange(prediction_horizon, dtype=float)
 
 
+class _WrongLengthTrajectoryForecaster(_TrajectoryForecaster):
+    """Test forecaster that returns too few iterative predictions."""
+
+    def iterative_forecast(self, y, prediction_horizon, exog=None):
+        self.iterative_forecast_calls_ += 1
+        self.fit(y)
+        return self.start + np.arange(prediction_horizon - 1, dtype=float)
+
+
 class _RecursiveRuleForecaster(BaseForecaster):
     """Test forecaster with predictions based on the latest observed value."""
 
@@ -244,6 +253,17 @@ def test_iterative_forecast_combines_component_full_trajectories():
         assert forecaster.predict_calls_ == 0
 
 
+def test_iterative_forecast_rejects_wrong_length_component_trajectory():
+    """Component iterative forecasts must match ``prediction_horizon``."""
+    y = np.array([10.0, 20.0, 30.0])
+    ens = EnsembleForecaster(
+        forecasters=[("bad", _WrongLengthTrajectoryForecaster(start=1.0))]
+    )
+
+    with pytest.raises(ValueError, match="returned a forecast with length 3"):
+        ens.iterative_forecast(y, prediction_horizon=4)
+
+
 def test_iterative_forecast_supports_component_without_exog_keyword():
     """Components can expose iterative_forecast without an exog parameter."""
     y = np.array([10.0, 20.0, 30.0])
@@ -328,13 +348,13 @@ def test_components_are_cloned():
 # ---------------------------------------------------------------------------
 
 
-def test_fit_rejects_empty_forecasters_list():
-    """``forecasters=[]`` raises in fit."""
+def test_init_rejects_empty_forecasters_list():
+    """``forecasters=[]`` raises during construction."""
     with pytest.raises(ValueError, match="forecasters must not be empty"):
         EnsembleForecaster(forecasters=[])
 
 
-def test_fit_rejects_duplicate_names():
+def test_init_rejects_duplicate_names():
     """Duplicate component names are rejected."""
     with pytest.raises(ValueError, match="unique"):
         EnsembleForecaster(
@@ -440,7 +460,7 @@ def test_iterative_forecast_rejects_future_exog():
         ens.iterative_forecast(y, prediction_horizon=2, future_exog=future_exog)
 
 
-def test_fit_rejects_non_forecaster_component():
+def test_init_rejects_non_forecaster_component():
     """All components must be aeon forecasters."""
     with pytest.raises(ValueError, match="BaseForecaster"):
         EnsembleForecaster(forecasters=[("bad", object())])
