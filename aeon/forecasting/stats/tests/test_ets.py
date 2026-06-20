@@ -163,9 +163,9 @@ def test_autoets_forecast_sets_wrapped_and_returns_forecast():
 
 
 def test_autoets_iterative_forecast_shape_and_validity():
-    """iterative_forecast should delegate and return valid forecasts."""
+    """iterative_forecast should fit once and return valid forecasts."""
     forecaster = AutoETS()
-    forecaster.fit(y_pos)
+    assert forecaster.wrapped_model_ is None
 
     horizon = 5
     preds = forecaster.iterative_forecast(y_pos, prediction_horizon=horizon)
@@ -173,6 +173,7 @@ def test_autoets_iterative_forecast_shape_and_validity():
     assert isinstance(preds, np.ndarray)
     assert preds.shape == (horizon,)
     assert np.all(np.isfinite(preds))
+    assert forecaster.wrapped_model_ is not None
 
 
 def test_autoets_predict_matches_wrapped_predict():
