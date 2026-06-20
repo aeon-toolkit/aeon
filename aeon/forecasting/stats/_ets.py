@@ -531,10 +531,6 @@ def auto_ets(
     best_model[2] = 0
     best_model[3] = 1
     best_seasonal_model = np.empty(4, dtype=np.int32)
-    best_seasonal_model[0] = 1
-    best_seasonal_model[1] = 0
-    best_seasonal_model[2] = 1
-    best_seasonal_model[3] = seasonal_period
     best_aic = np.inf
     best_seasonal_aic = np.inf
     t_max = 3 if allow_multiplicative_trend else 2
