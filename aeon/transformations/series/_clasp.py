@@ -1,6 +1,4 @@
-"""
-ClaSP (Classification Score Profile) Transformer implementation.
-"""
+"""ClaSP (Classification Score Profile) Transformer implementation."""
 
 __maintainer__ = []
 __all__ = ["ClaSPTransformer"]
