@@ -79,8 +79,6 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
 
     def _fit(self, y, exog=None):
         """Fit SCUM and store the one-step-ahead combined forecast."""
-        if exog is not None:
-            raise NotImplementedError("SCUM does not support exogenous variables.")
         self._validate_parameters()
         y = _as_1d_float(y)
         forecasts, ensemble = self._fit_predict(y, 1)
@@ -92,8 +90,6 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
 
     def _predict(self, y, exog=None):
         """Predict one step ahead from the supplied context."""
-        if exog is not None:
-            raise NotImplementedError("SCUM does not support exogenous variables.")
         self._validate_parameters()
         y = _as_1d_float(y)
         forecasts, _ = self._fit_predict(y, 1)
@@ -143,12 +139,7 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
             return self.forecasters
 
         forecasters = [
-            (
-                "ets",
-                _FitBeforeIterativeForecaster(
-                    AutoETS(seasonal_period=int(self.season_length))
-                ),
-            ),
+            ("ets", AutoETS(seasonal_period=int(self.season_length))),
             ("ces", AutoCES(season_length=int(self.season_length))),
             ("arima", AutoARIMA()),
             ("dotm", DOTM(season_length=int(self.season_length))),
@@ -190,53 +181,6 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
         }
 
 
-class _FitBeforeIterativeForecaster(BaseForecaster, IterativeForecastingMixin):
-    """Fit a wrapped forecaster before calling its iterative forecast."""
-
-    _tags = {
-        "capability:horizon": False,
-        "capability:exogenous": False,
-    }
-
-    def __init__(self, forecaster):
-        self.forecaster = forecaster
-        super().__init__(horizon=1, axis=1)
-
-    def _fit(self, y, exog=None):
-        if exog is not None:
-            raise NotImplementedError("Fit-before wrapper does not support exog.")
-        y = _as_1d_float(y)
-        self.forecaster_ = deepcopy(self.forecaster)
-        self.forecaster_.fit(y)
-        return self
-
-    def _predict(self, y, exog=None):
-        if exog is not None:
-            raise NotImplementedError("Fit-before wrapper does not support exog.")
-        return float(self.forecaster_.predict(_as_1d_float(y)))
-
-    def iterative_forecast(
-        self,
-        y,
-        prediction_horizon,
-        exog=None,
-        *,
-        future_exog=None,
-    ):
-        """Fit the wrapped forecaster, then delegate iterative forecasting."""
-        if exog is not None or future_exog is not None:
-            raise NotImplementedError("Fit-before wrapper does not support exog.")
-        _validate_prediction_horizon(prediction_horizon)
-        y = _as_1d_float(y)
-        self.forecaster_ = deepcopy(self.forecaster)
-        self.forecaster_.fit(y)
-        forecasts = self.forecaster_.iterative_forecast(y, int(prediction_horizon))
-        self.is_fitted = True
-        return _validate_forecast_array(
-            forecasts, int(prediction_horizon), self.forecaster_
-        )
-
-
 class _RecentWindowForecaster(BaseForecaster, IterativeForecastingMixin):
     """Limit a wrapped forecaster to the most recent observations."""
 
@@ -251,16 +195,12 @@ class _RecentWindowForecaster(BaseForecaster, IterativeForecastingMixin):
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
-        if exog is not None:
-            raise NotImplementedError("Recent-window wrapper does not support exog.")
         y = _tail(_as_1d_float(y), self.max_length)
         self.forecaster_ = deepcopy(self.forecaster)
         self.forecaster_.fit(y)
         return self
 
     def _predict(self, y, exog=None):
-        if exog is not None:
-            raise NotImplementedError("Recent-window wrapper does not support exog.")
         return float(self.forecaster_.predict(_tail(y, self.max_length)))
 
     def iterative_forecast(
