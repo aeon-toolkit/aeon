@@ -54,6 +54,10 @@ from aeon.distances.elastic import (
     soft_dtw_cost_matrix,
     soft_dtw_distance,
     soft_dtw_pairwise_distance,
+    soft_msm_alignment_path,
+    soft_msm_cost_matrix,
+    soft_msm_distance,
+    soft_msm_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
@@ -889,6 +893,18 @@ DISTANCES = [
         "unequal_support": True,
         # soft-DTW returns a signed value: it can be negative and
         # ``d(x, x) != 0``, unlike a non-negative distance.
+        "non_negative": False,
+    },
+    {
+        "name": "soft_msm",
+        "distance": soft_msm_distance,
+        "pairwise_distance": soft_msm_pairwise_distance,
+        "cost_matrix": soft_msm_cost_matrix,
+        "alignment_path": soft_msm_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+        # soft-MSM, like soft-DTW, returns a signed value.
         "non_negative": False,
     },
     {

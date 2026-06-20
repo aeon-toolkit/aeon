@@ -168,6 +168,34 @@ Shape Dynamic Time Warping (Shape DTW)
     shape_dtw_cost_matrix
     shape_dtw_alignment_path
 
+Soft-DTW
+--------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    soft_dtw_distance
+    soft_dtw_pairwise_distance
+    soft_dtw_cost_matrix
+    soft_dtw_alignment_path
+
+Soft-MSM
+--------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    soft_msm_distance
+    soft_msm_pairwise_distance
+    soft_msm_cost_matrix
+    soft_msm_alignment_path
+
 Squared
 -------
 
