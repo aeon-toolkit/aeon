@@ -2875,6 +2875,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "laurapiro17",
+      "name": "Laura Piñero Roig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/124199253?v=4",
+      "profile": "https://laurapiro17-proteoclinview-app-tv7oqq.streamlit.app/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
