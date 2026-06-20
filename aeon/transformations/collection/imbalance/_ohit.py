@@ -123,16 +123,15 @@ class OHIT(BaseCollectionTransformer):
                 continue
             X_class = X[target_class_indices]
             n, m = X_class.shape
-            # set the default value of k and kapa
-            if self.k is None:
-                self.k = int(np.ceil(n**0.5 * 1.25))
-            if self.kapa is None:
-                self.kapa = int(np.ceil(n**0.5))
+            # set the default value of k and kapa without mutating the
+            # constructor parameters (sklearn convention)
+            k = self.k if self.k is not None else int(np.ceil(n**0.5 * 1.25))
+            kapa = self.kapa if self.kapa is not None else int(np.ceil(n**0.5))
 
             # Initialize NearestNeighbors for SNN similarity
-            self.nn_ = NearestNeighbors(metric=self.distance, n_neighbors=self.k + 1)
+            self.nn_ = NearestNeighbors(metric=self.distance, n_neighbors=k + 1)
 
-            clusters, cluster_label = self._cluster_minority(X_class)
+            clusters, cluster_label = self._cluster_minority(X_class, k, kapa)
             Me, eigen_matrices, eigen_values = self._covStruct(X_class, clusters)
 
             # allocate the number of synthetic samples to be generated for each cluster
@@ -158,7 +157,7 @@ class OHIT(BaseCollectionTransformer):
             for i, _ in enumerate(clusters):
                 gen_i = np.sum(np.isin(os_ind, np.where(cluster_label == (i + 1))[0]))
                 X_new[count : count + gen_i, :] = self._generate_synthetic_samples(
-                    Me[i], eigen_matrices[i], eigen_values[i], gen_i, R
+                    Me[i], eigen_matrices[i], eigen_values[i], gen_i, R, random_state
                 )
                 count += gen_i
 
@@ -172,11 +171,9 @@ class OHIT(BaseCollectionTransformer):
         X_resampled = X_resampled[:, np.newaxis, :]
         return X_resampled, y_resampled
 
-    def _cluster_minority(self, X):
+    def _cluster_minority(self, X, k, kapa):
         """Apply DRSNN clustering on minority class samples."""
         n = X.shape[0]
-        k = self.k
-        kapa = self.kapa
         drT = self.drT
 
         self.nn_.fit(X)
@@ -256,7 +253,9 @@ class OHIT(BaseCollectionTransformer):
             Eigen_values.append(eigenValues)
         return Me, Eigen_matrices, Eigen_values
 
-    def _generate_synthetic_samples(self, Me, eigenMatrix, eigenValue, eta, R):
+    def _generate_synthetic_samples(
+        self, Me, eigenMatrix, eigenValue, eta, R, random_state
+    ):
         """Generate synthetic samples based on clustered minority samples."""
         # Initialize the output sample generator and probability arrays
         n_samples = int(np.ceil(eta * R))
@@ -273,7 +272,7 @@ class OHIT(BaseCollectionTransformer):
 
         for cnt in range(n_samples):
             # Generate a sample from the multivariate normal distribution
-            S = np.random.multivariate_normal(Mu, Sigma, 1)
+            S = random_state.multivariate_normal(Mu, Sigma, 1)
             Prob[cnt] = multivariate_normal.pdf(S, Mu, Sigma)
 
             # Scale the sample with the eigenvalues
