@@ -2,48 +2,17 @@ r"""Soft dynamic time warping (soft-DTW) between two time series."""
 
 __maintainer__ = []
 
-
 import numpy as np
 from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
-from aeon.distances.elastic._dtw import _dtw_cost_matrix
+from aeon.distances.elastic.soft._utils import _softmin3
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
-
-
-@njit(fastmath=True, cache=True)
-def _softmin3(a, b, c, gamma):
-    r"""Compute softmin of 3 input variables with parameter gamma.
-
-    This code is adapted from tslearn.
-
-    Parameters
-    ----------
-    a : float
-        First input variable.
-    b : float
-        Second input variable.
-    c : float
-        Third input variable.
-    gamma : float
-        Softmin parameter.
-
-    Returns
-    -------
-    float
-        Softmin of a, b, c.
-    """
-    a /= -gamma
-    b /= -gamma
-    c /= -gamma
-    max_val = max(a, b, c)
-    tmp = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
-    return -gamma * (np.log(tmp) + max_val)
 
 
 @njit(cache=True, fastmath=True)
@@ -180,16 +149,46 @@ def soft_dtw_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> soft_dtw_cost_matrix(x, y)
-    array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
-           [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
-           [  5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140.],
-           [ 14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91.],
-           [ 30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.],
-           [ 55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.],
-           [ 91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.],
-           [140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.],
-           [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
-           [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
+    array([[ 0.00000000e+00,  1.00000000e+00,  5.00000000e+00,
+         1.40000000e+01,  3.00000000e+01,  5.50000000e+01,
+         9.10000000e+01,  1.40000000e+02,  2.04000000e+02,
+         2.85000000e+02],
+       [ 1.00000000e+00, -5.51444714e-01,  2.53133741e-01,
+         4.24449127e+00,  1.32444333e+01,  2.92444332e+01,
+         5.42444332e+01,  9.02444332e+01,  1.39244433e+02,
+         2.03244433e+02],
+       [ 5.00000000e+00,  2.53133741e-01, -1.19042757e+00,
+        -4.05899430e-01,  3.58458692e+00,  1.25845231e+01,
+         2.85845231e+01,  5.35845231e+01,  8.95845231e+01,
+         1.38584523e+02],
+       [ 1.40000000e+01,  4.24449127e+00, -4.05899430e-01,
+        -1.83892772e+00, -1.05645307e+00,  2.93394434e+00,
+         1.19338800e+01,  2.79338799e+01,  5.29338799e+01,
+         8.89338799e+01],
+       [ 3.00000000e+01,  1.32444333e+01,  3.58458692e+00,
+        -1.05645307e+00, -2.48840826e+00, -1.70614379e+00,
+         2.28424451e+00,  1.12841801e+01,  2.72841800e+01,
+         5.22841800e+01],
+       [ 5.50000000e+01,  2.92444332e+01,  1.25845231e+01,
+         2.93394434e+00, -1.70614379e+00, -3.13798920e+00,
+        -2.35574625e+00,  1.63464112e+00,  1.06345767e+01,
+         2.66345766e+01],
+       [ 9.10000000e+01,  5.42444332e+01,  2.85845231e+01,
+         1.19338800e+01,  2.28424451e+00, -2.35574625e+00,
+        -3.78758043e+00, -3.00533968e+00,  9.85047595e-01,
+         9.98498314e+00],
+       [ 1.40000000e+02,  9.02444332e+01,  5.35845231e+01,
+         2.79338799e+01,  1.12841801e+01,  1.63464112e+00,
+        -3.00533968e+00, -4.43717271e+00, -3.65493218e+00,
+         3.35455083e-01],
+       [ 2.04000000e+02,  1.39244433e+02,  8.95845231e+01,
+         5.29338799e+01,  2.72841800e+01,  1.06345767e+01,
+         9.85047595e-01, -3.65493218e+00, -5.08676509e+00,
+        -4.30452459e+00],
+       [ 2.85000000e+02,  2.03244433e+02,  1.38584523e+02,
+         8.89338799e+01,  5.22841800e+01,  2.66345766e+01,
+         9.98498314e+00,  3.35455083e-01, -4.30452459e+00,
+        -5.73635749e+00]])
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -210,20 +209,15 @@ def soft_dtw_cost_matrix(
 def _soft_dtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
 ) -> float:
-    return abs(
-        _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
-            x.shape[1] - 1, y.shape[1] - 1
-        ]
-    )
+    return _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
+        x.shape[1] - 1, y.shape[1] - 1
+    ]
 
 
 @njit(cache=True, fastmath=True)
 def _soft_dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
-) -> np.ndarray:
-    if gamma == 0.0 or np.array_equal(x, y):
-        return _dtw_cost_matrix(x, y, bounding_matrix)
-
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
@@ -296,9 +290,9 @@ def soft_dtw_pairwise_distance(
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> soft_dtw_pairwise_distance(X)
-    array([[  0.        ,  25.44075098, 107.99999917],
-           [ 25.44075098,   0.        ,  25.44075098],
-           [107.99999917,  25.44075098,   0.        ]])
+    array([[ -1.19042757,  25.44075098, 107.99999917],
+           [ 25.44075098,  -1.19042757,  25.44075098],
+           [107.99999917,  25.44075098,  -1.19042757]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
@@ -318,9 +312,9 @@ def soft_dtw_pairwise_distance(
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
     >>> soft_dtw_pairwise_distance(X)
-    array([[  0.        ,  41.44055555, 291.99999969],
-           [ 41.44055555,   0.        ,  82.43894439],
-           [291.99999969,  82.43894439,   0.        ]])
+    array([[ -1.19042757,  41.44055555, 291.99999969],
+           [ 41.44055555,  -1.83892772,  82.43894439],
+           [291.99999969,  82.43894439,  -2.48840826]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
@@ -357,7 +351,7 @@ def _soft_dtw_pairwise_distance(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
     for i in prange(n_cases):
-        for j in range(i + 1, n_cases):
+        for j in range(n_cases):
             x1, x2 = X[i], X[j]
             if unequal_length:
                 bounding_matrix = create_bounding_matrix(
@@ -395,6 +389,30 @@ def _soft_dtw_from_multiple_to_multiple_distance(
                 )
             distances[i, j] = _soft_dtw_distance(x1, y1, bounding_matrix, gamma)
     return distances
+
+
+@njit(cache=True, fastmath=True)
+def _soft_dtw_cost_matrix_return_dist_matrix(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
+) -> tuple[np.ndarray, np.ndarray]:
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
+    cost_matrix[0, 0] = 0.0
+    dist_matrix = np.zeros((x_size, y_size))
+
+    for i in range(1, x_size + 1):
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                dist = _univariate_squared_distance(x[:, i - 1], y[:, j - 1])
+                dist_matrix[i - 1, j - 1] = dist
+                cost_matrix[i, j] = dist + _softmin3(
+                    cost_matrix[i - 1, j],
+                    cost_matrix[i - 1, j - 1],
+                    cost_matrix[i, j - 1],
+                    gamma,
+                )
+    return cost_matrix[1:, 1:], dist_matrix
 
 
 @njit(cache=True, fastmath=True)
@@ -448,5 +466,73 @@ def soft_dtw_alignment_path(
     cost_matrix = soft_dtw_cost_matrix(x, y, gamma, window, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
-        abs(cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1]),
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
     )
+
+
+@njit(cache=True, fastmath=True)
+def _soft_gradient(
+    distance_matrix: np.ndarray, cost_matrix: np.ndarray, gamma: float
+) -> np.ndarray:
+    m, n = distance_matrix.shape
+    E = np.zeros((m, n), dtype=float)
+
+    E[m - 1, n - 1] = 1.0
+
+    for i in range(m - 1, -1, -1):
+        for j in range(n - 1, -1, -1):
+            r_ij = cost_matrix[i, j]
+            E_ij = E[i, j]
+
+            if i + 1 < m:
+                w_horizontal = np.exp(
+                    (cost_matrix[i + 1, j] - r_ij - distance_matrix[i + 1, j]) / gamma
+                )
+                E_ij += E[i + 1, j] * w_horizontal
+
+            if j + 1 < n:
+                w_vertical = np.exp(
+                    (cost_matrix[i, j + 1] - r_ij - distance_matrix[i, j + 1]) / gamma
+                )
+                E_ij += E[i, j + 1] * w_vertical
+
+            if (i + 1 < m) and (j + 1 < n):
+                w_diag = np.exp(
+                    (cost_matrix[i + 1, j + 1] - r_ij - distance_matrix[i + 1, j + 1])
+                    / gamma
+                )
+                E_ij += E[i + 1, j + 1] * w_diag
+
+            E[i, j] = E_ij
+
+    return E
+
+
+@njit(cache=True, fastmath=True)
+def _soft_dtw_grad_x(
+    X: np.ndarray,
+    Y: np.ndarray,
+    gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+):
+    # bounding + forward DP
+    bm = create_bounding_matrix(X.shape[1], Y.shape[1], window, itakura_max_slope)
+    cost_matrix, dist_matrix = _soft_dtw_cost_matrix_return_dist_matrix(X, Y, bm, gamma)
+    s_xy = cost_matrix[X.shape[1] - 1, Y.shape[1] - 1]
+
+    # backward expected-alignment (node occupancy)
+    E = _soft_gradient(dist_matrix, cost_matrix, gamma)  # shape (T, U)
+
+    C, T = X.shape[0], X.shape[1]
+    U = Y.shape[1]
+    dx = np.zeros_like(X)
+
+    # ∂s/∂X[:, i] = 2 * sum_j (X[:, i] - Y[:, j]) * E[i, j]
+    for i in range(T):
+        acc = np.zeros(C)
+        for j in range(U):
+            acc += (X[:, i] - Y[:, j]) * E[i, j]
+        dx[:, i] = 2.0 * acc
+
+    return dx, s_xy

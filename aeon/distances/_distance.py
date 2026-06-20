@@ -887,6 +887,9 @@ DISTANCES = [
         "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,
+        # soft-DTW is not a proper distance: it can be negative and
+        # ``d(x, x) != 0``, so it violates non-negativity and identity.
+        "proper_distance": False,
     },
     {
         "name": "sbd",
@@ -953,6 +956,13 @@ POINTWISE_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
 ]
 MIN_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.MIN_DISTANCE]
+
+# Distances that are not proper distances: they may be negative and/or have
+# ``d(x, x) != 0`` (e.g. soft distances). Tests that assume non-negativity or
+# identity of indiscernibles should be skipped for these.
+NON_METRIC_DISTANCES = [
+    d["name"] for d in DISTANCES if not d.get("proper_distance", True)
+]
 
 # This is a very specific list for testing where a time series of length 1 is not
 # supported
