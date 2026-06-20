@@ -26,10 +26,10 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     DownsampleTransformer
     DWTTransformer
     HOG1DTransformer
-    MatrixProfile
     MinMaxScaler
     Normalizer
     PeriodogramTransformer
+    SeriesToCollectionBroadcaster
     SlopeTransformer
     SimpleImputer
     Tabularizer
@@ -48,6 +48,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     ElbowClassPairwise
     ElbowClassSum
     RandomChannelSelector
+    TSelect
 ```
 
 ### Compose
@@ -130,6 +131,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     ADASYN
+    ESMOTE
     SMOTE
     OHIT
 ```
@@ -158,6 +160,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     TRILITE
+    TimeMCL
 ```
 
 ### Shapelet based
@@ -191,6 +194,8 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
 
 ```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.unequal_length
+
+.. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
@@ -210,8 +215,9 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
 
     AutoCorrelationSeriesTransformer
     ClaSPTransformer
+    DifferenceTransformer
     Dobin
-    MatrixProfileSeriesTransformer
+    MatrixProfileTransformer
     LogTransformer
     PLASeriesTransformer
     StatsModelsACF
@@ -249,6 +255,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     ExponentialSmoothing
     GaussianFilter
     MovingAverage
+    LOWESS
     SavitzkyGolayFilter
     RecursiveMedianSieve
 ```

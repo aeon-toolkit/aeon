@@ -2,16 +2,22 @@
 
 __all__ = [
     "ARIMA",
+    "AutoARIMA",
+    "AutoCES",
     "AutoTAR",
+    "CES",
     "ETS",
+    "AutoETS",
+    "DOTM",
     "TAR",
     "Theta",
-    "TVPForecaster",
+    "TVP",
 ]
 
-from aeon.forecasting.stats._arima import ARIMA
-from aeon.forecasting.stats._auto_tar import AutoTAR
-from aeon.forecasting.stats._ets import ETS
-from aeon.forecasting.stats._tar import TAR
+from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
+from aeon.forecasting.stats._ces import CES, AutoCES
+from aeon.forecasting.stats._dotm import DOTM
+from aeon.forecasting.stats._ets import ETS, AutoETS
+from aeon.forecasting.stats._tar import TAR, AutoTAR
 from aeon.forecasting.stats._theta import Theta
-from aeon.forecasting.stats._tvp import TVPForecaster
+from aeon.forecasting.stats._tvp import TVP

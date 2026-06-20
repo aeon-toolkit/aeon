@@ -159,6 +159,7 @@ envs/
 
 # example run output
 examples/local/
+results/
 
 # local files
 local_code/

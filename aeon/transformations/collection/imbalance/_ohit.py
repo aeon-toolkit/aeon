@@ -6,6 +6,9 @@ Original authors:
 #          zhutuanfei
 """
 
+__maintainer__ = []
+__all__ = ["OHIT"]
+
 from collections import OrderedDict
 
 import numpy as np
@@ -15,8 +18,6 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
-
-__all__ = ["OHIT"]
 
 
 class OHIT(BaseCollectionTransformer):

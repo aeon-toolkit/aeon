@@ -128,15 +128,11 @@ class SlopeTransformer(BaseCollectionTransformer):
         """
         if isinstance(self.n_intervals, int):
             if self.n_intervals <= 0:
-                raise ValueError(
-                    "num_intervals must have the value \
-                                  of at least 1"
-                )
+                raise ValueError("num_intervals must have the value \
+                                  of at least 1")
             if self.n_intervals > n_timepoints:
-                raise ValueError(
-                    "num_intervals cannot be higher than \
-                                  subsequence_length"
-                )
+                raise ValueError("num_intervals cannot be higher than \
+                                  subsequence_length")
         else:
             raise TypeError(
                 "num_intervals must be an 'int'. Found '"

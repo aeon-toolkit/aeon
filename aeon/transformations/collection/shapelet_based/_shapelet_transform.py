@@ -195,7 +195,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._batch_size = batch_size
         self._class_counts = []
         self._class_dictionary = {}
-        self._sorted_indicies = []
+        self._sorted_indices = []
 
         super().__init__()
 
@@ -240,7 +240,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         max_shapelets_per_class = int(self._max_shapelets / self.n_classes_)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
-        # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
+        # shapelet list content:
+        # quality, length, position, channel, case index, class index, shapelet array
         shapelets = List(
             [
                 List([List([-1.0, -1, -1, -1, -1, -1, -1])])
@@ -274,11 +275,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     for i, s in enumerate(candidate_shapelets):
                         s[6] = len(distances) + i
                     distances.extend(candidate_distances)
-
+                candidate_shapelets_list = List(candidate_shapelets)
                 for i, heap in enumerate(shapelets):
                     self._merge_shapelets(
                         heap,
-                        List(candidate_shapelets),
+                        candidate_shapelets_list,
                         max_shapelets_per_class,
                         i,
                     )
@@ -296,6 +297,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                             new_distances.append(distances[int(s[6])])
                             s[6] = i
                             i += 1
+                    distances = new_distances
 
                 n_shapelets_extracted += self._batch_size
                 fit_time = time.time() - start_time
@@ -394,10 +396,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         if self.verbose:
             print(f"Final shapelet count: {len(self.shapelets)}")  # noqa: T201
 
-        self._sorted_indicies = []
+        self._sorted_indices = []
         for s in self.shapelets:
             sabs = np.abs(s[6])
-            self._sorted_indicies.append(
+            self._sorted_indices.append(
                 np.array(
                     sorted(range(s[1]), reverse=True, key=lambda j, sabs=sabs: sabs[j]),
                     dtype=np.int32,
@@ -412,36 +414,77 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             self.shapelets = [s[:-1] for s in self.shapelets]
             return None
 
+    @staticmethod
+    def _transform_block(X, shapelets, sorted_indicies, start, stop):
+        """Transform a contiguous block of cases."""
+        out = np.empty((stop - start, len(shapelets)))
+
+        for i in range(stop - start):
+            series = X[start + i]
+            for n, shapelet in enumerate(shapelets):
+                out[i, n] = _online_shapelet_distance(
+                    series[shapelet[3]],
+                    shapelet[6],
+                    sorted_indicies[n],
+                    shapelet[2],
+                    shapelet[1],
+                )
+        return out
+
     def _transform(self, X, y=None):
         """Transform X according to the extracted shapelets.
 
         Parameters
         ----------
-        X : np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The input data to transform.
+        X : np.ndarray or list
+            Collection of time series.
 
         Returns
         -------
         output : 2D np.array of shape = (n_cases, n_shapelets)
             The transformed data.
         """
-        output = np.zeros((len(X), len(self.shapelets)))
+        n_cases = len(X)
+        n_shapelets = len(self.shapelets)
+        output = np.empty((n_cases, n_shapelets))
 
-        for i, series in enumerate(X):
-            dists = Parallel(
-                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
-                delayed(_online_shapelet_distance)(
-                    series[shapelet[3]],
-                    shapelet[6],
-                    self._sorted_indicies[n],
-                    shapelet[2],
-                    shapelet[1],
-                )
-                for n, shapelet in enumerate(self.shapelets)
+        if n_cases == 0 or n_shapelets == 0:
+            return output
+
+        if self._n_jobs == 1 or n_cases == 1:
+            return self._transform_block(
+                X,
+                self.shapelets,
+                self._sorted_indices,
+                0,
+                n_cases,
             )
 
-            output[i] = dists
+        n_blocks = min(n_cases, self._n_jobs * 4)
+        block_size = (n_cases + n_blocks - 1) // n_blocks
+
+        blocks = [
+            (start, min(start + block_size, n_cases))
+            for start in range(0, n_cases, block_size)
+        ]
+
+        results = Parallel(
+            n_jobs=self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
+        )(
+            delayed(self._transform_block)(
+                X,
+                self.shapelets,
+                self._sorted_indices,
+                start,
+                stop,
+            )
+            for start, stop in blocks
+        )
+
+        for (start, stop), block in zip(blocks, results):
+            output[start:stop] = block
 
         return output
 
@@ -528,7 +571,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         other_cls_count,
     ):
         orderline = []
-        distances = np.zeros(len(X))
+        distances = np.empty(len(X))
         this_cls_traversed = 0
         other_cls_traversed = 0
 

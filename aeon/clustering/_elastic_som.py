@@ -9,6 +9,9 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils.random import check_random_state
 
+from aeon.clustering._cluster_initialisation import (
+    resolve_center_initialiser,
+)
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_alignment_path_function, pairwise_distance
 
@@ -56,18 +59,18 @@ class ElasticSOM(BaseClusterer):
     init : str or np.ndarray, default='random'
         Random is the default and simply chooses k time series at random as
         centroids. It is fast but sometimes yields sub-optimal clustering.
-        Kmeans++ [2] and is slower but often more
+        K-means++ [2] is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another.
         First is the fastest method and simply chooses the first k time series as
         centroids.
-        If a np.ndarray provided it must be of shape (n_clusters, n_channels,
+        If an np.ndarray is provided it must be of shape (n_clusters, n_channels,
         n_timepoints)
         and contains the time series to use as centroids.
     sigma : float, default=1.0
         Spread of the neighborhood function.
     learning_rate : float, default=0.5
-        Initial learning rate. For a given iterations the learning rate is:
+        Initial learning rate. For a given iteration the learning rate is:
         learning_rate = learning_rate / (1 + iterations / max_iter)
     decay_function : Union[Callable, str], default='asymptotic_decay'
         Decay function to use for the learning rate. Valid strings are:
@@ -115,21 +118,22 @@ class ElasticSOM(BaseClusterer):
         be used. See aeon.clustering.elastic_som.VALID_ELASTIC_SOM_METRICS for a list of
         distances that have an elastic alignment path.
         The alignment path function takes the form
-        Callable[[np.ndarray, np.ndarray, dict], whee the dict is the kwargs for the
-        distance function. See documentation of aeon.distances documentation for
-        example alignment path functions. The alignment path function must return a
-        a full alignment path with no gaps.
+        Callable[[np.ndarray, np.ndarray, dict], tuple[list, float]], where the dict
+        contains the kwargs for the distance function. See documentation of
+        aeon.distances for example alignment path functions. The alignment path
+        function must return a full alignment path
+        with no gaps.
     verbose : bool, default=False
         Verbosity mode.
 
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
-        Array of shape (n_clusters, n_channels, n_timepoints))
+        Array of shape (n_clusters, n_channels, n_timepoints)
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_case,)
-        Labels that is the index each time series belongs to.
+        1d array of shape (n_cases,)
+        Labels indicating the cluster index assigned to each time series.
 
     References
     ----------
@@ -203,7 +207,7 @@ class ElasticSOM(BaseClusterer):
         self._check_params(X)
 
         if isinstance(self._init, Callable):
-            weights = self._init(X)
+            weights = self._init(X=X)
         else:
             weights = self._init.copy()
 
@@ -257,30 +261,22 @@ class ElasticSOM(BaseClusterer):
 
     def _check_params(self, X):
         self._random_state = check_random_state(self.random_state)
-        # random initialization
-        if isinstance(self.init, str):
-            if self.init == "random":
-                self._init = self._random_center_initializer
-            elif self.init == "kmeans++":
-                self._init = self._kmeans_plus_plus_center_initializer
-            elif self.init == "first":
-                self._init = self._first_center_initializer
-            else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first"
-                )
+
+        if self.distance_params is None:
+            self._distance_params = {}
         else:
-            if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
-                self._init = self.init.copy()
-            else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+            self._distance_params = self.distance_params
+
+        self._init = resolve_center_initialiser(
+            init=self.init,
+            X=X,
+            n_clusters=self.n_clusters,
+            random_state=self._random_state,
+            distance=self.distance,
+            distance_params=self._distance_params,
+            n_jobs=1,
+            use_indexes=False,
+        )
 
         self._neuron_position = np.arange(self.n_clusters)
 
@@ -331,11 +327,6 @@ class ElasticSOM(BaseClusterer):
             else:
                 self._alignment_path_callable = None
 
-        if self.distance_params is None:
-            self._distance_params = {}
-        else:
-            self._distance_params = self.distance_params
-
     def _elastic_update(self, x, y, w):
         best_path, distance = self._alignment_path_callable(
             x, y, **self._distance_params
@@ -361,28 +352,6 @@ class ElasticSOM(BaseClusterer):
                 s3[:, j] = s3[:, j - 1]
 
         return s3
-
-    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return X[self._random_state.choice(X.shape[0], self.n_clusters, replace=False)]
-
-    def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
-        indexes = [initial_center_idx]
-
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
-                X, X[indexes], method=self.distance, **self._distance_params
-            )
-            min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
-
-        centers = X[indexes]
-        return centers
-
-    def _first_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return X[list(range(self.n_clusters))]
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
