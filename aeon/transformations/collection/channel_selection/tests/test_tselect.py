@@ -253,14 +253,27 @@ def test_tselect_removes_redundant_channel_in_cluster():
 def test_tselect_train_validation_split_explicit_and_large():
     """Test the validation split honours an explicit size and large n_cases."""
     selector = TSelect(validation_size=0.3)
-    train_idx, valid_idx = selector._train_validation_split(50)
+    y = np.array([0, 1] * 25)
+    train_idx, valid_idx = selector._train_validation_split(50, y)
     assert len(train_idx) == 35
     assert len(valid_idx) == 15
 
     selector = TSelect()
-    train_idx, valid_idx = selector._train_validation_split(150)
+    y = np.array([0, 1] * 75)
+    train_idx, valid_idx = selector._train_validation_split(150, y)
     assert len(train_idx) + len(valid_idx) == 150
     assert len(train_idx) == 99
+
+
+def test_tselect_train_validation_split_falls_back_when_stratify_fails():
+    """Test the split falls back to unstratified when a class has one member."""
+    selector = TSelect(validation_size=0.3)
+    y = np.array([0] * 9 + [1])
+
+    with pytest.warns(UserWarning, match="Falling back to an unstratified"):
+        train_idx, valid_idx = selector._train_validation_split(10, y)
+
+    assert len(train_idx) + len(valid_idx) == 10
 
 
 def test_tselect_preprocess_interpolates_nans():
