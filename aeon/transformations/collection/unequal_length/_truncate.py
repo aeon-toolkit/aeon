@@ -112,7 +112,7 @@ class Truncator(BaseCollectionTransformer):
                 raise ValueError(
                     "min length of series in X is less than the provided "
                     "truncated_length (or less than the series seen in fit if "
-                    "truncated_length is str)."
+                    "truncated_length is a string)."
                 )
 
         Xt = [x[:, :truncated_length] for x in X]

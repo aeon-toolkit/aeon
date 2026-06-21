@@ -62,18 +62,18 @@ class Resizer(BaseCollectionTransformer):
             raise ValueError("resized_length must be 'min', 'max' or an integer.")
 
     def _transform(self, X, y=None):
-        """Fit a linear function on each channel of each series, then resample.
+        """Linearly interpolate each channel of each series to the target length.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or
-            list size [n_cases] of 2D nump arrays, case i has shape (n_channels,
+            list size [n_cases] of 2D numpy arrays, case i has shape (n_channels,
             length_i). Collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        3D numpy array of shape (n_cases, n_channels, self.length)
+        3D numpy array of shape (n_cases, n_channels, resized_length)
         """
         length = (
             self.resized_length
