@@ -38,7 +38,9 @@ def test_scaled_logit_bound_warnings():
         )
 
 
-@pytest.mark.parametrize("lower, upper", [(10, 70), (None, 70), (10, None), (None, None)])
+@pytest.mark.parametrize(
+    "lower, upper", [(10, 70), (None, 70), (10, None), (None, None)]
+)
 def test_scaled_logit_inverse_transform_roundtrip(lower, upper):
     """Test inverse_transform recovers the original series for all bound modes."""
     transformer = ScaledLogitSeriesTransformer(lower, upper)
