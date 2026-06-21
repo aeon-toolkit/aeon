@@ -2884,6 +2884,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "terminalchai",
+      "name": "Terminal Chai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/213856599?v=4",
+      "profile": "https://terminalchai.com/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
