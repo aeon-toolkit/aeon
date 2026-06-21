@@ -156,8 +156,5 @@ def test_padding_integer_input_with_noise():
 
 def test_padder_incorrect_paras():
     """Test Padder with incorrect parameters."""
-    X = np.random.rand(2, 2, 20)
-
-    padding_transformer = Padder(padded_length=22, fill_value="FOOBAR")
     with pytest.raises(ValueError, match="Supported str values for fill_value are"):
-        padding_transformer.fit_transform(X)
+        Padder(padded_length=22, fill_value="FOOBAR")

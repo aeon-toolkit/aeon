@@ -27,10 +27,10 @@ class Padder(BaseCollectionTransformer):
         shortest series seen in ``fit``. If "max", will pad to the longest series seen
         in ``fit``. If an integer, will pad to that length.
         Calling ``fit`` is not required if ``padded_length`` is an int.
-    fill_value : int, str or Callable, default=0
-        Value to pad with. Can be a float or a statistic string or an numpy array for
-        each time series. Supported statistic strings are "mean", "median", "max",
-        "min".
+    fill_value : int, float, str or Callable, default=0
+        Value to pad with. Can be a numeric scalar (int or float), a statistic
+        string, or a callable. Supported statistic strings are "mean", "median",
+        "max", "min", and "last".
     add_noise : float or None, default=None
         Add noise to the padded values of the series.
         Randomly adds a value between 0 and ``add_noise`` to each padded value if
@@ -77,6 +77,24 @@ class Padder(BaseCollectionTransformer):
         random_state=None,
     ):
         _validate_length_param(padded_length, "padded_length")
+        if not isinstance(fill_value, (int, float, str)) and not callable(
+            fill_value
+        ):
+            raise TypeError(
+                "fill_value must be a numeric scalar (int or float), a statistic "
+                f"string, or a callable. Got {type(fill_value).__name__}."
+            )
+        if isinstance(fill_value, str) and fill_value not in (
+            "mean",
+            "median",
+            "max",
+            "min",
+            "last",
+        ):
+            raise ValueError(
+                "Supported str values for fill_value are "
+                "{mean, median, min, max, last}."
+            )
         self.padded_length = padded_length
         self.fill_value = fill_value
         self.add_noise = add_noise
