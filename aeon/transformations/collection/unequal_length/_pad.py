@@ -77,9 +77,7 @@ class Padder(BaseCollectionTransformer):
         random_state=None,
     ):
         _validate_length_param(padded_length, "padded_length")
-        if not isinstance(fill_value, (int, float, str)) and not callable(
-            fill_value
-        ):
+        if not isinstance(fill_value, (int, float, str)) and not callable(fill_value):
             raise TypeError(
                 "fill_value must be a numeric scalar (int or float), a statistic "
                 f"string, or a callable. Got {type(fill_value).__name__}."
