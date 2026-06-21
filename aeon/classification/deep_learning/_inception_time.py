@@ -61,7 +61,7 @@ class InceptionTimeClassifier(BaseClassifier):
         module, if not a list,
         the same is used in all inception modules
     padding : str or list of str, default = "same",
-        the type of padding used for convoltuon for each
+        the type of padding used for convolution for each
         inception module, if not a list,
         the same is used in all inception modules
     activation : str or list of str, default = "relu",
@@ -463,7 +463,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             the dilation rate of convolutions in each inception module, if not a list,
             the same is used in all inception modules
         padding : str or list of str, default = "same",
-            the type of padding used for convoltuon for each
+            the type of padding used for convolution for each
             inception module, if not a list,
             the same is used in all inception modules
         activation : str or list of str, default = "relu",
@@ -477,7 +477,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         use_residual : bool, default = True,
             condition whether or not to use residual connections all over Inception
         use_bottleneck : bool, default = True,
-            confition whether or not to use bottlenecks all over Inception
+            condition whether or not to use bottlenecks all over Inception
         bottleneck_size : int, default = 32,
             the bottleneck size in case use_bottleneck = True
         use_custom_filters : bool, default = False,

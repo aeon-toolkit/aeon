@@ -48,6 +48,29 @@ jobs:
       - name: Run tests
         run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
+  test-soft-dep-skips:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
+        with:
+          additional_extras: "dev,unstable_extras"
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }} --check-soft-dependency-skips -q
+
   pytest:
     runs-on: ${{ matrix.os }}
 
@@ -135,7 +158,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
+        run: python -m pytest -n logical --doctest-only
 
   multithreaded-estimators:
     runs-on: ubuntu-24.04
@@ -198,6 +221,6 @@ jobs:
         run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

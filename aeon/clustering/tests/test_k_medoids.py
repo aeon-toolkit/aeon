@@ -244,3 +244,12 @@ def test_medoids_init_invalid():
             random_state=1,
         )
         kmedoids.fit(X_train)
+
+    # Test duplicate indices
+    with pytest.raises(ValueError, match="unique indices"):
+        kmedoids = TimeSeriesKMedoids(
+            n_clusters=num_clusters,
+            init=np.array([0, 1, 1]),
+            random_state=1,
+        )
+        kmedoids.fit(X_train)

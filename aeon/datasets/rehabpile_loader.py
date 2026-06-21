@@ -289,10 +289,9 @@ def load_rehab_pile_dataset(
                     f"name and your internet connection. Error: {e}"
                 ) from e
 
+    # RehabPile stores some arrays as object arrays, so pickle support is required.
     X = np.load(dataset_path_fold / files_to_load["X"], allow_pickle=True)
     y = np.load(dataset_path_fold / files_to_load["y"], allow_pickle=True)
-
-    # Correct issue with pickle loading, ensuring all items are numpy arrays
 
     X = np.array(X.tolist())
     y = np.array(y.tolist())

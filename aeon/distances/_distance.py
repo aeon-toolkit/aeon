@@ -8,7 +8,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from typing_extensions import Unpack
 
-from aeon.distances._mpdist import mp_distance, mp_pairwise_distance
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
@@ -708,8 +707,6 @@ def get_cost_matrix_function(method: str) -> CostMatrixFunction:
 def _resolve_key_from_distance(method: str | Callable, key: str) -> Any:
     if isinstance(method, Callable):
         return method
-    if method == "mpdist":
-        return mp_distance
     dist = DISTANCES_DICT.get(method)
     if dist is None:
         raise ValueError(f"Unknown method {method}")
@@ -726,7 +723,6 @@ class DistanceType(Enum):
     ELASTIC = "elastic"
     CROSS_CORRELATION = "cross-correlation"
     MIN_DISTANCE = "min-dist"
-    MATRIX_PROFILE = "matrix-profile"
 
 
 DISTANCES = [
@@ -940,14 +936,6 @@ DISTANCES = [
         "symmetric": True,
         "unequal_support": True,
     },
-    {
-        "name": "mpdist",
-        "distance": mp_distance,
-        "pairwise_distance": mp_pairwise_distance,
-        "type": DistanceType.MATRIX_PROFILE,
-        "symmetric": True,
-        "unequal_support": True,
-    },
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
@@ -963,9 +951,6 @@ UNEQUAL_LENGTH_SUPPORT_DISTANCES = [
 ELASTIC_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.ELASTIC]
 POINTWISE_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
-]
-MP_DISTANCES = [
-    d["name"] for d in DISTANCES if d["type"] == DistanceType.MATRIX_PROFILE
 ]
 MIN_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.MIN_DISTANCE]
 

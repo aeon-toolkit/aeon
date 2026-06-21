@@ -41,7 +41,7 @@ class TimeSeriesKMeans(BaseClusterer):
     particular MSM/TWE [1]_). K-means for time series can further be improved by using
     an elastic averaging method. The most common one is dynamic barycenter averaging
     [3]_ however, in recent years alternates using other elastic distances such as
-    ShapeDBA [4]_ (Shape DTW DBA) and MBA (Msm DBA) [5]_ have shown signicant
+    ShapeDBA [4]_ (Shape DTW DBA) and MBA (MSM DBA) [5]_ have shown significant
     performance benefits.
 
     Parameters
@@ -51,12 +51,12 @@ class TimeSeriesKMeans(BaseClusterer):
     init : str or np.ndarray, default='random'
         Random is the default and simply chooses k time series at random as
         centroids. It is fast but sometimes yields sub-optimal clustering.
-        Kmeans++ [2] and is slower but often more
+        K-means++ [2] is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another.
         First is the fastest method and simply chooses the first k time series as
         centroids.
-        If a np.ndarray provided it must be of shape (n_clusters, n_channels,
+        If an np.ndarray is provided it must be of shape (n_clusters, n_channels,
         n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='msm'
@@ -114,11 +114,11 @@ class TimeSeriesKMeans(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
-        Array of shape (n_clusters, n_channels, n_timepoints))
+        Array of shape (n_clusters, n_channels, n_timepoints)
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_case,)
-        Labels that is the index each time series belongs to.
+        1d array of shape (n_cases,)
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of distances of samples to their closest cluster center, weighted by
         the sample weights if provided.

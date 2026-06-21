@@ -116,7 +116,7 @@ class ResNetClassifier(BaseDeepClassifier):
     >>> from aeon.classification.deep_learning import ResNetClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> clf = ResNetClassifier(n_epochs=20, batch_size=4) # doctest: +SKIP
     >>> clf.fit(X_train, Y_train) # doctest: +SKIP
     ResNetClassifier(...)
     """

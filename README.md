@@ -57,15 +57,16 @@ evaluate new methods. That means:
 
 A selection of algorithms available in `aeon` written by `aeon` core developers or contributors:
 
-| Method                 | Reference                                                                                 | Task                   |
-|------------------------|-------------------------------------------------------------------------------------------|------------------------|
-| **InceptionTime**      | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification         |
-| **Hydra-MultiRocket**  | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification         |
-| **SETAR-Tree**         | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting            |
-| **KASBA**              | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering             |
-| **CLASP**              | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation           |
-| **DrCIF**              | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
-| **TDE**                | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
+| Method                | Reference                                                                                 | Task                   |
+|-----------------------|-------------------------------------------------------------------------------------------|------------------------|
+| **InceptionTime**     | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification         |
+| **Hydra-MultiRocket** | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification         |
+| **HIVE-COTEv2.0**     | [Middlehurst et al., 2021](https://link.springer.com/article/10.1007/s10994-021-06057-9)  | Classification            |
+| **SETAR-Tree**        | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting            |
+| **KASBA**             | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering             |
+| **CLASP**             | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation           |
+| **DrCIF**             | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
+| **TDE**               | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
 
 Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies:
 

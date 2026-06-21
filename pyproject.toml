@@ -44,7 +44,6 @@ classifiers = [
 ]
 requires-python = ">=3.11,<3.15"
 dependencies = [
-    "deprecated>=1.2.13",
     "numba>=0.55,<0.64.0",
     "numpy>=2.0.0,<2.5.0",
     "packaging>=20.0",
@@ -69,15 +68,15 @@ all_extras = [
     "sparse",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
-    "tensorflow>=2.14; python_version < '3.13'",
-    "keras>=3.6.0; python_version < '3.13'",
+    "tensorflow>=2.14; python_version < '3.14'",
+    "keras>=3.6.0; python_version < '3.14'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2,<0.8.0",
 ]
 dl = [
-    "tensorflow>=2.14; python_version < '3.13'",
-    "keras>=3.6.0; python_version < '3.13'",
+    "tensorflow>=2.14; python_version < '3.14'",
+    "keras>=3.6.0; python_version < '3.14'",
 ]
 unstable_extras = [
     # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
@@ -187,8 +186,9 @@ addopts = [
     "--dist=worksteal",
     "--reruns=3",
     "--reruns-delay=3",
-    "--rerun-except=(?<!Permission)Error",
-    "--rerun-except=Exception",
+    "--rerun-except=^(?!PermissionError:).*Error:",
+    "--rerun-except=Exception:",
+    "--rerun-except=Skipping test",
 ]
 filterwarnings = [
     "ignore::UserWarning",

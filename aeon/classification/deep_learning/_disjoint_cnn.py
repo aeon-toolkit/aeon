@@ -15,7 +15,7 @@ from aeon.networks import DisjointCNNNetwork
 
 
 class DisjointCNNClassifier(BaseDeepClassifier):
-    """Disjoint Convolutional Neural Netowkr classifier.
+    """Disjoint Convolutional Neural Network classifier.
 
     Adapted from the implementation used in [1]_.
 

@@ -28,3 +28,26 @@ def test_ohit():
     assert len(res_y) == 2 * majority_num
     assert res_count[0] == majority_num
     assert res_count[1] == majority_num
+
+
+def test_ohit_random_state_reproducible():
+    """Same random_state gives identical output."""
+    X = np.random.RandomState(0).rand(100, 1, 10)
+    y = np.array([0] * 90 + [1] * 10)
+
+    res1 = OHIT(random_state=49).fit_transform(X, y)[0]
+    res2 = OHIT(random_state=49).fit_transform(X, y)[0]
+
+    assert np.array_equal(res1, res2)
+
+
+def test_ohit_does_not_mutate_params():
+    """fit_transform leaves k and kapa as set in the constructor."""
+    X = np.random.RandomState(0).rand(100, 1, 10)
+    y = np.array([0] * 90 + [1] * 10)
+
+    transformer = OHIT(random_state=49)
+    transformer.fit_transform(X, y)
+
+    assert transformer.get_params()["k"] is None
+    assert transformer.get_params()["kapa"] is None
