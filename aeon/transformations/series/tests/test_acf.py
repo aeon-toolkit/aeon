@@ -71,3 +71,42 @@ def test_multivariate():
     combined = np.vstack([x1, x2, x3])
     c3 = acf.fit_transform(combined)
     assert np.allclose(c2, c3)
+
+
+def test_acf_n_lags_clamped_to_one():
+    """Test n_lags below 1 is clamped to 1."""
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    acf = AutoCorrelationSeriesTransformer(n_lags=0)
+    y = acf.fit_transform(x)
+    assert y.shape == (1, 1)
+
+
+def test_acf_raises_when_lags_too_large_for_series():
+    """Test a ValueError is raised when n_lags leaves too few observations."""
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    acf = AutoCorrelationSeriesTransformer(n_lags=3)
+    with pytest.raises(ValueError, match="The number of lags is too large"):
+        acf.fit_transform(x)
+
+
+def test_acf_one_zero_variance_window_gives_zero_correlation():
+    """Test a lag where only one window has zero variance returns 0."""
+    x = np.array([5.0, 5.0, 5.0, 5.0, 5.0, 1.0, 9.0, 3.0, 7.0, 2.0])
+    acf = AutoCorrelationSeriesTransformer(n_lags=5)
+    y = acf.fit_transform(x)
+    assert y[0, -1] == 0.0
+
+
+def test_acf_default_n_lags_is_quarter_series_length():
+    """Test n_lags defaults to max(1, n_timepoints / 4) when not specified."""
+    x = np.arange(20, dtype=float)
+    acf = AutoCorrelationSeriesTransformer()
+    y = acf.fit_transform(x)
+    assert y.shape == (1, 5)
+
+
+def test_acf_get_test_params():
+    """Test the default test parameters are valid and usable."""
+    for params in AutoCorrelationSeriesTransformer._get_test_params():
+        transformer = AutoCorrelationSeriesTransformer(**params)
+        assert isinstance(transformer, AutoCorrelationSeriesTransformer)

@@ -95,3 +95,22 @@ def test_bkilter():
     bk = BKFilter()
     X2 = bk.fit_transform(X)
     np.testing.assert_almost_equal(expected, X2, decimal=4)
+
+
+def test_bkfilter_transform_1d_input():
+    """Test _transform with a 1D array does not reshape the filter weights."""
+    from aeon.transformations.series._bkfilter import BKFilter
+
+    bk = BKFilter()
+    X1d = np.random.RandomState(0).normal(size=100)
+    out = bk._transform(X1d)
+    assert out.ndim == 1
+
+
+def test_bkfilter_get_test_params():
+    """Test the default test parameters are valid and usable."""
+    from aeon.transformations.series._bkfilter import BKFilter
+
+    params = BKFilter._get_test_params()
+    bk = BKFilter(**params)
+    assert isinstance(bk, BKFilter)

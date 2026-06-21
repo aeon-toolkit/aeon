@@ -269,17 +269,13 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             t = self._bottom_up(buffer)
             seg_ts.append(t[0])
             buffer = buffer[len(t[0]) :]
-            if current_data_point <= len(X):
-                seg = self._best_line(
-                    X, current_data_point, lower_boundary_window, upper_boundary_window
-                )
-                current_data_point = current_data_point + len(seg)
-                buffer = np.append(buffer, seg)
-            else:
-                buffer = np.array([])
-                t = t[1:]
-                for i in range(len(t)):
-                    seg_ts.append(t[i])
+            # current_data_point can reach but never exceed len(X), since
+            # _best_line never returns more than the remaining elements of X.
+            seg = self._best_line(
+                X, current_data_point, lower_boundary_window, upper_boundary_window
+            )
+            current_data_point = current_data_point + len(seg)
+            buffer = np.append(buffer, seg)
         return seg_ts
 
     def _best_line(

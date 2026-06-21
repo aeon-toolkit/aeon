@@ -5,7 +5,7 @@ from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.transformations.series import AutoCorrelationSeriesTransformer, LogTransformer
-from aeon.transformations.series.compose import SeriesTransformerPipeline
+from aeon.transformations.series.compose import SeriesId, SeriesTransformerPipeline
 
 
 @pytest.mark.parametrize(
@@ -33,3 +33,34 @@ def test_series_transform_pipeline(transformers):
 
     assert_array_almost_equal(Xt, X)
     assert_array_almost_equal(Xt2, X)
+
+
+def test_series_transform_pipeline_pads_short_list_with_series_id():
+    """Test a single-element list is padded with a SeriesId transformer."""
+    X = make_example_2d_numpy_series(n_timepoints=12)
+
+    pipeline = SeriesTransformerPipeline(transformers=[LogTransformer()])
+    Xt = pipeline.fit_transform(X)
+
+    expected = LogTransformer().fit_transform(X)
+    assert_array_almost_equal(Xt, expected)
+
+
+def test_series_transformer_pipeline_get_test_params():
+    """Test the default test parameters are valid and usable."""
+    params = SeriesTransformerPipeline._get_test_params()
+    pipeline = SeriesTransformerPipeline(**params)
+    assert isinstance(pipeline, SeriesTransformerPipeline)
+
+
+def test_series_id_transform_and_inverse_transform_are_identity():
+    """Test SeriesId returns the input unchanged for transform and inverse."""
+    X = make_example_2d_numpy_series(n_timepoints=12)
+
+    transformer = SeriesId()
+    transformer.fit(X)
+    Xt = transformer.transform(X)
+    Xinv = transformer.inverse_transform(Xt)
+
+    assert_array_almost_equal(Xt, X)
+    assert_array_almost_equal(Xinv, X)

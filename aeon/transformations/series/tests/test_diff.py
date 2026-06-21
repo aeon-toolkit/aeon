@@ -1,6 +1,7 @@
 """Tests for Difference transformation."""
 
 import numpy as np
+import pytest
 
 from aeon.transformations.series._diff import DifferenceTransformer
 
@@ -35,3 +36,12 @@ def test_diff():
         equal_nan=True,
         err_msg="Value mismatch for order 1,multivariate",
     )
+
+
+@pytest.mark.parametrize("order", [0, -1, 1.5])
+def test_diff_invalid_order_raises(order):
+    """Test a non-positive or non-integer order raises a ValueError."""
+    X = np.array([[1.0, 2.0, 3.0, 4.0]])
+    dt = DifferenceTransformer(order=order)
+    with pytest.raises(ValueError, match="`order` must be a positive integer"):
+        dt.fit_transform(X)
