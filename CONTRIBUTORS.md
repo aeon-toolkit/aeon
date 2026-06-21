@@ -1,7 +1,7 @@
 # Contributors
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-285-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-286-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
@@ -366,6 +366,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/vedazeren"><img src="https://avatars3.githubusercontent.com/u/63582874?v=4?s=80" width="80px;" alt="vedazeren"/><br /><sub><b>vedazeren</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vedazeren" title="Code">💻</a> <a href="https://github.com/aeon-toolkit/aeon/commits?author=vedazeren" title="Tests">⚠️</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/vincent-nich12"><img src="https://avatars3.githubusercontent.com/u/36476633?v=4?s=80" width="80px;" alt="vincent-nich12"/><br /><sub><b>vincent-nich12</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vincent-nich12" title="Code">💻</a></td>
+      <td align="center" valign="top" width="12.5%"><a href="https://github.com/vir-cipher"><img src="https://avatars.githubusercontent.com/u/295312726?v=4?s=80" width="80px;" alt="vir-cipher"/><br /><sub><b>vir-cipher</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vir-cipher" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/vollmersj"><img src="https://avatars2.githubusercontent.com/u/12613127?v=4?s=80" width="80px;" alt="vollmersj"/><br /><sub><b>vollmersj</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vollmersj" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/xiaobenbenecho"><img src="https://avatars.githubusercontent.com/u/17461849?v=4?s=80" width="80px;" alt="xiaobenbenecho"/><br /><sub><b>xiaobenbenecho</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=xiaobenbenecho" title="Code">💻</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/xiaopu222"><img src="https://avatars.githubusercontent.com/u/118000577?v=4?s=80" width="80px;" alt="xiaopu222"/><br /><sub><b>xiaopu222</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=xiaopu222" title="Documentation">📖</a></td>
