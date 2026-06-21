@@ -2884,6 +2884,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "nightcityblade",
+      "name": "nightcityblade",
+      "avatar_url": "https://avatars.githubusercontent.com/u/260356847?v=4",
+      "profile": "https://github.com/nightcityblade",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
