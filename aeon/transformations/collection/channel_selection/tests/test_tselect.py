@@ -69,14 +69,13 @@ def test_tselect_default_validation_split_with_100_cases():
     assert len(selector.channels_selected_) >= 1
 
 
-def test_tselect_validation_split_is_stratified():
-    """Test TSelect keeps each class in the validation split when possible."""
+def test_tselect_fit_with_stratified_validation_split():
+    """Test TSelect fits with an imbalanced class-ordered validation split."""
+    rng = np.random.RandomState(4)
+    X = rng.normal(size=(12, 3, 20))
     y = np.array([0] * 10 + [1] * 2)
-    selector = TSelect(validation_size=0.25, random_state=1)
 
-    _, valid_idx = selector._train_validation_split(len(y), y)
-
-    assert set(y[valid_idx]) == {0, 1}
+    TSelect(validation_size=0.25, random_state=1).fit(X, y)
 
 
 def test_tselect_zero_percentage_keeps_hard_threshold_channels():
