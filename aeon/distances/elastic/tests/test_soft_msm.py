@@ -19,8 +19,7 @@ def _between_gate_cost(x_val, y_prev, z_other, c):
     a = x_val - y_prev
     b = x_val - z_other
     u = a * b
-    scale = a * a + b * b
-    g = 0.5 * (1.0 - u / np.sqrt(u * u + 1e-3 * scale * scale + 1e-300))
+    g = 0.5 * (1.0 - u / np.sqrt(u * u + 1e-9))
     return c + (1.0 - g) * min(a * a, b * b)
 
 
@@ -95,11 +94,13 @@ def test_soft_msm_is_signed_not_a_metric():
     assert not np.isclose(soft_msm_distance(x, x, gamma=1.0), 0.0)
 
 
-def test_soft_msm_gate_is_amplitude_invariant():
-    """The between-gate must not degenerate at very large/small series amplitude.
+def test_soft_msm_finite_across_scales():
+    """Distance stays finite across series amplitudes.
 
-    A fixed-epsilon gate becomes a hard step for large amplitudes and permanently
-    soft for tiny ones; the scale-relative gate keeps finite, sensible values.
+    Note: the between-gate uses a fixed ``1e-9`` floor and is therefore
+    amplitude-dependent (it degenerates for very small/large series). That is a
+    known limitation tracked in aeon-toolkit/aeon#3518; this test only guards
+    finiteness.
     """
     rng = np.random.default_rng(3)
     x = rng.standard_normal(8)

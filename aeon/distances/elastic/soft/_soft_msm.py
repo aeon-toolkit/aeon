@@ -77,7 +77,7 @@ def soft_msm_distance(
     >>> x = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
     >>> y = np.array([2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
     >>> soft_msm_distance(x, y)
-    1.3193587881001578
+    1.3200398491544811
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -338,14 +338,11 @@ def _soft_msm_transition_cost(x_val, y_prev, z_other, c, gamma):
     a = x_val - y_prev
     b = x_val - z_other
 
-    # Smooth "between" gate: g -> 1 when x_val is between y_prev and z_other
-    # (a*b < 0), g -> 0 otherwise. The smoothing is scaled by the leg
-    # magnitudes so the gate is invariant to the amplitude of the series; a
-    # fixed epsilon would be a hard step for large-amplitude data and
-    # permanently soft for small-amplitude data.
+    # Between gate. The fixed 1e-9 floor makes this gate amplitude-dependent;
+    # a scale-invariant version is proposed in
+    # https://github.com/aeon-toolkit/aeon/issues/3518
     u = a * b
-    scale = a * a + b * b
-    g = 0.5 * (1.0 - u / np.sqrt(u * u + 1e-3 * scale * scale + 1e-300))
+    g = 0.5 * (1.0 - u / np.sqrt(u * u + 1e-9))
 
     d_same_prev = a * a
     d_cross = b * b
@@ -493,33 +490,25 @@ def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, gamma):
     # softmin value
     softmin_val = -gamma * (np.log(Z) + tmax)
 
-    # gate g and its gradients (scale-relative smoothing, gamma-free). Must stay
-    # consistent with ``_soft_msm_transition_cost``: same k and floor.
-    k = 1e-3
+    # gate g and its gradients (parameter-free)
+    eps = 1e-9
     u = a * b
-    s = a * a + b * b
-    denom_sq = u * u + k * s * s + 1e-300
+    denom_sq = u * u + eps
     denom = np.sqrt(denom_sq)
     g = 0.5 * (1.0 - u / denom)
 
+    # df/du for f(u) = u/sqrt(u^2+eps) equals eps/(u^2+eps)^(3/2)
+    df_du = eps / (denom_sq * denom)
+    dg_du = -0.5 * df_du
+
+    # du/dargs
     du_dxval = a + b
     du_dyprev = -b
     du_dzoth = -a
-    ds_dxval = 2.0 * a + 2.0 * b
-    ds_dyprev = -2.0 * a
-    ds_dzoth = -2.0 * b
 
-    # d(u/denom)/darg = du/denom - u*(u*du + k*s*ds)/(denom*denom_sq);
-    # g = 0.5*(1 - u/denom) so dg = -0.5 * d(u/denom).
-    dg_dxval = -0.5 * (
-        du_dxval / denom - u * (u * du_dxval + k * s * ds_dxval) / (denom * denom_sq)
-    )
-    dg_dyprev = -0.5 * (
-        du_dyprev / denom - u * (u * du_dyprev + k * s * ds_dyprev) / (denom * denom_sq)
-    )
-    dg_dzoth = -0.5 * (
-        du_dzoth / denom - u * (u * du_dzoth + k * s * ds_dzoth) / (denom * denom_sq)
-    )
+    dg_dxval = dg_du * du_dxval
+    dg_dyprev = dg_du * du_dyprev
+    dg_dzoth = dg_du * du_dzoth
 
     # ∂softmin/∂args
     dsm_dxval = w_same * (2.0 * a) + w_cross * (2.0 * b)
