@@ -138,6 +138,22 @@ def test_fill_value_with_string_params(fill_value):
     assert X_padded.shape == (X.shape[0], X.shape[1], 120)
 
 
+def test_padding_integer_input_with_noise():
+    """Test padding integer-valued series with float noise."""
+    X = [np.arange(4 * length, dtype=int).reshape(4, length) for length in (5, 7, 9)]
+    padding_transformer = Padder(padded_length=12, add_noise=0.5, random_state=0)
+
+    X_padded = padding_transformer.fit_transform(X)
+
+    assert X_padded.shape == (len(X), X[0].shape[0], 12)
+    assert np.issubdtype(X_padded.dtype, np.floating)
+    for i, series in enumerate(X):
+        assert_array_equal(X_padded[i, :, : series.shape[1]], series)
+        padded_values = X_padded[i, :, series.shape[1] :]
+        assert np.all(padded_values >= 0)
+        assert np.all(padded_values <= 0.5)
+
+
 def test_padder_incorrect_paras():
     """Test Padder with incorrect parameters."""
     X = np.random.rand(2, 2, 20)

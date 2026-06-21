@@ -245,6 +245,20 @@ def test_autoets_uses_provided_seasonal_period():
     assert forecaster.wrapped_model_._seasonal_period == 4
 
 
+def test_autoets_provided_seasonal_period_overrides_nonseasonal_aic_winner():
+    """A supplied seasonal period should force a seasonal model when possible."""
+    y = np.linspace(10.0, 30.0, 80) + 0.01 * np.sin(np.arange(80))
+
+    unconstrained = AutoETS()
+    unconstrained.fit(y)
+    forced = AutoETS(seasonal_period=4)
+    forced.fit(y)
+
+    assert unconstrained.seasonality_type_ == 0
+    assert forced.seasonality_type_ != 0
+    assert forced.seasonal_period_ == 4
+
+
 def test_autoets_invalid_seasonal_period_raises():
     """AutoETS should reject invalid supplied seasonal periods."""
     forecaster = AutoETS(seasonal_period=0)

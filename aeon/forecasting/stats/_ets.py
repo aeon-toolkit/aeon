@@ -370,10 +370,10 @@ class AutoETS(BaseForecaster):
     ----------
     seasonal_period : int or None, default=None
         The seasonal period to use in automatic model selection. If ``None``,
-        the seasonal period is estimated from the data. Seasonal candidate models
-        are only considered when the series length is greater than four times the
-        selected seasonal period; otherwise AutoETS falls back to non-seasonal
-        candidates.
+        the seasonal period is estimated from the data. If an integer is supplied,
+        AutoETS selects the best seasonal model when the series length is greater
+        than four times the supplied period, even if a non-seasonal candidate has
+        a lower AIC. Otherwise, AutoETS falls back to non-seasonal candidates.
     allow_multiplicative_trend : bool, default=False
         Whether to include multiplicative trend models in the automatic model search.
 
@@ -429,6 +429,7 @@ class AutoETS(BaseForecaster):
         data = np.asarray(y.squeeze(), dtype=np.float64)
         if self.seasonal_period is None:
             seasonal_period = 0
+            require_seasonality = False
         elif self.seasonal_period < 1:
             raise ValueError(
                 f"seasonal_period must be a positive integer or None, "
@@ -436,10 +437,12 @@ class AutoETS(BaseForecaster):
             )
         else:
             seasonal_period = self.seasonal_period
+            require_seasonality = True
         best_model = auto_ets(
             data,
             self.allow_multiplicative_trend,
             seasonal_period,
+            require_seasonality,
         )
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
@@ -501,10 +504,16 @@ class AutoETS(BaseForecaster):
 
 
 @njit(fastmath=True, cache=True)
-def auto_ets(data, allow_multiplicative_trend=False, seasonal_period=0):
+def auto_ets(
+    data,
+    allow_multiplicative_trend=False,
+    seasonal_period=0,
+    require_seasonality=False,
+):
     """Calculate model parameters based on the internal nelder-mead implementation."""
     if seasonal_period < 1:
         seasonal_period = calc_seasonal_period(data)
+        require_seasonality = False
     # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
     # but makes no sense to run a seasonal model with any less than 2 seasonal periods
     # worth of usable data even that might be a bit low
@@ -517,7 +526,13 @@ def auto_ets(data, allow_multiplicative_trend=False, seasonal_period=0):
             break
     model = np.empty(4, dtype=np.int32)
     best_model = np.empty(4, dtype=np.int32)
+    best_model[0] = 1
+    best_model[1] = 0
+    best_model[2] = 0
+    best_model[3] = 1
+    best_seasonal_model = np.empty(4, dtype=np.int32)
     best_aic = np.inf
+    best_seasonal_aic = np.inf
     t_max = 3 if allow_multiplicative_trend else 2
     for error_type in range(1, 3):
         if error_type == 2 and not all_pos:
@@ -538,4 +553,9 @@ def auto_ets(data, allow_multiplicative_trend=False, seasonal_period=0):
                 if aic < best_aic:
                     best_aic = aic
                     best_model[:] = model
+                if seasonality_type != 0 and aic < best_seasonal_aic:
+                    best_seasonal_aic = aic
+                    best_seasonal_model[:] = model
+    if require_seasonality and seasonal_enabled and best_seasonal_aic < np.inf:
+        return best_seasonal_model
     return best_model

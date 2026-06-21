@@ -27,7 +27,7 @@ class Padder(BaseCollectionTransformer):
         in ``fit``. If an integer, will pad to that length.
         Calling ``fit`` is not required if ``padded_length`` is an int.
     fill_value : int, str or Callable, default=0
-        Value to pad with. Can be a float or a statistic string or an numpy array for
+        Value to pad with. Can be a float or a statistic string or a numpy array for
         each time series. Supported statistic strings are "mean", "median", "max",
         "min".
     add_noise : float or None, default=None
@@ -41,7 +41,7 @@ class Padder(BaseCollectionTransformer):
         collection could remain unequal length, a list of numpy arrays will be returned
         instead of a 3D numpy array.
     random_state : int, RandomState instance or None, default=None
-        Only used if add_noise is True.
+        Only used if add_noise is not None.
 
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -54,7 +54,7 @@ class Padder(BaseCollectionTransformer):
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
-    >>> padder = Padder(padded_length=200, fill_value =42)
+    >>> padder = Padder(padded_length=200, fill_value=42)
     >>> X2 = padder.fit_transform(X)
     >>> X2.shape
     (10, 4, 200)
@@ -192,6 +192,7 @@ class Padder(BaseCollectionTransformer):
                 )
 
                 if self.add_noise is not None:
+                    p = p.astype(float, copy=False)
                     p[series.shape[1] :] += rng.uniform(
                         0, self.add_noise, size=pad_length - series.shape[1]
                     )
