@@ -289,8 +289,9 @@ def load_rehab_pile_dataset(
                     f"name and your internet connection. Error: {e}"
                 ) from e
 
-    X = np.load(dataset_path_fold / files_to_load["X"])
-    y = np.load(dataset_path_fold / files_to_load["y"])
+    # RehabPile stores some arrays as object arrays, so pickle support is required.
+    X = np.load(dataset_path_fold / files_to_load["X"], allow_pickle=True)
+    y = np.load(dataset_path_fold / files_to_load["y"], allow_pickle=True)
 
     if return_meta:
         meta_path = dataset_path_meta / "info.json"
