@@ -126,6 +126,167 @@ def test_mstl_numba_parity_vs_numpy():
     assert np.allclose(Z_nb, Z_np, atol=1e-6, rtol=1e-7)
 
 
+def test_transform_after_separate_fit():
+    """Test transform works after a separate fit call (fit_is_empty path)."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    mstl = MSTLSeriesTransformer(periods=[12], iterate=1)
+    mstl.fit(y)
+    Xt = mstl.transform(y)
+    assert Xt.shape == y.shape
+
+
+def test_short_series_raises():
+    """Test a series shorter than 3 points raises a ValueError."""
+    with pytest.raises(ValueError, match="length >= 3"):
+        MSTLSeriesTransformer(periods=[2]).fit_transform(np.array([1.0, 2.0]))
+
+
+def test_impute_missing_interpolates_nans():
+    """Test NaNs are linearly interpolated before decomposition."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    y[5] = np.nan
+    mstl = MSTLSeriesTransformer(periods=[12], iterate=1, impute_missing=True)
+    _, _, remainder, _ = mstl._compute_components_(y)
+    assert not np.isnan(remainder).any()
+
+
+def test_boxcox_lambda_zero_and_nonzero():
+    """Test boxcox_lambda applies a Box-Cox transform before decomposition."""
+    rng = np.random.default_rng(0)
+    y = np.abs(rng.random(240)) + 1.0
+
+    mstl_half = MSTLSeriesTransformer(periods=[12], iterate=1, boxcox_lambda=0.5)
+    Xt_half = mstl_half.fit_transform(y)
+    assert Xt_half.shape == y.shape
+
+    mstl_zero = MSTLSeriesTransformer(periods=[12], iterate=1, boxcox_lambda=0.0)
+    Xt_zero = mstl_zero.fit_transform(y)
+    assert Xt_zero.shape == y.shape
+
+
+def test_boxcox_requires_positive_data():
+    """Test a non-positive series with boxcox_lambda set raises a ValueError."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240) - 10
+    mstl = MSTLSeriesTransformer(periods=[12], boxcox_lambda=0.5)
+    with pytest.raises(ValueError, match="strictly positive"):
+        mstl._compute_components_(y)
+
+
+def test_coerce_1d_passes_through_already_1d_input():
+    """Test an already 1D array skips squeezing and is returned unchanged."""
+    x = np.array([1.0, 2.0, 3.0])
+    result = MSTLSeriesTransformer._coerce_1d(x)
+    np.testing.assert_array_equal(result, x)
+
+
+def test_coerce_1d_rejects_non_squeezable_input():
+    """Test a 2D array that cannot be squeezed to 1D raises a ValueError."""
+    with pytest.raises(ValueError, match="must be 1D"):
+        MSTLSeriesTransformer._coerce_1d(np.zeros((3, 240)))
+
+
+def test_iterate_must_be_an_integer():
+    """Test a non-integer iterate raises a ValueError."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    with pytest.raises(ValueError, match="must be an integer"):
+        MSTLSeriesTransformer(periods=[12], iterate=1.5).fit_transform(y)
+
+
+def test_s_windows_length_mismatch_raises():
+    """Test s_windows with the wrong length raises a ValueError."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    with pytest.raises(ValueError, match="Length of `s_windows`"):
+        MSTLSeriesTransformer(periods=[12, 24], s_windows=[11]).fit_transform(y)
+
+
+def test_s_windows_none_element_uses_default():
+    """Test a None entry in s_windows falls back to the computed default."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    mstl = MSTLSeriesTransformer(periods=[12], s_windows=[None])
+    Xt = mstl.fit_transform(y)
+    assert Xt.shape == y.shape
+
+
+def test_s_windows_invalid_element_raises():
+    """Test an even or too-small s_windows entry raises a ValueError."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    with pytest.raises(ValueError, match="must be an odd integer"):
+        MSTLSeriesTransformer(periods=[12], s_windows=[4]).fit_transform(y)
+
+
+def test_periods_must_be_a_non_empty_sequence():
+    """Test a non-iterable periods value raises a ValueError."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    with pytest.raises(ValueError, match="non-empty sequence"):
+        MSTLSeriesTransformer(periods=12).fit_transform(y)
+
+
+def test_invalid_period_value_raises():
+    """Test a period below 2 raises a ValueError."""
+    rng = np.random.default_rng(0)
+    y = rng.random(240)
+    with pytest.raises(ValueError, match="must be integers >= 2"):
+        MSTLSeriesTransformer(periods=[1]).fit_transform(y)
+
+
+def test_na_interp_linear_edge_cases():
+    """Test the NaN-interpolation helper's edge cases directly."""
+    np.testing.assert_array_equal(
+        MSTLSeriesTransformer._na_interp_linear(np.array([])), np.array([])
+    )
+    no_nan = np.array([1.0, 2.0, 3.0])
+    np.testing.assert_array_equal(
+        MSTLSeriesTransformer._na_interp_linear(no_nan), no_nan
+    )
+    with pytest.raises(ValueError, match="all values are NaN"):
+        MSTLSeriesTransformer._na_interp_linear(np.array([np.nan, np.nan]))
+    interpolated = MSTLSeriesTransformer._na_interp_linear(np.array([1.0, np.nan, 3.0]))
+    np.testing.assert_allclose(interpolated, [1.0, 2.0, 3.0])
+
+
+def test_format_output_with_zero_seasonals():
+    """Test _format_output handles an empty seasonals list for every mode."""
+    trend = np.zeros(5)
+    remainder = np.zeros(5)
+
+    sum_out = MSTLSeriesTransformer(periods=[12], output="seasonal_sum")._format_output(
+        [], trend, remainder
+    )
+    np.testing.assert_array_equal(sum_out, np.zeros(5))
+
+    seasonals_out = MSTLSeriesTransformer(
+        periods=[12], output="seasonals"
+    )._format_output([], trend, remainder)
+    assert seasonals_out.shape == (5, 0)
+
+    all_out = MSTLSeriesTransformer(periods=[12], output="all")._format_output(
+        [], trend, remainder
+    )
+    assert all_out.shape == (5, 2)
+
+
+def test_format_output_invalid_mode_raises():
+    """Test an unrecognised output mode raises a ValueError."""
+    transformer = MSTLSeriesTransformer(periods=[12], output="bogus")
+    with pytest.raises(ValueError, match="`output` must be one of"):
+        transformer._format_output([np.zeros(5)], np.zeros(5), np.zeros(5))
+
+
+def test_mstl_get_test_params():
+    """Test the default test parameters are valid and usable."""
+    params = MSTLSeriesTransformer._get_test_params()
+    transformer = MSTLSeriesTransformer(**params)
+    assert isinstance(transformer, MSTLSeriesTransformer)
+
+
 def test_mstl_numba_smoke_with_jumps():
     """Numba-STL inside MSTL with knot jumps runs and returns proper shapes."""
     pytest.importorskip("numba")
