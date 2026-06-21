@@ -27,10 +27,14 @@ class ESMOTE(BaseCollectionTransformer):
     distance : str or callable, default="twe"
         The distance metric to use for the nearest neighbors search and alignment path
         of synthetic time series.
+    distance_params : dict or None, default=None
+        Additional keyword arguments for the distance metric.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
         or a callable
         function.
+    n_jobs : int, default=1
+        Number of jobs to run in parallel for nearest-neighbour search.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -186,9 +190,8 @@ class ESMOTE(BaseCollectionTransformer):
         """
         Generate a single synthetic sample using soft distance.
 
-        This is use soft distance to align the current time series with its nearest
-        neighbor, and then generate a synthetic sample by subtracting the aligned
-        nearest neighbor from the current time series.
+        This uses an elastic distance to align the current time series with its nearest
+        neighbor, then generates a synthetic sample from their aligned difference.
 
         # shape: (c, l) or (l)
         # shape: (c, l) or (l)
