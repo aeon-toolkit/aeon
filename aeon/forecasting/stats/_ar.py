@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import numpy as np
-from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
+from aeon.forecasting.utils._ar import (
+    ar_predict,
+    criterion_value,
+    make_lag_matrix,
+    ols_fit_with_rss,
+)
 
 
 class AR(BaseForecaster, IterativeForecastingMixin):
@@ -107,24 +112,23 @@ class AR(BaseForecaster, IterativeForecastingMixin):
                 f"data or lower order."
             )
 
-        X_full = _make_lag_matrix(yc, maxlag)  # shape (rows, maxlag)
+        X_full = make_lag_matrix(yc, maxlag)  # shape (rows, maxlag)
         y_resp = yc[maxlag:]
         rows = y_resp.shape[0]
+        criterion_code = _criterion_code(self.criterion)
 
         # If fixed order
         if self.ar_order is not None:
             p = int(self.ar_order)
             if p == 0:
                 # intercept-only (if fit_intercept) or mean-zero (demeaned)
-                i, b, rss = _ols_fit_with_rss(
-                    np.empty((rows, 0)), y_resp, fit_intercept
-                )
+                i, b, rss = ols_fit_with_rss(np.empty((rows, 0)), y_resp, fit_intercept)
             else:
-                i, b, rss = _ols_fit_with_rss(X_full[:, :p], y_resp, fit_intercept)
+                i, b, rss = ols_fit_with_rss(X_full[:, :p], y_resp, fit_intercept)
             self.p_ = p
             self.intercept_ = float(i)
             self.coef_ = np.ascontiguousarray(b, dtype=np.float64)
-            crit_value = _criterion_value(self.criterion, rss, rows, p, fit_intercept)
+            crit_value = criterion_value(criterion_code, rss, rows, p, fit_intercept)
             self.params_ = {
                 "selection": {
                     "mode": "fixed",
@@ -144,12 +148,12 @@ class AR(BaseForecaster, IterativeForecastingMixin):
             )  # (crit, p, i, b, rss)
             for p in range(0, maxlag + 1):
                 if p == 0:
-                    i, b, rss = _ols_fit_with_rss(
+                    i, b, rss = ols_fit_with_rss(
                         np.empty((rows, 0)), y_resp, fit_intercept
                     )
                 else:
-                    i, b, rss = _ols_fit_with_rss(X_full[:, :p], y_resp, fit_intercept)
-                crit = _criterion_value(self.criterion, rss, rows, p, fit_intercept)
+                    i, b, rss = ols_fit_with_rss(X_full[:, :p], y_resp, fit_intercept)
+                crit = criterion_value(criterion_code, rss, rows, p, fit_intercept)
                 if crit < best[0]:
                     best = (crit, p, i, b.copy(), rss)
             crit, p, i, b, rss = best
@@ -167,7 +171,9 @@ class AR(BaseForecaster, IterativeForecastingMixin):
             }
 
         # one-step forecast from end of training
-        self.forecast_ = _ar_predict(yc, self.intercept_, self.coef_, self.p_)
+        self.forecast_ = self._y_mean_ + ar_predict(
+            yc, self.intercept_, self.coef_, self.p_
+        )
         return self
 
     def _predict(self, y: np.ndarray, exog: np.ndarray | None = None) -> float:
@@ -176,7 +182,7 @@ class AR(BaseForecaster, IterativeForecastingMixin):
             raise ValueError("y must be a 1D array-like")
         # apply the same centring used in fit
         yc = y - self._y_mean_
-        return _ar_predict(yc, self.intercept_, self.coef_, self.p_)
+        return self._y_mean_ + ar_predict(yc, self.intercept_, self.coef_, self.p_)
 
     # ---------------------------------------------------------------------
     # validation helpers
@@ -192,91 +198,10 @@ class AR(BaseForecaster, IterativeForecastingMixin):
             raise TypeError("demean must be a bool")
 
 
-# ============================ shared Numba utilities ============================
-
-
-@njit(cache=True, fastmath=True)
-def _make_lag_matrix(y: np.ndarray, maxlag: int) -> np.ndarray:
-    """Lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
-    n = y.shape[0]
-    rows = n - maxlag
-    out = np.empty((rows, maxlag), dtype=np.float64)
-    for i in range(rows):
-        base = maxlag + i
-        for k in range(maxlag):
-            out[i, k] = y[base - (k + 1)]
-    return out
-
-
-@njit(cache=True, fastmath=True)
-def _ols_fit_with_rss(
-    X: np.ndarray, y: np.ndarray, fit_intercept: bool
-) -> tuple[float, np.ndarray, float]:
-    """OLS via normal equations; return (intercept, coef, rss).
-
-    If ``fit_intercept`` is ``False``, the intercept is forced to 0 and the
-    returned value is 0.0. Coefficients will have shape ``(n_features,)``.
-    """
-    n_samples, n_features = X.shape
-
-    if fit_intercept:
-        Xb = np.empty((n_samples, n_features + 1), dtype=np.float64)
-        Xb[:, 0] = 1.0
-        if n_features:
-            Xb[:, 1:] = X
-        XtX = Xb.T @ Xb
-        Xty = Xb.T @ y
-        beta = np.linalg.solve(XtX, Xty)
-        pred = Xb @ beta
-        resid = y - pred
-        rss = float(resid @ resid)
-        return float(beta[0]), beta[1:], rss
-    else:
-        if n_features:
-            XtX = X.T @ X
-            Xty = X.T @ y
-            beta = np.linalg.solve(XtX, Xty)
-            pred = X @ beta
-            resid = y - pred
-            rss = float(resid @ resid)
-            return 0.0, beta, rss
-        else:
-            # no features, no intercept: y is mean-zero => model predicts 0
-            rss = float(y @ y)
-            return 0.0, np.zeros(0, dtype=np.float64), rss
-
-
-@njit(cache=True, fastmath=True)
-def _criterion_value(
-    name: str, rss: float, n_eff: int, p: int, fit_intercept: bool
-) -> float:
-    """Compute AIC/BIC/AICc from RSS for an AR(p) regression.
-
-    k = number of free parameters = p + (1 if fit_intercept else 0)
-    """
-    if n_eff <= 0:
-        return np.inf
-    sigma2 = rss / n_eff
-    if sigma2 <= 1e-300:
-        sigma2 = 1e-300
-
-    k = p + (1 if fit_intercept else 0)
-
-    if name == "AIC":
-        return n_eff * np.log(sigma2) + 2.0 * k
-    elif name == "BIC":
-        return n_eff * np.log(sigma2) + k * np.log(max(2, n_eff))
-    else:  # AICc
-        denom = max(1.0, (n_eff - k - 1))
-        return n_eff * np.log(sigma2) + 2.0 * k + (2.0 * k * (k + 1)) / denom
-
-
-@njit(cache=True, fastmath=True)
-def _ar_predict(y: np.ndarray, intercept: float, coef: np.ndarray, p: int) -> float:
-    """One-step-ahead forecast from the end of ``y`` for an AR(p) model."""
-    if p == 0:
-        return intercept
-    val = intercept
-    for j in range(p):
-        val += coef[j] * y[-(j + 1)]
-    return val
+def _criterion_code(criterion: str) -> int:
+    """Map criterion names to compact numba-friendly integer codes."""
+    if criterion == "AIC":
+        return 0
+    if criterion == "BIC":
+        return 1
+    return 2

@@ -6,36 +6,7 @@ __all__ = ["SETAR"]
 import numpy as np
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
-
-
-def _lagmat_1d(y: np.ndarray, maxlag: int) -> np.ndarray:
-    """Return lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
-    y = np.asarray(y, dtype=float).squeeze()
-    if y.ndim != 1:
-        raise ValueError("y must be a 1D array for lag construction.")
-    n = y.shape[0]
-    if n <= maxlag:
-        raise ValueError("Series too short for lag construction.")
-    # Column k (0-based) is y_{t-(k+1)}
-    cols = [y[maxlag - (k + 1) : -(k + 1) or None] for k in range(maxlag)]
-    return np.column_stack(cols)  # shape: (n - maxlag, maxlag)
-
-
-def _add_constant(X: np.ndarray) -> np.ndarray:
-    """Add an explicit intercept column of ones as the first column."""
-    X = np.asarray(X, dtype=float)
-    n = X.shape[0]
-    return np.hstack([np.ones((n, 1), dtype=X.dtype), X])
-
-
-def _ols_fit(X: np.ndarray, y: np.ndarray):
-    """Least-squares fit: return (intercept, coefs, sse)."""
-    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
-    resid = y - X @ beta
-    sse = float(resid @ resid)
-    intercept = float(beta[0])
-    coefs = np.asarray(beta[1:], dtype=float)
-    return intercept, coefs, sse
+from aeon.forecasting.utils._ar import make_lag_matrix, ols_fit_with_rss
 
 
 class SETAR(BaseForecaster, IterativeForecastingMixin):
@@ -72,7 +43,7 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
-        y = y.squeeze().astype(float)
+        y = np.ascontiguousarray(y.squeeze().astype(float))
         delay = 1
 
         # one-time length check
@@ -106,10 +77,9 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             maxlag = self.lag
             if len(y) <= maxlag:
                 raise ValueError("Series too short for fallback fitting.")
-            lagged = _lagmat_1d(y, maxlag)  # cols: y_{t-1}..y_{t-maxlag}
-            X = _add_constant(lagged)
+            lagged = make_lag_matrix(y, maxlag)
             target = y[maxlag:]
-            inter, coefs, _ = _ols_fit(X, target)
+            inter, coefs, _ = ols_fit_with_rss(lagged, target)
             self.fallback_intercept = inter
             self.fallback_coefs = coefs
             self.model = "linear"
@@ -127,7 +97,7 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             # caller does the one-time length check; just return None here
             return None
 
-        lagged = _lagmat_1d(y, maxlag)  # shape: (T-maxlag, maxlag)
+        lagged = make_lag_matrix(y, maxlag)  # shape: (T-maxlag, maxlag)
         trimmed_y = y[maxlag:]
         th_index = delay - 1  # threshold variable (y_{t-d})
         th_var = lagged[:, th_index]  # y_{t-1} when delay=1
@@ -153,8 +123,8 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
         best_inter_high = None
         best_coefs_high = None
 
-        # X for AR: lags 1..lag_order (plus intercept)
-        X_full = _add_constant(lagged[:, :lag_order])
+        # X for AR: lags 1..lag_order; intercept is fit by shared OLS.
+        X_full = lagged[:, :lag_order]
 
         min_obs_per_regime = lag_order + 1  # intercept + lag_order params
         for th in grid:
@@ -170,8 +140,8 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             X_high = X_full[high_idx]
             y_high = trimmed_y[high_idx]
 
-            inter_l, coef_l, sse_l = _ols_fit(X_low, y_low)
-            inter_h, coef_h, sse_h = _ols_fit(X_high, y_high)
+            inter_l, coef_l, sse_l = ols_fit_with_rss(X_low, y_low)
+            inter_h, coef_h, sse_h = ols_fit_with_rss(X_high, y_high)
             sse = sse_l + sse_h
 
             if sse < best_sse:
