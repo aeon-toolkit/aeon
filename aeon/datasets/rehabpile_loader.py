@@ -293,6 +293,9 @@ def load_rehab_pile_dataset(
     X = np.load(dataset_path_fold / files_to_load["X"], allow_pickle=True)
     y = np.load(dataset_path_fold / files_to_load["y"], allow_pickle=True)
 
+    X = np.array(X.tolist())
+    y = np.array(y.tolist())
+
     if return_meta:
         meta_path = dataset_path_meta / "info.json"
         if not meta_path.exists():
