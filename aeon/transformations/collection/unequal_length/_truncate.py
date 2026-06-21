@@ -96,7 +96,7 @@ class Truncator(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : numpy3D array (n_cases, n_channels, self.truncated_length_)
+        Xt : numpy3D array (n_cases, n_channels, self._truncated_length)
             truncated time series from X.
         """
         # Must call fit unless truncated_length is an int
