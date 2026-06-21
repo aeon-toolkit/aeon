@@ -9,12 +9,6 @@ import numpy as np
 from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
-from aeon.forecasting.utils._ar import aic_value as _aic_value
-from aeon.forecasting.utils._ar import make_lag_matrix as _make_lag_matrix
-from aeon.forecasting.utils._ar import ols_fit_with_rss as _ols_fit_with_rss
-from aeon.forecasting.utils._ar import prepare_tar_design as _prepare_design
-from aeon.forecasting.utils._ar import subset_rows_cols as _subset_rows_cols
-from aeon.forecasting.utils._ar import subset_target as _subset_target
 
 
 class TAR(BaseForecaster, IterativeForecastingMixin):
@@ -743,7 +737,100 @@ def _numba_threshold_search(
     )
 
 
-# ============================ TAR-specific utilities ============================
+# ============================ shared Numba utilities ============================
+
+
+@njit(cache=True, fastmath=True)
+def _make_lag_matrix(y: np.ndarray, maxlag: int) -> np.ndarray:
+    """Build lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
+    n = y.shape[0]
+    rows = n - maxlag
+    out = np.empty((rows, maxlag), dtype=np.float64)
+    for i in range(rows):
+        base = maxlag + i
+        for k in range(maxlag):
+            out[i, k] = y[base - (k + 1)]
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _prepare_design(
+    y: np.ndarray, maxlag: int, d: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Build lagged design X, response y_resp, and threshold var z=y_{t-d} (aligned)."""
+    X_full = _make_lag_matrix(y, maxlag)
+    y_resp = y[maxlag:]
+    rows = y_resp.shape[0]
+    z = np.empty(rows, dtype=np.float64)
+    base = maxlag - d
+    for i in range(rows):
+        z[i] = y[base + i]  # y_{t-d}
+    return X_full, y_resp, z
+
+
+@njit(cache=True, fastmath=True)
+def _ols_fit_with_rss(X: np.ndarray, y: np.ndarray) -> tuple[float, np.ndarray, float]:
+    """OLS via normal equations; return (intercept, coef, rss)."""
+    n_samples, n_features = X.shape
+    Xb = np.empty((n_samples, n_features + 1), dtype=np.float64)
+    Xb[:, 0] = 1.0
+    if n_features:
+        Xb[:, 1:] = X
+    XtX = Xb.T @ Xb
+    Xty = Xb.T @ y
+    beta = np.linalg.solve(XtX, Xty)
+    pred = Xb @ beta
+    resid = y - pred
+    rss = float(resid @ resid)
+    return float(beta[0]), beta[1:], rss
+
+
+@njit(cache=True, fastmath=True)
+def _subset_rows_cols(
+    X: np.ndarray, mask_true: np.ndarray, choose_true: bool, keep_cols: int
+) -> np.ndarray:
+    """Select rows by mask and first keep_cols columns (Numba-friendly)."""
+    rows = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            rows += 1
+    out = np.empty((rows, keep_cols), dtype=np.float64)
+    r = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            for c in range(keep_cols):
+                out[r, c] = X[i, c]
+            r += 1
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _subset_target(
+    y: np.ndarray, mask_true: np.ndarray, choose_true: bool
+) -> np.ndarray:
+    """Select target rows by mask (Numba-friendly)."""
+    rows = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            rows += 1
+    out = np.empty(rows, dtype=np.float64)
+    r = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            out[r] = y[i]
+            r += 1
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _aic_value(rss: float, n_eff: int, k: int) -> float:
+    """AIC ∝ n*log(max(RSS/n, tiny)) + 2k."""
+    if n_eff <= 0:
+        return np.inf
+    sigma2 = rss / n_eff
+    if sigma2 <= 1e-300:
+        sigma2 = 1e-300
+    return n_eff * np.log(sigma2) + 2.0 * k
 
 
 @njit(cache=True, fastmath=True)

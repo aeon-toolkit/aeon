@@ -33,7 +33,6 @@ Statistical Models
     :toctree: auto_generated/
     :template: class.rst
 
-    AR
     ARIMA
     AutoARIMA
     CES
