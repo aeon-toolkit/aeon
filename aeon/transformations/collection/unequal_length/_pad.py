@@ -10,6 +10,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -75,6 +77,8 @@ class Padder(BaseCollectionTransformer):
         error_on_long=True,
         random_state=None,
     ):
+        _validate_positive_integer_length(padded_length, "padded_length")
+
         self.padded_length = padded_length
         self.fill_value = fill_value
         self.add_noise = add_noise
@@ -85,7 +89,7 @@ class Padder(BaseCollectionTransformer):
 
         self.set_tags(
             **{
-                "fit_is_empty": isinstance(padded_length, int),
+                "fit_is_empty": _is_positive_integer_length(padded_length),
                 "removes_unequal_length": error_on_long,
             }
         )
@@ -133,7 +137,7 @@ class Padder(BaseCollectionTransformer):
         # Must call fit unless padded_length is an int
         pad_length = (
             self.padded_length
-            if isinstance(self.padded_length, int)
+            if _is_positive_integer_length(self.padded_length)
             else self._padded_length
         )
 
