@@ -7,6 +7,7 @@ from numba.typed import List
 from numpy.testing import assert_, assert_array_almost_equal, assert_array_equal
 
 from aeon.similarity_search.series._commons import (
+    _check_X_index,
     _extract_top_k_from_dist_profile,
     _extract_top_k_motifs,
     _extract_top_r_motifs,
@@ -89,6 +90,47 @@ def test__inverse_distance_profile():
     X = make_example_1d_numpy()
     X_inv = _inverse_distance_profile(X)
     assert_array_almost_equal(1 / (X + 1e-8), X_inv)
+
+
+def test_check_x_index_none_is_a_noop():
+    """Test None is accepted without raising."""
+    _check_X_index(None, 10, 3)
+
+
+def test_check_x_index_valid_value_is_a_noop():
+    """Test a valid index does not raise."""
+    _check_X_index(2, 10, 3)
+
+
+@pytest.mark.parametrize("bad_index", [10, -1])
+def test_check_x_index_out_of_range_raises(bad_index):
+    """Test an out-of-range index raises a ValueError."""
+    with pytest.raises(ValueError, match="cannot exceed the number"):
+        _check_X_index(bad_index, 10, 3)
+
+
+def test_extract_top_k_from_dist_profile_stops_at_threshold():
+    """Test the search for a sorted batch stops once distances exceed the threshold."""
+    X = np.array([0.1, 0.2, 5.0, 5.1, 5.2, 0.3, 5.3, 5.4])
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+        X, 5, 1.0, False, 1
+    )
+    assert_array_equal(np.sort(top_k_indexes), [0, 5])
+    assert_(np.all(top_k_distances <= 1.0))
+
+
+def test__extract_top_k_motifs_skips_empty_entries():
+    """Test motif extraction treats an empty distance list as worst-case (inf)."""
+    MP = np.array([[1.0, 2.0], [], [0.5, 0.9]], dtype=object)
+    IP = np.array([[1, 2], [], [0, 3]], dtype=object)
+
+    IP_k, MP_k = _extract_top_k_motifs(MP, IP, 2, True, 0)
+
+    assert_(len(MP_k) == 2)
+    assert_array_equal(MP_k[0], [0.5, 0.9])
+    assert_array_equal(IP_k[0], [0, 3])
+    assert_array_equal(MP_k[1], [1.0, 2.0])
+    assert_array_equal(IP_k[1], [1, 2])
 
 
 def test__extract_top_k_motifs():
