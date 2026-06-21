@@ -10,7 +10,12 @@ import numpy as np
 
 
 def _is_positive_integer_length(value):
-    return isinstance(value, numbers.Integral) and not isinstance(value, bool)
+    """Return whether value is a positive non-bool integer length."""
+    return (
+        isinstance(value, numbers.Integral)
+        and not isinstance(value, bool)
+        and value >= 1
+    )
 
 
 def _validate_positive_integer_length(value, parameter_name):
