@@ -2893,6 +2893,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "vir-cipher",
+      "name": "vir-cipher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/295312726?v=4",
+      "profile": "https://github.com/vir-cipher",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
