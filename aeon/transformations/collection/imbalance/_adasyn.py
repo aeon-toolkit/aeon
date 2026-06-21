@@ -34,10 +34,18 @@ class ADASYN(SMOTE):
 
     Parameters
     ----------
-        random_state : int or None, optional (default=None)
-            Random seed for reproducibility.
-        n_neighbors : int, optional (default=5)
-            Number of nearest neighbours used to construct synthetic samples.
+    n_neighbors : int, default=5
+        Number of nearest neighbours used to construct synthetic samples.
+    random_state : int, RandomState instance or None, default=None
+        Controls random number generation for reproducibility.
+    distance : str or callable, default="euclidean"
+        Distance metric used for nearest-neighbour search.
+    distance_params : dict or None, default=None
+        Additional keyword arguments for the distance metric.
+    n_jobs : int, default=1
+        Number of jobs to run in parallel for nearest-neighbour search.
+    weights : str or callable, default="uniform"
+        Weight function used in prediction by the nearest-neighbour estimator.
 
     References
     ----------
