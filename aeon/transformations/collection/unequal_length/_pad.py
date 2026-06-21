@@ -192,6 +192,7 @@ class Padder(BaseCollectionTransformer):
                 )
 
                 if self.add_noise is not None:
+                    p = p.astype(float, copy=False)
                     p[series.shape[1] :] += rng.uniform(
                         0, self.add_noise, size=pad_length - series.shape[1]
                     )

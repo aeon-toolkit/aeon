@@ -25,7 +25,7 @@ from aeon.utils.validation import check_n_jobs
 
 class SMOTE(BaseCollectionTransformer):
     """
-    Synthetic Minority Over-sampling TEchnique (SMOTE) for imbalanced datasets.
+    Synthetic Minority Over-sampling Technique (SMOTE) for imbalanced datasets.
 
     Generates synthetic samples of the minority class to address class imbalance.
     SMOTE constructs new samples by interpolating between existing minority samples
@@ -39,7 +39,8 @@ class SMOTE(BaseCollectionTransformer):
     ----------
     n_neighbors : int, default=5
         Number of nearest neighbours used to generate synthetic samples. A
-        `sklearn.neighbors.NearestNeighbors` instance is fitted for this purpose.
+        `_SingleClassKNN` wrapper around `KNeighborsTimeSeriesClassifier` is fitted
+        for this purpose.
     random_state : int, RandomState instance or None, default=None
         Controls the random number generation for reproducibility:
         - If `int`, sets the random seed.
@@ -213,7 +214,7 @@ class SMOTE(BaseCollectionTransformer):
 
         .. math::
            \mathbf{s_{s}} = \mathbf{s_{i}} + \mathcal{u}(0, 1) \times
-           (\mathbf{s_{i}} - \mathbf{s_{nn}}) \,
+           (\mathbf{s_{nn}} - \mathbf{s_{i}}) \,
 
         where \mathbf{s_{s}} is the new synthetic samples, \mathbf{s_{i}} is
         the current sample, \mathbf{s_{nn}} is a randomly selected neighbors of
@@ -266,10 +267,6 @@ class SMOTE(BaseCollectionTransformer):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            ClassifierChannelEnsemble provides the following special sets:
-            - "results_comparison" - used in some classifiers to compare against
-              previously generated results where the default set of parameters
-              cannot produce suitable probability estimates
 
         Returns
         -------
