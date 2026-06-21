@@ -75,6 +75,19 @@ def test_padding_fixed_value():
     assert X_padded[0][0][100] == 42
 
 
+@pytest.mark.parametrize(
+    "fill_value",
+    [np.array([1.0, 2.0]), np.array([1.0, 2.0, 3.0])],
+)
+def test_padder_rejects_array_fill_value(fill_value):
+    """Test Padder rejects array fill values."""
+    X = [np.array([[5.0, 6.0], [7.0, 8.0]])]
+    padding_transformer = Padder(padded_length=4, fill_value=fill_value)
+
+    with pytest.raises(ValueError, match="fill_value must be a scalar"):
+        padding_transformer.fit_transform(X)
+
+
 def test_padding_fill_unequal_length():
     """Test padding unequal length longer than longest.
 
