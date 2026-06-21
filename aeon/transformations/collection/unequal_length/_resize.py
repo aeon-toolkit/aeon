@@ -9,6 +9,7 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _validate_length_param,
 )
 
 
@@ -47,6 +48,7 @@ class Resizer(BaseCollectionTransformer):
     }
 
     def __init__(self, resized_length="max"):
+        _validate_length_param(resized_length, "resized_length")
         self.resized_length = resized_length
 
         super().__init__()

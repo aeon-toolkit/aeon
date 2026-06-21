@@ -10,6 +10,7 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _validate_length_param,
 )
 
 
@@ -75,6 +76,7 @@ class Padder(BaseCollectionTransformer):
         error_on_long=True,
         random_state=None,
     ):
+        _validate_length_param(padded_length, "padded_length")
         self.padded_length = padded_length
         self.fill_value = fill_value
         self.add_noise = add_noise

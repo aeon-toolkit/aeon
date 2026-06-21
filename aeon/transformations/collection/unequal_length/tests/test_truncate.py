@@ -96,9 +96,8 @@ def test_incorrect_arguments():
     """Test Truncator with incorrect constructor arguments."""
     X, _ = make_example_3d_numpy()
 
-    truncator = Truncator(truncated_length="invalid")
     with pytest.raises(ValueError, match="truncated_length must be"):
-        truncator.fit_transform(X)
+        Truncator(truncated_length="invalid")
 
     truncator = Truncator(truncated_length=20)
     with pytest.raises(ValueError, match="less than the provided truncated_length"):

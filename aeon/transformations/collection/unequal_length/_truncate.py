@@ -9,6 +9,7 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _validate_length_param,
 )
 
 
@@ -51,6 +52,7 @@ class Truncator(BaseCollectionTransformer):
     }
 
     def __init__(self, truncated_length="min", error_on_short=True):
+        _validate_length_param(truncated_length, "truncated_length")
         self.truncated_length = truncated_length
         self.error_on_short = error_on_short
 

@@ -84,6 +84,5 @@ def test_incorrect_arguments():
     """Test Resizer with incorrect constructor arguments."""
     X, _ = make_example_3d_numpy()
 
-    resizer = Resizer(resized_length="invalid")
     with pytest.raises(ValueError, match="resized_length must be"):
-        resizer.fit_transform(X)
+        Resizer(resized_length="invalid")
