@@ -22,11 +22,18 @@ TEST_DISTANCE_WITH_PARAMS = [
     ("shift_scale", {"max_shift": 2}),
 ]
 
-# All the distances that return a full alignment path.
+# Distances usable with the discrete barycentre-averaging methods. Soft
+# distances are excluded: they are only averaged via ``method="soft"``.
 TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH = [
     (name, params)
     for name, params in TEST_DISTANCE_WITH_PARAMS
-    if name in ["dtw", "wdtw", "edr", "twe", "msm", "shape_dtw", "adtw", "soft_dtw"]
+    if name in ["dtw", "wdtw", "edr", "twe", "msm", "shape_dtw", "adtw"]
+]
+
+# Soft distances (with params) for the gradient-based soft barycentre tests.
+TEST_SOFT_DISTANCES_WITH_PARAMS = [
+    ("soft_dtw", {"gamma": 0.1}),
+    ("soft_msm", {"gamma": 0.1}),
 ]
 
 

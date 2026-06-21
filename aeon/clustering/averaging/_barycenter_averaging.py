@@ -5,8 +5,12 @@ __maintainer__ = []
 import numpy as np
 
 from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
+from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
-from aeon.clustering.averaging._ba_utils import VALID_BA_METHODS
+from aeon.clustering.averaging._ba_utils import (
+    VALID_BA_METHODS,
+    VALID_SOFT_BA_METHODS,
+)
 from aeon.clustering.averaging._kasba_average import kasba_average
 
 
@@ -30,6 +34,7 @@ def elastic_barycenter_average(
     return_cost: bool = False,
     return_distances_to_center: bool = False,
     n_jobs: int = 1,
+    minimise_method: str = "L-BFGS-B",
     **kwargs,
 ):
     """
@@ -113,6 +118,20 @@ def elastic_barycenter_average(
            "Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering."
            arXiv:2411.17838, 2024.
     """
+    # Soft distances are only valid with the gradient-based ``method="soft"``,
+    # and ``method="soft"`` only accepts soft distances.
+    if method == "soft":
+        if distance not in VALID_SOFT_BA_METHODS:
+            raise ValueError(
+                f"method='soft' requires a soft distance, one of "
+                f"{VALID_SOFT_BA_METHODS}, but got distance={distance!r}."
+            )
+    elif distance in VALID_SOFT_BA_METHODS:
+        raise ValueError(
+            f"Soft distance {distance!r} can only be averaged with "
+            f"method='soft' (gradient-based), not method={method!r}."
+        )
+
     if method == "petitjean":
         return petitjean_barycenter_average(
             X,
@@ -167,6 +186,23 @@ def elastic_barycenter_average(
             verbose=verbose,
             n_jobs=n_jobs,
             random_state=random_state,
+            return_cost=return_cost,
+            return_distances_to_center=return_distances_to_center,
+            **kwargs,
+        )
+    elif method == "soft":
+        return soft_barycenter_average(
+            X,
+            distance=distance,
+            max_iters=max_iters,
+            tol=tol,
+            init_barycenter=init_barycenter,
+            weights=weights,
+            precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+            verbose=verbose,
+            minimise_method=minimise_method,
+            random_state=random_state,
+            n_jobs=n_jobs,
             return_cost=return_cost,
             return_distances_to_center=return_distances_to_center,
             **kwargs,
