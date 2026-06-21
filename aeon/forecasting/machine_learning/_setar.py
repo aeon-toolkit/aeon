@@ -6,7 +6,11 @@ __all__ = ["SETAR"]
 import numpy as np
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
-from aeon.forecasting.utils._ar import make_lag_matrix, ols_fit_with_rss
+from aeon.forecasting.utils._ar import (
+    add_intercept_column,
+    make_lag_matrix,
+    ols_lstsq_with_intercepted_rss,
+)
 
 
 class SETAR(BaseForecaster, IterativeForecastingMixin):
@@ -78,8 +82,9 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             if len(y) <= maxlag:
                 raise ValueError("Series too short for fallback fitting.")
             lagged = make_lag_matrix(y, maxlag)
+            X = add_intercept_column(lagged)
             target = y[maxlag:]
-            inter, coefs, _ = ols_fit_with_rss(lagged, target)
+            inter, coefs, _ = ols_lstsq_with_intercepted_rss(X, target)
             self.fallback_intercept = inter
             self.fallback_coefs = coefs
             self.model = "linear"
@@ -123,8 +128,8 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
         best_inter_high = None
         best_coefs_high = None
 
-        # X for AR: lags 1..lag_order; intercept is fit by shared OLS.
-        X_full = lagged[:, :lag_order]
+        # X for AR: lags 1..lag_order plus an intercept column.
+        X_full = add_intercept_column(lagged[:, :lag_order])
 
         min_obs_per_regime = lag_order + 1  # intercept + lag_order params
         for th in grid:
@@ -140,8 +145,8 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             X_high = X_full[high_idx]
             y_high = trimmed_y[high_idx]
 
-            inter_l, coef_l, sse_l = ols_fit_with_rss(X_low, y_low)
-            inter_h, coef_h, sse_h = ols_fit_with_rss(X_high, y_high)
+            inter_l, coef_l, sse_l = ols_lstsq_with_intercepted_rss(X_low, y_low)
+            inter_h, coef_h, sse_h = ols_lstsq_with_intercepted_rss(X_high, y_high)
             sse = sse_l + sse_h
 
             if sse < best_sse:

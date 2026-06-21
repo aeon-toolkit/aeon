@@ -2,10 +2,13 @@
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = [
+    "add_intercept_column",
     "aic_value",
     "ar_predict",
     "criterion_value",
     "make_lag_matrix",
+    "ols_lstsq_with_intercepted_rss",
+    "ols_lstsq_with_rss",
     "ols_fit_with_rss",
     "prepare_tar_design",
     "subset_rows_cols",
@@ -14,6 +17,16 @@ __all__ = [
 
 import numpy as np
 from numba import njit
+
+
+def add_intercept_column(x: np.ndarray) -> np.ndarray:
+    """Return ``x`` with a leading intercept column of ones."""
+    x = np.asarray(x, dtype=np.float64)
+    out = np.empty((x.shape[0], x.shape[1] + 1), dtype=np.float64)
+    out[:, 0] = 1.0
+    if x.shape[1]:
+        out[:, 1:] = x
+    return out
 
 
 @njit(cache=True, fastmath={"contract"})
@@ -49,65 +62,87 @@ def ols_fit_with_rss(
     x: np.ndarray,
     y: np.ndarray,
     fit_intercept: bool = True,
-    ridge: float = 1e-12,
+    ridge: float = 0.0,
 ) -> tuple[float, np.ndarray, float]:
     """Fit OLS normal equations and return intercept, coefficients, and RSS."""
     n_samples, n_features = x.shape
-    n_params = n_features + (1 if fit_intercept else 0)
-    if n_params == 0:
-        rss = 0.0
-        for i in range(n_samples):
-            rss += y[i] * y[i]
+    if fit_intercept:
+        x_fit = np.empty((n_samples, n_features + 1), dtype=np.float64)
+        x_fit[:, 0] = 1.0
+        if n_features:
+            x_fit[:, 1:] = x
+        xtx = x_fit.T @ x_fit
+        xty = x_fit.T @ y
+        if ridge > 0.0:
+            _add_scaled_ridge(xtx, ridge)
+        beta = np.linalg.solve(xtx, xty)
+        pred = x_fit @ beta
+        resid = y - pred
+        rss = float(resid @ resid)
+        return float(beta[0]), beta[1:].copy(), rss
+
+    if n_features == 0:
+        rss = float(y @ y)
         return 0.0, np.zeros(0, dtype=np.float64), rss
 
-    xtx = np.zeros((n_params, n_params), dtype=np.float64)
-    xty = np.zeros(n_params, dtype=np.float64)
-
-    for i in range(n_samples):
-        yi = y[i]
-        if fit_intercept:
-            xty[0] += yi
-            xtx[0, 0] += 1.0
-            offset = 1
-        else:
-            offset = 0
-
-        for c0 in range(n_features):
-            v0 = x[i, c0]
-            row0 = c0 + offset
-            xty[row0] += v0 * yi
-            if fit_intercept:
-                xtx[0, row0] += v0
-                xtx[row0, 0] += v0
-            for c1 in range(n_features):
-                xtx[row0, c1 + offset] += v0 * x[i, c1]
-
+    xtx = x.T @ x
+    xty = x.T @ y
     if ridge > 0.0:
-        scale = 1.0
-        for i in range(n_params):
-            diag = abs(xtx[i, i])
-            if diag > scale:
-                scale = diag
-        penalty = ridge * scale
-        for i in range(n_params):
-            xtx[i, i] += penalty
-
+        _add_scaled_ridge(xtx, ridge)
     beta = np.linalg.solve(xtx, xty)
-    if fit_intercept:
-        intercept = float(beta[0])
-        coef = beta[1:].copy()
-    else:
-        intercept = 0.0
-        coef = beta.copy()
+    pred = x @ beta
+    resid = y - pred
+    rss = float(resid @ resid)
+    return 0.0, beta.copy(), rss
 
-    rss = 0.0
-    for i in range(n_samples):
-        pred = intercept
-        for c in range(n_features):
-            pred += coef[c] * x[i, c]
-        resid = y[i] - pred
-        rss += resid * resid
-    return intercept, coef, float(rss)
+
+@njit(cache=True, fastmath={"contract"})
+def _add_scaled_ridge(xtx: np.ndarray, ridge: float) -> None:
+    """Add a diagonal ridge scaled to the largest normal-equation diagonal."""
+    scale = 1.0
+    for i in range(xtx.shape[0]):
+        diag = abs(xtx[i, i])
+        if diag > scale:
+            scale = diag
+    penalty = ridge * scale
+    for i in range(xtx.shape[0]):
+        xtx[i, i] += penalty
+
+
+def ols_lstsq_with_rss(
+    x: np.ndarray, y: np.ndarray, fit_intercept: bool = True
+) -> tuple[float, np.ndarray, float]:
+    """Fit least squares with SVD fallback semantics and return RSS.
+
+    This matches ``np.linalg.lstsq`` behaviour used by the original SETAR
+    implementation for rank-deficient lag designs.
+    """
+    x = np.asarray(x, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+    if fit_intercept:
+        x_fit = add_intercept_column(x)
+    else:
+        x_fit = x
+
+    return ols_lstsq_with_intercepted_rss(x_fit, y, fit_intercept)
+
+
+def ols_lstsq_with_intercepted_rss(
+    x_fit: np.ndarray, y: np.ndarray, has_intercept: bool = True
+) -> tuple[float, np.ndarray, float]:
+    """Fit least squares when the design already contains any intercept column."""
+    x_fit = np.asarray(x_fit, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+    if x_fit.shape[1] == 0:
+        rss = float(np.dot(y, y))
+        return 0.0, np.zeros(0, dtype=np.float64), rss
+
+    beta, *_ = np.linalg.lstsq(x_fit, y, rcond=None)
+    residuals = y - x_fit @ beta
+    rss = float(residuals @ residuals)
+    if has_intercept:
+        return float(beta[0]), np.asarray(beta[1:], dtype=np.float64), rss
+    return 0.0, np.asarray(beta, dtype=np.float64), rss
 
 
 @njit(cache=True, fastmath={"contract"})
