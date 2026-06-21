@@ -2893,6 +2893,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "MHJanny",
+      "name": "Mehedi Hasan Janny",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26045285?v=4",
+      "profile": "https://mhjanny.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
