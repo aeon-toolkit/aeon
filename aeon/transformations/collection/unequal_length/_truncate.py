@@ -9,6 +9,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -51,6 +53,8 @@ class Truncator(BaseCollectionTransformer):
     }
 
     def __init__(self, truncated_length="min", error_on_short=True):
+        _validate_positive_integer_length(truncated_length, "truncated_length")
+
         self.truncated_length = truncated_length
         self.error_on_short = error_on_short
 
@@ -58,7 +62,7 @@ class Truncator(BaseCollectionTransformer):
 
         self.set_tags(
             **{
-                "fit_is_empty": isinstance(truncated_length, int),
+                "fit_is_empty": _is_positive_integer_length(truncated_length),
                 "removes_unequal_length": error_on_short,
             }
         )
@@ -102,7 +106,7 @@ class Truncator(BaseCollectionTransformer):
         # Must call fit unless truncated_length is an int
         truncated_length = (
             self.truncated_length
-            if isinstance(self.truncated_length, int)
+            if _is_positive_integer_length(self.truncated_length)
             else self._truncated_length
         )
 
