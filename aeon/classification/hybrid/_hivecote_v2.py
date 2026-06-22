@@ -260,7 +260,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
             Dictionary mapping each component name to its probability predictions
             of shape (n_cases, n_classes).
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         component_probas = {
             name: est.predict_proba(X)
