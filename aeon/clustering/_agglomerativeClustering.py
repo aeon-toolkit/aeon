@@ -85,7 +85,7 @@ class TimeSeriesAgglomerative(BaseClusterer):
     Examples
     --------
     >>> from aeon.datasets import load_gunpoint
-    >>> from utils.HC_Scikit import TimeSeriesAgglomerative
+    >>> from aeon.clustering._agglomerativeClustering import TimeSeriesAgglomerative
     >>> X, y = load_gunpoint(split="train")
     >>> clusterer = TimeSeriesAgglomerative(
     ...     n_clusters=2,
