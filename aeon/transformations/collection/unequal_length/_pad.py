@@ -28,10 +28,9 @@ class Padder(BaseCollectionTransformer):
         shortest series seen in ``fit``. If "max", will pad to the longest series seen
         in ``fit``. If an integer, will pad to that length.
         Calling ``fit`` is not required if ``padded_length`` is an int.
-    fill_value : int, str or Callable, default=0
-        Value to pad with. Can be a float or a statistic string or a numpy array for
-        each time series. Supported statistic strings are "mean", "median", "max",
-        "min".
+    fill_value : int, float, str or Callable, default=0
+        Value to pad with. Scalar (int/float), statistic string (mean, median, max,
+        min, last), or callable taking a 1D array and returning a scalar.
     add_noise : float or None, default=None
         Add noise to the padded values of the series.
         Randomly adds a value between 0 and ``add_noise`` to each padded value if
@@ -86,6 +85,22 @@ class Padder(BaseCollectionTransformer):
         self.random_state = random_state
 
         super().__init__()
+
+        if isinstance(self.fill_value, str):
+            if self.fill_value not in ("mean", "median", "max", "min", "last"):
+                raise ValueError(
+                    f"Supported string values: mean, median, max, min, last. "
+                    f"Got {self.fill_value!r}."
+                )
+        elif callable(self.fill_value):
+            pass
+        elif isinstance(self.fill_value, bool) or not isinstance(
+            self.fill_value, (int, float)
+        ):
+            raise TypeError(
+                f"fill_value must be a scalar (int/float), a supported "
+                f"statistic string, or a callable. Got {type(self.fill_value)}."
+            )
 
         self.set_tags(
             **{
@@ -166,11 +181,6 @@ class Padder(BaseCollectionTransformer):
                     return x[-1]
 
                 func = last
-            else:
-                raise ValueError(
-                    "Supported str values for fill_value are {mean, median, min, "
-                    "max, last}."
-                )
         elif callable(self.fill_value):
             func = self.fill_value
 
