@@ -90,7 +90,7 @@ def test_padding_fill_unequal_length():
 
 
 def test_padding_min():
-    """Test Truncator handles unequal length data correctly."""
+    """Test Padder handles unequal length data correctly."""
     X, _ = make_example_3d_numpy_list()
     X2, _ = make_example_3d_numpy_list(min_n_timepoints=6, max_n_timepoints=16)
     min_length = _get_min_length(X)
