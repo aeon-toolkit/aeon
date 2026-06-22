@@ -286,3 +286,55 @@ def test_sfa_dynamic(alphabet_allocation_method):
 
     # Check if the budget is correctly allocated
     assert np.mean(np.log2(p.alphabet_sizes)) <= np.log2(alphabet_size)
+
+
+def test_sfa_get_words_sliding_window():
+    """Test get_words with sliding window (multiple windows per case)."""
+    X = np.random.rand(3, 1, 20)
+    y = np.array([0, 1, 0])
+
+    # Sliding window: window_size < n_timepoints
+    p = SFA(word_length=4, alphabet_size=4, window_size=10, save_words=True)
+    p.fit_transform(X, y)
+
+    words = p.get_words()
+
+    # Should return array of shape (n_cases, n_windows, word_length)
+    # MFT produces ceil(20/10) = 2 windows, but internal slicing yields 11 positions
+    assert len(words) == 3  # n_cases
+    assert len(words[0]) > 1  # multiple windows (sliding)
+    assert len(words[0][0]) == 4  # word_length
+
+
+def test_sfa_get_words_single_window():
+    """Test get_words with single window (window_size == n_timepoints)."""
+    X = np.random.rand(2, 1, 15)
+    y = np.array([0, 1])
+
+    # Single window: window_size == n_timepoints
+    p = SFA(word_length=6, alphabet_size=4, window_size=15, save_words=True)
+    p.fit_transform(X, y)
+
+    words = p.get_words()
+
+    # Should return array of shape (n_cases, n_windows, word_length)
+    assert len(words) == 2  # n_cases
+    assert len(words[0]) >= 1  # at least one window
+    assert len(words[0][0]) == 6  # word_length
+
+
+def test_sfa_fast_get_words_sliding_window():
+    """Test SFAFast.get_words with sliding window."""
+    X = np.random.rand(4, 1, 25)
+    y = np.array([0, 1, 0, 1])
+
+    # Sliding window
+    p = SFAFast(word_length=5, alphabet_size=4, window_size=12, save_words=True)
+    p.fit(X, y)
+
+    words = p.get_words()
+
+    # Should return array of shape (n_cases, n_windows, word_length)
+    assert len(words) == 4  # n_cases
+    assert len(words[0]) >= 1  # at least one window
+    assert len(words[0][0]) == 5  # word_length

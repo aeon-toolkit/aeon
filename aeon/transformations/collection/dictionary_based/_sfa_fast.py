@@ -769,9 +769,15 @@ class SFAFast(BaseCollectionTransformer):
         -------
         Array of words
         """
-        words = np.squeeze(self.words)
         return np.array(
-            [_get_chars(word, self.word_length, self.letter_bits) for word in words]
+            [
+                [
+                    _get_chars(word, self.word_length, self.letter_bits)
+                    for word in case_words
+                ]
+                for case_words in self.words
+            ],
+            dtype=object,
         )
 
     def transform_words(self, X):
