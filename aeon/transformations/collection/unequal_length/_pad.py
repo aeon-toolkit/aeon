@@ -10,6 +10,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -36,8 +38,8 @@ class Padder(BaseCollectionTransformer):
         float.
         Adds no noise if None.
     error_on_long : bool, default=True
-        If True, raise an error if a series is longer than pad_length.
-        If False, will ignore series longer than pad_length. As the series
+        If True, raise an error if a series is longer than padded_length.
+        If False, will ignore series longer than padded_length. As the series
         collection could remain unequal length, a list of numpy arrays will be returned
         instead of a 3D numpy array.
     random_state : int, RandomState instance or None, default=None
@@ -75,6 +77,8 @@ class Padder(BaseCollectionTransformer):
         error_on_long=True,
         random_state=None,
     ):
+        _validate_positive_integer_length(padded_length, "padded_length")
+
         self.padded_length = padded_length
         self.fill_value = fill_value
         self.add_noise = add_noise
@@ -85,7 +89,7 @@ class Padder(BaseCollectionTransformer):
 
         self.set_tags(
             **{
-                "fit_is_empty": isinstance(padded_length, int),
+                "fit_is_empty": _is_positive_integer_length(padded_length),
                 "removes_unequal_length": error_on_long,
             }
         )
@@ -127,13 +131,13 @@ class Padder(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : numpy3D array (n_cases, n_channels, self.pad_length_)
+        Xt : numpy3D array (n_cases, n_channels, self._padded_length)
             padded time series from X.
         """
-        # Must call fit if pad_length is None
+        # Must call fit unless padded_length is an int
         pad_length = (
             self.padded_length
-            if isinstance(self.padded_length, int)
+            if _is_positive_integer_length(self.padded_length)
             else self._padded_length
         )
 
@@ -141,8 +145,9 @@ class Padder(BaseCollectionTransformer):
             max_length = _get_max_length(X)
             if max_length > pad_length:
                 raise ValueError(
-                    "max length of series in X is greater than the provided pad_length"
-                    "(or greater than the series seen in fit if pad_length is None)."
+                    "max length of series in X is greater than the provided "
+                    "padded_length (or greater than the series seen in fit if "
+                    "padded_length is 'min' or 'max')."
                 )
 
         # Determine if fill value is a function
