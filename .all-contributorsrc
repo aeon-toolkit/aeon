@@ -2911,6 +2911,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "glitch-ux",
+      "name": "José Maia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71816777?v=4",
+      "profile": "https://www.noesis.pt/en",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
