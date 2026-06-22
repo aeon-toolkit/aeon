@@ -137,7 +137,7 @@ class TSelect(BaseChannelSelector):
             raise ValueError("y must have the same number of cases as X.")
 
         X = self._preprocess(X)
-        train_idx, valid_idx = self._train_validation_split(n_cases)
+        train_idx, valid_idx = self._train_validation_split(n_cases, y)
 
         self.channel_scores_ = np.full(n_channels, np.nan)
         self.channel_correlations_ = np.full((n_channels, n_channels), np.nan)
@@ -254,7 +254,7 @@ class TSelect(BaseChannelSelector):
 
         return X_scaled
 
-    def _train_validation_split(self, n_cases):
+    def _train_validation_split(self, n_cases, y):
         if self.validation_size is not None:
             test_size = self.validation_size
         elif n_cases <= 100:
@@ -264,11 +264,24 @@ class TSelect(BaseChannelSelector):
             n_train = max(100, round(0.25 * n_cases))
             test_size = 1 - (n_train / n_cases)
 
-        train_idx, valid_idx = train_test_split(
-            list(range(n_cases)),
-            test_size=test_size,
-            random_state=self.random_state,
-        )
+        try:
+            train_idx, valid_idx = train_test_split(
+                list(range(n_cases)),
+                test_size=test_size,
+                random_state=self.random_state,
+                stratify=y,
+            )
+        except ValueError as err:
+            warnings.warn(
+                "Falling back to an unstratified validation split because "
+                f"stratification failed: {err}",
+                stacklevel=2,
+            )
+            train_idx, valid_idx = train_test_split(
+                list(range(n_cases)),
+                test_size=test_size,
+                random_state=self.random_state,
+            )
 
         return np.asarray(train_idx), np.asarray(valid_idx)
 

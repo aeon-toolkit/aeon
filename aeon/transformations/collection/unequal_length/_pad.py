@@ -10,6 +10,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -27,7 +29,7 @@ class Padder(BaseCollectionTransformer):
         in ``fit``. If an integer, will pad to that length.
         Calling ``fit`` is not required if ``padded_length`` is an int.
     fill_value : int, str or Callable, default=0
-        Value to pad with. Can be a float or a statistic string or an numpy array for
+        Value to pad with. Can be a float or a statistic string or a numpy array for
         each time series. Supported statistic strings are "mean", "median", "max",
         "min".
     add_noise : float or None, default=None
@@ -36,12 +38,12 @@ class Padder(BaseCollectionTransformer):
         float.
         Adds no noise if None.
     error_on_long : bool, default=True
-        If True, raise an error if a series is longer than pad_length.
-        If False, will ignore series longer than pad_length. As the series
+        If True, raise an error if a series is longer than padded_length.
+        If False, will ignore series longer than padded_length. As the series
         collection could remain unequal length, a list of numpy arrays will be returned
         instead of a 3D numpy array.
     random_state : int, RandomState instance or None, default=None
-        Only used if add_noise is True.
+        Only used if add_noise is not None.
 
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -54,7 +56,7 @@ class Padder(BaseCollectionTransformer):
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
-    >>> padder = Padder(padded_length=200, fill_value =42)
+    >>> padder = Padder(padded_length=200, fill_value=42)
     >>> X2 = padder.fit_transform(X)
     >>> X2.shape
     (10, 4, 200)
@@ -75,6 +77,8 @@ class Padder(BaseCollectionTransformer):
         error_on_long=True,
         random_state=None,
     ):
+        _validate_positive_integer_length(padded_length, "padded_length")
+
         self.padded_length = padded_length
         self.fill_value = fill_value
         self.add_noise = add_noise
@@ -85,7 +89,7 @@ class Padder(BaseCollectionTransformer):
 
         self.set_tags(
             **{
-                "fit_is_empty": isinstance(padded_length, int),
+                "fit_is_empty": _is_positive_integer_length(padded_length),
                 "removes_unequal_length": error_on_long,
             }
         )
@@ -127,13 +131,13 @@ class Padder(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : numpy3D array (n_cases, n_channels, self.pad_length_)
+        Xt : numpy3D array (n_cases, n_channels, self._padded_length)
             padded time series from X.
         """
-        # Must call fit if pad_length is None
+        # Must call fit unless padded_length is an int
         pad_length = (
             self.padded_length
-            if isinstance(self.padded_length, int)
+            if _is_positive_integer_length(self.padded_length)
             else self._padded_length
         )
 
@@ -141,8 +145,9 @@ class Padder(BaseCollectionTransformer):
             max_length = _get_max_length(X)
             if max_length > pad_length:
                 raise ValueError(
-                    "max length of series in X is greater than the provided pad_length"
-                    "(or greater than the series seen in fit if pad_length is None)."
+                    "max length of series in X is greater than the provided "
+                    "padded_length (or greater than the series seen in fit if "
+                    "padded_length is 'min' or 'max')."
                 )
 
         # Determine if fill value is a function
@@ -192,6 +197,7 @@ class Padder(BaseCollectionTransformer):
                 )
 
                 if self.add_noise is not None:
+                    p = p.astype(float, copy=False)
                     p[series.shape[1] :] += rng.uniform(
                         0, self.add_noise, size=pad_length - series.shape[1]
                     )
