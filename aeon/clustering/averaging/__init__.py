@@ -5,18 +5,22 @@ __all__ = [
     "mean_average",
     "petitjean_barycenter_average",
     "subgradient_barycenter_average",
+    "soft_barycenter_average",
     "VALID_BA_METHODS",
     "VALID_BA_DISTANCE_METHODS",
+    "VALID_SOFT_BA_METHODS",
     "shift_invariant_average",
     "kasba_average",
 ]
 
 from aeon.clustering.averaging._averaging import mean_average
 from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
+from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
 from aeon.clustering.averaging._ba_utils import (
     VALID_BA_DISTANCE_METHODS,
     VALID_BA_METHODS,
+    VALID_SOFT_BA_METHODS,
 )
 from aeon.clustering.averaging._barycenter_averaging import elastic_barycenter_average
 from aeon.clustering.averaging._kasba_average import kasba_average

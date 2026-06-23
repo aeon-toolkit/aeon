@@ -12,7 +12,6 @@ from aeon.distances import (
     msm_alignment_path,
     pairwise_distance,
     shape_dtw_alignment_path,
-    soft_dtw_alignment_path,
     twe_alignment_path,
     wddtw_alignment_path,
     wdtw_alignment_path,
@@ -140,8 +139,6 @@ def _get_alignment_path(
         )
     elif distance == "adtw":
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
-    elif distance == "soft_dtw":
-        return soft_dtw_alignment_path(ts, center, gamma=gamma, window=window)
     else:
         # When numba version > 0.57 add more informative error with what method
         # was passed.
@@ -158,6 +155,7 @@ def _ba_setup(
     n_jobs: int = 1,
     random_state: int | None = None,
     weights: np.ndarray | None = None,
+    compute_previous_cost: bool = True,
     **kwargs,
 ):
     if X.ndim == 3:
@@ -187,11 +185,12 @@ def _ba_setup(
             **kwargs,
         )
 
-        pw_dist = pairwise_distance(
-            _X, init_barycenter, method=distance, n_jobs=n_jobs, **kwargs
-        )
-        previous_cost = np.sum(pw_dist)
-        previous_distance_to_center = pw_dist.flatten()
+        if compute_previous_cost:
+            pw_dist = pairwise_distance(
+                _X, init_barycenter, method=distance, n_jobs=n_jobs, **kwargs
+            )
+            previous_cost = np.sum(pw_dist)
+            previous_distance_to_center = pw_dist.flatten()
 
     barycenter = np.copy(init_barycenter)
     prev_barycenter = np.copy(init_barycenter)
@@ -223,8 +222,13 @@ VALID_BA_METHODS = [
     "subgradient",
     "kasba",
     "petitjean",
+    "soft",
 ]
 
+# Distances usable with the discrete BA methods (petitjean/subgradient/kasba).
+# Soft distances are deliberately excluded: they have an alignment distribution
+# rather than a single hard path, so discrete realignment is ill-defined. Use
+# ``method="soft"`` (gradient-based) for soft distances instead.
 VALID_BA_DISTANCE_METHODS = [
     "adtw",
     "dtw",
@@ -235,5 +239,10 @@ VALID_BA_DISTANCE_METHODS = [
     "twe",
     "msm",
     "shape_dtw",
+]
+
+# Soft distances usable with ``method="soft"`` (gradient-based barycentre).
+VALID_SOFT_BA_METHODS = [
     "soft_dtw",
+    "soft_msm",
 ]
