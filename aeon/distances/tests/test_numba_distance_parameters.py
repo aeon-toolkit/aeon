@@ -132,6 +132,7 @@ DIST_PARAMS = {
     "shape_dtw": BASIC_BOUNDING_PARAMS + [{"reach": 4}],
     "shift_scale": [{"max_shift": 1}, {"max_shift": None}],
     "soft_dtw": BASIC_BOUNDING_PARAMS + [{"gamma": 0.2}],
+    "soft_msm": BASIC_BOUNDING_PARAMS + [{"gamma": 0.2}, {"c": 0.1}],
 }
 
 

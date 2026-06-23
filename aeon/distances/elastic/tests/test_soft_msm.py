@@ -9,7 +9,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from aeon.distances import soft_msm_distance
+from aeon.distances import (
+    soft_msm_alignment_path,
+    soft_msm_cost_matrix,
+    soft_msm_distance,
+    soft_msm_pairwise_distance,
+)
 from aeon.distances._distance import SIGNED_DISTANCES
 from aeon.distances.elastic.soft._soft_msm import _soft_msm_grad_x
 
@@ -107,3 +112,44 @@ def test_soft_msm_finite_across_scales():
     y = rng.standard_normal(8)
     for scale in (1e-3, 1.0, 1e3):
         assert np.isfinite(soft_msm_distance(x * scale, y * scale, gamma=1.0))
+
+
+def test_soft_msm_cost_matrix_consistent_with_distance():
+    """The cost matrix has the right shape and its final cell is the distance."""
+    rng = np.random.default_rng(4)
+    x = rng.standard_normal(9)
+    y = rng.standard_normal(11)
+    cm = soft_msm_cost_matrix(x, y, gamma=1.0)
+    assert cm.shape == (9, 11)
+    assert_allclose(cm[-1, -1], soft_msm_distance(x, y, gamma=1.0), rtol=1e-9)
+
+
+def test_soft_msm_pairwise_distance_shapes():
+    """Pairwise distance returns square (X) and rectangular (X, y) matrices."""
+    rng = np.random.default_rng(5)
+    X = rng.standard_normal((4, 1, 7))
+    y = rng.standard_normal((3, 1, 7))
+
+    self_pw = soft_msm_pairwise_distance(X, gamma=1.0)
+    assert self_pw.shape == (4, 4)
+    assert_allclose(self_pw, self_pw.T, rtol=1e-9)  # symmetric
+    # diagonal is the (non-zero) self-distance of a soft distance
+    assert_allclose(
+        np.diag(self_pw),
+        [soft_msm_distance(X[i], X[i], gamma=1.0) for i in range(4)],
+        rtol=1e-9,
+    )
+
+    cross_pw = soft_msm_pairwise_distance(X, y, gamma=1.0)
+    assert cross_pw.shape == (4, 3)
+
+
+def test_soft_msm_alignment_path_endpoints():
+    """The alignment path runs corner-to-corner and returns the distance."""
+    rng = np.random.default_rng(6)
+    x = rng.standard_normal(8)
+    y = rng.standard_normal(8)
+    path, dist = soft_msm_alignment_path(x, y, gamma=1.0)
+    assert path[0] == (0, 0)
+    assert path[-1] == (7, 7)
+    assert_allclose(dist, soft_msm_distance(x, y, gamma=1.0), rtol=1e-9)
