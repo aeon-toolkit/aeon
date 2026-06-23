@@ -1,4 +1,4 @@
-"""Test tselect channel channel selector."""
+"""Test TSelect channel selector."""
 
 import numpy as np
 
@@ -6,7 +6,7 @@ from aeon.transformations.collection.channel_selection import TSelect
 
 
 def test_tselect_fit_transform_shape():
-    """Test tselect channel selector."""
+    """Test TSelect channel selector."""
     rng = np.random.RandomState(0)
     X = rng.normal(size=(30, 5, 20))
     y = np.array([0, 1] * 15)
@@ -25,7 +25,7 @@ def test_tselect_fit_transform_shape():
 
 
 def test_tselect_attributes():
-    """Test tselect channel selector."""
+    """Test TSelect channel selector."""
     rng = np.random.RandomState(1)
     X = rng.normal(size=(40, 4, 15))
     y = np.array([0, 1] * 20)
@@ -40,7 +40,7 @@ def test_tselect_attributes():
 
 
 def test_tselect_keeps_predictive_channel():
-    """Test t-select channel selector."""
+    """Test TSelect channel selector."""
     rng = np.random.RandomState(2)
     X = rng.normal(size=(60, 3, 20))
     y = np.array([0, 1] * 30)

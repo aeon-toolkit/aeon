@@ -284,7 +284,14 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         """
         if exog is not None or future_exog is not None:
             raise NotImplementedError("ETS does not support exog.")
+        y, exog, future_exog = self._check_iterative_forecast_inputs(
+            y, prediction_horizon, exog, future_exog
+        )
         self.fit(y)
+        return self._iterative_forecast_from_fitted(prediction_horizon)
+
+    def _iterative_forecast_from_fitted(self, prediction_horizon):
+        """Forecast multiple steps ahead from fitted ETS state."""
         preds = np.zeros(prediction_horizon)
         preds[0] = self.forecast_
         for i in range(1, prediction_horizon):
@@ -353,7 +360,7 @@ def _validate_parameter(var, can_be_none):
         )
 
 
-class AutoETS(BaseForecaster):
+class AutoETS(BaseForecaster, IterativeForecastingMixin):
     """Automatic Exponential Smoothing forecaster.
 
     An implementation of the exponential smoothing statistics forecasting algorithm.
@@ -500,7 +507,11 @@ class AutoETS(BaseForecaster):
         """
         if exog is not None or future_exog is not None:
             raise NotImplementedError("AutoETS does not support exog.")
-        return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
+        y, exog, future_exog = self._check_iterative_forecast_inputs(
+            y, prediction_horizon, exog, future_exog
+        )
+        self.fit(y, exog=exog)
+        return self.wrapped_model_._iterative_forecast_from_fitted(prediction_horizon)
 
 
 @njit(fastmath=True, cache=True)

@@ -2893,6 +2893,42 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "vir-cipher",
+      "name": "vir-cipher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/295312726?v=4",
+      "profile": "https://github.com/vir-cipher",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "axelray-dev",
+      "name": "AxelRay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110029405?v=4",
+      "profile": "https://github.com/axelray-dev",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "glitch-ux",
+      "name": "José Maia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71816777?v=4",
+      "profile": "https://www.noesis.pt/en",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "gaurav-init",
+      "name": "Gaurav",
+      "avatar_url": "https://avatars.githubusercontent.com/u/125201478?v=4",
+      "profile": "https://github.com/gaurav-init",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
