@@ -123,7 +123,10 @@ def test_deep_clusterer_fit_options(model):
 @pytest.mark.parametrize("model", [AEFCNClusterer, AEResNetClusterer])
 def test_multi_rec_validation_split(model):
     """Test the multi_rec loss path together with a validation split."""
-    X = np.random.random((20, 2, 8))
+    # use the same shape as the other multi_rec tests; a smaller collection
+    # leaves the autoencoder's latent space near-constant after a couple of
+    # epochs, which the downstream clusterer's variation check rejects.
+    X = np.random.random((100, 5, 2))
     clst = model(
         **model._get_test_params()[0],
         loss="multi_rec",
