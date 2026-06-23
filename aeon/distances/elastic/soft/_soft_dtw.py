@@ -8,6 +8,7 @@ from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
+from aeon.distances.elastic._dtw import _dtw_cost_matrix
 from aeon.distances.elastic.soft._utils import _softmin3
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
@@ -55,7 +56,6 @@ def soft_dtw_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1`` then
         10% of the series length is the max warping allowed.
-        is used.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -63,7 +63,9 @@ def soft_dtw_distance(
     Returns
     -------
     float
-        soft-DTW distance between x and y, minimum value 0.
+        soft-DTW distance between x and y. soft-DTW is not a proper distance: the
+        value is signed and may be negative for larger ``gamma`` (and ``d(x, x)``
+        is generally non-zero). When ``gamma = 0`` it reduces to DTW.
 
     Raises
     ------
@@ -127,7 +129,6 @@ def soft_dtw_cost_matrix(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1``,
         10% of the series length is the max warping allowed.
-        is used.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -217,7 +218,14 @@ def _soft_dtw_distance(
 @njit(cache=True, fastmath=True)
 def _soft_dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
-) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
+) -> np.ndarray:
+    # When gamma == 0 the soft-min collapses to a hard-min, so soft-DTW reduces
+    # to DTW. Delegating avoids the 1/gamma division by zero in ``_softmin3``.
+    # The original ``np.array_equal(x, y)`` short-circuit is intentionally NOT
+    # restored: soft-DTW is signed and ``d(x, x)`` is legitimately non-zero.
+    if gamma == 0.0:
+        return _dtw_cost_matrix(x, y, bounding_matrix)
+
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)

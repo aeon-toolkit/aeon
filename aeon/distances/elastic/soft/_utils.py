@@ -1,3 +1,7 @@
+"""Shared utilities for soft elastic distances (soft-min helpers)."""
+
+__maintainer__ = []
+
 import numpy as np
 from numba import njit
 
