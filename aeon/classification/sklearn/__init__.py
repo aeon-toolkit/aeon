@@ -2,11 +2,13 @@
 
 __all__ = [
     "RotationForestClassifier",
+    "PreValClassifier",
     "ContinuousIntervalTree",
     "SklearnClassifierWrapper",
 ]
 
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
+from aeon.classification.sklearn._preval_classifier import PreValClassifier
 from aeon.classification.sklearn._rotation_forest_classifier import (
     RotationForestClassifier,
 )
