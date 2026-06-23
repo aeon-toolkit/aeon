@@ -6,7 +6,6 @@ __all__ = ["all_estimators"]
 import inspect
 import warnings
 from importlib import import_module
-from operator import itemgetter
 from pathlib import Path
 from pkgutil import walk_packages
 
@@ -41,14 +40,14 @@ def all_estimators(
     type_filter: str, estimator type or list of str/type, default=None
         Which kind of estimators should be returned.
         if None, no filter is applied.
-        if str, type or list, returns esimators that are of one of the provided types.
+        if str, type or list, returns estimators that are of one of the provided types.
             Valid entries are available in the keys and values of
             utils.base.BASE_CLASS_REGISTER. i.e. "classifier" and "transformer" for
             str, and BaseClassifier and BaseTransformer for type.
     exclude_types: str, estimator type or list of str/type, default=None
         Which kind of estimators to exclude. Inverse of type_filter.
         if None, no exclusion is applied.
-        if str, type or list, excludes esimators that are of the provided types.
+        if str, type or list, excludes estimators that are of the provided types.
             Valid entries are available in the keys and values of
             utils.base.BASE_CLASS_REGISTER. i.e. "classifier" and "transformer" for
             str, and BaseClassifier and BaseTransformer for type.
@@ -97,7 +96,6 @@ def all_estimators(
         "datasets",
         "distances",
         "networks",
-        "performance_metrics",
         "pipeline",
         "testing",
         "utils",
@@ -154,7 +152,7 @@ def all_estimators(
         )
 
     # sort for reproducibility, remove names if return_names=False
-    estimators = sorted(set(estimators), key=itemgetter(0))
+    estimators = sorted(set(estimators), key=lambda x: (x[0], str(x[1])))
     if not return_names:
         return [est for (name, est) in estimators]
     else:

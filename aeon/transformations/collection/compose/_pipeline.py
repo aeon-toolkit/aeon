@@ -48,15 +48,14 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
 
     Examples
     --------
-    >>> from aeon.transformations.collection import Resizer
-    >>> from aeon.transformations.collection.feature_based import (
-    ...     SevenNumberSummary)
+    >>> from aeon.transformations.collection.unequal_length import Resizer
+    >>> from aeon.transformations.collection.feature_based import SevenNumberSummary
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.transformations.collection.compose import (
-    ...     CollectionTransformerPipeline)
+    ...                                                 CollectionTransformerPipeline)
     >>> X, y = load_unit_test(split="train")
     >>> pipeline = CollectionTransformerPipeline(
-    ...     [Resizer(length=10), SevenNumberSummary()]
+    ...     [Resizer(resized_length=10), SevenNumberSummary()]
     ... )
     >>> pipeline.fit(X, y)
     CollectionTransformerPipeline(...)
@@ -92,8 +91,8 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import SevenNumberSummary
+        from aeon.transformations.collection.unequal_length import Truncator
 
         return {
             "transformers": [

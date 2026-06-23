@@ -21,30 +21,34 @@ from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
     Normalizer,
-    Padder,
     Tabularizer,
 )
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.transformations.collection.unequal_length import Padder
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
-        Padder(pad_length=15),
+        Padder(padded_length=15),
         SevenNumberSummary(),
-        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummary()],
+        [Padder(padded_length=15), Tabularizer(), StandardScaler()],
+        [Padder(padded_length=15), SevenNumberSummary()],
         [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
-            Padder(pad_length=15),
+            Padder(padded_length=15),
             SevenNumberSummary(),
         ],
     ],
 )
 def test_regressor_pipeline(transformers):
     """Test the regressor pipeline."""
-    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
-    X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
+    X_test, _ = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
 
     r = DummyRegressor()
     pipeline = RegressorPipeline(transformers=transformers, regressor=r)
@@ -67,22 +71,26 @@ def test_regressor_pipeline(transformers):
 @pytest.mark.parametrize(
     "transformers",
     [
-        [Padder(pad_length=15), Tabularizer()],
+        [Padder(padded_length=15), Tabularizer()],
         SevenNumberSummary(),
         [Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummary()],
+        [Padder(padded_length=15), Tabularizer(), StandardScaler()],
+        [Padder(padded_length=15), SevenNumberSummary()],
         [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
-            Padder(pad_length=15),
+            Padder(padded_length=15),
             SevenNumberSummary(),
         ],
     ],
 )
 def test_sklearn_regressor_pipeline(transformers):
     """Test regressor pipeline with sklearn estimator."""
-    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
-    X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
+    X_test, _ = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
 
     r = RandomForestRegressor(n_estimators=2, random_state=0)
     pipeline = RegressorPipeline(transformers=transformers, regressor=r)

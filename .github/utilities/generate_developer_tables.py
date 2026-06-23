@@ -42,8 +42,8 @@ def get(url, auth):
 
 def get_contributors(auth):
     """Get the list of contributor profiles. Require admin rights."""
-    cocw = []
-    cocw_slug = "aeon-code-of-conduct-workgroup"
+    cocm = []
+    cocm_slug = "aeon-code-of-conduct-moderators"
     cw = []
     cw_slug = "aeon-communications-workgroup"
     cd = []
@@ -60,15 +60,15 @@ def get_contributors(auth):
     entry_point = "https://api.github.com/orgs/aeon-toolkit/"
 
     for team_slug, lst in zip(
-        (cocw_slug, cw_slug, cd_slug, fw_slug, iw_slug, rmw_slug, sd_slug),
-        (cocw, cw, cd, fw, iw, rmw, sd),
+        (cocm_slug, cw_slug, cd_slug, fw_slug, iw_slug, rmw_slug, sd_slug),
+        (cocm, cw, cd, fw, iw, rmw, sd),
     ):
         for page in range(5):  # 5 pages, 30 per page
             reply = get(f"{entry_point}teams/{team_slug}/members?page={page}", auth)
             lst.extend(reply.json())
 
     # keep only the logins
-    cocw = {c["login"] for c in cocw}
+    cocm = {c["login"] for c in cocm}
     cw = {c["login"] for c in cw}
     cd = {c["login"] for c in cd}
     fw = {c["login"] for c in fw}
@@ -77,7 +77,7 @@ def get_contributors(auth):
     sd = {c["login"] for c in sd}
 
     # get profiles from GitHub
-    cocw = [get_profile(login, auth) for login in cocw]
+    cocm = [get_profile(login, auth) for login in cocm]
     cw = [get_profile(login, auth) for login in cw]
     cd = [get_profile(login, auth) for login in cd]
     fw = [get_profile(login, auth) for login in fw]
@@ -86,7 +86,7 @@ def get_contributors(auth):
     sd = [get_profile(login, auth) for login in sd]
 
     # sort by last name
-    cocw = sorted(cocw, key=key)
+    cocm = sorted(cocm, key=key)
     cw = sorted(cw, key=key)
     cd = sorted(cd, key=key)
     fw = sorted(fw, key=key)
@@ -95,7 +95,7 @@ def get_contributors(auth):
     sd = sorted(sd, key=key)
 
     return (
-        cocw,
+        cocm,
         cw,
         cd,
         fw,
@@ -147,14 +147,14 @@ def generate_table(contributors):
 
 
 if __name__ == "__main__":
-    auth = os.getenv("GITHUB_TOKEN")
-    if auth is None:
+    auth = ("user", os.getenv("GITHUB_TOKEN"))
+    if auth[1] is None:
         print("access token:", file=sys.stderr)  # noqa: T201
         token = input()
         auth = ("user", token)
 
     (
-        cocw,
+        cocm,
         cw,
         cd,
         fw,
@@ -164,11 +164,11 @@ if __name__ == "__main__":
     ) = get_contributors(auth)
 
     with open(
-        REPO_FOLDER / "docs" / "about" / "code_of_conduct_workgroup.md",
+        REPO_FOLDER / "docs" / "about" / "code_of_conduct_moderators.md",
         "w+",
         encoding="utf-8",
     ) as rst_file:
-        rst_file.write(generate_table(cocw))
+        rst_file.write(generate_table(cocm))
 
     with open(
         REPO_FOLDER / "docs" / "about" / "communications_workgroup.md",

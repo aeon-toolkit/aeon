@@ -1,13 +1,14 @@
 """Dataset loading functions for segmentation."""
 
+__maintainer__ = []
 __all__ = [
     "load_time_series_segmentation_benchmark",
     "load_human_activity_segmentation_datasets",
 ]
 
+from ast import literal_eval
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -27,12 +28,12 @@ _HAS_URL = (
 
 
 def load_time_series_segmentation_benchmark(
-    extract_path: Optional[PathLike] = None,
+    extract_path: PathLike | None = None,
     return_metadata: bool = False,
-) -> Union[
-    tuple[list[np.ndarray], list[np.ndarray]],
-    tuple[list[np.ndarray], list[np.ndarray], list[tuple[str, int]]],
-]:
+) -> (
+    tuple[list[np.ndarray], list[np.ndarray]]
+    | tuple[list[np.ndarray], list[np.ndarray], list[tuple[str, int]]]
+):
     """Load the Time Series Segmentation Benchmark (TSSB).
 
     This function loads the Time Series Segmentation Benchmark (TSSB) into memory,
@@ -42,7 +43,7 @@ def load_time_series_segmentation_benchmark(
     from one of the UEA & UCR time series classification datasets. TS are grouped by
     label and concatenated to create segments with distinctive temporal patterns and
     statistical properties. Offsets at which segments change are annotated as CPs.
-    Addtionally, resampling  is applied to control the data resolution. Approximate,
+    Additionally, resampling  is applied to control the data resolution. Approximate,
     hand-selected window sizes are provided that capture temporal patterns.
 
     If you do not specify ``extract_path``, it will set the path to
@@ -94,7 +95,7 @@ def load_time_series_segmentation_benchmark(
 
     # converters to correctly load benchmark
     np_cols = ["change_points", "time_series"]
-    converters = {col: lambda val: np.array(eval(val)) for col in np_cols}
+    converters = {col: _parse_np_array for col in np_cols}
 
     # load benchmark from git repo (and save locally) / or load locally
     if not benchmark_path.exists():
@@ -121,14 +122,14 @@ def load_time_series_segmentation_benchmark(
 
 
 def load_human_activity_segmentation_datasets(
-    extract_path: Optional[PathLike] = None,
+    extract_path: PathLike | None = None,
     return_metadata: bool = False,
-) -> Union[
-    tuple[list[np.ndarray], list[np.ndarray]],
-    tuple[
+) -> (
+    tuple[list[np.ndarray], list[np.ndarray]]
+    | tuple[
         list[np.ndarray], list[np.ndarray], list[tuple[str, str, int, int, np.ndarray]]
-    ],
-]:
+    ]
+):
     """Load the Human Activity Segmentation Challenge data sets.
 
     This function loads the Human Activity Segmentation challenge data sets into
@@ -209,10 +210,7 @@ def load_human_activity_segmentation_datasets(
         "lon",
         "speed",
     ]
-    converters = {
-        col: lambda val: np.array([]) if len(val) == 0 else np.array(eval(val))
-        for col in np_cols
-    }
+    converters = {col: _parse_np_array for col in np_cols}
 
     # load activity data from git repo (and save locally) / or load locally
     if not benchmark_path.exists():
@@ -272,3 +270,14 @@ def load_human_activity_segmentation_datasets(
         return X, y, metadata
 
     return X, y
+
+
+def _parse_np_array(val):
+    if len(val) == 0:
+        return np.array([])
+    try:
+        return np.array(literal_eval(val))
+    except (ValueError, SyntaxError) as exc:
+        raise ValueError(
+            f"Invalid array literal in segmentation dataset CSV: {val!r}"
+        ) from exc

@@ -23,6 +23,7 @@ import pandas as pd
 from numba import njit, objmode, prange
 
 from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 def _sliding_window(X, m):
@@ -474,6 +475,8 @@ class ClaSPTransformer(BaseSeriesTransformer):
             ClaSP of the single time series as output
             with length as (n-window_length+1)
         """
+        n_jobs = check_n_jobs(self.n_jobs)
+
         if len(X) - self.window_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
                 "Period-Length is larger than size of the time series", stacklevel=1
@@ -496,7 +499,7 @@ class ClaSPTransformer(BaseSeriesTransformer):
             self.window_length,
             score=scoring_metric_call,
             exclusion_radius=self.exclusion_radius,
-            n_jobs=self.n_jobs,
+            n_jobs=n_jobs,
         )
 
         return Xt

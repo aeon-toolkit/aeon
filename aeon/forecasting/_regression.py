@@ -8,10 +8,17 @@ to form ``X`` and trains to predict the next ``horizon`` points ahead.
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.base._base import _clone_estimator
+from aeon.forecasting.base import (
+    BaseForecaster,
+    DirectForecastingMixin,
+    IterativeForecastingMixin,
+)
 
 
-class RegressionForecaster(BaseForecaster):
+class RegressionForecaster(
+    BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin
+):
     """
     Regression based forecasting.
 
@@ -20,6 +27,10 @@ class RegressionForecaster(BaseForecaster):
     window to form training collection ``X``, take ``horizon`` points ahead to form
     ``y``, then apply an aeon or sklearn regressor.
 
+    If exogenous variables are provided, they are used as target-time features
+    aligned with the prediction target. Historical exogenous effects should be
+    represented by explicitly lagging exogenous variables before passing them to the
+    forecaster; exogenous variables are not treated as extra lag-window channels.
 
     Parameters
     ----------
@@ -35,6 +46,10 @@ class RegressionForecaster(BaseForecaster):
         Regression estimator that implements BaseRegressor or is otherwise compatible
         with sklearn regressors.
     """
+
+    _tags = {
+        "capability:exogenous": True,
+    }
 
     def __init__(self, window: int, horizon: int = 1, regressor=None):
         self.window = window
@@ -52,8 +67,7 @@ class RegressionForecaster(BaseForecaster):
         y : np.ndarray
             A time series on which to learn a forecaster to predict horizon ahead.
         exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
+            Optional exogenous time series data, assumed to be aligned with y.
 
         Returns
         -------
@@ -64,19 +78,44 @@ class RegressionForecaster(BaseForecaster):
         if self.regressor is None:
             self.regressor_ = LinearRegression()
         else:
-            self.regressor_ = self.regressor
-        y = y.squeeze()
-        X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
-        # Ignore the final horizon values: need to store these for pred with empty y
-        X = X[: -self.horizon]
-        # Extract y
-        y = y[self.window + self.horizon - 1 :]
-        self.last_ = y[-self.window :]
-        self.last_ = self.last_.reshape(1, -1)
-        self.regressor_.fit(X=X, y=y)
+            self.regressor_ = _clone_estimator(self.regressor)
+        self._n_exog = 0
+        y_1d = y.squeeze()
+
+        n_timepoints = y_1d.shape[0]
+        exog_target = None
+        if exog is not None:
+            exog_target = self._format_fit_exog(exog, n_timepoints)
+            self._n_exog = exog_target.shape[1]
+
+        # Enforce a minimum number of training samples, currently 3
+        if self.window < 1 or self.window >= n_timepoints - self.horizon - 2:
+            raise ValueError(
+                f"window value {self.window} is invalid for series length "
+                f"{n_timepoints}"
+            )
+
+        # Create lagged y windows and append target-time exogenous features.
+        X_train = np.lib.stride_tricks.sliding_window_view(
+            y_1d, window_shape=self.window
+        )[: -self.horizon]
+        target_indices = np.arange(self.window + self.horizon - 1, n_timepoints)
+        if exog_target is not None:
+            X_train = np.hstack([X_train, exog_target[target_indices]])
+
+        # Extract y_train from the original series
+        y_train = y_1d[target_indices]
+
+        self.regressor_.fit(X=X_train, y=y_train)
+
+        last_y_window = y_1d[-self.window :].reshape(1, -1)
+        if exog_target is not None:
+            last_exog = exog_target[[-1]]
+            last_y_window = np.hstack([last_y_window, last_exog])
+        self.forecast_ = self.regressor_.predict(last_y_window)[0]
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -86,40 +125,72 @@ class RegressionForecaster(BaseForecaster):
             A time series to predict the next horizon value for. If None,
             predict the next horizon value after series seen in fit.
         exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
+            Optional exogenous time series data, assumed to be aligned with y.
 
         Returns
         -------
-        np.ndarray
+        float
             single prediction self.horizon steps ahead of y.
         """
-        if y is None:
-            return self.regressor_.predict(self.last_)
-        last = y[:, -self.window :]
-        return self.regressor_.predict(last)
+        y = y[:, -self.window :]
+        y = y.squeeze()
+        # Test data compliant for regression based
+        if len(y) < self.window:
+            raise ValueError(
+                f" Series passed in predict length = {len(y)} but this "
+                f"RegressionForecaster was trained on window length = "
+                f"{self.window}"
+            )
+        features = y.reshape(1, -1)
+        if exog is not None:
+            if self._n_exog == 0:
+                raise ValueError(
+                    "predict passed exogenous variables, but this "
+                    "RegressionForecaster was fitted without exog"
+                )
+            exog_row = self._format_predict_exog(exog)
+            features = np.hstack([features, exog_row])
+        else:
+            if self._n_exog > 0:
+                raise ValueError(
+                    f" predict passed no exogenous variables, but this "
+                    f"RegressionForecaster was trained on {self._n_exog} exog in fit"
+                )
+
+        # Extract the last window and flatten for prediction
+        last_window = features.reshape(1, -1)
+
+        return self.regressor_.predict(last_window)[0]
 
     def _forecast(self, y, exog=None):
-        """
-        Forecast the next horizon steps ahead.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            A time series to predict the next horizon value for.
-        exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
-
-        Returns
-        -------
-        np.ndarray
-            single prediction self.horizon steps ahead of y.
-
-        NOTE: deal with horizons
-        """
+        """Forecast values for time series X."""
         self.fit(y, exog)
-        return self.predict()
+        return self.forecast_
+
+    @staticmethod
+    def _format_fit_exog(exog, n_timepoints):
+        """Convert fit exog to timepoint rows."""
+        exog = np.asarray(exog, dtype=float)
+        if exog.shape[0] == n_timepoints:
+            return exog
+        if exog.shape[0] == 1 and exog.shape[1] == n_timepoints:
+            return exog.T
+        raise ValueError(
+            "exog must contain one row per time point in y. "
+            f"Got {exog.shape[0]}, expected {n_timepoints}."
+        )
+
+    def _format_predict_exog(self, exog):
+        """Convert prediction exog to a single target-time row."""
+        exog = np.asarray(exog, dtype=float)
+        if exog.shape[0] != 1:
+            raise ValueError("exog for predict must contain a single target-time row.")
+        if exog.shape[1] != self._n_exog:
+            raise ValueError(
+                "exog for predict must contain a single target-time row "
+                f"with {self._n_exog} features, got {exog.shape[1]}."
+            )
+        return exog
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

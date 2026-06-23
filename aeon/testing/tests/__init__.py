@@ -1,4 +1,4 @@
-"""Tests for the aeon package and testing module utilties."""
+"""Tests for the aeon package and testing module utilities."""
 
 import pkgutil
 

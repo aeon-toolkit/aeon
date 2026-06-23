@@ -8,8 +8,10 @@ from itertools import combinations
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class MiniRocket(BaseCollectionTransformer):
@@ -31,8 +33,10 @@ class MiniRocket(BaseCollectionTransformer):
      n_jobs : int, default=1
          The number of jobs to run in parallel for `transform`. ``-1`` means using all
          processors.
-     random_state : None or int, default = None
-         Seed for random number generation.
+     random_state : int, RandomState instance or None, default=None
+         If ``int``, seed the random number generator with ``random_state``.
+         If ``RandomState`` instance, use it as the random number generator.
+         If ``None``, use the global random state.
 
     Attributes
     ----------
@@ -105,8 +109,13 @@ class MiniRocket(BaseCollectionTransformer):
         -------
         self
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        rng = check_random_state(self.random_state)
         random_state = (
-            np.int32(self.random_state) if isinstance(self.random_state, int) else None
+            rng.randint(np.iinfo(np.int32).max)
+            if isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
         _, n_channels, n_timepoints = X.shape
         if n_timepoints < 9:
@@ -139,12 +148,12 @@ class MiniRocket(BaseCollectionTransformer):
         """
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
-        # change n_jobs dependend on value and existing cores
+        # change n_jobs depending on value and existing cores
         prev_threads = get_num_threads()
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
+        if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
         else:
-            n_jobs = self.n_jobs
+            n_jobs = self._n_jobs
         set_num_threads(n_jobs)
         if n_channels == 1:
             X = X.squeeze(1)

@@ -3,7 +3,6 @@
 __maintainer__ = ["baraline"]
 __all__ = ["StompMotif"]
 
-from typing import Optional
 
 import numpy as np
 from numba import njit
@@ -27,9 +26,9 @@ from aeon.utils.numba.general import sliding_mean_std_one_series
 
 class StompMotif(BaseSeriesSimilaritySearch):
     """
-    Estimator to extract top k motifs using STOMP, descibed in [1]_.
+    Estimator to extract top k motifs using STOMP, described in [1]_.
 
-    This estimators allows to perform multiple type of motif search operations by using
+    This estimator can perform multiple types of motif search operation by using
     different parameterization. We base oursleves on Figure 3 of [2]_ to establish the
     following list, but modify the confusing naming for some of them. We do not yet
     support "Learning" and "Valmod" motifs :
@@ -42,8 +41,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
             "motif_size": k,
         }
 
-        - for "r-motifs" (originaly named k-motifs, which was confusing as it is a range
-                          based motif): {
+        - for "r-motifs" (originally named k-motifs, which was confusing as it is a
+                          range based motif): {
             "motif_size":np.inf,
             "dist_threshold":r,
             "motif_extraction_method":"r_motifs"
@@ -55,12 +54,13 @@ class StompMotif(BaseSeriesSimilaritySearch):
         The length of the motifs to extract. This is the length of the subsequence
         that will be used in the computations.
     normalize : bool
-        Wheter the computations between subsequences should use a z-normalied distance.
+         Whether the computations between subsequences should use a z-normalied
+         distance.
 
     Notes
     -----
     This estimator only provides an exact computation method, faster approximate methods
-    also exist in the litterature. We use a squared euclidean distance instead of the
+    also exist in the literature. We use a squared euclidean distance instead of the
     euclidean distance, if you want euclidean distance results, you should square root
     the obtained results.
 
@@ -79,7 +79,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
+        normalize: bool | None = False,
     ):
         self.normalize = normalize
         self.length = length
@@ -119,17 +119,17 @@ class StompMotif(BaseSeriesSimilaritySearch):
     def _predict(
         self,
         X: np.ndarray,
-        k: Optional[int] = 1,
-        motif_size: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        motif_extraction_method: Optional[str] = "k_motifs",
-        is_self_computation: Optional[bool] = False,
+        k: int | None = 1,
+        motif_size: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        allow_trivial_matches: bool | None = False,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        motif_extraction_method: str | None = "k_motifs",
+        is_self_computation: bool | None = False,
     ):
         """
-        Exctract the motifs of X_ relative to a series X using STOMP matrix prfoile.
+        Extract the motifs of X_ relative to a series X using STOMP matrix prfoile.
 
         To compute self-motifs, X is set to None.
 
@@ -172,7 +172,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
             For example, if a 3-motif has distances to its matches equal to
             ``[0.1,0.2,0.5]`` will have a score of ``max([0.1,0.2,0.5])=0.5``.
         is_self_computation : bool
-            Wheter X is equal to the series X_ given during fit.
+            Whether X is equal to the series X_ given during fit.
 
         Returns
         -------
@@ -209,12 +209,12 @@ class StompMotif(BaseSeriesSimilaritySearch):
     def compute_matrix_profile(
         self,
         X: np.ndarray,
-        motif_size: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        is_self_computation: Optional[bool] = False,
+        motif_size: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        allow_trivial_matches: bool | None = False,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        is_self_computation: bool | None = False,
     ):
         """
         Compute matrix profile.
@@ -244,7 +244,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
             :math:``id_timestamp - floor(length * exclusion_factor)`` and end at
             :math:``id_timestamp + floor(length * exclusion_factor)``.
         is_self_computation : bool
-            Wheter X is equal to the series X_ given during fit.
+            Whether X is equal to the series X_ given during fit.
 
         Returns
         -------
@@ -466,7 +466,7 @@ def _stomp(
        The maximum allowed distance of a candidate subsequence of X to a query
        subsequence from X_ for the candidate to be considered as a neighbor.
     allow_trivial_matches : bool
-        Wheter the top-k candidates can be neighboring subsequences.
+        Whether the top-k candidates can be neighboring subsequences.
     exclusion_size : int
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
@@ -479,7 +479,7 @@ def _stomp(
         If True, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
     is_self_mp : bool
-        Wheter X_A == X_B.
+        Whether X_A == X_B.
 
     Returns
     -------

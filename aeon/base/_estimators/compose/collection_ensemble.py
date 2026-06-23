@@ -42,7 +42,7 @@ class BaseCollectionEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
         Only used if weights is a float. The method used to generate a performance
         estimation from the training data set i.e. cross-validation.
         If None, predictions are made using that estimators fit_predict or
-            fit_predict_proba methods. These are somtimes overridden for efficient
+            fit_predict_proba methods. These are sometimes overridden for efficient
             performance evaluations, i.e. out-of-bag predictions.
         If int or sklearn object input, the parameter is passed directly to the cv
             parameter of the cross_val_predict function from sklearn.
@@ -108,7 +108,7 @@ class BaseCollectionEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
             self._ensemble, clone_estimators=False
         )
 
-        super().__init__()
+        super().__init__(axis=1)
 
         # can handle multivariate if all estimators can
         multivariate = all(

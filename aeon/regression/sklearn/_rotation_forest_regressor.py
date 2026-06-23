@@ -8,7 +8,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import time
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -19,6 +18,7 @@ from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.utils import check_random_state
+from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
@@ -33,7 +33,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base regressor for
-    transformation based appraoches such as FreshPRINCERegressor, this aeon
+    transformation based approaches such as FreshPRINCERegressor, this aeon
     implementation only works with continuous attributes.
 
     Parameters
@@ -75,6 +75,13 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
 
+    Notes
+    -----
+    Predictions may differ slightly between scikit-learn versions. In particular,
+    scikit-learn 1.8 fixed decision-tree handling of almost constant features, which
+    can change the fitted trees used by ``RotationForestRegressor`` and therefore
+    its output, even when using the same random state.
+
     References
     ----------
     .. [1] Rodriguez, Juan José, Ludmila I. Kuncheva, and Carlos J. Alonso. "Rotation
@@ -104,12 +111,12 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         min_group: int = 3,
         max_group: int = 3,
         remove_proportion: float = 0.5,
-        base_estimator: Optional[BaseEstimator] = None,
-        pca_solver: str = "auto",
+        base_estimator: BaseEstimator | None = None,
+        pca_solver: str = "full",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -168,7 +175,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         # data processing
         X = self._check_X(X)
-        X = self._validate_data(X=X, reset=False, accept_sparse=False)
+        X = validate_data(self, X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -207,28 +214,29 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         y_preds, oobs = zip(*p)
 
         results = np.sum(y_preds, axis=0)
-        divisors = np.zeros(self.n_cases_)
-        for oob in oobs:
-            for inst in oob:
-                divisors[inst] += 1
+        oob_arrays = [np.asarray(o, dtype=np.intp) for o in oobs if len(o) > 0]
+        if oob_arrays:
+            divisors = np.bincount(
+                np.concatenate(oob_arrays), minlength=self.n_cases_
+            ).astype(float)
+        else:
+            divisors = np.zeros(self.n_cases_, dtype=float)
 
-        for i in range(self.n_cases_):
-            results[i] = (
-                self._label_average if divisors[i] == 0 else results[i] / divisors[i]
-            )
+        nonzero = divisors > 0
+        results[nonzero] = results[nonzero] / divisors[nonzero]
+        results[~nonzero] = self._label_average
 
         return results
 
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         # data processing
         X = self._check_X(X)
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
+        X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
 
         self._label_average = np.mean(y)
 
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
         self.n_cases_, self.n_atts_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
@@ -331,7 +339,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # differences between os occasionally. seems to happen when there
                     # are low amounts of cases in the fit
-                    pca = PCA(random_state=rng, svd_solver=self.pca_solver).fit(X_t)
+                    pca = PCA(random_state=rng, svd_solver="full").fit(X_t)
 
                 if not np.isnan(pca.explained_variance_ratio_).all():
                     break

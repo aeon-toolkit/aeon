@@ -1,6 +1,7 @@
 """Time series kernel kmeans."""
 
-from typing import Optional, Union
+__maintainer__ = []
+__all__ = ["TimeSeriesKernelKMeans"]
 
 import numpy as np
 from numba import njit
@@ -8,6 +9,7 @@ from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances.pointwise._squared import squared_pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 @njit(cache=True, fastmath=True)
@@ -123,7 +125,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         If set to 'auto', it is computed based on a sampling of the training
         set
         (cf :ref:`tslearn.metrics.sigma_gak <fun-tslearn.metrics.sigma_gak>`).
-        If no specific value is set for ``sigma``, its default to 1.
+        If no specific value is set for ``sigma``, it defaults to 1.
     max_iter: int, default=300
         Maximum number of iterations of the k-means algorithm for a single
         run.
@@ -137,7 +139,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See scikit-learns'
+        ``-1`` means using all processors. See scikit-learn's
         `Glossary <https://scikit-learn.org/stable/glossary.html#term-n-jobs>`_
         for more details.
     random_state: int or np.random.RandomState instance or None, default=None
@@ -145,8 +147,12 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    kernel_ : string or callable
+        The kernel resolved during ``fit``. This is identical to ``kernel``
+        unless ``kernel="kdtw"``, in which case it is the callable used
+        internally to compute the KDTW similarity.
+    labels_: np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_: float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -186,10 +192,10 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-4,
-        kernel_params: Union[dict, None] = None,
+        kernel_params: dict | None = None,
         verbose: bool = False,
-        n_jobs: Union[int, None] = 1,
-        random_state: Optional[Union[int, RandomState]] = None,
+        n_jobs: int | None = 1,
+        random_state: int | RandomState | None = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
@@ -227,10 +233,13 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         """
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         verbose = 0
         if self.verbose is True:
             verbose = 1
 
+        self.kernel_ = self.kernel
         if self.kernel == "kdtw":
             n_channels = X.shape[1]
 
@@ -243,16 +252,16 @@ class TimeSeriesKernelKMeans(BaseClusterer):
                     y = y.reshape(T, n_channels)
                 return _kdtw(x, y, sigma=sigma, epsilon=epsilon)
 
-            self.kernel = kdtw_kernel
+            self.kernel_ = kdtw_kernel
 
         self._tslearn_kernel_k_means = TsLearnKernelKMeans(
             n_clusters=self.n_clusters,
-            kernel=self.kernel,
+            kernel=self.kernel_,
             max_iter=self.max_iter,
             tol=self.tol,
             n_init=self.n_init,
             kernel_params=self.kernel_params,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             verbose=verbose,
             random_state=self.random_state,
         )

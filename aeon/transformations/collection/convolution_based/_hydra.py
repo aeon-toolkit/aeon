@@ -5,6 +5,7 @@ __all__ = ["HydraTransformer"]
 
 import numpy as np
 import pandas as pd
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -101,13 +102,20 @@ class HydraTransformer(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y=None):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         import torch
 
-        if isinstance(self.random_state, int):
-            torch.manual_seed(self.random_state)
+        rng = check_random_state(self.random_state)
+        seed = (
+            rng.randint(np.iinfo(np.int32).max)
+            if isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
+        )
+        if seed is not None:
+            torch.manual_seed(seed)
 
-        n_jobs = check_n_jobs(self.n_jobs)
-        torch.set_num_threads(n_jobs)
+        torch.set_num_threads(self._n_jobs)
 
         self._hydra = _HydraInternal(
             X.shape[2],

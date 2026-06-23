@@ -10,7 +10,6 @@ from aeon.distances import get_distance_function_names, pairwise_distance
 from aeon.distances._distance import (
     DISTANCES,
     MIN_DISTANCES,
-    MP_DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
     UNEQUAL_LENGTH_SUPPORT_DISTANCES,
     _custom_func_pairwise,
@@ -73,8 +72,8 @@ def _validate_distance_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
     """Test distance functions."""
-    # For now skipping mpdist and mindist
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    # For now skipping mindist
+    if dist["name"] in MIN_DISTANCES:
         return
 
     # ================== Test equal length ==================
@@ -142,7 +141,7 @@ def test_distances(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1,)
+        # Test single point univariate of shape (1,)
         _validate_distance_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -152,7 +151,7 @@ def test_distances(dist):
             _expected_distance_results[dist["name"]][4],
         )
 
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_distance_result(
             np.array([[10.0]]),
             np.array([[15.0]]),

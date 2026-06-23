@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.convolution_based import MultiRocket
+from aeon.utils.validation import check_n_jobs
 
 
 class MultiRocketRegressor(BaseRegressor):
@@ -109,12 +110,13 @@ class MultiRocketRegressor(BaseRegressor):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = MultiRocket(
             n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
             n_features_per_kernel=self.n_features_per_kernel,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         self._scaler = StandardScaler(with_mean=False)

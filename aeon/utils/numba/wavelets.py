@@ -1,4 +1,4 @@
-"""Numba-accelerated discrete wavelet transformations (DFTs)."""
+"""Numba-accelerated discrete wavelet transformations."""
 
 import numpy as np
 from numba import njit

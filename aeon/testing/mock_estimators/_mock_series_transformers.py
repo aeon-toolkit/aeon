@@ -98,7 +98,7 @@ class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
         return X_new
 
     def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
-        """Inverse transform X by substracting the constant and random value.
+        """Inverse transform X by subtracting the constant and random value.
 
         Parameters
         ----------
@@ -177,7 +177,7 @@ class MockMultivariateSeriesTransformer(BaseSeriesTransformer):
         return X_new
 
     def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
-        """Inverse transform X by substracting the constant and random value.
+        """Inverse transform X by subtracting the constant and random value.
 
         Parameters
         ----------

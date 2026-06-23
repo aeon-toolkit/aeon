@@ -1,19 +1,21 @@
-"""Box-Cox and Log Transformations."""
+"""Box-Cox transformation."""
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["BoxCoxTransformer", "LogTransformer"]
+__all__ = ["BoxCoxTransformer"]
 
 import numpy as np
 from scipy import optimize, special, stats
 from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
 
-from aeon.transformations.series.base import BaseSeriesTransformer
-from aeon.utils.validation import is_int
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
 # copy-pasted from scipy 1.7.3 since it moved in 1.8.0 and broke this estimator
-def _calc_uniform_order_statistic_medians(n):
+def _calc_uniform_order_statistic_medians(n: int) -> np.ndarray:
     """Approximations of uniform order statistic medians.
 
     Parameters
@@ -39,7 +41,7 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
-class BoxCoxTransformer(BaseSeriesTransformer):
+class BoxCoxTransformer(SeriesInverseTransformerMixin, BaseSeriesTransformer):
     r"""Box-Cox power transform.
 
     Box-Cox transformation is a power transformation that is used to
@@ -90,7 +92,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
     References
     ----------
     .. [1] Box, G. E. P. & Cox, D. R. (1964) An analysis of transformations,
-       Journal ofthe Royal Statistical Society, Series B, 26, 211-252.
+       Journal of the Royal Statistical Society, Series B, 26, 211-252.
     .. [2] V.M. Guerrero, "Time-series analysis supported by Power
        Transformations ", Journal of Forecasting, vol. 12, pp. 37-48, 1993.
 
@@ -107,7 +109,6 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         "X_inner_type": "np.ndarray",
         "fit_is_empty": False,
         "capability:multivariate": False,
-        "capability:inverse_transform": True,
     }
 
     def __init__(self, bounds=None, method="mle", sp=None):
@@ -117,7 +118,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         self.sp = sp
         super().__init__(axis=1)
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None) -> "BoxCoxTransformer":
         """
         Fit transformer to X and y.
 
@@ -142,7 +143,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
 
         return self
 
-    def _transform(self, X, y=None):
+    def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Transform X and return a transformed version.
 
         private _transform containing the core logic, called from transform
@@ -163,7 +164,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         Xt = boxcox(X, self.lambda_)
         return Xt
 
-    def _inverse_transform(self, X, y=None):
+    def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Inverse transform X and return an inverse transformed version.
 
         core logic
@@ -184,91 +185,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         return Xt
 
 
-class LogTransformer(BaseSeriesTransformer):
-    """Natural logarithm transformation.
-
-    The Natural logarithm transformation can be used to make the data more normally
-    distributed and stabilize its variance.
-
-    Transforms each data point x to log(scale *(x+offset))
-
-    Parameters
-    ----------
-    offset : float , default = 0
-             Additive constant applied to all the data.
-    scale  : float , default = 1
-             Multiplicative scaling constant applied to all the data.
-
-
-    Notes
-    -----
-    The log transformation is applied as :math:`ln(y)`.
-
-    Examples
-    --------
-    >>> from aeon.transformations.series._boxcox import LogTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = LogTransformer()
-    >>> y_hat = transformer.fit_transform(y)
-    """
-
-    _tags = {
-        "X_inner_type": "np.ndarray",
-        "fit_is_empty": True,
-        "capability:multivariate": True,
-        "capability:inverse_transform": True,
-    }
-
-    def __init__(self, offset=0, scale=1):
-        self.offset = offset
-        self.scale = scale
-        super().__init__(axis=1)
-
-    def _transform(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        private _transform containing the core logic, called from transform
-
-        Parameters
-        ----------
-        X : 2D np.ndarray
-            Data to be transformed
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        Xt : 2D np.ndarray
-            transformed version of X
-        """
-        offset = self.offset
-        scale = self.scale
-        Xt = np.log(scale * (X + offset))
-        return Xt
-
-    def _inverse_transform(self, X, y=None):
-        """Inverse transform X and return an inverse transformed version.
-
-        core logic
-
-        Parameters
-        ----------
-        X : 2D np.ndarray
-            Data to be transformed
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        Xt : 2D np.ndarray
-            inverse transformed version of X
-        """
-        Xt = (np.exp(X) / self.scale) - self.offset
-        return Xt
-
-
-def _make_boxcox_optimizer(bounds=None, brack=(-2.0, 2.0)):
+def _make_boxcox_optimizer(bounds=None, brack: tuple = (-2.0, 2.0)):
     # bounds is None, use simple Brent optimisation
     if bounds is None:
 
@@ -289,7 +206,12 @@ def _make_boxcox_optimizer(bounds=None, brack=(-2.0, 2.0)):
     return optimizer
 
 
-def _boxcox_normmax(x, bounds=None, brack=(-2.0, 2.0), method="pearsonr"):
+def _boxcox_normmax(
+    x: np.ndarray,
+    bounds=None,
+    brack: tuple = (-2.0, 2.0),
+    method: str = "pearsonr",
+):
     optimizer = _make_boxcox_optimizer(bounds, brack)
 
     def _pearsonr(x):
@@ -325,7 +247,7 @@ def _boxcox_normmax(x, bounds=None, brack=(-2.0, 2.0), method="pearsonr"):
     return optimfunc(x)
 
 
-def _guerrero(x, sp, bounds=None):
+def _guerrero(x: np.ndarray, sp: int, bounds=None):
     """Estimate lambda using the Guerrero method as described in [1]_.
 
     Parameters
@@ -349,7 +271,17 @@ def _guerrero(x, sp, bounds=None):
     .. [1] V.M. Guerrero, "Time-series analysis supported by Power
        Transformations ", Journal of Forecasting, vol. 12, pp. 37-48, 1993.
     """
-    if sp is None or not is_int(sp) or sp < 2:
+
+    def _is_int(x) -> bool:
+        """Check if x is of integer type, but not boolean."""
+        # boolean are subclasses of integers in Python, so explicitly exclude them
+        return (
+            isinstance(x, (int, np.integer))
+            and not isinstance(x, bool)
+            and not isinstance(x, np.timedelta64)
+        )
+
+    if sp is None or not _is_int(sp) or sp < 2:
         raise ValueError(
             "Guerrero method requires an integer seasonal periodicity (sp) value >= 2."
         )

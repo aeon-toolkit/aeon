@@ -15,6 +15,7 @@ from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class RandomIntervalClassifier(BaseClassifier):
@@ -57,8 +58,8 @@ class RandomIntervalClassifier(BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `transform` functions.
         `-1` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib. If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -143,6 +144,7 @@ class RandomIntervalClassifier(BaseClassifier):
             Reference to self.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -380,6 +382,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
             Reference to self.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = SupervisedIntervals(
             n_intervals=self.n_intervals,
@@ -389,7 +392,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
             randomised_split_point=self.randomised_split_point,
             normalise_for_search=self.normalise_for_search,
             random_state=self.random_state,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 

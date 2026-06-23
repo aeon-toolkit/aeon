@@ -99,8 +99,8 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import SevenNumberSummary
+        from aeon.transformations.collection.unequal_length import Truncator
 
         return {
             "transformers": [

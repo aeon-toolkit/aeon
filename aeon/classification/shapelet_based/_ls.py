@@ -6,9 +6,9 @@ Learning shapelet classifier that simply wraps the LearningShapelet class from t
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["LearningShapeletClassifier"]
 
-from typing import Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.classification.base import BaseClassifier
 
@@ -21,9 +21,23 @@ def _X_transformed_tslearn(X):
     return X_transformed
 
 
+# TODO: remove in v1.6.0
+@deprecated(
+    version="1.5.0",
+    reason=(
+        "LearningShapeletClassifier is deprecated and will be removed in v1.6.0. "
+        "Use other shapelet-based classifiers such as ShapeletTransformClassifier "
+        "or RDSTClassifier instead."
+    ),
+    category=FutureWarning,
+)
 class LearningShapeletClassifier(BaseClassifier):
     """
     Learning Shapelet classifier.
+
+    Deprecated and will be removed in v1.6.0. Use other shapelet-based
+    classifiers such as :class:`ShapeletTransformClassifier` or
+    :class:`RDSTClassifier` instead.
 
     This is a wrapper for the `LearningShapelet` class of `tslearn`.
     Learning Shapelet classifier, presented in [1]_, operates by
@@ -101,17 +115,17 @@ class LearningShapeletClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_shapelets_per_size: Union[dict, None] = None,
+        n_shapelets_per_size: dict | None = None,
         max_iter: int = 10000,
         batch_size: int = 256,
         verbose: int = 0,
         optimizer: str = "sgd",
-        weight_regularizer: Union[float, None] = 0.0,
+        weight_regularizer: float | None = 0.0,
         shapelet_length: float = 0.15,
         total_lengths: int = 3,
-        max_size: Union[int, None] = None,
+        max_size: int | None = None,
         scale: bool = False,
-        random_state: Union[int, None] = None,
+        random_state: int | None = None,
         save_transformed_data: bool = False,
     ) -> None:
         self.n_shapelets_per_size = n_shapelets_per_size
@@ -209,9 +223,7 @@ class LearningShapeletClassifier(BaseClassifier):
         return self.clf_.locate(self.transformed_data_)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
