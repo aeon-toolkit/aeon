@@ -55,6 +55,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from sklearn.linear_model import Ridge
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -93,6 +94,7 @@ FORECASTER_ALIASES = {
     "AutoCES": "AutoCES",
     "AutoETS": "AutoETS",
     "AutoTAR": "AutoTAR",
+    "DrCIF": "DrCIF",
     "ETS": "ETS",
     "CES": "CES",
     "DOTM": "DOTM",
@@ -871,6 +873,14 @@ def _resolve_forecaster_window(y: np.ndarray, h: int, period: int) -> int:
     return max(1, min(y.size - 1, max(int(h) * 2, int(period) * 2, 8)))
 
 
+def _resolve_regression_window(y: np.ndarray, h: int) -> int:
+    """Choose the regression window from the series length."""
+    series_length = int(y.size)
+    window = max(12, min(500, series_length // 4))
+    max_valid_window = max(1, series_length - int(h) - 2)
+    return min(window, max_valid_window)
+
+
 def _aeon_forecast_from_fitted(model, y: np.ndarray, h: int) -> np.ndarray:
     """Forecast ``h`` steps from one fitted aeon model."""
     if hasattr(model, "series_to_series_forecast"):
@@ -905,6 +915,7 @@ def _coerce_fitted_arrays(
 def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
     """Construct an aeon forecaster with sensible defaults for this experiment."""
     window = _resolve_forecaster_window(y, h, period)
+    regression_window = _resolve_regression_window(y, h)
     season_length = max(1, int(period))
 
     if name == "NaiveForecaster":
@@ -914,7 +925,15 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
     if name == "RegressionForecaster":
         from aeon.forecasting import RegressionForecaster
 
-        return RegressionForecaster(window=window)
+        return RegressionForecaster(window=regression_window, regressor=Ridge())
+    if name == "DrCIF":
+        from aeon.forecasting import RegressionForecaster
+        from aeon.regression.interval_based import DrCIFRegressor
+
+        return RegressionForecaster(
+            window=regression_window,
+            regressor=DrCIFRegressor(n_estimators=5, random_state=0, n_jobs=1),
+        )
     if name == "ARIMA":
         from aeon.forecasting.stats import ARIMA
 
@@ -958,7 +977,7 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
     if name == "TVP":
         from aeon.forecasting.stats import TVP
 
-        return TVP(window=window)
+        return TVP(window=regression_window)
     if name == "SETAR":
         from aeon.forecasting.machine_learning import SETAR
 
@@ -982,7 +1001,7 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
     if name == "NBeatsForecaster":
         from aeon.forecasting.deep_learning import NBeatsForecaster
 
-        return NBeatsForecaster(window=window, horizon=h)
+        return NBeatsForecaster(window=regression_window, horizon=h)
     raise ValueError(f"Unknown aeon forecaster {name!r}.")
 
 
@@ -1349,6 +1368,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--quiet", action="store_true", help="Suppress progress output."
     )
+    parser.add_argument(
+        "--no-train",
+        action="store_true",
+        help="Write only the test results file and skip the train results file.",
+    )
     return parser.parse_args()
 
 
@@ -1361,11 +1385,12 @@ def _append_completed_row(
     train_done: set[str],
     test_rows: list[dict[str, Any]],
     train_rows: list[dict[str, Any]],
+    write_train: bool,
 ) -> None:
     """Queue completed test/train rows if that split is missing the series."""
     if series_id not in test_done:
         test_rows.append(test_row)
-    if series_id not in train_done:
+    if write_train and series_id not in train_done:
         train_rows.append(train_row)
 
 
@@ -1377,11 +1402,12 @@ def _run_pending_jobs(
     forecaster: str,
     max_h: int,
     test_done: set[str],
-    train_done: set[str],
     test_path: Path,
-    train_path: Path,
     test_columns: list[str],
-    train_columns: list[str],
+    write_train: bool,
+    train_done: set[str] | None,
+    train_path: Path | None,
+    train_columns: list[str] | None,
     progress_every: int,
     quiet: bool,
     n_jobs: int,
@@ -1394,9 +1420,10 @@ def _run_pending_jobs(
         if test_rows and (force or len(test_rows) >= 25):
             _append_rows(test_path, test_columns, test_rows)
             test_rows.clear()
-        if train_rows and (force or len(train_rows) >= 25):
-            _append_rows(train_path, train_columns, train_rows)
-            train_rows.clear()
+        if write_train and train_path is not None and train_columns is not None:
+            if train_rows and (force or len(train_rows) >= 25):
+                _append_rows(train_path, train_columns, train_rows)
+                train_rows.clear()
 
     def record_completion(series_id: str, test_row, train_row, completed: int) -> None:
         _append_completed_row(
@@ -1404,9 +1431,10 @@ def _run_pending_jobs(
             test_row=test_row,
             train_row=train_row,
             test_done=test_done,
-            train_done=train_done,
+            train_done=train_done if train_done is not None else set(),
             test_rows=test_rows,
             train_rows=train_rows,
+            write_train=write_train,
         )
         flush_if_needed()
         if not quiet and (
@@ -1455,17 +1483,18 @@ def _run_estimator_job(
     train_columns: list[str],
     args: argparse.Namespace,
     n_jobs: int,
-) -> tuple[Path, Path] | None:
+) -> tuple[Path, Path | None] | None:
     """Run one backend/forecaster output set for a dataset."""
     forecaster_dir = args.output_dir / backend / forecaster
     test_path = forecaster_dir / f"{dataset}_{forecaster}_Test.csv"
     train_path = forecaster_dir / f"{dataset}_{forecaster}_Train.csv"
     expected_ids = {item.key for item in items}
-    if _has_full_results((test_path, train_path), expected_ids):
+    result_paths = (test_path,) if args.no_train else (test_path, train_path)
+    if _has_full_results(result_paths, expected_ids):
         if not args.quiet:
             print(  # noqa: T201
                 f"Skipping {dataset} {backend} {forecaster}: existing full "
-                "Test/Train results present"
+                f"{'Test' if args.no_train else 'Test/Train'} results present"
             )
         return None
 
@@ -1478,20 +1507,23 @@ def _run_estimator_job(
         columns=test_columns,
         args=args,
     )
-    train_done = _prepare_output_file(
-        train_path,
-        competition=dataset,
-        backend=backend,
-        forecaster=forecaster,
-        split="train",
-        columns=train_columns,
-        args=args,
-    )
+    train_done = None
+    if not args.no_train:
+        train_done = _prepare_output_file(
+            train_path,
+            competition=dataset,
+            backend=backend,
+            forecaster=forecaster,
+            split="train",
+            columns=train_columns,
+            args=args,
+        )
 
     pending = [
         item
         for item in items
-        if item.key not in test_done or item.key not in train_done
+        if item.key not in test_done
+        or (train_done is not None and item.key not in train_done)
     ]
     _run_pending_jobs(
         pending=pending,
@@ -1500,16 +1532,17 @@ def _run_estimator_job(
         forecaster=forecaster,
         max_h=max_h,
         test_done=test_done,
-        train_done=train_done,
         test_path=test_path,
-        train_path=train_path,
         test_columns=test_columns,
-        train_columns=train_columns,
+        write_train=not args.no_train,
+        train_done=train_done,
+        train_path=None if args.no_train else train_path,
+        train_columns=None if args.no_train else train_columns,
         progress_every=args.progress_every,
         quiet=args.quiet,
         n_jobs=n_jobs,
     )
-    return test_path, train_path
+    return (test_path, None if args.no_train else train_path)
 
 
 def main() -> int:
@@ -1604,7 +1637,8 @@ def main() -> int:
                     continue
                 test_path, train_path = paths
                 print(f"Wrote {test_path}")  # noqa: T201
-                print(f"Wrote {train_path}")  # noqa: T201
+                if train_path is not None:
+                    print(f"Wrote {train_path}")  # noqa: T201
     return 0
 
 
