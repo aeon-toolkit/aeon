@@ -73,6 +73,28 @@ def test_default_average_method_is_dba_for_hard_distance():
     assert clf._average_method == "petitjean"
 
 
+def test_predict_multivariate():
+    """``fit`` and ``predict`` work end-to-end on multivariate series."""
+    X, y = _data(n_channels=3)
+    X_test, _ = _data(n_cases=4, n_channels=3, random_state=2)
+    clf = NearestCentroidClassifier(distance="dtw", average_method="mean").fit(X, y)
+    preds = clf.predict(X_test)
+    assert preds.shape == (4,)
+    assert set(preds).issubset(set(clf.classes_))
+
+
+def test_random_state_is_reproducible():
+    """The same ``random_state`` gives identical centroids for stochastic averaging."""
+    X, y = _data()
+    clf1 = NearestCentroidClassifier(
+        distance="dtw", average_method="subgradient", random_state=42
+    ).fit(X, y)
+    clf2 = NearestCentroidClassifier(
+        distance="dtw", average_method="subgradient", random_state=42
+    ).fit(X, y)
+    assert np.allclose(clf1.centroids_, clf2.centroids_)
+
+
 def test_mean_and_dba_give_different_centroids():
     """Mean and DBA averaging produce different centroids for warped data."""
     X, y = _data()

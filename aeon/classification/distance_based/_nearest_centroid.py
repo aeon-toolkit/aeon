@@ -48,6 +48,12 @@ class NearestCentroidClassifier(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel. ``-1`` means using all
         processors.
+    random_state : int, np.random.RandomState instance or None, default=None
+        Seed forwarded to the barycentre averaging. Only affects the stochastic
+        averaging methods (``"subgradient"``, ``"kasba"``) and random
+        initialisation; ignored by ``"mean"`` and deterministic ``"petitjean"``
+        with a non-random init. Do not also set ``random_state`` in
+        ``average_params``.
 
     Attributes
     ----------
@@ -88,12 +94,14 @@ class NearestCentroidClassifier(BaseClassifier):
         distance_params: dict | None = None,
         average_params: dict | None = None,
         n_jobs: int = 1,
+        random_state: int | None = None,
     ):
         self.distance = distance
         self.average_method = average_method
         self.distance_params = distance_params
         self.average_params = average_params
         self.n_jobs = n_jobs
+        self.random_state = random_state
         super().__init__()
 
     def _fit(self, X, y):
@@ -111,6 +119,7 @@ class NearestCentroidClassifier(BaseClassifier):
                     distance=self.distance,
                     method=self._average_method,
                     n_jobs=self._n_jobs,
+                    random_state=self.random_state,
                     **self._average_params,
                     **self._distance_params,
                 )
