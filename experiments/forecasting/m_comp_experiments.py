@@ -48,7 +48,7 @@ import os
 import sys
 import time
 from collections import defaultdict
-from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -71,8 +71,9 @@ DEFAULT_OUTPUT_DIR = Path(
 )
 DEFAULT_M4_HOME = Path(os.environ.get("AEON_M4_HOME", r"D:\Data\Forecasting\m4"))
 DEFAULT_BACKENDS = ("aeon",)
-DEFAULT_FORECASTERS = ("ETS", "DOTM")
+DEFAULT_FORECASTERS = ("AutoETS", "DOTM")
 DEFAULT_N_JOBS = min(32, (os.cpu_count() or 1) + 4)
+SERIES_BATCH_SIZE = 1000
 BACKEND_ALIASES = {
     "aeon": "aeon",
     "statsforecast": "statsforecast",
@@ -88,12 +89,24 @@ M4_FILES = {
 }
 FORECASTER_ALIASES = {
     "ARIMA": "ARIMA",
-    "AutoARIMA": "ARIMA",
+    "AutoARIMA": "AutoARIMA",
+    "AutoCES": "AutoCES",
+    "AutoETS": "AutoETS",
+    "AutoTAR": "AutoTAR",
     "ETS": "ETS",
-    "AutoETS": "ETS",
     "CES": "CES",
-    "AutoCES": "CES",
     "DOTM": "DOTM",
+    "DeepARForecaster": "DeepARForecaster",
+    "NBeatsForecaster": "NBeatsForecaster",
+    "NaiveForecaster": "NaiveForecaster",
+    "RegressionForecaster": "RegressionForecaster",
+    "SETAR": "SETAR",
+    "SETARForest": "SETARForest",
+    "SETARTree": "SETARTree",
+    "TAR": "TAR",
+    "TCNForecaster": "TCNForecaster",
+    "TVP": "TVP",
+    "Theta": "Theta",
 }
 
 
@@ -840,11 +853,11 @@ def _fit_statsforecast(name: str, y: np.ndarray, h: int, period: int) -> FitResu
     )
 
     season_length = max(1, int(period))
-    if name == "ARIMA":
+    if name in {"ARIMA", "AutoARIMA"}:
         model = AutoARIMA(season_length=season_length)
-    elif name == "ETS":
+    elif name in {"ETS", "AutoETS"}:
         model = AutoETS(season_length=season_length)
-    elif name == "CES":
+    elif name in {"CES", "AutoCES"}:
         model = AutoCES(season_length=season_length)
     elif name == "DOTM":
         model = DynamicOptimizedTheta(season_length=season_length)
@@ -853,18 +866,173 @@ def _fit_statsforecast(name: str, y: np.ndarray, h: int, period: int) -> FitResu
     return _fit_statsforecast_model(model, y, h)
 
 
+def _resolve_forecaster_window(y: np.ndarray, h: int, period: int) -> int:
+    """Choose a conservative default lookback for window-based forecasters."""
+    return max(1, min(y.size - 1, max(int(h) * 2, int(period) * 2, 8)))
+
+
+def _aeon_forecast_from_fitted(model, y: np.ndarray, h: int) -> np.ndarray:
+    """Forecast ``h`` steps from one fitted aeon model."""
+    if hasattr(model, "series_to_series_forecast"):
+        return _as_float_array(model.series_to_series_forecast(y, prediction_horizon=h))
+    if hasattr(model, "iterative_forecast"):
+        return _as_float_array(model.iterative_forecast(y, prediction_horizon=h))
+    if hasattr(model, "direct_forecast"):
+        return _as_float_array(model.direct_forecast(y, prediction_horizon=h))
+
+    preds = np.empty(int(h), dtype=np.float64)
+    history = _as_float_array(y)
+    for i in range(int(h)):
+        preds[i] = float(model.predict(history))
+        history = np.append(history, preds[i])
+    return preds
+
+
+def _coerce_fitted_arrays(
+    y: np.ndarray, fitted_values, residuals
+) -> tuple[np.ndarray | None, np.ndarray | None]:
+    """Convert fitted/residual attributes to arrays and derive one from the other."""
+    fitted_arr = None if fitted_values is None else _as_float_array(fitted_values)
+    residual_arr = None if residuals is None else _as_float_array(residuals)
+
+    if fitted_arr is None and residual_arr is not None and residual_arr.size <= y.size:
+        fitted_arr = y[-residual_arr.size :] - residual_arr
+    if residual_arr is None and fitted_arr is not None and fitted_arr.size <= y.size:
+        residual_arr = y[-fitted_arr.size :] - fitted_arr
+    return fitted_arr, residual_arr
+
+
+def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
+    """Construct an aeon forecaster with sensible defaults for this experiment."""
+    window = _resolve_forecaster_window(y, h, period)
+    season_length = max(1, int(period))
+
+    if name == "NaiveForecaster":
+        from aeon.forecasting import NaiveForecaster
+
+        return NaiveForecaster(seasonal_period=season_length)
+    if name == "RegressionForecaster":
+        from aeon.forecasting import RegressionForecaster
+
+        return RegressionForecaster(window=window)
+    if name == "ARIMA":
+        from aeon.forecasting.stats import ARIMA
+
+        return ARIMA()
+    if name == "AutoARIMA":
+        from aeon.forecasting.stats import AutoARIMA
+
+        return AutoARIMA()
+    if name == "ETS":
+        from aeon.forecasting.stats import ETS
+
+        return ETS(seasonal_period=season_length)
+    if name == "AutoETS":
+        from aeon.forecasting.stats import AutoETS
+
+        return AutoETS(seasonal_period=season_length)
+    if name == "CES":
+        from aeon.forecasting.stats import CES
+
+        return CES(season_length=season_length)
+    if name == "AutoCES":
+        from aeon.forecasting.stats import AutoCES
+
+        return AutoCES(season_length=season_length)
+    if name == "DOTM":
+        from aeon.forecasting.stats import DOTM
+
+        return DOTM(season_length=season_length)
+    if name == "TAR":
+        from aeon.forecasting.stats import TAR
+
+        return TAR()
+    if name == "AutoTAR":
+        from aeon.forecasting.stats import AutoTAR
+
+        return AutoTAR()
+    if name == "Theta":
+        from aeon.forecasting.stats import Theta
+
+        return Theta()
+    if name == "TVP":
+        from aeon.forecasting.stats import TVP
+
+        return TVP(window=window)
+    if name == "SETAR":
+        from aeon.forecasting.machine_learning import SETAR
+
+        return SETAR()
+    if name == "SETARTree":
+        from aeon.forecasting.machine_learning import SETARTree
+
+        return SETARTree()
+    if name == "SETARForest":
+        from aeon.forecasting.machine_learning import SETARForest
+
+        return SETARForest()
+    if name == "TCNForecaster":
+        from aeon.forecasting.deep_learning import TCNForecaster
+
+        return TCNForecaster(window=window, horizon=h)
+    if name == "DeepARForecaster":
+        from aeon.forecasting.deep_learning import DeepARForecaster
+
+        return DeepARForecaster(window=window, horizon=h)
+    if name == "NBeatsForecaster":
+        from aeon.forecasting.deep_learning import NBeatsForecaster
+
+        return NBeatsForecaster(window=window, horizon=h)
+    raise ValueError(f"Unknown aeon forecaster {name!r}.")
+
+
+def _fit_generic_aeon(name: str, y: np.ndarray, h: int, period: int) -> FitResult:
+    """Fit an aeon forecaster through the public forecasting API."""
+    start = time.perf_counter()
+    model = _build_aeon_forecaster(name, y, h, period)
+    model.fit(y)
+    train_seconds = time.perf_counter() - start
+    forecast = _aeon_forecast_from_fitted(model, y, int(h))
+    elapsed = time.perf_counter() - start
+    fitted_values, residuals = _coerce_fitted_arrays(
+        y,
+        getattr(model, "fitted_values_", None),
+        getattr(model, "residuals_", None),
+    )
+    fit_stats = {}
+    if hasattr(model, "fit_time_millis_"):
+        fit_stats["fit_time_millis"] = model.fit_time_millis_
+    if hasattr(model, "aic_"):
+        fit_stats["aic"] = model.aic_
+    if hasattr(model, "fit_aic_"):
+        fit_stats["fit_aic"] = model.fit_aic_
+    if hasattr(model, "best_model_name_"):
+        fit_stats["best_model_name"] = model.best_model_name_
+    return FitResult(
+        forecast=forecast,
+        fitted_values=fitted_values,
+        residuals=residuals,
+        train_seconds=train_seconds,
+        elapsed_seconds=elapsed,
+        status="ok",
+        model=type(model).__name__,
+        params=model.get_params(deep=False) if hasattr(model, "get_params") else {},
+        fit_stats=fit_stats,
+    )
+
+
 def _fit_aeon(name: str, y: np.ndarray, h: int, period: int) -> FitResult:
     """Fit a named aeon forecaster and return persistent outputs."""
     canonical = FORECASTER_ALIASES[name]
-    if canonical == "ARIMA":
+    if canonical == "AutoARIMA":
         return _fit_arima(y, h, period)
-    if canonical == "ETS":
+    if canonical == "AutoETS":
         return _fit_ets(y, h, period)
-    if canonical == "CES":
+    if canonical == "AutoCES":
         return _fit_ces(y, h, period)
     if canonical == "DOTM":
         return _fit_dotm(y, h, period)
-    raise ValueError(f"Unknown aeon forecaster {name!r}.")
+    return _fit_generic_aeon(canonical, y, h, period)
 
 
 def fit_forecaster(
@@ -1111,7 +1279,11 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         default=list(DEFAULT_FORECASTERS),
         choices=sorted(FORECASTER_ALIASES),
-        help="Forecasters to run. ETS=AutoETS, CES=AutoCES when available.",
+        help=(
+            "Forecasters to run. Aeon accepts the current exported forecasters; "
+            "statsforecast only supports ARIMA/AutoARIMA, ETS/AutoETS, "
+            "CES/AutoCES, and DOTM."
+        ),
     )
     parser.add_argument(
         "--backends",
@@ -1169,8 +1341,9 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=DEFAULT_N_JOBS,
         help=(
-            "Worker threads per backend/forecaster/dataset output set. "
-            "Use 1 for serial execution."
+            "Total worker threads to divide across concurrent backend/forecaster "
+            "runs for a dataset. Each run receives an equal share of threads and "
+            f"processes series in batches of {SERIES_BATCH_SIZE}."
         ),
     )
     parser.add_argument(
@@ -1209,7 +1382,9 @@ def _run_pending_jobs(
     train_path: Path,
     test_columns: list[str],
     train_columns: list[str],
-    args: argparse.Namespace,
+    progress_every: int,
+    quiet: bool,
+    n_jobs: int,
 ) -> None:
     """Run per-series jobs in a bounded thread pool and append CSV rows."""
     test_rows: list[dict[str, Any]] = []
@@ -1234,15 +1409,15 @@ def _run_pending_jobs(
             train_rows=train_rows,
         )
         flush_if_needed()
-        if not args.quiet and (
-            completed % max(1, args.progress_every) == 0 or completed == len(pending)
+        if not quiet and (
+            completed % max(1, progress_every) == 0 or completed == len(pending)
         ):
             print(  # noqa: T201
                 f"{dataset} {backend} {forecaster}: completed "
                 f"{completed}/{len(pending)} new series"
             )
 
-    if args.n_jobs == 1:
+    if n_jobs == 1:
         for completed, item in enumerate(pending, start=1):
             series_id, test_row, train_row = _fit_item_rows(
                 item, backend, forecaster, max_h
@@ -1251,35 +1426,90 @@ def _run_pending_jobs(
         flush_if_needed(force=True)
         return
 
-    max_in_flight = max(1, args.n_jobs * 2)
+    chunks = [
+        pending[i : i + SERIES_BATCH_SIZE]
+        for i in range(0, len(pending), SERIES_BATCH_SIZE)
+    ]
     completed = 0
-    pending_iter = iter(pending)
-    in_flight = set()
-    with ThreadPoolExecutor(max_workers=args.n_jobs) as executor:
-        while len(in_flight) < max_in_flight:
-            try:
-                item = next(pending_iter)
-            except StopIteration:
-                break
-            in_flight.add(
-                executor.submit(_fit_item_rows, item, backend, forecaster, max_h)
-            )
-
-        while in_flight:
-            done, in_flight = wait(in_flight, return_when=FIRST_COMPLETED)
-            for future in done:
+    with ThreadPoolExecutor(max_workers=n_jobs) as executor:
+        for chunk_results in executor.map(
+            lambda chunk: [
+                _fit_item_rows(item, backend, forecaster, max_h) for item in chunk
+            ],
+            chunks,
+        ):
+            for series_id, test_row, train_row in chunk_results:
                 completed += 1
-                series_id, test_row, train_row = future.result()
                 record_completion(series_id, test_row, train_row, completed)
-
-                try:
-                    item = next(pending_iter)
-                except StopIteration:
-                    continue
-                in_flight.add(
-                    executor.submit(_fit_item_rows, item, backend, forecaster, max_h)
-                )
     flush_if_needed(force=True)
+
+
+def _run_estimator_job(
+    *,
+    dataset: str,
+    items: list[SelectedSeries],
+    backend: str,
+    forecaster: str,
+    max_h: int,
+    test_columns: list[str],
+    train_columns: list[str],
+    args: argparse.Namespace,
+    n_jobs: int,
+) -> tuple[Path, Path] | None:
+    """Run one backend/forecaster output set for a dataset."""
+    forecaster_dir = args.output_dir / backend / forecaster
+    test_path = forecaster_dir / f"{dataset}_{forecaster}_Test.csv"
+    train_path = forecaster_dir / f"{dataset}_{forecaster}_Train.csv"
+    expected_ids = {item.key for item in items}
+    if _has_full_results((test_path, train_path), expected_ids):
+        if not args.quiet:
+            print(  # noqa: T201
+                f"Skipping {dataset} {backend} {forecaster}: existing full "
+                "Test/Train results present"
+            )
+        return None
+
+    test_done = _prepare_output_file(
+        test_path,
+        competition=dataset,
+        backend=backend,
+        forecaster=forecaster,
+        split="test",
+        columns=test_columns,
+        args=args,
+    )
+    train_done = _prepare_output_file(
+        train_path,
+        competition=dataset,
+        backend=backend,
+        forecaster=forecaster,
+        split="train",
+        columns=train_columns,
+        args=args,
+    )
+
+    pending = [
+        item
+        for item in items
+        if item.key not in test_done or item.key not in train_done
+    ]
+    _run_pending_jobs(
+        pending=pending,
+        dataset=dataset,
+        backend=backend,
+        forecaster=forecaster,
+        max_h=max_h,
+        test_done=test_done,
+        train_done=train_done,
+        test_path=test_path,
+        train_path=train_path,
+        test_columns=test_columns,
+        train_columns=train_columns,
+        progress_every=args.progress_every,
+        quiet=args.quiet,
+        n_jobs=n_jobs,
+    )
+    return test_path, train_path
 
 
 def main() -> int:
@@ -1344,63 +1574,37 @@ def main() -> int:
             "error",
         ]
 
-        for requested_backend in args.backends:
-            backend = BACKEND_ALIASES[requested_backend]
-            for requested in args.forecasters:
-                forecaster = FORECASTER_ALIASES[requested]
-                forecaster_dir = args.output_dir / backend / forecaster
-                test_path = forecaster_dir / f"{dataset}_{forecaster}_Test.csv"
-                train_path = forecaster_dir / f"{dataset}_{forecaster}_Train.csv"
-                expected_ids = {item.key for item in items}
-                if _has_full_results((test_path, train_path), expected_ids):
-                    if not args.quiet:
-                        print(  # noqa: T201
-                            f"Skipping {dataset} {backend} {forecaster}: existing full "
-                            "Test/Train results present"
-                        )
-                    continue
+        estimator_jobs = [
+            (BACKEND_ALIASES[requested_backend], FORECASTER_ALIASES[requested])
+            for requested_backend in args.backends
+            for requested in args.forecasters
+        ]
+        per_estimator_jobs = max(1, args.n_jobs // max(1, len(estimator_jobs)))
 
-                test_done = _prepare_output_file(
-                    test_path,
-                    competition=dataset,
-                    backend=backend,
-                    forecaster=forecaster,
-                    split="test",
-                    columns=test_columns,
-                    args=args,
-                )
-                train_done = _prepare_output_file(
-                    train_path,
-                    competition=dataset,
-                    backend=backend,
-                    forecaster=forecaster,
-                    split="train",
-                    columns=train_columns,
-                    args=args,
-                )
-
-                pending = [
-                    item
-                    for item in items
-                    if item.key not in test_done or item.key not in train_done
-                ]
-                _run_pending_jobs(
-                    pending=pending,
+        with ThreadPoolExecutor(max_workers=max(1, len(estimator_jobs))) as executor:
+            futures = [
+                executor.submit(
+                    _run_estimator_job,
                     dataset=dataset,
+                    items=items,
                     backend=backend,
                     forecaster=forecaster,
                     max_h=max_h,
-                    test_done=test_done,
-                    train_done=train_done,
-                    test_path=test_path,
-                    train_path=train_path,
                     test_columns=test_columns,
                     train_columns=train_columns,
                     args=args,
+                    n_jobs=per_estimator_jobs,
                 )
-                if not args.quiet:
-                    print(f"Wrote {test_path}")  # noqa: T201
-                    print(f"Wrote {train_path}")  # noqa: T201
+                for backend, forecaster in estimator_jobs
+            ]
+
+            for future in futures:
+                paths = future.result()
+                if paths is None or args.quiet:
+                    continue
+                test_path, train_path = paths
+                print(f"Wrote {test_path}")  # noqa: T201
+                print(f"Wrote {train_path}")  # noqa: T201
     return 0
 
 
