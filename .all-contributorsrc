@@ -2893,6 +2893,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "vir-cipher",
+      "name": "vir-cipher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/295312726?v=4",
+      "profile": "https://github.com/vir-cipher",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "axelray-dev",
+      "name": "AxelRay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110029405?v=4",
+      "profile": "https://github.com/axelray-dev",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "BB0813",
+      "name": "Binbim_ProMax",
+      "avatar_url": "https://avatars.githubusercontent.com/u/151659564?v=4",
+      "profile": "http://home.binbim.top",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
