@@ -41,3 +41,27 @@ def test_base_deep_clusterer(estimator):
         ypred_proba = dummy_deep_clr.predict_proba(X)
         assert ypred_proba is not None
         assert len(ypred_proba[0]) == len(np.unique(y))
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_base_deep_clusterer_estimator_without_labels():
+    """Test a clustering estimator that exposes predict but no ``labels_``.
+
+    ``GaussianMixture`` produces cluster assignments through ``predict`` rather
+    than a fitted ``labels_`` attribute, exercising the fallback branch in
+    ``_fit_clustering``.
+    """
+    from sklearn.mixture import GaussianMixture
+
+    deep_clr = MockDeepClusterer(estimator=GaussianMixture(n_components=2))
+    X, y = make_example_2d_numpy_collection(n_labels=2)
+    deep_clr.fit(X=X)
+
+    assert not hasattr(deep_clr._estimator, "labels_")
+    assert deep_clr.labels_ is not None
+    assert len(deep_clr.labels_) == len(X)
+    ypred = deep_clr.predict(X)
+    assert len(ypred) == len(X)
