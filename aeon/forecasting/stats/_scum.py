@@ -53,6 +53,29 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
     forecast_ : float
         Stored one-step-ahead combined forecast.
 
+    Notes
+    -----
+    This implementation diverges from the original M4 submission [1]_ in a few
+    places, mainly because it reuses aeon's existing component forecasters:
+
+    - **ARIMA is non-seasonal.** The paper uses the seasonal ``auto.arima`` from
+      the R *forecast* package (non-seasonal orders up to 5, seasonal AR/MA up to
+      2). aeon's :class:`AutoARIMA` has no seasonal capability and a narrower
+      order search, so the ARIMA member ignores seasonality and ``season_length``
+      is not passed to it.
+    - **No ETS frequency switch.** The paper selects the ETS model with
+      ``forecast::ets`` for frequencies <= 24 and ``smooth::es`` (which supports
+      frequencies > 24 and a larger model pool) otherwise. Here a single
+      :class:`AutoETS` is used for all frequencies; this is adequate because
+      aeon's ``AutoETS`` already handles seasonal periods > 24, but it does not
+      reproduce the larger ``es`` model pool used for weekly/hourly data.
+    - **Point forecasts only.** The paper also produces median-combined prediction
+      intervals; this implementation combines point forecasts only.
+
+    The four-model pool, the per-horizon median combination, the post-median
+    non-negative clipping, and the DOTM-only most-recent-5000-observations window
+    all follow the paper.
+
     References
     ----------
     .. [1] Petropoulos, F. and Svetunkov, I. (2020). A simple combination of
