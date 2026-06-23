@@ -273,7 +273,9 @@ def _ets_fit(params, data, model):
             -LARGE_LOSS,
             0,
         )
-    variance = sse_ / n_timepoints
+    if sse_ < 0.0:
+        sse_ = 0.0
+    variance = max(sse_ / n_timepoints, EPS)
     likelihood = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     if error_type == 2:
         likelihood -= log_fitted_sum

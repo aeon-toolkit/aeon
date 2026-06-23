@@ -246,6 +246,19 @@ def test_autoets_uses_provided_seasonal_period():
     assert forecaster.wrapped_model_._seasonal_period == 4
 
 
+def test_autoets_uses_provided_seasonal_period_for_exact_periodic_series():
+    """A zero-variance seasonal fit should still have finite AIC."""
+    y = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+
+    assert forecaster.seasonality_type_ != 0
+    assert forecaster.seasonal_period_ == 4
+    assert np.isfinite(forecaster.wrapped_model_.aic_)
+    assert np.isfinite(forecaster.wrapped_model_.likelihood_)
+
+
 def test_autoets_provided_seasonal_period_overrides_nonseasonal_aic_winner():
     """A supplied seasonal period should force a seasonal model when possible."""
     y = np.linspace(10.0, 30.0, 80) + 0.01 * np.sin(np.arange(80))
