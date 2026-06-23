@@ -5,10 +5,13 @@ from collections.abc import Callable
 import numpy as np
 import pytest
 from sklearn import metrics
+from sklearn.exceptions import ConvergenceWarning
 
 from aeon.clustering._cluster_initialisation import _CENTRE_INITIALISER_INDEXES
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
+from aeon.distances import euclidean_distance
+from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_kmedoids_uni():
@@ -253,3 +256,128 @@ def test_medoids_init_invalid():
             random_state=1,
         )
         kmedoids.fit(X_train)
+
+
+def test_kmedoids_build_init():
+    """Test k-medoids with the greedy 'build' initialisation strategy."""
+    X = make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    kmedoids = TimeSeriesKMedoids(
+        n_clusters=3,
+        init="build",
+        distance="euclidean",
+        method="pam",
+        n_init=1,
+        max_iter=5,
+        random_state=1,
+    )
+    kmedoids.fit(X)
+    assert kmedoids.cluster_centers_.shape == (3, 1, 8)
+    assert len(set(kmedoids.labels_)) <= 3
+
+
+def test_kmedoids_build_warns_on_n_init():
+    """Test 'build' init warns when n_init is greater than 1."""
+    X = make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    kmedoids = TimeSeriesKMedoids(
+        n_clusters=2,
+        init="build",
+        distance="euclidean",
+        method="pam",
+        n_init=5,
+        max_iter=3,
+        random_state=1,
+    )
+    with pytest.warns(UserWarning, match="n_init will be set to 1"):
+        kmedoids.fit(X)
+
+
+def test_kmedoids_invalid_method():
+    """Test k-medoids rejects an unknown method."""
+    X = make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    with pytest.raises(ValueError, match="is not supported"):
+        TimeSeriesKMedoids(n_clusters=2, method="invalid", distance="euclidean").fit(X)
+
+
+def test_kmedoids_n_clusters_too_large():
+    """Test k-medoids rejects n_clusters greater than the number of cases."""
+    X = make_example_3d_numpy(5, 1, 8, return_y=False, random_state=1)
+    with pytest.raises(ValueError, match="cannot be larger than"):
+        TimeSeriesKMedoids(n_clusters=10, init="first", distance="euclidean").fit(X)
+
+
+def test_kmedoids_callable_distance():
+    """Test k-medoids with a callable distance function."""
+    X = make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    kmedoids = TimeSeriesKMedoids(
+        n_clusters=2,
+        distance=euclidean_distance,
+        method="pam",
+        init="first",
+        n_init=1,
+        max_iter=3,
+        random_state=1,
+    )
+    kmedoids.fit(X)
+    preds = kmedoids.predict(X)
+    assert preds.shape == (10,)
+
+
+@pytest.mark.parametrize("method", ["pam", "alternate"])
+def test_kmedoids_ndarray_init(method):
+    """Test k-medoids accepts an explicit array of medoid indices."""
+    X = make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    kmedoids = TimeSeriesKMedoids(
+        n_clusters=2,
+        init=np.array([0, 5]),
+        distance="euclidean",
+        method=method,
+        n_init=1,
+        max_iter=3,
+        random_state=1,
+    )
+    kmedoids.fit(X)
+    assert kmedoids.cluster_centers_.shape == (2, 1, 8)
+
+
+@pytest.mark.parametrize("method", ["pam", "alternate"])
+def test_kmedoids_verbose(method, capsys):
+    """Test k-medoids prints progress when verbose is True."""
+    X = make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    kmedoids = TimeSeriesKMedoids(
+        n_clusters=2,
+        distance="euclidean",
+        method=method,
+        init="first",
+        n_init=1,
+        max_iter=10,
+        verbose=True,
+        random_state=1,
+    )
+    kmedoids.fit(X)
+    out = capsys.readouterr().out
+    assert "Iteration" in out or "Converged" in out
+
+
+def test_kmedoids_max_iter_warning():
+    """Test k-medoids warns when it fails to converge in max_iter."""
+    X = make_example_3d_numpy(20, 1, 12, return_y=False, random_state=1)
+    kmedoids = TimeSeriesKMedoids(
+        n_clusters=3,
+        distance="euclidean",
+        method="pam",
+        init="first",
+        n_init=1,
+        max_iter=1,
+        random_state=1,
+    )
+    with pytest.warns(ConvergenceWarning):
+        kmedoids.fit(X)
+
+
+def test_kmedoids_get_test_params():
+    """Test the testing parameter set is valid."""
+    params = TimeSeriesKMedoids._get_test_params()
+    assert params["n_clusters"] == 2
+    assert TimeSeriesKMedoids(**params).fit(
+        make_example_3d_numpy(10, 1, 8, return_y=False, random_state=1)
+    )
