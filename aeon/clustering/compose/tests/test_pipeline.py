@@ -274,3 +274,13 @@ def test_multivariate_tag_inference():
     p5 = ClustererPipeline(transformers=[t3, t1], clusterer=c3)
     assert not p5.get_tag("capability:multivariate")
     p5.fit(X, y)
+
+
+def test_clusterer_pipeline_get_test_params():
+    """Test the testing parameter set builds a working pipeline."""
+    params = ClustererPipeline._get_test_params()
+    assert "transformers" in params and "clusterer" in params
+    pipe = ClustererPipeline(**params)
+    X = make_example_3d_numpy(8, 1, 12, return_y=False, random_state=1)
+    pipe.fit(X)
+    assert pipe.predict(X).shape == (8,)

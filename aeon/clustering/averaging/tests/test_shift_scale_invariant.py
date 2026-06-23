@@ -66,6 +66,21 @@ def test_shift_invariant_average_with_max_shift():
     assert not np.array_equal(avg, original)
 
 
+def test_shift_invariant_average_zero_initial_center():
+    """Test instances are returned unshifted when the initial center is all zeros."""
+    data = make_example_3d_numpy(5, 1, 10, return_y=False, random_state=1)
+    avg = shift_invariant_average(data, initial_center=np.zeros((1, 10)))
+    assert avg.shape == (1, 10)
+
+
+def test_shift_invariant_average_empty():
+    """Test an empty collection returns a zero barycenter."""
+    empty = np.zeros((0, 2, 10))
+    avg = shift_invariant_average(empty, initial_center=np.ones((2, 10)))
+    assert avg.shape == (2, 10)
+    assert np.array_equal(avg, np.zeros((2, 10)))
+
+
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_shift_scale_threaded(n_jobs):
