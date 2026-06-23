@@ -9,6 +9,7 @@ from aeon.clustering.averaging import (
     soft_barycenter_average,
 )
 from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.testing_config import MULTITHREAD_TESTING
 from aeon.testing.utils._distance_parameters import TEST_SOFT_DISTANCES_WITH_PARAMS
 
 
@@ -90,6 +91,37 @@ def test_soft_ba_via_elastic_dispatch(distance, params):
         X, method="soft", distance=distance, **params
     )
     assert_allclose(direct, dispatched)
+
+
+@pytest.mark.parametrize("distance,params", TEST_SOFT_DISTANCES_WITH_PARAMS)
+def test_soft_ba_moves_away_from_init(distance, params):
+    """The optimiser should move the barycentre away from its initialisation."""
+    X = make_example_3d_numpy(
+        n_cases=6, n_channels=1, n_timepoints=12, return_y=False, random_state=8
+    )
+    mean_init = X.mean(axis=0)
+    bary = soft_barycenter_average(
+        X, distance=distance, init_barycenter="mean", **params
+    )
+    assert not np.allclose(bary, mean_init)
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("distance,params", TEST_SOFT_DISTANCES_WITH_PARAMS)
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_soft_ba_threaded(distance, params, n_jobs):
+    """Threaded soft BA is deterministic: n_jobs must not change the result."""
+    X = make_example_3d_numpy(
+        n_cases=10, n_channels=3, n_timepoints=10, return_y=False, random_state=2
+    )
+    serial = soft_barycenter_average(X, distance=distance, n_jobs=1, **params)
+    parallel = soft_barycenter_average(X, distance=distance, n_jobs=n_jobs, **params)
+    dispatched = elastic_barycenter_average(
+        X, method="soft", distance=distance, n_jobs=n_jobs, **params
+    )
+    assert serial.shape == parallel.shape
+    assert_allclose(serial, parallel)
+    assert_allclose(serial, dispatched)
 
 
 def test_soft_dtw_barycenter_matches_tslearn():

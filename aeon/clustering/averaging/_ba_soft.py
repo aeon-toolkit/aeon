@@ -107,13 +107,13 @@ def soft_barycenter_average(
     (
         _X,
         barycenter,
-        prev_barycenter,
-        cost,
+        _,
+        _,
         _,
         distances_to_center,
         _,
-        random_state,
-        n_jobs,
+        _,
+        _,
         weights,
     ) = _ba_setup(
         X,
@@ -143,7 +143,7 @@ def soft_barycenter_average(
         latest["g_inf"] = float(np.max(np.abs(g)))
         return f, g.ravel()
 
-    def _cb(xk):
+    def _cb(_xk):
         it["k"] += 1
         print(  # noqa: T201
             f"[Soft-BA] iter={it['k']} cost={latest['f']:.6f} "
@@ -191,13 +191,20 @@ def soft_barycenter_average(
 
 
 @njit(cache=True, fastmath=True)
-def _soft_msm_grad_x_nd(barycenter, ts, gamma, c):
+def _soft_msm_grad_x_nd(barycenter, ts, gamma, c, window=None, itakura_max_slope=None):
     """Per-channel (independent) soft-MSM gradient for a multivariate series."""
     n_channels = barycenter.shape[0]
     grad = np.zeros_like(barycenter)
     total = 0.0
     for ch in range(n_channels):
-        g, d = _soft_msm_grad_x(barycenter[ch : ch + 1], ts[ch : ch + 1], c, gamma)
+        g, d = _soft_msm_grad_x(
+            barycenter[ch : ch + 1],
+            ts[ch : ch + 1],
+            c,
+            gamma,
+            window,
+            itakura_max_slope,
+        )
         grad[ch] = g
         total += d
     return grad, total
@@ -210,6 +217,7 @@ def _soft_barycenter_one_iter(
     weights: np.ndarray,
     distance: str,
     window: float | None = None,
+    itakura_max_slope: float | None = None,
     gamma: float = 1.0,
     c: float = 1.0,
 ):
@@ -223,14 +231,18 @@ def _soft_barycenter_one_iter(
     if distance == "soft_dtw":
         for i in prange(X_size):
             local_jacobian_products[i], curr_dist = _soft_dtw_grad_x(
-                barycenter, X[i], gamma=gamma, window=window
+                barycenter,
+                X[i],
+                gamma=gamma,
+                window=window,
+                itakura_max_slope=itakura_max_slope,
             )
             local_distances[i] = curr_dist
             distances_to_center[i] = curr_dist
     elif distance == "soft_msm":
         for i in prange(X_size):
             local_jacobian_products[i], curr_dist = _soft_msm_grad_x_nd(
-                barycenter, X[i], gamma, c
+                barycenter, X[i], gamma, c, window, itakura_max_slope
             )
             local_distances[i] = curr_dist
             distances_to_center[i] = curr_dist

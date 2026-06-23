@@ -48,10 +48,15 @@ def elastic_barycenter_average(
     - "subgradient": Stochastic subgradient DBA algorithm [2]_.
     - "kasba": KASBA algorithm [3]_, a fast stochastic variant that samples subsets
       of time series during each iteration.
+    - "soft": Gradient-based soft barycentre averaging that minimises a smooth soft
+      elastic objective (soft-DTW or soft-MSM) with ``scipy.optimize.minimize``.
 
     Petitjean is slower but more reliable at converging to the optimal solution.
     Subgradient is faster but not guaranteed to converge optimally. KASBA is
     designed for large datasets, trading off some accuracy for a much faster runtime.
+    The "soft" method is required for soft distances (e.g. ``"soft_dtw"``,
+    ``"soft_msm"``), which are not valid with the discrete methods; conversely the
+    discrete methods are not valid with soft distances.
 
     Parameters
     ----------
@@ -74,8 +79,10 @@ def elastic_barycenter_average(
         - "mean": Uses the mean of the time series.
         - "medoids": Uses the medoid of the time series.
         - "random": Uses a randomly selected time series instance.
-    method : {"petitjean", "subgradient", "kasba"}, default="petitjean"
-        The algorithm to use for barycenter averaging.
+    method : {"petitjean", "subgradient", "kasba", "soft"}, default="petitjean"
+        The algorithm to use for barycenter averaging. ``"soft"`` is required for
+        (and only valid with) soft distances; the other methods are only valid with
+        ordinary (hard) distances.
     initial_step_size : float, default=0.05
         Initial step size for gradient-based methods ("subgradient" and "kasba").
     final_step_size : float, default=0.005
@@ -98,6 +105,9 @@ def elastic_barycenter_average(
         If True, prints progress information.
     random_state : int or None, default=None
         Random seed for reproducibility.
+    minimise_method : str, default="L-BFGS-B"
+        The ``scipy.optimize.minimize`` solver used by ``method="soft"``. Ignored by
+        the other methods.
     **kwargs
         Additional keyword arguments passed to the chosen distance function.
 
