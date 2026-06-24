@@ -287,7 +287,9 @@ def _univariate_msm_distance(
                 d2 = prev[j] + _cost_independent(x[i], x[i - 1], y[j], c)
                 d3 = curr[j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
                 curr[j] = min(d1, d2, d3)
-        prev[:] = curr[:]
+        # Ping-pong the buffers instead of copying: the row just written (curr)
+        # becomes prev, and the stale buffer is recycled (re-init at loop top).
+        prev, curr = curr, prev
 
     return prev[y_size - 1]
 
@@ -330,7 +332,9 @@ def _msm_dependent_distance(
                 d2 = prev[j] + _cost_dependent(x[:, i], x[:, i - 1], y[:, j], c)
                 d3 = curr[j - 1] + _cost_dependent(y[:, j], x[:, i], y[:, j - 1], c)
                 curr[j] = min(d1, d2, d3)
-        prev[:] = curr[:]
+        # Ping-pong the buffers instead of copying: the row just written (curr)
+        # becomes prev, and the stale buffer is recycled (re-init at loop top).
+        prev, curr = curr, prev
 
     return prev[y_size - 1]
 
