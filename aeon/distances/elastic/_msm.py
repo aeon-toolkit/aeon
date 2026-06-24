@@ -231,12 +231,108 @@ def _msm_distance(
     c: float,
 ) -> float:
     if independent:
-        return _msm_independent_cost_matrix(x, y, bounding_matrix, c)[
-            x.shape[1] - 1, y.shape[1] - 1
-        ]
-    return _msm_dependent_cost_matrix(x, y, bounding_matrix, c)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
+        return _msm_independent_distance(x, y, bounding_matrix, c)
+    return _msm_dependent_distance(x, y, bounding_matrix, c)
+
+
+@njit(cache=True, fastmath=True)
+def _msm_independent_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
+    """Compute the independent MSM distance between two time series.
+
+    This is optimized for memory usage by computing each channel with a two-row
+    buffer (O(min(N, M)) space) and summing the per-channel distances, instead of
+    allocating the full O(NM) cost matrix. The result is identical to taking the
+    bottom-right cell of the summed per-channel cost matrices.
+    """
+    min_instances = min(x.shape[0], y.shape[0])
+    distance = 0.0
+    for i in range(min_instances):
+        distance += _univariate_msm_distance(x[i], y[i], bounding_matrix, c)
+    return distance
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_msm_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # MSM is symmetric (its cost function is symmetric in its last two arguments),
+    # so swapping x and y and transposing the bounding matrix leaves the distance
+    # unchanged.
+    if x.shape[0] < y.shape[0]:
+        x, y = y, x
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[0]
+    y_size = y.shape[0]
+
+    prev = np.full(y_size, np.inf)
+    curr = np.full(y_size, np.inf)
+
+    # First row (i == 0)
+    prev[0] = np.abs(x[0] - y[0])
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            prev[j] = prev[j - 1] + _cost_independent(y[j], x[0], y[j - 1], c)
+
+    for i in range(1, x_size):
+        curr[:] = np.inf
+        if bounding_matrix[i, 0]:
+            curr[0] = prev[0] + _cost_independent(x[i], x[i - 1], y[0], c)
+        for j in range(1, y_size):
+            if bounding_matrix[i, j]:
+                d1 = prev[j - 1] + np.abs(x[i] - y[j])
+                d2 = prev[j] + _cost_independent(x[i], x[i - 1], y[j], c)
+                d3 = curr[j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
+                curr[j] = min(d1, d2, d3)
+        prev[:] = curr[:]
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _msm_dependent_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
+    """Compute the dependent MSM distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
+    """
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # MSM is symmetric, so swapping x and y and transposing the bounding matrix
+    # leaves the distance unchanged.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    prev = np.full(y_size, np.inf)
+    curr = np.full(y_size, np.inf)
+
+    # First row (i == 0)
+    prev[0] = _univariate_squared_distance(x[:, 0], y[:, 0])
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            prev[j] = prev[j - 1] + _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
+
+    for i in range(1, x_size):
+        curr[:] = np.inf
+        if bounding_matrix[i, 0]:
+            curr[0] = prev[0] + _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
+        for j in range(1, y_size):
+            if bounding_matrix[i, j]:
+                d1 = prev[j - 1] + _univariate_squared_distance(x[:, i], y[:, j])
+                d2 = prev[j] + _cost_dependent(x[:, i], x[:, i - 1], y[:, j], c)
+                d3 = curr[j - 1] + _cost_dependent(y[:, j], x[:, i], y[:, j - 1], c)
+                curr[j] = min(d1, d2, d3)
+        prev[:] = curr[:]
+
+    return prev[y_size - 1]
 
 
 @njit(cache=True, fastmath=True)
