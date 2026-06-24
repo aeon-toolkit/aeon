@@ -191,9 +191,51 @@ def _erp_distance(
     g: float,
     g_arr: np.ndarray | None,
 ) -> float:
-    return _erp_cost_matrix(x, y, bounding_matrix, g, g_arr)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
+    """Compute the ERP distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
+    """
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # ERP is symmetric: under a swap the delete-in-x and delete-in-y terms (and
+    # the x_sum/y_sum boundaries) exchange and the match term is symmetric, so
+    # swapping x and y and transposing the bounding matrix leaves the distance
+    # unchanged.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    gx_distance, x_sum = _precompute_g(x, g, g_arr)
+    gy_distance, y_sum = _precompute_g(y, g, g_arr)
+
+    # prev is row i-1, curr is row i; size y_size + 1 for the boundary column.
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Row 0 of the padded cost matrix: [0, y_sum, y_sum, ...].
+    prev[0] = 0.0
+    prev[1:] = y_sum
+
+    for i in range(1, x_size + 1):
+        # Column 0 of the padded cost matrix is x_sum for every row i >= 1.
+        curr[0] = x_sum
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                curr[j] = min(
+                    prev[j - 1]
+                    + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]),
+                    prev[j] + gx_distance[i - 1],
+                    curr[j - 1] + gy_distance[j - 1],
+                )
+            else:
+                curr[j] = np.inf
+        # Ping-pong the buffers instead of copying.
+        prev, curr = curr, prev
+
+    return prev[y_size]
 
 
 @njit(cache=True, fastmath=True)
