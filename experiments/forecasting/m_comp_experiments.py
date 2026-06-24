@@ -932,7 +932,7 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
 
         return RegressionForecaster(
             window=regression_window,
-            regressor=DrCIFRegressor(n_estimators=5, random_state=0, n_jobs=1),
+            regressor=DrCIFRegressor(n_estimators=100, random_state=0, n_jobs=1),
         )
     if name == "ARIMA":
         from aeon.forecasting.stats import ARIMA

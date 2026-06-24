@@ -1,5 +1,7 @@
 """Tests for target label validation functions."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -133,7 +135,27 @@ def test_check_classification_y_does_not_mutate_input():
 )
 def test_check_regression_y_allows_continuous_targets(y):
     """Accept continuous targets for regression."""
-    check_regression_y(y)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        check_regression_y(y)
+    assert not caught
+
+
+@pytest.mark.parametrize(
+    "y",
+    [
+        np.array([1, 2, 3, 4, 5, 6]),
+        pd.Series([10, 20, 30, 40, 50, 60]),
+    ],
+)
+def test_check_regression_y_suppresses_discrete_target_warning(y):
+    """Accept numeric regression targets without sklearn's discrete-class warning."""
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        check_regression_y(y)
+    assert not any(
+        "unique classes is greater than 50%" in str(w.message) for w in caught
+    )
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,7 @@
 """Validation functions for target labels."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 from sklearn.utils.multiclass import type_of_target
@@ -71,7 +73,16 @@ def check_regression_y(y):
     if len(y) == 0:
         raise ValueError("y must not be empty.")
 
-    y_type = type_of_target(y, input_name="y")
+    with warnings.catch_warnings():
+        # ``type_of_target`` warns when a regression target looks discrete. That
+        # is noisy for valid regression problems, so we suppress it here and
+        # keep the regression-specific validation below.
+        warnings.filterwarnings(
+            "ignore",
+            message="The number of unique classes is greater than 50%",
+            category=UserWarning,
+        )
+        y_type = type_of_target(y, input_name="y")
     if y_type != "continuous" and y_type != "multiclass":
         raise ValueError(
             f"y type is {y_type} which is not valid for regression. "
