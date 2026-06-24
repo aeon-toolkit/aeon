@@ -75,6 +75,26 @@ DEFAULT_BACKENDS = ("aeon",)
 DEFAULT_FORECASTERS = ("AutoETS", "DOTM")
 DEFAULT_N_JOBS = min(32, (os.cpu_count() or 1) + 4)
 SERIES_BATCH_SIZE = 1000
+# Canonical forecasters whose fit/forecast paths are numba-compiled and therefore
+# pay a one-off JIT cost on first call. These are warmed up before timed work so
+# the recorded train_seconds do not include compilation time.
+NUMBA_WARMUP_FORECASTERS = frozenset(
+    {
+        "ARIMA",
+        "AutoARIMA",
+        "AutoCES",
+        "CES",
+        "AutoETS",
+        "ETS",
+        "DOTM",
+        "TAR",
+        "AutoTAR",
+        "Theta",
+    }
+)
+WARMUP_SERIES_LENGTH = 64
+WARMUP_PERIOD = 4
+WARMUP_HORIZON = 6
 BACKEND_ALIASES = {
     "aeon": "aeon",
     "statsforecast": "statsforecast",
@@ -852,6 +872,7 @@ def _fit_statsforecast(name: str, y: np.ndarray, h: int, period: int) -> FitResu
         AutoCES,
         AutoETS,
         DynamicOptimizedTheta,
+        Theta,
     )
 
     season_length = max(1, int(period))
@@ -863,6 +884,8 @@ def _fit_statsforecast(name: str, y: np.ndarray, h: int, period: int) -> FitResu
         model = AutoCES(season_length=season_length)
     elif name == "DOTM":
         model = DynamicOptimizedTheta(season_length=season_length)
+    elif name == "Theta":
+        model = Theta(season_length=season_length)
     else:
         raise ValueError(f"Unknown statsforecast forecaster {name!r}.")
     return _fit_statsforecast_model(model, y, h)
@@ -1079,6 +1102,35 @@ def fit_forecaster(
             error=repr(exc),
         )
     raise ValueError(f"Unknown backend {backend!r}.")
+
+
+def _warmup_series() -> np.ndarray:
+    """Build a small synthetic seasonal series to trigger numba compilation."""
+    t = np.arange(WARMUP_SERIES_LENGTH, dtype=np.float64)
+    seasonal = np.sin(2.0 * np.pi * t / max(1, WARMUP_PERIOD))
+    return 10.0 + 0.1 * t + seasonal
+
+
+def warmup_forecasters(estimator_jobs: list[tuple[str, str]], *, quiet: bool) -> None:
+    """Fit each numba-backed forecaster once so JIT cost is excluded from timings.
+
+    Runs single-threaded before any timed work. Compilation is process-wide, so a
+    single fit per unique ``(backend, forecaster)`` pair warms every later series.
+    Warm-up uses :func:`fit_forecaster`, which swallows errors, so an unsupported
+    pair never aborts the run.
+    """
+    y = _warmup_series()
+    seen: set[tuple[str, str]] = set()
+    for backend, forecaster in estimator_jobs:
+        if forecaster not in NUMBA_WARMUP_FORECASTERS:
+            continue
+        if (backend, forecaster) in seen:
+            continue
+        seen.add((backend, forecaster))
+        result = fit_forecaster(backend, forecaster, y, WARMUP_HORIZON, WARMUP_PERIOD)
+        if not quiet:
+            status = "ok" if result.status == "ok" else f"failed ({result.error})"
+            print(f"Warm-up {backend} {forecaster}: {status}")  # noqa: T201
 
 
 def _existing_series_ids(path: Path) -> set[str]:
@@ -1301,7 +1353,7 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Forecasters to run. Aeon accepts the current exported forecasters; "
             "statsforecast only supports ARIMA/AutoARIMA, ETS/AutoETS, "
-            "CES/AutoCES, and DOTM."
+            "CES/AutoCES, DOTM, and Theta."
         ),
     )
     parser.add_argument(
@@ -1555,6 +1607,13 @@ def main() -> int:
     by_dataset = defaultdict(list)
     for item in selected:
         by_dataset[item.dataset].append(item)
+
+    warmup_jobs = [
+        (BACKEND_ALIASES[requested_backend], FORECASTER_ALIASES[requested])
+        for requested_backend in args.backends
+        for requested in args.forecasters
+    ]
+    warmup_forecasters(warmup_jobs, quiet=args.quiet)
 
     for dataset, items in sorted(
         by_dataset.items(), key=lambda pair: _dataset_sort_key(pair[0])
