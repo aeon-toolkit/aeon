@@ -121,6 +121,7 @@ FORECASTER_ALIASES = {
     "DeepARForecaster": "DeepARForecaster",
     "NBeatsForecaster": "NBeatsForecaster",
     "NaiveForecaster": "NaiveForecaster",
+    "RandF": "RandF",
     "RegressionForecaster": "RegressionForecaster",
     "SETAR": "SETAR",
     "SETARForest": "SETARForest",
@@ -949,6 +950,19 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
         from aeon.forecasting import RegressionForecaster
 
         return RegressionForecaster(window=regression_window, regressor=Ridge())
+    if name == "RandF":
+        from sklearn.ensemble import RandomForestRegressor
+
+        from aeon.forecasting import RegressionForecaster
+
+        # Use a window of 100 when the series is long enough to support it,
+        # otherwise fall back to the length-derived default window.
+        max_valid_window = max(1, int(y.size) - int(h) - 2)
+        randf_window = 100 if max_valid_window >= 100 else regression_window
+        return RegressionForecaster(
+            window=randf_window,
+            regressor=RandomForestRegressor(random_state=0),
+        )
     if name == "DrCIF":
         from aeon.forecasting import RegressionForecaster
         from aeon.regression.interval_based import DrCIFRegressor
