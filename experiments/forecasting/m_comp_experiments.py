@@ -625,31 +625,42 @@ def _fit_ces(y: np.ndarray, h: int, period: int) -> FitResult:
 
 
 def _arima_original_scale_fitted(model, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Compute original-scale expanding one-step fitted values for AutoARIMA."""
-    fitted = []
-    fitted_start = None
-    final_model = model.final_model_
-    for t in range(1, y.size):
-        try:
-            pred = float(final_model.predict(y[:t]))
-        except Exception:  # noqa: BLE001
-            if fitted_start is not None:
-                break
-            continue
-        if not math.isfinite(pred):
-            if fitted_start is not None:
-                break
-            continue
-        if fitted_start is None:
-            fitted_start = t
-        fitted.append(pred)
+    """Compute original-scale expanding one-step fitted values for AutoARIMA.
 
-    if fitted_start is None:
+    The fitted ARIMA already stores its in-sample one-step forecasts on the
+    differenced scale (``final_model_.fitted_values_``). Rather than refitting
+    with ``predict(y[:t])`` for every ``t`` -- an O(n^2) pass whose per-call
+    undifferencing also anchors on the wrong (end-of-series) values for ``d>0``
+    -- we undifference those stored values once. For each in-sample point this
+    adds back the true preceding originals, giving the correct expanding
+    one-step fitted values in O(n). For ``d=0`` it matches the previous loop to
+    floating-point precision.
+
+    Exogenous models are not produced by this experiment, so the no-exog path is
+    the only one exercised here.
+    """
+    final_model = model.final_model_
+    d = int(final_model.d)
+    p, q = int(final_model.p), int(final_model.q)
+    series = _as_float_array(final_model._series)
+    fitted_diff = _as_float_array(final_model.fitted_values_)
+
+    # In-sample differenced forecasts live at indices [max(p, q), n); index n is
+    # the out-of-sample forecast and is excluded.
+    n = series.size - d
+    start = max(p, q)
+    if n - start <= 0:
         return np.empty(0, dtype=np.float64), np.empty(0, dtype=np.float64)
 
-    fitted_values = np.asarray(fitted, dtype=np.float64)
-    actual = y[fitted_start : fitted_start + fitted_values.size]
-    return fitted_values, actual - fitted_values
+    fitted = fitted_diff[start:n].copy()
+    # Undifference: original_hat[t + d] = fitted_diff[t]
+    #   + sum_{k=1..d} (-1)^(k+1) C(d, k) * series[t + d - k]
+    for k in range(1, d + 1):
+        coef = ((-1) ** (k + 1)) * math.comb(d, k)
+        fitted += coef * series[start + d - k : n + d - k]
+
+    actual = series[start + d : n + d]
+    return fitted, actual - fitted
 
 
 def _fit_arima(y: np.ndarray, h: int, period: int) -> FitResult:
