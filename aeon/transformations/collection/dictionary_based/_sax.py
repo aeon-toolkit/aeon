@@ -125,7 +125,7 @@ class SAX(BaseCollectionTransformer):
             # Non-Safe is std is 0
             # X = scipy.stats.zscore(X, axis=-1)
 
-        paa = PAA(n_segments=self.n_segments)
+        paa = PAA(n_segments=self.n_segments, n_jobs=self.n_jobs)
         X_paa = paa.fit_transform(X=X)
 
         return X_paa
@@ -167,7 +167,11 @@ class SAX(BaseCollectionTransformer):
         sax_symbols : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation using np.digitize
         """
-        sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
+        prev_threads = get_num_threads()
+        _n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(_n_jobs)
+        sax_symbols = _parallel_get_sax_symbols(X_paa, breakpoints=self.breakpoints)
+        set_num_threads(prev_threads)
         return sax_symbols
 
     def inverse_sax(self, X, original_length, y=None):
@@ -292,3 +296,16 @@ def _invert_sax_symbols(sax_symbols, n_timepoints, breakpoints_mid):
                 ]
 
     return sax_inverse
+
+
+@njit(fastmath=True, cache=True, parallel=True)
+def _parallel_get_sax_symbols(x, breakpoints, right=False):
+    """Parallel version using np.digitize within prange loop."""
+    n_samples, n_channels, n_segments = x.shape
+    result = np.empty_like(x, dtype=np.intp)
+
+    for i in prange(n_samples):
+        for c in range(n_channels):
+            result[i, c, :] = np.digitize(x[i, c, :], breakpoints, right=right)
+
+    return result
