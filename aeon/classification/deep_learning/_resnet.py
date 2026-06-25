@@ -99,6 +99,10 @@ class ResNetClassifier(BaseDeepClassifier):
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -148,6 +152,8 @@ class ResNetClassifier(BaseDeepClassifier):
         last_file_name: str = "last_model",
         init_file_name: str = "init_model",
         optimizer=None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
@@ -171,6 +177,9 @@ class ResNetClassifier(BaseDeepClassifier):
         self.best_file_name = best_file_name
         self.init_file_name = init_file_name
         self.optimizer = optimizer
+
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         self.history = None
 
@@ -234,11 +243,20 @@ class ResNetClassifier(BaseDeepClassifier):
             output_layer
         )
 
+        compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **compile_args,
         )
 
         return model
@@ -299,6 +317,14 @@ class ResNetClassifier(BaseDeepClassifier):
         else:
             mini_batch_size = self.batch_size
 
+        fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
+
         self.history = self.training_model_.fit(
             X,
             y_onehot,
@@ -306,6 +332,7 @@ class ResNetClassifier(BaseDeepClassifier):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **fit_args,
         )
 
         try:
