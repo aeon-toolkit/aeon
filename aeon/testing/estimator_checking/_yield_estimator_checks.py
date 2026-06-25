@@ -537,7 +537,7 @@ def check_non_state_changing_method(estimator, datatype):
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
     # dict_before = copy of dictionary of estimator before predict, post fit
-    dict_before = estimator.__dict__.copy()
+    dict_before = deepcopy(estimator.__dict__)
     X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
