@@ -234,6 +234,8 @@ def test_piecewise_linear_approximation_wrong_parameters(X):
         PLASeriesTransformer("max_error").fit_transform(X)
     with pytest.raises(ValueError):
         PLASeriesTransformer(100, "swab", "buffer_size").fit_transform(X)
+    with pytest.raises(ValueError, match="it has to be a string"):
+        PLASeriesTransformer(100, 12345).fit_transform(X)
 
 
 def test_piecewise_linear_approximation_one_segment(X):
@@ -242,3 +244,20 @@ def test_piecewise_linear_approximation_one_segment(X):
     pla = PLASeriesTransformer(10, "bottom up")
     result = pla.fit_transform(X)
     np.testing.assert_array_almost_equal(X, result, decimal=1)
+
+
+def test_top_down_short_segment_returns_input_unchanged():
+    """Test _top_down returns the segment unchanged when too short to split."""
+    pla = PLASeriesTransformer()
+    segment = np.array([1.0, 2.0])
+    result = pla._top_down(segment)
+    np.testing.assert_array_equal(result, segment)
+
+
+def test_swab_handles_remaining_buffer_after_data_exhausted():
+    """Test SWAB flushes leftover buffer segments once X is exhausted."""
+    rng = np.random.RandomState(0)
+    X = rng.normal(size=30)
+    pla = PLASeriesTransformer(max_error=0.5, transformer="swab", buffer_size=6)
+    result = pla.fit_transform(X)
+    assert len(result) == len(X)

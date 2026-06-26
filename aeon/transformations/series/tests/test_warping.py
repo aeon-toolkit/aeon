@@ -2,6 +2,7 @@
 
 __maintainer__ = ["hadifawaz1999"]
 
+import numpy as np
 import pytest
 
 from aeon.clustering.averaging import VALID_BA_DISTANCE_METHODS
@@ -29,3 +30,21 @@ def test_warping_path_transformer(distance):
 
     assert int(new_x.shape[1]) == len(warping_path)
     assert int(new_y.shape[1]) == len(warping_path)
+
+
+def test_warping_path_none_returns_input_unchanged():
+    """Test the series is returned unchanged when warping_path is None."""
+    x = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
+    new_x = WarpingSeriesTransformer(warping_path=None).fit_transform(x)
+    np.testing.assert_array_equal(new_x, x)
+
+
+def test_warping_invalid_series_index_raises():
+    """Test an invalid series_index raises a ValueError."""
+    x = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
+    y = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
+    warping_path = get_alignment_path_function(method="dtw")(x, y)[0]
+
+    transformer = WarpingSeriesTransformer(series_index=2, warping_path=warping_path)
+    with pytest.raises(ValueError, match="series_index can only be 0 or 1"):
+        transformer.fit_transform(x)

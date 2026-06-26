@@ -3,6 +3,7 @@
 __maintainer__ = []
 
 import numpy as np
+import pytest
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
 
 from aeon.transformations.series._dobin import Dobin
@@ -177,6 +178,66 @@ def test_pca_reduction():
     X_actual = fitted_model._X_pca
 
     assert np.allclose(abs(X_expected), abs(X_actual), rtol=0.001)
+
+
+def test_univariate_input_warns_and_returns_input():
+    """Test univariate input warns and skips dimensionality reduction."""
+    X = np.random.RandomState(0).normal(size=(10, 1))
+    model = Dobin()
+    with pytest.warns(UserWarning, match="Input data X is univariate"):
+        model.fit(X, axis=0)
+    assert model._coords.shape == (10, 1)
+
+
+def test_transform_with_unseen_index_refits_without_storing_state():
+    """Test transform refits internally when given data with a different index."""
+    X = np.array(
+        [
+            [14.374, 0.075, -0.689, -1.805, 0.370, -0.636],
+            [15.184, -1.989, -0.707, 1.466, 0.267, -0.462],
+            [14.164, 0.620, 0.365, 0.153, -0.543, 1.432],
+            [16.595, -0.056, 0.769, 2.173, 1.208, -0.651],
+            [15.330, -0.156, -0.112, 0.476, 1.160, -0.207],
+            [14.180, -1.471, 0.881, -0.710, 0.700, -0.393],
+        ]
+    )
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(X)
+    model = Dobin(k=2)
+    model.fit(X, axis=0)
+
+    original_basis = model._basis.copy()
+    X_new = model._X.copy()
+    X_new.index = X_new.index + 100
+
+    with pytest.warns(UserWarning, match="Input data X differs from that given"):
+        result = model.transform(X_new, axis=0)
+
+    assert result.shape == (6, 6)
+    # the stored basis from the original fit should be left untouched
+    assert np.allclose(model._basis, original_basis)
+
+
+def test_transform_with_same_index_returns_stored_coords():
+    """Test transform returns the fitted coordinates when the index is unchanged."""
+    X = np.array(
+        [
+            [14.374, 0.075, -0.689, -1.805, 0.370, -0.636],
+            [15.184, -1.989, -0.707, 1.466, 0.267, -0.462],
+            [14.164, 0.620, 0.365, 0.153, -0.543, 1.432],
+            [16.595, -0.056, 0.769, 2.173, 1.208, -0.651],
+            [15.330, -0.156, -0.112, 0.476, 1.160, -0.207],
+            [14.180, -1.471, 0.881, -0.710, 0.700, -0.393],
+        ]
+    )
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(X)
+    model = Dobin(k=2)
+    model.fit(X, axis=0)
+
+    result = model.transform(X, axis=0)
+
+    np.testing.assert_array_equal(result, model._coords.to_numpy())
 
 
 def test_zero_variance():

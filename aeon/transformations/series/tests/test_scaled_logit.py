@@ -36,3 +36,21 @@ def test_scaled_logit_bound_warnings():
         ScaledLogitSeriesTransformer(lower_bound=300, upper_bound=0).fit_transform(
             TEST_SERIES
         )
+
+
+@pytest.mark.parametrize(
+    "lower, upper", [(10, 70), (None, 70), (10, None), (None, None)]
+)
+def test_scaled_logit_inverse_transform_roundtrip(lower, upper):
+    """Test inverse_transform recovers the original series for all bound modes."""
+    transformer = ScaledLogitSeriesTransformer(lower, upper)
+    Xt = transformer.fit_transform(TEST_SERIES)
+    Xinv = transformer.inverse_transform(Xt)
+    np.testing.assert_allclose(Xinv.squeeze(), TEST_SERIES, rtol=1e-10, atol=1e-10)
+
+
+def test_scaled_logit_get_test_params():
+    """Test the default test parameters are valid and usable."""
+    params = ScaledLogitSeriesTransformer._get_test_params()
+    transformer = ScaledLogitSeriesTransformer(**params)
+    assert isinstance(transformer, ScaledLogitSeriesTransformer)

@@ -133,11 +133,11 @@ def _yeo_johnson_transform(X, lmbda):
     X_lt_0 = Xt < 0
     if lmbda != 0:
         Xt[X_gte_0] = (np.power(Xt[X_gte_0] + 1, lmbda) - 1) / lmbda
-    elif lmbda == 0:
+    else:
         Xt[X_gte_0] = np.log(Xt[X_gte_0] + 1)
     if lmbda != 2:
         Xt[X_lt_0] = -(np.power(-Xt[X_lt_0] + 1, 2 - lmbda) - 1) / (2 - lmbda)
-    elif lmbda == 2:
+    else:
         Xt[X_lt_0] = -np.log(-Xt[X_lt_0] + 1)
     Xt = Xt.reshape(X_shape)
     return Xt
