@@ -331,6 +331,7 @@ class LSHIndex(BaseWholeSeriesSearch):
         distances : np.ndarray of shape (n_found,)
             Hamming distances to the neighbors.
         """
+        self._check_query_length(X)
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
 

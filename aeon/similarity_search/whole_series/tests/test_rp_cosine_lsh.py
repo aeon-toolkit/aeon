@@ -404,3 +404,12 @@ def test_full_coverage():
 
     assert lsh.window_length_ == 50
     np.testing.assert_array_equal(lsh.start_points_, np.zeros(32))
+
+
+def test_lshindex_predict_wrong_query_length_raises():
+    """A query whose length differs from the fitted series must raise."""
+    X = np.random.RandomState(0).rand(8, 1, 50)
+    est = LSHIndex().fit(X)
+    bad_query = np.random.RandomState(1).rand(1, 30)  # 30 != fitted 50
+    with pytest.raises(ValueError, match="timepoints"):
+        est.predict(bad_query)
