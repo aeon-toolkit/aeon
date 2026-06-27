@@ -20,7 +20,7 @@ Subsequence Search Estimators
     :template: class.rst
 
     BruteForce
-    Mass
+    MASS
 
 
 Whole Series Search Estimators
