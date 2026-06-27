@@ -23,8 +23,8 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
 
     This class provides the foundation for algorithms that search for similar
     subsequences (patterns of fixed length) within a collection of time series.
-    Common applications include finding repeated patterns, motif discovery, and
-    anomaly detection based on pattern matching.
+    Common applications include nearest-neighbor retrieval of subsequences and
+    pattern matching within a collection of time series.
 
     Parameters
     ----------

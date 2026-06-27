@@ -22,8 +22,8 @@ classical techniques for the following learning tasks:
   any labels are used to train a model to label cases
   ([more details](examples/clustering/clustering.ipynb)).
 - [**Similarity search**](api_reference/similarity_search), where the goal is to find
-  time series motifs or nearest neighbors in an efficient way for either single series
-  or collections.
+  nearest neighbors among subsequences or whole series within a collection of time
+  series in an efficient way.
   ([more details](examples/similarity_search/similarity_search.ipynb)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
