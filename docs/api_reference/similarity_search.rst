@@ -33,7 +33,7 @@ Whole Series Search Estimators
     :template: class.rst
 
     BruteForce
-    LSHIndex
+    RandomProjectionIndexANN
 
 
 Base Estimators

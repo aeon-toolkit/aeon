@@ -3,9 +3,9 @@
 __all__ = [
     "BaseWholeSeriesSearch",
     "BruteForce",
-    "LSHIndex",
+    "RandomProjectionIndexANN",
 ]
 
 from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
 from aeon.similarity_search.whole_series._brute_force import BruteForce
-from aeon.similarity_search.whole_series._rp_cosine_lsh import LSHIndex
+from aeon.similarity_search.whole_series._rp_cosine_lsh import RandomProjectionIndexANN

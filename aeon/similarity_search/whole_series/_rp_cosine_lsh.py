@@ -144,7 +144,7 @@ def _collection_to_bool(X, hash_funcs, start_points, length):
     return res
 
 
-class LSHIndex(BaseWholeSeriesSearch):
+class RandomProjectionIndexANN(BaseWholeSeriesSearch):
     """
     Approximate nearest neighbor search using Locality Sensitive Hashing.
 
@@ -203,10 +203,10 @@ class LSHIndex(BaseWholeSeriesSearch):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.similarity_search.whole_series import LSHIndex
+    >>> from aeon.similarity_search.whole_series import RandomProjectionIndexANN
     >>> X_fit = np.random.rand(100, 1, 50)
     >>> query = np.random.rand(1, 50)
-    >>> index = LSHIndex(n_hash_funcs=128, normalize=True)
+    >>> index = RandomProjectionIndexANN(n_hash_funcs=128, normalize=True)
     >>> index.fit(X_fit)
     >>> indexes, distances = index.predict(query, k=5)
 

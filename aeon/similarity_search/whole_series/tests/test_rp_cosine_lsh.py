@@ -1,10 +1,10 @@
-"""Tests for LSHIndex."""
+"""Tests for RandomProjectionIndexANN."""
 
 import numpy as np
 import pytest
 
 from aeon.similarity_search.whole_series._rp_cosine_lsh import (
-    LSHIndex,
+    RandomProjectionIndexANN,
     _bool_hamming_dist,
     _bool_hamming_dist_matrix,
     _collection_to_bool,
@@ -120,14 +120,14 @@ def test_collection_to_bool_shape():
 
 
 # =============================================================================
-# Tests for LSHIndex fit
+# Tests for RandomProjectionIndexANN fit
 # =============================================================================
 
 
 def test_fit_creates_index():
     """Fit creates necessary index structures."""
     X = np.random.rand(10, 2, 50)
-    lsh = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh.fit(X)
 
     assert hasattr(lsh, "index_")
@@ -142,7 +142,7 @@ def test_fit_creates_index():
 def test_fit_hash_funcs_shape():
     """Hash functions have correct shape."""
     X = np.random.rand(10, 3, 100)
-    lsh = LSHIndex(n_hash_funcs=64, hash_func_coverage=0.25, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=64, hash_func_coverage=0.25, random_state=42)
     lsh.fit(X)
 
     assert lsh.hash_funcs_.shape == (64, 3, 25)
@@ -152,7 +152,7 @@ def test_fit_hash_funcs_shape():
 def test_fit_discrete_vectors():
     """Discrete vectors contain only -1 and 1."""
     X = np.random.rand(10, 2, 50)
-    lsh = LSHIndex(n_hash_funcs=32, use_discrete_vectors=True, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, use_discrete_vectors=True, random_state=42)
     lsh.fit(X)
 
     unique_values = np.unique(lsh.hash_funcs_)
@@ -163,10 +163,10 @@ def test_fit_reproducibility():
     """Same random_state produces same index."""
     X = np.random.rand(10, 2, 50)
 
-    lsh1 = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh1 = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh1.fit(X)
 
-    lsh2 = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh2 = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh2.fit(X)
 
     np.testing.assert_array_equal(lsh1.hash_funcs_, lsh2.hash_funcs_)
@@ -176,7 +176,7 @@ def test_fit_reproducibility():
 def test_fit_all_series_indexed():
     """All series are present in the index."""
     X = np.random.rand(20, 2, 50)
-    lsh = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh.fit(X)
 
     indexed_series = set()
@@ -187,14 +187,14 @@ def test_fit_all_series_indexed():
 
 
 # =============================================================================
-# Tests for LSHIndex predict
+# Tests for RandomProjectionIndexANN predict
 # =============================================================================
 
 
 def test_predict_returns_correct_shape():
     """Predict returns arrays of correct shape."""
     X = np.random.rand(50, 2, 100)
-    lsh = LSHIndex(n_hash_funcs=64, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=64, random_state=42)
     lsh.fit(X)
 
     idx, dist = lsh.predict(X[0], k=5)
@@ -205,7 +205,7 @@ def test_predict_returns_correct_shape():
 def test_predict_self_match():
     """Query series finds itself as nearest neighbor."""
     X = np.random.rand(50, 2, 100)
-    lsh = LSHIndex(n_hash_funcs=128, random_state=42, normalize=False)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=128, random_state=42, normalize=False)
     lsh.fit(X)
 
     idx, dist = lsh.predict(X[0], k=1)
@@ -216,7 +216,7 @@ def test_predict_self_match():
 def test_predict_k_larger_than_n_cases_warns():
     """Warning raised when k > n_cases."""
     X = np.random.rand(5, 2, 50)
-    lsh = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh.fit(X)
 
     with pytest.warns(UserWarning, match="k=10 is larger than"):
@@ -228,7 +228,7 @@ def test_predict_k_larger_than_n_cases_warns():
 def test_predict_1d_query():
     """Predict works with 1D query (univariate)."""
     X = np.random.rand(20, 1, 50)
-    lsh = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh.fit(X)
 
     query = X[0, 0, :]
@@ -239,7 +239,7 @@ def test_predict_1d_query():
 def test_predict_inverse_distance():
     """inverse_distance returns dissimilar series."""
     X = np.random.rand(50, 2, 100)
-    lsh = LSHIndex(n_hash_funcs=64, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=64, random_state=42)
     lsh.fit(X)
 
     idx_similar, _ = lsh.predict(X[0], k=5, inverse_distance=False)
@@ -258,7 +258,7 @@ def test_identical_series_same_bucket():
     base_series = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0]]])
     X = np.vstack([base_series, base_series, base_series])
 
-    lsh = LSHIndex(n_hash_funcs=32, random_state=42, normalize=False)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42, normalize=False)
     lsh.fit(X)
 
     assert len(lsh.index_) == 1
@@ -275,7 +275,7 @@ def test_opposite_series_different_buckets():
         ]
     )
 
-    lsh = LSHIndex(
+    lsh = RandomProjectionIndexANN(
         n_hash_funcs=64, hash_func_coverage=1.0, random_state=42, normalize=False
     )
     lsh.fit(X)
@@ -295,7 +295,7 @@ def test_similar_series_closer_hash():
 
     X = np.vstack([A[np.newaxis, :], B[np.newaxis, :], C[np.newaxis, :]])
 
-    lsh = LSHIndex(
+    lsh = RandomProjectionIndexANN(
         n_hash_funcs=128, hash_func_coverage=1.0, random_state=42, normalize=False
     )
     lsh.fit(X)
@@ -312,7 +312,7 @@ def test_cosine_similarity_scale_invariance():
 
     X = np.vstack([A[np.newaxis, :], B[np.newaxis, :]])
 
-    lsh = LSHIndex(
+    lsh = RandomProjectionIndexANN(
         n_hash_funcs=64, hash_func_coverage=1.0, random_state=42, normalize=False
     )
     lsh.fit(X)
@@ -327,7 +327,7 @@ def test_orthogonal_vectors_hash_similarity():
 
     X = np.vstack([A[np.newaxis, :], B[np.newaxis, :]])
 
-    lsh = LSHIndex(
+    lsh = RandomProjectionIndexANN(
         n_hash_funcs=256, hash_func_coverage=1.0, random_state=42, normalize=False
     )
     lsh.fit(X)
@@ -346,7 +346,7 @@ def test_normalization_effect():
 
     X = np.vstack([A[np.newaxis, :], B[np.newaxis, :]])
 
-    lsh = LSHIndex(
+    lsh = RandomProjectionIndexANN(
         n_hash_funcs=64, hash_func_coverage=1.0, random_state=42, normalize=True
     )
     lsh.fit(X)
@@ -362,7 +362,7 @@ def test_normalization_effect():
 def test_single_series():
     """Index works with single series."""
     X = np.random.rand(1, 2, 50)
-    lsh = LSHIndex(n_hash_funcs=32, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, random_state=42)
     lsh.fit(X)
 
     with pytest.warns(UserWarning):
@@ -375,7 +375,7 @@ def test_single_series():
 def test_short_series():
     """Index works with very short series."""
     X = np.random.rand(10, 2, 4)
-    lsh = LSHIndex(n_hash_funcs=16, hash_func_coverage=0.5, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=16, hash_func_coverage=0.5, random_state=42)
     lsh.fit(X)
 
     assert lsh.window_length_ == 2
@@ -387,7 +387,7 @@ def test_short_series():
 def test_high_dimensional():
     """Index works with many channels."""
     X = np.random.rand(20, 10, 50)
-    lsh = LSHIndex(n_hash_funcs=64, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=64, random_state=42)
     lsh.fit(X)
 
     assert lsh.hash_funcs_.shape[1] == 10
@@ -399,17 +399,17 @@ def test_high_dimensional():
 def test_full_coverage():
     """hash_func_coverage=1.0 uses full series length."""
     X = np.random.rand(10, 2, 50)
-    lsh = LSHIndex(n_hash_funcs=32, hash_func_coverage=1.0, random_state=42)
+    lsh = RandomProjectionIndexANN(n_hash_funcs=32, hash_func_coverage=1.0, random_state=42)
     lsh.fit(X)
 
     assert lsh.window_length_ == 50
     np.testing.assert_array_equal(lsh.start_points_, np.zeros(32))
 
 
-def test_lshindex_predict_wrong_query_length_raises():
+def test_rp_index_predict_wrong_query_length_raises():
     """A query whose length differs from the fitted series must raise."""
     X = np.random.RandomState(0).rand(8, 1, 50)
-    est = LSHIndex().fit(X)
+    est = RandomProjectionIndexANN().fit(X)
     bad_query = np.random.RandomState(1).rand(1, 30)  # 30 != fitted 50
     with pytest.raises(ValueError, match="timepoints"):
         est.predict(bad_query)
