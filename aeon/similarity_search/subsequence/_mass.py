@@ -69,7 +69,7 @@ class MASS(BaseDistanceProfileSearch):
     _tags = {
         "capability:unequal_length": False,
         "capability:multivariate": True,
-        "capability:multithreading": True,
+        "capability:multithreading": False,
     }
 
     def __init__(
