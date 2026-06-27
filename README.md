@@ -34,8 +34,8 @@ Many implementations in `aeon` are contributed and maintained by the researchers
 
 <h4>Supported by</h4>
 <p>
-  <a href="https://www.inria.fr/">
-    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/inria.png" alt="INRIA" height="50">
+  <a href="https://www.inria.fr/en/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/Inria.png" alt="INRIA" height="50">
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://www.ukri.org/councils/epsrc/">
