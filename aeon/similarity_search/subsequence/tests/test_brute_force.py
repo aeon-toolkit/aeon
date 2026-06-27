@@ -11,7 +11,7 @@ __maintainer__ = ["baraline"]
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from aeon.similarity_search.subsequence._dummy import (
+from aeon.similarity_search.subsequence._brute_force import (
     _naive_squared_distance_profile,
 )
 from aeon.testing.data_generation import make_example_2d_numpy_series

@@ -9,7 +9,7 @@ __maintainer__ = ["baraline"]
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from aeon.similarity_search.whole_series._dummy import (
+from aeon.similarity_search.whole_series._brute_force import (
     BruteForce,
     _pairwise_squared_distance,
 )
@@ -37,7 +37,7 @@ def test__pairwise_squared_distance():
     assert_almost_equal(dist_profile[1], 27.0)
 
 
-def test_dummy_wss_fit_predict():
+def test_brute_force_wss_fit_predict():
     """Test BruteForce fit and predict workflow."""
     # Create test data
     n_cases = 10
@@ -64,7 +64,7 @@ def test_dummy_wss_fit_predict():
     assert_almost_equal(distances[0], 0.0)
 
 
-def test_dummy_wss_exclude_self():
+def test_brute_force_wss_exclude_self():
     """Test BruteForce with X_index to exclude self-match."""
     X = np.array(
         [
@@ -85,7 +85,7 @@ def test_dummy_wss_exclude_self():
     assert 0 not in indexes
 
 
-def test_dummy_wss_normalize():
+def test_brute_force_wss_normalize():
     """Test BruteForce with normalization."""
     X = np.array(
         [
