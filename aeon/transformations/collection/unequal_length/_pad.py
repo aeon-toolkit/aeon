@@ -19,7 +19,7 @@ class Padder(BaseCollectionTransformer):
     """Pad unequal length time series to equal, fixed length.
 
     Pads the input dataset to either a fixed length or finds the max/min length
-    series across all series and channels and pads to that with zeroes.
+    series across all series and pads shorter series with ``fill_value``.
 
     Parameters
     ----------
@@ -28,10 +28,9 @@ class Padder(BaseCollectionTransformer):
         shortest series seen in ``fit``. If "max", will pad to the longest series seen
         in ``fit``. If an integer, will pad to that length.
         Calling ``fit`` is not required if ``padded_length`` is an int.
-    fill_value : int, str or Callable, default=0
-        Value to pad with. Can be a float or a statistic string or a numpy array for
-        each time series. Supported statistic strings are "mean", "median", "max",
-        "min".
+    fill_value : scalar, str or Callable, default=0
+        Value to pad with. Can be a scalar, supported statistic string, or callable.
+        Supported statistic strings are "mean", "median", "max", "min", and "last".
     add_noise : float or None, default=None
         Add noise to the padded values of the series.
         Randomly adds a value between 0 and ``add_noise`` to each padded value if
@@ -116,7 +115,7 @@ class Padder(BaseCollectionTransformer):
         elif self.padded_length == "max":
             self._padded_length = _get_max_length(X)
         else:
-            raise ValueError("pad_length must be 'min', 'max' or an integer.")
+            raise ValueError("padded_length must be 'min', 'max' or an integer.")
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -131,8 +130,9 @@ class Padder(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : numpy3D array (n_cases, n_channels, self._padded_length)
-            padded time series from X.
+        Xt : numpy3D array (n_cases, n_channels, self._padded_length) or list
+            Padded time series from X. A list is returned when ``error_on_long`` is
+            False because the collection may remain unequal length.
         """
         # Must call fit unless padded_length is an int
         pad_length = (
