@@ -161,12 +161,17 @@ class PreValClassifier(BaseClassifier):
 
     def _predict(self, X) -> np.ndarray:
         """Predict labels for X."""
-        return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
+        return self._lb.classes_[self._predict_proba(X).argmax(1)]
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X."""
-        # TODO: Replace this placeholder once the original prediction code is ported.
-        return np.full((X.shape[0], self.n_classes_), 1 / self.n_classes_)
+        X = X.astype(np.float32, copy=False)
+
+        X = X[:, ~self._mask]
+
+        X = np.hstack((np.ones((X.shape[0], 1), dtype=np.float32), X))
+
+        return _softmax(X @ self.B + self.B0)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
