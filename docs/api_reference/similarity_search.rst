@@ -55,6 +55,7 @@ Base Estimators
     :template: class.rst
 
     BaseSubsequenceSearch
+    BaseDistanceProfileSearch
 
 
 .. currentmodule:: aeon.similarity_search.whole_series._base

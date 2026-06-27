@@ -87,6 +87,7 @@
     MockMultivariateSeriesTransformer
     MockSeriesTransformerNoFit
     MockSubsequenceSearch
+    MockDistanceProfileSearch
     MockWholeSeriesSearch
 ```
 

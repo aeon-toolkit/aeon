@@ -31,7 +31,10 @@ class BaseWholeSeriesSearch(BaseSimilaritySearch):
     -----
     Subclasses must implement ``_fit`` and ``_predict``. There is no requirement
     to use distance profiles - algorithms can use any approach (indexing, hashing,
-    etc.) as long as they follow the interface.
+    etc.) as long as they follow the interface. Unlike subsequence search there is
+    deliberately no intermediate distance-profile base here, because whole-series
+    estimators such as ``RandomProjectionIndexANN`` are index/hash based rather than
+    profile based.
 
     Examples
     --------
