@@ -16,7 +16,7 @@ from aeon.networks import AEDRNNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
-    from aeon.networks._ae_drnn import _TensorDilation
+    from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
@@ -221,6 +221,13 @@ class AEDRNNClusterer(BaseDeepClusterer):
         import numpy as np
         import tensorflow as tf
 
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -236,15 +243,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
-
-        if self.metrics is None:
-            self._metrics = ["mean_squared_error"]
-        elif isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
-            raise ValueError("Metrics should be a list, string, or None.")
 
         model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
 
@@ -354,7 +352,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         """
         import tensorflow as tf
 
-        from aeon.networks._ae_drnn import _TensorDilation
+        from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
 
         self.model_ = tf.keras.models.load_model(
             model_path, custom_objects={"_TensorDilation": _TensorDilation}

@@ -46,7 +46,7 @@ class RDSTClassifier(BaseClassifier):
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
     threshold_percentiles : array, default=None
-        The two perceniles used to select the threshold used to compute the Shapelet
+        The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
@@ -92,6 +92,8 @@ class RDSTClassifier(BaseClassifier):
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
+    n_shapelets_ : int
+        The number of shapelets found during the fitting process.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.
@@ -213,6 +215,7 @@ class RDSTClassifier(BaseClassifier):
                 self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
+        self.n_shapelets_ = self._transformer.n_shapelets_
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t

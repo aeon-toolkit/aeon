@@ -17,11 +17,30 @@ from aeon.forecasting.utils._nelder_mead import nelder_mead
 from aeon.forecasting.utils._undifference import _undifference
 
 
+def _exog_as_timepoint_rows(exog):
+    """Convert exog to ``(n_timepoints, n_features)`` rows."""
+    exog = np.asarray(exog)
+    if exog.ndim == 0:
+        raise ValueError("exog must be one- or two-dimensional.")
+    if exog.ndim == 1:
+        exog = exog.reshape(-1, 1)
+    return exog
+
+
 class ARIMA(BaseForecaster, IterativeForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     ARIMA with fixed model structure and fitted parameters found with an
     Nelder Mead optimizer to minimise the AIC.
+
+    If exogenous variables are provided, they are used as target-time regressors
+    aligned with each observation in ``y``. The forecaster fits a linear
+    regression of ``y`` on the exogenous variables (with an intercept) and
+    models the residuals with the ARIMA process. Historical exogenous effects
+    should be represented by explicitly lagging exogenous variables before
+    passing them in; exogenous variables are not used as additional AR lags.
+    ``predict`` requires the exogenous values for the forecast time, supplied
+    either as a single row or as a series aligned with the prediction context.
 
     Parameters
     ----------
@@ -59,6 +78,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
 
     _tags = {
         "capability:horizon": False,  # cannot fit to a horizon other than 1
+        "capability:exogenous": True,  # can handle exogenous variables
     }
 
     def __init__(
@@ -84,6 +104,9 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self.aic_ = 0
         self._model = []
         self._parameters = []
+        self.exog_ = None
+        self.beta_ = None
+        self.exog_n_features_ = None
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
@@ -94,7 +117,9 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         y : np.ndarray
             A time series on which to learn a forecaster to predict horizon ahead
         exog : np.ndarray, default =None
-            Not allowed for this forecaster
+            Optional exogenous time series data aligned with y. If provided, an
+            OLS regression (with intercept) is fit and the ARIMA model is fit on
+            the residual series (y - X beta).
 
         Returns
         -------
@@ -102,14 +127,32 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             Fitted ARIMA.
         """
         self._series = np.array(y.squeeze(), dtype=np.float64)
+        series_for_arima = self._series
+
+        if exog is not None:
+            exog = np.asarray(exog)
+            if exog.ndim == 1:
+                exog = exog.reshape(-1, 1)
+            if len(exog) != len(self._series):
+                raise ValueError("exog must have the same number of rows as y")
+            self.exog_ = exog
+            self.exog_n_features_ = exog.shape[1]
+            X = np.column_stack([np.ones(len(self._series)), exog])
+            self.beta_ = np.linalg.lstsq(X, self._series, rcond=None)[0]
+            series_for_arima = self._series - X @ self.beta_
+        else:
+            self.beta_ = None
+            self.exog_ = None
+            self.exog_n_features_ = None
+
         # Model is an array of the (c,p,q)
         self._model = np.array(
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
-        self._differenced_series = np.diff(self._series, n=self.d)
+        self._differenced_series = np.diff(series_for_arima, n=self.d)
         s = 0.1 / (np.sum(self._model) + 1)  # Randomise
         # Nelder Mead returns the parameters in a single array
-        (self._parameters, self.aic_) = nelder_mead(
+        self._parameters, self.aic_ = nelder_mead(
             0,
             np.sum(self._model[:3]),
             self._differenced_series,
@@ -118,7 +161,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             simplex_init=s,
         )
         #
-        (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
+        self.aic_, self.residuals_, self.fitted_values_ = _arima_model(
             self._parameters,
             self._differenced_series,
             self._model,
@@ -152,7 +195,14 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             A time series to predict the value of. y can be independent of the series
             seen in fit.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Optional exogenous time series data. If the model was fit with exogenous
+            variables, a regression contribution will be added to the ARIMA forecast.
+            For one-step forecasting, `exog` may be:
+              - a 1D array representing the single future exog row (n_features,)
+              - a 2D array with shape (n_obs, n_features), in which case the last row
+                will be used as the future exog row.
+              - a 2D array aligned with `y` (same number of rows);
+                last row will be used.
 
         Returns
         -------
@@ -194,6 +244,36 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
 
         forecast_diff = c + ar_forecast + ma_forecast
 
+        reg_component = 0.0
+        if self.beta_ is not None:
+            if exog is None:
+                raise ValueError(
+                    "exog must be provided for prediction"
+                    "when model was fit with exogenous variables"
+                )
+            exog_arr = np.asarray(exog)
+            if exog_arr.ndim == 1:
+                if exog_arr.shape[0] == len(y):
+                    exog_row = np.atleast_1d(exog_arr[-1])
+                elif exog_arr.shape[0] == 1:
+                    exog_row = np.atleast_1d(exog_arr.reshape(1, -1)[0])
+                else:
+                    exog_row = np.atleast_1d(exog_arr.reshape(-1, 1)[-1])
+            else:
+                exog_row = exog_arr[-1]
+            exog_row = np.asarray(exog_row).reshape(-1)
+            if (
+                self.exog_n_features_ is not None
+                and exog_row.shape[0] != self.exog_n_features_
+            ):
+                raise ValueError(
+                    f"exog must have {self.exog_n_features_} features,"
+                    f" got {exog_row.shape[0]}"
+                )
+            Xf = np.concatenate(([1.0], exog_row), axis=0)
+            reg_component = float(Xf @ self.beta_)
+        forecast_diff = forecast_diff + reg_component
+
         # Undifference the forecast
         if self.d == 0:
             return forecast_diff
@@ -207,17 +287,51 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
-        self.fit(y)
-        n = len(self._differenced_series)
-        p, q = self.p, self.q
-        phi, theta = self.phi_, self.theta_
-        h = prediction_horizon
-        c = 0.0
-        if self.use_constant:
-            c = self.c_
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
+        """Fit once on y and recursively forecast multiple steps ahead."""
+        y, exog, future_exog = self._check_iterative_forecast_inputs(
+            y, prediction_horizon, exog, future_exog
+        )
+        if exog is not None:
+            exog = _exog_as_timepoint_rows(exog)
+            future_exog = _exog_as_timepoint_rows(future_exog)
+        self.fit(y, exog=exog)
+        return self._iterative_forecast_from_fitted(
+            prediction_horizon=prediction_horizon,
+            exog=future_exog,
+        )
 
-        # Start with a copy of the original series and residuals
+    def _iterative_forecast_from_fitted(self, prediction_horizon, exog=None):
+        """Recursively forecast from the fitted ARIMA state without refitting."""
+        if prediction_horizon < 1:
+            raise ValueError("prediction_horizon must be greater than or equal to 1.")
+        self._check_is_fitted()
+
+        h = prediction_horizon
+        p, q, d = self.p, self.q, self.d
+        phi, theta = self.phi_, self.theta_
+        c = self.c_ if self.use_constant else 0.0
+        future_exog = None
+        if exog is not None:
+            exog = _exog_as_timepoint_rows(exog)
+            if exog.shape[0] != h:
+                raise ValueError(
+                    f"Future exog must have {h} rows (matching prediction_horizon)."
+                )
+            future_exog = exog
+        if self.beta_ is not None and future_exog is not None:
+            if future_exog.shape[1] != self.exog_n_features_:
+                raise ValueError(
+                    f"Future exog must have {self.exog_n_features_} columns."
+                )
+        n = len(self._differenced_series)
         residuals = np.zeros(len(self.residuals_) + h)
         residuals[: len(self.residuals_)] = self.residuals_
         forecast_series = np.zeros(n + h)
@@ -233,16 +347,17 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             if q > 0:
                 ma_term = np.dot(theta, residuals[t - np.arange(1, q + 1)])
             next_value = c + ar_term + ma_term
-            # Append prediction and a zero residual (placeholder)
-            forecast_series[n + i] = next_value
-            # Can't compute real residual during prediction, leave as zero
 
+            if self.beta_ is not None and future_exog is not None:
+                Xf = np.concatenate(([1.0], future_exog[i]))
+                next_value += float(Xf @ self.beta_)
+            forecast_series[t] = next_value
         # Correct differencing using forecast values
         y_forecast_diff = forecast_series[n : n + h]
-        if self.d == 0:
+        if d == 0:
             return y_forecast_diff
         else:
-            return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
+            return _undifference(y_forecast_diff, self._series[-d:])[d:]
 
 
 class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
@@ -279,6 +394,11 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
     >>> forecaster.forecast(y)
     481.87157356139943
     """
+
+    _tags = {
+        "capability:exogenous": True,
+        "capability:horizon": False,
+    }
 
     def __init__(self, max_p=3, max_d=3, max_q=2):
         self.max_p = max_p
@@ -336,7 +456,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ) = model
         self.constant_term_ = constant_term_int == 1
         self.final_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
-        self.final_model_.fit(y)
+        self.final_model_.fit(y, exog=exog)
         self.forecast_ = self.final_model_.forecast_
         return self
 
@@ -357,15 +477,22 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         float
             Prediction 1 step ahead of the last value in y.
         """
-        return self.final_model_.predict(y, exog)
+        return self.final_model_.predict(y, exog=exog)
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
         self._fit(y, exog)
         return float(self.final_model_.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
-        """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
+    def iterative_forecast(
+        self,
+        y,
+        prediction_horizon,
+        exog=None,
+        *,
+        future_exog=None,
+    ):
+        """Fit once on y and recursively forecast multiple steps ahead.
 
         This function implements the iterative forecasting strategy (also called
         recursive or iterated). This involves a single model fit on ``y`` which is then
@@ -390,9 +517,19 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         Raises
         ------
         ValueError
-            if prediction_horizon` less than 1.
+            If ``prediction_horizon`` is less than 1.
         """
-        return self.final_model_.iterative_forecast(y, prediction_horizon)
+        y, exog, future_exog = self._check_iterative_forecast_inputs(
+            y, prediction_horizon, exog, future_exog
+        )
+        if exog is not None:
+            exog = _exog_as_timepoint_rows(exog)
+            future_exog = _exog_as_timepoint_rows(future_exog)
+        self.fit(y, exog=exog)
+        return self.final_model_._iterative_forecast_from_fitted(
+            prediction_horizon=prediction_horizon,
+            exog=future_exog,
+        )
 
 
 @njit(cache=True, fastmath=True)

@@ -40,7 +40,7 @@ class WEASEL_V2(BaseClassifier):
     for different window lengths and learns a logistic regression classifier
     on this bag.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -185,6 +185,7 @@ class WEASEL_V2(BaseClassifier):
             n_jobs=self._n_jobs,
         )
         words = self.transform.fit_transform(X, y)
+        words = words.astype(np.float32, copy=False)
 
         # use RidgeClassifierCV for classification
         self.clf = RidgeClassifierCV(
@@ -257,7 +258,7 @@ class WEASEL_V2(BaseClassifier):
 class WEASELTransformerV2:
     """The Word Extraction for Time Series Classifier v2.0 Transformation.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -299,6 +300,8 @@ class WEASELTransformerV2:
        "chi2" or "random". Else ignored.
     random_state: int or None, default=None
         Seed for random, integer
+    n_jobs : int, default=1
+        Number of CPU cores to use.
     """
 
     def __init__(
@@ -310,7 +313,7 @@ class WEASELTransformerV2:
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
-        n_jobs=4,
+        n_jobs=1,
     ):
         self.min_window = min_window
         self.norm_options = norm_options
@@ -380,14 +383,19 @@ class WEASELTransformerV2:
                 f"all with very short series"
             )
 
+        if (self.feature_selection == "chi2_top_k") and (y is None):
+            raise ValueError(
+                "Class values must be provided for chi2_top_k feature selection."
+            )
+
         # Randomly choose window sizes
         self.window_sizes = np.arange(self.min_window, self.max_window + 1, 1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 i,
                 XX,
-                y.copy(),
+                safe_copy(y),
                 self.window_sizes,
                 self.alphabet_sizes,
                 self.word_lengths,
@@ -419,7 +427,6 @@ class WEASELTransformerV2:
             all_words = np.concatenate(sfa_words, axis=1)
         else:
             all_words = hstack(sfa_words)
-
         self.total_features_count = all_words.shape[1]
 
         return all_words
@@ -442,7 +449,7 @@ class WEASELTransformerV2:
     def _transform_words(self, X):
         XX = X.squeeze(1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(transformer.transform)(XX) for transformer in self.SFA_transformers
         )
 
@@ -522,3 +529,8 @@ def _parallel_fit(
         all_words.append(words)
         all_transformers.append(transformer)
     return all_words, all_transformers
+
+
+@staticmethod
+def safe_copy(y):
+    return y.copy() if y is not None else y

@@ -146,7 +146,7 @@ class _GGS:
         """
         nrows, ncols = data.shape
         cov = np.cov(data.T, bias=True)
-        (_, logdet) = np.linalg.slogdet(
+        _, logdet = np.linalg.slogdet(
             cov + float(self.lamb) * np.identity(ncols) / nrows
         )
 
@@ -226,7 +226,7 @@ class _GGS:
             )
             ll_left = 2 * sum(map(math.log, np.diag(Lleft)))
             ll_right = 2 * sum(map(math.log, np.diag(Lright)))
-            (trace_left, trace_right) = (0, 0)
+            trace_left, trace_right = (0, 0)
             if self.lamb > 0:
                 trace_left = math.pow(np.linalg.norm(np.linalg.inv(Lleft)), 2)
                 trace_right = math.pow(np.linalg.norm(np.linalg.inv(Lright)), 2)

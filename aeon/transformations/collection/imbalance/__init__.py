@@ -1,4 +1,4 @@
-"""Supervised transformers to rebalance colelctions of time series."""
+"""Supervised transformers to rebalance collections of time series."""
 
 __all__ = ["ADASYN", "SMOTE", "OHIT", "ESMOTE"]
 

@@ -71,7 +71,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -81,7 +81,7 @@ jobs:
         run: python -m pip list
 
       - name: Run example notebooks
-        run: .github/utilities/run_examples.sh false
+        run: .github/utilities/run_examples.sh false true
         shell: bash
 
       - name: Save new cache
@@ -104,7 +104,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -137,7 +137,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -156,6 +156,29 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-test-no-soft-deps-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
 
+  test-soft-dep-skips:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
+        with:
+          additional_extras: "dev,unstable_extras"
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest --check-soft-dependency-skips -q
+
   pytest:
     runs-on: ${{ matrix.os }}
 
@@ -163,7 +186,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
 
     steps:
       - name: Checkout
@@ -196,7 +219,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -236,7 +259,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -246,7 +269,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
+        run: python -m pytest -n logical --doctest-only
 
       - name: Save new cache
         uses: actions/cache/save@v5
@@ -276,7 +299,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -311,7 +334,7 @@ jobs:
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -324,6 +347,6 @@ jobs:
         run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

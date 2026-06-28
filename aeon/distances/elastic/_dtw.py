@@ -1,4 +1,4 @@
-r"""Dynamic time warping (DTW) between two time series."""
+"""Dynamic time warping (DTW) between two time series."""
 
 __maintainer__ = []
 
@@ -11,7 +11,7 @@ from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -73,10 +73,16 @@ def dtw_distance(
         Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
     window : float or None, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if ``window = 0.1`` then
-        10% of the series length is the max warping allowed.
-        is used.
+        The window to use for the bounding matrix. If ``window=None`` and
+        ``itakura_max_slope=None``, no bounding is used.
+        Window is a percentage deviation from the diagonal of the DTW cost matrix, so if
+        ``window = 0.1`` then 10% of the series length is the maximum warping allowed.
+        This parameter limits how far DTW is allowed to warp in time by restricting
+        alignments to a diagonal band whose width is given by a fraction of the maximum
+        series length.
+        For example, if there are 10 time points in the longer series and window = 0.1,
+        DTW alignments are restricted such that the warping path may deviate by at most
+        one cell from the diagonal.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -202,7 +208,56 @@ def dtw_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
-    return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+    """Compute the DTW distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # If x is smaller than y, we swap them to make y the smaller one.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size + 1 to handle the boundary condition at index 0
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Initial condition: distance at (0, 0) is 0
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        # Boundary condition: The cell to the left of the first column is infinity
+        curr[0] = np.inf
+
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                cost = _univariate_squared_distance(x[:, i], y[:, j])
+
+                # DTW recurrence:
+                # prev[j]   corresponds to matrix[i, j]     (Diagonal)
+                # prev[j+1] corresponds to matrix[i, j+1]   (Top)
+                # curr[j]   corresponds to matrix[i+1, j]   (Left)
+                min_cost = min(
+                    prev[j],  # Diagonal
+                    prev[j + 1],  # Top
+                    curr[j],  # Left
+                )
+
+                curr[j + 1] = cost + min_cost
+            else:
+                curr[j + 1] = np.inf
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    return prev[y_size]
 
 
 @njit(cache=True, fastmath=True)
@@ -228,7 +283,7 @@ def _dtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@threaded
+@numba_thread_handler
 def dtw_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,

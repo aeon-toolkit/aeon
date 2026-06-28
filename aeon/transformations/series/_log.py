@@ -4,11 +4,15 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["LogTransformer"]
 
 import numpy as np
+from numpy import ndarray
 
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
-class LogTransformer(BaseSeriesTransformer):
+class LogTransformer(SeriesInverseTransformerMixin, BaseSeriesTransformer):
     """Natural logarithm transformation.
 
     The Natural logarithm transformation can be used to make the data more normally
@@ -41,15 +45,14 @@ class LogTransformer(BaseSeriesTransformer):
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
         "capability:multivariate": True,
-        "capability:inverse_transform": True,
     }
 
-    def __init__(self, offset=0, scale=1):
+    def __init__(self, offset: float = 0, scale: float = 1) -> None:
         self.offset = offset
         self.scale = scale
         super().__init__(axis=1)
 
-    def _transform(self, X, y=None):
+    def _transform(self, X: ndarray, y: None = None) -> ndarray:
         """Transform X and return a transformed version.
 
         private _transform containing the core logic, called from transform
@@ -71,7 +74,7 @@ class LogTransformer(BaseSeriesTransformer):
         Xt = np.log(scale * (X + offset))
         return Xt
 
-    def _inverse_transform(self, X, y=None):
+    def _inverse_transform(self, X: ndarray, y: None = None) -> ndarray:
         """Inverse transform X and return an inverse transformed version.
 
         core logic

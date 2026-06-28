@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_unit_test
-from aeon.transformations.collection.dictionary_based import SFA, SFAFast
+from aeon.transformations.collection.dictionary_based import SFA, SFAFast, SFAWhole
 
 
 @pytest.mark.parametrize(
@@ -249,3 +249,40 @@ def test_sfa_fast_transform_after_fit():
         and np.all(x.indptr == y.indptr)
         and np.allclose(x.data, y.data)
     )
+
+
+@pytest.mark.parametrize(
+    "alphabet_allocation_method", ["linear_scale", "log_scale", "sqrt_scale"]
+)
+def test_sfa_dynamic(alphabet_allocation_method):
+    """Test the SFA transformer with dynamic alphabet-allocation methods."""
+    X, y = load_unit_test(split="train")
+
+    word_length = 8
+    alphabet_size = 8
+    window_size = 16
+
+    # SFA with dynamic-alphabet-allocation
+    p = SFAFast(
+        word_length=word_length,
+        alphabet_size=alphabet_size,
+        window_size=window_size,
+        binning_method="equi-width",
+        alphabet_allocation_method=alphabet_allocation_method,
+        feature_selection_strategy="pca",
+    ).fit(X, y)
+
+    # Check if the budget is correctly allocated
+    assert np.mean(np.log2(p.alphabet_sizes)) <= np.log2(alphabet_size)
+
+    # SFAWhole with dynamic-alphabet-allocation
+    p = SFAWhole(
+        word_length=word_length,
+        alphabet_size=alphabet_size,
+        binning_method="equi-width",
+        alphabet_allocation_method=alphabet_allocation_method,
+        feature_selection_strategy="pca",
+    ).fit(X, y)
+
+    # Check if the budget is correctly allocated
+    assert np.mean(np.log2(p.alphabet_sizes)) <= np.log2(alphabet_size)

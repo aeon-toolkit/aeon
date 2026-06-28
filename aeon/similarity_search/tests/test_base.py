@@ -2,6 +2,9 @@
 
 __maintainer__ = ["baraline"]
 
+import numpy as np
+import pytest
+
 from aeon.testing.mock_estimators._mock_similarity_searchers import (
     MockSubsequenceSearch,
     MockWholeSeriesSearch,
@@ -31,3 +34,14 @@ def test_input_shape_fit_predict():
         X_test, y_test = FULL_TEST_DATA_DICT[datatype]["test"]
         # fit takes a collection, predict takes a single series
         estimator_ws.fit(X_train, y_train).predict(X_test[0])
+
+
+def test_predict_channel_mismatch_raises():
+    """Test predict raises a ValueError when channel counts differ from fit."""
+    estimator = MockSubsequenceSearch(length=20)
+    X_train = np.random.rand(5, 2, 20)
+    estimator.fit(X_train)
+
+    X_test = np.random.rand(5, 20)
+    with pytest.raises(ValueError, match="Expected X to have 2 channels"):
+        estimator.predict(X_test)

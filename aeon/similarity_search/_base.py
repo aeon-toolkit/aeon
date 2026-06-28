@@ -12,6 +12,7 @@ import numpy as np
 from numba.typed import List
 
 from aeon.base._base_collection import BaseCollectionEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSimilaritySearch(BaseCollectionEstimator):
@@ -87,6 +88,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
         return X
 
+    @method_timer("fit_time_millis_")
     def fit(
         self,
         X: np.ndarray | List,

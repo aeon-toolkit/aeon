@@ -87,8 +87,7 @@ elif title_labels_str == "":
         "update the labels accordingly."
     )
 
-pr.create_issue_comment(
-    f"""
+pr.create_issue_comment(f"""
 ## Thank you for contributing to `aeon`
 
 {title_labels_str}
@@ -96,26 +95,24 @@ pr.create_issue_comment(
 
 The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab will show the status of our automated tests. You can click on individual test runs in the tab or "Details" in the panel below to see more information if there is a failure.
 
-If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
+If our `pre-commit` code quality check fails, please run `pre-commit` locally and push the fixes to your PR branch.
 
-Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA) channel if you have any.
+Don't hesitate to ask questions on the `aeon` [Discord](https://discord.gg/D6rzqHGKRJ) channel if you have any.
 
 <details><summary>PR CI actions</summary>
 <p>
 
-These checkboxes will add labels to enable/disable CI functionality for this PR. This may not take effect immediately, and a new commit may be required to run the new configuration.
+These checkboxes will add labels to enable or disable CI functionality for this PR. This may not take effect immediately, and a new commit may be required to run the new configuration.
 
 - [ ] Run `pre-commit` checks for all files
 - [ ] Run `mypy` typecheck tests
 - [ ] Run all `pytest` tests and configurations
 - [ ] Run all notebook example tests
 - [ ] Run numba-disabled `codecov` tests
-- [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
 - [ ] Disable numba cache loading
 - [ ] Regenerate expected results for testing
 - [ ] Push an empty commit to re-run CI checks
 
 </p>
 </details>
-    """  # noqa
-)
+    """)  # noqa
