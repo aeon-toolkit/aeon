@@ -881,6 +881,7 @@ def _fit_statsforecast_model(model, y: np.ndarray, h: int) -> FitResult:
 
 def _fit_statsforecast(name: str, y: np.ndarray, h: int, period: int) -> FitResult:
     """Fit a named statsforecast equivalent and return persistent outputs."""
+    from statsforecast.models import ARIMA as SFARIMA
     from statsforecast.models import (
         AutoARIMA,
         AutoCES,
@@ -890,7 +891,13 @@ def _fit_statsforecast(name: str, y: np.ndarray, h: int, period: int) -> FitResu
     )
 
     season_length = max(1, int(period))
-    if name in {"ARIMA", "AutoARIMA"}:
+    if name == "ARIMA":
+        model = SFARIMA(
+            order=(1, 0, 1),
+            season_length=season_length,
+            include_mean=False,
+        )
+    elif name == "AutoARIMA":
         model = AutoARIMA(season_length=season_length)
     elif name in {"ETS", "AutoETS"}:
         model = AutoETS(season_length=season_length)
