@@ -123,6 +123,7 @@ FORECASTER_ALIASES = {
     "NaiveForecaster": "NaiveForecaster",
     "RandF": "RandF",
     "RegressionForecaster": "RegressionForecaster",
+    "RidgeDiff": "RidgeDiff",
     "SETAR": "SETAR",
     "SETARForest": "SETARForest",
     "SETARTree": "SETARTree",
@@ -130,6 +131,7 @@ FORECASTER_ALIASES = {
     "TCNForecaster": "TCNForecaster",
     "TVP": "TVP",
     "Theta": "Theta",
+    "DrCIFDiff": "DrCIFDiff",
 }
 
 
@@ -916,6 +918,13 @@ def _resolve_regression_window(y: np.ndarray, h: int) -> int:
     return min(window, max_valid_window)
 
 
+def _resolve_max_100_regression_window(y: np.ndarray, h: int) -> int:
+    """Choose a valid regression window capped at 100 observations."""
+    series_length = int(y.size)
+    max_valid_window = max(1, series_length - int(h) - 3)
+    return min(100, max_valid_window)
+
+
 def _aeon_forecast_from_fitted(model, y: np.ndarray, h: int) -> np.ndarray:
     """Forecast ``h`` steps from one fitted aeon model."""
     if hasattr(model, "series_to_series_forecast"):
@@ -947,6 +956,70 @@ def _coerce_fitted_arrays(
     return fitted_arr, residual_arr
 
 
+class FirstDifferenceRegressionForecaster:
+    """Train a one-step regressor on first differences and forecast levels."""
+
+    def __init__(self, window: int, regressor):
+        self.window = window
+        self.regressor = regressor
+
+    def fit(self, y):
+        """Fit the inner regression forecaster on first-order differences."""
+        from aeon.forecasting import RegressionForecaster
+
+        y = _as_float_array(y)
+        differenced = np.diff(y)
+        self.model_ = RegressionForecaster(
+            window=self.window,
+            horizon=1,
+            regressor=self.regressor,
+        )
+        self.model_.fit(differenced)
+        self.forecast_ = self._forecast_levels(differenced, y[-1], 1)[0]
+        self.fit_time_millis_ = getattr(self.model_, "fit_time_millis_", None)
+
+        windows = np.lib.stride_tricks.sliding_window_view(
+            differenced,
+            window_shape=self.window,
+        )[:-1]
+        if windows.size == 0:
+            self.fitted_values_ = np.empty(0, dtype=np.float64)
+            self.residuals_ = np.empty(0, dtype=np.float64)
+        else:
+            target_indices = np.arange(self.window, differenced.size)
+            fitted_diffs = _as_float_array(self.model_.regressor_.predict(windows))
+            self.fitted_values_ = y[target_indices] + fitted_diffs
+            self.residuals_ = y[target_indices + 1] - self.fitted_values_
+        return self
+
+    def iterative_forecast(self, y, prediction_horizon: int) -> np.ndarray:
+        """Forecast levels by recursively predicting and accumulating changes."""
+        y = _as_float_array(y)
+        return self._forecast_levels(np.diff(y), y[-1], int(prediction_horizon))
+
+    def get_params(self, deep: bool = True) -> dict[str, Any]:
+        """Return experiment metadata parameters."""
+        return {
+            "window": self.window,
+            "difference_order": 1,
+            "regressor": self.regressor,
+        }
+
+    def _forecast_levels(
+        self, differenced: np.ndarray, last_value: float, prediction_horizon: int
+    ) -> np.ndarray:
+        """Forecast original-scale levels from recursively predicted differences."""
+        forecasts = np.empty(prediction_horizon, dtype=np.float64)
+        diff_history = _as_float_array(differenced)
+        level = float(last_value)
+        for i in range(prediction_horizon):
+            next_diff = float(self.model_.predict(diff_history))
+            level += next_diff
+            forecasts[i] = level
+            diff_history = np.append(diff_history, next_diff)
+        return forecasts
+
+
 def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
     """Construct an aeon forecaster with sensible defaults for this experiment."""
     window = _resolve_forecaster_window(y, h, period)
@@ -961,6 +1034,11 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
         from aeon.forecasting import RegressionForecaster
 
         return RegressionForecaster(window=regression_window, regressor=Ridge())
+    if name == "RidgeDiff":
+        return FirstDifferenceRegressionForecaster(
+            window=_resolve_max_100_regression_window(np.diff(y), 1),
+            regressor=Ridge(),
+        )
     if name == "RandF":
         from sklearn.ensemble import RandomForestRegressor
 
@@ -980,7 +1058,14 @@ def _build_aeon_forecaster(name: str, y: np.ndarray, h: int, period: int):
 
         return RegressionForecaster(
             window=regression_window,
-            regressor=DrCIFRegressor(n_estimators=100, random_state=0, n_jobs=1),
+            regressor=DrCIFRegressor(n_estimators=50, random_state=0, n_jobs=1),
+        )
+    if name == "DrCIFDiff":
+        from aeon.regression.interval_based import DrCIFRegressor
+
+        return FirstDifferenceRegressionForecaster(
+            window=_resolve_max_100_regression_window(np.diff(y), 1),
+            regressor=DrCIFRegressor(n_estimators=50, random_state=0, n_jobs=1),
         )
     if name == "ARIMA":
         from aeon.forecasting.stats import ARIMA
