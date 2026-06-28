@@ -57,6 +57,7 @@ class BruteForce(BaseWholeSeriesSearch):
     >>> query = np.random.rand(1, 50)
     >>> searcher = BruteForce(normalize=True)
     >>> searcher.fit(X_fit)
+    BruteForce(normalize=True)
     >>> indexes, distances = searcher.predict(query, k=3)
     """
 

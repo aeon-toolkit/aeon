@@ -142,7 +142,9 @@ def test_fit_creates_index():
 def test_fit_hash_funcs_shape():
     """Hash functions have correct shape."""
     X = np.random.rand(10, 3, 100)
-    lsh = RandomProjectionIndexANN(n_hash_funcs=64, hash_func_coverage=0.25, random_state=42)
+    lsh = RandomProjectionIndexANN(
+        n_hash_funcs=64, hash_func_coverage=0.25, random_state=42
+    )
     lsh.fit(X)
 
     assert lsh.hash_funcs_.shape == (64, 3, 25)
@@ -152,7 +154,9 @@ def test_fit_hash_funcs_shape():
 def test_fit_discrete_vectors():
     """Discrete vectors contain only -1 and 1."""
     X = np.random.rand(10, 2, 50)
-    lsh = RandomProjectionIndexANN(n_hash_funcs=32, use_discrete_vectors=True, random_state=42)
+    lsh = RandomProjectionIndexANN(
+        n_hash_funcs=32, use_discrete_vectors=True, random_state=42
+    )
     lsh.fit(X)
 
     unique_values = np.unique(lsh.hash_funcs_)
@@ -375,7 +379,9 @@ def test_single_series():
 def test_short_series():
     """Index works with very short series."""
     X = np.random.rand(10, 2, 4)
-    lsh = RandomProjectionIndexANN(n_hash_funcs=16, hash_func_coverage=0.5, random_state=42)
+    lsh = RandomProjectionIndexANN(
+        n_hash_funcs=16, hash_func_coverage=0.5, random_state=42
+    )
     lsh.fit(X)
 
     assert lsh.window_length_ == 2
@@ -399,7 +405,9 @@ def test_high_dimensional():
 def test_full_coverage():
     """hash_func_coverage=1.0 uses full series length."""
     X = np.random.rand(10, 2, 50)
-    lsh = RandomProjectionIndexANN(n_hash_funcs=32, hash_func_coverage=1.0, random_state=42)
+    lsh = RandomProjectionIndexANN(
+        n_hash_funcs=32, hash_func_coverage=1.0, random_state=42
+    )
     lsh.fit(X)
 
     assert lsh.window_length_ == 50

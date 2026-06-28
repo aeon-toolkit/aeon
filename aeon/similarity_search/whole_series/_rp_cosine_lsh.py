@@ -208,6 +208,7 @@ class RandomProjectionIndexANN(BaseWholeSeriesSearch):
     >>> query = np.random.rand(1, 50)
     >>> index = RandomProjectionIndexANN(n_hash_funcs=128, normalize=True)
     >>> index.fit(X_fit)
+    RandomProjectionIndexANN(n_hash_funcs=128)
     >>> indexes, distances = index.predict(query, k=5)
 
     """

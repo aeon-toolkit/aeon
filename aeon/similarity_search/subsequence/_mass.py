@@ -63,6 +63,7 @@ class MASS(BaseDistanceProfileSearch):
     >>> query = np.random.rand(1, 20)
     >>> searcher = MASS(length=20, normalize=False)
     >>> searcher.fit(X_fit)
+    MASS(length=20)
     >>> indexes, distances = searcher.predict(query, k=3)
     """
 

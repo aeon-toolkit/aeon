@@ -329,18 +329,19 @@ For example, using `MASS` to find nearest neighbor subsequences:
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.similarity_search.subsequence import MASS
->>> X1 = np.array([1, 1, 2, 4, 6, 6, 7, 5, 3, 2])  # single series (univariate)
->>> X2 = np.array([0, 1, 2, 2, 4, 5, 7, 9, 4, 6])  # single series (univariate)
->>> snn = MASS(length=4).fit(X1)  # 4 is length of the subsequences
->>> indexes, distances = snn.predict(X2[:4], k=1)  # find best match
+>>> X = np.array([[[1, 1, 2, 4, 6, 6, 7, 5, 3, 2]]])  # collection to search in
+>>> q = np.array([[0, 1, 2, 2]])  # query subsequence of length 4
+>>> snn = MASS(length=4).fit(X)  # 4 is the length of the subsequences
+>>> indexes, distances = snn.predict(q, k=1)  # find best match
 ```
 
 Some things to note on this example :
 
-- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimators
-will use a `2D` representation as `(n_channels, n_timepoints)`.
-- The output of predict gives the indexes of the best matching subsequences in the fitted series
-and their distances to the query.
+- The database passed to `fit` is a collection of shape
+`(n_cases, n_channels, n_timepoints)`, while the query passed to `predict` is a single
+series of shape `(n_channels, length)`.
+- The output of predict gives the `(case, timestamp)` indexes of the best matching
+subsequences in the fitted collection and their distances to the query.
 
 For more examples and use cases you can check the example section of the module,
 starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)

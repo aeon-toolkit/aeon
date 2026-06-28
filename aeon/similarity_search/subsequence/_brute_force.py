@@ -57,6 +57,7 @@ class BruteForce(BaseDistanceProfileSearch):
     >>> query = np.random.rand(1, 20)
     >>> searcher = BruteForce(length=20, normalize=False)
     >>> searcher.fit(X_fit)
+    BruteForce(length=20)
     >>> indexes, distances = searcher.predict(query, k=3)
     """
 
