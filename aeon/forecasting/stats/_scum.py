@@ -115,8 +115,10 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
         """Predict one step ahead from the supplied context."""
         self._validate_parameters()
         y = _as_1d_float(y)
-        forecasts, _ = self._fit_predict(y, 1)
-        return float(forecasts[0])
+        pred = float(self.ensemble_.predict(y, exog))
+        if self.clip_negative:
+            pred = max(pred, 0.0)
+        return pred
 
     def iterative_forecast(
         self,

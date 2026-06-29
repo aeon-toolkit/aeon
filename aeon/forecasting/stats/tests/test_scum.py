@@ -64,6 +64,19 @@ class _LengthRecorderForecaster(BaseForecaster, IterativeForecastingMixin):
         return np.full(int(prediction_horizon), float(np.asarray(y).size))
 
 
+class _CountingSCUM(SCUM):
+    """SCUM test double that counts ensemble fit/build calls."""
+
+    def __init__(self, **kwargs):
+        self.fit_predict_calls = 0
+        super().__init__(**kwargs)
+
+    def _fit_predict(self, y, prediction_horizon):
+        """Count calls to the fit/predict helper."""
+        self.fit_predict_calls += 1
+        return super()._fit_predict(y, prediction_horizon)
+
+
 def test_scum_median_combines_component_forecasts_by_horizon():
     """SCUM returns the per-horizon median across component forecasts."""
     y = np.arange(10, dtype=np.float64)
@@ -126,6 +139,38 @@ def test_scum_predict_matches_horizon_one_iterative_forecast():
     assert scum.forecast_ == pytest.approx(2.5)
     assert scum.predict(y) == pytest.approx(2.5)
     np.testing.assert_allclose(scum.iterative_forecast(y, 1), [2.5])
+
+
+def test_scum_predict_uses_fitted_ensemble_not_fit_predict_again():
+    """SCUM.predict should use the fitted ensemble instead of refitting."""
+    y = np.arange(10, dtype=np.float64)
+    forecasters = [
+        ("a", _VectorForecaster([1.0])),
+        ("b", _VectorForecaster([2.0])),
+        ("c", _VectorForecaster([3.0])),
+        ("d", _VectorForecaster([4.0])),
+    ]
+    scum = _CountingSCUM(forecasters=forecasters, clip_negative=False)
+
+    scum.fit(y)
+    assert scum.fit_predict_calls == 1
+
+    assert scum.predict(y) == pytest.approx(2.5)
+    assert scum.fit_predict_calls == 1
+
+
+def test_scum_predict_clips_negative_fitted_ensemble_prediction():
+    """SCUM.predict should clip negative predictions from the fitted ensemble."""
+    y = np.arange(10, dtype=np.float64)
+    forecasters = [
+        ("a", _VectorForecaster([-4.0])),
+        ("b", _VectorForecaster([-3.0])),
+        ("c", _VectorForecaster([-2.0])),
+        ("d", _VectorForecaster([10.0])),
+    ]
+    scum = SCUM(forecasters=forecasters).fit(y)
+
+    assert scum.predict(y) == 0.0
 
 
 def test_scum_accepts_named_custom_pool():
