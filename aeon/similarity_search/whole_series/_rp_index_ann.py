@@ -86,7 +86,7 @@ def _dot_product_sign(X, Y):
     return out >= 0
 
 
-@njit(cache=True, parallel=True)
+@njit(cache=True)
 def _series_to_bool(X, hash_funcs, start_points, length):
     """
     Compute boolean hash for a single time series.
@@ -109,7 +109,14 @@ def _series_to_bool(X, hash_funcs, start_points, length):
     """
     n_hash_funcs = hash_funcs.shape[0]
     res = np.zeros(n_hash_funcs, dtype=np.bool_)
-    for j in prange(n_hash_funcs):
+    # NOTE: deliberately serial (range, not prange) for two reasons:
+    #  1. it is called from within the prange of _collection_to_bool, and nesting
+    #     parallel=True functions triggers a numba cache/prange conflict that
+    #     segfaults on macOS/arm64 (numba issue #10184);
+    #  2. when hashing a single query in predict, serial is ~3x faster than prange
+    #     here, as the per-query work is too small to amortize thread dispatch.
+    # Collection-level parallelism (over cases) is kept in _collection_to_bool.
+    for j in range(n_hash_funcs):
         start = start_points[j]
         res[j] = _dot_product_sign(X[:, start : start + length], hash_funcs[j])
     return res

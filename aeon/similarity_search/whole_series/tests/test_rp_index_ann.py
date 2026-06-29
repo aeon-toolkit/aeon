@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.similarity_search.whole_series._rp_cosine_lsh import (
+from aeon.similarity_search.whole_series._rp_index_ann import (
     RandomProjectionIndexANN,
     _bool_hamming_dist,
     _bool_hamming_dist_matrix,
