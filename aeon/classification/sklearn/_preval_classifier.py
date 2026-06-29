@@ -156,6 +156,13 @@ class PreValClassifier(BaseClassifier):
                 alpha_hat_best = alpha_hat
 
         self.B = self.c * (V @ alpha_hat_best)
+        self.mask_ = self._mask
+        self.label_binarizer_ = self._lb
+        self.intercept_ = self.B0
+        self.coef_ = self.B
+        self.scale_ = self.c
+        self.best_loss_ = best_loss
+        # TODO: Revisit which fitted attributes we want to expose once the port settles.
 
         return self
 
