@@ -344,9 +344,17 @@ def test_orthogonal_vectors_hash_similarity():
 
 
 def test_normalization_effect():
-    """Normalization makes scale-different series identical."""
+    """Normalization collapses scale-different but shape-identical series.
+
+    ``B`` rescales ``A`` by a power of two, which z-normalisation reverses exactly
+    in floating point (``z_normalise(8 * A) == z_normalise(A)`` bit-for-bit), so the
+    two series hash to a single bucket deterministically on every platform. A
+    non-power-of-two factor (e.g. 10) leaves a ~1 ULP difference after normalisation
+    that can flip a near-zero projection's sign bit and split them into two buckets,
+    which made this assertion platform-dependent (it varied on macOS).
+    """
     A = np.array([[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]])
-    B = np.array([[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0]])
+    B = 8.0 * A
 
     X = np.vstack([A[np.newaxis, :], B[np.newaxis, :]])
 
