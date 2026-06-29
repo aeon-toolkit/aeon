@@ -821,54 +821,76 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
     if position + length > len(series):
         position = int((len(series) - length) / 2)
 
-    subseq = series[position : position + length]
-
     sum = 0.0
     sum2 = 0.0
-    for i in subseq:
-        sum += i
-        sum2 += i * i
+    for i in range(length):
+        val = series[position + i]
+        sum += val
+        sum2 += val * val
 
     mean = sum / length
     std = math.sqrt((sum2 - mean * mean * length) / length)
-    if std > AEON_NUMBA_STD_THRESHOLD:
-        subseq = (subseq - mean) / std
-    else:
-        subseq = np.zeros(length)
+    use_std = std > AEON_NUMBA_STD_THRESHOLD
 
     best_dist = 0
-    for i, n in zip(shapelet, subseq):
-        temp = i - n
+    for i in range(length):
+        val = (series[position + i] - mean) / std if use_std else 0.0
+        temp = shapelet[i] - val
         best_dist += temp * temp
 
     i = 1
-    traverse = [True, True]
-    sums = [sum, sum]
-    sums2 = [sum2, sum2]
+    traverse_left = True
+    traverse_right = True
+    left_sum = sum
+    right_sum = sum
+    left_sum2 = sum2
+    right_sum2 = sum2
 
-    while traverse[0] or traverse[1]:
-        for n in range(2):
-            mod = -1 if n == 0 else 1
-            pos = position + mod * i
-            traverse[n] = pos >= 0 if n == 0 else pos <= len(series) - length
+    while traverse_left or traverse_right:
+        pos = position - i
+        traverse_left = pos >= 0
+        if traverse_left:
+            start = series[pos]
+            end = series[pos + length]
 
-            if not traverse[n]:
-                continue
+            left_sum += start - end
+            left_sum2 += start * start - end * end
 
-            start = series[pos - n]
-            end = series[pos - n + length]
-
-            sums[n] += mod * end - mod * start
-            sums2[n] += mod * end * end - mod * start * start
-
-            mean = sums[n] / length
-            std = math.sqrt((sums2[n] - mean * mean * length) / length)
+            mean = left_sum / length
+            std = math.sqrt((left_sum2 - mean * mean * length) / length)
 
             dist = 0
             use_std = std > AEON_NUMBA_STD_THRESHOLD
             for j in range(length):
-                val = (series[pos + sorted_indicies[j]] - mean) / std if use_std else 0
-                temp = shapelet[sorted_indicies[j]] - val
+                idx = sorted_indicies[j]
+                val = (series[pos + idx] - mean) / std if use_std else 0
+                temp = shapelet[idx] - val
+                dist += temp * temp
+
+                if dist > best_dist:
+                    break
+
+            if dist < best_dist:
+                best_dist = dist
+
+        pos = position + i
+        traverse_right = pos <= len(series) - length
+        if traverse_right:
+            start = series[pos - 1]
+            end = series[pos - 1 + length]
+
+            right_sum += end - start
+            right_sum2 += end * end - start * start
+
+            mean = right_sum / length
+            std = math.sqrt((right_sum2 - mean * mean * length) / length)
+
+            dist = 0
+            use_std = std > AEON_NUMBA_STD_THRESHOLD
+            for j in range(length):
+                idx = sorted_indicies[j]
+                val = (series[pos + idx] - mean) / std if use_std else 0
+                temp = shapelet[idx] - val
                 dist += temp * temp
 
                 if dist > best_dist:
