@@ -160,7 +160,6 @@ def test_check_X():
     assert dummy2._check_X(X_tiny)
 
 
-
 @pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_convert_X(internal_type, data):

@@ -140,6 +140,7 @@ EXPECTED_MOCK_TAGS = {
     "capability:train_estimate": False,
     "capability:unequal_length": True,
     "capability:univariate": True,
+    "capability:small_scale": False,
     "fit_is_empty": False,
     "non_deterministic": False,
     "python_dependencies": None,

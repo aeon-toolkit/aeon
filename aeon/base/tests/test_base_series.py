@@ -176,7 +176,6 @@ def test_check_X():
     assert dummy._check_X(X_tiny, axis=1)
 
 
-
 @pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
 def test_convert_X_ndarray_inner(input_type):
     """Test _convert_X on with np.ndarray inner type."""

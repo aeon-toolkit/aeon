@@ -116,7 +116,8 @@ ESTIMATOR_TAGS = {
     "capability:small_scale": {
         "class": "estimator",
         "type": "bool",
-        "description": "Can the estimator handle small scale/low variance time series input?",
+        "description": "Can the estimator handle small scale/low variance "
+        "time series input?",
     },
     "capability:train_estimate": {
         "class": ["classifier", "regressor"],
