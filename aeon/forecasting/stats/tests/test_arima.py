@@ -250,6 +250,15 @@ def test_autoarima_fit_sets_model_and_orders_within_bounds():
     assert 0 <= forecaster.q_ <= forecaster.max_q
 
 
+def test_autoarima_respects_max_d_zero():
+    """max_d=0 must disable non-seasonal differencing, even for a non-stationary
+    (trending) series that would otherwise be differenced (gh-3577)."""
+    trending = np.arange(60, dtype=float)
+    forecaster = AutoARIMA(max_p=1, max_d=0, max_q=1)
+    forecaster.fit(trending)
+    assert forecaster.d_ == 0
+
+
 def test_autoarima_predict_returns_finite_float():
     """_predict should return a finite float once fitted."""
     forecaster = AutoARIMA()
