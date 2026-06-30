@@ -35,6 +35,22 @@ def test_base_forecaster():
         f.forecast(y, exog=y)
 
 
+def test_naive_seasonal_last_validates_seasonal_period():
+    """seasonal_last must raise a clear error for an invalid seasonal_period (gh-3576)."""
+    y = np.arange(20, dtype=float)
+    for bad in (0, -1, None):
+        f = NaiveForecaster(strategy="seasonal_last", seasonal_period=bad)
+        f.fit(y)
+        with pytest.raises(ValueError, match="seasonal_period"):
+            f.predict(y)
+    # a seasonal_period larger than the series is also rejected, not an IndexError
+    short = np.arange(10, dtype=float)
+    f = NaiveForecaster(strategy="seasonal_last", seasonal_period=50)
+    f.fit(short)
+    with pytest.raises(ValueError, match="cannot exceed"):
+        f.predict(short)
+
+
 def test_convert_y():
     """Test y conversion in forecasting base."""
     f = NaiveForecaster()
