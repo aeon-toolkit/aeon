@@ -79,6 +79,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         "capability:univariate": True,
         "capability:multivariate": False,
         "X_inner_type": "np.ndarray",  # one of VALID_SERIES_INNER_TYPES
+        "capability:small_scale": False,
     }
 
     @abstractmethod
@@ -203,6 +204,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_univariate = self.get_tag("capability:univariate")
         allow_missing = self.get_tag("capability:missing_values")
+        allow_small_scale = self.get_tag(
+            "capability:small_scale", raise_error=False, tag_value_default=False
+        )
         if metadata["missing_values"] and not allow_missing:
             raise ValueError(
                 f"Missing values not supported by {self.__class__.__name__}"
@@ -216,7 +220,8 @@ class BaseSeriesEstimator(BaseAeonEstimator):
                 f"Univariate data not supported by {self.__class__.__name__}"
             )
 
-        check_series_variance(X, axis=axis)
+        if not allow_small_scale:
+            check_series_variance(X, axis=axis)
 
         return metadata
 

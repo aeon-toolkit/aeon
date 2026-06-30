@@ -249,7 +249,31 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         float
             single prediction self.horizon steps ahead of y.
         """
-        return self.forecast_
+        data = np.asarray(y.squeeze(), dtype=np.float64)
+        (
+            _,
+            level,
+            trend,
+            seasonality,
+            n_timepoints,
+            _,
+            _,
+            _,
+            _,
+            _,
+        ) = _ets_fit(self.parameters_, data, self._model)
+        forecast = _numba_predict(
+            self._trend_type,
+            self._seasonality_type,
+            level,
+            trend,
+            seasonality,
+            self.phi_,
+            self.horizon,
+            n_timepoints,
+            self._seasonal_period,
+        )
+        return forecast
 
     def _initialise(self, data):
         """

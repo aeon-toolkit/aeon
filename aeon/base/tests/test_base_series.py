@@ -164,6 +164,18 @@ def test_check_X():
     with pytest.raises(ValueError, match="X must have at most 2 dimensions"):
         dummy._check_X(collection, axis=0)
 
+    # check small scale capability False
+    X_tiny = np.zeros(20)
+    X_tiny[1] = 1e-9
+    dummy.set_tags(**{"capability:univariate": True})
+    with pytest.raises(ValueError, match="too little variation"):
+        dummy._check_X(X_tiny, axis=1)
+
+    # check small scale capability True
+    dummy.set_tags(**{"capability:small_scale": True})
+    assert dummy._check_X(X_tiny, axis=1)
+
+
 
 @pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
 def test_convert_X_ndarray_inner(input_type):

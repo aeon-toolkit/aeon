@@ -59,6 +59,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "X_inner_type": "numpy3D",
+        "capability:small_scale": False,
     }
 
     @abstractmethod
@@ -177,6 +178,9 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_missing = self.get_tag("capability:missing_values")
         allow_unequal = self.get_tag("capability:unequal_length")
+        allow_small_scale = self.get_tag(
+            "capability:small_scale", raise_error=False, tag_value_default=False
+        )
 
         # Check capabilities vs input
         problems = []
@@ -196,7 +200,8 @@ class BaseCollectionEstimator(BaseAeonEstimator):
             )
             raise ValueError(msg)
 
-        check_collection_variance(X)
+        if not allow_small_scale:
+            check_collection_variance(X)
 
         return metadata
 

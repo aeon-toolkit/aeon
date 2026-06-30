@@ -50,6 +50,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": ["np-list", "numpy3D"],
+        "capability:small_scale": True,
     }
 
     def __init__(

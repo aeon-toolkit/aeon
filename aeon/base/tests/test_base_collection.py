@@ -150,6 +150,16 @@ def test_check_X():
     ):
         dummy1._check_X(X)
 
+    # small scale
+    X_tiny = np.zeros((10, 1, 20))
+    X_tiny[1, 0, 1] = 1e-9
+    with pytest.raises(ValueError, match=r"too little variation"):
+        dummy1._check_X(X_tiny)
+
+    dummy2.set_tags(**{"capability:small_scale": True})
+    assert dummy2._check_X(X_tiny)
+
+
 
 @pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)

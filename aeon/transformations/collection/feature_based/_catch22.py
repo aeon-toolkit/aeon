@@ -178,6 +178,7 @@ class Catch22(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:multithreading": True,
         "fit_is_empty": True,
+        "capability:small_scale": True,
     }
 
     def __init__(
