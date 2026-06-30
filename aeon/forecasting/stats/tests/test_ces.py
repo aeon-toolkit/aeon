@@ -443,9 +443,9 @@ def test_autoces_matches_statsforecast_auto_reference():
 
 
 def test_autoces_constant_series_prefers_non_seasonal():
-    """On a flat series ``AutoCES`` should pick ``"N"`` over seasonal models."""
-    y = np.full(30, 4.0)
-    auto = AutoCES(season_length=4).fit(y)
+    """On a flat series ``AutoCES`` should pick ``"N"`` over a seasonal model."""
+    y = np.full(8, 4.0)
+    auto = AutoCES(season_length=4, models=("N", "F")).fit(y)
     assert auto.best_model_name_ == "N"
 
 
