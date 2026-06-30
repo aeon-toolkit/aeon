@@ -36,7 +36,7 @@ def test_base_forecaster():
 
 
 def test_naive_seasonal_last_validates_seasonal_period():
-    """seasonal_last must raise a clear error for an invalid seasonal_period (gh-3576)."""
+    """seasonal_last must raise a clear error for an invalid period (gh-3576)."""
     y = np.arange(20, dtype=float)
     for bad in (0, -1, None):
         f = NaiveForecaster(strategy="seasonal_last", seasonal_period=bad)
