@@ -251,8 +251,11 @@ def test_autoarima_fit_sets_model_and_orders_within_bounds():
 
 
 def test_autoarima_respects_max_d_zero():
-    """max_d=0 must disable non-seasonal differencing, even for a non-stationary
-    (trending) series that would otherwise be differenced (gh-3577)."""
+    """max_d=0 must disable non-seasonal differencing (gh-3577).
+
+    Even for a non-stationary (trending) series that would otherwise be
+    differenced, max_d=0 must keep d at 0.
+    """
     trending = np.arange(60, dtype=float)
     forecaster = AutoARIMA(max_p=1, max_d=0, max_q=1)
     forecaster.fit(trending)
