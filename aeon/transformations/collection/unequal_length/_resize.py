@@ -18,8 +18,8 @@ class Resizer(BaseCollectionTransformer):
     """Resize unequal length time series to equal, fixed length.
 
     Resize the series using linear interpolation to either a fixed length or
-    finds the max/min length series across all series and channels and resizes
-    all series to that length.
+    finds the max/min length series across all series and resizes all series to that
+    length.
 
     Parameters
     ----------
