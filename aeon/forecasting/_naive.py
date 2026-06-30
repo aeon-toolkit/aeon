@@ -13,6 +13,18 @@ from aeon.forecasting.base import (
 )
 
 
+def _validate_seasonal_period(value, n_timepoints):
+    """Validate the seasonal period for seasonal-last forecasts."""
+    if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or value < 1:
+        raise ValueError(f"seasonal_period must be a positive integer, got {value!r}.")
+    if value > n_timepoints:
+        raise ValueError(
+            "seasonal_period must be less than or equal to the number of observations, "
+            f"got seasonal_period={value} and n_timepoints={n_timepoints}."
+        )
+    return int(value)
+
+
 class NaiveForecaster(
     BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin
 ):
@@ -27,7 +39,6 @@ class NaiveForecaster(
             - "last" predicts the last value of the input series for all horizon steps.
             - "mean": predicts the mean of the input series for all horizon steps.
             - "seasonal_last": predicts the last season value in the training series.
-              Returns np.nan if the effective seasonal data is empty.
     seasonal_period : int, default=1
         The seasonal period to use for the "seasonal_last" strategy.
         E.g., 12 for monthly data with annual seasonality.
@@ -55,8 +66,12 @@ class NaiveForecaster(
         elif self.strategy == "mean":
             return np.mean(y_squeezed)
         elif self.strategy == "seasonal_last":
-            period = y_squeezed[-self.seasonal_period :]
-            idx = (self.horizon - 1) % self.seasonal_period
+            y_squeezed = np.ravel(y_squeezed)
+            seasonal_period = _validate_seasonal_period(
+                self.seasonal_period, y_squeezed.shape[-1]
+            )
+            period = y_squeezed[-seasonal_period:]
+            idx = (self.horizon - 1) % seasonal_period
             return period[idx]
         else:
             raise ValueError(

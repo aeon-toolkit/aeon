@@ -61,6 +61,27 @@ def test_naive_forecaster_seasonal_last_strategy():
     np.testing.assert_array_equal(pred, expected)
 
 
+@pytest.mark.parametrize("seasonal_period", [0, -1, 1.5, "2", True])
+def test_naive_forecaster_seasonal_last_rejects_invalid_period(seasonal_period):
+    """Test seasonal_last rejects invalid seasonal periods."""
+    forecaster = NaiveForecaster(
+        strategy="seasonal_last", seasonal_period=seasonal_period
+    )
+
+    with pytest.raises(ValueError, match="seasonal_period must be a positive integer"):
+        forecaster.predict(np.arange(5.0))
+
+
+def test_naive_forecaster_seasonal_last_rejects_period_longer_than_series():
+    """Test seasonal_last rejects periods longer than the observed series."""
+    forecaster = NaiveForecaster(
+        strategy="seasonal_last", seasonal_period=10, horizon=10
+    )
+
+    with pytest.raises(ValueError, match="number of observations"):
+        forecaster.predict(np.arange(5.0))
+
+
 def test_predict():
     """Test different input for private predict."""
     forecaster = NaiveForecaster(strategy="mean")
