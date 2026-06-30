@@ -150,6 +150,19 @@ class Padder(BaseCollectionTransformer):
                     "padded_length is 'min' or 'max')."
                 )
 
+        # fill_value must be a scalar, a supported statistic string, or a callable.
+        # An array-like is silently misinterpreted by np.pad's constant_values
+        # (treated as a (before, after) pair), so reject it with a clear error.
+        if (
+            not callable(self.fill_value)
+            and not isinstance(self.fill_value, str)
+            and np.ndim(self.fill_value) != 0
+        ):
+            raise ValueError(
+                "fill_value must be a scalar, one of {'mean', 'median', 'min', "
+                "'max', 'last'}, or a callable; an array-like is not supported."
+            )
+
         # Determine if fill value is a function
         func = None
         if isinstance(self.fill_value, str):
