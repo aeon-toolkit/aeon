@@ -10,9 +10,6 @@ on:
 jobs:
   generate-markdown-and-commit:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v6
@@ -30,14 +27,13 @@ jobs:
 
       - uses: actions/create-github-app-token@v3
         id: app-token
-        if: ${{ vars.PR_APP_ID != '' }}
         with:
           app-id: ${{ vars.PR_APP_ID }}
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated `CONTRIBUTORS.md` update"
           branch: update_contributors
           title: "[MNT] Automated `CONTRIBUTORS.md` update"
