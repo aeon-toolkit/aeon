@@ -250,6 +250,19 @@ def test_autoarima_fit_sets_model_and_orders_within_bounds():
     assert 0 <= forecaster.q_ <= forecaster.max_q
 
 
+def test_autoarima_respects_max_d_zero():
+    """AutoARIMA(max_d=0) must not apply any non-seasonal differencing.
+
+    A pure trend series is non-stationary, so the differencing loop would
+    otherwise apply one difference; with max_d=0 the fitted order must stay 0.
+    Regression test for #3577.
+    """
+    y_trend = np.arange(50, dtype=float)
+    forecaster = AutoARIMA(max_d=0)
+    forecaster.fit(y_trend)
+    assert forecaster.d_ == 0
+
+
 def test_autoarima_predict_returns_finite_float():
     """_predict should return a finite float once fitted."""
     forecaster = AutoARIMA()
