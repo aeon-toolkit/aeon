@@ -33,7 +33,7 @@ class BaseWholeSeriesSearch(BaseSimilaritySearch):
     to use distance profiles - algorithms can use any approach (indexing, hashing,
     etc.) as long as they follow the interface. Unlike subsequence search there is
     deliberately no intermediate distance-profile base here, because whole-series
-    estimators such as ``RandomProjectionIndexANN`` are index/hash based rather than
+    estimators such as ``SimHashIndexANN`` are index/hash based rather than
     profile based.
 
     Examples
