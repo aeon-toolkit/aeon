@@ -210,7 +210,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     >>> y = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1, 4.4, 4.9, 5.3, 5.9])
     >>> f = CES()
     >>> f.iterative_forecast(y, prediction_horizon=2)
-    array([6.38..., 7.05...])
+    array([6.38295867, 7.05058121])
     """
 
     _tags = {
@@ -617,7 +617,7 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
     >>> y = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1, 4.4, 4.9, 5.3, 5.9])
     >>> f = AutoCES()
     >>> f.iterative_forecast(y, prediction_horizon=2)
-    array([6.38..., 7.05...])
+    array([6.38295867, 7.05058121])
     """
 
     _tags = {
