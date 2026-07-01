@@ -55,6 +55,19 @@ class NaiveForecaster(
         elif self.strategy == "mean":
             return np.mean(y_squeezed)
         elif self.strategy == "seasonal_last":
+            if (
+                not isinstance(self.seasonal_period, (int, np.integer))
+                or self.seasonal_period < 1
+            ):
+                raise ValueError(
+                    "seasonal_period must be a positive integer for "
+                    f"strategy='seasonal_last', got {self.seasonal_period!r}."
+                )
+            if self.seasonal_period > len(y_squeezed):
+                raise ValueError(
+                    f"seasonal_period ({self.seasonal_period}) cannot exceed the "
+                    f"number of observations ({len(y_squeezed)})."
+                )
             period = y_squeezed[-self.seasonal_period :]
             idx = (self.horizon - 1) % self.seasonal_period
             return period[idx]
