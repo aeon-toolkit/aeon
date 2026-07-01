@@ -5,6 +5,7 @@ import pytest
 
 import aeon.forecasting.stats._scum as scum_module
 from aeon.forecasting import NaiveForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.ensembles import EnsembleForecaster
 from aeon.forecasting.stats import SCUM
 from aeon.forecasting.stats._scum import (
@@ -98,7 +99,7 @@ class _CountingSCUM(SCUM):
         return super()._fit_predict(y, prediction_horizon)
 
 
-def test_scum_median_combines_component_forecasts_by_horizon():
+def test_scum_median_combines_component_forecasts_by_horizon(naive_pool):
     """SCUM returns the per-horizon median across component forecasts."""
     y = np.array([1.0, 2.0, 3.0, 4.0])
 
@@ -208,6 +209,7 @@ def test_scum_accepts_named_custom_pool():
         ("c", _VectorForecaster([10.0])),
         ("dotm", _LengthRecorderForecaster()),
     ]
+    scum = SCUM(forecasters=forecasters)
 
     with pytest.raises(NotImplementedError, match="does not support exogenous"):
         scum.iterative_forecast(y, 1, exog=y, future_exog=np.array([1.0]))
