@@ -75,7 +75,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
 
     Implements the CES family proposed by Svetunkov and Kourentzes [1]_.
     CES extends exponential smoothing by using complex-valued smoothing
-    parameters and two-component (real + imaginary "correction") state.
+    parameters and two-component (real + imaginary correction) state.
 
     Four model variants are implemented:
 
