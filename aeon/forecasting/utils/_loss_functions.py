@@ -43,6 +43,113 @@ def _arima_fit(params, data, model):
     return likelihood + 2 * k
 
 
+@njit(cache=True, fastmath=True)
+def _sarima_fit(params, data, model):
+    """Calculate the AIC of a SARIMA model using sparse AR/MA lag arrays."""
+    use_constant = model[0]
+    p = model[1]
+    q = model[2]
+    P = model[3]
+    Q = model[4]
+    m = model[5]
+    n_ar_lags = model[6]
+    n_ma_lags = model[7]
+
+    ar_lags = model[8 : 8 + n_ar_lags]
+    ma_lags = model[8 + n_ar_lags : 8 + n_ar_lags + n_ma_lags]
+
+    # Extract params
+    c = params[0] if use_constant else 0.0
+    idx = 1 if use_constant else 0
+
+    phi = params[idx : idx + p]
+    idx += p
+
+    theta = params[idx : idx + q]
+    idx += q
+
+    Phi = params[idx : idx + P]
+    idx += P
+
+    Theta = params[idx : idx + Q]
+
+    # Construct combined AR coefficients
+    ar_values = np.zeros(n_ar_lags)
+    poly_ar_ns = np.zeros(p + 1)
+    poly_ar_ns[0] = 1.0
+    if p > 0:
+        poly_ar_ns[1:] = -phi
+
+    poly_ar_s = np.zeros(P * m + 1)
+    poly_ar_s[0] = 1.0
+    for j in range(P):
+        poly_ar_s[(j + 1) * m] = -Phi[j]
+
+    # Convolve
+    na = len(poly_ar_ns)
+    nb = len(poly_ar_s)
+    poly_ar_comb = np.zeros(na + nb - 1)
+    for i in range(na):
+        for j in range(nb):
+            poly_ar_comb[i + j] += poly_ar_ns[i] * poly_ar_s[j]
+
+    for i in range(n_ar_lags):
+        ar_values[i] = -poly_ar_comb[ar_lags[i]]
+
+    # Construct combined MA coefficients
+    ma_values = np.zeros(n_ma_lags)
+    poly_ma_ns = np.zeros(q + 1)
+    poly_ma_ns[0] = 1.0
+    if q > 0:
+        poly_ma_ns[1:] = theta
+
+    poly_ma_s = np.zeros(Q * m + 1)
+    poly_ma_s[0] = 1.0
+    for j in range(Q):
+        poly_ma_s[(j + 1) * m] = Theta[j]
+
+    na = len(poly_ma_ns)
+    nb = len(poly_ma_s)
+    poly_ma_comb = np.zeros(na + nb - 1)
+    for i in range(na):
+        for j in range(nb):
+            poly_ma_comb[i + j] += poly_ma_ns[i] * poly_ma_s[j]
+
+    for i in range(n_ma_lags):
+        ma_values[i] = poly_ma_comb[ma_lags[i]]
+
+    # Run conditional likelihood loop
+    n = len(data)
+    residuals = np.zeros(n)
+    max_ar_lag = ar_lags[-1] if n_ar_lags > 0 else 0
+    max_ma_lag = ma_lags[-1] if n_ma_lags > 0 else 0
+    start = max(max_ar_lag, max_ma_lag)
+
+    for t in range(start, n):
+        ar_term = 0.0
+        for j in range(n_ar_lags):
+            ar_term += ar_values[j] * data[t - ar_lags[j]]
+
+        ma_term = 0.0
+        for j in range(n_ma_lags):
+            ma_term += ma_values[j] * residuals[t - ma_lags[j]]
+
+        pred = c + ar_term + ma_term
+        residuals[t] = data[t] - pred
+
+    sse = 0.0
+    for i in range(start, n):
+        sse += residuals[i] * residuals[i]
+
+    if n - start <= 0 or sse <= 1e-12 or np.isnan(sse) or np.isinf(sse):
+        return np.inf
+
+    variance = sse / (n - start)
+    likelihood = (n - start) * (LOG_2PI + np.log(variance) + 1.0)
+    k = len(params)
+    return likelihood + 2 * k
+
+
 EPS = 1e-6
 LARGE_LOSS = np.inf
 
