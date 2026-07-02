@@ -46,3 +46,11 @@ def test_integer_length_parameters_must_be_positive_non_bool(
 def test_valid_length_parameters(transformer, parameter_name, valid_length):
     """Test valid target length parameters are accepted."""
     transformer(**{parameter_name: valid_length})
+
+
+def test_padder_rejects_array_fill_value():
+    """Padder should reject an array-like fill_value with a clear error (gh-3495)."""
+    X = [np.zeros((1, 3)), np.zeros((1, 5))]
+    padder = Padder(padded_length=6, fill_value=np.array([1, 2]))
+    with pytest.raises(ValueError, match="fill_value must be a scalar"):
+        padder.fit_transform(X)
