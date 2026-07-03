@@ -1,5 +1,8 @@
 """SimHash (multi-table LSH) index."""
 
+__maintainer__ = ["baraline"]
+__all__ = ["SimHashIndexANN"]
+
 import warnings
 
 import numpy as np
@@ -92,8 +95,14 @@ def _signatures_to_keys(signatures, n_tables, n_bits):
     """
     n_cases = signatures.shape[0]
     chunks = signatures.reshape(n_cases, n_tables, n_bits)
-    powers = np.uint64(1) << np.arange(n_bits, dtype=np.uint64)
-    return (chunks.astype(np.uint64) * powers).sum(axis=2)
+    # Accumulate the key bit-by-bit over the small ``n_bits`` axis rather than
+    # materializing an ``(n_cases, n_tables, n_bits)`` uint64 array (and its product)
+    # before reducing: peak temporary memory drops by ~n_bits while each bit-plane
+    # OR stays a single C-level operation. bit ``b`` contributes ``2 ** b``.
+    keys = np.zeros((n_cases, n_tables), dtype=np.uint64)
+    for b in range(n_bits):
+        keys |= chunks[:, :, b].astype(np.uint64) << np.uint64(b)
+    return keys
 
 
 class SimHashIndexANN(BaseWholeSeriesSearch):
@@ -175,9 +184,23 @@ n_channels * n_timepoints)
     n_timepoints_ : int
         Number of timepoints in each fitted time series.
 
+    Notes
+    -----
+    In addition to ``k`` and ``axis``, ``predict`` accepts the following search
+    option as a keyword argument:
+
+    - ``inverse_distance`` : bool, default=False
+        Must be left False. This index captures near neighbors, not far ones, so
+        passing ``inverse_distance=True`` raises ``NotImplementedError``. Use
+        :class:`NaiveSeriesSearch` with ``inverse_distance=True`` for
+        farthest-neighbor queries.
+
+    Unlike :class:`NaiveSeriesSearch`, this estimator does **not** accept
+    ``dist_threshold`` or ``X_index``; passing them raises a ``TypeError``.
+
     See Also
     --------
-    BruteForce : Exact nearest neighbor search (slower but exact).
+    NaiveSeriesSearch : Exact nearest neighbor search (slower but exact).
 
     References
     ----------
@@ -238,6 +261,10 @@ n_channels * n_timepoints)
         self : a fitted instance of the estimator
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
+        if self.n_tables < 1:
+            raise ValueError(
+                f"n_tables must be a positive integer, got {self.n_tables}."
+            )
         if not 1 <= self.n_bits_per_table <= 64:
             raise ValueError(
                 "n_bits_per_table must be between 1 and 64 (a table key packs its "
@@ -284,7 +311,7 @@ n_channels * n_timepoints)
         # ``_collection_to_signature``). Keeping the input dtype means float32 input
         # makes hashing ~2-3x faster while leaving the sign-only signatures intact.
         self.hash_funcs_flat_ = self.hash_funcs_.reshape(n_projections, -1).astype(
-            self._input_dtype
+            self._input_dtype, copy=False
         )
 
     def _build_index(self, X):
@@ -299,24 +326,20 @@ n_channels * n_timepoints)
         signatures = _collection_to_signature(X, self.hash_funcs_flat_)
         keys = _signatures_to_keys(signatures, self.n_tables, self.n_bits_per_table)
 
-        # One pass per table over precomputed integer keys: a plain dict insert per
-        # series, with no per-series ``tobytes`` or slicing (which dominated the old
-        # build loop). ``.tolist()`` hands the loop native Python ints.
+        # Build each table's buckets with a stable sort instead of a per-case Python
+        # dict loop (which was n_cases * n_tables interpreter-level ops). A stable
+        # argsort groups equal keys while preserving ascending case order within each
+        # group, so ``np.split`` at the unique-key boundaries yields buckets whose
+        # index arrays are identical to the old dict-insert order. Each bucket is an
+        # int array so a query can tally collisions with a single C-level pass over the
+        # concatenated buckets (see ``_gather_candidates``).
         self.tables_ = []
         for t in range(self.n_tables):
-            table = {}
-            for i, key in enumerate(keys[:, t].tolist()):
-                bucket = table.get(key)
-                if bucket is None:
-                    table[key] = [i]
-                else:
-                    bucket.append(i)
-            # Freeze each bucket's index list into an int array so a query can tally
-            # collisions with a single ``np.bincount`` over the concatenated buckets
-            # instead of a per-candidate Python loop (see ``_gather_candidates``).
-            self.tables_.append(
-                {key: np.asarray(idxs, dtype=np.intp) for key, idxs in table.items()}
-            )
+            col = keys[:, t]
+            order = np.argsort(col, kind="stable")
+            unique_keys, first_index = np.unique(col[order], return_index=True)
+            buckets = np.split(order.astype(np.intp), first_index[1:])
+            self.tables_.append(dict(zip(unique_keys.tolist(), buckets)))
 
     def _predict(self, X, k=1, inverse_distance=False):
         """
@@ -328,8 +351,11 @@ n_channels * n_timepoints)
             Query series.
         k : int, optional
             Number of neighbors to return. Default is 1.
-        inverse_distance : bool, optional
-            Not supported by a near-neighbor bucket index. Default is False.
+        inverse_distance : bool, default=False
+            Not supported by a near-neighbor bucket index. Must be left False;
+            passing True raises ``NotImplementedError``. Use
+            :class:`NaiveSeriesSearch` with ``inverse_distance=True`` for
+            farthest-neighbor queries.
 
         Returns
         -------
@@ -344,8 +370,9 @@ n_channels * n_timepoints)
         if inverse_distance:
             raise NotImplementedError(
                 "SimHashIndexANN does not support inverse_distance: its "
-                "buckets capture near neighbors, not far ones. Use BruteForce with "
-                "inverse_distance=True for farthest-neighbor queries."
+                "buckets capture near neighbors, not far ones. Use "
+                "NaiveSeriesSearch with inverse_distance=True for "
+                "farthest-neighbor queries."
             )
         self._check_query_length(X)
 
@@ -361,12 +388,12 @@ n_channels * n_timepoints)
             )
             k = self.n_cases_
 
-        counts = self._gather_candidates(X)
-        return self._rank_candidates(counts, k)
+        candidates, collisions = self._gather_candidates(X)
+        return self._rank_candidates(candidates, collisions, k)
 
     def _gather_candidates(self, X):
         """
-        Count, for each case, in how many tables it shares the query's bucket.
+        Tally, per colliding case, in how many tables it shares the query's bucket.
 
         Parameters
         ----------
@@ -375,37 +402,47 @@ n_channels * n_timepoints)
 
         Returns
         -------
-        counts : np.ndarray of shape (n_cases_,), dtype int
-            Collision count of every case: the number of tables in which it lands in
-            the query's bucket, between 0 and ``n_tables``. Cases that never collide
-            with the query have a count of 0.
+        candidates : np.ndarray of shape (n_candidates,), dtype intp
+            The distinct case indices that collide with the query in at least one
+            table, sorted ascending. Cases that never collide are not listed.
+        collisions : np.ndarray of shape (n_candidates,), dtype int
+            Collision count of each candidate: the number of tables in which it lands
+            in the query's bucket, between 1 and ``n_tables``. Aligned with
+            ``candidates``.
         """
         signature = _series_to_signature(X, self.hash_funcs_flat_)
         keys = _signatures_to_keys(
             signature[None, :], self.n_tables, self.n_bits_per_table
         )[0]
-        # Concatenate the case indices of every probed bucket and tally collisions
-        # with a single C-level ``np.bincount``. This replaces the per-candidate
-        # Python dict-increment loop that dominated query time whenever the candidate
-        # set was large (few bits / many tables), where it was slower than brute force.
+        # Concatenate the case indices of every probed bucket and tally collisions with
+        # a single ``np.unique`` over just the bucket hits: cost is O(h log h) in the
+        # number of hits, independent of ``n_cases_``. This keeps queries sublinear
+        # (unlike a dense length-``n_cases_`` ``bincount``) while staying at C level and
+        # not reintroducing the rejected per-candidate Python dict loop.
         hit_arrays = []
         for t in range(self.n_tables):
             bucket = self.tables_[t].get(int(keys[t]))
             if bucket is not None:
                 hit_arrays.append(bucket)
         if len(hit_arrays) == 0:
-            return np.zeros(self.n_cases_, dtype=np.intp)
-        return np.bincount(np.concatenate(hit_arrays), minlength=self.n_cases_)
+            empty = np.zeros(0, dtype=np.intp)
+            return empty, empty
+        candidates, collisions = np.unique(
+            np.concatenate(hit_arrays), return_counts=True
+        )
+        return candidates, collisions
 
-    def _rank_candidates(self, counts, k):
+    def _rank_candidates(self, candidates, collisions, k):
         """
         Rank candidates by collision count and keep the top k.
 
         Parameters
         ----------
-        counts : np.ndarray of shape (n_cases_,)
-            Collision count of every case (0 for cases that never collided with the
-            query), as returned by ``_gather_candidates``.
+        candidates : np.ndarray of shape (n_candidates,)
+            Distinct candidate case indices (sorted ascending), as returned by
+            ``_gather_candidates``.
+        collisions : np.ndarray of shape (n_candidates,)
+            Collision count of each candidate, aligned with ``candidates``.
         k : int
             Number of neighbors to return.
 
@@ -417,8 +454,7 @@ n_channels * n_timepoints)
         distances : np.ndarray of shape (n_found,)
             The proxy distances ``1 / collision_count`` for the returned neighbors.
         """
-        indexes = np.nonzero(counts)[0]
-        if len(indexes) == 0:
+        if len(candidates) == 0:
             warnings.warn(
                 "No candidates collided with the query in any table; returning no "
                 "neighbors. Increase n_tables or decrease n_bits_per_table.",
@@ -427,10 +463,11 @@ n_channels * n_timepoints)
             )
             return np.zeros(0, dtype=int), np.zeros(0, dtype=float)
 
-        collisions = counts[indexes]
-        # primary key: collision count descending; tie-break: index ascending
-        order = np.lexsort((indexes, -collisions))
-        n_found = min(k, len(indexes))
+        # primary key: collision count descending; tie-break: index ascending.
+        # ``candidates`` is already ascending, so this matches the previous
+        # ``np.lexsort((indexes, -collisions))`` over the dense tally.
+        order = np.lexsort((candidates, -collisions))
+        n_found = min(k, len(candidates))
         order = order[:n_found]
 
         if n_found < k:
@@ -440,7 +477,7 @@ n_channels * n_timepoints)
                 UserWarning,
                 stacklevel=3,
             )
-        return indexes[order], 1.0 / collisions[order]
+        return candidates[order], 1.0 / collisions[order]
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

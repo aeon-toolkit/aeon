@@ -77,7 +77,3 @@ class MockWholeSeriesSearch(BaseWholeSeriesSearch):
         indexes = np.arange(n_matches, dtype=np.int64)
         distances = np.zeros(n_matches)
         return indexes, distances
-
-    def compute_distance_profile(self, X):
-        """Return dummy distance profile."""
-        return np.zeros(self.n_cases_)

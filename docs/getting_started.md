@@ -318,9 +318,13 @@ The module is organized into two main categories:
 - **Subsequence search**: Finding nearest neighbors among subsequences of time series
 - **Whole series search**: Finding nearest neighbors among complete time series
 
-The estimators inherit from [BaseSimilaritySearch](similarity_search._base.BaseSimilaritySearch),
-with specific base classes for [BaseSubsequenceSearch](similarity_search.subsequence._base.BaseSubsequenceSearch)
-and [BaseWholeSeriesSearch](similarity_search.whole_series._base.BaseWholeSeriesSearch).
+The estimators inherit from [BaseSimilaritySearch](similarity_search.BaseSimilaritySearch),
+with specific base classes for [BaseSubsequenceSearch](similarity_search.subsequence.BaseSubsequenceSearch)
+and [BaseWholeSeriesSearch](similarity_search.whole_series.BaseWholeSeriesSearch).
+The subsequence family includes `NaiveSubsequenceSearch` and `MASS` in
+`aeon.similarity_search.subsequence`, while the whole-series family includes
+`NaiveSeriesSearch` and the approximate `SimHashIndexANN` in
+`aeon.similarity_search.whole_series`.
 
 All estimators use a `fit` `predict` interface, where `predict` outputs both the
 indexes of the neighbors and a distance or similarity measure linked to them.
@@ -342,6 +346,20 @@ Some things to note on this example :
 series of shape `(n_channels, length)`.
 - The output of predict gives the `(case, timestamp)` indexes of the best matching
 subsequences in the fitted collection and their distances to the query.
+
+To search over whole series rather than subsequences, use an estimator from
+`aeon.similarity_search.whole_series` such as `NaiveSeriesSearch`. Here the query is a
+complete series and `predict` returns the indexes of the nearest whole series in the
+collection:
+
+```{code-block} python
+>>> import numpy as np
+>>> from aeon.similarity_search.whole_series import NaiveSeriesSearch
+>>> X = np.array([[[1, 2, 3, 4, 5]], [[1, 1, 2, 4, 6]], [[5, 4, 3, 2, 1]]])
+>>> q = np.array([[1, 2, 3, 4, 5]])  # query series of the same length
+>>> wnn = NaiveSeriesSearch().fit(X)
+>>> indexes, distances = wnn.predict(q, k=1)  # find the closest whole series
+```
 
 For more examples and use cases you can check the example section of the module,
 starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)

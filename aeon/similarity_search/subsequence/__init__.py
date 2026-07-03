@@ -4,12 +4,12 @@ __all__ = [
     "BaseSubsequenceSearch",
     "BaseDistanceProfileSearch",
     "MASS",
-    "BruteForce",
+    "NaiveSubsequenceSearch",
 ]
 
 from aeon.similarity_search.subsequence._base import (
     BaseDistanceProfileSearch,
     BaseSubsequenceSearch,
 )
-from aeon.similarity_search.subsequence._brute_force import BruteForce
 from aeon.similarity_search.subsequence._mass import MASS
+from aeon.similarity_search.subsequence._naive import NaiveSubsequenceSearch

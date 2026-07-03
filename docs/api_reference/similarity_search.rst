@@ -19,7 +19,7 @@ Subsequence Search Estimators
     :toctree: auto_generated/
     :template: class.rst
 
-    BruteForce
+    NaiveSubsequenceSearch
     MASS
 
 
@@ -32,14 +32,14 @@ Whole Series Search Estimators
     :toctree: auto_generated/
     :template: class.rst
 
-    BruteForce
+    NaiveSeriesSearch
     SimHashIndexANN
 
 
 Base Estimators
 ---------------
 
-.. currentmodule:: aeon.similarity_search._base
+.. currentmodule:: aeon.similarity_search
 
 .. autosummary::
     :toctree: auto_generated/
@@ -48,7 +48,7 @@ Base Estimators
     BaseSimilaritySearch
 
 
-.. currentmodule:: aeon.similarity_search.subsequence._base
+.. currentmodule:: aeon.similarity_search.subsequence
 
 .. autosummary::
     :toctree: auto_generated/
@@ -58,7 +58,7 @@ Base Estimators
     BaseDistanceProfileSearch
 
 
-.. currentmodule:: aeon.similarity_search.whole_series._base
+.. currentmodule:: aeon.similarity_search.whole_series
 
 .. autosummary::
     :toctree: auto_generated/

@@ -1,26 +1,26 @@
-"""Implementation of whole series NN with brute force."""
+"""Implementation of whole series NN with naive pairwise search."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["BruteForce"]
+__all__ = ["NaiveSeriesSearch"]
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads
 
+from aeon.similarity_search._commons import _pairwise_squared_distance
 from aeon.similarity_search.subsequence._commons import (
     _extract_top_k_from_dist_profile,
 )
 from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     z_normalise_series_2d,
     z_normalise_series_3d,
 )
-from aeon.utils.validation import check_n_jobs
 
 
-class BruteForce(BaseWholeSeriesSearch):
+class NaiveSeriesSearch(BaseWholeSeriesSearch):
     """
-    Brute force whole series nearest neighbor search.
+    Naive whole series nearest neighbor search.
 
     This estimator finds nearest neighbors among complete time series in a collection
     using exhaustive pairwise squared Euclidean distance computation. All series must
@@ -38,9 +38,9 @@ class BruteForce(BaseWholeSeriesSearch):
     Attributes
     ----------
     X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
-        The fitted collection of time series.
-    X_normalized_ : np.ndarray
-        The normalized collection (if ``normalize=True``).
+        The collection used for distance computation: the z-normalized collection
+        when ``normalize=True``, otherwise the raw fitted collection (as stored by
+        the base class).
     n_cases_ : int
         Number of time series in the fitted collection.
     n_channels_ : int
@@ -48,16 +48,32 @@ class BruteForce(BaseWholeSeriesSearch):
     n_timepoints_ : int
         Number of timepoints in each fitted time series.
 
+    Notes
+    -----
+    In addition to ``k`` and ``axis``, ``predict`` accepts the following search
+    options as keyword arguments:
+
+    - ``dist_threshold`` : float, default=``np.inf``
+        Maximum (post-transformation) distance for a series to be returned as a
+        match. Series farther than this are discarded, so fewer than ``k`` matches
+        may be returned.
+    - ``inverse_distance`` : bool, default=False
+        If True, rank by inverse distance so the farthest series are returned
+        instead of the nearest.
+    - ``X_index`` : int or None, default=None
+        If the query ``X`` is itself a member of the fitted collection, its case
+        index, so that it is excluded from its own neighbor search. Must be in
+        ``[0, n_cases_ - 1]``.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.similarity_search.whole_series import BruteForce
+    >>> from aeon.similarity_search.whole_series import NaiveSeriesSearch
     >>> X_fit = np.random.rand(10, 1, 50)
     >>> query = np.random.rand(1, 50)
-    >>> searcher = BruteForce(normalize=True)
+    >>> searcher = NaiveSeriesSearch(normalize=True)
     >>> searcher.fit(X_fit)
-    BruteForce(normalize=True)
+    NaiveSeriesSearch(normalize=True)
     >>> indexes, distances = searcher.predict(query, k=3)
     """
 
@@ -94,17 +110,14 @@ class BruteForce(BaseWholeSeriesSearch):
         -------
         self
         """
-        prev_threads = get_num_threads()
-        self._n_jobs = check_n_jobs(self.n_jobs)
-        set_num_threads(self._n_jobs)
-
-        self.n_timepoints_ = X.shape[2]
         if self.normalize:
-            self.X_normalized_ = z_normalise_series_3d(X)
-        else:
-            self.X_normalized_ = X
-
-        set_num_threads(prev_threads)
+            # Replace the raw collection (``self.X_``, set by the base ``fit``) with
+            # its z-normalized version, which is what search reads: this avoids
+            # holding both copies. ``z_normalise_series_3d`` is serial numba, so no
+            # thread management is needed here (the parallel path is
+            # ``compute_distance_profile``, wrapped by ``@numba_thread_handler``).
+            self.X_ = z_normalise_series_3d(X)
+        # normalize=False: keep the raw collection stored by the base ``fit`` as-is.
         return self
 
     def _predict(
@@ -125,11 +138,16 @@ class BruteForce(BaseWholeSeriesSearch):
         k : int, default=1
             Number of neighbors to return.
         dist_threshold : float, default=np.inf
-            Maximum distance threshold for matches.
+            Maximum (post-transformation) distance for a series to be returned as
+            a match. Series farther than this are discarded, so fewer than ``k``
+            matches may be returned.
         inverse_distance : bool, default=False
-            If True, return farthest neighbors instead.
-        X_index : int, optional
-            If X is from the fitted collection, specify its index to exclude.
+            If True, rank by inverse distance so the farthest series are returned
+            instead of the nearest.
+        X_index : int or None, default=None
+            If the query ``X`` is itself a member of the fitted collection, its case
+            index, so that it is excluded from its own neighbor search. Must be in
+            ``[0, n_cases_ - 1]``.
 
         Returns
         -------
@@ -169,6 +187,7 @@ class BruteForce(BaseWholeSeriesSearch):
         # Extract case indexes (column 0) from 2D result
         return indexes_2d[:, 0], distances
 
+    @numba_thread_handler
     def compute_distance_profile(self, X: np.ndarray) -> np.ndarray:
         """
         Compute the distance profile of X to all series in the fitted collection.
@@ -183,16 +202,13 @@ class BruteForce(BaseWholeSeriesSearch):
         distance_profile : np.ndarray, shape=(n_cases,)
             Squared Euclidean distance from X to each series in the fitted collection.
         """
-        prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
-
+        # ``@numba_thread_handler`` reads ``self.n_jobs``, applies ``check_n_jobs`` and
+        # restores the thread count in a try/finally (exception-safe) around the
+        # parallel ``_pairwise_squared_distance`` kernel.
         if self.normalize:
             X = z_normalise_series_2d(X)
 
-        distance_profile = _pairwise_squared_distance(self.X_normalized_, X)
-
-        set_num_threads(prev_threads)
-        return distance_profile
+        return _pairwise_squared_distance(self.X_, X)
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
@@ -204,29 +220,3 @@ class BruteForce(BaseWholeSeriesSearch):
                 f"The parameter set {parameter_set} is not yet implemented"
             )
         return params
-
-
-@njit(cache=True, fastmath=True, parallel=True)
-def _pairwise_squared_distance(X_collection, Q):
-    """
-    Compute squared Euclidean distance between Q and each series in X_collection.
-
-    Parameters
-    ----------
-    X_collection : np.ndarray, shape=(n_cases, n_channels, n_timepoints)
-        Collection of time series.
-    Q : np.ndarray, shape=(n_channels, n_timepoints)
-        Query series.
-
-    Returns
-    -------
-    distances : np.ndarray, shape=(n_cases,)
-        Squared Euclidean distance from Q to each series in X_collection.
-    """
-    n_cases, n_channels, n_timepoints = X_collection.shape
-    distances = np.zeros(n_cases)
-    for i in prange(n_cases):
-        for j in range(n_channels):
-            for k in range(n_timepoints):
-                distances[i] += (X_collection[i, j, k] - Q[j, k]) ** 2
-    return distances

@@ -9,10 +9,10 @@ __all__ = [
 from abc import abstractmethod
 
 import numpy as np
-from numba.typed import List
 
 from aeon.base._base_collection import BaseCollectionEstimator
 from aeon.utils.decorators.method_timer import method_timer
+from aeon.utils.validation.series import has_missing
 
 
 class BaseSimilaritySearch(BaseCollectionEstimator):
@@ -30,6 +30,12 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
     - ``BaseSubsequenceSearch``: For finding similar subsequences within time series
     - ``BaseWholeSeriesSearch``: For finding similar complete time series
+
+    Attributes
+    ----------
+    fit_time_millis_ : float
+        The wall-clock time taken by ``fit``, in milliseconds. Set automatically
+        by the ``@method_timer`` decorator on ``fit`` after the estimator is fitted.
 
     Notes
     -----
@@ -52,12 +58,22 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     }
 
     def __init__(self):
-        self.axis = 1
         super().__init__()
 
-    def _preprocess_series(self, X, axis, store_metadata=False):
+    def _validate_fit_params(self):
         """
-        Preprocess a single input series for predict.
+        Validate fit parameters once ``n_timepoints_`` is known.
+
+        No-op hook on the base class. Subclasses (e.g. subsequence searches whose
+        parameters depend on the fitted series length) may override this to validate
+        their parameters against ``n_timepoints_``. It is called by ``fit`` after
+        ``n_timepoints_``/``n_cases_`` are set and before ``_fit``.
+        """
+        pass
+
+    def _preprocess_series(self, X, axis):
+        """
+        Preprocess and validate a single input series for predict.
 
         Parameters
         ----------
@@ -67,8 +83,6 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point.
             ``axis==1`` indicates the time series are in rows.
-        store_metadata : bool, default=False
-            Ignored, exists for API consistency.
 
         Returns
         -------
@@ -77,6 +91,24 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         """
         if not isinstance(X, np.ndarray):
             raise TypeError(f"Expected np.ndarray, got {type(X)}")
+
+        # Validate dtype: only numeric arrays reach the numba distance kernels.
+        if not (
+            issubclass(X.dtype.type, np.integer)
+            or issubclass(X.dtype.type, np.floating)
+        ):
+            raise ValueError(
+                "dtype for the query np.ndarray must be float or int, got "
+                f"{X.dtype}."
+            )
+
+        # Reject missing values unless the estimator declares support for them, so
+        # predict rejects NaN queries just as fit rejects NaN collections.
+        if has_missing(X) and not self.get_tag("capability:missing_values"):
+            raise ValueError(
+                f"Missing values are not supported by {self.__class__.__name__}, "
+                "but the query passed to predict contains NaN values."
+            )
 
         if X.ndim == 1:
             X = X[np.newaxis, :]
@@ -91,7 +123,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     @method_timer("fit_time_millis_")
     def fit(
         self,
-        X: np.ndarray | List,
+        X: np.ndarray,
         y=None,
     ):
         """
@@ -112,11 +144,10 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         X = self._preprocess_collection(X)
         self.n_channels_ = self.metadata_["n_channels"]
         self.n_cases_ = self.metadata_["n_cases"]
-        # For equal length collections, store the number of timepoints.
-        self.n_timepoints_ = (
-            X.shape[2] if isinstance(X, np.ndarray) and X.ndim == 3 else None
-        )
+        # X_inner_type is numpy3D, so X is always an equal-length 3D ndarray here.
+        self.n_timepoints_ = X.shape[2]
         self.X_ = X
+        self._validate_fit_params()
         self._fit(X, y=y)
         self.is_fitted = True
         return self
@@ -135,8 +166,10 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
             For subsequence search, ``n_timepoints`` should equal the ``length``
             parameter. For whole series search, ``n_timepoints`` should match the
             series length in the fitted collection.
-        k : int, default=1
-            Number of best matches to return.
+        k : int or np.inf, default=1
+            Number of best matches to return. Must be a positive integer, or the
+            sentinel ``np.inf`` to return all matches (supported by whole series
+            estimators).
         axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point, i.e. the
@@ -144,7 +177,11 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
             the time series are in rows, i.e. the shape of the data is
             ``(n_channels, n_timepoints)``.
         **kwargs : dict, optional
-            Additional keyword arguments passed to the estimator's ``_predict`` method.
+            Additional search options passed to the estimator's ``_predict`` method.
+            The accepted options (e.g. ``dist_threshold``, ``inverse_distance``,
+            ``X_index``, ``allow_trivial_matches``, ``exclusion_factor``) and their
+            defaults differ per estimator; see the docstring of each concrete
+            estimator for the options it supports.
 
         Returns
         -------
@@ -164,7 +201,16 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
             (unless ``inverse_distance=True`` is used).
         """
         self._check_is_fitted()
-        X = self._preprocess_series(X, axis=axis, store_metadata=False)
+        # k must be a positive integer, or the np.inf sentinel ("return all matches").
+        if not (
+            k == np.inf
+            or (isinstance(k, (int, np.integer)) and not isinstance(k, bool) and k > 0)
+        ):
+            raise ValueError(
+                "k must be a positive integer or np.inf (to return all matches), "
+                f"got k={k!r}."
+            )
+        X = self._preprocess_series(X, axis=axis)
         # Check that we have the same number of channel in the series and the fit data.
         self._check_predict_series_format(X)
         indexes, distances = self._predict(X, k, **kwargs)
@@ -173,7 +219,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     @abstractmethod
     def _fit(
         self,
-        X: np.ndarray | List,
+        X: np.ndarray,
         y=None,
     ):
         """

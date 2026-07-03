@@ -4,10 +4,10 @@ __maintainer__ = ["baraline"]
 __all__ = ["MASS"]
 
 import numpy as np
+import scipy.fft
 from numba import njit
 
 from aeon.similarity_search.subsequence._base import BaseDistanceProfileSearch
-from aeon.similarity_search.subsequence._commons import fft_sliding_dot_product
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     sliding_mean_std_one_series,
@@ -47,7 +47,7 @@ class MASS(BaseDistanceProfileSearch):
 
     See Also
     --------
-    BruteForce : Brute force subsequence search (slower but simpler).
+    NaiveSubsequenceSearch : Naive subsequence search (slower but simpler).
 
     References
     ----------
@@ -99,9 +99,18 @@ class MASS(BaseDistanceProfileSearch):
         -------
         self
         """
+        n_cases, n_channels, n_timepoints = X.shape
+
+        # Precompute the FFT spectra of every fitted series once. These depend
+        # only on the fitted data, so caching them here avoids recomputing a
+        # forward FFT of each (long) series on every predict call. ``fft_len``
+        # is sized for the full linear convolution of a length-``length`` query
+        # with each series (``next_fast_len`` for FFT efficiency).
+        self._fft_len_ = scipy.fft.next_fast_len(n_timepoints + self.length - 1)
+        self.X_spectra_ = scipy.fft.rfft(X, n=self._fft_len_, axis=2)
+
         # Precompute means and stds for each series in the collection
         if self.normalize:
-            n_cases = X.shape[0]
             # Store means and stds for each series
             self.X_means_ = []
             self.X_stds_ = []
@@ -109,6 +118,11 @@ class MASS(BaseDistanceProfileSearch):
                 means, stds = sliding_mean_std_one_series(X[i], self.length, 1)
                 self.X_means_.append(means)
                 self.X_stds_.append(stds)
+        else:
+            # Precompute the sliding sum-of-squares of every fitted series. In
+            # the non-normalized distance profile this term depends only on the
+            # fitted data, so caching it avoids recomputing it on every predict.
+            self.X_ssqs_ = _sliding_sum_of_squares(X, self.length)
         return self
 
     def compute_distance_profile(self, X: np.ndarray):
@@ -130,15 +144,22 @@ class MASS(BaseDistanceProfileSearch):
         n_candidates = self.n_timepoints_ - self.length + 1
         distance_profiles = np.zeros((n_cases, n_candidates))
 
+        # Sliding dot products between the query and every fitted series, in a
+        # single batched FFT. The reversed query is transformed once per
+        # channel, broadcast-multiplied against the cached series spectra, and
+        # inverse-transformed in one batched call, reusing the FFT work cached
+        # at fit time instead of recomputing a per-series FFT on every call.
+        QT_all = _batched_sliding_dot_product(
+            X, self.X_spectra_, self._fft_len_, self.n_timepoints_
+        )
+
         Q_means = X.mean(axis=1) if self.normalize else None
         Q_stds = X.std(axis=1) if self.normalize else None
 
         for i in range(n_cases):
-            QT = fft_sliding_dot_product(self.X_[i], X)
-
             if self.normalize:
                 distance_profiles[i] = _normalized_squared_distance_profile(
-                    QT,
+                    QT_all[i],
                     self.X_means_[i],
                     self.X_stds_[i],
                     Q_means,
@@ -147,8 +168,8 @@ class MASS(BaseDistanceProfileSearch):
                 )
             else:
                 distance_profiles[i] = _squared_distance_profile(
-                    QT,
-                    self.X_[i],
+                    QT_all[i],
+                    self.X_ssqs_[i],
                     X,
                 )
 
@@ -183,7 +204,7 @@ class MASS(BaseDistanceProfileSearch):
 
 
 @njit(cache=True, fastmath=True)
-def _squared_distance_profile(QT, T, Q):
+def _squared_distance_profile(QT, T_ssq, Q):
     """
     Compute squared Euclidean distance profile between query and a time series.
 
@@ -195,9 +216,10 @@ def _squared_distance_profile(QT, T, Q):
     ----------
     QT : np.ndarray, 2D array of shape (n_channels, n_timepoints - query_length + 1)
         The dot product between the query and the time series.
-    T : np.ndarray, 2D array of shape (n_channels, series_length)
-        The series used for similarity search. Note that series_length can be equal,
-        superior or inferior to n_timepoints, it doesn't matter.
+    T_ssq : np.ndarray, 2D array of shape (n_channels, n_timepoints - query_length + 1)
+        The sliding sum-of-squares of the time series, i.e. for each channel and
+        candidate position the sum of squared values over the ``query_length`` window
+        starting at that position. Precomputed at fit time.
     Q : np.ndarray
         2D array of shape (n_channels, query_length) representing query subsequence.
 
@@ -209,21 +231,79 @@ def _squared_distance_profile(QT, T, Q):
     """
     n_channels, profile_length = QT.shape
     query_length = Q.shape[1]
-    _QT = -2 * QT
     distance_profile = np.zeros(profile_length)
     for k in range(n_channels):
-        _sum = 0
         _qsum = 0
         for j in range(query_length):
-            _sum += T[k, j] ** 2
             _qsum += Q[k, j] ** 2
 
-        distance_profile += _qsum + _QT[k]
-        distance_profile[0] += _sum
-        for i in range(1, profile_length):
-            _sum += T[k, i + (query_length - 1)] ** 2 - T[k, i - 1] ** 2
-            distance_profile[i] += _sum
+        # Fold the -2*QT scaling and the query sum-of-squares into the loop to
+        # avoid allocating profile-length temporaries per channel.
+        for i in range(profile_length):
+            distance_profile[i] += _qsum + T_ssq[k, i] - 2 * QT[k, i]
     return distance_profile
+
+
+def _sliding_sum_of_squares(X, query_length):
+    """
+    Compute the sliding window sum-of-squares of every series in a collection.
+
+    Parameters
+    ----------
+    X : np.ndarray, shape=(n_cases, n_channels, n_timepoints)
+        Collection of equal-length time series.
+    query_length : int
+        The window length over which squared values are summed.
+
+    Returns
+    -------
+    ssq : np.ndarray, shape=(n_cases, n_channels, n_timepoints - query_length + 1)
+        For each case, channel and candidate position, the sum of squared values
+        over the ``query_length`` window starting at that position.
+    """
+    sq = X.astype(np.float64) ** 2
+    # Prefix sums along time; sliding window sum = cumsum difference.
+    csum = np.cumsum(sq, axis=2)
+    n_timepoints = X.shape[2]
+    profile_length = n_timepoints - query_length + 1
+    ssq = np.empty((X.shape[0], X.shape[1], profile_length))
+    ssq[:, :, 0] = csum[:, :, query_length - 1]
+    if profile_length > 1:
+        ssq[:, :, 1:] = csum[:, :, query_length:] - csum[:, :, : profile_length - 1]
+    return ssq
+
+
+def _batched_sliding_dot_product(q, X_spectra, fft_len, n_timepoints):
+    """
+    Compute the sliding dot product of a query against many series via FFT.
+
+    The reversed query is transformed once per channel and broadcast-multiplied
+    against the cached series spectra, then a single batched inverse FFT yields
+    the sliding dot products (correlations) for every case.
+
+    Parameters
+    ----------
+    q : np.ndarray, shape=(n_channels, query_length)
+        The query subsequence.
+    X_spectra : np.ndarray, shape=(n_cases, n_channels, fft_len // 2 + 1)
+        The cached ``rfft`` of every fitted series (computed at fit time).
+    fft_len : int
+        The FFT length used to compute ``X_spectra``.
+    n_timepoints : int
+        The number of timepoints of the fitted series.
+
+    Returns
+    -------
+    QT : np.ndarray, shape=(n_cases, n_channels, n_timepoints - query_length + 1)
+        The sliding dot product between the query and each fitted series.
+    """
+    query_length = q.shape[1]
+    rev_q = q[:, ::-1]
+    Q_spectrum = scipy.fft.rfft(rev_q, n=fft_len, axis=1)
+    prod = X_spectra * Q_spectrum[np.newaxis, :, :]
+    conv = scipy.fft.irfft(prod, n=fft_len, axis=2)
+    # "valid" slice of the full linear convolution.
+    return conv[:, :, query_length - 1 : n_timepoints]
 
 
 @njit(cache=True, fastmath=True)
@@ -261,13 +341,13 @@ def _normalized_squared_distance_profile(
     distance_profile = np.zeros(profile_length)
     Q_is_constant = Q_stds <= AEON_NUMBA_STD_THRESHOLD
     for i in range(profile_length):
-        Sub_is_constant = T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD
         for k in range(n_channels):
+            sub_is_constant = T_stds[k, i] <= AEON_NUMBA_STD_THRESHOLD
             # Two Constant case
-            if Q_is_constant[k] and Sub_is_constant[k]:
+            if Q_is_constant[k] and sub_is_constant:
                 _val = 0
             # One Constant case
-            elif Q_is_constant[k] or Sub_is_constant[k]:
+            elif Q_is_constant[k] or sub_is_constant:
                 _val = query_length
             else:
                 denom = query_length * Q_stds[k] * T_stds[k, i]

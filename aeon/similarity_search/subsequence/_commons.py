@@ -61,60 +61,53 @@ def _extract_top_k_from_dist_profile(
 
     # Flatten for efficient searching
     flat_profile = dist_profile.ravel()
-    mask = np.ones(n_total, dtype=np.bool_)
-    remaining_indices = np.arange(n_total)
 
     _current_k = 0
 
     if not allow_trivial_matches:
-        while _current_k < k and np.any(mask):
-            available_indices = remaining_indices[mask]
-            search_k = min(k, len(available_indices))
+        # A single global argsort lets us walk candidates in ascending-distance
+        # order and apply exclusion zones on the fly. This bounds the total work
+        # at O(n_total log n_total) instead of the previous repeated
+        # argpartition/mask passes, which were ~O(n_total^2 / k) when top
+        # candidates repeatedly fell inside exclusion zones. The visiting order
+        # (globally sorted by distance) and the exclusion/threshold semantics
+        # are identical to the previous batched implementation: exclusion zones
+        # only grow as matches accumulate, so processing in ascending order
+        # yields the same set of matches in the same order.
+        sorted_indexes = np.argsort(flat_profile)
 
-            # Find candidates with smallest distances
-            partitioned = available_indices[
-                np.argpartition(flat_profile[available_indices], search_k - 1)[
-                    :search_k
-                ]
-            ]
-            sorted_indexes = partitioned[np.argsort(flat_profile[partitioned])]
+        for flat_idx in sorted_indexes:
+            i_case = flat_idx // n_candidates
+            i_ts = flat_idx % n_candidates
 
-            for flat_idx in sorted_indexes:
-                i_case = flat_idx // n_candidates
-                i_ts = flat_idx % n_candidates
+            # Check if in any exclusion zone (same case only)
+            in_exclusion = False
+            for j in range(_current_k):
+                if exclusion_case[j] == i_case:
+                    if i_ts >= exclusion_lb[j] and i_ts <= exclusion_ub[j]:
+                        in_exclusion = True
+                        break
 
-                # Check if in any exclusion zone (same case only)
-                in_exclusion = False
-                for j in range(_current_k):
-                    if exclusion_case[j] == i_case:
-                        if i_ts >= exclusion_lb[j] and i_ts <= exclusion_ub[j]:
-                            in_exclusion = True
-                            break
+            if in_exclusion:
+                # Skip this candidate and test the next one
+                continue
 
-                if in_exclusion:
-                    # Skip this candidate and test the next one
-                    continue
+            if flat_profile[flat_idx] > threshold:
+                # Distances are sorted, so we can break early
+                break
 
-                if flat_profile[flat_idx] > threshold:
-                    # Distances are sorted, so we can break early
-                    break
+            top_k_indexes[_current_k, 0] = i_case
+            top_k_indexes[_current_k, 1] = i_ts
+            top_k_distances[_current_k] = flat_profile[flat_idx]
 
-                top_k_indexes[_current_k, 0] = i_case
-                top_k_indexes[_current_k, 1] = i_ts
-                top_k_distances[_current_k] = flat_profile[flat_idx]
+            # Store exclusion zone for this case
+            exclusion_case[_current_k] = i_case
+            exclusion_lb[_current_k] = max(i_ts - exclusion_size, 0)
+            exclusion_ub[_current_k] = min(i_ts + exclusion_size, n_candidates - 1)
+            _current_k += 1
 
-                # Store exclusion zone for this case
-                exclusion_case[_current_k] = i_case
-                exclusion_lb[_current_k] = max(i_ts - exclusion_size, 0)
-                exclusion_ub[_current_k] = min(i_ts + exclusion_size, n_candidates - 1)
-                _current_k += 1
-
-                if _current_k == k:
-                    break
-
-            # Mark processed indices
-            for idx in sorted_indexes:
-                mask[idx] = False
+            if _current_k == k:
+                break
     else:
         # Trivial matches allowed - just find k smallest globally
         search_k = min(k, n_total)

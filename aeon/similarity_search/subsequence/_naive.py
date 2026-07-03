@@ -1,12 +1,13 @@
-"""Implementation of NN with brute force."""
+"""Implementation of NN with naive pairwise subsequence search."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["BruteForce"]
+__all__ = ["NaiveSubsequenceSearch"]
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads
 
+from aeon.similarity_search._commons import _pairwise_squared_distance
 from aeon.similarity_search.subsequence._base import BaseDistanceProfileSearch
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.numba.general import (
     get_all_subsequences,
     z_normalise_series_2d,
@@ -15,9 +16,9 @@ from aeon.utils.numba.general import (
 from aeon.utils.validation import check_n_jobs
 
 
-class BruteForce(BaseDistanceProfileSearch):
+class NaiveSubsequenceSearch(BaseDistanceProfileSearch):
     """
-    Brute force subsequence nearest neighbor search.
+    Naive subsequence nearest neighbor search.
 
     This estimator searches for the k nearest neighbor subsequences across a
     collection of time series using exhaustive pairwise distance computation.
@@ -40,8 +41,9 @@ class BruteForce(BaseDistanceProfileSearch):
     ----------
     X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
         The fitted collection of time series.
-    X_subs_ : list of np.ndarray
-        Precomputed subsequences for each series in the collection.
+    X_subs_ : np.ndarray of shape (n_cases, n_candidates, n_channels, length)
+        Precomputed subsequences for each series in the collection, where
+        ``n_candidates`` equals ``n_timepoints - length + 1``.
     n_cases_ : int
         Number of time series in the fitted collection.
     n_channels_ : int
@@ -52,12 +54,12 @@ class BruteForce(BaseDistanceProfileSearch):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.similarity_search.subsequence import BruteForce
+    >>> from aeon.similarity_search.subsequence import NaiveSubsequenceSearch
     >>> X_fit = np.random.rand(5, 1, 100)
     >>> query = np.random.rand(1, 20)
-    >>> searcher = BruteForce(length=20, normalize=False)
+    >>> searcher = NaiveSubsequenceSearch(length=20, normalize=False)
     >>> searcher.fit(X_fit)
-    BruteForce(length=20)
+    NaiveSubsequenceSearch(length=20)
     >>> indexes, distances = searcher.predict(query, k=3)
     """
 
@@ -83,7 +85,7 @@ class BruteForce(BaseDistanceProfileSearch):
         y=None,
     ):
         """
-        Fit the BruteForce estimator on a collection of time series.
+        Fit the NaiveSubsequenceSearch estimator on a collection of time series.
 
         Parameters
         ----------
@@ -95,22 +97,26 @@ class BruteForce(BaseDistanceProfileSearch):
         -------
         self
         """
-        prev_threads = get_num_threads()
         self._n_jobs = check_n_jobs(self.n_jobs)
-        set_num_threads(self._n_jobs)
 
-        # Extract subsequences from each series in the collection
+        # Extract subsequences from each series in the collection. Since the
+        # collection is equal-length, every case yields the same number of
+        # candidate subsequences, so they can be stacked into a single 4D array
+        # (n_cases, n_candidates, n_channels, length) and processed by one
+        # parallel region in ``compute_distance_profile``.
         n_cases = X.shape[0]
-        self.X_subs_ = []
+        subs_list = []
         for i in range(n_cases):
             subs = get_all_subsequences(X[i], self.length, 1)
             if self.normalize:
                 subs = z_normalise_series_3d(subs)
-            self.X_subs_.append(subs)
+            subs_list.append(subs)
+        # Stack into (n_cases, n_candidates, n_channels, length).
+        self.X_subs_ = np.asarray(subs_list)
 
-        set_num_threads(prev_threads)
         return self
 
+    @numba_thread_handler
     def compute_distance_profile(self, X: np.ndarray):
         """
         Compute the distance profile of X to all subsequences in X_.
@@ -126,21 +132,18 @@ class BruteForce(BaseDistanceProfileSearch):
             The distance profile of X to all subsequences in all series of X_.
             The ``n_candidates`` value is equal to ``n_timepoints - length + 1``.
         """
-        prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
-
         if self.normalize:
             X = z_normalise_series_2d(X)
 
-        n_cases = len(self.X_subs_)
-        n_candidates = self.n_timepoints_ - self.length + 1
-        distance_profiles = np.zeros((n_cases, n_candidates))
+        n_cases, n_candidates, n_channels, length = self.X_subs_.shape
 
-        for i in range(n_cases):
-            distance_profiles[i] = _naive_squared_distance_profile(self.X_subs_[i], X)
-
-        set_num_threads(prev_threads)
-        return distance_profiles
+        # Flatten the (n_cases, n_candidates) subsequences into a single
+        # (n_cases * n_candidates, n_channels, length) array so the shared
+        # parallel kernel runs a single parallel region over all candidates
+        # instead of one region per case.
+        flat_subs = self.X_subs_.reshape(n_cases * n_candidates, n_channels, length)
+        distance_profiles = _pairwise_squared_distance(flat_subs, X)
+        return distance_profiles.reshape(n_cases, n_candidates)
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
@@ -168,32 +171,3 @@ class BruteForce(BaseDistanceProfileSearch):
                 f"The parameter set {parameter_set} is not yet implemented"
             )
         return params
-
-
-@njit(cache=True, fastmath=True, parallel=True)
-def _naive_squared_distance_profile(
-    X_subs,
-    Q,
-):
-    """
-    Compute a squared euclidean distance profile.
-
-    Parameters
-    ----------
-    X_subs : array, shape=(n_subsequences, n_channels, length)
-        Subsequences of size length of the input time series to search in.
-    Q : array, shape=(n_channels, query_length)
-        Query used during the search.
-
-    Returns
-    -------
-    out : np.ndarray, 1D array of shape (n_subsequences,)
-        The distance between the query and all candidates in X.
-    """
-    n_subs, n_channels, length = X_subs.shape
-    dist_profile = np.zeros(n_subs)
-    for i in prange(n_subs):
-        for j in range(n_channels):
-            for k in range(length):
-                dist_profile[i] += (X_subs[i, j, k] - Q[j, k]) ** 2
-    return dist_profile

@@ -19,13 +19,11 @@ class BaseWholeSeriesSearch(BaseSimilaritySearch):
     collection. Common applications include time series retrieval, classification
     via nearest neighbors, and clustering based on similarity.
 
-    Interface
-    ---------
-    - **fit(X)**: Takes a 3D collection of shape ``(n_cases, n_channels, n_timepoints)``
-      containing the time series database to search within.
-    - **predict(X)**: Takes a 2D query series of shape ``(n_channels, n_timepoints)``
-      where ``n_timepoints`` must match the series length in the fitted collection.
-      Returns case indices of the nearest neighbor series.
+    ``fit(X)`` takes a 3D collection of shape ``(n_cases, n_channels, n_timepoints)``
+    containing the time series database to search within. ``predict(X)`` takes a 2D
+    query series of shape ``(n_channels, n_timepoints)`` where ``n_timepoints`` must
+    match the series length in the fitted collection, and returns the case indices of
+    the nearest neighbor series.
 
     Notes
     -----
@@ -39,10 +37,10 @@ class BaseWholeSeriesSearch(BaseSimilaritySearch):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.similarity_search.whole_series import BruteForce
+    >>> from aeon.similarity_search.whole_series import NaiveSeriesSearch
     >>> X_fit = np.random.rand(10, 1, 100)  # 10 univariate series, 100 timepoints
     >>> query = np.random.rand(1, 100)  # query series of same length
-    >>> searcher = BruteForce()
+    >>> searcher = NaiveSeriesSearch()
     >>> searcher.fit(X_fit)  # doctest: +SKIP
     >>> indexes, distances = searcher.predict(query, k=3)  # doctest: +SKIP
     >>> # indexes has shape (3,) with case indices of nearest neighbors
