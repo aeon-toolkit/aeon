@@ -881,21 +881,6 @@ def _extract_seasonal_attrs(states, model_code):
     return None, None
 
 
-def _ces_fit_objective(y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states):
-    """StatsForecast-style CES objective: final backfit pass ``n * log(SSE)``."""
-    if season == _CES_NONE:
-        likelihood_objective = _ces_n_fit_objective_numba(
-            y, alpha_0, alpha_1, init_states[0, 0], init_states[0, 1]
-        )
-    else:
-        likelihood_objective = _ces_fit_objective_numba(
-            y, m, season, alpha_0, alpha_1, beta_0, beta_1, init_states
-        )
-    if not np.isfinite(likelihood_objective):
-        return 1e300
-    return float(likelihood_objective)
-
-
 @njit(cache=True, fastmath=True)
 def _clip_to_bounds(x, lower, upper):
     """Clip an optimizer vector to box bounds in place."""
@@ -1339,41 +1324,6 @@ def _ces_fit_pass(
         fitted[i - m] = yhat
         eps = y[i - m] - yhat
         residuals[i - m] = eps
-        sse += eps * eps
-        _ces_update_state(
-            states,
-            i,
-            m,
-            season,
-            alpha_0,
-            alpha_1,
-            beta_0,
-            beta_1,
-            y[i - m],
-        )
-        if not np.isfinite(sse):
-            return np.inf
-    _ces_write_future_states(states, n + m, m, season, alpha_0, alpha_1, beta_0, beta_1)
-    return sse
-
-
-@njit(cache=True, fastmath={"contract"})
-def _ces_fit_pass_sse(
-    y,
-    states,
-    m,
-    season,
-    alpha_0,
-    alpha_1,
-    beta_0,
-    beta_1,
-):
-    """Run one forward CES pass and return SSE without fitted arrays."""
-    n = y.shape[0]
-    sse = 0.0
-    for i in range(m, n + m):
-        yhat = _ces_yhat_from_states(states, i, m, season)
-        eps = y[i - m] - yhat
         sse += eps * eps
         _ces_update_state(
             states,
