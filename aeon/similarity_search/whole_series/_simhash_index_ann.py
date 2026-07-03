@@ -414,11 +414,6 @@ n_channels * n_timepoints)
         keys = _signatures_to_keys(
             signature[None, :], self.n_tables, self.n_bits_per_table
         )[0]
-        # Concatenate the case indices of every probed bucket and tally collisions with
-        # a single ``np.unique`` over just the bucket hits: cost is O(h log h) in the
-        # number of hits, independent of ``n_cases_``. This keeps queries sublinear
-        # (unlike a dense length-``n_cases_`` ``bincount``) while staying at C level and
-        # not reintroducing the rejected per-candidate Python dict loop.
         hit_arrays = []
         for t in range(self.n_tables):
             bucket = self.tables_[t].get(int(keys[t]))
@@ -427,9 +422,23 @@ n_channels * n_timepoints)
         if len(hit_arrays) == 0:
             empty = np.zeros(0, dtype=np.intp)
             return empty, empty
-        candidates, collisions = np.unique(
-            np.concatenate(hit_arrays), return_counts=True
-        )
+        # Tally collisions over the concatenated bucket hits with the cheaper of two
+        # C-level passes, picked from the number of hits ``h``. Both produce the same
+        # (ascending candidates, aligned counts) pair:
+        # - dense ``np.bincount``: O(h + n_cases_) direct-indexed adds. Wins when the
+        #   probed buckets cover a sizeable share of the collection (low
+        #   n_bits_per_table / high n_tables), where sorting the hits costs up to ~2x
+        #   the whole query.
+        # - sparse ``np.unique``: O(h log h) sort of the hits, independent of
+        #   ``n_cases_``. Wins when ``h << n_cases_`` (selective buckets over a large
+        #   collection), where the dense pass costs up to ~13x the tally.
+        hits = np.concatenate(hit_arrays)
+        if hits.size >= self.n_cases_ // 8:
+            counts = np.bincount(hits, minlength=self.n_cases_)
+            candidates = np.flatnonzero(counts)
+            collisions = counts[candidates]
+        else:
+            candidates, collisions = np.unique(hits, return_counts=True)
         return candidates, collisions
 
     def _rank_candidates(self, candidates, collisions, k):

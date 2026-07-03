@@ -309,13 +309,24 @@ def test_predict_distances_are_sorted():
     assert np.all(np.diff(dist) >= 0)
 
 
-def test_predict_ranking_matches_dense_bincount_reference():
-    """The sparse unique-based ranking equals the dense bincount reference.
+@pytest.mark.parametrize(
+    "n_cases,n_tables,n_bits",
+    [
+        # loose buckets: many hits per query -> dense bincount tally branch
+        (40, 10, 5),
+        # selective buckets over more cases: few hits -> sparse unique tally branch
+        (200, 10, 16),
+    ],
+)
+def test_predict_ranking_matches_dense_bincount_reference(n_cases, n_tables, n_bits):
+    """Both tally branches of the hybrid ranking equal the dense bincount reference.
 
-    The returned candidate order (collision count descending, index ascending
-    tie-break) and proxy distances must match the dense
-    ``bincount``/``nonzero``/``lexsort`` ranking, across several collections, queries
-    and k values, for both normalize settings.
+    ``_gather_candidates`` tallies collisions with ``np.bincount`` when the probed
+    buckets yield many hits and ``np.unique`` when they yield few; the two
+    parametrizations pin one regime each. The returned candidate order (collision
+    count descending, index ascending tie-break) and proxy distances must match the
+    dense ``bincount``/``nonzero``/``lexsort`` ranking, across several collections,
+    queries and k values, for both normalize settings.
     """
 
     def _reference_rank(rp, query, k):
@@ -341,15 +352,15 @@ def test_predict_ranking_matches_dense_bincount_reference():
 
     for seed in range(6):
         X = make_example_3d_numpy(
-            n_cases=40,
+            n_cases=n_cases,
             n_channels=2,
             n_timepoints=30,
             return_y=False,
         )
         for normalize in (True, False):
             rp = SimHashIndexANN(
-                n_tables=10,
-                n_bits_per_table=5,
+                n_tables=n_tables,
+                n_bits_per_table=n_bits,
                 random_state=seed,
                 normalize=normalize,
             ).fit(X)
