@@ -628,7 +628,8 @@ def _phi_one(w, GW, Cr, Ci, Fc, Fs, hfir, crf, Rk, srfW, srfb, srfu, HYW):
         out[o] = p / n
         o += 1
 
-    # ===== family 18: hydra_compete (32) — competing-kernel soft win-counts, sqrt-compressed =====
+    # ===== family 18: hydra_compete (32) =====
+    # competing-kernel soft win-counts, sqrt-compressed
     xd = np.empty(n - 1, np.float64)
     for i in range(n - 1):
         xd[i] = w[i + 1] - w[i]
@@ -636,28 +637,53 @@ def _phi_one(w, GW, Cr, Ci, Fc, Fs, hfir, crf, Rk, srfW, srfb, srfu, HYW):
         for d in (2, 4):
             for g in range(HYW.shape[0]):
                 if chan == 0:
-                    r0 = _conv_same(w, HYW[g, 0], d); r1 = _conv_same(w, HYW[g, 1], d)
-                    r2 = _conv_same(w, HYW[g, 2], d); r3 = _conv_same(w, HYW[g, 3], d)
+                    r0 = _conv_same(w, HYW[g, 0], d)
+                    r1 = _conv_same(w, HYW[g, 1], d)
+                    r2 = _conv_same(w, HYW[g, 2], d)
+                    r3 = _conv_same(w, HYW[g, 3], d)
                 else:
-                    r0 = _conv_same(xd, HYW[g, 0], d); r1 = _conv_same(xd, HYW[g, 1], d)
-                    r2 = _conv_same(xd, HYW[g, 2], d); r3 = _conv_same(xd, HYW[g, 3], d)
-                s0 = 0.0; s1 = 0.0; s2 = 0.0; s3 = 0.0
+                    r0 = _conv_same(xd, HYW[g, 0], d)
+                    r1 = _conv_same(xd, HYW[g, 1], d)
+                    r2 = _conv_same(xd, HYW[g, 2], d)
+                    r3 = _conv_same(xd, HYW[g, 3], d)
+                s0 = 0.0
+                s1 = 0.0
+                s2 = 0.0
+                s3 = 0.0
                 for t in range(r0.shape[0]):
-                    v0 = r0[t]; v1 = r1[t]; v2 = r2[t]; v3 = r3[t]
-                    am = 0; vm = v0
-                    if v1 > vm: am = 1; vm = v1
-                    if v2 > vm: am = 2; vm = v2
-                    if v3 > vm: am = 3; vm = v3
+                    v0 = r0[t]
+                    v1 = r1[t]
+                    v2 = r2[t]
+                    v3 = r3[t]
+                    am = 0
+                    vm = v0
+                    if v1 > vm:
+                        am = 1
+                        vm = v1
+                    if v2 > vm:
+                        am = 2
+                        vm = v2
+                    if v3 > vm:
+                        am = 3
+                        vm = v3
                     if vm > 0.0:
-                        if am == 0: s0 += vm
-                        elif am == 1: s1 += vm
-                        elif am == 2: s2 += vm
-                        else: s3 += vm
+                        if am == 0:
+                            s0 += vm
+                        elif am == 1:
+                            s1 += vm
+                        elif am == 2:
+                            s2 += vm
+                        else:
+                            s3 += vm
                 tot = s0 + s1 + s2 + s3 + 1e-8
-                out[o] = math.sqrt(s0 / tot); o += 1
-                out[o] = math.sqrt(s1 / tot); o += 1
-                out[o] = math.sqrt(s2 / tot); o += 1
-                out[o] = math.sqrt(s3 / tot); o += 1
+                out[o] = math.sqrt(s0 / tot)
+                o += 1
+                out[o] = math.sqrt(s1 / tot)
+                o += 1
+                out[o] = math.sqrt(s2 / tot)
+                o += 1
+                out[o] = math.sqrt(s3 / tot)
+                o += 1
 
     return out
 
@@ -706,7 +732,9 @@ def _phi_batch(W, GW, Cr, Ci, Fc, Fs, hfir, crf, Rk, srfW, srfb, srfu, HYW):
     B = W.shape[0]
     out = np.empty((B, 173), np.float64)
     for b in prange(B):
-        out[b] = _phi_one(W[b], GW, Cr, Ci, Fc, Fs, hfir, crf, Rk, srfW, srfb, srfu, HYW)
+        out[b] = _phi_one(
+            W[b], GW, Cr, Ci, Fc, Fs, hfir, crf, Rk, srfW, srfb, srfu, HYW
+        )
     return out
 
 
@@ -733,10 +761,18 @@ _FAMILIES = [
     ("hydra_compete", 32),
 ]
 POOL_MAP = {
-    "srf_mlp": ["max"], "spectral": ["max"], "trf_gausswin": ["mean"],
-    "crf_ppv": ["mean", "std"], "crf_max": ["mean"], "morphology_updown": ["std"],
-    "perm_entropy": ["max"], "curvature": ["mean"], "conv_position": ["max"],
-    "ar_residual": ["mean", "max"], "ricker_wavelet": ["mean"], "hydra_compete": ["mean", "std"],
+    "srf_mlp": ["max"],
+    "spectral": ["max"],
+    "trf_gausswin": ["mean"],
+    "crf_ppv": ["mean", "std"],
+    "crf_max": ["mean"],
+    "morphology_updown": ["std"],
+    "perm_entropy": ["max"],
+    "curvature": ["mean"],
+    "conv_position": ["max"],
+    "ar_residual": ["mean", "max"],
+    "ricker_wavelet": ["mean"],
+    "hydra_compete": ["mean", "std"],
 }
 _OPS = ("mean", "std", "max")
 
