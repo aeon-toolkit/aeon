@@ -75,7 +75,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
 
     Implements the CES family proposed by Svetunkov and Kourentzes [1]_.
     CES extends exponential smoothing by using complex-valued smoothing
-    parameters and two-component (real + imaginary "correction") state.
+    parameters and two-component (real + imaginary correction) state.
 
     Four model variants are implemented:
 
@@ -209,8 +209,8 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     >>> from aeon.forecasting.stats import CES
     >>> y = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1, 4.4, 4.9, 5.3, 5.9])
     >>> f = CES()
-    >>> f.iterative_forecast(y, prediction_horizon=2).shape
-    (2,)
+    >>> f.iterative_forecast(y, prediction_horizon=2).round(4)
+    array([6.383 , 7.0506])
     """
 
     _tags = {
@@ -609,6 +609,15 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
         selection.
     fitted_values_, residuals_, forecast_, sse_ :
         Pass-throughs from ``best_model_`` for convenience.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.forecasting.stats import AutoCES
+    >>> y = np.array([2.1, 2.4, 2.8, 3.0, 3.6, 4.1, 4.4, 4.9, 5.3, 5.9])
+    >>> f = AutoCES()
+    >>> f.iterative_forecast(y, prediction_horizon=2).round(4)
+    array([6.383 , 7.0506])
     """
 
     _tags = {
