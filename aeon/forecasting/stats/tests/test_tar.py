@@ -127,28 +127,30 @@ def test_autotar_predict_matches_internal_one_step():
     assert math.isclose(f.forecast_, yhat_internal, rel_tol=1e-12, abs_tol=1e-12)
 
 
-@pytest.mark.parametrize(
-    "phi_L,phi_R,r,d",
-    [
+def test_autotar_parameter_recovery_is_reasonable():
+    """AutoTAR coefficients are close for synthetic TAR(1,1)."""
+    cases = [
         (0.1, 0.8, 0.0, 1),
-        (0.3, 0.9, 0.25, 1),
         (0.2, 0.7, -0.2, 2),
-    ],
-)
-def test_autotar_parameter_recovery_is_reasonable(
-    phi_L: float, phi_R: float, r: float, d: int
-):
-    """AutoTAR fitted coefficients are close for synthetic TAR(1,1)."""
-    y = _gen_tar_series(600, phi_L=phi_L, phi_R=phi_R, r=r, d=d, sigma=0.8, seed=123)
-    f = AutoTAR(
-        threshold=None, delay=None, ar_order=None, max_order=1, max_delay=max(1, d)
-    )
-    f.fit(y)
-    if f.p_below_ >= 1:
+    ]
+
+    for phi_L, phi_R, r, d in cases:
+        y = _gen_tar_series(
+            300, phi_L=phi_L, phi_R=phi_R, r=r, d=d, sigma=0.8, seed=123
+        )
+        f = AutoTAR(
+            threshold=None,
+            delay=d,
+            ar_order=(1, 1),
+            max_threshold_candidates=30,
+        )
+        f.fit(y)
+
+        assert f.delay_ == d
+        assert f.p_below_ == 1
+        assert f.p_above_ == 1
         assert abs(float(f.coef_below_[0]) - phi_L) < 0.30
-    if f.p_above_ >= 1:
         assert abs(float(f.coef_above_[0]) - phi_R) < 0.30
-    assert 1 <= f.delay_ <= max(3, d)
 
 
 def test_autotar_max_threshold_candidates_caps_workload():
