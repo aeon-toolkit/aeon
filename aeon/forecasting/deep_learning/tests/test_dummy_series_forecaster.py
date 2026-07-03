@@ -64,3 +64,8 @@ def test_series_forecaster_base_predict():
     assert p1 == 1.0
     p2 = f.forecast(Y_TEST)
     assert p2 == 1.0
+
+
+def test_dummy_build_model_is_noop():
+    """The dummy forecaster's build_model returns nothing."""
+    assert DummySeriesForecaster(window=3).build_model(None) is None
