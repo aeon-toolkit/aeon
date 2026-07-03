@@ -16,6 +16,7 @@ from aeon.utils.numba.general import (
     z_normalise_series_2d,
     z_normalise_series_3d,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class NaiveSeriesSearch(BaseWholeSeriesSearch):
@@ -110,6 +111,7 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         -------
         self
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         if self.normalize:
             # Replace the raw collection (``self.X_``, set by the base ``fit``) with
             # its z-normalized version, which is what search reads: this avoids
