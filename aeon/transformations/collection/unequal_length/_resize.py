@@ -9,6 +9,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -16,8 +18,8 @@ class Resizer(BaseCollectionTransformer):
     """Resize unequal length time series to equal, fixed length.
 
     Resize the series using linear interpolation to either a fixed length or
-    finds the max/min length series across all series and channels and resizes
-    all series to that length.
+    finds the max/min length series across all series and resizes all series to that
+    length.
 
     Parameters
     ----------
@@ -47,11 +49,13 @@ class Resizer(BaseCollectionTransformer):
     }
 
     def __init__(self, resized_length="max"):
+        _validate_positive_integer_length(resized_length, "resized_length")
+
         self.resized_length = resized_length
 
         super().__init__()
 
-        self.set_tags(**{"fit_is_empty": isinstance(resized_length, int)})
+        self.set_tags(**{"fit_is_empty": _is_positive_integer_length(resized_length)})
 
     def _fit(self, X, y=None):
         if self.resized_length == "min":
@@ -62,22 +66,22 @@ class Resizer(BaseCollectionTransformer):
             raise ValueError("resized_length must be 'min', 'max' or an integer.")
 
     def _transform(self, X, y=None):
-        """Fit a linear function on each channel of each series, then resample.
+        """Linearly interpolate each channel of each series to the target length.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or
-            list size [n_cases] of 2D nump arrays, case i has shape (n_channels,
+            list size [n_cases] of 2D numpy arrays, case i has shape (n_channels,
             length_i). Collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        3D numpy array of shape (n_cases, n_channels, self.length)
+        3D numpy array of shape (n_cases, n_channels, resized_length)
         """
         length = (
             self.resized_length
-            if isinstance(self.resized_length, int)
+            if _is_positive_integer_length(self.resized_length)
             else self._resized_length
         )
 

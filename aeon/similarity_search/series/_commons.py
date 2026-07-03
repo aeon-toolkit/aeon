@@ -146,8 +146,6 @@ def _extract_top_k_from_dist_profile(
         while _current_k < k and np.any(mask):
             available_indices = remaining_indices[mask]
             search_k = min(k, len(available_indices))
-            if search_k == 0:
-                break
             partitioned = available_indices[
                 np.argpartition(dist_profile[available_indices], search_k - 1)[
                     :search_k
