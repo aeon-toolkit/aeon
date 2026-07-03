@@ -16,12 +16,12 @@ def _fixture_X():
 # frozen aggregates of the discovered champion on _fixture_X() (torch-free)
 _EXPECT = {
     "full": dict(
-        shape=(3, 423),
-        agg=[968.166837, 0.762937, 2.12074, 0.030663, 0.578125, -8.210593, 13.586488],
+        shape=(3, 519),
+        agg=[1060.464338, 0.681095, 1.925746, 0.030663, 0.37177, -8.210593, 13.586488],
     ),
     "pruned": dict(
-        shape=(3, 245),
-        agg=[826.224867, 1.124115, 2.243575, 0.211374, 0.070312, -8.210593, 9.864845],
+        shape=(3, 211),
+        agg=[509.801995, 0.805374, 1.865634, -0.468255, 0.028522, -5.012907, 13.586488],
     ),
 }
 
@@ -53,7 +53,7 @@ def test_evoforest_tswm_multivariate_width_invariant():
     rng = np.random.RandomState(0)
     f1 = EvoForestTSWM().fit_transform(rng.normal(size=(4, 1, 70)))
     f3 = EvoForestTSWM().fit_transform(rng.normal(size=(4, 3, 70)))
-    assert f1.shape[1] == f3.shape[1] == 423
+    assert f1.shape[1] == f3.shape[1] == 519
 
 
 def test_evoforest_tswm_bad_pooling():
