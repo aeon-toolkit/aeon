@@ -66,6 +66,10 @@ def test_series_forecaster_base_predict():
     assert p2 == 1.0
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_dummy_build_model_is_noop():
     """The dummy forecaster's build_model returns nothing."""
     assert DummySeriesForecaster(window=3).build_model(None) is None
