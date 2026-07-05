@@ -177,10 +177,20 @@ def kasba_average(
         distances_to_center = pw_dist.flatten()
 
         # Cost is the sum of distance to the cent
-        if abs(previous_cost - cost) < tol:
+        if not np.isfinite(cost):
+            barycenter = prev_barycenter
+            distances_to_center = previous_distance_to_center
+            cost = previous_cost
+            if verbose:
+                print(  # noqa: T001, T201
+                    f"[KASBA-BA] epoch {i}, early convergence non-finite cost"
+                )
+            break
+        elif abs(previous_cost - cost) < tol:
             if previous_cost < cost:
                 barycenter = prev_barycenter
                 distances_to_center = previous_distance_to_center
+                cost = previous_cost
 
             if verbose:
                 print(  # noqa: T001, T201
@@ -191,6 +201,7 @@ def kasba_average(
         elif previous_cost < cost:
             barycenter = prev_barycenter
             distances_to_center = previous_distance_to_center
+            cost = previous_cost
             if verbose:
                 print(  # noqa: T001, T201
                     f"[KASBA-BA] epoch {i}, early convergence cost increasing: {cost} "
