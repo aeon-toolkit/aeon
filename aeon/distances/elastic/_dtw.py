@@ -82,11 +82,11 @@ def dtw_distance(
         Window is a percentage deviation from the diagonal of the DTW cost matrix, so if
         ``window = 0.1`` then 10% of the series length is the maximum warping allowed.
         This parameter limits how far DTW is allowed to warp in time by restricting
-        alignments to a diagonal band whose width is given by a fraction of the maximum
-        series length.
-        For example, if there are 10 time points in the longer series and window = 0.1,
-        DTW alignments are restricted such that the warping path may deviate by at most
-        one cell from the diagonal.
+        alignments to a diagonal band whose half-width is ``int(window * n)`` cells,
+        where ``n`` is the length of the shorter series. For unequal-length series the
+        band follows the interpolated diagonal of the cost matrix.
+        For example, if both series have 10 time points and ``window = 0.1``, the
+        warping path may deviate by at most one cell from the diagonal.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
