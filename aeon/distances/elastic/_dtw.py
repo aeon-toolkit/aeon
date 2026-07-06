@@ -28,7 +28,7 @@ def dtw_distance(
     r"""Compute the DTW distance between two time series.
 
     DTW is the most widely researched and used elastic distance method. It mitigates
-    distortions in the time axis by realligning (warping) the series to best match
+    distortions in the time axis by realigning (warping) the series to best match
     each other. A good background into DTW can be found in [1]_. For two series,
     possibly of unequal length,
     :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
@@ -57,7 +57,7 @@ def dtw_distance(
     is the path that has the minimum distance, hence the DTW distance between series is
 
     .. math::
-        d_{dtw}(\mathbf{x}, \mathbf{x}) =D_{P*}(\mathbf{x},\mathbf{x}, M).
+        d_{dtw}(\mathbf{x}, \mathbf{y}) =D_{P*}(\mathbf{x},\mathbf{y}, M).
 
     The optimal warping path :math:`P^*` can be found exactly through a dynamic
     programming formulation. This can be a time consuming operation, and it is common to
@@ -139,10 +139,12 @@ def dtw_cost_matrix(
     window: float | None = None,
     itakura_max_slope: float | None = None,
 ) -> np.ndarray:
-    r"""Compute the DTW cost matrix between two time series.
+    r"""Compute the DTW accumulated cost matrix between two time series.
 
-    The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the DTW path calculations.
+    Entry :math:`(i,j)` of the returned matrix is the cost of the optimal warping
+    path aligning the first :math:`i+1` points of ``x`` with the first :math:`j+1`
+    points of ``y``, where the pointwise cost is the squared distance
+    :math:`(x_i-y_j)^2`. It is used in the DTW path calculations.
 
     Parameters
     ----------
@@ -156,7 +158,6 @@ def dtw_cost_matrix(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1``,
         10% of the series length is the max warping allowed.
-        is used.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -473,7 +474,7 @@ def dtw_pairwise_distance(
     np.ndarray
         DTW pairwise matrix between the instances of X of shape
         ``(n_cases, n_cases)`` or between X and y of shape ``(n_cases,
-        n_cases)``.
+        m_cases)``.
 
     Raises
     ------
