@@ -30,6 +30,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.dictionary_based._sfa import get_chars
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.validation import check_n_jobs
 
@@ -769,10 +770,15 @@ class SFAFast(BaseCollectionTransformer):
         -------
         Array of words
         """
-        words = np.squeeze(self.words)
-        return np.array(
-            [_get_chars(word, self.word_length, self.letter_bits) for word in words]
-        )
+        if self.save_words:
+            return np.array(
+                [
+                    get_chars(word, self.word_length, self.alphabet_size)
+                    for word in self.words
+                ]
+            )
+
+        raise ValueError("save_words must be set to True when initializing SFA_FAST.")
 
     def transform_words(self, X):
         """Return the words and dft coefficients generated for each series.
@@ -857,21 +863,6 @@ class SFAFast(BaseCollectionTransformer):
             for key, value in self.relevant_features.items():
                 typed_dict[key] = value
             self.relevant_features = typed_dict
-
-
-@njit(cache=True, fastmath=True)
-def _get_chars(word, word_length, letter_bits):
-    chars = np.zeros(word_length, dtype=np.uint32)
-    for i in range(word_length):
-        # Extract the last bits
-        mask = (1 << letter_bits[i]) - 1
-        char = word & mask
-        chars[-i - 1] = char
-
-        # Right shift by to move to the next group of bits
-        word >>= letter_bits[i]
-
-    return chars
 
 
 @njit(fastmath=True, cache=True, parallel=True)

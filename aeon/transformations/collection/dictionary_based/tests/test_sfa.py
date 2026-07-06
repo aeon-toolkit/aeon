@@ -286,3 +286,29 @@ def test_sfa_dynamic(alphabet_allocation_method):
 
     # Check if the budget is correctly allocated
     assert np.mean(np.log2(p.alphabet_sizes)) <= np.log2(alphabet_size)
+
+
+def test_sfa_get_words_from_sliding_window():
+    """Test get_words with sliding window (multiple windows per case)."""
+    X = np.random.rand(3, 1, 20)
+    y = np.array([0, 1, 0])
+
+    # Sliding window: window_size < n_timepoints
+    word_length = 4
+    window_size = 10
+    alphabet_size = 8
+
+    p = SFA(
+        word_length=word_length,
+        alphabet_size=alphabet_size,
+        window_size=window_size,
+        save_words=True,
+    )
+    p.fit_transform(X, y)
+
+    words = p.get_words()
+
+    # Should return array of shape (n_cases, n_windows, word_length)
+    assert len(words) == X.shape[0]  # n_cases
+    assert len(words[0]) == X.shape[-1] - window_size + 1  # sliding windows
+    assert len(words[0][0]) == word_length

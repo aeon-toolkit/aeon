@@ -4,7 +4,7 @@ Configurable SFA transform for discretising time series into words.
 """
 
 __maintainer__ = []
-__all__ = ["SFA"]
+__all__ = ["SFA", "get_chars"]
 
 import math
 import os
@@ -476,10 +476,15 @@ class SFA(BaseCollectionTransformer):
         -------
         Array of words
         """
-        words = np.squeeze(self.words)
-        return np.array(
-            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
-        )
+        if self.save_words:
+            return np.array(
+                [
+                    get_chars(word, self.word_length, self.alphabet_size)
+                    for word in self.words
+                ]
+            )
+
+        raise ValueError("save_words must be set to True when initializing SFA.")
 
     def _binning(self, X, y=None):
         num_windows_per_inst = math.ceil(self.n_timepoints / self.window_size)
@@ -1178,16 +1183,17 @@ class SFA(BaseCollectionTransformer):
 
 
 @njit(cache=True, fastmath=True)
-def _get_chars(word, word_length, alphabet_size):
-    chars = np.zeros(word_length, dtype=np.uint32)
+def get_chars(words, word_length, alphabet_size):
+    chars = np.zeros((len(words), word_length), dtype=np.uint32)
     letter_bits = int(np.log2(alphabet_size))
     mask = (1 << letter_bits) - 1
-    for i in range(word_length):
-        # Extract the last bits
-        char = word & mask
-        chars[-i - 1] = char
+    for j in range(chars.shape[0]):
+        for i in range(word_length):
+            # Extract the last bits
+            char = words[j] & mask
+            chars[j][-i - 1] = char
 
-        # Right shift by to move to the next group of bits
-        word >>= letter_bits
+            # Right shift by to move to the next group of bits
+            words[j] >>= letter_bits
 
     return chars
