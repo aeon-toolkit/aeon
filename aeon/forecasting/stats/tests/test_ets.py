@@ -163,9 +163,9 @@ def test_autoets_forecast_sets_wrapped_and_returns_forecast():
 
 
 def test_autoets_iterative_forecast_shape_and_validity():
-    """iterative_forecast should delegate and return valid forecasts."""
+    """iterative_forecast should fit once and return valid forecasts."""
     forecaster = AutoETS()
-    forecaster.fit(y_pos)
+    assert forecaster.wrapped_model_ is None
 
     horizon = 5
     preds = forecaster.iterative_forecast(y_pos, prediction_horizon=horizon)
@@ -173,6 +173,7 @@ def test_autoets_iterative_forecast_shape_and_validity():
     assert isinstance(preds, np.ndarray)
     assert preds.shape == (horizon,)
     assert np.all(np.isfinite(preds))
+    assert forecaster.wrapped_model_ is not None
 
 
 def test_autoets_predict_matches_wrapped_predict():
@@ -235,7 +236,7 @@ def test_autoets_wrapped_model_parameters_match_selected_types():
 
 def test_autoets_uses_provided_seasonal_period():
     """AutoETS should use a provided seasonal period instead of inferring one."""
-    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
+    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 5)
     y = base + 0.05 * np.sin(np.arange(base.size) * 0.7)
 
     forecaster = AutoETS(seasonal_period=4)
@@ -248,7 +249,7 @@ def test_autoets_uses_provided_seasonal_period():
 
 def test_autoets_provided_seasonal_period_overrides_nonseasonal_aic_winner():
     """A supplied seasonal period should force a seasonal model when possible."""
-    y = np.linspace(10.0, 30.0, 80) + 0.01 * np.sin(np.arange(80))
+    y = np.linspace(10.0, 30.0, 20) + 0.01 * np.sin(np.arange(20))
 
     unconstrained = AutoETS()
     unconstrained.fit(y)

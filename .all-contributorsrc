@@ -2913,10 +2913,38 @@
       ]
     },
     {
-      "login": "BB0813",
-      "name": "Binbim_ProMax",
-      "avatar_url": "https://avatars.githubusercontent.com/u/151659564?v=4",
-      "profile": "http://home.binbim.top",
+      "login": "glitch-ux",
+      "name": "José Maia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71816777?v=4",
+      "profile": "https://www.noesis.pt/en",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "gaurav-init",
+      "name": "Gaurav",
+      "avatar_url": "https://avatars.githubusercontent.com/u/125201478?v=4",
+      "profile": "https://github.com/gaurav-init",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "li-f8",
+      "name": "li-f8",
+      "avatar_url": "https://avatars.githubusercontent.com/u/184102584?v=4",
+      "profile": "https://github.com/li-f8",
+      "contributions": [
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "CedricConday",
+      "name": "Cedric Conday",
+      "avatar_url": "https://avatars.githubusercontent.com/u/277679649?v=4",
+      "profile": "https://linkedin.com/in/cedricconday",
       "contributions": [
         "bug"
       ]
