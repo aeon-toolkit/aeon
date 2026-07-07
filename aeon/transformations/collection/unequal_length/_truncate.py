@@ -9,6 +9,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
+    _is_positive_integer_length,
+    _validate_positive_integer_length,
 )
 
 
@@ -16,7 +18,7 @@ class Truncator(BaseCollectionTransformer):
     """Truncate unequal length time series to equal, fixed length.
 
     Truncates the input dataset to either a fixed series length or finds the
-    max/min length series across all series and channels and truncates to that.
+    max/min length series across all series and truncates to that.
 
     Parameters
     ----------
@@ -51,6 +53,8 @@ class Truncator(BaseCollectionTransformer):
     }
 
     def __init__(self, truncated_length="min", error_on_short=True):
+        _validate_positive_integer_length(truncated_length, "truncated_length")
+
         self.truncated_length = truncated_length
         self.error_on_short = error_on_short
 
@@ -58,7 +62,7 @@ class Truncator(BaseCollectionTransformer):
 
         self.set_tags(
             **{
-                "fit_is_empty": isinstance(truncated_length, int),
+                "fit_is_empty": _is_positive_integer_length(truncated_length),
                 "removes_unequal_length": error_on_short,
             }
         )
@@ -91,18 +95,20 @@ class Truncator(BaseCollectionTransformer):
         Parameters
         ----------
         X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
-            where length_i can vary between time series.
+            where length_i can vary between time series or 3D numpy of equal length
+            series.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : numpy3D array (n_cases, n_channels, self.truncated_length_)
-            truncated time series from X.
+        Xt : numpy3D array (n_cases, n_channels, self._truncated_length) or list
+            Truncated time series from X. A list is returned when ``error_on_short`` is
+            False because the collection may remain unequal length.
         """
         # Must call fit unless truncated_length is an int
         truncated_length = (
             self.truncated_length
-            if isinstance(self.truncated_length, int)
+            if _is_positive_integer_length(self.truncated_length)
             else self._truncated_length
         )
 
