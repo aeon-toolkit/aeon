@@ -271,3 +271,18 @@ def test_series_to_series_forecast():
 
     with pytest.raises(ValueError, match="must be greater than or equal to 1"):
         f.series_to_series_forecast(y, 0)
+
+
+def test_convert_y_list_inner_type_and_dataframe():
+    """_convert_y handles list y_inner_type tags and DataFrame conversion."""
+    f = NaiveForecaster()
+    f.set_tags(**{"y_inner_type": ["np.ndarray"]})
+    out = f._convert_y(pd.Series(np.arange(5.0)), axis=1)
+    assert isinstance(out, np.ndarray)
+
+    f2 = NaiveForecaster()
+    f2.set_tags(**{"y_inner_type": "pd.DataFrame"})
+    out2 = f2._convert_y(np.arange(5.0), axis=1)
+    assert isinstance(out2, pd.DataFrame)
+    # 1D input with axis=1 is transposed to a single row
+    assert out2.shape == (1, 5)
