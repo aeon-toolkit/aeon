@@ -108,8 +108,15 @@ def test_sklearn_parameter_tuning(parameter_tuning_method):
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
     )
+
+    # seed the search where possible, the unstratified random subsampling in the
+    # halving methods can otherwise produce single class folds which raise an error
+    kwargs = {}
+    if parameter_tuning_method is not GridSearchCV:
+        kwargs["random_state"] = 0
+
     parameter_tuning_method = parameter_tuning_method(
-        clf, param_grid, cv=StratifiedKFold(n_splits=2)
+        clf, param_grid, cv=StratifiedKFold(n_splits=2), **kwargs
     )
     parameter_tuning_method.fit(X, y)
     assert isinstance(
