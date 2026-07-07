@@ -202,6 +202,67 @@ def test_get_leaf_index_and_fit_global_model_branches():
     assert out["model"] is not None and out["predictions"].shape[0] == 5
 
 
+def test_find_cut_point_aicc_criterion():
+    """_find_cut_point computes finite AICc scores on well-conditioned data."""
+    st = SETARTree(lag=2)
+    rng = np.random.default_rng(3)
+    n = 60
+    X = rng.standard_normal((n, 2))
+    y = X @ np.array([1.0, -0.5]) + 0.05 * rng.standard_normal(n)
+    out = st._find_cut_point(X, y, X[:, 0], k=8, criterion="AICc")
+    assert np.isfinite(out["cost"])
+    assert "cut_point" in out
+
+
+def test_get_leaf_index_stops_at_unsplit_node():
+    """_get_leaf_index stops descending when the current node was not split."""
+    st = SETARTree(lag=2)
+    feats = np.array([0.9, 0.1])
+    # root splits on lag 2, but the reached child is a leaf at the next level
+    th_lags = [[1], [0, 0]]
+    thresholds = [[0.5], [0.0, 0.0]]
+    idx = st._get_leaf_index(feats, th_lags, thresholds)
+    assert idx == 0
+
+
+def _simulate_two_regime(n=300, seed=1):
+    """Oscillating 2-regime series so that a split is always worthwhile."""
+    rng = np.random.default_rng(seed)
+    y = np.empty(n)
+    y[0] = 0.0
+    for t in range(1, n):
+        if y[t - 1] <= 0:
+            y[t] = 1.0 + 0.5 * y[t - 1] + 0.05 * rng.standard_normal()
+        else:
+            y[t] = -1.0 + 0.5 * y[t - 1] + 0.05 * rng.standard_normal()
+    return y
+
+
+def test_feature_subset_without_fixed_lag_and_no_seq_significance():
+    """Test feature_subset candidate selection and seq_significance=False."""
+    y = _simulate_two_regime()
+    st = SETARTree(
+        lag=2,
+        feature_subset=[0, 1],
+        stopping_criteria="error_imp",
+        error_threshold=1e-4,
+        seq_significance=False,
+    )
+    st.fit(y)
+    assert st.tree_, "expected at least one split on two-regime data"
+    assert np.isfinite(st.predict(y))
+
+
+def test_predict_uses_full_lags_when_feature_indices_unset():
+    """_predict falls back to the full lag vector when feature_indices_ is None."""
+    y = np.arange(1.0, 41.0)
+    st = SETARTree(lag=3)
+    st.fit(y)
+    st.feature_indices_ = None
+    p = st._predict(y.reshape(1, -1))
+    assert np.isscalar(p) and np.isfinite(p)
+
+
 def test_build_from_embedded_empty_raises_and_flags_and_public_api():
     """Test _build_from_embedded error, build flags, and public API behaviours."""
     y = np.array([[i for i in range(40)]], dtype=float)
