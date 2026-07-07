@@ -90,7 +90,6 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "pytest-env",
     "pytest-doctestplus",
     "pytest-mock",
     "pytest-randomly",
@@ -196,9 +195,6 @@ filterwarnings = [
     "ignore::UserWarning",
     "ignore:numpy.dtype size changed",
     "ignore:numpy.ufunc size changed",
-]
-env = [
-    "NUMBA_DISABLE_JIT=1",
 ]
 
 [tool.codespell]
