@@ -3,7 +3,11 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
+from aeon.forecasting.stats._arima import (
+    ARIMA,
+    AutoARIMA,
+    _exog_as_timepoint_rows,
+)
 
 y = np.array(
     [112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118], dtype=np.float64
@@ -388,3 +392,72 @@ def test_autoarima_passes_exog_correctly():
     pred = model.predict(y_local, exog=next_exog)
     assert np.isfinite(pred)
     assert model.final_model_.exog_ is not None
+
+
+def test_exog_as_timepoint_rows_rejects_scalar():
+    """Zero-dimensional exog input is rejected."""
+    with pytest.raises(ValueError, match="one- or two-dimensional"):
+        _exog_as_timepoint_rows(np.float64(1.0))
+
+
+def test_arima_fit_with_1d_exog():
+    """A 1D exog array is reshaped to a single column in fit."""
+    exog = np.arange(len(y), dtype=np.float64)
+    f = ARIMA(p=1, q=0)
+    f._fit(y.reshape(1, -1), exog=exog)
+    assert f.exog_n_features_ == 1
+
+
+def test_arima_predict_requires_exog_when_fit_with_exog():
+    """Predict raises if the model was fit with exog but none is supplied."""
+    exog = np.arange(len(y), dtype=np.float64)
+    f = ARIMA(p=1, q=0)
+    f._fit(y.reshape(1, -1), exog=exog)
+    with pytest.raises(ValueError, match="exog must be provided"):
+        f._predict(y)
+
+
+def test_arima_predict_1d_exog_variants():
+    """1D exog rows are resolved whether aligned with y, single, or column."""
+    exog = np.arange(len(y), dtype=np.float64)
+    f = ARIMA(p=1, q=0)
+    f._fit(y.reshape(1, -1), exog=exog)
+    # aligned with y: last entry used
+    p1 = f._predict(y, exog=np.arange(len(y), dtype=np.float64))
+    # single future row
+    p2 = f._predict(y, exog=np.array([float(len(y) - 1)]))
+    # neither aligned nor single: treated as a column, last entry used
+    p3 = f._predict(y, exog=np.arange(3.0) + (len(y) - 3))
+    assert np.isclose(p1, p2)
+    assert np.isfinite(p3)
+
+
+def test_arima_iterative_forecast_from_fitted_validation():
+    """Invalid horizons and future exog shapes raise errors."""
+    exog = np.arange(len(y), dtype=np.float64)
+    f = ARIMA(p=1, q=0)
+    f._fit(y.reshape(1, -1), exog=exog)
+    f.is_fitted = True
+    with pytest.raises(ValueError, match="prediction_horizon must be greater"):
+        f._iterative_forecast_from_fitted(0)
+    with pytest.raises(ValueError, match="must have 2 rows"):
+        f._iterative_forecast_from_fitted(2, exog=np.ones((3, 1)))
+    with pytest.raises(ValueError, match="must have 1 columns"):
+        f._iterative_forecast_from_fitted(2, exog=np.ones((2, 3)))
+
+
+def test_auto_arima_differences_trending_series():
+    """A strongly trending series is differenced at least once."""
+    trend = np.arange(60.0) * 5.0 + 10.0
+    f = AutoARIMA()
+    f.fit(trend)
+    assert f.d_ >= 1
+    assert np.isfinite(f.forecast_)
+
+
+def test_auto_arima_zero_order_limits():
+    """max_p=0 and max_q=0 restrict the initial candidate set."""
+    f = AutoARIMA(max_p=0, max_q=0)
+    f.fit(y)
+    assert f.p_ == 0
+    assert f.q_ == 0
