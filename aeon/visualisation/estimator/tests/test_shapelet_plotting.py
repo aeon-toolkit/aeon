@@ -47,7 +47,10 @@ def test_ShapeletVisualizer_init():
 )
 def test_ShapeletVisualizer_plot():
     """Test whether ShapeletVisualizer plot shapelets without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     shp = ShapeletVisualizer(_test_shapelet_values)
     fig = shp.plot()
@@ -62,7 +65,10 @@ def test_ShapeletVisualizer_plot():
 )
 def test_ShapeletVisualizer_plot_on_X():
     """Test whether ShapeletVisualizer plot shapelets on X without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     shp = ShapeletVisualizer(_test_shapelet_values)
     X = make_example_3d_numpy(n_cases=1)[0][0]
@@ -78,7 +84,10 @@ def test_ShapeletVisualizer_plot_on_X():
 )
 def test_ShapeletVisualizer_plot_distance_vector():
     """Test whether ShapeletVisualizer plot distance vectors runs without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     shp = ShapeletVisualizer(_test_shapelet_values)
     X = make_example_3d_numpy(n_cases=1)[0][0]
@@ -95,7 +104,10 @@ def test_ShapeletVisualizer_plot_distance_vector():
 @pytest.mark.parametrize("transformer_class", TRANSFORMERS)
 def test_ShapeletTransformerVisualizer(transformer_class):
     """Test whether ShapeletTransformerVisualizer runs without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     X, y = make_example_3d_numpy()
     shp_transformer = transformer_class(**transformer_class._get_test_params()).fit(
@@ -126,7 +138,10 @@ def test_ShapeletTransformerVisualizer(transformer_class):
 @pytest.mark.parametrize("classifier_class", CLASSIFIERS)
 def test_ShapeletClassifierVisualizer(classifier_class):
     """Test whether ShapeletClassifierVisualizer runs without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     X, y = make_example_3d_numpy()
     shp_transformer = classifier_class(**classifier_class._get_test_params()).fit(X, y)
