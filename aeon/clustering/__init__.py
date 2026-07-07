@@ -2,6 +2,7 @@
 
 __all__ = [
     "BaseClusterer",
+    "TimeSeriesAgglomerative",
     "TimeSeriesKMedoids",
     "TimeSeriesCLARA",
     "TimeSeriesCLARANS",
@@ -14,6 +15,7 @@ __all__ = [
     "DummyClusterer",
 ]
 
+from aeon.clustering._agglomerative import TimeSeriesAgglomerative
 from aeon.clustering._clara import TimeSeriesCLARA
 from aeon.clustering._clarans import TimeSeriesCLARANS
 from aeon.clustering._elastic_som import ElasticSOM

@@ -60,8 +60,9 @@ def check_clusterer_tags_consistent(estimator_class):
         X = np.random.random((10, 2, 10))
         inst = estimator_class._create_test_instance(parameter_set="default")
         inst.fit(X)
-        inst.predict(X)
-        inst.predict_proba(X)
+        if estimator_class.get_class_tag("capability:predict"):
+            inst.predict(X)
+            inst.predict_proba(X)
 
 
 def check_clusterer_does_not_override_final_methods(estimator_class):
@@ -117,16 +118,41 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
 def check_clusterer_output(estimator, datatype):
     """Test clusterer outputs the correct data types and values.
 
-    Test predict produces a np.array or pd.Series with only values seen in the train
-    data, and that predict_proba probability estimates add up to one.
+    Test fit sets labels_ and fit_predict returns it. For clusterers which support
+    out-of-sample prediction, test predict produces a np.array or pd.Series with only
+    values seen in the train data, and that predict_proba probability estimates add
+    up to one. For transductive clusterers (capability:predict tag set to False),
+    test predict and predict_proba raise a NotImplementedError instead.
     """
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
-    # run fit and predict
+    # run fit and check labels_
     data = FULL_TEST_DATA_DICT[datatype]["train"][0]
     estimator.fit(data)
     assert hasattr(estimator, "labels_")
     assert isinstance(estimator.labels_, np.ndarray)
+    assert estimator.labels_.shape == (get_n_cases(data),)
+
+    if not estimator.get_tag("capability:predict"):
+        # transductive clusterers cannot assign clusters to unseen data
+        with pytest.raises(
+            NotImplementedError, match="does not support out-of-sample prediction"
+        ):
+            estimator.predict(data)
+        with pytest.raises(
+            NotImplementedError, match="does not support out-of-sample prediction"
+        ):
+            estimator.predict_proba(data)
+
+        # fit_predict must still work, returning the labels_ of a fit on X
+        labels = estimator.fit_predict(data)
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape == (get_n_cases(data),)
+        assert np.array_equal(labels, estimator.labels_)
+        return
+
     assert np.array_equal(estimator.labels_, estimator.predict(data))
 
     y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])

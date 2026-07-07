@@ -3,9 +3,10 @@
 import numpy as np
 import numpy.random
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from aeon.clustering.base import BaseClusterer
-from aeon.testing.mock_estimators import MockCluster
+from aeon.testing.mock_estimators import MockCluster, MockTransductiveCluster
 
 
 def test_correct_input():
@@ -63,3 +64,80 @@ def test_base_clusterer():
     assert clst.is_fitted
     preds = clst._predict_proba(X)
     assert preds.shape == (10, 1)
+
+
+class _CountingClusterer(BaseClusterer):
+    """Clusterer counting _predict calls, for testing fit_predict independence."""
+
+    def __init__(self):
+        self.predict_calls = 0
+        super().__init__()
+
+    def _fit(self, X, y=None):
+        self.labels_ = np.zeros(shape=(len(X),), dtype=int)
+        return self
+
+    def _predict(self, X):
+        self.predict_calls += 1
+        return np.zeros(shape=(len(X),), dtype=int)
+
+
+def test_fit_predict_returns_labels():
+    """Test fit_predict returns the same labels as fit(X).labels_."""
+    X = np.random.random(size=(10, 1, 20))
+
+    fitted = MockTransductiveCluster().fit(X)
+    labels = MockTransductiveCluster().fit_predict(X)
+    assert np.array_equal(labels, fitted.labels_)
+
+    fitted = MockCluster().fit(X)
+    labels = MockCluster().fit_predict(X)
+    assert np.array_equal(labels, fitted.labels_)
+
+
+def test_fit_predict_does_not_call_predict():
+    """Test fit_predict does not route through predict/_predict."""
+    X = np.random.random(size=(10, 1, 20))
+
+    clst = _CountingClusterer()
+    clst.fit_predict(X)
+    assert clst.predict_calls == 0
+
+    # the transductive mock raises if _predict is ever reached
+    labels = MockTransductiveCluster().fit_predict(X)
+    assert labels.shape == (10,)
+
+
+def test_predict_without_capability_raises():
+    """Test predict raises a clear error when capability:predict is False."""
+    X = np.random.random(size=(10, 1, 20))
+    clst = MockTransductiveCluster()
+
+    assert not clst.get_tag("capability:predict")
+
+    # unfitted estimators still raise the standard fitted-state error
+    with pytest.raises(NotFittedError, match="has not been fitted"):
+        clst.predict(X)
+
+    clst.fit(X)
+    msg = (
+        "MockTransductiveCluster does not support out-of-sample prediction. "
+        r"Use fit_predict\(X\) to cluster a collection, or inspect labels_ "
+        r"after fit\(X\)."
+    )
+    with pytest.raises(NotImplementedError, match=msg):
+        clst.predict(X)
+    with pytest.raises(NotImplementedError, match=msg):
+        clst.predict_proba(X)
+
+
+def test_predict_with_capability():
+    """Test clusterers with out-of-sample prediction support are unaffected."""
+    X = np.random.random(size=(10, 1, 20))
+    clst = MockCluster()
+
+    assert clst.get_tag("capability:predict")
+
+    clst.fit(X)
+    assert clst.predict(X).shape == (10,)
+    assert clst.predict_proba(X).shape == (10,)
