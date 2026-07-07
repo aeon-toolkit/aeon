@@ -139,3 +139,80 @@ def test_dispatch_loss_rejects_invalid_ets_params(params, model):
     result = dispatch_loss(1, params, data, model)
 
     assert np.isinf(result)
+
+
+def test_kpss_test_trend_and_invalid_regression():
+    """KPSS supports trend stationarity and rejects unknown regression."""
+    from aeon.forecasting.utils._hypo_tests import kpss_test
+
+    rng = np.random.default_rng(0)
+    y = 0.5 * np.arange(100.0) + rng.standard_normal(100)
+    stat_ct, stationary_ct = kpss_test(y, regression="ct")
+    assert np.isfinite(stat_ct)
+    stat_lag, _ = kpss_test(y, lags=5)
+    assert np.isfinite(stat_lag)
+    with pytest.raises(ValueError, match="regression must be"):
+        kpss_test(y, regression="bad")
+
+
+def test_acf_degenerate_variance_branches():
+    """Zero-variance segments return 1 (both) or 0 (one side)."""
+    from aeon.forecasting.utils._seasonality import acf
+
+    # both segments constant -> 1.0
+    out = acf(np.ones(20), max_lag=3)
+    assert np.allclose(out, 1.0)
+    # first segment constant, second varying at lag 10 -> 0.0
+    X = np.concatenate([np.ones(10), np.arange(10.0)])
+    out2 = acf(X, max_lag=10)
+    assert out2[9] == 0.0
+
+
+def test_comb_edge_cases():
+    """Binomial coefficient helper returns 0 outside the valid range."""
+    from aeon.forecasting.utils._undifference import _comb
+
+    assert _comb(3, 5) == 0
+    assert _comb(3, -1) == 0
+    assert _comb(5, 4) == 5
+
+
+def test_dispatch_loss_unknown_id_raises():
+    """An unknown loss function id raises a ValueError."""
+    with pytest.raises(ValueError):
+        dispatch_loss(
+            2,
+            np.array([0.5]),
+            np.arange(10.0),
+            np.array([1, 0, 0, 1], dtype=np.int32),
+        )
+
+
+def test_ets_state_and_cycle_validity_guards():
+    """Degenerate states are rejected by the ETS validity helpers."""
+    from aeon.forecasting.utils._loss_functions import (
+        _ets_forecast_cycle_is_valid,
+        _ets_state_is_valid,
+    )
+
+    # non-finite state
+    assert not _ets_state_is_valid(1, 0, 0, np.nan, 0.0, 1.0, 1.0, 0.0)
+    # multiplicative trend with non-positive level
+    assert not _ets_state_is_valid(1, 2, 0, -1.0, 1.0, 1.0, 1.0, 0.0)
+    # multiplicative error with non-positive forecast over the cycle
+    assert not _ets_forecast_cycle_is_valid(2, 0, 0, -5.0, 0.0, np.zeros(1), 1.0, 10, 1)
+
+
+def test_ets_fit_degenerate_data_returns_large_loss():
+    """Invalid initial states and overflowing errors return LARGE_LOSS."""
+    from aeon.forecasting.utils._loss_functions import _ets_fit
+
+    # multiplicative error on negative data -> invalid initial state
+    model = np.array([2, 0, 0, 1], dtype=np.int32)
+    aic = _ets_fit(np.array([0.5]), -np.ones(10), model)[0]
+    assert aic >= 1e10
+    # huge alternating values overflow the squared error sum
+    model_add = np.array([1, 0, 0, 1], dtype=np.int32)
+    data = np.array([1e200, -1e200] * 5)
+    aic2 = _ets_fit(np.array([0.5]), data, model_add)[0]
+    assert aic2 >= 1e10

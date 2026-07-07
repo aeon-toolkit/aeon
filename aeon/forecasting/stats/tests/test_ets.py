@@ -236,7 +236,7 @@ def test_autoets_wrapped_model_parameters_match_selected_types():
 
 def test_autoets_uses_provided_seasonal_period():
     """AutoETS should use a provided seasonal period instead of inferring one."""
-    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
+    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 5)
     y = base + 0.05 * np.sin(np.arange(base.size) * 0.7)
 
     forecaster = AutoETS(seasonal_period=4)
@@ -249,7 +249,7 @@ def test_autoets_uses_provided_seasonal_period():
 
 def test_autoets_provided_seasonal_period_overrides_nonseasonal_aic_winner():
     """A supplied seasonal period should force a seasonal model when possible."""
-    y = np.linspace(10.0, 30.0, 80) + 0.01 * np.sin(np.arange(80))
+    y = np.linspace(10.0, 30.0, 20) + 0.01 * np.sin(np.arange(20))
 
     unconstrained = AutoETS()
     unconstrained.fit(y)
@@ -391,3 +391,46 @@ def test_ets_liklihood_alias_is_deprecated():
     with pytest.warns(DeprecationWarning, match="liklihood_"):
         deprecated_value = f.liklihood_
     assert deprecated_value == f.likelihood_
+
+
+def test_validate_parameter_rejects_invalid_types():
+    """Non-string, non-int parameter values are rejected."""
+    with pytest.raises(ValueError, match="must be either string or integer"):
+        _validate_parameter(2.5, True)
+    with pytest.raises(ValueError, match="must be either string or integer"):
+        _validate_parameter([1], False)
+
+
+def test_ets_initialise_sets_states():
+    """_initialise computes level, trend and seasonality from data."""
+    y = np.arange(1.0, 21.0)
+    f = ETS(error_type=1, trend_type=1, seasonality_type=None)
+    f.fit(y)
+    f._initialise(y)
+    assert np.isfinite(f.level_)
+    assert np.isfinite(f.trend_)
+
+
+def test_ets_iterative_forecast_exog_raises():
+    """ETS and AutoETS iterative_forecast reject exogenous variables."""
+    y = np.arange(1.0, 21.0)
+    exog = np.arange(20.0)
+    with pytest.raises(NotImplementedError, match="ETS does not support exog"):
+        ETS().iterative_forecast(y, prediction_horizon=2, exog=exog)
+    with pytest.raises(NotImplementedError, match="AutoETS does not support exog"):
+        AutoETS().iterative_forecast(y, prediction_horizon=2, future_exog=exog)
+
+
+def test_auto_ets_negative_data_skips_multiplicative():
+    """Series with non-positive values exclude multiplicative candidates."""
+    rng = np.random.default_rng(0)
+    t = np.arange(24.0)
+    y = np.sin(2 * np.pi * t / 4.0) + 0.1 * rng.standard_normal(24) - 0.5
+    assert np.min(y) < 0
+    f = AutoETS(seasonal_period=4, allow_multiplicative_trend=True)
+    f.fit(y)
+    # multiplicative error/trend/seasonality cannot be selected
+    assert f.error_type_ != 2
+    assert f.trend_type_ != 2
+    assert f.seasonality_type_ != 2
+    assert np.isfinite(f.forecast_)
