@@ -332,3 +332,83 @@ def test_tar_validation_errors(kwargs, exc):
     f = TAR(**kwargs)  # type: ignore[arg-type]
     with pytest.raises(exc):
         f.fit(y)
+
+
+def test_tar_too_few_observations_raises():
+    """N <= maxlag raises at fit time."""
+    with pytest.raises(RuntimeError, match="Not enough observations"):
+        TAR(ar_order=(2, 2)).fit(np.array([1.0, 2.0]))
+
+
+def test_tar_zero_order_intercept_only():
+    """ar_order=(0,0) fits intercept-only regimes and predicts them."""
+    rng = np.random.default_rng(0)
+    y = np.concatenate([rng.normal(0.0, 0.1, 30), rng.normal(5.0, 0.1, 30)])
+    f = TAR(threshold=2.5, ar_order=(0, 0)).fit(y)
+    # predictions come straight from the regime intercepts
+    below = f.predict(np.full(10, 0.0))
+    above = f.predict(np.full(10, 5.0))
+    assert np.isclose(below, f.intercept_below_, atol=1e-8)
+    assert np.isclose(above, f.intercept_above_, atol=1e-8)
+
+
+def test_tar_validate_params_errors():
+    """Invalid ar_order values raise from _validate_params."""
+    with pytest.raises(ValueError, match="ar_order int must be >= 0"):
+        TAR(ar_order=-1).fit(np.arange(20.0))
+    with pytest.raises(TypeError, match="ar_order must be int"):
+        TAR(ar_order="two").fit(np.arange(20.0))
+
+
+def test_autotar_fixed_int_order():
+    """A fixed integer ar_order is used for both regimes."""
+    rng = np.random.default_rng(1)
+    y = np.sin(np.arange(60.0)) + 0.1 * rng.standard_normal(60)
+    f = AutoTAR(ar_order=2, max_delay=1).fit(y)
+    assert f.p_below_ == 2 and f.p_above_ == 2
+
+
+def test_autotar_iter_delays_invalid_type():
+    """_iter_delays rejects a non-int, non-None delay."""
+    f = AutoTAR()
+    f.delay = 1.5
+    with pytest.raises(ValueError, match="delay must be int or None"):
+        list(f._iter_delays())
+
+
+def test_autotar_extreme_threshold_no_valid_fit():
+    """A fixed threshold outside the data range leaves no valid split."""
+    y = np.sin(np.arange(40.0))
+    with pytest.raises(RuntimeError, match="No valid AutoTAR fit"):
+        AutoTAR(threshold=1e9, ar_order=1, delay=1).fit(y)
+
+
+def test_autotar_validate_params_errors():
+    """Invalid ar_order configurations raise from _validate_params."""
+    y = np.arange(30.0)
+    with pytest.raises(ValueError, match="ar_order int must be >= 0"):
+        AutoTAR(ar_order=-2).fit(y)
+    with pytest.raises(TypeError, match="length 2"):
+        AutoTAR(ar_order=(1, 2, 3)).fit(y)
+    with pytest.raises(TypeError, match="ar_order must be int"):
+        AutoTAR(ar_order="auto").fit(y)
+
+
+def test_numba_threshold_search_degenerate_inputs():
+    """Empty and single-row designs return early with infinite AIC."""
+    from aeon.forecasting.stats._tar import _numba_threshold_search
+
+    # rows <= 0
+    out = _numba_threshold_search(np.arange(3.0), 3, 3, 1, 0.15, 0.1, 0, 100)
+    assert np.isinf(out[1])
+    # single row -> trimmed span collapses to the median-split fallback
+    out2 = _numba_threshold_search(np.arange(2.0), 1, 1, 1, 0.15, 0.1, 0, 100)
+    assert np.isinf(out2[1])
+
+
+def test_aic_value_edge_cases():
+    """AIC helper handles empty samples and zero RSS."""
+    from aeon.forecasting.stats._tar import _aic_value
+
+    assert np.isinf(_aic_value(1.0, 0, 2))
+    assert np.isfinite(_aic_value(0.0, 10, 2))
