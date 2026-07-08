@@ -27,7 +27,6 @@ class NaiveForecaster(
             - "last" predicts the last value of the input series for all horizon steps.
             - "mean": predicts the mean of the input series for all horizon steps.
             - "seasonal_last": predicts the last season value in the training series.
-              Returns np.nan if the effective seasonal data is empty.
     seasonal_period : int, default=1
         The seasonal period to use for the "seasonal_last" strategy.
         E.g., 12 for monthly data with annual seasonality.
@@ -56,7 +55,8 @@ class NaiveForecaster(
             return np.mean(y_squeezed)
         elif self.strategy == "seasonal_last":
             if (
-                not isinstance(self.seasonal_period, (int, np.integer))
+                isinstance(self.seasonal_period, (bool, np.bool_))
+                or not isinstance(self.seasonal_period, (int, np.integer))
                 or self.seasonal_period < 1
             ):
                 raise ValueError(
