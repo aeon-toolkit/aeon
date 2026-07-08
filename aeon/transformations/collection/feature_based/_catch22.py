@@ -287,20 +287,33 @@ class Catch22(BaseCollectionTransformer):
                     stacklevel=2,
                 )
 
-        c22_list = Parallel(
-            n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(
-                self._transform_case_pycatch22
-                if use_pycatch22_transform
-                else self._transform_case
+        if use_pycatch22_transform:
+            c22_list = Parallel(
+                n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
             )(
-                X[i],
-                f_idx,
-                features,
+                delayed(self._transform_case_pycatch22)(X[i], f_idx, features)
+                for i in range(n_cases)
             )
-            for i in range(n_cases)
-        )
+        else:
+            # The two welch power-spectrum features (indices 15 and 20) each need
+            # np.fft.fft of the mean-centred series. np.fft.fft has a high fixed
+            # per-call cost on short interval series, so compute it once for the
+            # whole batch (all cases share a length) instead of once per case. The
+            # result is bit-identical: a 1D FFT equals the matching row of the
+            # batched FFT, and the subtracted mean uses the same numba mean().
+            fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+
+            c22_list = Parallel(
+                n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
+            )(
+                delayed(self._transform_case)(
+                    X[i],
+                    f_idx,
+                    features,
+                    None if fft_cache is None else fft_cache[i],
+                )
+                for i in range(n_cases)
+            )
 
         c22_array = np.array(c22_list)
         if self.replace_nans:
@@ -308,7 +321,7 @@ class Catch22(BaseCollectionTransformer):
 
         return c22_array
 
-    def _transform_case(self, X, f_idx, features):
+    def _transform_case(self, X, f_idx, features, fft_cache=None):
         c22 = np.zeros(len(f_idx) * len(X))
 
         if hasattr(self, "_transform_features") and len(
@@ -359,10 +372,13 @@ class Catch22(BaseCollectionTransformer):
                     if smean is None:
                         smean = mean(series)
                     if fft is None:
-                        nfft = int(
-                            np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
-                        )
-                        fft = np.fft.fft(series - smean, n=nfft)
+                        if fft_cache is not None:
+                            fft = fft_cache[i]
+                        else:
+                            nfft = int(
+                                np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
+                            )
+                            fft = np.fft.fft(series - smean, n=nfft)
                     args = [series, fft]
                 elif feature == 2 or feature == 3:
                     if ac is None:
@@ -382,6 +398,48 @@ class Catch22(BaseCollectionTransformer):
                     c22[dim + n] = features[feature](*args)
 
         return c22
+
+    def _welch_fft_cache(self, X, f_idx, n_cases):
+        """Batch the welch-feature FFT across all cases when it will be used.
+
+        Returns an array of shape (n_cases, n_channels, nfft) with the FFT of each
+        mean-centred series, or None if the welch features (15/20) are absent, the
+        input is not an equal-length 3D array, or attribute-skipping means neither
+        welch feature will be computed. Matches the per-case computation exactly.
+        """
+        if (15 not in f_idx and 20 not in f_idx) or not (
+            isinstance(X, np.ndarray) and X.ndim == 3
+        ):
+            return None
+
+        n_channels = X.shape[1]
+
+        # Respect the transform_features skip mask set for efficient predictions:
+        # if no welch output is going to be produced, don't build the cache.
+        tf = getattr(self, "_transform_features", None)
+        if tf is not None and len(tf) == len(f_idx) * n_channels:
+            will_run = False
+            for c in range(n_channels):
+                base = c * len(f_idx)
+                for n, feat in enumerate(f_idx):
+                    if (feat == 15 or feat == 20) and tf[base + n]:
+                        will_run = True
+                        break
+                if will_run:
+                    break
+            if not will_run:
+                return None
+
+        m = X.shape[2]
+        nfft = int(np.power(2, np.ceil(np.log(m) / np.log(2))))
+        flat = X.reshape(n_cases * n_channels, m)
+        # Use the same numba mean() as _transform_case so the centred series, and
+        # therefore the FFT, are identical to the per-case path.
+        fmeans = np.empty(flat.shape[0])
+        for i in range(flat.shape[0]):
+            fmeans[i] = mean(flat[i])
+        fft = np.fft.fft(flat - fmeans[:, np.newaxis], n=nfft, axis=1)
+        return fft.reshape(n_cases, n_channels, nfft)
 
     def _transform_case_pycatch22(self, X, f_idx, features):
         c22 = np.zeros(len(f_idx) * len(X))
@@ -907,7 +965,30 @@ def _long_stretch(X_binary, val):
 
 
 @njit(fastmath=True, cache=True)
+def _bit_update(bit, i, n):
+    # Fenwick tree point increment at 1-indexed position i (size n).
+    while i <= n:
+        bit[i] += 1
+        i += i & (-i)
+
+
+@njit(fastmath=True, cache=True)
+def _bit_select(bit, k, n, logn):
+    # Return the 1-indexed position of the k-th smallest present element.
+    pos = 0
+    pw = 1 << logn
+    while pw > 0:
+        nxt = pos + pw
+        if nxt <= n and bit[nxt] < k:
+            pos = nxt
+            k -= bit[nxt]
+        pw >>= 1
+    return pos + 1
+
+
+@njit(fastmath=True, cache=True)
 def _outlier_include(X):
+    n = len(X)
     total = 0
     threshold = 0
     for v in X:
@@ -923,26 +1004,64 @@ def _outlier_include(X):
     means = np.zeros(num_thresholds)
     dists = np.zeros(num_thresholds)
     medians = np.zeros(num_thresholds)
-    for i in range(num_thresholds):
-        d = i * 0.01
 
-        count = 0
-        r = np.zeros(len(X))
-        for n in range(len(X)):
-            if X[n] >= d:
-                r[count] = n + 1
-                count += 1
+    # For each position, membership "X[pos] >= i * 0.01" holds for a contiguous
+    # range of thresholds i = 0 .. k. Bucket each position by its highest such k
+    # (found with the same comparison the original loop used) so thresholds can
+    # be swept without rescanning X. Positions sharing a k are chained via nxt.
+    head = np.full(num_thresholds, -1, dtype=np.int64)
+    nxt = np.full(n, -1, dtype=np.int64)
+    for pos in range(n):
+        x = X[pos]
+        if x < 0:
+            continue
+        k = int(x / 0.01)
+        while k * 0.01 > x:
+            k -= 1
+        while (k + 1) * 0.01 <= x:
+            k += 1
+        if k > num_thresholds - 1:
+            k = num_thresholds - 1
+        nxt[pos] = head[k]
+        head[k] = pos
+
+    logn = 0
+    while (1 << (logn + 1)) <= n:
+        logn += 1
+    bit = np.zeros(n + 1, dtype=np.int64)
+
+    # Sweep thresholds from high to low, inserting positions as they enter the
+    # set. count/min/max update incrementally; the median is read from the
+    # Fenwick tree. This reproduces the per-threshold r-array statistics exactly.
+    count = 0
+    cur_min = n + 1
+    cur_max = -1
+    for i in range(num_thresholds - 1, -1, -1):
+        pos = head[i]
+        while pos != -1:
+            rv = pos + 1
+            _bit_update(bit, rv, n)
+            if rv < cur_min:
+                cur_min = rv
+            if rv > cur_max:
+                cur_max = rv
+            count += 1
+            pos = nxt[pos]
 
         if count == 0:
             continue
 
-        diff = np.zeros(count - 1)
-        for n in range(len(diff)):
-            diff[n] = r[n + 1] - r[n]
+        # mean of consecutive gaps telescopes to (last - first) / (count - 1).
+        means[i] = (cur_max - cur_min) / (count - 1) if count > 1 else 9999999999
+        dists[i] = (count - 1) * 100 / total
 
-        means[i] = np.mean(diff) if len(diff) > 0 else 9999999999
-        dists[i] = len(diff) * 100 / total
-        medians[i] = np.median(r[:count]) / (len(X) / 2) - 1
+        if count % 2 == 1:
+            median_val = _bit_select(bit, (count + 1) // 2, n, logn)
+        else:
+            a = _bit_select(bit, count // 2, n, logn)
+            b = _bit_select(bit, count // 2 + 1, n, logn)
+            median_val = (a + b) / 2.0
+        medians[i] = median_val / (n / 2) - 1
 
     mj = 0
     fbi = num_thresholds - 1
