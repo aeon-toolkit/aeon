@@ -82,6 +82,7 @@ def test_invalid_linkage_raises(linkage):
         {"n_clusters": None, "distance_threshold": None},
         {"n_clusters": 2, "distance_threshold": 1.0},
         {"n_clusters": 21},
+        {"distance_threshold": -1.0},
     ],
 )
 def test_invalid_cluster_settings_raise(params):
