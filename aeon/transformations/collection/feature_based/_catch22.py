@@ -668,49 +668,25 @@ class Catch22(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _SB_MotifThree_quantile_hh(X):
+        # Entropy of adjacent-symbol transitions after 3-symbol coarse-graining.
+        # The original built per-symbol position lists (r1) and per-transition
+        # lists (r2) and trimmed the final position; that is exactly a 3x3 count
+        # of adjacent pairs (yt[p], yt[p+1]) for p in 0..len-2 (the last position
+        # has no successor, which the range already excludes).
         alphabet_size = 3
-        yt = np.zeros(len(X), dtype=np.int32)
+        n = len(X)
+        yt = np.zeros(n, dtype=np.int32)
         _sb_coarsegrain(X, 3, yt)
-        r1 = [np.zeros(len(X), np.int32) for i in range(alphabet_size)]
-        sizes_r1 = np.zeros(alphabet_size, np.int32)
-        for i in range(alphabet_size):
-            r_idx = 0
-            sizes_r1[i] = 0
-            for j in range(len(X)):
-                if yt[j] == i + 1:
-                    r1[i][r_idx] = j
-                    r_idx += 1
-                    sizes_r1[i] += 1
 
-        for i in range(alphabet_size):
-            if sizes_r1[i] != 0 and r1[i][sizes_r1[i] - 1] == len(X) - 1:
-                tmp_ar = np.zeros(sizes_r1[i], np.int32)
-                # isn't this doing the same thing?
-                for x in range(sizes_r1[i]):
-                    tmp_ar[x] = r1[i][x]
-                for y in range(sizes_r1[i] - 1):
-                    r1[i][y] = tmp_ar[y]
-                sizes_r1[i] -= 1
+        counts = np.zeros((alphabet_size, alphabet_size), dtype=np.float64)
+        for p in range(n - 1):
+            counts[yt[p] - 1][yt[p + 1] - 1] += 1.0
 
-        r2 = [
-            [np.zeros(len(X), np.int32) for j in range(alphabet_size)]
-            for i in range(alphabet_size)
-        ]
-        sizes_r2 = [np.zeros(alphabet_size, np.int32) for i in range(alphabet_size)]
-        out2 = [np.zeros(alphabet_size, np.float64) for i in range(alphabet_size)]
-
+        out2 = np.zeros((alphabet_size, alphabet_size), dtype=np.float64)
         for i in range(alphabet_size):
             for j in range(alphabet_size):
-                sizes_r2[i][j] = 0
-                dynamic_idx = 0
-                for k in range(sizes_r1[i]):
-                    tmp_idx = yt[r1[i][k] + 1]
-                    if tmp_idx == j + 1:
-                        r2[i][j][dynamic_idx] = r1[i][k]
-                        dynamic_idx += 1
-                        sizes_r2[i][j] += 1
-                tmp = np.float64(sizes_r2[i][j]) / (np.float64(len(X)) - 1.0)
-                out2[i][j] = tmp
+                out2[i][j] = counts[i][j] / (np.float64(n) - 1.0)
+
         hh = 0.0
         for i in range(alphabet_size):
             f = 0.0
@@ -1597,10 +1573,13 @@ def _sb_coarsegrain(y, num_groups, labels):
     for i in range(num_groups + 1):
         th[i] = _quantile_sorted(tmp, ls[i])
     th[0] -= 1
-    for i in range(num_groups):
-        for j in range(len(y)):
+    # Single pass over y: the group ranges (th[i], th[i+1]] are disjoint, so the
+    # first match is the only match (equivalent to the original num_groups passes).
+    for j in range(len(y)):
+        for i in range(num_groups):
             if y[j] > th[i] and y[j] <= th[i + 1]:
                 labels[j] = i + 1
+                break
 
 
 @njit(fastmath=True, cache=True)
