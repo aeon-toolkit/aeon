@@ -69,6 +69,51 @@ def test_base_predict_proba_is_one_hot_of_predict():
     assert np.all(proba == 1.0)
 
 
+class _NClustersClusterer(BaseClusterer):
+    """Clusterer exposing an ``n_clusters`` attribute, assigning cases round-robin.
+
+    The base ``_predict_proba`` sizes its probability matrix from ``n_clusters``
+    when that attribute is present, and only falls back to ``max(_predict) + 1``
+    when it is ``None``. This mock lets a test drive both branches; ``_predict``
+    returns three distinct clusters (labels 0, 1, 2).
+    """
+
+    def __init__(self, n_clusters):
+        self.n_clusters = n_clusters
+        super().__init__()
+
+    def _fit(self, X, y=None):
+        self.labels_ = np.arange(len(X)) % 3
+        return self
+
+    def _predict(self, X):
+        return np.arange(len(X)) % 3
+
+
+def test_base_predict_proba_width_from_n_clusters_attribute():
+    """Test base ``_predict_proba`` matrix width follows the ``n_clusters`` attribute.
+
+    When a clusterer defines ``n_clusters``, the probability matrix has exactly
+    that many columns (even if wider than the number of clusters actually
+    predicted). When ``n_clusters`` is ``None`` the base falls back to
+    ``max(_predict) + 1`` (here 3, for labels 0, 1, 2). Either way each row is a
+    one-hot of the assigned cluster.
+    """
+    X = np.random.random(size=(9, 1, 20))
+    expected = np.arange(9) % 3
+
+    # explicit n_clusters -> that many columns (line: n_clusters = self.n_clusters)
+    proba = _NClustersClusterer(n_clusters=4).fit(X)._predict_proba(X)
+    assert proba.shape == (9, 4)
+    assert np.all(proba.sum(axis=1) == 1)
+    assert np.array_equal(np.argmax(proba, axis=1), expected)
+
+    # n_clusters is None -> fall back to max(_predict) + 1 == 3
+    proba = _NClustersClusterer(n_clusters=None).fit(X)._predict_proba(X)
+    assert proba.shape == (9, 3)
+    assert np.array_equal(np.argmax(proba, axis=1), expected)
+
+
 def test_fit_predict_returns_labels_from_its_own_fit():
     """Test ``fit_predict(X)`` returns ``labels_`` from the fit it performs.
 
