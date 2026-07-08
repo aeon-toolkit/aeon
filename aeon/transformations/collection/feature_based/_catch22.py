@@ -288,12 +288,8 @@ class Catch22(BaseCollectionTransformer):
                 )
 
         if use_pycatch22_transform:
-            c22_list = Parallel(
-                n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
-                delayed(self._transform_case_pycatch22)(X[i], f_idx, features)
-                for i in range(n_cases)
-            )
+            func = self._transform_case_pycatch22
+            case_args = [(X[i], f_idx, features) for i in range(n_cases)]
         else:
             # The two welch power-spectrum features (indices 15 and 20) each need
             # np.fft.fft of the mean-centred series. np.fft.fft has a high fixed
@@ -302,18 +298,22 @@ class Catch22(BaseCollectionTransformer):
             # result is bit-identical: a 1D FFT equals the matching row of the
             # batched FFT, and the subtracted mean uses the same numba mean().
             fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+            func = self._transform_case
+            case_args = [
+                (X[i], f_idx, features, None if fft_cache is None else fft_cache[i])
+                for i in range(n_cases)
+            ]
 
+        # Run cases sequentially when not parallelising: a joblib Parallel still
+        # wraps every task in delayed() and copies it, which is pure overhead here
+        # (this transform is called once per interval, always with n_jobs=1 inside
+        # the interval forests).
+        if n_jobs == 1:
+            c22_list = [func(*args) for args in case_args]
+        else:
             c22_list = Parallel(
                 n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
-                delayed(self._transform_case)(
-                    X[i],
-                    f_idx,
-                    features,
-                    None if fft_cache is None else fft_cache[i],
-                )
-                for i in range(n_cases)
-            )
+            )(delayed(func)(*args) for args in case_args)
 
         c22_array = np.array(c22_list)
         if self.replace_nans:
