@@ -426,7 +426,10 @@ class Catch22(BaseCollectionTransformer):
                         )
                     if acfz is None:
                         acfz = _ac_first_zero(ac)
-                    args = [series, acfz]
+                    if feature == 12:
+                        args = [series, acfz, ac_tw, ac_nfft]
+                    else:
+                        args = [series, acfz]
                 if feature == 22:
                     c22[dim + n] = smean
                 elif feature == 23:
@@ -735,13 +738,19 @@ class Catch22(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _FC_LocalSimple_mean1_tauresrat(X, acfz):
+    def _FC_LocalSimple_mean1_tauresrat(X, acfz, ac_tw, ac_nfft):
         # Change in correlation length after iterative differencing.
         if len(X) < 2:
             return 0
         res = _local_simple_mean(X, 1)
 
-        ac = _compute_autocorrelations(res)
+        # Reuse the transform's precomputed twiddle table when the differenced
+        # series lands on the same FFT size (it does except for length 2**k + 1);
+        # otherwise fall back to computing them. Bit-identical either way.
+        if ac_tw is not None and _ac_nfft(len(res)) == ac_nfft:
+            ac = _autocorrelations_with_tw(res, ac_tw, ac_nfft)
+        else:
+            ac = _compute_autocorrelations(res)
         return _ac_first_zero(ac) / acfz
 
     @staticmethod
