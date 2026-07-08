@@ -298,9 +298,21 @@ class Catch22(BaseCollectionTransformer):
             # result is bit-identical: a 1D FFT equals the matching row of the
             # batched FFT, and the subtracted mean uses the same numba mean().
             fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+            # The autocorrelation features (2, 3, 8, 10, 12) share the FFT twiddle
+            # table, which depends only on the (common) series length - compute it
+            # once and reuse instead of rebuilding it in every _compute_autocorrelations
+            # call.
+            ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
             func = self._transform_case
             case_args = [
-                (X[i], f_idx, features, None if fft_cache is None else fft_cache[i])
+                (
+                    X[i],
+                    f_idx,
+                    features,
+                    None if fft_cache is None else fft_cache[i],
+                    ac_tw,
+                    ac_nfft,
+                )
                 for i in range(n_cases)
             ]
 
@@ -321,7 +333,24 @@ class Catch22(BaseCollectionTransformer):
 
         return c22_array
 
-    def _transform_case(self, X, f_idx, features, fft_cache=None):
+    def _ac_twiddle_cache(self, X, f_idx):
+        """Precompute the FFT twiddle table shared by the autocorrelation features.
+
+        Features 2, 3, 8, 10 and 12 all need the autocorrelation, whose FFT twiddle
+        factors depend only on the (common) series length. Build them once here and
+        reuse across every case instead of rebuilding per autocorrelation call.
+        Returns (None, 0) for np-list input or when no autocorrelation feature runs.
+        """
+        if not (isinstance(X, np.ndarray) and X.ndim == 3):
+            return None, 0
+        if not any(fi in (2, 3, 8, 10, 12) for fi in f_idx):
+            return None, 0
+        nfft = _ac_nfft(X.shape[2])
+        return _ac_twiddles(nfft), nfft
+
+    def _transform_case(
+        self, X, f_idx, features, fft_cache=None, ac_tw=None, ac_nfft=0
+    ):
         c22 = np.zeros(len(f_idx) * len(X))
 
         if hasattr(self, "_transform_features") and len(
@@ -382,11 +411,19 @@ class Catch22(BaseCollectionTransformer):
                     args = [series, fft]
                 elif feature == 2 or feature == 3:
                     if ac is None:
-                        ac = _compute_autocorrelations(series)
+                        ac = (
+                            _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                            if ac_tw is not None
+                            else _compute_autocorrelations(series)
+                        )
                     args = [ac, len(series)]
                 elif feature == 12 or feature == 10 or feature == 8:
                     if ac is None:
-                        ac = _compute_autocorrelations(series)
+                        ac = (
+                            _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                            if ac_tw is not None
+                            else _compute_autocorrelations(series)
+                        )
                     if acfz is None:
                         acfz = _ac_first_zero(ac)
                     args = [series, acfz]
@@ -1170,21 +1207,46 @@ def _fluct_prop(X, og_length, dfa):
                 buffer[n][j] = X[count]
                 count += 1
 
-        d = np.zeros(tau)
-        for n in range(tau):
-            d[n] = n + 1
+        # Bespoke least squares over the fixed grid d = [1..tau]: its moments are
+        # closed-form and computed once per tau instead of re-summed per window.
+        # For DFA the fluctuation is the residual sum of squares, obtained from
+        # sums (SSR = sumy2 - c1*sumxy - c2*sumy) without detrending in place.
+        sumx = tau * (tau + 1) / 2.0
+        sumx2 = tau * (tau + 1) * (2 * tau + 1) / 6.0
+        denom = tau * sumx2 - sumx * sumx
 
         for n in range(buff_size):
-            c1, c2 = _linear_regression(d, buffer[n], tau, 0)
-
+            sumy = 0.0
+            sumxy = 0.0
+            sumy2 = 0.0
             for j in range(tau):
-                buffer[n][j] = buffer[n][j] - (c1 * (j + 1) + c2)
+                v = buffer[n][j]
+                sumy += v
+                sumxy += (j + 1) * v
+                sumy2 += v * v
+
+            if denom == 0:
+                c1 = 0.0
+                c2 = 0.0
+            else:
+                c1 = (tau * sumxy - sumx * sumy) / denom
+                c2 = (sumy * sumx2 - sumx * sumxy) / denom
 
             if dfa:
-                for j in range(tau):
-                    f[i] += buffer[n][j] * buffer[n][j]
+                ssr = sumy2 - c1 * sumxy - c2 * sumy
+                if ssr < 0.0:
+                    ssr = 0.0
+                f[i] += ssr
             else:
-                f[i] += np.power(np.max(buffer[n]) - np.min(buffer[n]), 2)
+                rmax = -np.inf
+                rmin = np.inf
+                for j in range(tau):
+                    resid = buffer[n][j] - (c1 * (j + 1) + c2)
+                    if resid > rmax:
+                        rmax = resid
+                    if resid < rmin:
+                        rmin = resid
+                f[i] += np.power(rmax - rmin, 2)
 
         if dfa:
             f[i] = np.sqrt(f[i] / (buff_size * tau))
@@ -1492,24 +1554,35 @@ def _verify_features(features, catch24):
 
 
 @njit(fastmath=True, cache=True)
-def _compute_autocorrelations(X):
-    mean = np.mean(X)
-    nFFT = int(np.log2(len(X)))
-    if 2**nFFT == len(X):
-        nFFT = len(X) * 2
+def _ac_nfft(n):
+    nFFT = int(np.log2(n))
+    if 2**nFFT == n:
+        nFFT = n * 2
     else:
         nFFT = (2 ** (nFFT + 1)) * 2
+    return nFFT
+
+
+@njit(fastmath=True, cache=True)
+def _ac_twiddles(nFFT):
+    # FFT twiddle factors; depend only on nFFT so can be reused across the many
+    # autocorrelation calls of a transform (all series share a length).
+    tw = np.zeros(nFFT * 2, dtype=np.complex128)
+    PI = np.pi
+    for i in range(nFFT):
+        tmp = 0.0 - PI * i / nFFT * 1j
+        tw[i] = np.exp(tmp)
+    return tw
+
+
+@njit(fastmath=True, cache=True)
+def _autocorrelations_with_tw(X, tw, nFFT):
+    mean = np.mean(X)
     F = np.zeros(nFFT * 2, dtype=np.complex128)
     for i in range(len(X)):
         F[i] = complex(X[i] - mean, 0.0)
     for i in range(len(X), nFFT):
         F[i] = complex(0.0, 0.0)
-    tw = np.zeros(nFFT * 2, dtype=np.complex128)
-    # twiddles
-    PI = np.pi
-    for i in range(nFFT):
-        tmp = 0.0 - PI * i / nFFT * 1j
-        tw[i] = np.exp(tmp)
     F = _fft(F, tw)
     # dot multiply
     F = np.multiply(F, np.conj(F))
@@ -1520,6 +1593,12 @@ def _compute_autocorrelations(X):
     F = F / divisor
     out = np.real(F)
     return out
+
+
+@njit(fastmath=True, cache=True)
+def _compute_autocorrelations(X):
+    nFFT = _ac_nfft(len(X))
+    return _autocorrelations_with_tw(X, _ac_twiddles(nFFT), nFFT)
 
 
 @njit(fastmath=True, cache=True)
