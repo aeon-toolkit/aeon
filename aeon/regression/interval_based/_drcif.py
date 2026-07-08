@@ -10,7 +10,7 @@ from sklearn.preprocessing import FunctionTransformer
 from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import PeriodogramTransformer
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based import Catch22Fast
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
     row_iqr,
@@ -186,7 +186,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         ]
 
         interval_features = [
-            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            Catch22Fast(outlier_norm=True, use_pycatch22=use_pycatch22),
             row_mean,
             row_std,
             row_slope,

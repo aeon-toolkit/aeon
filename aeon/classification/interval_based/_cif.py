@@ -11,7 +11,7 @@ import numpy as np
 from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based import Catch22Fast
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
@@ -190,7 +190,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             replace_nan = 0
 
         interval_features = [
-            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            Catch22Fast(outlier_norm=True, use_pycatch22=use_pycatch22),
             row_mean,
             row_std,
             row_slope,
