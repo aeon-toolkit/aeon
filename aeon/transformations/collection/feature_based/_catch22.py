@@ -721,6 +721,7 @@ class Catch22(BaseCollectionTransformer):
         return hh
 
     @staticmethod
+    @njit(fastmath=True, cache=True)
     def _FC_LocalSimple_mean1_tauresrat(X, acfz):
         # Change in correlation length after iterative differencing.
         if len(X) < 2:
@@ -1590,8 +1591,11 @@ def _sb_coarsegrain(y, num_groups, labels):
     for i in range(num_groups + 1):
         ls[i] = start
         start += step_size
+    # Sort once and reuse for every quantile: _quantile would otherwise re-sort
+    # the same array num_groups + 1 times.
+    tmp = np.sort(y)
     for i in range(num_groups + 1):
-        th[i] = _quantile(y, ls[i])
+        th[i] = _quantile_sorted(tmp, ls[i])
     th[0] -= 1
     for i in range(num_groups):
         for j in range(len(y)):
@@ -1600,20 +1604,23 @@ def _sb_coarsegrain(y, num_groups, labels):
 
 
 @njit(fastmath=True, cache=True)
-def _quantile(X, quant):
-    tmp = np.sort(X)
-    q = 0.5 / len(X)
+def _quantile_sorted(tmp, quant):
+    # Linear-interpolation quantile of an already-sorted array.
+    n = len(tmp)
+    q = 0.5 / n
     if quant < q:
-        value = tmp[0]
-        return value
+        return tmp[0]
     elif quant > (1 - q):
-        value = tmp[len(X) - 1]
-        return value
+        return tmp[n - 1]
 
-    quant_idx = len(X) * quant - 0.5
+    quant_idx = n * quant - 0.5
     idx_left = int(np.floor(quant_idx))
     idx_right = int(np.ceil(quant_idx))
-    value = tmp[idx_left] + (quant_idx - idx_left) * (
-        tmp[idx_right] - tmp[idx_left]
-    ) / (idx_right - idx_left)
-    return value
+    return tmp[idx_left] + (quant_idx - idx_left) * (tmp[idx_right] - tmp[idx_left]) / (
+        idx_right - idx_left
+    )
+
+
+@njit(fastmath=True, cache=True)
+def _quantile(X, quant):
+    return _quantile_sorted(np.sort(X), quant)
