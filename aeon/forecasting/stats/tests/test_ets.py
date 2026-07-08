@@ -236,7 +236,7 @@ def test_autoets_wrapped_model_parameters_match_selected_types():
 
 def test_autoets_uses_provided_seasonal_period():
     """AutoETS should use a provided seasonal period instead of inferring one."""
-    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 5)
+    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
     y = base + 0.05 * np.sin(np.arange(base.size) * 0.7)
 
     forecaster = AutoETS(seasonal_period=4)
