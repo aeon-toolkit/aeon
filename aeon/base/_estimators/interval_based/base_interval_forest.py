@@ -539,7 +539,7 @@ class BaseIntervalForest(ABC):
             or self.max_interval_length == np.inf
         ):
             self._max_interval_length = [self.max_interval_length] * len(Xt)
-        # max_interval_length must be at less than one if it is a float  (proportion of
+        # max_interval_length must be less than one if it is a float (proportion
         # of the series length)
         elif (
             isinstance(self.max_interval_length, float)
@@ -629,7 +629,7 @@ class BaseIntervalForest(ABC):
                                 self._interval_function[i] = True
                             else:
                                 raise ValueError(
-                                    "Individual items in a interval_features list or "
+                                    "Individual items in an interval_features list or "
                                     "tuple must be a transformer or function. Input "
                                     f"{feature} does not contain only transformers and "
                                     f"functions."
@@ -644,7 +644,7 @@ class BaseIntervalForest(ABC):
                         self._interval_features.append([feature])
                     else:
                         raise ValueError(
-                            "Individual items in a interval_features list or tuple "
+                            "Individual items in an interval_features list or tuple "
                             f"must be a transformer or function. Found {feature}"
                         )
         # use basic summary stats by default if None
@@ -665,8 +665,8 @@ class BaseIntervalForest(ABC):
                 )
 
             self._att_subsample_size = [self.att_subsample_size] * len(Xt)
-        # att_subsample_size must be at less than one if it is a float (proportion of
-        # total attributed to subsample)
+        # att_subsample_size must be less than one if it is a float (proportion of
+        # total attributes to subsample)
         elif isinstance(self.att_subsample_size, float):
             if self.att_subsample_size > 1 or self.att_subsample_size <= 0:
                 raise ValueError(
@@ -1080,11 +1080,9 @@ class BaseIntervalForest(ABC):
         return Xt
 
     def _predict_for_estimator(self, Xt, estimator, intervals, predict_proba=False):
-        interval_features = np.empty((Xt[0].shape[0], 0))
-
-        for r in range(len(Xt)):
-            f = intervals[r].transform(Xt[r])
-            interval_features = np.hstack((interval_features, f))
+        interval_features = np.hstack(
+            [intervals[r].transform(Xt[r]) for r in range(len(Xt))]
+        )
 
         if isinstance(self.replace_nan, str) and self.replace_nan.lower() == "nan":
             interval_features = np.nan_to_num(
