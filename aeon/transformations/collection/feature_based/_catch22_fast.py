@@ -298,9 +298,21 @@ class Catch22Fast(BaseCollectionTransformer):
             # result is bit-identical: a 1D FFT equals the matching row of the
             # batched FFT, and the subtracted mean uses the same numba mean().
             fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+            # The autocorrelation features (2, 3, 8, 10, 12) share the FFT twiddle
+            # table, which depends only on the (common) series length - compute it
+            # once and reuse instead of rebuilding it in every _compute_autocorrelations
+            # call.
+            ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
             func = self._transform_case
             case_args = [
-                (X[i], f_idx, features, None if fft_cache is None else fft_cache[i])
+                (
+                    X[i],
+                    f_idx,
+                    features,
+                    None if fft_cache is None else fft_cache[i],
+                    ac_tw,
+                    ac_nfft,
+                )
                 for i in range(n_cases)
             ]
 
@@ -321,7 +333,24 @@ class Catch22Fast(BaseCollectionTransformer):
 
         return c22_array
 
-    def _transform_case(self, X, f_idx, features, fft_cache=None):
+    def _ac_twiddle_cache(self, X, f_idx):
+        """Precompute the FFT twiddle table shared by the autocorrelation features.
+
+        Features 2, 3, 8, 10 and 12 all need the autocorrelation, whose FFT twiddle
+        factors depend only on the (common) series length. Build them once here and
+        reuse across every case instead of rebuilding per autocorrelation call.
+        Returns (None, 0) for np-list input or when no autocorrelation feature runs.
+        """
+        if not (isinstance(X, np.ndarray) and X.ndim == 3):
+            return None, 0
+        if not any(fi in (2, 3, 8, 10, 12) for fi in f_idx):
+            return None, 0
+        nfft = _ac_nfft(X.shape[2])
+        return _ac_twiddles(nfft), nfft
+
+    def _transform_case(
+        self, X, f_idx, features, fft_cache=None, ac_tw=None, ac_nfft=0
+    ):
         c22 = np.zeros(len(f_idx) * len(X))
 
         if hasattr(self, "_transform_features") and len(
@@ -382,14 +411,25 @@ class Catch22Fast(BaseCollectionTransformer):
                     args = [series, fft]
                 elif feature == 2 or feature == 3:
                     if ac is None:
-                        ac = _compute_autocorrelations(series)
+                        ac = (
+                            _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                            if ac_tw is not None
+                            else _compute_autocorrelations(series)
+                        )
                     args = [ac, len(series)]
                 elif feature == 12 or feature == 10 or feature == 8:
                     if ac is None:
-                        ac = _compute_autocorrelations(series)
+                        ac = (
+                            _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                            if ac_tw is not None
+                            else _compute_autocorrelations(series)
+                        )
                     if acfz is None:
                         acfz = _ac_first_zero(ac)
-                    args = [series, acfz]
+                    if feature == 12:
+                        args = [series, acfz, ac_tw, ac_nfft]
+                    else:
+                        args = [series, acfz]
                 if feature == 22:
                     c22[dim + n] = smean
                 elif feature == 23:
@@ -698,13 +738,33 @@ class Catch22Fast(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _FC_LocalSimple_mean1_tauresrat(X, acfz):
+    def _FC_LocalSimple_mean1_tauresrat(X, acfz, ac_tw, ac_nfft):
         # Change in correlation length after iterative differencing.
         if len(X) < 2:
             return 0
         res = _local_simple_mean(X, 1)
+        m = len(res)
 
-        ac = _compute_autocorrelations(res)
+        # The result is the first lag where the differenced-series autocorrelation
+        # is <= 0, which is almost always lag 1 (differencing induces a strong
+        # negative lag-1 autocorrelation). Scan the centred autocovariance directly
+        # and stop at the first crossing - sign(autocov[k]) == sign(acf[k]) since
+        # autocov[0] > 0 - avoiding the full FFT autocorrelation. Non-exact only at
+        # a near-zero tie.
+        res_mean = np.mean(res)
+        for k in range(1, m):
+            cov = 0.0
+            for i in range(m - k):
+                cov += (res[i] - res_mean) * (res[i + k] - res_mean)
+            if cov <= 0:
+                return k / acfz
+
+        # No crossing among the real lags: fall back to the padded FFT
+        # autocorrelation to match the original exactly (reusing twiddles).
+        if ac_tw is not None and _ac_nfft(m) == ac_nfft:
+            ac = _autocorrelations_with_tw(res, ac_tw, ac_nfft)
+        else:
+            ac = _compute_autocorrelations(res)
         return _ac_first_zero(ac) / acfz
 
     @staticmethod
@@ -1517,24 +1577,35 @@ def _verify_features(features, catch24):
 
 
 @njit(fastmath=True, cache=True)
-def _compute_autocorrelations(X):
-    mean = np.mean(X)
-    nFFT = int(np.log2(len(X)))
-    if 2**nFFT == len(X):
-        nFFT = len(X) * 2
+def _ac_nfft(n):
+    nFFT = int(np.log2(n))
+    if 2**nFFT == n:
+        nFFT = n * 2
     else:
         nFFT = (2 ** (nFFT + 1)) * 2
+    return nFFT
+
+
+@njit(fastmath=True, cache=True)
+def _ac_twiddles(nFFT):
+    # FFT twiddle factors; depend only on nFFT so can be reused across the many
+    # autocorrelation calls of a transform (all series share a length).
+    tw = np.zeros(nFFT * 2, dtype=np.complex128)
+    PI = np.pi
+    for i in range(nFFT):
+        tmp = 0.0 - PI * i / nFFT * 1j
+        tw[i] = np.exp(tmp)
+    return tw
+
+
+@njit(fastmath=True, cache=True)
+def _autocorrelations_with_tw(X, tw, nFFT):
+    mean = np.mean(X)
     F = np.zeros(nFFT * 2, dtype=np.complex128)
     for i in range(len(X)):
         F[i] = complex(X[i] - mean, 0.0)
     for i in range(len(X), nFFT):
         F[i] = complex(0.0, 0.0)
-    tw = np.zeros(nFFT * 2, dtype=np.complex128)
-    # twiddles
-    PI = np.pi
-    for i in range(nFFT):
-        tmp = 0.0 - PI * i / nFFT * 1j
-        tw[i] = np.exp(tmp)
     F = _fft(F, tw)
     # dot multiply
     F = np.multiply(F, np.conj(F))
@@ -1545,6 +1616,12 @@ def _compute_autocorrelations(X):
     F = F / divisor
     out = np.real(F)
     return out
+
+
+@njit(fastmath=True, cache=True)
+def _compute_autocorrelations(X):
+    nFFT = _ac_nfft(len(X))
+    return _autocorrelations_with_tw(X, _ac_twiddles(nFFT), nFFT)
 
 
 @njit(fastmath=True, cache=True)
