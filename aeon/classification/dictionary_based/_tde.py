@@ -784,7 +784,9 @@ class IndividualTDE(BaseClassifier):
 
         super().__init__()
 
-    # todo remove along with BOSS and SFA workarounds when Dict becomes serialisable.
+    # the typed Dict conversion below only applies to models fitted with
+    # older versions of aeon; newly fitted models store bags as arrays,
+    # which pickle natively
     def __getstate__(self):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
