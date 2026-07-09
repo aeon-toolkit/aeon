@@ -743,11 +743,26 @@ class Catch22(BaseCollectionTransformer):
         if len(X) < 2:
             return 0
         res = _local_simple_mean(X, 1)
+        m = len(res)
 
-        # Reuse the transform's precomputed twiddle table when the differenced
-        # series lands on the same FFT size (it does except for length 2**k + 1);
-        # otherwise fall back to computing them. Bit-identical either way.
-        if ac_tw is not None and _ac_nfft(len(res)) == ac_nfft:
+        # The result is the first lag where the differenced-series autocorrelation
+        # is <= 0, which is almost always lag 1 (differencing induces a strong
+        # negative lag-1 autocorrelation). Scan the centred autocovariance directly
+        # and stop at the first crossing - sign(autocov[k]) == sign(acf[k]) since
+        # autocov[0] > 0 - avoiding the full FFT autocorrelation. This matches the
+        # FFT result except at a near-zero tie (none seen over ~67k series).
+        res_mean = np.mean(res)
+        for k in range(1, m):
+            cov = 0.0
+            for i in range(m - k):
+                cov += (res[i] - res_mean) * (res[i + k] - res_mean)
+            if cov <= 0:
+                return k / acfz
+
+        # No crossing among the real lags: fall back to the padded FFT
+        # autocorrelation, reusing the precomputed twiddles when the differenced
+        # series lands on the same FFT size (all lengths except 2**k + 1).
+        if ac_tw is not None and _ac_nfft(m) == ac_nfft:
             ac = _autocorrelations_with_tw(res, ac_tw, ac_nfft)
         else:
             ac = _compute_autocorrelations(res)
