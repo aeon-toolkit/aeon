@@ -29,8 +29,8 @@ norm, levels, MCB equi-depth or IGB binning, bigrams, and binning_bags()
 for multivariate dimension selection.
 """
 
-__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
-__all__ = ["_TDESFA"]
+__maintainer__ = ["TonyBagnall"]
+
 
 import math
 import sys
