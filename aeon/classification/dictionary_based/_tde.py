@@ -17,21 +17,42 @@ from joblib import Parallel, delayed
 from numba import njit, types
 from numba.typed import Dict
 from numba.typed import List as NumbaList
-from sklearn import preprocessing
-from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based._tde_sfa import (
     _TDESFA,
+    combine_dim_bags,
+    loocv_train_acc,
     nn_predict_loocv,
-    nn_similarities,
+    nn_similarities_all,
 )
 from aeon.utils.validation import check_n_jobs
 
 
 def _is_tde_sfa_bags(bags):
     return isinstance(bags, tuple) and len(bags) == 4
+
+
+def _kernel_ridge_preds(x_hist, y_hist, candidates):
+    """Kernel ridge predictions for the ensemble parameter selection.
+
+    The same computation as sklearn StandardScaler + KernelRidge(
+    kernel="poly", degree=1) with default alpha=1, gamma=1/n_features and
+    coef0=1, i.e. linear ridge regression on standardised features in dual
+    form, without the per-call sklearn validation overhead.
+    """
+    mean = x_hist.mean(axis=0)
+    std = x_hist.std(axis=0)
+    std[std == 0.0] = 1.0
+    xs = (x_hist - mean) / std
+    cs = (candidates - mean) / std
+
+    gamma = 1.0 / xs.shape[1]
+    k = xs @ xs.T * gamma + 1.0
+    k.flat[:: k.shape[0] + 1] += 1.0  # alpha = 1 regularisation
+    dual = np.linalg.solve(k, y_hist)
+    return (cs @ xs.T * gamma + 1.0) @ dual
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
@@ -281,6 +302,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             win_inc = 1
 
         possible_parameters = self._unique_parameters(max_window, win_inc)
+        # float array mirror of possible_parameters for the kernel ridge
+        # parameter selection, kept in sync as parameters are popped
+        candidate_parameters = np.array(possible_parameters, dtype=np.float64)
         num_classifiers = 0
         subsample_size = int(self.n_cases_ * 0.7)
         lowest_acc = 1
@@ -315,20 +339,21 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             or num_classifiers < n_parameter_samples
         ) and len(possible_parameters) > 0:
             if num_classifiers < self.randomly_selected_params:
-                parameters = possible_parameters.pop(
-                    rng.randint(0, len(possible_parameters))
-                )
+                idx = rng.randint(0, len(possible_parameters))
             else:
-                scaler = preprocessing.StandardScaler()
-                scaler.fit(self._prev_parameters_x)
-                gp = KernelRidge(kernel="poly", degree=1)
-                gp.fit(
-                    scaler.transform(self._prev_parameters_x), self._prev_parameters_y
+                # kernel ridge regression on standardised parameters, the
+                # same computation as StandardScaler + KernelRidge(
+                # kernel="poly", degree=1) but without the sklearn
+                # per-call validation overhead
+                preds = _kernel_ridge_preds(
+                    np.array(self._prev_parameters_x, dtype=np.float64),
+                    np.array(self._prev_parameters_y, dtype=np.float64),
+                    candidate_parameters,
                 )
-                preds = gp.predict(scaler.transform(possible_parameters))
-                parameters = possible_parameters.pop(
-                    rng.choice(np.flatnonzero(preds == preds.max()))
-                )
+                idx = rng.choice(np.flatnonzero(preds == preds.max()))
+
+            parameters = possible_parameters.pop(idx)
+            candidate_parameters = np.delete(candidate_parameters, idx, axis=0)
 
             while True:
                 subsample = rng.choice(
@@ -512,6 +537,19 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     def _individual_train_acc(self, tde, y, train_size, lowest_acc, keep_train_preds):
         correct = 0
         required_correct = int(lowest_acc * train_size)
+
+        # array bags: run the whole LOOCV in one numba call, computing each
+        # symmetric pair intersection only once. The n x n similarity matrix
+        # is small for typical subsample sizes; fall back for very large n.
+        if _is_tde_sfa_bags(tde._transformed_data) and train_size <= 4096:
+            _, y_codes = np.unique(y, return_inverse=True)
+            n_done, correct, preds = loocv_train_acc(
+                *tde._transformed_data, y_codes.astype(np.int64), required_correct
+            )
+            if keep_train_preds:
+                for i in range(n_done):
+                    tde._train_predictions.append(tde._class_vals[preds[i]])
+            return -1 if correct == -1 else correct / train_size
 
         if self._n_jobs > 1:
             c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
@@ -872,12 +910,14 @@ class IndividualTDE(BaseClassifier):
                 np.ascontiguousarray(X[:, 0, :])
             )
 
-        # pre-build the bag array cache on this thread so the parallel
-        # nearest neighbour search does not race to create it
         if _is_tde_sfa_bags(self._transformed_data):
-            classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(self._test_nn_array_bag)(test_bags, i) for i in range(n_cases)
+            # all test-vs-train similarities in a single numba call, then a
+            # cheap per-case tie-break loop
+            keys1, keys2, counts, t_offsets = test_bags
+            sims = nn_similarities_all(
+                *self._transformed_data, keys1, keys2, counts, t_offsets
             )
+            classes = [self._nn_from_sims(sims[i]) for i in range(n_cases)]
             return np.array(classes)
 
         if len(self._transformed_data) > 0 and isinstance(
@@ -932,75 +972,55 @@ class IndividualTDE(BaseClassifier):
             if hasattr(transformer, "_fit_mft"):
                 transformer._fit_mft = None
 
-    def _test_nn_array_bag(self, test_bags, test_num):
-        rng = check_random_state(self.random_state)
-        keys1, keys2, counts, offsets = test_bags
-        t0, t1 = offsets[test_num], offsets[test_num + 1]
-        sims = nn_similarities(
-            *self._transformed_data,
-            keys1,
-            keys2,
-            counts,
-            t0,
-            t1,
-        )
-
+    def _nn_from_sims(self, sims):
+        # the rng is only consumed on similarity ties, so construct it
+        # lazily: seeding a RandomState per test case is far more expensive
+        # than the tie-break draws themselves
+        rng = None
         best_sim = -1
         nn = None
-        for n, sim in enumerate(sims):
-            if sim > best_sim or (sim == best_sim and rng.random() < 0.5):
+        for n in range(len(sims)):
+            sim = sims[n]
+            if sim > best_sim:
                 best_sim = sim
                 nn = self._class_vals[n]
+            elif sim == best_sim:
+                if rng is None:
+                    rng = check_random_state(self.random_state)
+                if rng.random() < 0.5:
+                    nn = self._class_vals[n]
 
         return nn
 
     def _combine_dim_bags(self, dim_bags, dims, n_cases):
-        lengths = np.zeros(n_cases, dtype=np.int64)
-        for _keys1, _, _, offsets in dim_bags:
-            for n in range(n_cases):
-                lengths[n] += offsets[n + 1] - offsets[n]
+        # per-dimension bags are already sorted, so a numba k-way merge
+        # builds the combined sorted bags without any re-sorting
+        all_k1 = np.concatenate([b[0] for b in dim_bags])
+        all_k2 = np.concatenate([b[1] for b in dim_bags])
+        all_v = np.concatenate([b[2] for b in dim_bags])
+        dim_case_offsets = np.vstack([b[3] for b in dim_bags])
+        sizes = np.array([len(b[0]) for b in dim_bags], dtype=np.int64)
+        dim_starts = np.zeros(len(dim_bags), dtype=np.int64)
+        dim_starts[1:] = np.cumsum(sizes)[:-1]
 
-        offsets = np.zeros(n_cases + 1, dtype=np.int64)
-        offsets[1:] = np.cumsum(lengths)
-        keys1 = np.empty(offsets[-1], dtype=np.int64)
-        keys2 = np.empty(offsets[-1], dtype=np.int64)
-        counts = np.empty(offsets[-1], dtype=np.uint32)
-
-        for n in range(n_cases):
-            pos = offsets[n]
-            for dim_bag, dim in zip(dim_bags, dims):
-                d_keys1, d_keys2, d_counts, d_offsets = dim_bag
-                start, end = d_offsets[n], d_offsets[n + 1]
-                length = end - start
-                if length == 0:
-                    continue
-
-                keys1[pos : pos + length] = d_keys1[start:end]
-                if self.levels > 1:
-                    keys2[pos : pos + length] = (
-                        d_keys2[start:end] << self._highest_dim_bit
-                    ) | dim
-                else:
-                    keys2[pos : pos + length] = dim
-                counts[pos : pos + length] = d_counts[start:end]
-                pos += length
-
-            start, end = offsets[n], offsets[n + 1]
-            order = np.argsort(keys2[start:end], kind="mergesort")
-            k1 = keys1[start:end][order]
-            k2 = keys2[start:end][order]
-            v = counts[start:end][order]
-            order = np.argsort(k1, kind="mergesort")
-            keys1[start:end] = k1[order]
-            keys2[start:end] = k2[order]
-            counts[start:end] = v[order]
-
-        return keys1, keys2, counts, offsets
+        return combine_dim_bags(
+            all_k1,
+            all_k2,
+            all_v,
+            dim_case_offsets,
+            dim_starts,
+            np.asarray(dims, dtype=np.int64),
+            self.levels,
+            self._highest_dim_bit,
+        )
 
     def _select_dims(self, X, y):
         self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
         accs = []
         transformers = []
+
+        _, y_codes = np.unique(y, return_inverse=True)
+        y_codes = y_codes.astype(np.int64)
 
         # select dimensions based on reduced bag size accuracy
         for i in range(self.n_channels_):
@@ -1024,10 +1044,15 @@ class IndividualTDE(BaseClassifier):
             transformers[i].keep_binning_dft = False
             transformers[i]._binning_dft = None
 
-            correct = 0
-            for i in range(self.n_cases_):
-                if self._train_predict(i, sfa) == y[i]:
-                    correct = correct + 1
+            if self.n_cases_ <= 4096:
+                # whole LOOCV in one numba call, each symmetric pair
+                # intersection computed once
+                _, correct, _ = loocv_train_acc(*sfa, y_codes, 0)
+            else:
+                correct = 0
+                for n in range(self.n_cases_):
+                    if self._train_predict(n, sfa) == y[n]:
+                        correct = correct + 1
 
             accs.append(correct)
 

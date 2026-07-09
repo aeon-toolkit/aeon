@@ -297,6 +297,15 @@ def _mft_all(X, window_size, length, norm_offset, inverse_sqrt_win_size):
         phis[i * 2] = math.cos(2 * math.pi * (-i) / window_size)
         phis[i * 2 + 1] = -math.sin(2 * math.pi * (-i) / window_size)
 
+    # cos/sin(2*pi*t*i/w) is periodic in (t*i) mod w, so one table of size
+    # window_size replaces all trig calls in the first-window DFT
+    cos_t = np.empty(window_size)
+    sin_t = np.empty(window_size)
+    for k in range(window_size):
+        angle = 2 * math.pi * k / window_size
+        cos_t[k] = math.cos(angle)
+        sin_t[k] = math.sin(angle)
+
     out_len = length - norm_offset
     out = np.zeros((n_cases, end, out_len))
     mft = np.zeros(length)
@@ -307,12 +316,16 @@ def _mft_all(X, window_size, length, norm_offset, inverse_sqrt_win_size):
 
         # first window: direct DFT, O(window_size * length)
         for i in range(half):
+            step = i % window_size
             real = 0.0
             imag = 0.0
+            idx = 0
             for t in range(window_size):
-                angle = 2 * math.pi * t * i / window_size
-                real += series[t] * math.cos(angle)
-                imag += -series[t] * math.sin(angle)
+                real += series[t] * cos_t[idx]
+                imag += -series[t] * sin_t[idx]
+                idx += step
+                if idx >= window_size:
+                    idx -= window_size
             mft[i * 2] = real
             mft[i * 2 + 1] = imag
 
@@ -345,6 +358,15 @@ def _binning_dft_all(
     output_length = start + dft_length
     c = start // 2
 
+    # cos/sin(2*pi*n*i/w) is periodic in (n*i) mod w, so one table of size
+    # window_size replaces all trig calls
+    cos_t = np.empty(window_size)
+    sin_t = np.empty(window_size)
+    for k in range(window_size):
+        angle = 2 * math.pi * k / window_size
+        cos_t[k] = math.cos(angle)
+        sin_t[k] = math.sin(angle)
+
     out = np.zeros((n_cases, num_windows_per_inst, dft_length))
     for case in range(n_cases):
         series = X[case]
@@ -368,13 +390,17 @@ def _binning_dft_all(
             factor = inverse_sqrt_win_size / std
 
             for i in range(c, output_length // 2):
+                step = i % window_size
                 real = 0.0
                 imag = 0.0
+                idx = 0
                 for n in range(window_size):
                     value = series[offset + n]
-                    angle = 2 * math.pi * n * i / window_size
-                    real += value * math.cos(angle)
-                    imag += -value * math.sin(angle)
+                    real += value * cos_t[idx]
+                    imag += -value * sin_t[idx]
+                    idx += step
+                    if idx >= window_size:
+                        idx -= window_size
                 out[case, window, (i - c) * 2] = real * factor
                 out[case, window, (i - c) * 2 + 1] = imag * factor
 
@@ -699,6 +725,136 @@ def _histogram_intersection(keys1, keys2, counts, a0, a1, b0, b1):
 
 
 @njit(cache=True)
+def combine_dim_bags(
+    all_k1,
+    all_k2,
+    all_v,
+    dim_case_offsets,
+    dim_starts,
+    dims,
+    levels,
+    highest_dim_bit,
+):
+    """Merge per-dimension bags into combined multivariate bags.
+
+    Every per-dimension bag is already sorted by (key1, key2) and the
+    dimension rewrite of key2 ((key2 << highest_dim_bit) | dim for levels
+    > 1, dim otherwise) is monotone, so each stream stays sorted and a
+    k-way merge produces the combined bag in lexicographic order. Keys
+    from different dimensions can never be equal (the dim is in key2), so
+    no aggregation is needed.
+
+    all_* are the per-dimension arrays concatenated in dim order,
+    dim_starts[d] is where dimension d's block begins and
+    dim_case_offsets[d] is dimension d's per-case offsets array.
+    """
+    n_dims = dim_case_offsets.shape[0]
+    n_cases = dim_case_offsets.shape[1] - 1
+    total = all_k1.shape[0]
+
+    out_k1 = np.empty(total, dtype=np.int64)
+    out_k2 = np.empty(total, dtype=np.int64)
+    out_v = np.empty(total, dtype=np.uint32)
+    offsets = np.zeros(n_cases + 1, dtype=np.int64)
+
+    ptr = np.empty(n_dims, dtype=np.int64)
+    end = np.empty(n_dims, dtype=np.int64)
+    cur1 = np.empty(n_dims, dtype=np.int64)
+    cur2 = np.empty(n_dims, dtype=np.int64)
+
+    pos = 0
+    for n in range(n_cases):
+        active = 0
+        for d in range(n_dims):
+            ptr[d] = dim_starts[d] + dim_case_offsets[d, n]
+            end[d] = dim_starts[d] + dim_case_offsets[d, n + 1]
+            if ptr[d] < end[d]:
+                cur1[d] = all_k1[ptr[d]]
+                if levels > 1:
+                    cur2[d] = (all_k2[ptr[d]] << highest_dim_bit) | dims[d]
+                else:
+                    cur2[d] = dims[d]
+                active += 1
+
+        while active > 0:
+            best = -1
+            for d in range(n_dims):
+                if ptr[d] < end[d] and (
+                    best < 0
+                    or cur1[d] < cur1[best]
+                    or (cur1[d] == cur1[best] and cur2[d] < cur2[best])
+                ):
+                    best = d
+
+            out_k1[pos] = cur1[best]
+            out_k2[pos] = cur2[best]
+            out_v[pos] = all_v[ptr[best]]
+            pos += 1
+
+            ptr[best] += 1
+            if ptr[best] < end[best]:
+                cur1[best] = all_k1[ptr[best]]
+                if levels > 1:
+                    cur2[best] = (all_k2[ptr[best]] << highest_dim_bit) | dims[best]
+                else:
+                    cur2[best] = dims[best]
+            else:
+                active -= 1
+
+        offsets[n + 1] = pos
+
+    return out_k1, out_k2, out_v, offsets
+
+
+@njit(cache=True)
+def loocv_train_acc(keys1, keys2, counts, offsets, y_codes, required_correct):
+    """LOOCV 1NN over all bags, computing each pair intersection once.
+
+    The histogram intersection is symmetric, so the full leave-one-out pass
+    only needs the upper triangle of the similarity matrix. Rows are
+    processed in order and the same early-abandon test as the sequential
+    version is applied before each row: if required_correct can no longer
+    be reached, processing stops.
+
+    Returns (n_done, correct, preds): preds[i] is the index of the nearest
+    neighbour of bag i for i < n_done (first maximum, skipping i itself).
+    If the abandon test fired, n_done < n and correct is -1.
+    """
+    n = len(offsets) - 1
+    sims = np.zeros((n, n), dtype=np.int32)
+    preds = np.full(n, -1, dtype=np.int64)
+    correct = 0
+
+    for i in range(n):
+        if correct + n - i < required_correct:
+            return i, -1, preds
+
+        a0, a1 = offsets[i], offsets[i + 1]
+        for j in range(i + 1, n):
+            sim = _histogram_intersection(
+                keys1, keys2, counts, a0, a1, offsets[j], offsets[j + 1]
+            )
+            sims[i, j] = sim
+            sims[j, i] = sim
+
+        best_sim = -1
+        nn = -1
+        for j in range(n):
+            if j == i:
+                continue
+            s = sims[i, j]
+            if s > best_sim:
+                best_sim = s
+                nn = j
+
+        preds[i] = nn
+        if y_codes[nn] == y_codes[i]:
+            correct += 1
+
+    return n, correct, preds
+
+
+@njit(cache=True)
 def nn_predict_loocv(keys1, keys2, counts, offsets, train_num):
     """Index of the 1NN of bag train_num among all other bags."""
     a0, a1 = offsets[train_num], offsets[train_num + 1]
@@ -714,6 +870,39 @@ def nn_predict_loocv(keys1, keys2, counts, offsets, train_num):
             best_sim = sim
             nn = n
     return nn
+
+
+@njit(cache=True)
+def nn_similarities_all(
+    keys1, keys2, counts, offsets, t_keys1, t_keys2, t_counts, t_offsets
+):
+    """Similarities of every test bag against every train bag.
+
+    Returns an (n_test, n_train) int64 matrix in a single call, avoiding
+    per-test-case call overhead.
+    """
+    n_train = len(offsets) - 1
+    n_test = len(t_offsets) - 1
+    sims = np.zeros((n_test, n_train), dtype=np.int64)
+    for t in range(n_test):
+        t0, t1 = t_offsets[t], t_offsets[t + 1]
+        for m in range(n_train):
+            b0, b1 = offsets[m], offsets[m + 1]
+            sim = 0
+            i, j = t0, b0
+            while i < t1 and j < b1:
+                ka1, ka2 = t_keys1[i], t_keys2[i]
+                kb1, kb2 = keys1[j], keys2[j]
+                if ka1 == kb1 and ka2 == kb2:
+                    sim += min(t_counts[i], counts[j])
+                    i += 1
+                    j += 1
+                elif ka1 < kb1 or (ka1 == kb1 and ka2 < kb2):
+                    i += 1
+                else:
+                    j += 1
+            sims[t, m] = sim
+    return sims
 
 
 @njit(cache=True)
