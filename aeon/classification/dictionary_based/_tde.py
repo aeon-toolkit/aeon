@@ -62,8 +62,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series length 'm' with 'd' dimensions
-    TDE searches 'k' parameter values selected using a Gaussian processes
+    Overview: Input 'n' series of length 'm' with 'd' dimensions.
+    TDE searches 'k' parameter values selected using a Gaussian process
     regressor, evaluating each with a LOOCV. It then retains 's'
     ensemble members.
     There are six primary parameters for individual classifiers:
@@ -76,15 +76,15 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     For any combination, an individual TDE classifier slides a window of
     length w along the series. The w length window is shortened to
     an l length word through taking a Fourier transform and keeping the
-    first l/2 complex coefficients. These lcoefficients are then discretised
-    into alpha possible values, to form a word length l using breakpoints
+    first l/2 complex coefficients. These coefficients are then discretised
+    into alpha possible values, to form a word of length l using breakpoints
     found using b. A histogram of words for each series is formed and stored,
     using a spatial pyramid of h levels. For multivariate series, accuracy
     from a reduced histogram is used to select dimensions.
 
     fit involves finding n histograms.
     predict uses 1 nearest neighbour with the histogram intersection
-    distance function.
+    similarity function.
 
     Parameters
     ----------
@@ -113,10 +113,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
     typed_dict : bool, default=True
-        Use a numba typed Dict to store word counts. May increase memory usage, but will
-        be faster for larger datasets. As the Dict cannot be pickled currently, there
-        will be some overhead converting it to a python dict with multiple threads and
-        pickling.
+        Has no effect on newly fitted models: word counts are now stored as
+        sorted arrays. Retained for compatibility when unpickling models
+        fitted with older versions of aeon.
     train_estimate_method : str, default="loocv"
         Method used to generate train estimates in `fit_predict` and
         `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
@@ -248,8 +247,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         """Fit an ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of base TDE classifiers from the training set (X,
-        y), through an optimised selection over the para space to make a fixed size
-        ensemble of the best.
+        y), through an optimised selection over the parameter space to make a
+        fixed size ensemble of the best.
 
         Parameters
         ----------
@@ -596,7 +595,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
                 "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
+                    "capability:contractable" tag to True to test contracting
                     functionality
                 "train_estimate" - used in some classifiers that set the
                     "capability:train_estimate" tag to True to allow for more efficient
@@ -638,20 +637,21 @@ class IndividualTDE(BaseClassifier):
     from [1]_.
 
     Overview: input "n" series of length "m" and IndividualTDE performs a SFA
-    transform to form a sparse dictionary of discretised words. The resulting
-    dictionary is used with the histogram intersection distance function in a
-    1-nearest neighbor.
+    transform to form a sparse histogram of discretised words. The resulting
+    histogram is used with the histogram intersection similarity function in a
+    1-nearest neighbour.
 
     fit involves finding "n" histograms.
 
-    predict uses 1 nearest neighbor with the histogram intersection distance function.
+    predict uses 1 nearest neighbour with the histogram intersection similarity
+    function.
 
     Parameters
     ----------
     window_size : int, default=10
         Size of the window to use in the SFA transform.
     word_length : int, default=8
-        Length of word to use to use in the SFA transform.
+        Length of word to use in the SFA transform.
     norm : bool, default=False
         Whether to normalize SFA words by dropping the first Fourier coefficient.
     levels : int, default=1
@@ -659,24 +659,29 @@ class IndividualTDE(BaseClassifier):
     igb : bool, default=False
         Whether to use Information Gain Binning (IGB) or
         Multiple Coefficient Binning (MCB) for the SFA transform.
-    alphabet_size : default=4
+    alphabet_size : int, default=4
         Number of possible letters (values) for each word.
+
+        .. deprecated:: 1.6.0
+            ``alphabet_size`` is deprecated and will be removed in v1.7.0.
+            The alphabet size is fixed to 4; other values are ignored.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
     dim_threshold : float, default=0.85
         Accuracy threshold as a proportion of the highest accuracy dimension for words
-        extracted from each dimensions. Only applicable for multivariate data.
+        extracted from each dimension. Only applicable for multivariate data.
     max_dims : int, default=20
         Maximum number of dimensions words are extracted from. Only applicable for
         multivariate data.
     typed_dict : bool, default=True
-        Use a numba TypedDict to store word counts. May increase memory usage, but will
-        be faster for larger datasets.
+        Has no effect on newly fitted models: word counts are now stored as
+        sorted arrays. Retained for compatibility when unpickling models
+        fitted with older versions of aeon.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     random_state : int or None, default=None
-        Seed for random, integer.
+        Seed for the random number generator.
 
     Attributes
     ----------
@@ -693,7 +698,7 @@ class IndividualTDE(BaseClassifier):
 
     See Also
     --------
-    TemporalDictinaryEnsemble, SFA
+    TemporalDictionaryEnsemble, SFA
         TDE extends BOSS and uses SFA.
 
     Notes
@@ -846,6 +851,14 @@ class IndividualTDE(BaseClassifier):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
+
+        if self.alphabet_size != 4:
+            warnings.warn(
+                "alphabet_size is deprecated and will be removed in v1.7.0. "
+                "The alphabet size is fixed to 4; other values are ignored.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         # select dimensions using accuracy estimate if multivariate
         if self.n_channels_ > 1:
@@ -1132,22 +1145,23 @@ class IndividualTDE(BaseClassifier):
 
 
 def histogram_intersection(first, second):
-    """Find the distance between two histograms using the histogram intersection.
+    """Find the similarity between two histograms using the histogram intersection.
 
-    This distance function is designed for sparse matrix, represented as a
-    dictionary or numba Dict, but can accept arrays in dense format.
+    This similarity function is designed for sparse histograms represented as
+    a dictionary or numba Dict, but can accept arrays in dense format.
 
     Parameters
     ----------
-    first : dict, numba.Dict or 1 D array of integers
-        First histogram used in distance measurement.
-    second : dict, numba.Dict or 1 D array of integers
-        Second histogram that will be used to measure distance from `first`.
+    first : dict, numba.Dict or 1D array of integers
+        First histogram used in the similarity measurement.
+    second : dict, numba.Dict or 1D array of integers
+        Second histogram that will be used to measure similarity to `first`.
 
     Returns
     -------
-    dist : float
-        The histogram intersection distance between the first and second dictionaries.
+    sim : int
+        The histogram intersection similarity (the sum of minimum counts over
+        shared words) between the first and second histograms.
     """
     if isinstance(first, dict):
         sim = 0
