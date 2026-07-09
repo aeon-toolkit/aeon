@@ -287,20 +287,27 @@ class Catch22(BaseCollectionTransformer):
                     stacklevel=2,
                 )
 
-        c22_list = Parallel(
-            n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(
-                self._transform_case_pycatch22
-                if use_pycatch22_transform
-                else self._transform_case
-            )(
-                X[i],
-                f_idx,
-                features,
-            )
-            for i in range(n_cases)
+        transform_case = (
+            self._transform_case_pycatch22
+            if use_pycatch22_transform
+            else self._transform_case
         )
+
+        if n_jobs == 1:
+            # avoid joblib overhead, this function is often called with a large
+            # number of cases and single threaded i.e. in interval-based forests
+            c22_list = [transform_case(X[i], f_idx, features) for i in range(n_cases)]
+        else:
+            c22_list = Parallel(
+                n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
+            )(
+                delayed(transform_case)(
+                    X[i],
+                    f_idx,
+                    features,
+                )
+                for i in range(n_cases)
+            )
 
         c22_array = np.array(c22_list)
         if self.replace_nans:
