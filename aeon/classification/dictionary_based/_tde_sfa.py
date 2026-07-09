@@ -903,27 +903,3 @@ def nn_similarities_all(
                     j += 1
             sims[t, m] = sim
     return sims
-
-
-@njit(cache=True)
-def nn_similarities(keys1, keys2, counts, offsets, t_keys1, t_keys2, t_counts, t0, t1):
-    """Similarities of one test bag segment against all train bags."""
-    n = len(offsets) - 1
-    sims = np.zeros(n, dtype=np.int64)
-    for m in range(n):
-        b0, b1 = offsets[m], offsets[m + 1]
-        sim = 0
-        i, j = t0, b0
-        while i < t1 and j < b1:
-            ka1, ka2 = t_keys1[i], t_keys2[i]
-            kb1, kb2 = keys1[j], keys2[j]
-            if ka1 == kb1 and ka2 == kb2:
-                sim += min(t_counts[i], counts[j])
-                i += 1
-                j += 1
-            elif ka1 < kb1 or (ka1 == kb1 and ka2 < kb2):
-                i += 1
-            else:
-                j += 1
-        sims[m] = sim
-    return sims

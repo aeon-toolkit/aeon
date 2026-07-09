@@ -29,6 +29,11 @@ from aeon.classification.dictionary_based._tde_sfa import (
 )
 from aeon.utils.validation import check_n_jobs
 
+# largest number of cases for which the LOOCV nearest neighbour search
+# materialises the full similarity matrix (n^2 int32); above this the
+# per-case search is used instead
+_SYMMETRIC_LOOCV_MAX_N = 4096
+
 
 def _is_tde_sfa_bags(bags):
     return isinstance(bags, tuple) and len(bags) == 4
@@ -548,7 +553,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         # array bags: run the whole LOOCV in one numba call, computing each
         # symmetric pair intersection only once. The n x n similarity matrix
         # is small for typical subsample sizes; fall back for very large n.
-        if _is_tde_sfa_bags(tde._transformed_data) and train_size <= 4096:
+        if (
+            _is_tde_sfa_bags(tde._transformed_data)
+            and train_size <= _SYMMETRIC_LOOCV_MAX_N
+        ):
             _, y_codes = np.unique(y, return_inverse=True)
             n_done, correct, preds = loocv_train_acc(
                 *tde._transformed_data, y_codes.astype(np.int64), required_correct
@@ -1073,7 +1081,7 @@ class IndividualTDE(BaseClassifier):
             transformers[i].keep_binning_dft = False
             transformers[i]._binning_dft = None
 
-            if self.n_cases_ <= 4096:
+            if self.n_cases_ <= _SYMMETRIC_LOOCV_MAX_N:
                 # whole LOOCV in one numba call, each symmetric pair
                 # intersection computed once
                 _, correct, _ = loocv_train_acc(*sfa, y_codes, 0)

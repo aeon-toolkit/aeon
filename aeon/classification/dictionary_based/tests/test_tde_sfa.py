@@ -21,8 +21,10 @@ from aeon.classification.dictionary_based._tde_sfa import (
     _igb_all,
     _incremental_stds,
     _mft_all,
+    combine_dim_bags,
+    loocv_train_acc,
     nn_predict_loocv,
-    nn_similarities,
+    nn_similarities_all,
 )
 from aeon.transformations.collection.dictionary_based import SFA as OldSFA
 
@@ -462,32 +464,119 @@ def test_histogram_intersection_and_nearest_neighbour_helpers():
     assert nn_predict_loocv(keys1, keys2, counts, offsets, 0) == 1
 
 
-def test_nn_similarities_returns_one_score_per_train_bag():
-    """Test test-to-train similarity scoring for all stored train bags.
+def test_nn_similarities_all_scores_every_test_train_pair():
+    """Test the batched test-to-train similarity matrix used by predict.
 
-    ``nn_similarities`` is used when predicting new cases. The test asserts
-    that one similarity is returned for each train bag and that the values
-    match the same sorted merge intersection logic used for LOOCV.
+    ``nn_similarities_all`` scores every test bag against every train bag in
+    one call. The fixture includes matching keys, keys on only one side and
+    an empty overlap, checking all merge branches and the matrix layout.
     """
     train_keys1 = np.array([1, 3, 5, 2, 5], dtype=np.int64)
     train_keys2 = np.array([0, 0, 0, 0, 0], dtype=np.int64)
     train_counts = np.array([2, 1, 4, 3, 2], dtype=np.uint32)
-    offsets = np.array([0, 3, 5], dtype=np.int64)
+    train_offsets = np.array([0, 3, 5], dtype=np.int64)
 
-    test_keys1 = np.array([1, 4, 5], dtype=np.int64)
-    test_keys2 = np.array([0, 0, 0], dtype=np.int64)
-    test_counts = np.array([1, 7, 1], dtype=np.uint32)
+    test_keys1 = np.array([1, 4, 5, 9], dtype=np.int64)
+    test_keys2 = np.array([0, 0, 0, 0], dtype=np.int64)
+    test_counts = np.array([1, 7, 1, 2], dtype=np.uint32)
+    test_offsets = np.array([0, 3, 4], dtype=np.int64)
 
-    sims = nn_similarities(
+    sims = nn_similarities_all(
         train_keys1,
         train_keys2,
         train_counts,
-        offsets,
+        train_offsets,
         test_keys1,
         test_keys2,
         test_counts,
-        0,
-        3,
+        test_offsets,
     )
 
-    np.testing.assert_array_equal(sims, np.array([2, 1]))
+    # test bag 0 = {1:1, 4:7, 5:1}: min counts against {1:2, 3:1, 5:4} and
+    # {2:3, 5:2}; test bag 1 = {9:2} shares no keys with either train bag
+    np.testing.assert_array_equal(sims, np.array([[2, 1], [0, 0]]))
+
+
+def test_loocv_train_acc_predictions_and_early_abandon():
+    """Test the symmetric LOOCV kernel used for member accuracy estimates.
+
+    Bags 0 and 1 are near-identical and share a class, bag 2 is distinct, so
+    every leave-one-out prediction is derivable by hand. With an unreachable
+    required_correct the kernel must stop before completing all rows and
+    report the abandon sentinel instead of an accuracy count.
+    """
+    # bag 0 = {1:2, 3:1}, bag 1 = {1:2, 3:2}, bag 2 = {9:5}
+    keys1 = np.array([1, 3, 1, 3, 9], dtype=np.int64)
+    keys2 = np.zeros(5, dtype=np.int64)
+    counts = np.array([2, 1, 2, 2, 5], dtype=np.uint32)
+    offsets = np.array([0, 2, 4, 5], dtype=np.int64)
+    y_codes = np.array([0, 0, 1], dtype=np.int64)
+
+    n_done, correct, preds = loocv_train_acc(keys1, keys2, counts, offsets, y_codes, 0)
+
+    assert n_done == 3
+    # bags 0 and 1 pick each other (correct); bag 2 shares no words with
+    # either neighbour, ties at similarity 0 and takes the first, bag 0
+    np.testing.assert_array_equal(preds, np.array([1, 0, 0]))
+    assert correct == 2
+
+    # with these labels bag 0 is mispredicted immediately, making three
+    # correct predictions unreachable, so the pass abandons before row 1
+    y_wrong = np.array([1, 0, 0], dtype=np.int64)
+    n_done, correct, _ = loocv_train_acc(keys1, keys2, counts, offsets, y_wrong, 3)
+
+    assert correct == -1
+    assert n_done == 1
+
+
+def test_combine_dim_bags_merges_sorted_per_dimension_streams():
+    """Test the k-way merge that builds multivariate bags.
+
+    Two single-case dimension bags are merged for levels > 1: unigram key2
+    values are shifted and tagged with their dimension, the bigram key2 of -1
+    keeps its negative tag, and the output must be sorted with all counts
+    preserved (no keys from different dimensions may combine).
+    """
+    # dim 3: keys (5, -1) bigram and (5, 0) unigram; dim 6: key (5, 1)
+    all_k1 = np.array([5, 5, 5], dtype=np.int64)
+    all_k2 = np.array([-1, 0, 1], dtype=np.int64)
+    all_v = np.array([2, 3, 4], dtype=np.uint32)
+    dim_case_offsets = np.array([[0, 2], [0, 1]], dtype=np.int64)
+    dim_starts = np.array([0, 2], dtype=np.int64)
+    dims = np.array([3, 6], dtype=np.int64)
+    highest_dim_bit = 3
+
+    keys1, keys2, counts, offsets = combine_dim_bags(
+        all_k1, all_k2, all_v, dim_case_offsets, dim_starts, dims, 2, highest_dim_bit
+    )
+
+    np.testing.assert_array_equal(offsets, np.array([0, 3]))
+    np.testing.assert_array_equal(keys1, np.array([5, 5, 5]))
+    # (-1 << 3) | 3 = -5 sorts first, then (0 << 3) | 3 = 3, then
+    # (1 << 3) | 6 = 14
+    np.testing.assert_array_equal(keys2, np.array([-5, 3, 14]))
+    np.testing.assert_array_equal(counts, np.array([2, 3, 4]))
+
+
+def test_combine_dim_bags_uses_dimension_as_key2_for_flat_bags():
+    """Test the k-way merge key encoding when levels == 1.
+
+    Flat bags store the dimension itself in key2, so equal words from
+    different dimensions must stay separate rows, interleaved in sorted
+    (key1, key2) order.
+    """
+    all_k1 = np.array([5, 7, 5], dtype=np.int64)
+    all_k2 = np.zeros(3, dtype=np.int64)
+    all_v = np.array([1, 2, 3], dtype=np.uint32)
+    dim_case_offsets = np.array([[0, 2], [0, 1]], dtype=np.int64)
+    dim_starts = np.array([0, 2], dtype=np.int64)
+    dims = np.array([0, 4], dtype=np.int64)
+
+    keys1, keys2, counts, offsets = combine_dim_bags(
+        all_k1, all_k2, all_v, dim_case_offsets, dim_starts, dims, 1, 3
+    )
+
+    np.testing.assert_array_equal(keys1, np.array([5, 5, 7]))
+    np.testing.assert_array_equal(keys2, np.array([0, 4, 0]))
+    np.testing.assert_array_equal(counts, np.array([1, 3, 2]))
+    np.testing.assert_array_equal(offsets, np.array([0, 3]))
