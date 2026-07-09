@@ -344,6 +344,48 @@ class SFA(BaseCollectionTransformer):
         else:
             dfts = supplied_dft
 
+        # fast path: build the whole bag in a single numba call, avoiding
+        # per-window typed Dict operations from Python
+        if self._typed_dict and not self.skip_grams and self.max_bits <= 64:
+            if self.levels > 1:
+                bag, words = _create_bag_pyramid(
+                    dfts,
+                    self.breakpoints,
+                    self.word_length,
+                    self.alphabet_size,
+                    self.letter_bits,
+                    self.word_bits,
+                    self.remove_repeat_words,
+                    self.bigrams,
+                    self.window_size,
+                    self.levels,
+                    self.n_timepoints,
+                )
+            else:
+                bag, words = _create_bag_flat(
+                    dfts,
+                    self.breakpoints,
+                    self.word_length,
+                    self.alphabet_size,
+                    self.letter_bits,
+                    self.word_bits,
+                    self.remove_repeat_words,
+                    self.bigrams,
+                    self.window_size,
+                )
+
+            # can't pickle typed dict
+            if self._n_jobs != 1:
+                pdict = dict()
+                for key, val in bag.items():
+                    pdict[key] = val
+                bag = pdict
+
+            return [
+                bag,
+                words if self.save_words else [],
+            ]
+
         if self._typed_dict:
             bag = (
                 Dict.empty(
@@ -544,8 +586,8 @@ class SFA(BaseCollectionTransformer):
         breakpoints = np.zeros((self.word_length, self.alphabet_size))
 
         for letter in range(self.word_length):
-            res = [round(dft[i][letter] * 100) / 100 for i in range(total_num_windows)]
-            column = np.sort(np.array(res))
+            # np.rint rounds half to even, same as the builtin round
+            column = np.sort(np.rint(dft[:total_num_windows, letter] * 100) / 100)
 
             bin_index = 0
 
@@ -606,23 +648,17 @@ class SFA(BaseCollectionTransformer):
         return np.sort(breakpoints, axis=1)
 
     def _binning_dft(self, series, num_windows_per_inst):
-        # Splits individual time series into windows and returns the DFT for
-        # each
-        split = np.split(
-            series,
-            np.linspace(
-                self.window_size,
-                self.window_size * (num_windows_per_inst - 1),
-                num_windows_per_inst - 1,
-                dtype=np.int_,
-            ),
-        )
-        start = self.n_timepoints - self.window_size
-        split[-1] = series[start : self.n_timepoints]
+        # Splits individual time series into non-overlapping windows and
+        # returns the DFT for each, the last window is aligned to the series
+        # end
+        result = np.zeros((num_windows_per_inst, self.dft_length), dtype=np.float64)
 
-        result = np.zeros((len(split), self.dft_length), dtype=np.float64)
+        for i in range(num_windows_per_inst):
+            if i == num_windows_per_inst - 1:
+                row = series[self.n_timepoints - self.window_size : self.n_timepoints]
+            else:
+                row = series[i * self.window_size : (i + 1) * self.window_size]
 
-        for i, row in enumerate(split):
             result[i] = (
                 self._discrete_fourier_transform(
                     row,
@@ -1175,6 +1211,113 @@ class SFA(BaseCollectionTransformer):
         # small window size for testing
         params = {"window_size": 4}
         return params
+
+
+# key types for the numba bag builders, must be created outside of njit code
+_flat_key_type = types.int64
+_pyramid_key_type = types.UniTuple(types.int64, 2)
+
+
+@njit(fastmath=True, cache=True)
+def _create_bag_flat(
+    dfts,
+    breakpoints,
+    word_length,
+    alphabet_size,
+    letter_bits,
+    word_bits,
+    remove_repeat_words,
+    bigrams,
+    window_size,
+):
+    """Build a whole bag of words (levels == 1) in a single numba call.
+
+    Replicates the per-window loop in _transform_case for typed Dict bags,
+    avoiding repeated Python/numba boundary crossings.
+    """
+    bag = Dict.empty(key_type=_flat_key_type, value_type=types.uint32)
+    n_windows = dfts.shape[0]
+    words = np.zeros(n_windows, dtype=np.int64)
+
+    last_word = np.int64(-1)
+    for window in range(n_windows):
+        word = np.int64(0)
+        for i in range(word_length):
+            for bp in range(alphabet_size):
+                if dfts[window, i] <= breakpoints[i, bp]:
+                    word = (word << letter_bits) | bp
+                    break
+        words[window] = word
+
+        if remove_repeat_words and word == last_word:
+            pass
+        else:
+            bag[word] = bag.get(word, np.uint32(0)) + np.uint32(1)
+            last_word = word
+
+        if bigrams and window - window_size >= 0:
+            bigram = (words[window - window_size] << word_bits) | word
+            bag[bigram] = bag.get(bigram, np.uint32(0)) + np.uint32(1)
+
+    return bag, words
+
+
+@njit(fastmath=True, cache=True)
+def _create_bag_pyramid(
+    dfts,
+    breakpoints,
+    word_length,
+    alphabet_size,
+    letter_bits,
+    word_bits,
+    remove_repeat_words,
+    bigrams,
+    window_size,
+    levels,
+    n_timepoints,
+):
+    """Build a whole spatial pyramid bag (levels > 1) in a single numba call.
+
+    Replicates the per-window loop in _transform_case for typed Dict bags,
+    avoiding repeated Python/numba boundary crossings.
+    """
+    bag = Dict.empty(key_type=_pyramid_key_type, value_type=types.uint32)
+    n_windows = dfts.shape[0]
+    words = np.zeros(n_windows, dtype=np.int64)
+
+    last_word = np.int64(-1)
+    repeat_words = 0
+    for window in range(n_windows):
+        word = np.int64(0)
+        for i in range(word_length):
+            for bp in range(alphabet_size):
+                if dfts[window, i] <= breakpoints[i, bp]:
+                    word = (word << letter_bits) | bp
+                    break
+        words[window] = word
+
+        if remove_repeat_words and word == last_word:
+            repeat_words += 1
+        else:
+            window_ind = window - repeat_words // 2
+            start = 0
+            for level in range(levels):
+                num_quadrants = 2**level
+                quadrant = start + (window_ind + window_size // 2) // (
+                    n_timepoints // num_quadrants
+                )
+                key = (word, np.int64(quadrant))
+                bag[key] = bag.get(key, np.uint32(0)) + np.uint32(num_quadrants)
+                start += num_quadrants
+            last_word = word
+            repeat_words = 0
+
+        if bigrams and window - window_size >= 0:
+            bigram = (words[window - window_size] << word_bits) | word
+            key = (bigram, np.int64(-1))
+            bag[key] = bag.get(key, np.uint32(0)) + np.uint32(1)
+
+    return bag, words
 
 
 @njit(cache=True, fastmath=True)
