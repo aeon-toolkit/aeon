@@ -11,7 +11,6 @@ import math
 import os
 import time
 import warnings
-from collections import defaultdict
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -23,8 +22,16 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.dictionary_based import SFA
+from aeon.classification.dictionary_based._tde_sfa import (
+    _TDESFA,
+    nn_predict_loocv,
+    nn_similarities,
+)
 from aeon.utils.validation import check_n_jobs
+
+
+def _is_tde_sfa_bags(bags):
+    return isinstance(bags, tuple) and len(bags) == 4
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
@@ -739,7 +746,12 @@ class IndividualTDE(BaseClassifier):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
         state["_bags_cache"] = None
-        if self._typed_dict:
+        if (
+            self._typed_dict
+            and not _is_tde_sfa_bags(state["_transformed_data"])
+            and len(state["_transformed_data"]) > 0
+            and isinstance(state["_transformed_data"][0], Dict)
+        ):
             nl = [None] * len(self._transformed_data)
             for i, ndict in enumerate(state["_transformed_data"]):
                 pdict = dict()
@@ -753,7 +765,12 @@ class IndividualTDE(BaseClassifier):
         """Set current state using input pickling, required for typed Dict objects."""
         self.__dict__.update(state)
         self._bags_cache = None
-        if self._typed_dict:
+        if (
+            self._typed_dict
+            and not _is_tde_sfa_bags(self._transformed_data)
+            and len(self._transformed_data) > 0
+            and isinstance(self._transformed_data[0], dict)
+        ):
             nl = [None] * len(self._transformed_data)
             for i, pdict in enumerate(self._transformed_data):
                 ndict = (
@@ -795,64 +812,36 @@ class IndividualTDE(BaseClassifier):
         # select dimensions using accuracy estimate if multivariate
         if self.n_channels_ > 1:
             self._dims, self._transformers = self._select_dims(X, y)
-
-            words = (
-                [
-                    Dict.empty(
-                        key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
-                    )
-                    for _ in range(self.n_cases_)
-                ]
-                if self._typed_dict
-                else [defaultdict(int) for _ in range(self.n_cases_)]
+            dim_words = [
+                self._transformers[i].transform(self._transformers[i]._fit_X)
+                for i in range(len(self._dims))
+            ]
+            self._transformed_data = self._combine_dim_bags(
+                dim_words, self._dims, self.n_cases_
             )
-
-            for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(self.n_cases_, 1, self.n_timepoints_)
-                dim_words = self._transformers[i].transform(X_dim, y)
-                dim_words = dim_words[0]
-
-                for n in range(self.n_cases_):
-                    if self._typed_dict:
-                        for word, count in dim_words[n].items():
-                            if self.levels > 1:
-                                words[n][
-                                    (word[0], word[1] << self._highest_dim_bit | dim)
-                                ] = count
-                            else:
-                                words[n][(word, dim)] = count
-                    else:
-                        for word, count in dim_words[n].items():
-                            words[n][word << self._highest_dim_bit | dim] = count
-
-            self._transformed_data = words
         else:
             self._transformers.append(
-                SFA(
+                _TDESFA(
                     word_length=self.word_length,
-                    alphabet_size=self.alphabet_size,
                     window_size=self.window_size,
                     norm=self.norm,
                     levels=self.levels,
                     binning_method="information-gain" if self.igb else "equi-depth",
                     bigrams=self.bigrams,
-                    remove_repeat_words=True,
-                    lower_bounding=False,
-                    save_words=False,
-                    use_fallback_dft=True,
-                    typed_dict=self.typed_dict,
-                    n_jobs=self._n_jobs,
                 )
             )
-            # todo use fit_transform when SFA is interface compliant
-            self._transformers[0].fit(X, y)
-            sfa = self._transformers[0].transform(X, y)
-            self._transformed_data = sfa[0]
+            self._transformed_data = self._transformers[0].fit_transform(
+                np.ascontiguousarray(X[:, 0, :]), y
+            )
+
+        self._clear_transformer_fit_cache()
 
         # pre-build the bag array cache on this thread so the parallel
         # nearest neighbour search does not race to create it
-        if len(self._transformed_data) > 0 and isinstance(
-            self._transformed_data[0], Dict
+        if (
+            not _is_tde_sfa_bags(self._transformed_data)
+            and len(self._transformed_data) > 0
+            and isinstance(self._transformed_data[0], Dict)
         ):
             self._get_bag_arrays(self._transformed_data)
 
@@ -873,42 +862,24 @@ class IndividualTDE(BaseClassifier):
         n_cases = X.shape[0]
 
         if self.n_channels_ > 1:
-            words = (
-                [
-                    Dict.empty(
-                        key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
-                    )
-                    for _ in range(n_cases)
-                ]
-                if self._typed_dict
-                else [defaultdict(int) for _ in range(n_cases)]
-            )
-
-            for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(n_cases, 1, self.n_timepoints_)
-                dim_words = self._transformers[i].transform(X_dim)
-                dim_words = dim_words[0]
-
-                for n in range(n_cases):
-                    if self._typed_dict:
-                        for word, count in dim_words[n].items():
-                            if self.levels > 1:
-                                words[n][
-                                    (word[0], word[1] << self._highest_dim_bit | dim)
-                                ] = count
-                            else:
-                                words[n][(word, dim)] = count
-                    else:
-                        for word, count in dim_words[n].items():
-                            words[n][word << self._highest_dim_bit | dim] = count
-
-            test_bags = words
+            dim_words = [
+                self._transformers[i].transform(np.ascontiguousarray(X[:, dim, :]))
+                for i, dim in enumerate(self._dims)
+            ]
+            test_bags = self._combine_dim_bags(dim_words, self._dims, n_cases)
         else:
-            test_bags = self._transformers[0].transform(X)
-            test_bags = test_bags[0]
+            test_bags = self._transformers[0].transform(
+                np.ascontiguousarray(X[:, 0, :])
+            )
 
         # pre-build the bag array cache on this thread so the parallel
         # nearest neighbour search does not race to create it
+        if _is_tde_sfa_bags(self._transformed_data):
+            classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                delayed(self._test_nn_array_bag)(test_bags, i) for i in range(n_cases)
+            )
+            return np.array(classes)
+
         if len(self._transformed_data) > 0 and isinstance(
             self._transformed_data[0], Dict
         ):
@@ -954,6 +925,78 @@ class IndividualTDE(BaseClassifier):
 
         return nn
 
+    def _clear_transformer_fit_cache(self):
+        for transformer in self._transformers:
+            if hasattr(transformer, "_fit_X"):
+                transformer._fit_X = None
+            if hasattr(transformer, "_fit_mft"):
+                transformer._fit_mft = None
+
+    def _test_nn_array_bag(self, test_bags, test_num):
+        rng = check_random_state(self.random_state)
+        keys1, keys2, counts, offsets = test_bags
+        t0, t1 = offsets[test_num], offsets[test_num + 1]
+        sims = nn_similarities(
+            *self._transformed_data,
+            keys1,
+            keys2,
+            counts,
+            t0,
+            t1,
+        )
+
+        best_sim = -1
+        nn = None
+        for n, sim in enumerate(sims):
+            if sim > best_sim or (sim == best_sim and rng.random() < 0.5):
+                best_sim = sim
+                nn = self._class_vals[n]
+
+        return nn
+
+    def _combine_dim_bags(self, dim_bags, dims, n_cases):
+        lengths = np.zeros(n_cases, dtype=np.int64)
+        for _keys1, _, _, offsets in dim_bags:
+            for n in range(n_cases):
+                lengths[n] += offsets[n + 1] - offsets[n]
+
+        offsets = np.zeros(n_cases + 1, dtype=np.int64)
+        offsets[1:] = np.cumsum(lengths)
+        keys1 = np.empty(offsets[-1], dtype=np.int64)
+        keys2 = np.empty(offsets[-1], dtype=np.int64)
+        counts = np.empty(offsets[-1], dtype=np.uint32)
+
+        for n in range(n_cases):
+            pos = offsets[n]
+            for dim_bag, dim in zip(dim_bags, dims):
+                d_keys1, d_keys2, d_counts, d_offsets = dim_bag
+                start, end = d_offsets[n], d_offsets[n + 1]
+                length = end - start
+                if length == 0:
+                    continue
+
+                keys1[pos : pos + length] = d_keys1[start:end]
+                if self.levels > 1:
+                    keys2[pos : pos + length] = (
+                        d_keys2[start:end] << self._highest_dim_bit
+                    ) | dim
+                else:
+                    keys2[pos : pos + length] = dim
+                counts[pos : pos + length] = d_counts[start:end]
+                pos += length
+
+            start, end = offsets[n], offsets[n + 1]
+            order = np.argsort(keys2[start:end], kind="mergesort")
+            k1 = keys1[start:end][order]
+            k2 = keys2[start:end][order]
+            v = counts[start:end][order]
+            order = np.argsort(k1, kind="mergesort")
+            keys1[start:end] = k1[order]
+            keys2[start:end] = k2[order]
+            counts[start:end] = v[order]
+
+        return keys1, keys2, counts, offsets
+
     def _select_dims(self, X, y):
         self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
         accs = []
@@ -963,37 +1006,27 @@ class IndividualTDE(BaseClassifier):
         for i in range(self.n_channels_):
             self._dims.append(i)
             transformers.append(
-                SFA(
+                _TDESFA(
                     word_length=self.word_length,
-                    alphabet_size=self.alphabet_size,
                     window_size=self.window_size,
                     norm=self.norm,
                     levels=self.levels,
                     binning_method="information-gain" if self.igb else "equi-depth",
                     bigrams=self.bigrams,
-                    remove_repeat_words=True,
-                    lower_bounding=False,
-                    save_words=False,
                     keep_binning_dft=True,
-                    use_fallback_dft=True,
-                    typed_dict=self.typed_dict,
-                    n_jobs=self._n_jobs,
                 )
             )
 
-            X_dim = X[:, i, :].reshape(self.n_cases_, 1, self.n_timepoints_)
+            X_dim = np.ascontiguousarray(X[:, i, :])
 
             transformers[i].fit(X_dim, y)
-            sfa = transformers[i].transform(
-                X_dim,
-                y,
-            )
+            sfa = transformers[i].binning_bags()
             transformers[i].keep_binning_dft = False
-            transformers[i].binning_dft = None
+            transformers[i]._binning_dft = None
 
             correct = 0
             for i in range(self.n_cases_):
-                if self._train_predict(i, sfa[0]) == y[i]:
+                if self._train_predict(i, sfa) == y[i]:
                     correct = correct + 1
 
             accs.append(correct)
@@ -1018,6 +1051,10 @@ class IndividualTDE(BaseClassifier):
     def _train_predict(self, train_num, bags=None):
         if bags is None:
             bags = self._transformed_data
+
+        if _is_tde_sfa_bags(bags):
+            nn_idx = nn_predict_loocv(*bags, train_num)
+            return self._class_vals[nn_idx] if nn_idx >= 0 else None
 
         if len(bags) > 0 and isinstance(bags[0], Dict):
             # find the nearest neighbour in a single numba call
