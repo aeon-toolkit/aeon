@@ -77,47 +77,59 @@ WINDOWS = [None, 0.0, 0.05, 0.2, 0.5, 0.9, 1.0]
 SLOPES = [0.2, 0.5, 1.0]
 
 
-@pytest.mark.parametrize("x_size,y_size", SIZES)
-def test_band_bounds_match_bounding_matrix(x_size, y_size):
-    """create_band_bounds row ranges must equal create_bounding_matrix rows.
-
-    The banded DTW kernels iterate [j_start[i], j_end[i]) instead of testing a
-    dense mask, so the bounds must reproduce every dense row exactly, and every
-    dense row must be a contiguous run (the kernels assume a single interval per
-    row). Itakura cases only run for equal lengths (unsupported otherwise).
-    """
+def _valid_bounding_params(x_size, y_size):
+    """Return bounding parameters supported by both dense and banded paths."""
     params = [(w, None) for w in WINDOWS]
     if x_size == y_size:
         params += [(None, s) for s in SLOPES]
-    for window, slope in params:
+    return params
+
+
+@pytest.mark.parametrize("x_size,y_size", SIZES)
+def test_band_bounds_match_bounding_matrix(x_size, y_size):
+    """Test that band bounds exactly encode the dense bounding matrix.
+
+    ``create_band_bounds`` replaces a dense boolean mask with one half-open column
+    interval per row, ``[j_start[i], j_end[i])``. This test verifies that those
+    intervals reconstruct the dense mask exactly for full, Sakoe-Chiba, and valid
+    Itakura bounds, and that the row bounds satisfy the monotonic invariant relied
+    on by the rolling-buffer DTW kernel.
+    """
+    for window, slope in _valid_bounding_params(x_size, y_size):
         dense = create_bounding_matrix(x_size, y_size, window, slope)
         j_start, j_end = create_band_bounds(x_size, y_size, window, slope)
-        for i in range(x_size):
-            true_idx = np.flatnonzero(dense[i])
-            if len(true_idx) == 0:
-                assert j_end[i] <= j_start[i]
-                continue
-            assert (
-                len(true_idx) == true_idx[-1] - true_idx[0] + 1
-            ), f"dense row {i} not contiguous for window={window}, slope={slope}"
-            assert j_start[i] == true_idx[0] and j_end[i] == true_idx[-1] + 1, (
-                f"bounds [{j_start[i]}, {j_end[i]}) != dense "
-                f"[{true_idx[0]}, {true_idx[-1] + 1}) at row {i} for "
+
+        reconstructed = np.zeros_like(dense)
+        for i, (start, end) in enumerate(zip(j_start, j_end)):
+            assert 0 <= start <= end <= y_size, (
+                f"invalid bounds [{start}, {end}) at row {i} for "
                 f"window={window}, slope={slope}"
             )
+            reconstructed[i, start:end] = True
+
+        assert np.array_equal(reconstructed, dense), (
+            f"band bounds do not reconstruct dense mask for "
+            f"sizes=({x_size}, {y_size}), window={window}, slope={slope}"
+        )
+        assert np.all(np.diff(j_start) >= 0)
+        assert np.all(np.diff(j_end) >= 0)
 
 
 @pytest.mark.parametrize("x_size,y_size", SIZES)
 @pytest.mark.parametrize("n_channels", [1, 3])
 def test_banded_dtw_matches_masked_kernel(x_size, y_size, n_channels):
-    """The banded dtw_distance must equal the dense-masked kernel exactly."""
+    """Test that public banded DTW returns the dense-mask DTW distance.
+
+    ``dtw_distance`` now computes band bounds directly instead of materializing a
+    dense bounding matrix. This compares that public path with the reference
+    ``_dtw_distance`` kernel run on the explicit dense mask, for univariate and
+    multivariate series, unequal lengths, full windows, Sakoe-Chiba windows, and
+    valid Itakura bounds.
+    """
     rng = np.random.RandomState(7)
     x = rng.standard_normal((n_channels, x_size))
     y = rng.standard_normal((n_channels, y_size))
-    params = [(w, None) for w in WINDOWS]
-    if x_size == y_size:
-        params += [(None, s) for s in SLOPES]
-    for window, slope in params:
+    for window, slope in _valid_bounding_params(x_size, y_size):
         dense = create_bounding_matrix(x_size, y_size, window, slope)
         expected = _dtw_distance(x, y, dense)
         result = dtw_distance(x, y, window, slope)
