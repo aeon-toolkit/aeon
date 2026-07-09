@@ -44,8 +44,8 @@ def _validate_cost_matrix_result(
     assert_almost_equal(cost_matrix_callable_result, cost_matrix_result)
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
-    elif name == "lcss":
-        # lcss cm is one larger than the input
+    elif name == "lcss" or name == "swale":
+        # lcss and swale cost matrices are one larger than the input
         assert cost_matrix_result.shape == (x.shape[-1] + 1, y.shape[-1] + 1)
     else:
         assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
@@ -56,6 +56,16 @@ def _validate_cost_matrix_result(
         if x.ndim != 3:
             curr_distance = 1 - (
                 float(cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1]))
+            )
+            assert_almost_equal(curr_distance, distance_result)
+    elif name == "swale":
+        if x.ndim != 3:
+            # swale normalises its similarity score into a distance like lcss, but
+            # weighted by the match reward (default 50.0): 1 - score / (reward * min).
+            match_reward = 50.0
+            curr_distance = 1 - float(
+                cost_matrix_result[-1, -1]
+                / (match_reward * min(x.shape[-1], y.shape[-1]))
             )
             assert_almost_equal(curr_distance, distance_result)
     elif name == "edr":
