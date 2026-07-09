@@ -4,7 +4,7 @@ Dictionary based TDE classifiers based on SFA transform. Contains a single
 IndividualTDE and TDE.
 """
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["TemporalDictionaryEnsemble", "IndividualTDE", "histogram_intersection"]
 
 import math

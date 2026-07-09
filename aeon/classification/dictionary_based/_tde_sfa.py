@@ -1,7 +1,7 @@
-"""Lean SFA reimplementation specialised for TDE.
+"""SFA transform specialised for TDE.
 
-A from-scratch rewrite of the SFA transform covering exactly what TDE uses,
-nothing else:
+A rewrite of the Symbolic Fourier Approximation transform covering exactly
+the feature set TDE uses:
 
 - alphabet size is fixed at 4 (2 bits per letter, branchless letter lookup)
 - numerosity reduction (remove_repeat_words) is always on
@@ -28,6 +28,9 @@ Remaining options are the TDE parameter space: word_length, window_size,
 norm, levels, MCB equi-depth or IGB binning, bigrams, and binning_bags()
 for multivariate dimension selection.
 """
+
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__all__ = ["_TDESFA"]
 
 import math
 import sys

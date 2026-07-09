@@ -1,4 +1,10 @@
-"""TDE test code."""
+"""Tests for the Temporal Dictionary Ensemble classifiers.
+
+Covers the ensemble train estimates, input validation, multivariate dimension
+selection, pickling, the deprecated parameters, the numpy parameter-selection
+helper and the public histogram intersection function. The TDE-specific SFA
+transform has its own tests in test_tde_sfa.py.
+"""
 
 import pickle
 
@@ -17,8 +23,12 @@ from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_tde_oob_train_estimate():
-    """Test of TDE oob train estimate on unit test data."""
-    # load unit test data
+    """Test the out-of-bag train estimate on unit test data.
+
+    With train_estimate_method="oob", each member votes only on the training
+    cases outside its subsample. The returned train probabilities must have
+    one row per case and each row must sum to one.
+    """
     X_train, y_train = load_unit_test(split="train")
 
     # train TDE
@@ -37,8 +47,12 @@ def test_tde_oob_train_estimate():
 
 
 def test_tde_incorrect_input():
-    """Test TDE with incorrect input."""
-    # train TDE
+    """Test parameter validation and correction on fit.
+
+    An unknown train_estimate_method must raise a clear ValueError, and a
+    min_window larger than the series length must be capped to the series
+    length (with a warning) rather than failing.
+    """
     tde = TemporalDictionaryEnsemble(
         n_parameter_samples=5,
         max_ensemble_size=2,
@@ -94,7 +108,12 @@ def test_tde_pickle():
 
 
 def test_histogram_intersection():
-    """Test the histogram intersection function used by TDE."""
+    """Test the public histogram intersection similarity function.
+
+    The similarity is the sum of minimum counts over shared words. The same
+    result must be returned for all three accepted input types: dense arrays,
+    plain dicts and numba typed Dicts.
+    """
     first = np.array([1, 0, 0, 1, 0])
     second = np.array([1, 2, 3, 5, 10])
     res = histogram_intersection(first, second)
@@ -228,7 +247,9 @@ def test_individual_train_acc_fallback_matches_symmetric_kernel(monkeypatch):
 def test_subsampling_in_highly_imbalanced_datasets():
     """Test the subsampling during fit for highly imbalanced datasets.
 
-    This test case tests the fix for bug #1726.
+    Member subsamples are redrawn until they contain at least two classes,
+    so fitting a dataset with a single minority case must succeed rather
+    than producing single-class members. Regression test for bug #1726:
     https://github.com/aeon-toolkit/aeon/issues/1726
     """
     X = np.random.rand(10, 1, 20)
