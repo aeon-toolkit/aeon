@@ -7,6 +7,7 @@ import pytest
 
 from aeon.datasets import load_unit_test
 from aeon.transformations.collection.dictionary_based import SFA, SFAFast, SFAWhole
+from aeon.transformations.collection.dictionary_based._sfa import get_chars
 
 
 @pytest.mark.parametrize(
@@ -312,3 +313,20 @@ def test_sfa_get_words_from_sliding_window():
     assert len(words) == X.shape[0]  # n_cases
     assert len(words[0]) == X.shape[-1] - window_size + 1  # sliding windows
     assert len(words[0][0]) == word_length
+
+
+def test_get_chars_does_not_modify_input():
+    """Test that get_chars does not modify the input words array."""
+    words = np.array(
+        [
+            np.uint32(0b110101),
+            np.uint32(0b101011),
+            np.uint32(0b011110),
+        ],
+        dtype=np.uint32,
+    )
+    words_original = words.copy()
+
+    _ = get_chars(words, word_length=3, alphabet_size=4)
+
+    np.testing.assert_array_equal(words, words_original)

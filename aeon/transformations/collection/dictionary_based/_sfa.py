@@ -1188,12 +1188,13 @@ def get_chars(words, word_length, alphabet_size):
     letter_bits = int(np.log2(alphabet_size))
     mask = (1 << letter_bits) - 1
     for j in range(chars.shape[0]):
+        word = words[j]  # local copy
         for i in range(word_length):
             # Extract the last bits
-            char = words[j] & mask
+            char = word & mask
             chars[j][-i - 1] = char
 
             # Right shift by to move to the next group of bits
-            words[j] >>= letter_bits
+            word >>= letter_bits  # only changes local copy
 
     return chars
