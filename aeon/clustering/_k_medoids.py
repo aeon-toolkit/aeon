@@ -33,8 +33,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     Where n is the number of time series and k is the number of clusters. There have
     been a number of algorithms published to solve the problem. The most common is the
     PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
-    implementation. However, an adaptation of lloyds method classically used for k-means
-    is also available by specifying method='alternate'. Alternate is faster but less
+    implementation. However, an adaptation of Lloyd's method classically used
+    for k-means is also available by specifying method='alternate'. Alternate is
+    faster but less
     accurate than PAM. For a full review of variations of k-medoids for time series
     see [5]_.
 
@@ -56,11 +57,11 @@ class TimeSeriesKMedoids(BaseClusterer):
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids. Build [1] greedily selects the k medoids
         by first selecting the medoid that minimizes the sum of distances
-        to all other points(this point is the most centrally located) and then
+        to all other points (this point is the most centrally located) and then
         iteratively selects the next k-1 medoids that maximizes the decrease in sum
         of distances of all other points to their respective medoids selected so far.
-        If a np.ndarray provided it must be of shape (n_clusters,) and contain
-        the indexes of the time series to use as centroids.
+        If an np.ndarray is provided it must be of shape (n_clusters,) and contain
+        the indices of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance method to compute similarity between time series. A list of valid
         strings for measures can be found in the documentation for
@@ -69,7 +70,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     method : str, default='pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
-        Alternate applies lloyds method to k-medoids and is faster but less accurate
+        Alternate applies Lloyd's method to k-medoids and is faster but less accurate
         than PAM.
         PAM is implemented using the fastpam1 algorithm which gives the same output
         as PAM but is faster.
@@ -100,8 +101,8 @@ class TimeSeriesKMedoids(BaseClusterer):
     ----------
     cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    labels_ : np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -110,7 +111,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     References
     ----------
-    .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
+    .. [1] Kaufman, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
     Data Analysis based on the L1-Norm and Related Methods. 405-416.
 
     .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).

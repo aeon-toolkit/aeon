@@ -34,8 +34,8 @@ Many implementations in `aeon` are contributed and maintained by the researchers
 
 <h4>Supported by</h4>
 <p>
-  <a href="https://www.inria.fr/">
-    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/inria.png" alt="INRIA" height="50">
+  <a href="https://www.inria.fr/en/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/Inria.png" alt="INRIA" height="50">
   </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://www.ukri.org/councils/epsrc/">
@@ -57,15 +57,16 @@ evaluate new methods. That means:
 
 A selection of algorithms available in `aeon` written by `aeon` core developers or contributors:
 
-| Method                 | Reference                                                                                 | Task                   |
-|------------------------|-------------------------------------------------------------------------------------------|------------------------|
-| **InceptionTime**      | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification         |
-| **Hydra-MultiRocket**  | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification         |
-| **SETAR-Tree**         | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting            |
-| **KASBA**              | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering             |
-| **CLASP**              | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation           |
-| **DrCIF**              | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
-| **TDE**                | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
+| Method                | Reference                                                                                 | Task                   |
+|-----------------------|-------------------------------------------------------------------------------------------|------------------------|
+| **InceptionTime**     | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification         |
+| **Hydra-MultiRocket** | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification         |
+| **HIVE-COTEv2.0**     | [Middlehurst et al., 2021](https://link.springer.com/article/10.1007/s10994-021-06057-9)  | Classification            |
+| **SETAR-Tree**        | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting            |
+| **KASBA**             | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering             |
+| **CLASP**             | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation           |
+| **DrCIF**             | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
+| **TDE**               | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
 
 Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies:
 
@@ -128,7 +129,7 @@ Ten task areas, one consistent API:
 | **Forecasting** | Predict future values | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/forecasting.html) |
 | **Anomaly detection** | Find unusual points or subsequences | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/anomaly_detection.html) |
 | **Segmentation** | Split a series into homogeneous regions | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/segmentation.html) |
-| **Similarity search** | Find similar subsequences in long series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/similarity_search.html) |
+| **Similarity search** | Find similar subsequences or whole series in collections | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/similarity_search.html) |
 | **Transformations** | Feature extraction and preprocessing | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/transformations.html) |
 | **Distances & kernels** | Time series similarity measures | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/distances.html) |
 | **Benchmarking** | Reproducible experimental evaluation | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/benchmarking.html) |

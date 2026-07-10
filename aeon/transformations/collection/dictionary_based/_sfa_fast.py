@@ -653,7 +653,13 @@ class SFAFast(BaseCollectionTransformer):
             elif self.alphabet_allocation_method == "log_scale":
                 variance = np.log2((self.dft_variance[self.support]) + 1)
 
-            normed_scale = variance / variance.mean()
+            # Treat zero-mean-variance
+            variance_mean = variance.mean()
+            if variance_mean <= 0 or not np.isfinite(variance_mean):
+                normed_scale = np.ones_like(variance)
+            else:
+                normed_scale = variance / variance_mean
+
             self.letter_bits = assign_bits_dynamically(normed_scale, self.bit_budget)
             self.alphabet_sizes = [
                 int(2 ** self.letter_bits[i]) for i in range(len(self.letter_bits))
@@ -1349,7 +1355,7 @@ def create_dict(feature_names, features_idx):
     return relevant_features
 
 
-@njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath={"contract"}, cache=True, parallel=True)
 def mcb(dft, alphabet_sizes, word_length_actual, binning_method):
     max_alphabet_size = np.max(alphabet_sizes)
 
@@ -1450,7 +1456,7 @@ def _transform_words_case(
     return words, dfts
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath={"contract"}, cache=True)
 def assign_bits_dynamically(variance, budget, max_bit_val=9):
     """Assign bits dynamically based on variance and budget.
 

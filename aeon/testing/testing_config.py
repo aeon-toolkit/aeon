@@ -25,6 +25,7 @@ NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 # exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
     "HydraTransformer",  # returns a pytorch Tensor
+    "TimeSeriesAgglomerative",  # awaiting #3613
 ]
 
 # Exclude specific tests for estimators here
@@ -55,7 +56,6 @@ EXCLUDED_TESTS = {
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
-    "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
     # Requires y to be passed in inverse_transform,
     # but this is not currently enabled/supported

@@ -9,6 +9,7 @@ from sklearn import metrics
 from aeon.clustering._cluster_initialisation import _CENTRE_INITIALISER_INDEXES
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
+from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_kmedoids_uni():
@@ -244,3 +245,137 @@ def test_medoids_init_invalid():
             random_state=1,
         )
         kmedoids.fit(X_train)
+
+    # Test duplicate indices
+    with pytest.raises(ValueError, match="unique indices"):
+        kmedoids = TimeSeriesKMedoids(
+            n_clusters=num_clusters,
+            init=np.array([0, 1, 1]),
+            random_state=1,
+        )
+        kmedoids.fit(X_train)
+
+
+def _small_data(n_cases=12, seed=0):
+    return make_example_3d_numpy(n_cases, 1, 10, random_state=seed, return_y=False)
+
+
+def test_kmedoids_callable_distance_predict():
+    """Fit and predict work with a callable distance."""
+    from aeon.distances import euclidean_distance
+
+    X = _small_data()
+    km = TimeSeriesKMedoids(
+        n_clusters=2,
+        distance=euclidean_distance,
+        method="alternate",
+        n_init=1,
+        random_state=1,
+    )
+    km.fit(X)
+    preds = km.predict(X)
+    assert preds.shape == (12,)
+    assert set(np.unique(preds)) <= {0, 1}
+
+
+@pytest.mark.parametrize("method", ["alternate", "pam"])
+def test_kmedoids_index_array_init(method):
+    """A fixed array of medoid indexes is used directly by both methods."""
+    X = _small_data()
+    km = TimeSeriesKMedoids(
+        n_clusters=2,
+        init=np.array([0, 1]),
+        method=method,
+        n_init=1,
+        random_state=1,
+    )
+    km.fit(X)
+    assert km.labels_.shape == (12,)
+    assert len(np.unique(km.labels_)) == 2
+    assert np.isfinite(km.inertia_)
+
+
+def test_kmedoids_build_init():
+    """The PAM BUILD initialiser runs and warns when n_init > 1."""
+    X = _small_data()
+    km = TimeSeriesKMedoids(
+        n_clusters=3, init="build", method="pam", n_init=1, random_state=1
+    )
+    km.fit(X)
+    assert km.labels_.shape == (12,)
+    assert len(np.unique(km.labels_)) == 3
+
+    with pytest.warns(UserWarning, match="n_init will be set to 1"):
+        TimeSeriesKMedoids(
+            n_clusters=2, init="build", method="pam", n_init=5, random_state=1
+        ).fit(X)
+
+
+def test_kmedoids_param_validation():
+    """Invalid method and oversized n_clusters raise at fit time."""
+    X = _small_data(n_cases=5)
+    with pytest.raises(ValueError, match="method invalid is not supported"):
+        TimeSeriesKMedoids(n_clusters=2, method="invalid").fit(X)
+    with pytest.raises(ValueError, match="cannot be larger than"):
+        TimeSeriesKMedoids(n_clusters=10).fit(X)
+
+
+@pytest.mark.parametrize("method", ["alternate", "pam"])
+def test_kmedoids_verbose_output(method, capsys):
+    """Verbose fits report convergence or per-iteration inertia."""
+    X = _small_data(n_cases=15, seed=2)
+    km = TimeSeriesKMedoids(
+        n_clusters=2,
+        method=method,
+        n_init=1,
+        verbose=True,
+        random_state=2,
+        init="first",
+    )
+    km.fit(X)
+    out = capsys.readouterr().out
+    assert "Converged" in out or "inertia" in out
+
+
+def test_kmedoids_pam_large_tol_stops_early(capsys):
+    """A huge tolerance triggers the inertia-based convergence exit."""
+    X = _small_data(n_cases=15, seed=3)
+    km = TimeSeriesKMedoids(
+        n_clusters=2,
+        method="pam",
+        n_init=1,
+        tol=1e15,
+        random_state=3,
+        init="first",
+        verbose=True,
+    )
+    km.fit(X)
+    assert km.n_iter_ <= 3
+    assert "Converged" in capsys.readouterr().out
+
+
+def test_kmedoids_pam_max_iter_warns():
+    """Hitting max_iter without convergence emits a ConvergenceWarning."""
+    from sklearn.exceptions import ConvergenceWarning
+
+    X = _small_data(n_cases=15, seed=4)
+    km = TimeSeriesKMedoids(
+        n_clusters=2,
+        method="pam",
+        n_init=1,
+        max_iter=1,
+        random_state=4,
+        init="first",
+    )
+    with pytest.warns(ConvergenceWarning, match="Maximum number of iteration"):
+        km.fit(X)
+
+
+def test_kmedoids_distance_cache_symmetry():
+    """The distance cache is honoured in either orientation."""
+    X = _small_data(n_cases=4)
+    km = TimeSeriesKMedoids(n_clusters=2, random_state=0)
+    km._check_params(X)
+    # only the reversed orientation is populated
+    km._distance_cache[1, 0] = 7.0
+    assert km._compute_distance(X, 0, 1) == 7.0
