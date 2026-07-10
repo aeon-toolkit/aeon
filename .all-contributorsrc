@@ -2929,6 +2929,25 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "li-f8",
+      "name": "li-f8",
+      "avatar_url": "https://avatars.githubusercontent.com/u/184102584?v=4",
+      "profile": "https://github.com/li-f8",
+      "contributions": [
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "CedricConday",
+      "name": "Cedric Conday",
+      "avatar_url": "https://avatars.githubusercontent.com/u/277679649?v=4",
+      "profile": "https://linkedin.com/in/cedricconday",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"

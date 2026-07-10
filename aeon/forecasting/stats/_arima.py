@@ -432,7 +432,10 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         series = np.array(y.squeeze(), dtype=np.float64)
         differenced_series = series.copy()
         self.d_ = 0
-        while not kpss_test(differenced_series)[1] and self.d_ <= self.max_d:
+        # Stop before exceeding max_d: with `<=`, the loop could enter when
+        # ``self.d_ == self.max_d`` and apply one more difference, pushing the
+        # selected order past the configured maximum (e.g. max_d=0 -> d_=1).
+        while not kpss_test(differenced_series)[1] and self.d_ < self.max_d:
             differenced_series = np.diff(differenced_series, n=1)
             self.d_ += 1
         include_constant = 1 if self.d_ == 0 else 0

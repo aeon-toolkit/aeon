@@ -44,6 +44,7 @@ Statistical Models
     AutoTAR
     Theta
     DOTM
+    SCUM
     TVP
 
 Ensemble Models
