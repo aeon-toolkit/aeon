@@ -8,15 +8,12 @@ __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["TemporalDictionaryEnsemble", "IndividualTDE", "histogram_intersection"]
 
 import math
-import os
 import time
 import warnings
 
 import numpy as np
-from joblib import Parallel, delayed
 from numba import njit, types
 from numba.typed import Dict
-from numba.typed import List as NumbaList
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -33,10 +30,6 @@ from aeon.utils.validation import check_n_jobs
 # materialises the full similarity matrix (n^2 int32); above this the
 # per-case search is used instead
 _SYMMETRIC_LOOCV_MAX_N = 4096
-
-
-def _is_tde_sfa_bags(bags):
-    return isinstance(bags, tuple) and len(bags) == 4
 
 
 def _kernel_ridge_preds(x_hist, y_hist, candidates):
@@ -121,7 +114,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         set.
     typed_dict : bool, default="deprecated"
         Has no effect: word counts are now stored as sorted arrays.
-        Models fitted with older versions of aeon can still be unpickled.
 
         Deprecated and will be removed in v1.7.0.
     train_estimate_method : str, default="loocv"
@@ -550,13 +542,11 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        # array bags: run the whole LOOCV in one numba call, computing each
-        # symmetric pair intersection only once. The n x n similarity matrix
-        # is small for typical subsample sizes; fall back for very large n.
-        if (
-            _is_tde_sfa_bags(tde._transformed_data)
-            and train_size <= _SYMMETRIC_LOOCV_MAX_N
-        ):
+        # run the whole LOOCV in one numba call, computing each symmetric
+        # pair intersection only once. The n x n similarity matrix is small
+        # for typical subsample sizes; fall back to a per-case search for
+        # very large n.
+        if train_size <= _SYMMETRIC_LOOCV_MAX_N:
             _, y_codes = np.unique(y, return_inverse=True)
             n_done, correct, preds = loocv_train_acc(
                 *tde._transformed_data, y_codes.astype(np.int64), required_correct
@@ -566,34 +556,17 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     tde._train_predictions.append(tde._class_vals[preds[i]])
             return -1 if correct == -1 else correct / train_size
 
-        if self._n_jobs > 1:
-            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(tde._train_predict)(
-                    i,
-                )
-                for i in range(train_size)
-            )
+        for i in range(train_size):
+            if correct + train_size - i < required_correct:
+                return -1
 
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
-                elif c[i] == y[i]:
-                    correct += 1
+            c = tde._train_predict(i)
 
-                if keep_train_preds:
-                    tde._train_predictions.append(c[i])
-        else:
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
+            if c == y[i]:
+                correct += 1
 
-                c = tde._train_predict(i)
-
-                if c == y[i]:
-                    correct += 1
-
-                if keep_train_preds:
-                    tde._train_predictions.append(c)
+            if keep_train_preds:
+                tde._train_predictions.append(c)
 
         return correct / train_size
 
@@ -689,7 +662,6 @@ class IndividualTDE(BaseClassifier):
         multivariate data.
     typed_dict : bool, default="deprecated"
         Has no effect: word counts are now stored as sorted arrays.
-        Models fitted with older versions of aeon can still be unpickled.
 
         Deprecated and will be removed in v1.7.0.
     n_jobs : int, default=1
@@ -796,9 +768,6 @@ class IndividualTDE(BaseClassifier):
         self.n_channels_ = 0
         self.n_timepoints_ = 0
 
-        # only used when unpickling models fitted with older versions of aeon
-        self._typed_dict = not os.environ.get("NUMBA_DISABLE_JIT") == "1"
-
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
@@ -808,57 +777,7 @@ class IndividualTDE(BaseClassifier):
         self._subsample = []
         self._train_predictions = []
 
-        # cache of the bags converted to sorted key/value arrays, used to
-        # speed up the nearest neighbour search, not pickled
-        self._bags_cache = None
-
         super().__init__()
-
-    # the typed Dict conversion below only applies to models fitted with
-    # older versions of aeon; newly fitted models store bags as arrays,
-    # which pickle natively
-    def __getstate__(self):
-        """Return state as dictionary for pickling, required for typed Dict objects."""
-        state = self.__dict__.copy()
-        state["_bags_cache"] = None
-        if (
-            self._typed_dict
-            and not _is_tde_sfa_bags(state["_transformed_data"])
-            and len(state["_transformed_data"]) > 0
-            and isinstance(state["_transformed_data"][0], Dict)
-        ):
-            nl = [None] * len(self._transformed_data)
-            for i, ndict in enumerate(state["_transformed_data"]):
-                pdict = dict()
-                for key, val in ndict.items():
-                    pdict[key] = val
-                nl[i] = pdict
-            state["_transformed_data"] = nl
-        return state
-
-    def __setstate__(self, state):
-        """Set current state using input pickling, required for typed Dict objects."""
-        self.__dict__.update(state)
-        self._bags_cache = None
-        if (
-            self._typed_dict
-            and not _is_tde_sfa_bags(self._transformed_data)
-            and len(self._transformed_data) > 0
-            and isinstance(self._transformed_data[0], dict)
-        ):
-            nl = [None] * len(self._transformed_data)
-            for i, pdict in enumerate(self._transformed_data):
-                ndict = (
-                    Dict.empty(
-                        key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
-                    )
-                    if self.levels > 1 or self.n_channels_ > 1
-                    else Dict.empty(key_type=types.int64, value_type=types.uint32)
-                )
-                for key, val in pdict.items():
-                    ndict[key] = val
-                nl[i] = ndict
-            self._transformed_data = nl
 
     def _fit(self, X, y):
         """Fit a single base TDE classifier on n_cases cases (X,y).
@@ -911,15 +830,6 @@ class IndividualTDE(BaseClassifier):
 
         self._clear_transformer_fit_cache()
 
-        # pre-build the bag array cache on this thread so the parallel
-        # nearest neighbour search does not race to create it
-        if (
-            not _is_tde_sfa_bags(self._transformed_data)
-            and len(self._transformed_data) > 0
-            and isinstance(self._transformed_data[0], Dict)
-        ):
-            self._get_bag_arrays(self._transformed_data)
-
     def _predict(self, X):
         """Predict class values of all instances in X.
 
@@ -947,60 +857,14 @@ class IndividualTDE(BaseClassifier):
                 np.ascontiguousarray(X[:, 0, :])
             )
 
-        if _is_tde_sfa_bags(self._transformed_data):
-            # all test-vs-train similarities in a single numba call, then a
-            # cheap per-case tie-break loop
-            keys1, keys2, counts, t_offsets = test_bags
-            sims = nn_similarities_all(
-                *self._transformed_data, keys1, keys2, counts, t_offsets
-            )
-            classes = [self._nn_from_sims(sims[i]) for i in range(n_cases)]
-            return np.array(classes)
-
-        if len(self._transformed_data) > 0 and isinstance(
-            self._transformed_data[0], Dict
-        ):
-            self._get_bag_arrays(self._transformed_data)
-
-        classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._test_nn)(
-                test_bag,
-            )
-            for test_bag in test_bags
+        # all test-vs-train similarities in a single numba call, then a
+        # cheap per-case tie-break loop
+        keys1, keys2, counts, t_offsets = test_bags
+        sims = nn_similarities_all(
+            *self._transformed_data, keys1, keys2, counts, t_offsets
         )
-
+        classes = [self._nn_from_sims(sims[i]) for i in range(n_cases)]
         return np.array(classes)
-
-    def _test_nn(self, test_bag):
-        rng = check_random_state(self.random_state)
-
-        best_sim = -1
-        nn = None
-
-        bags = self._transformed_data
-        if len(bags) > 0 and isinstance(bags[0], Dict) and isinstance(test_bag, Dict):
-            # compute all similarities in a single numba call
-            tuple_keys, arrays = self._get_bag_arrays(bags)
-            if tuple_keys:
-                sims = _histogram_intersection_to_all_tuple(*arrays, test_bag)
-            else:
-                sims = _histogram_intersection_to_all_flat(*arrays, test_bag)
-            for n in range(len(sims)):
-                sim = sims[n]
-                if sim > best_sim or (sim == best_sim and rng.random() < 0.5):
-                    best_sim = sim
-                    nn = self._class_vals[n]
-
-            return nn
-
-        for n, bag in enumerate(bags):
-            sim = histogram_intersection(test_bag, bag)
-
-            if sim > best_sim or (sim == best_sim and rng.random() < 0.5):
-                best_sim = sim
-                nn = self._class_vals[n]
-
-        return nn
 
     def _clear_transformer_fit_cache(self):
         for transformer in self._transformers:
@@ -1114,58 +978,8 @@ class IndividualTDE(BaseClassifier):
         if bags is None:
             bags = self._transformed_data
 
-        if _is_tde_sfa_bags(bags):
-            nn_idx = nn_predict_loocv(*bags, train_num)
-            return self._class_vals[nn_idx] if nn_idx >= 0 else None
-
-        if len(bags) > 0 and isinstance(bags[0], Dict):
-            # find the nearest neighbour in a single numba call
-            tuple_keys, arrays = self._get_bag_arrays(bags)
-            if tuple_keys:
-                nn_idx = _nn_index_tuple(*arrays, train_num)
-            else:
-                nn_idx = _nn_index_flat(*arrays, train_num)
-            return self._class_vals[nn_idx] if nn_idx >= 0 else None
-
-        test_bag = bags[train_num]
-        best_sim = -1
-        nn = None
-
-        for n, bag in enumerate(bags):
-            if n == train_num:
-                continue
-
-            sim = histogram_intersection(test_bag, bag)
-
-            if sim > best_sim:
-                best_sim = sim
-                nn = self._class_vals[n]
-
-        return nn
-
-    def _get_bag_arrays(self, bags):
-        """Return the bags as sorted key/value arrays, cached by identity.
-
-        Bags are concatenated into flat arrays with an offsets array marking
-        the segment for each bag, with keys sorted within each segment. This
-        allows the nearest neighbour search to use fast merge intersections
-        in numba instead of per-word hash lookups.
-        """
-        cache = self._bags_cache
-        if cache is None or cache[0] is not bags:
-            typed_bags = NumbaList()
-            for bag in bags:
-                typed_bags.append(bag)
-
-            tuple_keys = isinstance(bags[0]._numba_type_.key_type, types.BaseTuple)
-            arrays = (
-                _bags_to_arrays_tuple(typed_bags)
-                if tuple_keys
-                else _bags_to_arrays_flat(typed_bags)
-            )
-            cache = (bags, tuple_keys, arrays)
-            self._bags_cache = cache
-        return cache[1], cache[2]
+        nn_idx = nn_predict_loocv(*bags, train_num)
+        return self._class_vals[nn_idx] if nn_idx >= 0 else None
 
 
 def histogram_intersection(first, second):
@@ -1211,213 +1025,3 @@ def _histogram_intersection_dict(first, second):
         val_b = second.get(word, types.uint32(0))
         sim += min(val_a, val_b)
     return sim
-
-
-@njit(cache=True)
-def _bags_to_arrays_flat(bags):
-    n = len(bags)
-    offsets = np.zeros(n + 1, dtype=np.int64)
-    for i in range(n):
-        offsets[i + 1] = offsets[i] + len(bags[i])
-
-    keys = np.empty(offsets[n], dtype=np.int64)
-    vals = np.empty(offsets[n], dtype=np.uint32)
-    for i in range(n):
-        s, e = offsets[i], offsets[i + 1]
-        j = s
-        for key, val in bags[i].items():
-            keys[j] = key
-            vals[j] = val
-            j += 1
-
-        order = np.argsort(keys[s:e])
-        keys[s:e] = keys[s:e][order]
-        vals[s:e] = vals[s:e][order]
-
-    return keys, vals, offsets
-
-
-@njit(cache=True)
-def _bags_to_arrays_tuple(bags):
-    n = len(bags)
-    offsets = np.zeros(n + 1, dtype=np.int64)
-    for i in range(n):
-        offsets[i + 1] = offsets[i] + len(bags[i])
-
-    keys1 = np.empty(offsets[n], dtype=np.int64)
-    keys2 = np.empty(offsets[n], dtype=np.int64)
-    vals = np.empty(offsets[n], dtype=np.uint32)
-    for i in range(n):
-        s, e = offsets[i], offsets[i + 1]
-        j = s
-        for key, val in bags[i].items():
-            keys1[j] = key[0]
-            keys2[j] = key[1]
-            vals[j] = val
-            j += 1
-
-        # lexicographic sort by (keys1, keys2) using two stable sorts
-        order = np.argsort(keys2[s:e], kind="mergesort")
-        k1 = keys1[s:e][order]
-        k2 = keys2[s:e][order]
-        v = vals[s:e][order]
-        order = np.argsort(k1, kind="mergesort")
-        keys1[s:e] = k1[order]
-        keys2[s:e] = k2[order]
-        vals[s:e] = v[order]
-
-    return keys1, keys2, vals, offsets
-
-
-@njit(cache=True)
-def _intersection_flat(keys, vals, a0, a1, b0, b1):
-    sim = 0
-    i, j = a0, b0
-    while i < a1 and j < b1:
-        ka = keys[i]
-        kb = keys[j]
-        if ka == kb:
-            sim += min(vals[i], vals[j])
-            i += 1
-            j += 1
-        elif ka < kb:
-            i += 1
-        else:
-            j += 1
-    return sim
-
-
-@njit(cache=True)
-def _intersection_tuple(keys1, keys2, vals, a0, a1, b0, b1):
-    sim = 0
-    i, j = a0, b0
-    while i < a1 and j < b1:
-        ka1, ka2 = keys1[i], keys2[i]
-        kb1, kb2 = keys1[j], keys2[j]
-        if ka1 == kb1 and ka2 == kb2:
-            sim += min(vals[i], vals[j])
-            i += 1
-            j += 1
-        elif ka1 < kb1 or (ka1 == kb1 and ka2 < kb2):
-            i += 1
-        else:
-            j += 1
-    return sim
-
-
-@njit(cache=True)
-def _nn_index_flat(keys, vals, offsets, train_num):
-    a0, a1 = offsets[train_num], offsets[train_num + 1]
-    best_sim = -1
-    nn = -1
-
-    for n in range(len(offsets) - 1):
-        if n == train_num:
-            continue
-
-        sim = _intersection_flat(keys, vals, a0, a1, offsets[n], offsets[n + 1])
-        if sim > best_sim:
-            best_sim = sim
-            nn = n
-
-    return nn
-
-
-@njit(cache=True)
-def _nn_index_tuple(keys1, keys2, vals, offsets, train_num):
-    a0, a1 = offsets[train_num], offsets[train_num + 1]
-    best_sim = -1
-    nn = -1
-
-    for n in range(len(offsets) - 1):
-        if n == train_num:
-            continue
-
-        sim = _intersection_tuple(
-            keys1, keys2, vals, a0, a1, offsets[n], offsets[n + 1]
-        )
-        if sim > best_sim:
-            best_sim = sim
-            nn = n
-
-    return nn
-
-
-@njit(cache=True)
-def _histogram_intersection_to_all_flat(keys, vals, offsets, test_bag):
-    m = len(test_bag)
-    test_keys = np.empty(m, dtype=np.int64)
-    test_vals = np.empty(m, dtype=np.uint32)
-    j = 0
-    for key, val in test_bag.items():
-        test_keys[j] = key
-        test_vals[j] = val
-        j += 1
-    order = np.argsort(test_keys)
-    test_keys = test_keys[order]
-    test_vals = test_vals[order]
-
-    n = len(offsets) - 1
-    sims = np.zeros(n, dtype=np.int64)
-    for i in range(n):
-        b0, b1 = offsets[i], offsets[i + 1]
-        sim = 0
-        a, b = 0, b0
-        while a < m and b < b1:
-            ka = test_keys[a]
-            kb = keys[b]
-            if ka == kb:
-                sim += min(test_vals[a], vals[b])
-                a += 1
-                b += 1
-            elif ka < kb:
-                a += 1
-            else:
-                b += 1
-        sims[i] = sim
-
-    return sims
-
-
-@njit(cache=True)
-def _histogram_intersection_to_all_tuple(keys1, keys2, vals, offsets, test_bag):
-    m = len(test_bag)
-    test_keys1 = np.empty(m, dtype=np.int64)
-    test_keys2 = np.empty(m, dtype=np.int64)
-    test_vals = np.empty(m, dtype=np.uint32)
-    j = 0
-    for key, val in test_bag.items():
-        test_keys1[j] = key[0]
-        test_keys2[j] = key[1]
-        test_vals[j] = val
-        j += 1
-    # lexicographic sort by (keys1, keys2) using two stable sorts
-    order = np.argsort(test_keys2, kind="mergesort")
-    test_keys1 = test_keys1[order]
-    test_keys2 = test_keys2[order]
-    test_vals = test_vals[order]
-    order = np.argsort(test_keys1, kind="mergesort")
-    test_keys1 = test_keys1[order]
-    test_keys2 = test_keys2[order]
-    test_vals = test_vals[order]
-
-    n = len(offsets) - 1
-    sims = np.zeros(n, dtype=np.int64)
-    for i in range(n):
-        b0, b1 = offsets[i], offsets[i + 1]
-        sim = 0
-        a, b = 0, b0
-        while a < m and b < b1:
-            ka1, ka2 = test_keys1[a], test_keys2[a]
-            kb1, kb2 = keys1[b], keys2[b]
-            if ka1 == kb1 and ka2 == kb2:
-                sim += min(test_vals[a], vals[b])
-                a += 1
-                b += 1
-            elif ka1 < kb1 or (ka1 == kb1 and ka2 < kb2):
-                a += 1
-            else:
-                b += 1
-        sims[i] = sim
-
-    return sims
