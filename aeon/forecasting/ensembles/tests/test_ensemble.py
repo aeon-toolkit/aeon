@@ -518,3 +518,30 @@ def test_get_test_params_returns_valid_instance():
     assert "forecasters" in params
     # Should be able to construct without error.
     EnsembleForecaster(**params)
+
+
+def test_callable_averaging_method_rejects_wrong_scalar_shape():
+    """A callable returning a vector for one-step prediction raises."""
+
+    def bad(preds):
+        return np.array([1.0, 2.0])
+
+    y = np.arange(20.0)
+    ens = EnsembleForecaster(forecasters=_default_forecasters(), averaging_method=bad)
+    ens.fit(y)
+    with pytest.raises(ValueError, match="must return a scalar"):
+        ens.predict(y)
+
+
+def test_component_strategy_requires_iterative_forecast():
+    """Component strategy rejects forecasters without iterative_forecast."""
+
+    class _NoIterative(_TrajectoryForecaster):
+        iterative_forecast = None
+
+    ens = EnsembleForecaster(
+        forecasters=[("no_iter", _NoIterative())],
+        iterative_strategy="component",
+    )
+    with pytest.raises(TypeError, match="must implement iterative_forecast"):
+        ens.fit(np.arange(20.0))
