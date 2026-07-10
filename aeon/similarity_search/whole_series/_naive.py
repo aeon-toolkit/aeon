@@ -3,14 +3,15 @@
 __maintainer__ = ["baraline"]
 __all__ = ["NaiveSeriesSearch"]
 
+from collections.abc import Callable
+
 import numpy as np
 
-from aeon.similarity_search._commons import _pairwise_squared_distance
+from aeon.distances import pairwise_distance
 from aeon.similarity_search.subsequence._commons import (
     _extract_top_k_from_dist_profile,
 )
 from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
-from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     z_normalise_series_2d,
@@ -24,8 +25,8 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
     Naive whole series nearest neighbor search.
 
     This estimator finds nearest neighbors among complete time series in a collection
-    using exhaustive pairwise squared Euclidean distance computation. All series must
-    have the same length.
+    using exhaustive pairwise distance computation. All series must have the same
+    length.
 
     Parameters
     ----------
@@ -33,6 +34,14 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         Whether the series should be z-normalized before distance computation.
         This results in scale-independent matching, useful when you want to find
         similar shapes regardless of their amplitude.
+    distance : str or callable, default="squared"
+        Distance measure between series. A list of valid strings can be found
+        in the documentation for :func:`aeon.distances.get_distance_function` or
+        through calling :func:`aeon.distances.get_distance_function_names`. If a
+        callable is passed it must be a function that takes two 2d numpy arrays of
+        shape ``(n_channels, n_timepoints)`` as input and returns a float.
+    distance_params : dict, default=None
+        Dictionary of distance parameters for the case that ``distance`` is a str.
     n_jobs : int, default=1
         Number of parallel threads to use for distance computation.
 
@@ -87,10 +96,19 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
     def __init__(
         self,
         normalize: bool = False,
+        distance: str | Callable = "squared",
+        distance_params: dict | None = None,
         n_jobs: int = 1,
     ):
         self.normalize = normalize
+        self.distance = distance
+        self.distance_params = distance_params
         self.n_jobs = n_jobs
+
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
+
         super().__init__()
 
     def _fit(
@@ -116,8 +134,8 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
             # Replace the raw collection (``self.X_``, set by the base ``fit``) with
             # its z-normalized version, which is what search reads: this avoids
             # holding both copies. ``z_normalise_series_3d`` is serial numba, so no
-            # thread management is needed here (the parallel path is
-            # ``compute_distance_profile``, wrapped by ``@numba_thread_handler``).
+            # thread management is needed here (parallelism is handled by
+            # ``pairwise_distance`` in ``compute_distance_profile``).
             self.X_ = z_normalise_series_3d(X)
         # normalize=False: keep the raw collection stored by the base ``fit`` as-is.
         return self
@@ -189,7 +207,6 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         # Extract case indexes (column 0) from 2D result
         return indexes_2d[:, 0], distances
 
-    @numba_thread_handler
     def compute_distance_profile(self, X: np.ndarray) -> np.ndarray:
         """
         Compute the distance profile of X to all series in the fitted collection.
@@ -202,15 +219,22 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         Returns
         -------
         distance_profile : np.ndarray, shape=(n_cases,)
-            Squared Euclidean distance from X to each series in the fitted collection.
+            Distance from X to each series in the fitted collection, according to
+            the ``distance`` parameter.
         """
-        # ``@numba_thread_handler`` reads ``self.n_jobs``, applies ``check_n_jobs`` and
-        # restores the thread count in a try/finally (exception-safe) around the
-        # parallel ``_pairwise_squared_distance`` kernel.
         if self.normalize:
             X = z_normalise_series_2d(X)
 
-        return _pairwise_squared_distance(self.X_, X)
+        # The query is passed as a (1, n_channels, n_timepoints) collection: a 2D
+        # y is interpreted as a collection of univariate series, which would be
+        # wrong for multivariate queries.
+        return pairwise_distance(
+            self.X_,
+            X[np.newaxis],
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        ).reshape(-1)
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

@@ -261,6 +261,12 @@ n_channels * n_timepoints)
         self : a fitted instance of the estimator
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
+        for name, value in (
+            ("n_tables", self.n_tables),
+            ("n_bits_per_table", self.n_bits_per_table),
+        ):
+            if not isinstance(value, (int, np.integer)) or isinstance(value, bool):
+                raise TypeError(f"{name} must be an integer, got {value!r}.")
         if self.n_tables < 1:
             raise ValueError(
                 f"n_tables must be a positive integer, got {self.n_tables}."

@@ -96,6 +96,79 @@ def test_naive_predict_finds_self_match(normalize):
     assert_almost_equal(distances[0], 0.0, decimal=5)
 
 
+@pytest.mark.parametrize("normalize", [False, True])
+def test_naive_distance_euclidean_matches_sqrt_of_squared(normalize):
+    """``distance="euclidean"`` equals the square root of the default profile."""
+    length = 8
+    X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=30, return_y=False)
+    query = make_example_2d_numpy_series(n_channels=2, n_timepoints=length)
+    squared = (
+        NaiveSubsequenceSearch(length=length, normalize=normalize)
+        .fit(X)
+        .compute_distance_profile(query)
+    )
+    euclidean = (
+        NaiveSubsequenceSearch(length=length, normalize=normalize, distance="euclidean")
+        .fit(X)
+        .compute_distance_profile(query)
+    )
+    np.testing.assert_allclose(euclidean, np.sqrt(squared), atol=1e-6)
+
+
+def test_naive_distance_dtw_matches_reference():
+    """``distance="dtw"`` with ``distance_params`` matches direct distance calls."""
+    from aeon.distances import dtw_distance
+
+    length = 8
+    n_cases, n_timepoints = 3, 20
+    X = make_example_3d_numpy(
+        n_cases=n_cases, n_channels=2, n_timepoints=n_timepoints, return_y=False
+    )
+    query = make_example_2d_numpy_series(n_channels=2, n_timepoints=length)
+    est = NaiveSubsequenceSearch(
+        length=length, distance="dtw", distance_params={"window": 0.2}
+    ).fit(X)
+    got = est.compute_distance_profile(query)
+    n_candidates = n_timepoints - length + 1
+    expected = np.zeros((n_cases, n_candidates))
+    for i in range(n_cases):
+        for j in range(n_candidates):
+            expected[i, j] = dtw_distance(X[i, :, j : j + length], query, window=0.2)
+    np.testing.assert_allclose(got, expected, atol=1e-6)
+
+
+def test_naive_distance_callable():
+    """A callable distance is used for the distance profile computation."""
+
+    def _manhattan(x, y):
+        return np.sum(np.abs(x - y))
+
+    length = 8
+    n_cases, n_timepoints = 3, 20
+    X = make_example_3d_numpy(
+        n_cases=n_cases, n_channels=1, n_timepoints=n_timepoints, return_y=False
+    )
+    query = make_example_2d_numpy_series(n_channels=1, n_timepoints=length)
+    est = NaiveSubsequenceSearch(length=length, distance=_manhattan).fit(X)
+    got = est.compute_distance_profile(query)
+    n_candidates = n_timepoints - length + 1
+    expected = np.zeros((n_cases, n_candidates))
+    for i in range(n_cases):
+        for j in range(n_candidates):
+            expected[i, j] = _manhattan(X[i, :, j : j + length], query)
+    np.testing.assert_allclose(got, expected, atol=1e-6)
+
+
+def test_naive_invalid_distance_raises():
+    """An unknown distance string raises a ValueError at compute time."""
+    length = 8
+    X = make_example_3d_numpy(n_cases=3, n_channels=1, n_timepoints=20, return_y=False)
+    query = make_example_2d_numpy_series(n_channels=1, n_timepoints=length)
+    est = NaiveSubsequenceSearch(length=length, distance="not_a_distance").fit(X)
+    with pytest.raises(ValueError):
+        est.compute_distance_profile(query)
+
+
 def test_naive_predict_k_inf_returns_all():
     """``k=np.inf`` returns every admissible candidate for the naive searcher."""
     length = 10

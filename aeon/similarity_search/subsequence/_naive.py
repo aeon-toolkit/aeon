@@ -3,11 +3,12 @@
 __maintainer__ = ["baraline"]
 __all__ = ["NaiveSubsequenceSearch"]
 
+from collections.abc import Callable
+
 import numpy as np
 
-from aeon.similarity_search._commons import _pairwise_squared_distance
+from aeon.distances import pairwise_distance
 from aeon.similarity_search.subsequence._base import BaseDistanceProfileSearch
-from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.numba.general import (
     get_all_subsequences,
     z_normalise_series_2d,
@@ -34,6 +35,14 @@ class NaiveSubsequenceSearch(BaseDistanceProfileSearch):
     normalize : bool, default=False
         Whether the subsequences should be z-normalized before distance computation.
         This results in scale-independent matching.
+    distance : str or callable, default="squared"
+        Distance measure between subsequences. A list of valid strings can be found
+        in the documentation for :func:`aeon.distances.get_distance_function` or
+        through calling :func:`aeon.distances.get_distance_function_names`. If a
+        callable is passed it must be a function that takes two 2d numpy arrays of
+        shape ``(n_channels, length)`` as input and returns a float.
+    distance_params : dict, default=None
+        Dictionary of distance parameters for the case that ``distance`` is a str.
     n_jobs : int, default=1
         Number of parallel threads to use for distance computation.
 
@@ -73,10 +82,19 @@ class NaiveSubsequenceSearch(BaseDistanceProfileSearch):
         self,
         length: int,
         normalize: bool | None = False,
+        distance: str | Callable = "squared",
+        distance_params: dict | None = None,
         n_jobs: int | None = 1,
     ):
         self.normalize = normalize
+        self.distance = distance
+        self.distance_params = distance_params
         self.n_jobs = n_jobs
+
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
+
         super().__init__(length)
 
     def _fit(
@@ -102,8 +120,8 @@ class NaiveSubsequenceSearch(BaseDistanceProfileSearch):
         # Extract subsequences from each series in the collection. Since the
         # collection is equal-length, every case yields the same number of
         # candidate subsequences, so they can be stacked into a single 4D array
-        # (n_cases, n_candidates, n_channels, length) and processed by one
-        # parallel region in ``compute_distance_profile``.
+        # (n_cases, n_candidates, n_channels, length) and processed by a single
+        # ``pairwise_distance`` call in ``compute_distance_profile``.
         n_cases = X.shape[0]
         subs_list = []
         for i in range(n_cases):
@@ -116,7 +134,6 @@ class NaiveSubsequenceSearch(BaseDistanceProfileSearch):
 
         return self
 
-    @numba_thread_handler
     def compute_distance_profile(self, X: np.ndarray):
         """
         Compute the distance profile of X to all subsequences in X_.
@@ -138,11 +155,19 @@ class NaiveSubsequenceSearch(BaseDistanceProfileSearch):
         n_cases, n_candidates, n_channels, length = self.X_subs_.shape
 
         # Flatten the (n_cases, n_candidates) subsequences into a single
-        # (n_cases * n_candidates, n_channels, length) array so the shared
-        # parallel kernel runs a single parallel region over all candidates
-        # instead of one region per case.
+        # (n_cases * n_candidates, n_channels, length) array so all candidates
+        # are processed in a single call instead of one per case.
         flat_subs = self.X_subs_.reshape(n_cases * n_candidates, n_channels, length)
-        distance_profiles = _pairwise_squared_distance(flat_subs, X)
+        # The query is passed as a (1, n_channels, length) collection: a 2D
+        # y is interpreted as a collection of univariate series, which would
+        # be wrong for multivariate queries.
+        distance_profiles = pairwise_distance(
+            flat_subs,
+            X[np.newaxis],
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        )
         return distance_profiles.reshape(n_cases, n_candidates)
 
     @classmethod

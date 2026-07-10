@@ -10,15 +10,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.similarity_search.whole_series._naive import (
-    NaiveSeriesSearch,
-    _pairwise_squared_distance,
-)
+from aeon.similarity_search.whole_series import NaiveSeriesSearch
 from aeon.testing.data_generation import make_example_3d_numpy
 
 
-def test__pairwise_squared_distance():
-    """Test pairwise squared Euclidean distance computation."""
+def test_naive_wss_distance_profile_values():
+    """Test the default squared Euclidean distance profile values."""
     # Create a small collection of series
     X_collection = np.array(
         [
@@ -29,7 +26,7 @@ def test__pairwise_squared_distance():
     )
     Q = np.array([[1.0, 2.0, 3.0]])  # Query (same as series 0 and 2)
 
-    dist_profile = _pairwise_squared_distance(X_collection, Q)
+    dist_profile = NaiveSeriesSearch().fit(X_collection).compute_distance_profile(Q)
 
     # Distance to series 0 and 2 should be 0 (identical)
     assert_almost_equal(dist_profile[0], 0.0)
@@ -122,6 +119,62 @@ def test_naive_wss_k_inf_returns_all():
     assert len(distances) == n_cases
     # The self-match must be present at distance 0.
     assert 0 in indexes
+
+
+@pytest.mark.parametrize("normalize", [False, True])
+def test_naive_wss_distance_euclidean_matches_sqrt_of_squared(normalize):
+    """``distance="euclidean"`` equals the square root of the default profile."""
+    X = make_example_3d_numpy(n_cases=6, n_channels=2, n_timepoints=30, return_y=False)
+    query = X[0]
+    squared = (
+        NaiveSeriesSearch(normalize=normalize).fit(X).compute_distance_profile(query)
+    )
+    euclidean = (
+        NaiveSeriesSearch(normalize=normalize, distance="euclidean")
+        .fit(X)
+        .compute_distance_profile(query)
+    )
+    np.testing.assert_allclose(euclidean, np.sqrt(squared), atol=1e-6)
+
+
+def test_naive_wss_distance_dtw_matches_reference():
+    """``distance="dtw"`` with ``distance_params`` matches direct distance calls."""
+    from aeon.distances import dtw_distance
+
+    n_cases = 5
+    X = make_example_3d_numpy(
+        n_cases=n_cases, n_channels=2, n_timepoints=20, return_y=False
+    )
+    query = X[0]
+    searcher = NaiveSeriesSearch(distance="dtw", distance_params={"window": 0.2})
+    got = searcher.fit(X).compute_distance_profile(query)
+    expected = np.array([dtw_distance(X[i], query, window=0.2) for i in range(n_cases)])
+    np.testing.assert_allclose(got, expected, atol=1e-6)
+
+
+def test_naive_wss_distance_callable():
+    """A callable distance is used for the distance profile computation."""
+
+    def _manhattan(x, y):
+        return np.sum(np.abs(x - y))
+
+    n_cases = 5
+    X = make_example_3d_numpy(
+        n_cases=n_cases, n_channels=1, n_timepoints=20, return_y=False
+    )
+    query = X[0]
+    searcher = NaiveSeriesSearch(distance=_manhattan)
+    got = searcher.fit(X).compute_distance_profile(query)
+    expected = np.array([_manhattan(X[i], query) for i in range(n_cases)])
+    np.testing.assert_allclose(got, expected, atol=1e-6)
+
+
+def test_naive_wss_invalid_distance_raises():
+    """An unknown distance string raises a ValueError at compute time."""
+    X = make_example_3d_numpy(n_cases=3, n_channels=1, n_timepoints=20, return_y=False)
+    searcher = NaiveSeriesSearch(distance="not_a_distance").fit(X)
+    with pytest.raises(ValueError):
+        searcher.compute_distance_profile(X[0])
 
 
 @pytest.mark.parametrize("k", [0, -1, 2.5])

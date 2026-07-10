@@ -210,6 +210,34 @@ def test_fit_invalid_n_tables_raises(n_tables):
         rp.fit(X)
 
 
+@pytest.mark.parametrize("n_tables", [2.0, 4.5, True, "4"])
+def test_fit_non_integer_n_tables_raises(n_tables):
+    """A non-integer n_tables (float, bool, str) raises a TypeError naming it."""
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=50, return_y=False)
+    rp = SimHashIndexANN(n_tables=n_tables, random_state=0)
+    with pytest.raises(TypeError, match="n_tables"):
+        rp.fit(X)
+
+
+@pytest.mark.parametrize("n_bits_per_table", [8.0, 4.5, True, "8"])
+def test_fit_non_integer_n_bits_per_table_raises(n_bits_per_table):
+    """A non-integer n_bits_per_table (float, bool, str) raises a TypeError."""
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=50, return_y=False)
+    rp = SimHashIndexANN(n_bits_per_table=n_bits_per_table, random_state=0)
+    with pytest.raises(TypeError, match="n_bits_per_table"):
+        rp.fit(X)
+
+
+def test_fit_accepts_numpy_integer_params():
+    """NumPy integer scalars are valid n_tables and n_bits_per_table values."""
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=50, return_y=False)
+    rp = SimHashIndexANN(
+        n_tables=np.int64(4), n_bits_per_table=np.int32(4), random_state=0
+    )
+    rp.fit(X)
+    assert len(rp.tables_) == 4
+
+
 def test_fit_reproducibility():
     """Same random_state produces the same hash functions."""
     X = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=50, return_y=False)
