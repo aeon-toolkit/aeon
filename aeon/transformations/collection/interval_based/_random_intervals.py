@@ -358,7 +358,7 @@ class RandomIntervals(BaseCollectionTransformer):
         while interval_length / dilation < self._min_interval_length:
             dilation -= 1
 
-        Xt = np.empty((self.n_cases_, 0)) if transform else None
+        Xt_parts = [] if transform else None
         intervals = []
 
         for feature in self._features:
@@ -379,7 +379,7 @@ class RandomIntervals(BaseCollectionTransformer):
                     if t.ndim == 3 and t.shape[1] == 1:
                         t = t.reshape((t.shape[0], t.shape[2]))
 
-                    Xt = np.hstack((Xt, t))
+                    Xt_parts.append(t)
                 else:
                     feature.fit(
                         np.expand_dims(
@@ -391,9 +391,14 @@ class RandomIntervals(BaseCollectionTransformer):
                 t = np.asarray(
                     feature(X[:, dim, interval_start:interval_end:dilation])
                 ).reshape(-1, 1)
-                Xt = np.hstack((Xt, t))
+                Xt_parts.append(t)
 
             intervals.append((interval_start, interval_end, dim, feature, dilation))
+
+        # concatenate once rather than growing Xt with a fresh copy per feature
+        Xt = None
+        if transform:
+            Xt = np.hstack(Xt_parts) if Xt_parts else np.empty((self.n_cases_, 0))
 
         return intervals, Xt
 
