@@ -63,6 +63,24 @@ def test_base_forecaster():
         f.forecast(y, exog=y)
 
 
+def test_naive_seasonal_last_validates_seasonal_period():
+    """seasonal_last must raise a clear error for an invalid period (gh-3576)."""
+    y = np.arange(20, dtype=float)
+    # True is included because bool is a subclass of int (must be rejected)
+    for bad in (0, -1, None, True):
+        f = NaiveForecaster(strategy="seasonal_last", seasonal_period=bad)
+        f.fit(y)
+        with pytest.raises(ValueError, match="seasonal_period"):
+            f.predict(y)
+    # a seasonal_period larger than the series is also rejected, not an IndexError.
+    # horizon=15 would have overflowed the effective period under the old code.
+    short = np.arange(10, dtype=float)
+    f = NaiveForecaster(strategy="seasonal_last", seasonal_period=50, horizon=15)
+    f.fit(short)
+    with pytest.raises(ValueError, match="cannot exceed"):
+        f.predict(short)
+
+
 def test_base_forecaster_rejects_unsupported_horizon():
     """Test horizon validation for forecasters without horizon capability."""
     y = np.arange(10, dtype=float)
