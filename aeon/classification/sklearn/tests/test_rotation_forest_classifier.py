@@ -20,22 +20,25 @@ def test_rotf_output():
     )
     rotf.fit(X_train, y_train)
 
+    # expected values changed when the group PCA moved to an exact
+    # eigendecomposition and the pca_solver parameter (previously "randomized"
+    # here) was deprecated
     expected = [
-        [0.8, 0.2],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [0.8, 0.2],
+        [0.9, 0.1],
         [1.0, 0.0],
         [1.0, 0.0],
         [0.9, 0.1],
         [0.9, 0.1],
         [1.0, 0.0],
         [1.0, 0.0],
-        [0.8, 0.2],
         [0.9, 0.1],
-        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.9, 0.1],
+        [1.0, 0.0],
         [0.1, 0.9],
-        [0.4, 0.6],
+        [0.2, 0.8],
+        [0.6, 0.4],
     ]
 
     np.testing.assert_array_almost_equal(

@@ -14,7 +14,6 @@ import pandas as pd
 from joblib import Parallel, delayed
 from scipy.sparse import issparse
 from sklearn.base import BaseEstimator, is_classifier
-from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
@@ -23,6 +22,57 @@ from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
+
+
+class _GroupPCA:
+    """Minimal PCA via eigendecomposition of the covariance matrix.
+
+    A lightweight replacement for the sklearn PCA previously used to rotate each
+    attribute group. Groups are only a few attributes wide, so an exact
+    eigendecomposition of the small covariance matrix is much faster than a full
+    SVD of the data matrix and avoids all sklearn fit/transform overhead.
+
+    Matches the components (and sign convention) of the sklearn PCA "full"
+    solver, except for rank-deficient inputs where the trailing components span
+    the same null space but may differ in direction.
+
+    ``components_`` is ``None`` if the input is degenerate (fewer than two cases
+    or zero total variance), mirroring the all-NaN ``explained_variance_ratio_``
+    failure previously used to trigger a refit.
+    """
+
+    __slots__ = ("mean_", "components_")
+
+    def fit(self, X):
+        n_cases, n_atts = X.shape
+        self.mean_ = X.mean(axis=0)
+        self.components_ = None
+
+        if n_cases < 2:
+            return self
+
+        X_c = X - self.mean_
+        cov = (X_c.T @ X_c) / (n_cases - 1)
+        total_var = np.trace(cov)
+        if not np.isfinite(total_var) or total_var <= 0:
+            return self
+
+        _, vecs = np.linalg.eigh(cov)
+        # rows = components in descending eigenvalue order, truncated to the
+        # number of components the sklearn PCA default would keep
+        vecs = vecs[:, ::-1].T[: min(n_cases, n_atts)]
+
+        # sklearn svd_flip sign convention: the largest absolute value in each
+        # component is positive
+        max_abs = np.argmax(np.abs(vecs), axis=1)
+        signs = np.sign(vecs[np.arange(vecs.shape[0]), max_abs])
+        vecs *= signs[:, None]
+
+        self.components_ = vecs
+        return self
+
+    def transform(self, X):
+        return (X - self.mean_) @ self.components_.T
 
 
 class BaseRotationForest(BaseEstimator):
@@ -50,8 +100,9 @@ class BaseRotationForest(BaseEstimator):
         classifiers and the sklearn ``DecisionTreeRegressor`` using MSE as a
         splitting measure for regressors.
     pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
-        implementation for options.
+        Deprecated and has no effect. The group PCA is computed with an exact
+        eigendecomposition of the covariance matrix, equivalent to the
+        scikit-learn PCA "full" solver. Will be removed in a future release.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -223,16 +274,12 @@ class BaseRotationForest(BaseEstimator):
         for group in groups:
             X_t = self._sample_group_cases(X, X_cls_split, group, rng)
 
-            # try to fit the PCA if it fails, remake it, and add 10 random data
-            # instances.
+            # try to fit the PCA. if the data is degenerate, remake it, adding
+            # 10 random data instances until it fits.
             while True:
-                # ignore err state on PCA because we account if it fails.
-                with np.errstate(divide="ignore", invalid="ignore"):
-                    # differences between os occasionally. seems to happen when there
-                    # are low amounts of cases in the fit
-                    pca = PCA(random_state=rng, svd_solver=self.pca_solver).fit(X_t)
+                pca = _GroupPCA().fit(X_t)
 
-                if not np.isnan(pca.explained_variance_ratio_).all():
+                if pca.components_ is not None:
                     break
                 X_t = np.concatenate(
                     (X_t, rng.random_sample((10, X_t.shape[1]))), axis=0

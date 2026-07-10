@@ -39,8 +39,9 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         Base estimator for the ensemble. By default, uses the sklearn
         `DecisionTreeClassifier` using entropy as a splitting measure.
     pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
-        implementation for options.
+        Deprecated and has no effect. The group PCA is computed with an exact
+        eigendecomposition of the covariance matrix, equivalent to the
+        scikit-learn PCA "full" solver. Will be removed in a future release.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.

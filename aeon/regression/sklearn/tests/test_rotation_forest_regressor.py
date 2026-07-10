@@ -24,24 +24,22 @@ def test_rotf_output():
     )
     rotf.fit(X_train, y_train)
 
-    # expected values changed when the regressor started honouring the pca_solver
-    # parameter, which was previously ignored and always "full"
     expected = [
-        0.02694,
-        0.02694,
-        0.01998,
-        0.04277,
-        0.09028,
-        0.02707,
-        0.02554,
-        0.04076,
-        0.02900,
-        0.04249,
-        0.02694,
-        0.03667,
+        0.02987,
+        0.01912,
         0.02359,
-        0.03444,
-        0.02359,
+        0.05474,
+        0.06206,
+        0.03782,
+        0.02681,
+        0.04133,
+        0.02588,
+        0.04581,
+        0.03081,
+        0.02781,
+        0.02805,
+        0.03213,
+        0.02295,
     ]
     np.testing.assert_array_almost_equal(expected, rotf.predict(X_test[:15]), decimal=4)
 
