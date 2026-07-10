@@ -19,6 +19,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
+import warnings
 from abc import abstractmethod
 
 import numpy as np
@@ -30,6 +31,7 @@ from aeon.utils.conversion import (
     resolve_unequal_length_inner_type,
 )
 from aeon.utils.validation.collection import (
+    check_collection_variance,
     get_n_cases,
     get_n_channels,
     get_n_timepoints,
@@ -194,6 +196,17 @@ class BaseCollectionEstimator(BaseAeonEstimator):
                 f"but {type(self).__name__} cannot handle these characteristics. "
             )
             raise ValueError(msg)
+
+        if not check_collection_variance(X, raise_error=False):
+            warnings.warn(
+                f"Data seen by instance of {type(self).__name__} has one or more "
+                "case/channel pairs with very little variation (std <= 1e-07). "
+                "Some aeon methods may treat these series as effectively constant. "
+                "If this is unintended, rescale (e.g., multiply by a constant) or "
+                "normalise your data.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         return metadata
 

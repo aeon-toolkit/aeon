@@ -8,6 +8,7 @@ __all__ = ["LearningShapeletClassifier"]
 
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.classification.base import BaseClassifier
 
@@ -20,9 +21,23 @@ def _X_transformed_tslearn(X):
     return X_transformed
 
 
+# TODO: remove in v1.6.0
+@deprecated(
+    version="1.5.0",
+    reason=(
+        "LearningShapeletClassifier is deprecated and will be removed in v1.6.0. "
+        "Use other shapelet-based classifiers such as ShapeletTransformClassifier "
+        "or RDSTClassifier instead."
+    ),
+    category=FutureWarning,
+)
 class LearningShapeletClassifier(BaseClassifier):
     """
     Learning Shapelet classifier.
+
+    Deprecated and will be removed in v1.6.0. Use other shapelet-based
+    classifiers such as :class:`ShapeletTransformClassifier` or
+    :class:`RDSTClassifier` instead.
 
     This is a wrapper for the `LearningShapelet` class of `tslearn`.
     Learning Shapelet classifier, presented in [1]_, operates by

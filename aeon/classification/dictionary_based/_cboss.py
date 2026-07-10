@@ -69,7 +69,7 @@ class ContractableBOSS(BaseClassifier):
         Sets the feature selections strategy to be used. One of {"chi2", "none",
         "random"}. "chi2" reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
-        applies not feature selectiona and yields large bag of words, e.g. much
+        applies no feature selection and yields large bag of words, e.g. much
         memory may be needed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
@@ -252,9 +252,22 @@ class ContractableBOSS(BaseClassifier):
                 rng.randint(0, len(possible_parameters))
             )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            attempts = 0
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
+                else:
+                    if attempts > 100:
+                        raise ValueError(
+                            "Unable to create subsample with more than 1 class after "
+                            "100 attempts. Try using more data."
+                        )
+                    attempts += 1
 
             boss = IndividualBOSS(
                 *parameters,

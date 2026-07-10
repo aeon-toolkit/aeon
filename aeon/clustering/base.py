@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.base import ClusterMixin
 
 from aeon.base import BaseCollectionEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
@@ -30,6 +31,7 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None) -> BaseCollectionEstimator:
         """Fit time series clusterer to training data.
 
@@ -75,8 +77,8 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         Returns
         -------
         np.array
-            shape ``(n_cases)`, index of the cluster each time series in X.
-            belongs to.
+            shape ``(n_cases,)``, index of the cluster to which each time series in X
+            belongs.
         """
         self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
@@ -125,8 +127,8 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         ----------
         X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
             (n_cases, n_channels, n_timepoints)).
-            Time series instances to train clusterer and then have indexes each belong
-            to return.
+            Time series instances used to train the clusterer and return their assigned
+            cluster indices.
         y: ignored, exists for API consistency reasons.
 
         Returns

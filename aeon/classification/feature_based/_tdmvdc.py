@@ -282,7 +282,7 @@ class TDMVDCClassifier(BaseClassifier):
 
         Parameters
         ----------
-        testYList : 2D np.ndarray of shape = [n_classifierss, n_cases]
+        testYList : 2D np.ndarray of shape = [n_classifiers, n_cases]
         """
         uniqueY = np.unique(testYList)  # Holds the label for each class
         n_classes = len(uniqueY)  # Number of classes

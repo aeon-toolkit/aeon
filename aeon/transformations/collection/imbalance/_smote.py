@@ -25,7 +25,7 @@ from aeon.utils.validation import check_n_jobs
 
 class SMOTE(BaseCollectionTransformer):
     """
-    Synthetic Minority Over-sampling TEchnique (SMOTE) for imbalanced datasets.
+    Synthetic Minority Over-sampling Technique (SMOTE) for imbalanced datasets.
 
     Generates synthetic samples of the minority class to address class imbalance.
     SMOTE constructs new samples by interpolating between existing minority samples
@@ -39,7 +39,8 @@ class SMOTE(BaseCollectionTransformer):
     ----------
     n_neighbors : int, default=5
         Number of nearest neighbours used to generate synthetic samples. A
-        `sklearn.neighbors.NearestNeighbors` instance is fitted for this purpose.
+        `_SingleClassKNN` wrapper around `KNeighborsTimeSeriesClassifier` is fitted
+        for this purpose.
     random_state : int, RandomState instance or None, default=None
         Controls the random number generation for reproducibility:
         - If `int`, sets the random seed.
@@ -101,7 +102,7 @@ class SMOTE(BaseCollectionTransformer):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         # set the additional_neighbor required by SMOTE
-        self.nn_ = _Single_Class_KNN(
+        self.nn_ = _SingleClassKNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
             distance_params=self._distance_params,
@@ -213,7 +214,7 @@ class SMOTE(BaseCollectionTransformer):
 
         .. math::
            \mathbf{s_{s}} = \mathbf{s_{i}} + \mathcal{u}(0, 1) \times
-           (\mathbf{s_{i}} - \mathbf{s_{nn}}) \,
+           (\mathbf{s_{nn}} - \mathbf{s_{i}}) \,
 
         where \mathbf{s_{s}} is the new synthetic samples, \mathbf{s_{i}} is
         the current sample, \mathbf{s_{nn}} is a randomly selected neighbors of
@@ -266,10 +267,6 @@ class SMOTE(BaseCollectionTransformer):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            ClassifierChannelEnsemble provides the following special sets:
-            - "results_comparison" - used in some classifiers to compare against
-              previously generated results where the default set of parameters
-              cannot produce suitable probability estimates
 
         Returns
         -------
@@ -281,16 +278,15 @@ class SMOTE(BaseCollectionTransformer):
         return {"n_neighbors": 1}
 
 
-class _Single_Class_KNN(KNeighborsTimeSeriesClassifier):
+class _SingleClassKNN(KNeighborsTimeSeriesClassifier):
     """
     KNN classifier for time series data, adapted to work with SMOTE.
 
     This class is a wrapper around the original KNeighborsTimeSeriesClassifier
-    to ensure compatibility with the Signal class.
+    to ensure compatibility with a single class.
     """
 
-    def _fit_setup(self, X, y):
-        # KNN can support if all labels are the same so always return False for single
-        # class problem so the fit will always run
-        X, y, _ = super()._fit_setup(X, y)
-        return X, y, False
+    def _check_y(self, y, n_cases, update_classes=True, allow_single_class=False):
+        return super()._check_y(
+            y, n_cases, update_classes=update_classes, allow_single_class=True
+        )

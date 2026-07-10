@@ -12,7 +12,7 @@ from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._dtw import _dtw_cost_matrix
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -187,6 +187,19 @@ def shape_dtw_distance(
         "ShapeDBA: Generating Effective Time Series Prototypes using ShapeDTW
         Barycenter Averaging" ECML/PKDD Workshop on Advanced Analytics and
         Learning on Temporal Data, Turin, Italy, 2023.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import shape_dtw_distance
+    >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    >>> shape_dtw_distance(x, y)  # 1D series
+    1000.0
+    >>> x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
+    >>> y = np.array([[11, 12, 13, 14], [7, 8, 9, 20], [1, 3, 4, 5]])
+    >>> shape_dtw_distance(x, y)  # 2D series with 3 channels, unequal length
+    564.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -348,6 +361,18 @@ def shape_dtw_cost_matrix(
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import shape_dtw_cost_matrix
+    >>> x = np.array([[1, 2, 3, 4]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> shape_dtw_cost_matrix(x, y)
+    array([[ 0.,  3., 13., 32.],
+           [ 3.,  0.,  3., 13.],
+           [13.,  3.,  0.,  3.],
+           [32., 13.,  3.,  0.]])
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -483,6 +508,15 @@ def shape_dtw_alignment_path(
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import shape_dtw_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> shape_dtw_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     cost_matrix = shape_dtw_cost_matrix(
         x=x,
@@ -515,7 +549,7 @@ def shape_dtw_alignment_path(
     return (compute_min_return_path(cost_matrix), shapedtw_dist)
 
 
-@threaded
+@numba_thread_handler
 def shape_dtw_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
