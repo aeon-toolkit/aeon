@@ -12,7 +12,7 @@ import pytest
 
 from aeon.classification.dictionary_based._tde_sfa import (
     _DBL_MAX,
-    _TDESFA,
+    _TDE_SFA,
     _bags_from_dft,
     _best_split,
     _binning_dft_all,
@@ -120,29 +120,29 @@ def test_tde_sfa_rejects_parameters_outside_tde_space(kwargs, match):
     construction rather than creating an object that later mis-encodes bags.
     """
     with pytest.raises(ValueError, match=match):
-        _TDESFA(**kwargs)
+        _TDE_SFA(**kwargs)
 
 
 def test_tde_sfa_validates_input_shape_and_fit_requirements():
     """Test runtime validation for input shape and fit prerequisites.
 
-    TDE slices one channel at a time before calling ``_TDESFA``. This checks
+    TDE slices one channel at a time before calling ``_TDE_SFA``. This checks
     that accidental multivariate input, oversized windows, missing IGB labels
     and missing retained binning DFTs all raise clear errors.
     """
     X, _ = _make_toy_data(n_cases=4, n_timepoints=12)
 
     with pytest.raises(ValueError, match="univariate"):
-        _TDESFA()._check_X(np.zeros((2, 2, 12)))
+        _TDE_SFA()._check_X(np.zeros((2, 2, 12)))
 
     with pytest.raises(ValueError, match="larger"):
-        _TDESFA(window_size=13).fit(X)
+        _TDE_SFA(window_size=13).fit(X)
 
     with pytest.raises(ValueError, match="y is required"):
-        _TDESFA(binning_method="information-gain").fit(X)
+        _TDE_SFA(binning_method="information-gain").fit(X)
 
     with pytest.raises(ValueError, match="keep_binning_dft"):
-        _TDESFA().binning_bags()
+        _TDE_SFA().binning_bags()
 
 
 @pytest.mark.parametrize(
@@ -169,7 +169,7 @@ def test_tde_sfa_matches_generic_sfa_for_tde_configurations(
     old.fit(X, y)
     expected = _convert_old_bags(old.transform(X)[0], levels, word_length)
 
-    new = _TDESFA(
+    new = _TDE_SFA(
         word_length=word_length,
         window_size=window_size,
         norm=norm,
@@ -193,7 +193,7 @@ def test_transform_handles_fit_array_and_new_array_paths():
     X_2d = np.ascontiguousarray(X[:, 0])
     X_new, _ = _make_toy_data(n_cases=6, n_timepoints=20, seed=2)
 
-    sfa = _TDESFA(word_length=4, window_size=6, bigrams=True)
+    sfa = _TDE_SFA(word_length=4, window_size=6, bigrams=True)
     fit_bags = _convert_new_bags(sfa.fit_transform(X_2d, y))
 
     assert _convert_new_bags(sfa.transform(X_2d)) == fit_bags
@@ -212,7 +212,7 @@ def test_binning_bags_use_retained_direct_dft():
     old.fit(X, y)
     expected = _convert_old_bags(old.transform(X)[0], levels=2, word_length=4)
 
-    new = _TDESFA(
+    new = _TDE_SFA(
         word_length=4,
         window_size=6,
         levels=2,
@@ -242,7 +242,7 @@ def test_mcb_breakpoints_use_two_decimal_equi_depth_bins():
             [0.889, 2.0],
         ]
     )
-    breakpoints = _TDESFA(word_length=2)._mcb_equi_depth(dft)
+    breakpoints = _TDE_SFA(word_length=2)._mcb_equi_depth(dft)
 
     np.testing.assert_array_equal(breakpoints[0, :3], np.array([0.33, 0.55, 0.78]))
     assert breakpoints[0, 3] == _DBL_MAX
@@ -267,7 +267,9 @@ def test_information_gain_breakpoints_handle_split_and_no_split_cases():
         ]
     )
     y = np.array(["a", "a", "b", "b", "c", "c"])
-    breakpoints = _TDESFA(word_length=2, binning_method="information-gain")._igb(dft, y)
+    breakpoints = _TDE_SFA(word_length=2, binning_method="information-gain")._igb(
+        dft, y
+    )
 
     assert np.isfinite(breakpoints[0, 0])
     assert np.all(breakpoints[0] == np.sort(breakpoints[0]))

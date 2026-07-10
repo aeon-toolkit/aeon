@@ -21,7 +21,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based._tde_sfa import (
-    _TDESFA,
+    _TDE_SFA,
     combine_dim_bags,
     loocv_train_acc,
     nn_predict_loocv,
@@ -896,7 +896,7 @@ class IndividualTDE(BaseClassifier):
             )
         else:
             self._transformers.append(
-                _TDESFA(
+                _TDE_SFA(
                     word_length=self.word_length,
                     window_size=self.window_size,
                     norm=self.norm,
@@ -1063,7 +1063,7 @@ class IndividualTDE(BaseClassifier):
         for i in range(self.n_channels_):
             self._dims.append(i)
             transformers.append(
-                _TDESFA(
+                _TDE_SFA(
                     word_length=self.word_length,
                     window_size=self.window_size,
                     norm=self.norm,

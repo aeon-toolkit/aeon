@@ -44,7 +44,7 @@ ALPHABET_SIZE = 4
 LETTER_BITS = 2
 
 
-class _TDESFA:
+class _TDE_SFA:
     """Symbolic Fourier Approximation transform, TDE feature set only.
 
     Parameters
