@@ -66,7 +66,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     def _transform(self, X, y=None):
         n_cases, n_channels, n_timepoints = X.shape
         if self.n_lags is None:
-            lags = n_timepoints / 4
+            lags = int(max(1, n_timepoints / 4))
         else:
             lags = self.n_lags(X) if callable(self.n_lags) else self.n_lags
         if lags > n_timepoints - self.min_values:

@@ -2866,6 +2866,88 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "ProfTrader",
+      "name": "ProfTrader",
+      "avatar_url": "https://avatars.githubusercontent.com/u/169579479?v=4",
+      "profile": "https://github.com/ProfTrader",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "laurapiro17",
+      "name": "Laura Piñero Roig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/124199253?v=4",
+      "profile": "https://laurapiro17-proteoclinview-app-tv7oqq.streamlit.app/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "terminalchai",
+      "name": "Terminal Chai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/213856599?v=4",
+      "profile": "https://terminalchai.com/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "vir-cipher",
+      "name": "vir-cipher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/295312726?v=4",
+      "profile": "https://github.com/vir-cipher",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "axelray-dev",
+      "name": "AxelRay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110029405?v=4",
+      "profile": "https://github.com/axelray-dev",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "glitch-ux",
+      "name": "José Maia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71816777?v=4",
+      "profile": "https://www.noesis.pt/en",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "gaurav-init",
+      "name": "Gaurav",
+      "avatar_url": "https://avatars.githubusercontent.com/u/125201478?v=4",
+      "profile": "https://github.com/gaurav-init",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "li-f8",
+      "name": "li-f8",
+      "avatar_url": "https://avatars.githubusercontent.com/u/184102584?v=4",
+      "profile": "https://github.com/li-f8",
+      "contributions": [
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "CedricConday",
+      "name": "Cedric Conday",
+      "avatar_url": "https://avatars.githubusercontent.com/u/277679649?v=4",
+      "profile": "https://linkedin.com/in/cedricconday",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"

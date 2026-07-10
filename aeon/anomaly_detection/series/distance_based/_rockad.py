@@ -83,7 +83,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
     >>> detector.fit(X_train)
     ROCKAD(...)
-    >>> detector.predict(X_test)
+    >>> np.round(detector.predict(X_test), 7)
     array([0.        , 0.0055471, 0.0699094, 0.2288105, 0.3238258,
            0.4365215, 0.4365215, 0.4365215, 0.4365215, 0.4365215,
            0.4365215, 0.4365215, 0.4365215, 0.4365215, 0.4365215,

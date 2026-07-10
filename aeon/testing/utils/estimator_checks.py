@@ -7,6 +7,7 @@ from inspect import isclass, signature
 import numpy as np
 
 from aeon.similarity_search import BaseSimilaritySearch
+from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.utils.validation.collection import get_n_cases
 
@@ -21,12 +22,19 @@ def _run_estimator_method(estimator, method_name, datatype, split):
                 y=FULL_TEST_DATA_DICT[datatype][split][0],
                 exog=FULL_TEST_DATA_DICT[datatype][split][1],
             )
-        # similarity search
-        elif "X" in args and "length" in args:
-            value = method(
-                X=FULL_TEST_DATA_DICT[datatype][split][0],
-                length=3,
-            )
+        # similarity search: predict-like methods take a single 2D query series,
+        # not the 3D collection passed to fit. Subsequence search additionally
+        # requires the query to have exactly `length` timepoints.
+        elif (
+            isinstance(estimator, BaseSimilaritySearch)
+            and method_name != "fit"
+            and "X" in args
+        ):
+            collection = FULL_TEST_DATA_DICT[datatype][split][0]
+            query = collection[0]
+            if isinstance(estimator, BaseSubsequenceSearch):
+                query = query[:, : estimator.length]
+            value = method(X=query)
         # general use
         elif "X" in args and "y" in args:
             value = method(
@@ -38,7 +46,7 @@ def _run_estimator_method(estimator, method_name, datatype, split):
         else:
             value = method()
 
-        # Similarity search return tuple as (distances, indexes)
+        # Similarity search returns a tuple (indexes, distances); keep indexes.
         if isinstance(estimator, BaseSimilaritySearch):
             if isinstance(value, tuple):
                 return value[0]
