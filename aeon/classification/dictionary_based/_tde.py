@@ -12,6 +12,7 @@ import time
 import warnings
 
 import numpy as np
+from joblib import Parallel, delayed
 from numba import njit, types
 from numba.typed import Dict
 from sklearn.utils import check_random_state
@@ -21,8 +22,10 @@ from aeon.classification.dictionary_based._tde_sfa import (
     _TDE_SFA,
     combine_dim_bags,
     loocv_train_acc,
+    nn_first_max,
     nn_predict_loocv,
     nn_similarities_all,
+    nn_tie_break,
 )
 from aeon.utils.validation import check_n_jobs
 
@@ -121,8 +124,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
         "oob" for out of bag estimates.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+        The number of jobs to run in parallel for `predict`. `fit` is
+        single threaded. ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -370,12 +373,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 if len(np.unique(y_subsample)) > 1:
                     break
 
+            # members are kept single threaded: the ensemble parallelises
+            # over members in predict, so member-level threads would only
+            # oversubscribe
             tde = IndividualTDE(
                 *parameters,
                 bigrams=use_bigrams,
                 dim_threshold=self.dim_threshold,
                 max_dims=self.max_dims,
-                n_jobs=self._n_jobs,
                 random_state=self.random_state,
             )
             tde.fit(X_subsample, y_subsample)
@@ -456,8 +461,19 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
-        for n, clf in enumerate(self.estimators_):
-            preds = clf.predict(X)
+        # each member's predict is dominated by nogil numba kernels, so
+        # thread-based parallelism over members scales. X is validated once
+        # by the public predict_proba wrapper, so members' _predict is
+        # called directly. Results are gathered in member order, so the
+        # aggregation below is identical for any n_jobs.
+        if self._n_jobs > 1:
+            all_preds = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                delayed(clf._predict)(X) for clf in self.estimators_
+            )
+        else:
+            all_preds = [clf._predict(X) for clf in self.estimators_]
+
+        for n, preds in enumerate(all_preds):
             for i in range(0, X.shape[0]):
                 sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
 
@@ -665,8 +681,8 @@ class IndividualTDE(BaseClassifier):
 
         Deprecated and will be removed in v1.7.0.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+        The number of jobs to run in parallel for `predict`. `fit` is
+        single threaded. ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for the random number generator.
 
@@ -857,13 +873,48 @@ class IndividualTDE(BaseClassifier):
                 np.ascontiguousarray(X[:, 0, :])
             )
 
-        # all test-vs-train similarities in a single numba call, then a
-        # cheap per-case tie-break loop
+        # all test-vs-train similarities in numba calls that release the GIL,
+        # then a cheap per-case tie-break loop. With n_jobs > 1 the test
+        # cases are chunked across threads; chunk results are stacked in
+        # order, so the similarities are identical for any n_jobs.
         keys1, keys2, counts, t_offsets = test_bags
-        sims = nn_similarities_all(
-            *self._transformed_data, keys1, keys2, counts, t_offsets
-        )
-        classes = [self._nn_from_sims(sims[i]) for i in range(n_cases)]
+        if self._n_jobs > 1 and n_cases > 1:
+            chunks = np.array_split(np.arange(n_cases), min(self._n_jobs, n_cases))
+            sims = np.vstack(
+                Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                    delayed(nn_similarities_all)(
+                        *self._transformed_data,
+                        keys1,
+                        keys2,
+                        counts,
+                        t_offsets[chunk[0] : chunk[-1] + 2],
+                    )
+                    for chunk in chunks
+                )
+            )
+        else:
+            sims = nn_similarities_all(
+                *self._transformed_data, keys1, keys2, counts, t_offsets
+            )
+
+        if isinstance(self.random_state, (int, np.integer)) and not isinstance(
+            self.random_state, bool
+        ):
+            # with an integer seed every case's tie-break generator yields
+            # the same sequence, so one precomputed draw pool resolves all
+            # cases inside numba, exactly as per-case generators would
+            draws = check_random_state(self.random_state).random(sims.shape[1])
+            nn_idx = nn_tie_break(sims, draws)
+            classes = [self._class_vals[nn_idx[i]] for i in range(n_cases)]
+        else:
+            # unseeded or shared generators consume draws across cases, so
+            # tie events must be resolved sequentially; the running maximum
+            # is draw-independent, so tie-free cases are resolved in numba
+            nn0, has_tie = nn_first_max(sims)
+            classes = [
+                self._nn_from_sims(sims[i]) if has_tie[i] else self._class_vals[nn0[i]]
+                for i in range(n_cases)
+            ]
         return np.array(classes)
 
     def _clear_transformer_fit_cache(self):

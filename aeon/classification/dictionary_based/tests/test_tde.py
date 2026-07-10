@@ -162,6 +162,34 @@ def test_tde_loocv_train_estimate_and_predict():
     assert all(p in tde.classes_ for p in preds)
 
 
+def test_tde_predict_multithreading_equivalence():
+    """Test that n_jobs > 1 predictions match single threaded ones.
+
+    Prediction is parallelised over ensemble members (and over test case
+    chunks in IndividualTDE); results are gathered in order, so the outputs
+    must be identical for any n_jobs.
+    """
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
+
+    def ensemble(n_jobs):
+        return TemporalDictionaryEnsemble(
+            n_parameter_samples=4,
+            max_ensemble_size=3,
+            randomly_selected_params=2,
+            random_state=0,
+            n_jobs=n_jobs,
+        )
+
+    st = ensemble(1).fit(X, y)
+    mt = ensemble(2).fit(X, y)
+    np.testing.assert_array_equal(st.predict_proba(X), mt.predict_proba(X))
+
+    Xm, ym = make_example_3d_numpy(n_cases=16, n_channels=3, n_timepoints=40)
+    it_st = IndividualTDE(window_size=12, random_state=0, n_jobs=1).fit(Xm, ym)
+    it_mt = IndividualTDE(window_size=12, random_state=0, n_jobs=3).fit(Xm, ym)
+    np.testing.assert_array_equal(it_st.predict(Xm), it_mt.predict(Xm))
+
+
 def test_tde_deprecated_parameters_warn():
     """Test the deprecated alphabet_size and typed_dict parameters.
 

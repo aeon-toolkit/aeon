@@ -466,6 +466,40 @@ def test_histogram_intersection_and_nearest_neighbour_helpers():
     assert nn_predict_loocv(keys1, keys2, counts, offsets, 0) == 1
 
 
+def test_nn_first_max_and_tie_break_replicate_the_sequential_scan():
+    """Test the tie-aware nearest neighbour helpers used by predict.
+
+    nn_first_max must return the first maximum per row and flag rows where
+    any element equalled the running maximum. nn_tie_break must consume one
+    draw per tie event from the start of the pool, switching to the tied
+    index when the draw is below 0.5, exactly like a per-row seeded scan.
+    """
+    from aeon.classification.dictionary_based._tde_sfa import (
+        nn_first_max,
+        nn_tie_break,
+    )
+
+    sims = np.array(
+        [
+            [3, 1, 4, 2],  # no tie events
+            [2, 2, 5, 5],  # ties at index 1 (running max 2) and 3 (max 5)
+        ],
+        dtype=np.int64,
+    )
+
+    nn0, has_tie = nn_first_max(sims)
+    np.testing.assert_array_equal(nn0, np.array([2, 2]))
+    np.testing.assert_array_equal(has_tie, np.array([False, True]))
+
+    # row 1: first draw (tie at value 2) >= 0.5 keeps index 0; second draw
+    # (tie at value 5) < 0.5 switches to index 3. Row 0 consumes no draws.
+    nn = nn_tie_break(sims, np.array([0.9, 0.1]))
+    np.testing.assert_array_equal(nn, np.array([2, 3]))
+
+    nn = nn_tie_break(sims, np.array([0.1, 0.9]))
+    np.testing.assert_array_equal(nn, np.array([2, 2]))
+
+
 def test_nn_similarities_all_scores_every_test_train_pair():
     """Test the batched test-to-train similarity matrix used by predict.
 

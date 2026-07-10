@@ -256,7 +256,7 @@ class _TDE_SFA:
         return np.sort(breakpoints, axis=1)
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _incremental_stds(series, end, window_size):
     stds = np.zeros(end)
     series_sum = 0.0
@@ -283,7 +283,7 @@ def _incremental_stds(series, end, window_size):
     return stds
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _mft_all(X, window_size, length, norm_offset, inverse_sqrt_win_size):
     """Normalised sliding-window Fourier coefficients for every case.
 
@@ -352,7 +352,7 @@ def _mft_all(X, window_size, length, norm_offset, inverse_sqrt_win_size):
     return out
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _binning_dft_all(
     X, window_size, dft_length, norm, inverse_sqrt_win_size, num_windows_per_inst
 ):
@@ -410,7 +410,7 @@ def _binning_dft_all(
     return out
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def _bags_from_dft(
     dfts,
     breakpoints,
@@ -708,7 +708,7 @@ def _igb_all(dft, y_codes, n_classes):
     return thresholds, n_thresholds
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def _histogram_intersection(keys1, keys2, counts, a0, a1, b0, b1):
     """Merge intersection of two sorted bag segments (sum of min counts)."""
     sim = 0
@@ -727,7 +727,7 @@ def _histogram_intersection(keys1, keys2, counts, a0, a1, b0, b1):
     return sim
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def combine_dim_bags(
     all_k1,
     all_k2,
@@ -857,7 +857,68 @@ def loocv_train_acc(keys1, keys2, counts, offsets, y_codes, required_correct):
     return n, correct, preds
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
+def nn_first_max(sims):
+    """First-maximum nearest neighbour per row, flagging tie events.
+
+    Replicates the deterministic part of the sequential scan: nn0[r] is the
+    index of the first maximum of row r, and has_tie[r] is True if any
+    element equalled the running maximum during the scan (the only points
+    where the random tie-break would consume a draw). Rows without tie
+    events need no random draws, so their result is final.
+    """
+    n_rows, n_cols = sims.shape
+    nn0 = np.empty(n_rows, dtype=np.int64)
+    has_tie = np.zeros(n_rows, dtype=np.bool_)
+
+    for r in range(n_rows):
+        best = np.int64(-1)
+        nn = -1
+        for j in range(n_cols):
+            s = sims[r, j]
+            if s > best:
+                best = s
+                nn = j
+            elif s == best:
+                has_tie[r] = True
+        nn0[r] = nn
+
+    return nn0, has_tie
+
+
+@njit(cache=True, nogil=True)
+def nn_tie_break(sims, draws):
+    """Nearest neighbour per row with precomputed tie-break draws.
+
+    Replicates the sequential scan with a fresh, identically seeded random
+    state per row: each row consumes draws from the start of ``draws``, one
+    per tie event (an element equal to the running maximum), taking the tied
+    index when the draw is below 0.5. With a seeded random state every row's
+    generator yields the same sequence, so a single precomputed pool serves
+    all rows exactly.
+    """
+    n_rows, n_cols = sims.shape
+    nn = np.empty(n_rows, dtype=np.int64)
+
+    for r in range(n_rows):
+        best = np.int64(-1)
+        chosen = -1
+        d = 0
+        for j in range(n_cols):
+            s = sims[r, j]
+            if s > best:
+                best = s
+                chosen = j
+            elif s == best:
+                if draws[d] < 0.5:
+                    chosen = j
+                d += 1
+        nn[r] = chosen
+
+    return nn
+
+
+@njit(cache=True, nogil=True)
 def nn_predict_loocv(keys1, keys2, counts, offsets, train_num):
     """Index of the 1NN of bag train_num among all other bags."""
     a0, a1 = offsets[train_num], offsets[train_num + 1]
@@ -875,7 +936,7 @@ def nn_predict_loocv(keys1, keys2, counts, offsets, train_num):
     return nn
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def nn_similarities_all(
     keys1, keys2, counts, offsets, t_keys1, t_keys2, t_counts, t_offsets
 ):
