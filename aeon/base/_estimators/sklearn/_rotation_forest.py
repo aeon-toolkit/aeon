@@ -297,10 +297,28 @@ class BaseRotationForest(BaseEstimator):
             X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
         )
 
-        tree = _clone_estimator(self._base_estimator, random_state=rng)
-        tree.fit(X_t, y)
+        tree = self._make_tree(rng)
+        if self.base_estimator is None:
+            # X_t is already a validated, finite float32 array
+            tree.fit(X_t, y, check_input=False)
+        else:
+            tree.fit(X_t, y)
 
         return tree, pcas, groups, X_t if save_transformed_data else None
+
+    def _make_tree(self, rng: np.random.RandomState):
+        """Construct a base estimator, avoiding clone overhead for the default.
+
+        The default tree is seeded with an int drawn from ``rng``, consuming
+        one draw exactly as the ``_clone_estimator`` path does via the sklearn
+        ``_set_random_states``, keeping the two routes interchangeable.
+        """
+        if self.base_estimator is None:
+            seed = rng.randint(np.iinfo(np.int32).max)
+            if is_classifier(self):
+                return DecisionTreeClassifier(criterion="entropy", random_state=seed)
+            return DecisionTreeRegressor(criterion="squared_error", random_state=seed)
+        return _clone_estimator(self._base_estimator, random_state=rng)
 
     def _sample_group_cases(self, X, X_cls_split, group, rng: np.random.RandomState):
         """Select the subsample of cases used to fit the PCA for a single group."""
@@ -346,7 +364,10 @@ class BaseRotationForest(BaseEstimator):
     def _predict_proba_for_estimator(self, X, clf, pcas, groups):
         X_t = self._transform_for_estimator(X, pcas, groups)
 
-        probas = clf.predict_proba(X_t)
+        if self.base_estimator is None:
+            probas = clf.predict_proba(X_t, check_input=False)
+        else:
+            probas = clf.predict_proba(X_t)
 
         if probas.shape[1] != self.n_classes_:
             new_probas = np.zeros((probas.shape[0], self.n_classes_))
@@ -359,20 +380,27 @@ class BaseRotationForest(BaseEstimator):
 
     def _predict_for_estimator(self, X, clf, pcas, groups):
         X_t = self._transform_for_estimator(X, pcas, groups)
+        if self.base_estimator is None:
+            return clf.predict(X_t, check_input=False)
         return clf.predict(X_t)
 
     def _train_probas_for_estimator(self, X_t, y, idx, rng: np.random.RandomState):
-        indices = range(self.n_cases_)
         subsample = rng.choice(self.n_cases_, size=self.n_cases_)
-        oob = [n for n in indices if n not in subsample]
+        in_bag = np.zeros(self.n_cases_, dtype=bool)
+        in_bag[subsample] = True
+        oob = np.flatnonzero(~in_bag)
 
         results = np.zeros((self.n_cases_, self.n_classes_))
         if len(oob) == 0:
             return [results, oob]
 
-        clf = _clone_estimator(self._base_estimator, rng)
-        clf.fit(X_t[idx][subsample], y[subsample])
-        probas = clf.predict_proba(X_t[idx][oob])
+        clf = self._make_tree(rng)
+        if self.base_estimator is None:
+            clf.fit(X_t[idx][subsample], y[subsample], check_input=False)
+            probas = clf.predict_proba(X_t[idx][oob], check_input=False)
+        else:
+            clf.fit(X_t[idx][subsample], y[subsample])
+            probas = clf.predict_proba(X_t[idx][oob])
 
         if probas.shape[1] != self.n_classes_:
             new_probas = np.zeros((probas.shape[0], self.n_classes_))
@@ -381,26 +409,29 @@ class BaseRotationForest(BaseEstimator):
                 new_probas[:, cls_idx] = probas[:, i]
             probas = new_probas
 
-        for n, proba in enumerate(probas):
-            results[oob[n]] += proba
+        results[oob] = probas
 
         return [results, oob]
 
     def _train_preds_for_estimator(self, X_t, y, idx, rng: np.random.RandomState):
-        indices = range(self.n_cases_)
         subsample = rng.choice(self.n_cases_, size=self.n_cases_)
-        oob = [n for n in indices if n not in subsample]
+        in_bag = np.zeros(self.n_cases_, dtype=bool)
+        in_bag[subsample] = True
+        oob = np.flatnonzero(~in_bag)
 
         results = np.zeros(self.n_cases_)
         if len(oob) == 0:
             return [results, oob]
 
-        clf = _clone_estimator(self._base_estimator, rng)
-        clf.fit(X_t[idx][subsample], y[subsample])
-        preds = clf.predict(X_t[idx][oob])
+        clf = self._make_tree(rng)
+        if self.base_estimator is None:
+            clf.fit(X_t[idx][subsample], y[subsample], check_input=False)
+            preds = clf.predict(X_t[idx][oob], check_input=False)
+        else:
+            clf.fit(X_t[idx][subsample], y[subsample])
+            preds = clf.predict(X_t[idx][oob])
 
-        for n, pred in enumerate(preds):
-            results[oob[n]] += pred
+        results[oob] = preds
 
         return [results, oob]
 
