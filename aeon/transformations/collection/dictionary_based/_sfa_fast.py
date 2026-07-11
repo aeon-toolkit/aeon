@@ -884,25 +884,23 @@ def _binning_dft(
     # Windowing
     if num_windows_per_inst > 1:
         # Splits individual time series into windows and returns the DFT for each
-        data = np.zeros((len(X), num_windows_per_inst, window_size))
+        data = np.zeros((len(X) * num_windows_per_inst, window_size))
         for i in prange(len(X)):
+            offset = i * num_windows_per_inst
             for j in range(num_windows_per_inst - 1):
-                data[i, j] = X[i, window_size * j : window_size * (j + 1)]
+                data[offset + j] = X[i, window_size * j : window_size * (j + 1)]
 
             start = n_timepoints - window_size
-            data[i, -1] = X[i, start:n_timepoints]
+            data[offset + num_windows_per_inst - 1] = X[i, start:n_timepoints]
 
-        dft = np.zeros((len(X), num_windows_per_inst, dft_length))
-        for i in prange(len(X)):
-            return_val = _fast_fourier_transform(
-                data[i], norm, dft_length, inverse_sqrt_win_size, True
-            )
-            dft[i] = return_val
+        dft = _fast_fourier_transform(
+            data, norm, dft_length, inverse_sqrt_win_size, True
+        )
 
         if lower_bounding:
-            dft[:, :, 1::2] = dft[:, :, 1::2] * -1  # lower bounding
+            dft[:, 1::2] = dft[:, 1::2] * -1  # lower bounding
 
-        return dft.reshape(dft.shape[0] * dft.shape[1], dft_length)
+        return dft
 
     # No Windowing (Whole Series)
     else:
@@ -932,29 +930,34 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     num_atts-2 if if self.norm is True
     """
     # first two are real and imaginary parts
-    start = 2 if norm else 0
-    length = start + dft_length
-    dft = np.zeros((len(X), length))  # , dtype=np.float64
+    start_coeff = 1 if norm else 0
+    dft = np.empty((len(X), dft_length))
 
     with objmode(X_ffts="complex128[:,:]"):
         X_ffts = scipy.fft.rfft(X, axis=1, workers=-1).astype(np.complex128)
 
     reals = np.real(X_ffts)  # float64[]
     imags = np.imag(X_ffts)  # float64[]
-    dft[:, 0::2] = reals[:, 0 : length // 2]
-    dft[:, 1::2] = imags[:, 0 : length // 2]
+    end_coeff = start_coeff + dft_length // 2
+    dft[:, 0::2] = reals[:, start_coeff:end_coeff]
+    dft[:, 1::2] = imags[:, start_coeff:end_coeff]
     dft *= inverse_sqrt_win_size
 
     # apply z-normalization
     if norm_std:
         stds = np.zeros(len(X))
-        for i in range(len(stds)):
-            stds[i] = np.std(X[i])
-        # stds = np.std(X, axis=1)  # not available in numba
-        stds = np.where(stds < AEON_NUMBA_STD_THRESHOLD, 1, stds)
+        for i in range(len(X)):
+            series_sum = 0.0
+            square_sum = 0.0
+            for j in range(X.shape[1]):
+                series_sum += X[i, j]
+                square_sum += X[i, j] * X[i, j]
+            mean = series_sum / X.shape[1]
+            std = math.sqrt(max(square_sum / X.shape[1] - mean * mean, 0.0))
+            stds[i] = std if std > AEON_NUMBA_STD_THRESHOLD else 1
         dft /= stds.reshape(-1, 1)
 
-    return dft[:, start:]
+    return dft
 
 
 # @njit(fastmath=True, cache=True)
