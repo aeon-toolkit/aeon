@@ -408,7 +408,7 @@ class Catch22(BaseCollectionTransformer):
 
                 if self.outlier_norm and feature in [3, 4]:
                     c22[dim + n] = features[feature](outlier_series)
-                if feature == 22:
+                elif feature == 22:
                     c22[dim + n] = np.mean(series)
                 elif feature == 23:
                     c22[dim + n] = np.std(series)

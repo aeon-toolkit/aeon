@@ -76,6 +76,20 @@ def test_catch22_wrapper_on_basic_motions():
     )
 
 
+def test_catch22_wrapper_outlier_norm():
+    """Test outlier features use the normalised series in the pycatch22 path."""
+    c22 = Catch22(use_pycatch22=True, outlier_norm=True)
+    features = [None] * 24
+    features[3] = np.mean
+    features[4] = np.mean
+
+    result = c22._transform_case_pycatch22(
+        np.array([[1.0, 2.0, 6.0]]), [3, 4], features
+    )
+
+    testing.assert_allclose(result, 0, atol=1e-12)
+
+
 feature_names = ["DN_HistogramMode_5", "CO_f1ecac", "FC_LocalSimple_mean3_stderr"]
 
 feature_names_short = [
