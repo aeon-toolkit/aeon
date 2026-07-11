@@ -298,11 +298,20 @@ class Catch22(BaseCollectionTransformer):
             # result is bit-identical: a 1D FFT equals the matching row of the
             # batched FFT, and the subtracted mean uses the same numba mean().
             fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
-            # The autocorrelation features (2, 3, 8, 10, 12) share the FFT twiddle
-            # table, which depends only on the (common) series length - compute it
-            # once and reuse instead of rebuilding it in every _compute_autocorrelations
-            # call.
-            ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
+            # The autocorrelation features (2, 3, 8, 10, 12) all need the
+            # normalised autocorrelation of the series. Compute it for the whole
+            # batch with two batched np.fft calls instead of a hand-written
+            # radix-2 FFT per series. NOT bit-identical: pocketfft rounds
+            # differently in the last bits, so index-valued outputs can flip at
+            # exact fp ties (rare).
+            ac_cache = self._ac_batch_cache(X, f_idx, n_cases)
+            # Twiddles for the hand-written FFT are still needed by the
+            # per-series fallback (np-list input) and by feature 12's rare
+            # no-crossing fallback on the differenced series.
+            if ac_cache is None or 12 in f_idx:
+                ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
+            else:
+                ac_tw, ac_nfft = None, 0
             func = self._transform_case
             case_args = [
                 (
@@ -312,6 +321,7 @@ class Catch22(BaseCollectionTransformer):
                     None if fft_cache is None else fft_cache[i],
                     ac_tw,
                     ac_nfft,
+                    None if ac_cache is None else ac_cache[i],
                 )
                 for i in range(n_cases)
             ]
@@ -348,8 +358,69 @@ class Catch22(BaseCollectionTransformer):
         nfft = _ac_nfft(X.shape[2])
         return _ac_twiddles(nfft), nfft
 
+    def _ac_batch_cache(self, X, f_idx, n_cases):
+        """Batch the autocorrelation FFTs across all cases when they will be used.
+
+        Features 2, 3, 8, 10 and 12 all consume the normalised autocorrelation of
+        the series. The per-series path computes it with a hand-written radix-2
+        numba FFT; computing the whole batch with two batched np.fft calls is far
+        cheaper per series. Returns an array of shape (n_cases, n_channels,
+        2 * nfft) matching _compute_autocorrelations' output per series, or None
+        if no autocorrelation feature runs or the input is not an equal-length 3D
+        array.
+
+        The result is NOT bit-identical to the per-series path: pocketfft and the
+        hand-written FFT differ in the last couple of bits, so downstream
+        index-valued features (first zero/min crossings) can flip at exact ties.
+        """
+        if not (isinstance(X, np.ndarray) and X.ndim == 3):
+            return None
+        if not any(fi in (2, 3, 8, 10, 12) for fi in f_idx):
+            return None
+
+        n_channels = X.shape[1]
+
+        # Respect the transform_features skip mask set for efficient predictions:
+        # if no autocorrelation output is going to be produced, don't build it.
+        tf = getattr(self, "_transform_features", None)
+        if tf is not None and len(tf) == len(f_idx) * n_channels:
+            will_run = False
+            for c in range(n_channels):
+                base = c * len(f_idx)
+                for n, feat in enumerate(f_idx):
+                    if feat in (2, 3, 8, 10, 12) and tf[base + n]:
+                        will_run = True
+                        break
+                if will_run:
+                    break
+            if not will_run:
+                return None
+
+        m = X.shape[2]
+        nfft = _ac_nfft(m)
+        flat = X.reshape(n_cases * n_channels, m)
+        # Use the same numba mean() as the per-series path to centre the series.
+        fmeans = np.empty(flat.shape[0])
+        for i in range(flat.shape[0]):
+            fmeans[i] = mean(flat[i])
+        # Real-FFT formulation: the power spectrum is real, and the forward FFT
+        # of a real even sequence is 2*nfft times its inverse FFT, a scale the
+        # lag-0 normalisation cancels - so irfft(|rfft|**2) matches the
+        # per-series forward-FFT formulation while keeping every temporary real
+        # (half the FFT work and half the memory traffic of complex FFTs).
+        F = np.fft.rfft(flat - fmeans[:, np.newaxis], n=2 * nfft, axis=1)
+        ac = np.fft.irfft(F.real * F.real + F.imag * F.imag, n=2 * nfft, axis=1)
+        # Normalise by lag 0, guarding zero-variance series (all-zero output,
+        # matching _autocorrelations_with_tw).
+        ac0 = ac[:, :1].copy()
+        zero_var = ac0[:, 0] == 0
+        ac0[zero_var] = 1.0
+        ac /= ac0
+        ac[zero_var] = 0.0
+        return ac.reshape(n_cases, n_channels, 2 * nfft)
+
     def _transform_case(
-        self, X, f_idx, features, fft_cache=None, ac_tw=None, ac_nfft=0
+        self, X, f_idx, features, fft_cache=None, ac_tw=None, ac_nfft=0, ac_cache=None
     ):
         c22 = np.zeros(len(f_idx) * len(X))
 
@@ -411,19 +482,21 @@ class Catch22(BaseCollectionTransformer):
                     args = [series, fft]
                 elif feature == 2 or feature == 3:
                     if ac is None:
-                        ac = (
-                            _autocorrelations_with_tw(series, ac_tw, ac_nfft)
-                            if ac_tw is not None
-                            else _compute_autocorrelations(series)
-                        )
+                        if ac_cache is not None:
+                            ac = ac_cache[i]
+                        elif ac_tw is not None:
+                            ac = _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                        else:
+                            ac = _compute_autocorrelations(series)
                     args = [ac, len(series)]
                 elif feature == 12 or feature == 10 or feature == 8:
                     if ac is None:
-                        ac = (
-                            _autocorrelations_with_tw(series, ac_tw, ac_nfft)
-                            if ac_tw is not None
-                            else _compute_autocorrelations(series)
-                        )
+                        if ac_cache is not None:
+                            ac = ac_cache[i]
+                        elif ac_tw is not None:
+                            ac = _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                        else:
+                            ac = _compute_autocorrelations(series)
                     if acfz is None:
                         acfz = _ac_first_zero(ac)
                     if feature == 12:
