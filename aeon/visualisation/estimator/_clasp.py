@@ -1,13 +1,12 @@
+__maintainer__ = []
 __all__ = [
     "plot_series_with_profiles",
 ]
 
-__maintainer__ = []
-
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.series import check_series
+from aeon.utils.validation.series import is_series
 
 
 def plot_series_with_profiles(
@@ -54,7 +53,11 @@ def plot_series_with_profiles(
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
 
-    ts = check_series(ts)
+    if not is_series(ts, include_2d=True):
+        raise ValueError(
+            "Input time series `ts` must be a valid series data structure, "
+            "e.g. pd.Series, pd.DataFrame, or np.ndarray."
+        )
 
     fig, ax = plt.subplots(
         len(profiles) + 1,

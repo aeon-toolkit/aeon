@@ -14,7 +14,7 @@ The release process is as follows, on high-level:
 1. **Ensure deprecation actions are carried out.**
   Deprecation actions for a version should be marked by "version number" annotated
   comments in the code. E.g., for the release `0.10.0`, search for the string `0.10.0`
-  in the code and carry out described deprecation actions. PRs performign deprecation
+  in the code and carry out described deprecation actions. PRs performing deprecation
   actions should start with [DEP] and use the `deprecation` label. So they are put
   under the "Deprecations" section in the release notes.
 
@@ -22,7 +22,7 @@ The release process is as follows, on high-level:
   Create a branch from main and PR named after the release version. This should make
   changes to the version numbers (root `__init__.py`, `README.md` and `pyproject.toml`)
   and have complete release notes in the [changelog](https://www.aeon-toolkit.org/en/latest/changelog.html)
-  webpage. See the [release notes](#release-notes) section for more details.
+  webpage (add the changelog and update changelog.md in docs). See the [release notes](#release-notes) section for more details.
 
 3. **Merge the "release" pull request.**
   This PR should ideally be the final PR made before the release with the exception of
@@ -32,7 +32,7 @@ The release process is as follows, on high-level:
 4. **Create the GitHub release.**
   This release should create a new tag following the syntax v[MAJOR].[MINOR].[PATCH],
   e.g., the string `v0.10.0` for version `0.10.0`. The release name should similarly be
-  `aeon v0.10.0`.  The GitHub release notes should contain only "hightlights",
+  `aeon v0.10.0`.  The GitHub release notes should contain only "highlights",
   "new contributors" and "all contributors" sections, and otherwise link to the release
   notes in the changelog, following the pattern of current GitHub release notes. The
   full GitHub commit log between releases can also be included.
@@ -87,5 +87,5 @@ categorised. It may be easier to re-label PRs and regenerate the release notes.
 If a release is required urgently, the release testing process can be expedited by
 running the "Fast release" workflow. **This workflow should not be used under normal
 circumstances**. Any issues with release testing should be addressed in the normal
-release workflow if possible. Consult the core developers on Slack before running this
+release workflow if possible. Consult the core developers on [Discord](https://discord.gg/D6rzqHGKRJ) before running this
 in any circumstance.

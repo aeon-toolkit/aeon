@@ -270,6 +270,43 @@ class LITETimeRegressor(BaseRegressor):
         return vals
 
     @classmethod
+    def load_model(self, model_path: list[str]) -> LITETimeRegressor:
+        """Load pre-trained keras models from disk instead of fitting.
+
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" boolean parameter.
+        When calling this function, all functionalities can be used
+        such as predict, etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : list of str (list of paths including the model names and extension)
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+        Example: model_path="path/to/file/best_model.keras"
+
+        Returns
+        -------
+        LITETimeRegressor
+        """
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
+
+        regressor = self()
+        regressor.regressors_ = []
+
+        for i in range(len(model_path)):
+            reg = IndividualLITERegressor()
+            reg.load_model(model_path[i])
+            regressor.regressors_.append(reg)
+
+        regressor.n_regressors = len(regressor.regressors_)
+        regressor.is_fitted = True
+        return regressor
+
+    @classmethod
     def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
@@ -401,7 +438,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."
@@ -498,6 +535,11 @@ class IndividualLITERegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -541,11 +583,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance

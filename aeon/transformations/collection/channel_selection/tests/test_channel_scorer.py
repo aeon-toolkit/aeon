@@ -44,6 +44,13 @@ def test_channel_scorer_with_classifier():
         cs.fit(X, y)
 
 
+def test_channel_scorer_get_test_params():
+    """Test ChannelScorer test parameters are valid and usable."""
+    params = ChannelScorer._get_test_params()
+    cs = ChannelScorer(**params)
+    assert isinstance(cs, ChannelScorer)
+
+
 def test_channel_scorer_with_regressor():
     """Test the channel scorer for regressor."""
     # Test selects the correct number of channels

@@ -32,13 +32,13 @@ Thank you for helping make this a welcoming, friendly community for all.
 
 If you feel that the Code of Conduct has been violated, feel free to Contact a member of
 the `aeon` [Code of Conduct Moderators](https://www.aeon-toolkit.org/en/stable/about.html#code-of-conduct-moderators)
-directly on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw)
+directly on [Discord](https://discord.gg/D6rzqHGKRJ)
 or through the general `aeon` email ([contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)).
 
 OR
 
 Submit a report directly to the NumFOCUS Code of Conduct Working Group by using
-[NumFOCUS Code of Conduct Reporting Form](https://numfocus.typeform.com/to/ynjGdT?typeform-source=numfocus.org).
+[NumFOCUS Code of Conduct Reporting Form](https://forms.monday.com/forms/f130e8cddb99568fa86cf077b8912a60?r=use1).
 
 ## Who Will Receive Your Report
 

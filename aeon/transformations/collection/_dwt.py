@@ -15,8 +15,8 @@ class DWTTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    n_levels : int, number of levels to perform the Haar wavelet
-                 transformation.
+    n_levels : int, default=3
+        number of levels to perform the Haar wavelet transformation.
 
     Examples
     --------
@@ -33,7 +33,7 @@ class DWTTransformer(BaseCollectionTransformer):
         "capability:multivariate": True,
     }
 
-    def __init__(self, n_levels=3):
+    def __init__(self, n_levels: int = 3):
         self.n_levels = n_levels
         super().__init__()
 

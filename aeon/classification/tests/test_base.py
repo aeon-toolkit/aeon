@@ -17,9 +17,6 @@ from aeon.testing.testing_data import (
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 
-__maintainer__ = []
-
-
 multivariate_message = r"multivariate series"
 missing_message = r"missing values"
 unequal_message = r"unequal length series"
@@ -87,11 +84,11 @@ def test_incorrect_input():
         dummy.fit(X, y)
 
 
-def _assert_incorrect_X_input(dummy, correctX, correcty, X, y, msg):
+def _assert_incorrect_X_input(dummy, correct_X, correct_y, X, y, msg):
     with pytest.raises(TypeError, match=msg):
         dummy.fit(X, y)
 
-    dummy.fit(correctX, correcty)
+    dummy.fit(correct_X, correct_y)
 
     with pytest.raises(TypeError, match=msg):
         dummy.predict(X)
@@ -157,7 +154,7 @@ def test_univariate_equal_length_input(data):
     dummy = MockClassifier()
     _assert_fit_and_predict(dummy, X, y)
 
-    # All capabiltiies
+    # All capabilities
     dummy = MockClassifierFullTags()
     _assert_fit_and_predict(dummy, X, y)
 
@@ -210,23 +207,14 @@ def test_classifier_score():
     assert dummy.score(X, y, metric=accuracy_score) == 0.5  # Use callable
 
 
-def test_predict_single_class():
-    """Test return of predict/predict_proba in case only single class seen in fit."""
+def test_fit_single_class():
+    """Test fit in case only single class."""
     X = np.ones(shape=(10, 20))
     y = np.ones(10)
-
     clf = MockClassifierPredictProba()
-    clf.fit(X, y)
 
-    y_pred = clf.predict(X)
-    assert y_pred.ndim == 1
-    assert y_pred.shape == (10,)
-    assert all(list(y_pred == 1))
-
-    y_pred_proba = clf.predict_proba(X)
-    assert y_pred_proba.ndim == 2
-    assert y_pred_proba.shape == (10, 1)
-    assert all(list(y_pred_proba == 1))
+    with pytest.raises(ValueError, match="y must contain at least 2 unique labels"):
+        clf.fit(X, y)
 
 
 def test_predict_proba_default():
@@ -317,25 +305,16 @@ def test_score():
 
 
 def test_fit_predict_single_class():
-    """Test return of fit_predict/fit_predict_proba in case only single class."""
+    """Test fit_predict/fit_predict_proba in case only single class."""
     X = np.ones(shape=(10, 20))
     y = np.ones(10)
     clf = MockClassifierPredictProba()
 
-    y_pred = clf.fit_predict(X, y)
-    assert y_pred.ndim == 1
-    assert y_pred.shape == (10,)
-    assert all(list(y_pred == 1))
+    with pytest.raises(ValueError, match="y must contain at least 2 unique labels"):
+        clf.fit_predict(X, y)
 
-    y_pred_proba = clf.fit_predict_proba(X, y)
-    assert y_pred_proba.ndim == 2
-    assert y_pred_proba.shape == (10, 1)
-    assert all(list(y_pred_proba == 1))
-
-    y_pred = clf.predict(X)
-    assert y_pred.ndim == 1
-    assert y_pred.shape == (10,)
-    assert all(list(y_pred == 1))
+    with pytest.raises(ValueError, match="y must contain at least 2 unique labels"):
+        clf.fit_predict_proba(X, y)
 
 
 def test_fit_predict_default():
@@ -393,7 +372,7 @@ def test_different_shape_fit_predict():
 
 
 def test_different_channels_fit_predict():
-    """Test train and test X when they differ in numbero of lengths."""
+    """Test train and test X when they differ in number of lengths."""
     dummy = MockClassifierFullTags()
     X = np.random.random(size=(5, 4, 10))
     X2 = np.random.random(size=(5, 4, 10))

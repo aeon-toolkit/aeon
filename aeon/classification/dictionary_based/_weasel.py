@@ -13,10 +13,12 @@ from joblib import Parallel, delayed
 from numba import set_num_threads
 from scipy.sparse import hstack
 from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.validation import check_n_jobs
 
 
 class WEASEL(BaseClassifier):
@@ -72,7 +74,7 @@ class WEASEL(BaseClassifier):
         Number of possible letters (values) for each word.
     feature_selection : str, default: "chi2"
         Sets the feature selections strategy to be used. One of {"chi2", "none",
-        "random"}.  Large amounts of memory may beneeded depending on the setting of
+        "random"}.  Large amounts of memory may be needed depending on the setting of
         bigrams (true is more) or alpha (larger is more).
         'chi2' reduces the number of words, keeping those above the 'p_threshold'.
         'random' reduces the number to at most 'max_feature_count',
@@ -195,6 +197,7 @@ class WEASEL(BaseClassifier):
         """
         # Window length parameter space dependent on series length
         self.n_cases, self.n_timepoints = X.shape[0], X.shape[-1]
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         win_inc = self._compute_window_inc()
         self.max_window = int(min(self.n_timepoints, self.max_window))
@@ -236,12 +239,12 @@ class WEASEL(BaseClassifier):
             all_words = np.concatenate(all_words, axis=1)
         else:
             all_words = hstack(all_words)
-
         # Ridge Classifier does not give probabilities
         if not self.support_probabilities:
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
+            all_words = all_words.astype(np.float32, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
@@ -252,6 +255,8 @@ class WEASEL(BaseClassifier):
                 random_state=self.random_state,
                 n_jobs=self.n_jobs,
             )
+            if self.n_classes_ > 2:
+                self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)
 
         self.clf.fit(all_words, y)
 

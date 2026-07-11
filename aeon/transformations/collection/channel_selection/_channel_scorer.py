@@ -4,10 +4,10 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["ChannelScorer"]
 
 import math
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -21,10 +21,10 @@ from aeon.transformations.collection.channel_selection.base import BaseChannelSe
 class ChannelScorer(BaseChannelSelector):
     """Performs channel selection using a single channel classifier or regressor.
 
-    ChannelScorer uses a time series classifier or a regressor to score each channel
-    using an estimate of accuracy on the training data fro classifier or mean
-    squared error for regressor, then selects a proportion of the top
-    channels to keep. Can be configured through the constructor to use any time
+    ChannelScorer uses a time series classifier or regressor to score each channel
+    using an estimate of accuracy on the training data for classifiers or mean
+    squared error for regressors. It then selects a proportion of the top
+    channels to keep. It can be configured through the constructor to use any time
     series estimator and could easily be adapted to use forward selection or elbow
     class methods. Approximately as described in [1]_.
 
@@ -48,6 +48,13 @@ class ChannelScorer(BaseChannelSelector):
     proportion : float, default = 0.4
         Proportion of channels to keep, rounded up to nearest integer.
 
+    Attributes
+    ----------
+    estimator_ : BaseClassifier or BaseRegressor
+        The fitted estimator used to score each channel.
+    channels_selected_ : list
+        List of selected channel indices.
+
     References
     ----------
     ..[1]: Alejandro Pasos Ruiz and Anthony Bagnall. "Dimension selection strategies
@@ -62,7 +69,7 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        estimator: Optional[BaseAeonEstimator],
+        estimator: BaseAeonEstimator,
         scoring_function: Callable = None,
         score_sign: float = None,
         proportion: float = 0.4,
@@ -73,7 +80,7 @@ class ChannelScorer(BaseChannelSelector):
         self.score_sign = score_sign
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, TypingList]):
+    def _fit(self, X: np.ndarray, y: np.ndarray | TypingList):
         """
         Fit to a specified X and y.
 
@@ -115,7 +122,7 @@ class ChannelScorer(BaseChannelSelector):
 
         n_channels = X.shape[1]
         scores = np.zeros(n_channels)
-        # Evaluate each channel with the classifier
+        # Evaluate each channel with the estimator
         for i in range(n_channels):
             preds = self.estimator_.fit_predict(X[:, i, :], y)
             scores[i] = score_sign * scoring_function(
@@ -129,7 +136,7 @@ class ChannelScorer(BaseChannelSelector):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, any]:
+    def _get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, Any]:
         """Return testing parameter settings for the estimator.
 
         Parameters

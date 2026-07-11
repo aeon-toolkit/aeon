@@ -3,11 +3,11 @@
 __maintainer__ = []
 __all__ = ["LOF"]
 
-from typing import Optional, Union
 
 import numpy as np
 
 from aeon.anomaly_detection.series._pyodadapter import PyODAdapter
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -83,11 +83,11 @@ class LOF(PyODAdapter):
     def __init__(
         self,
         n_neighbors: int = 20,
-        algorithm: Optional[str] = "auto",
+        algorithm: str | None = "auto",
         leaf_size: int = 30,
         metric: str = "minkowski",
         p: int = 2,
-        metric_params: Optional[dict] = None,
+        metric_params: dict | None = None,
         n_jobs: int = 1,
         window_size: int = 10,
         stride: int = 1,
@@ -98,6 +98,8 @@ class LOF(PyODAdapter):
         # Set a default contamination value internally
         contamination = 0.1
 
+        self._n_jobs = check_n_jobs(n_jobs)
+
         model = PyOD_LOF(
             n_neighbors=n_neighbors,
             algorithm=algorithm,
@@ -105,7 +107,7 @@ class LOF(PyODAdapter):
             metric=metric,
             p=p,
             metric_params=metric_params,
-            n_jobs=n_jobs,
+            n_jobs=self._n_jobs,
             contamination=contamination,  # Only for PyOD LOF
             novelty=False,  # Initialize unsupervised LOF (novelty=False)
         )
@@ -116,9 +118,10 @@ class LOF(PyODAdapter):
         self.p = p
         self.metric_params = metric_params
         self.n_jobs = n_jobs
+
         super().__init__(pyod_model=model, window_size=window_size, stride=stride)
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> None:
         # Set novelty to True for semi-supervised learning
         self.pyod_model.novelty = True
         super()._fit(X, y)
@@ -126,9 +129,7 @@ class LOF(PyODAdapter):
     def _predict(self, X: np.ndarray) -> np.ndarray:
         return super()._predict(X)
 
-    def _fit_predict(
-        self, X: np.ndarray, y: Union[np.ndarray, None] = None
-    ) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         # Set novelty to False for unsupervised learning
         self.pyod_model.novelty = False
         return super()._fit_predict(X, y)

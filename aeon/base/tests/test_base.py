@@ -238,6 +238,7 @@ def test_get_fitted_params():
         "classes_",
         "metadata_",
         "n_classes_",
+        "fit_time_millis_",
     }
 
     assert isinstance(params, dict)
@@ -252,6 +253,7 @@ def test_get_fitted_params():
             "mock___foo_",
             "mock___metadata_",
             "mock___n_classes_",
+            "mock___fit_time_millis_",
         }
     )
     assert comp_params["foo_"] is composite.foo_

@@ -31,6 +31,7 @@ from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
+from aeon.utils.validation import check_n_jobs
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -166,7 +167,7 @@ class SFAFast(BaseCollectionTransformer):
         window_size=12,
         norm=False,
         binning_method="equi-depth",
-        feature_selection_strategy="variance",
+        feature_selection_strategy=None,
         learn_alphabet_lambda=0.5,
         alphabet_allocation_method=None,
         bigrams=False,
@@ -251,6 +252,8 @@ class SFAFast(BaseCollectionTransformer):
 
     def _fit_transform(self, X, y=None, return_bag_of_words=True):
         """Fit to data, then transform it."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
 
@@ -632,38 +635,24 @@ class SFAFast(BaseCollectionTransformer):
             symbols = np.log2(self.alphabet_size)
             self.bit_budget = int(symbols * self.word_length)
 
-            if self.alphabet_allocation_method == "dynamic_programming":
-                self.letter_bits = _dynamic_alphabet_allocation(
-                    bits=self.bit_budget,
-                    var=self.dft_variance[self.support],
-                    lamda=self.learn_alphabet_lambda,
-                )
+            if self.alphabet_allocation_method == "linear_scale":
+                variance = self.dft_variance[self.support]
+            elif self.alphabet_allocation_method == "sqrt_scale":
+                variance = np.sqrt(self.dft_variance[self.support])
+            elif self.alphabet_allocation_method == "log_scale":
+                variance = np.log2((self.dft_variance[self.support]) + 1)
+
+            # Treat zero-mean-variance
+            variance_mean = variance.mean()
+            if variance_mean <= 0 or not np.isfinite(variance_mean):
+                normed_scale = np.ones_like(variance)
             else:
-                if self.alphabet_allocation_method == "linear_scale":
-                    variance = self.dft_variance[self.support]
-                elif self.alphabet_allocation_method == "sqrt_scale":
-                    variance = np.sqrt(self.dft_variance[self.support])
-                elif self.alphabet_allocation_method == "log_scale":
-                    variance = np.log2((self.dft_variance[self.support]) + 1)
-                normed_scale = variance / variance.mean()
+                normed_scale = variance / variance_mean
 
-                self.letter_bits = assign_bits_dynamically(
-                    normed_scale, self.bit_budget
-                )
-
+            self.letter_bits = assign_bits_dynamically(normed_scale, self.bit_budget)
             self.alphabet_sizes = [
                 int(2 ** self.letter_bits[i]) for i in range(len(self.letter_bits))
             ]
-
-            # print(
-            #     self.letter_bits,
-            #     self.alphabet_sizes,
-            #     np.sum(self.letter_bits) / self.word_length,
-            #     # self.alphabet_size,
-            #     # self.bit_budget,
-            #     # self.word_length
-            # )
-
         else:
             # use the same alphabet size for all positions
             self.alphabet_sizes = [
@@ -809,7 +798,7 @@ class SFAFast(BaseCollectionTransformer):
             self.breakpoints,
         )
 
-        return words.squeeze(), dfts.squeeze()
+        return words.squeeze(1), dfts.squeeze(1)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -1155,7 +1144,10 @@ def _mft(
         indices = np.full(length, True)
 
     phis = _get_phis(window_size, length)
-    transformed = np.zeros((X.shape[0], end, length))
+    selected = np.nonzero(indices)[0]
+    selected_length = len(selected)
+    phis = phis[selected]
+    transformed = np.zeros((X.shape[0], end, selected_length))
 
     # 1. First run using DFT
     with objmode(X_ffts="complex128[:, :]"):
@@ -1165,30 +1157,26 @@ def _mft(
 
     reals = np.real(X_ffts)  # float64[]
     imags = np.imag(X_ffts)  # float64[]
-    transformed[:, 0, 0::2] = reals[:, 0 : length // 2]
-    transformed[:, 0, 1::2] = imags[:, 0 : length // 2]
+    for i in range(selected_length):
+        s = selected[i]
+        if (s % 2) == 0:
+            transformed[:, 0, i] = reals[:, s // 2]
+        else:
+            transformed[:, 0, i] = imags[:, s // 2]
 
     # 2. Other runs using MFT
-    # X2 = X.reshape(X.shape[0], X.shape[1], 1)
-    # Bugfix to allow for slices on original X like in TEASER
-    X2 = X.copy().reshape(X.shape[0], X.shape[1], 1)
-
-    # compute only those indices needed and not all
-    phis2 = phis[indices]
-    transformed2 = transformed[:, :, indices]
     for i in range(1, end):
-        reals = transformed2[:, i - 1, 0::2] + X2[:, i + window_size - 1] - X2[:, i - 1]
-        imags = transformed2[:, i - 1, 1::2]
-        transformed2[:, i, 0::2] = (
-            reals * phis2[:length:2] - imags * phis2[1 : (length + 1) : 2]
-        )
-        transformed2[:, i, 1::2] = (
-            reals * phis2[1 : (length + 1) : 2] + phis2[:length:2] * imags
-        )
+        for a in range(X.shape[0]):
+            series_delta = X[a, i + window_size - 1] - X[a, i - 1]
+            for n in range(0, selected_length, 2):
+                real = transformed[a, i - 1, n] + series_delta
+                imag = transformed[a, i - 1, n + 1]
+                transformed[a, i, n] = real * phis[n] - imag * phis[n + 1]
+                transformed[a, i, n + 1] = real * phis[n + 1] + phis[n] * imag
 
-    transformed2 = transformed2 * inverse_sqrt_win_size
+    transformed *= inverse_sqrt_win_size
     if lower_bounding:
-        transformed2[:, :, 1::2] = transformed2[:, :, 1::2] * -1
+        transformed[:, :, 1::2] = transformed[:, :, 1::2] * -1
 
     # STD-normalization only applied for subsequences
     if end > 1:
@@ -1199,11 +1187,11 @@ def _mft(
 
         # divide all by stds and use only the best indices
         if anova or variance:
-            return transformed2[:, :, mask] / stds.reshape(
+            return transformed[:, :, mask] / stds.reshape(
                 stds.shape[0], stds.shape[1], 1
             )
         else:
-            return (transformed2 / stds.reshape(stds.shape[0], stds.shape[1], 1))[
+            return (transformed / stds.reshape(stds.shape[0], stds.shape[1], 1))[
                 :, :, start_offset:
             ]
 
@@ -1211,9 +1199,9 @@ def _mft(
     else:
         # Do not norm
         if anova or variance:
-            return transformed2[:, :, mask]
+            return transformed[:, :, mask]
         else:
-            return transformed2[:, :, start_offset:]
+            return transformed[:, :, start_offset:]
 
 
 def _dilation(X, d, first_difference):
@@ -1354,7 +1342,7 @@ def create_dict(feature_names, features_idx):
     return relevant_features
 
 
-@njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath={"contract"}, cache=True, parallel=True)
 def mcb(dft, alphabet_sizes, word_length_actual, binning_method):
     max_alphabet_size = np.max(alphabet_sizes)
 
@@ -1455,69 +1443,7 @@ def _transform_words_case(
     return words, dfts
 
 
-@njit(cache=True, fastmath=True)
-def _dynamic_alphabet_allocation(bits, var, lamda=0.5):
-    # normalize to 1
-    var = var / np.sum(var)
-    order = np.argsort(var)[::-1]  # descending order
-    var_sorted = var[order]
-
-    # From the SPARTAN code
-    n = len(var_sorted)
-    A = int(bits / n)
-    DP = np.zeros((n + 1, bits + 1))
-    min_bit = 0
-    max_bit = int(np.max(var_sorted) * bits)
-    alloc = (
-        np.zeros_like(DP).astype(np.int32) + bits
-    )  # store the num of bits for each component
-
-    # init
-    DP[:, :] = -np.inf
-    DP[0, 0] = 0
-
-    # non-recursive
-    for i in range(1, n + 1):
-        for j in range(0, bits + 1):
-            max_reward = -np.inf
-            for x in range(min_bit, max_bit + 1):
-                if j - x >= 0 and x <= alloc[i - 1, j - x]:
-                    current_reward = (
-                        DP[i - 1, j - x]
-                        + x * var_sorted[i - 1]
-                        + regularization_term(x, var_sorted[i - 1], A, lamda)
-                    )
-                    if current_reward > max_reward:
-                        alloc[i, j] = x
-                        max_reward = current_reward
-                        DP[i, j] = current_reward
-
-    bit_arr = np.zeros(n, dtype=np.uint32)
-    bit_arr[order] = trace_backwards(alloc, n, bits)[::-1]
-
-    assert (
-        np.sum(bit_arr) == bits
-    ), "The sum of allocated bits does not match the budget."
-    return bit_arr
-
-
-@njit(fastmath=True, cache=True)
-def regularization_term(x, ev_value, avg_bit, lamda=0.5):
-    return -lamda * (x - avg_bit) ** 2 * ev_value
-
-
-@njit(fastmath=True, cache=True)
-def trace_backwards(alloc, K, N):
-    bit_arr = []
-    unused_bit = N
-    for i in range(K, 1, -1):
-        bit_arr.append(alloc[i, unused_bit])
-        unused_bit -= alloc[i, unused_bit]
-    bit_arr.append(unused_bit)
-    return bit_arr
-
-
-@njit(fastmath=True, cache=True)
+@njit(fastmath={"contract"}, cache=True)
 def assign_bits_dynamically(variance, budget, max_bit_val=9):
     """Assign bits dynamically based on variance and budget.
 

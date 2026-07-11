@@ -8,7 +8,11 @@ from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
 from aeon.distances.mindist._sax import mindist_sax_distance
 from aeon.distances.mindist._sfa import mindist_sfa_distance
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast, SFAWhole
+from aeon.transformations.collection.dictionary_based._sfa_fast import (
+    alphabet_allocation_methods,
+)
 
 
 def test_sax_mindist():
@@ -49,6 +53,18 @@ def test_sax_mindist():
         assert mindist_paa_sax <= ed
 
 
+def test_single_sample():
+    """Test the SFA Min-Distance function."""
+    x, _ = make_example_3d_numpy(n_cases=1, n_channels=1, n_timepoints=10)
+    y = x + 10
+    transform = SFAWhole(word_length=8, alphabet_size=8, norm=True)
+    x_sfa, _ = transform.fit_transform(x)
+    _, y_dft = transform.transform(y)
+    for i in range(len(x_sfa)):
+        dist = mindist_dft_sfa_distance(y_dft[i], x_sfa[i], transform.breakpoints)
+        assert dist == 0
+
+
 def test_sfa_mindist():
     """Test the SFA Min-Distance function."""
     n_segments = 16
@@ -69,7 +85,7 @@ def test_sfa_mindist():
         window_size=n,
         binning_method=histogram_type,
         norm=True,
-        variance=False,  # True gives a tighter lower bound
+        feature_selection_strategy=None,  # 'variance' gives a tighter lower bound
         lower_bounding_distances=True,  # This must be set!
     )
 
@@ -86,7 +102,7 @@ def test_sfa_mindist():
         word_length=n_segments,
         alphabet_size=alphabet_size,
         binning_method=histogram_type,
-        variance=False,  # True gives a tighter lower bound
+        feature_selection_strategy=None,  # 'variance' gives a tighter lower bound
         norm=True,
     )
 
@@ -175,7 +191,7 @@ def test_sfa_whole_mindist():
 def test_dynamic_alphabet_allocation():
     """Test the SFA Min-Distance function."""
     n_segments = 16
-    alphabet_size = 256
+    alphabet_size = 64
 
     X_train, _ = load_unit_test("TRAIN")
     X_test, _ = load_unit_test("TEST")
@@ -184,20 +200,14 @@ def test_dynamic_alphabet_allocation():
     X_test = zscore(X_test.squeeze(), axis=1)
     histogram_type = "equi-width"
 
-    # print("Testing")
-    for alphabet_allocation_method in {
-        "dynamic_programming",  # method introduced by Spartan paper
-        "linear_scale",
-        "log_scale",
-        "sqrt_scale",
-    }:
+    for alphabet_allocation_method in alphabet_allocation_methods:
         sfa = SFAWhole(
             word_length=n_segments,
             alphabet_size=alphabet_size,
             binning_method=histogram_type,
-            # variance or pca give a tighter lower bound
-            feature_selection_strategy="pca",
             alphabet_allocation_method=alphabet_allocation_method,
+            feature_selection_strategy="variance",  # gives a tighter lower bound
+            norm=True,
         )
 
         X_train_words, X_train_dfts = sfa.fit_transform(X_train)

@@ -25,12 +25,12 @@ beginning with `@` in the file.
 3. A dataset block.
       Contains a multiple collections of float values that represent the dataset. There
       are `n` cases each its own time series, delimited by new lines. The values for a
-      series are expressed in a comma `,` seperated list and the index of each value is
+      series are expressed in a comma `,` separated list and the index of each value is
       relative to its position in said list (0, 1, ..., `m`). An instance may contain 1
       to `d` channels, where each channel for a case is delimited using a colon `:`.
       In case timestamps are present, each value in a series is enclosed within
       round brackets i.e. `(YYYY-MM-DD HH:mm:ss,<value>)`.
-      The response variable is at the end of each case and is seperated via a colon.
+      The response variable is at the end of each case and is separated via a colon.
 
 Here is an extract from an examlple `.ts`  file that shows portions of all three
 blocks:

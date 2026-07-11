@@ -32,15 +32,10 @@ __all__ = [
     "fisher_score",
     "gini",
     "gini_gain",
-    # deprecated
-    "prime_up_to",
-    "is_prime",
-    "std2",
 ]
 
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from numba import njit
 
 import aeon.utils.numba.general as general_numba
@@ -888,91 +883,3 @@ def gini_gain(y, y_subs) -> float:
             # instances at child compared to parent
             score -= (child.shape[0] / y.shape[0]) * gini(child)
     return score
-
-
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="prime_up_to has moved to aeon.utils.numba.general",
-    category=FutureWarning,
-)
-@njit(fastmath=True, cache=True)
-def prime_up_to(n: int) -> np.ndarray:
-    """Check if any number from 1 to n is a prime number and return the ones which are.
-
-    Parameters
-    ----------
-    n : int
-        Number up to which the search for prime number will go
-
-    Returns
-    -------
-    array
-        Prime numbers up to n
-
-    Examples
-    --------
-    >>> from aeon.utils.numba.stats import prime_up_to
-    >>> p = prime_up_to(50)
-    """
-    return general_numba.prime_up_to(n)
-
-
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="is_prime has moved to aeon.utils.numba.general",
-    category=FutureWarning,
-)
-@njit(fastmath=True, cache=True)
-def is_prime(n: int) -> bool:
-    """Check if the input number is a prime number.
-
-    Parameters
-    ----------
-    n : int
-        The number to test
-
-    Returns
-    -------
-    bool
-        Wheter n is a prime number
-
-    Examples
-    --------
-    >>> from aeon.utils.numba.stats import is_prime
-    >>> p = is_prime(7)
-    """
-    return general_numba.is_prime(n)
-
-
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="std2 has been renamed to std_with_mean",
-    category=FutureWarning,
-)
-@njit(fastmath=True, cache=True)
-def std2(X: np.ndarray, X_mean: float) -> float:
-    """Numba standard deviation function for a 1d numpy array with pre-calculated mean.
-
-    Parameters
-    ----------
-    X : 1d numpy array
-        A 1d numpy array of values
-    X_mean : float
-        The mean of the input array
-
-    Returns
-    -------
-    std : float
-        The standard deviation of the input array
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.utils.numba.stats import std2
-    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
-    >>> s = std2(X, 3)
-    """
-    return std_with_mean(X, X_mean)

@@ -1,12 +1,22 @@
 """Check collection utilities."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from numba.typed import List as NumbaList
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__all__ = [
+    "is_tabular",
+    "is_collection",
+    "get_n_cases",
+    "get_n_timepoints",
+    "get_n_channels",
+    "is_equal_length",
+    "has_missing",
+    "is_univariate",
+    "get_type",
+    "check_collection_variance",
+]
 
 
 def is_tabular(X):
@@ -49,7 +59,7 @@ def is_collection(X, include_2d=False):
 def get_n_cases(X):
     """Return the number of cases in a collection.
 
-    Returns len(X) except for "pd-multiindex".
+    For all datatypes we can return len(X) except for "pd-multiindex".
 
     Parameters
     ----------
@@ -60,6 +70,11 @@ def get_n_cases(X):
     -------
     int
         Number of cases.
+
+    Raises
+    ------
+    ValueError
+        input_type not in COLLECTIONS_DATA_TYPES.
     """
     t = get_type(X)
     if t == "pd-multiindex":
@@ -68,10 +83,9 @@ def get_n_cases(X):
 
 
 def get_n_timepoints(X):
-    """Return the number of timepoints in the first element of a collection.
+    """Return the number of timepoints in a collection.
 
-    If the collection contains unequal length series, returns the length of the first
-    series in the collection.
+    If the collection contains unequal length series, returns None.
 
     Parameters
     ----------
@@ -80,15 +94,22 @@ def get_n_timepoints(X):
 
     Returns
     -------
-    int
-        Number of time points in the first case.
+    int or None
+        Number of time points if the collection is equal length, else None.
+
+    Raises
+    ------
+    ValueError
+        Input_type not in COLLECTIONS_DATA_TYPES.
     """
     t = get_type(X)
-    if t in ["numpy3D", "np-list", "df-list"]:
+    if not is_equal_length(X):
+        return None
+    elif t in ["numpy3D", "np-list", "df-list"]:
         return X[0].shape[1]
-    if t in ["numpy2D", "pd-wide"]:
+    elif t in ["numpy2D", "pd-wide"]:
         return X.shape[1]
-    if t == "pd-multiindex":
+    elif t == "pd-multiindex":
         return X.loc[X.index.get_level_values(0).unique()[0]].index.nunique()
 
 
@@ -110,21 +131,26 @@ def get_n_channels(X):
     ValueError
         X is list of 2D numpy arrays or pd.DataFrames but number of channels is not
         consistent.
+        Input_type not in COLLECTIONS_DATA_TYPES.
     """
     t = get_type(X)
     if t == "numpy3D":
         return X.shape[1]
     if t in ["np-list", "df-list"]:
-        if not all(arr.shape[0] == X[0].shape[0] for arr in X):
-            raise ValueError(
-                f"ERROR: number of channels is not consistent. "
-                f"Found values: {np.unique([arr.shape[0] for arr in X])}."
-            )
+        _check_list_equal_channels(X)
         return X[0].shape[0]
     if t in ["numpy2D", "pd-wide"]:
         return 1
     if t == "pd-multiindex":
         return X.columns.nunique()
+
+
+def _check_list_equal_channels(X):
+    if not all(arr.shape[0] == X[0].shape[0] for arr in X):
+        raise ValueError(
+            f"ERROR: number of channels is not consistent. "
+            f"Found values: {np.unique([arr.shape[0] for arr in X])}."
+        )
 
 
 def is_equal_length(X):
@@ -146,12 +172,12 @@ def is_equal_length(X):
     Raises
     ------
     ValueError
-        input_type not in COLLECTIONS_DATA_TYPES.
+        Input_type not in COLLECTIONS_DATA_TYPES.
 
     Examples
     --------
-    >>> from aeon.utils.validation import is_equal_length
-    >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
+    >>> from aeon.utils.validation.collection import is_equal_length
+    >>> is_equal_length(np.zeros(shape=(10, 3, 20)))
     True
     """
     input_type = get_type(X)
@@ -192,8 +218,8 @@ def has_missing(X):
 
     Examples
     --------
-    >>> from aeon.utils.validation import has_missing
-    >>> m = has_missing( np.zeros(shape=(10, 3, 20)))
+    >>> from aeon.utils.validation.collection import has_missing
+    >>> m = has_missing(np.zeros(shape=(10, 3, 20)))
     """
     type = get_type(X)
     if type in ["numpy3D", "numpy2D"]:
@@ -235,20 +261,20 @@ def is_univariate(X):
 
 
 def get_type(X, raise_error=True):
-    """Get the string identifier associated with different data structures.
+    """Get the string identifier associated with different collection data structures.
 
     Parameters
     ----------
     X : collection
         See aeon.utils.data_types.COLLECTIONS_DATA_TYPES for details.
+    raise_error : bool, default=True
+        If True, raise a ValueError if the input is not a valid type.
+        If False, returns None when an error would be raised.
 
     Returns
     -------
     input_type : string
         One of COLLECTIONS_DATA_TYPES.
-    raise_error : bool, default=True
-        If True, raise a ValueError if the input is not a valid type.
-        If False, returns None when an error would be raised.
 
     Raises
     ------
@@ -256,18 +282,23 @@ def get_type(X, raise_error=True):
         X np.ndarray but does not have 2 or 3 dimensions.
         X is a list but not of np.ndarray or pd.DataFrame or contained data has an
         inconsistent number of channels.
-        X is a pd.DataFrame of non float primitives.
+        X is a pd.DataFrame of non-float primitives.
         X is not a valid type.
+        Only if raise_error is True.
 
     Examples
     --------
-    >>> from aeon.utils.validation import get_type
-    >>> get_type( np.zeros(shape=(10, 3, 20)))
+    >>> from aeon.utils.validation.collection import get_type
+    >>> get_type(np.zeros(shape=(10, 3, 20)))
     'numpy3D'
     """
     msg = None
     if isinstance(X, np.ndarray):  # "numpy3D" or numpy2D
-        if X.ndim == 3:
+        if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
+            X.dtype, np.integer
+        ):
+            msg = "ERROR np.ndarray must contain numeric values only"
+        elif X.ndim == 3:
             return "numpy3D"
         elif X.ndim == 2:
             return "numpy2D"
@@ -276,8 +307,13 @@ def get_type(X, raise_error=True):
     elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):
             for a in X:
-                # if one a numpy they must all be 2D numpy
-                if not (isinstance(a, np.ndarray) and a.ndim == 2):
+                if not np.issubdtype(a.dtype, np.floating) and not np.issubdtype(
+                    a.dtype, np.integer
+                ):
+                    msg = "ERROR all np-list arrays must contain numeric values only"
+                    break
+                # if one is numpy they must all be 2D numpy
+                elif not (isinstance(a, np.ndarray) and a.ndim == 2):
                     msg = f"ERROR np-list must contain 2D np.ndarray but found {a.ndim}"
                     break
             if msg is None:
@@ -298,7 +334,7 @@ def get_type(X, raise_error=True):
         else:
             msg = (
                 f"ERROR passed a list containing {type(X[0])}, "
-                f"lists should either 2D numpy arrays or pd.DataFrames."
+                f"lists should either 2D numpy arrays or pd.DataFrames"
             )
     elif isinstance(X, pd.DataFrame):  # pd-multiindex or pd-wide
         if _is_pd_multiindex(X):
@@ -308,7 +344,7 @@ def get_type(X, raise_error=True):
         else:
             msg = (
                 "ERROR unknown pd.DataFrame, DataFrames must contain numeric values "
-                "only and meet pd-multiindex or pd-wide specification."
+                "only and meet pd-multiindex or pd-wide specification"
             )
     else:
         msg = (
@@ -356,8 +392,8 @@ def _is_pd_wide(X):
 
 
 def _is_numpy_list_multivariate(
-    x: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    x: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
 ) -> bool:
     """Check if two numpy or list of numpy arrays are multivariate.
 
@@ -385,7 +421,7 @@ def _is_numpy_list_multivariate(
                     return False
                 return True
             if x_dims == 2:
-                # As this function is used for pairwise we assume it isnt a single
+                # As this function is used for pairwise we assume it isn't a single
                 # multivariate time series but two collections of univariate
                 return False
             if x_dims == 1:
@@ -453,7 +489,7 @@ def _is_numpy_list_multivariate(
             return False
 
         list_x = None
-        ndarray_y: Optional[np.ndarray] = None
+        ndarray_y: np.ndarray | None = None
         if isinstance(x, (list, NumbaList)):
             list_x = x
             ndarray_y = y
@@ -471,3 +507,93 @@ def _is_numpy_list_multivariate(
             return _is_numpy_list_multivariate(list_x, list_y)
 
     raise ValueError("The format of you input is not supported.")
+
+
+def check_collection_variance(X, threshold=1e-7, raise_error=True):
+    """Check a collection has sufficient variation.
+
+    Checks series in a collection is constant or per-channel std is greater
+    than threshold.
+    Some aeon numba utilities treat very low-variance series as effectively constant.
+    This check allows early rejection of extremely small-scale series.
+
+    Parameters
+    ----------
+    X : collection
+        See aeon.utils.data_types.COLLECTIONS_DATA_TYPES for details.
+    threshold : float, default=1e-7
+        Minimum allowed standard deviation per channel.
+    raise_error : bool, default=True
+        If True, raise a ValueError when any series violates the threshold.
+
+        Will always raise an error if the data input type is invalid.
+
+    Returns
+    -------
+    bool
+        True if all cases pass, else False.
+
+    Raises
+    ------
+    ValueError
+        If any case has std <= threshold and raise_error=True.
+        threshold is negative.
+        Input_type not in COLLECTIONS_DATA_TYPES.
+    """
+    if threshold < 0:
+        raise ValueError("threshold must be non-negative.")
+
+    t = get_type(X)
+
+    if t == "numpy3D":
+        ranges = np.nanmax(X, axis=2) - np.nanmin(X, axis=2)
+        stds = np.nanstd(X, ddof=0, axis=2)
+    elif t == "numpy2D":
+        ranges = (np.nanmax(X, axis=1) - np.nanmin(X, axis=1))[:, None]
+        stds = np.nanstd(X, axis=1, ddof=0)[:, None]
+    elif t == "np-list":
+        _check_list_equal_channels(X)
+        ranges = np.empty((len(X), X[0].shape[0]), dtype=float)
+        stds = np.empty((len(X), X[0].shape[0]), dtype=float)
+        for i, x in enumerate(X):
+            ranges[i, :] = np.nanmax(x, axis=1) - np.nanmin(x, axis=1)
+            stds[i, :] = np.nanstd(x, ddof=0, axis=1)
+    elif t == "df-list":
+        _check_list_equal_channels(X)
+        ranges = np.empty((len(X), X[0].shape[0]), dtype=float)
+        stds = np.empty((len(X), X[0].shape[0]), dtype=float)
+        for i, df in enumerate(X):
+            ranges[i, :] = (
+                df.max(axis=1, skipna=True) - df.min(axis=1, skipna=True)
+            ).to_numpy(dtype=float)
+            stds[i, :] = df.std(ddof=0, axis=1, skipna=True).to_numpy(dtype=float)
+    elif t == "pd-wide":
+        ranges = (X.max(axis=1, skipna=True) - X.min(axis=1, skipna=True)).to_numpy(
+            dtype=float
+        )[:, None]
+        stds = X.std(ddof=0, axis=1, skipna=True).to_numpy(dtype=float)[:, None]
+    elif t == "pd-multiindex":
+        cases = X.index.get_level_values(0).unique()
+        stds = np.empty((len(cases), X.shape[1]), dtype=float)
+        ranges = np.empty((len(cases), X.shape[1]), dtype=float)
+        for i, case in enumerate(cases):
+            Xi = X.loc[case]  # rows=timepoints, cols=channels
+            stds[i, :] = Xi.std(ddof=0, axis=0, skipna=True).to_numpy(dtype=float)
+            ranges[i, :] = (
+                Xi.max(axis=0, skipna=True) - Xi.min(axis=0, skipna=True)
+            ).to_numpy(dtype=float)
+
+    bad_pairs = np.argwhere((stds <= threshold) & (ranges != 0))
+    if bad_pairs.size > 0:
+        if raise_error:
+            bad_list = ", ".join(
+                [f"(case={int(i)}, ch={int(c)})" for i, c in bad_pairs[:10]]
+            )
+            extra = "" if len(bad_pairs) <= 10 else f" (and {len(bad_pairs)-10} more)"
+            raise ValueError(
+                f"Input collection has too little variation: std <= {threshold} "
+                f"for {len(bad_pairs)} case/channel pair(s): {bad_list}{extra}. "
+                "Rescale (e.g., multiply by a constant) or normalise your data."
+            )
+        return False
+    return True

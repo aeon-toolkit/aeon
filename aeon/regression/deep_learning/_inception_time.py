@@ -344,6 +344,43 @@ class InceptionTimeRegressor(BaseRegressor):
         return ypreds
 
     @classmethod
+    def load_model(self, model_path: list[str]) -> InceptionTimeRegressor:
+        """Load pre-trained keras models from disk instead of fitting.
+
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" boolean parameter.
+        When calling this function, all functionalities can be used
+        such as predict, etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : list of str (list of paths including the model names and extension)
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+        Example: model_path="path/to/file/best_model.keras"
+
+        Returns
+        -------
+        InceptionTimeRegressor
+        """
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
+
+        regressor = self()
+        regressor.regressors_ = []
+
+        for i in range(len(model_path)):
+            reg = IndividualInceptionRegressor()
+            reg.load_model(model_path[i])
+            regressor.regressors_.append(reg)
+
+        regressor.n_regressors = len(regressor.regressors_)
+        regressor.is_fitted = True
+        return regressor
+
+    @classmethod
     def _get_test_params(
         cls, parameter_set: str = "default"
     ) -> dict[str, Any] | list[dict[str, Any]]:
@@ -622,6 +659,11 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -662,11 +704,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
@@ -715,13 +752,14 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             callbacks=self.callbacks_,
         )
 
-        try:
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
-            )
+        # with save_best_only=True the checkpoint file is not guaranteed to have
+        # been written, fall back to the trained model if it is missing
+        file_path = self.file_path + self.file_name_ + ".keras"
+        if os.path.exists(file_path):
+            self.model_ = tf.keras.models.load_model(file_path, compile=False)
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".keras")
-        except FileNotFoundError:
+                os.remove(file_path)
+        else:
             self.model_ = deepcopy(self.training_model_)
 
         if self.save_last_model:

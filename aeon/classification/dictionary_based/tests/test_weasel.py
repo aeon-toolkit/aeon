@@ -1,55 +1,68 @@
 """WEASEL test code."""
 
-from aeon.classification.dictionary_based._weasel_v2 import WEASEL_V2
-from aeon.datasets import *
+import numpy as np
+import pytest
 
-# def test_weasel_score():
-#     """Test of WEASEL train estimate on unit test data."""
-#     # load unit test data
-#     X_train, y_train = load_unit_test(split="train")
-#     X_test, y_test = load_unit_test(split="test")
-#
-#     # train weasel
-#     weasel = WEASEL(random_state=0)
-#     weasel.fit(X_train, y_train)
-#     score = weasel.score(X_test, y_test)
-#
-#     assert isinstance(score, float)
-#     np.testing.assert_almost_equal(score, 0.727272, decimal=4)
+from aeon.classification.dictionary_based._weasel import WEASEL
+from aeon.classification.dictionary_based._weasel_v2 import (
+    WEASEL_V2,
+    WEASELTransformerV2,
+)
+from aeon.datasets import load_unit_test
+
+
+def test_weasel_score():
+    """Test of WEASEL train estimate on unit test data."""
+    # load unit test data
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
+
+    # train weasel
+    weasel = WEASEL(random_state=0)
+    weasel.fit(X_train, y_train)
+    score = weasel.score(X_test, y_test)
+
+    assert isinstance(score, float)
+    np.testing.assert_almost_equal(score, 0.727272, decimal=4)
 
 
 def test_weasel_v2_score():
     """Test of WEASEL v2 train estimate on unit test data."""
     # load unit test data
-    X_train, y_train = load_acsf1(split="train")
-    X_test, y_test = load_acsf1(split="test")
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
 
     # train weasel
     weasel = WEASEL_V2(random_state=0)
     weasel.fit(X_train, y_train)
     score = weasel.score(X_test, y_test)
 
-    print(f"Weasel v2 Score {score*100:0.1f}")
     assert isinstance(score, float)
-    # np.testing.assert_almost_equal(score, 0.8685, decimal=4)
+    np.testing.assert_almost_equal(score, 0.90909, decimal=4)
 
 
-def test_weasel_v3_score():
-    """Test of WEASEL v3 train estimate on unit test data."""
+def test_weasel_v2_transform_no_y_unsupervised():
+    """Test of WEASELTransformerV2 without y."""
     # load unit test data
-    X_train, y_train = load_acsf1(split="train")
-    X_test, y_test = load_acsf1(split="test")
+    X_train, y_train = load_unit_test(split="train")
 
     # train weasel
-    weasel = WEASEL_V2(
-        random_state=0,
-        alphabet_allocation_method="linear_scale",
-        feature_selection_strategy="pca",
-    )
-    weasel.fit(X_train, y_train)
-    score = weasel.score(X_test, y_test)
+    weasel = WEASELTransformerV2(random_state=0, feature_selection="none")
+    all_words = weasel.fit_transform(X_train)
 
-    assert isinstance(score, float)
+    np.testing.assert_equal(len(all_words), X_train.shape[0])
 
-    print(f"Weasel v3 Score {score*100:0.1f}")
-    # np.testing.assert_almost_equal(score, 0.834, decimal=4)
+
+def test_weasel_v2_transform_no_y_supervised():
+    """Test of WEASELTransformerV2 without y."""
+    # load unit test data
+    X_train, y_train = load_unit_test(split="train")
+
+    # train weasel
+    weasel = WEASELTransformerV2(random_state=0, feature_selection="chi2_top_k")
+
+    with pytest.raises(
+        ValueError,
+        match="Class values must be provided for chi2_top_k feature selection.",
+    ):
+        weasel.fit_transform(X_train)  # Should fail here

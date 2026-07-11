@@ -20,7 +20,7 @@ class SFAWhole(SFAFast):
     It is implemented as a wrapper for the SFA-Fast transformer, the latter implements
     subsequence-based SFA extraction.
 
-    This wrapper reduces non-needed parameters, and sets some usefull defaults for
+    This wrapper reduces non-needed parameters, and sets some useful defaults for
     the tightest possible lower bounding.
 
     Parameters
@@ -39,6 +39,12 @@ class SFAWhole(SFAFast):
     binning_method : str, default="equi-width"
         The binning method used to derive the breakpoints. One of {"equi-depth",
         "equi-width", "information-gain", "information-gain-mae", "kmeans", "quantile"},
+    feature_selection_strategy : {"variance", "pca", "anova"}, default = "variance"
+        Sets the Fourier coefficient selection strategy to be used.
+        Use "variance" to select the Fourier coefficients with the largest variance,
+        "pca" to reduce the Fourier coefficients using PCA, or "anova" to select
+        the Fourier coefficients with the largest F-score. Anova is only applicable
+        if labels are given.
     sampling_factor : float, default = None
        If set to a value <1.0, this percentage of samples are used to learn MCB bins.
     n_jobs : int, default = 1
@@ -72,8 +78,8 @@ class SFAWhole(SFAFast):
         self,
         word_length=8,
         alphabet_size=4,
-        learn_alphabet_lambda=0.5,
         alphabet_allocation_method="linear_scale",
+        learn_alphabet_lambda=0.5,
         norm=True,
         binning_method="equi-width",
         feature_selection_strategy="variance",
@@ -158,6 +164,6 @@ class SFAWhole(SFAFast):
         params = {
             "word_length": 4,
             "alphabet_size": 4,
-            "variance": False,
+            "feature_selection_strategy": "variance",
         }
         return params

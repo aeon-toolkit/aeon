@@ -23,7 +23,7 @@ pr = context_dict["event"]["issue"].get("pull_request")
 comment_body = context_dict["event"]["comment"]["body"]
 commenter = context_dict["event"]["comment"]["user"]["login"]
 commenter_permission = repo.get_collaborator_permission(commenter)
-has_write_permission = commenter_permission not in ["admin", "write"]
+has_write_permission = commenter_permission in ["admin", "write"]
 
 restricted_labels = {"meta-issue"}
 

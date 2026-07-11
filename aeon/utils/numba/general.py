@@ -67,7 +67,7 @@ def unique_count(X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         X = np.sort(X)
         unique = np.zeros(X.shape[0], dtype=X.dtype)
         unique[0] = X[0]
-        counts = np.zeros(X.shape[0], dtype=np.int_)
+        counts = np.zeros(X.shape[0], dtype=np.intp)
         counts[0] = 1
         uc = 0
 
@@ -79,7 +79,7 @@ def unique_count(X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             else:
                 counts[uc] += 1
         return unique[: uc + 1], counts[: uc + 1]
-    return np.zeros(0, dtype=X.dtype), np.zeros(0, dtype=np.int_)
+    return np.zeros(0, dtype=X.dtype), np.zeros(0, dtype=np.intp)
 
 
 @njit(fastmath=True, cache=True)
@@ -366,12 +366,12 @@ def choice_log(n_choice: int, n_sample: int, random_generator: Generator) -> np.
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
-        loc = np.zeros(n_sample, dtype=np.int_)
+        loc = np.zeros(n_sample, dtype=np.intp)
         for i in prange(n_sample):
             loc[i] = np.where(P >= random_generator.random())[0][0]
         return loc
     else:
-        return np.zeros(n_sample, dtype=np.int_)
+        return np.zeros(n_sample, dtype=np.intp)
 
 
 @njit(fastmath=True, cache=True)
@@ -532,7 +532,7 @@ def sliding_mean_std_one_series(
 
     for i_mod_dil in prange(dilation):
         # Array mainting indexes of a dilated subsequence
-        _idx_sub = np.zeros(length, dtype=np.int_)
+        _idx_sub = np.zeros(length, dtype=np.intp)
         for i_length in prange(length):
             _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
 
@@ -630,7 +630,7 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
     for i in range(x.shape[0]):
         u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = True
-    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int_)
+    combinations = np.zeros((u_mask.sum(), 2), dtype=np.intp)
     i_comb = 0
     for i in range(x.shape[0]):
         if u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]]:
@@ -836,7 +836,7 @@ def generate_combinations(n, k):
     """
     comb_array = np.arange(k)
     num_combinations = _comb(n, k)  # Using our efficient comb function
-    combinations = np.empty((num_combinations, k), dtype=np.int_)
+    combinations = np.empty((num_combinations, k), dtype=np.intp)
 
     for idx in range(num_combinations):
         combinations[idx, :] = comb_array
@@ -887,7 +887,7 @@ def prime_up_to(n: int) -> np.ndarray:
 
     Examples
     --------
-    >>> from aeon.utils.numba.stats import prime_up_to
+    >>> from aeon.utils.numba.general import prime_up_to
     >>> p = prime_up_to(50)
     """
     is_p = np.zeros(n + 1, dtype=np.bool_)
@@ -908,11 +908,11 @@ def is_prime(n: int) -> bool:
     Returns
     -------
     bool
-        Wheter n is a prime number
+        Whether n is a prime number
 
     Examples
     --------
-    >>> from aeon.utils.numba.stats import is_prime
+    >>> from aeon.utils.numba.general import is_prime
     >>> p = is_prime(7)
     """
     if (n % 2 == 0 and n > 2) or n == 0 or n == 1:

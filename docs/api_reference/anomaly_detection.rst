@@ -27,6 +27,7 @@ Collection anomaly detectors
     ClassificationAdapter
     OutlierDetectionAdapter
     BaseCollectionAnomalyDetector
+    ROCKAD
 
 Series anomaly detectors
 ------------------------

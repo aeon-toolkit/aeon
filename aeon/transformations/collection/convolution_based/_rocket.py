@@ -5,6 +5,7 @@ __all__ = ["Rocket"]
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer, Normalizer
 from aeon.utils.validation import check_n_jobs
@@ -33,8 +34,10 @@ class Rocket(BaseCollectionTransformer):
     n_jobs : int, default=1
        The number of jobs to run in parallel for `transform`. ``-1`` means using all
        processors.
-    random_state : None or int, optional, default = None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If ``int``, seed the random number generator with ``random_state``.
+        If ``RandomState`` instance, use it as the random number generator.
+        If ``None``, use the global random state.
 
     See Also
     --------
@@ -99,10 +102,14 @@ class Rocket(BaseCollectionTransformer):
         -------
         self
         """
-        if isinstance(self.random_state, int):
-            self._random_state = self.random_state
-        else:
-            self._random_state = None
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        rng = check_random_state(self.random_state)
+        self._random_state = (
+            rng.randint(np.iinfo(np.int32).max)
+            if isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
+        )
         n_channels = X[0].shape[0]
 
         # The only use of n_timepoints is to set the maximum dilation
@@ -128,11 +135,10 @@ class Rocket(BaseCollectionTransformer):
         if self.normalise:
             norm = Normalizer()
             X = norm.fit_transform(X)
+
         prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
 
-        n_jobs = check_n_jobs(self.n_jobs)
-
-        set_num_threads(n_jobs)
         X_ = _apply_kernels(X, self.kernels)
 
         set_num_threads(prev_threads)

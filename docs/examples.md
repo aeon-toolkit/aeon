@@ -391,6 +391,17 @@ Benchmarking of similarity search speed-ups
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/simhash_index.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/simhash_index.ipynb
+:link-type: ref
+:text-align: center
+
+Deep dive into SimHash and the LSH index
+
+:::
+
 ::::
 
 ## Forecasting
@@ -561,7 +572,7 @@ Series base classes
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/visualisation/img/series.jpg
 :class-img-top: aeon-card-image-m
 :link: /examples/visualisation/plotting_series.ipynb
 :link-type: ref
@@ -572,7 +583,7 @@ Plotting time series
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/visualisation/img/results.jpg
 :class-img-top: aeon-card-image-m
 :link: /examples/visualisation/plotting_results.ipynb
 :link-type: ref
@@ -583,13 +594,35 @@ Plotting results
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/visualisation/img/learning.jpg
 :class-img-top: aeon-card-image-m
-:link: /examples/visualisation/plotting_series.ipynb
+:link: /examples/visualisation/plotting_for_learning_tasks.ipynb
 :link-type: ref
 :text-align: center
 
 Plotting for specific learning tasks
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/visualisation/img/distances.jpg
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_distances.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting Distances
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/visualisation/img/estimators.jpg
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_estimators.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting Estimators
 
 :::
 

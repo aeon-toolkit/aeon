@@ -1,12 +1,12 @@
 """Implements matrix profile transformation."""
 
-__maintainer__ = []
-__all__ = ["MatrixProfileSeriesTransformer"]
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["MatrixProfileTransformer"]
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
+class MatrixProfileTransformer(BaseSeriesTransformer):
     """Calculate the matrix profile of a time series.
 
     Takes as input a single time series dataset and returns the matrix profile
@@ -14,13 +14,13 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     z-normalized Euclidean distance between any subsequence within a
     time series and its nearest neighbour.
 
-    For more information on the matrix profile, see `th stumpy tutorial
+    For more information on the matrix profile, see `the STUMPY tutorial
     <https://stumpy.readthedocs.io/en/latest/Tutorial_The_Matrix_Profile.html>`_
 
     Parameters
     ----------
     window_length : int
-        Length of the sliding winodw for the matrix profile calculation.
+        Length of the sliding window for the matrix profile calculation.
 
     Notes
     -----
@@ -29,10 +29,10 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series import MatrixProfileSeriesTransformer
+    >>> from aeon.transformations.series import MatrixProfileTransformer
     >>> import numpy as np
     >>> series = np.array([1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1])  # doctest: +SKIP
-    >>> transformer = MatrixProfileSeriesTransformer(window_length=4)  # doctest: +SKIP
+    >>> transformer = MatrixProfileTransformer(window_length=4)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(series)  # doctest: +SKIP
     """
 
