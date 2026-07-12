@@ -286,3 +286,22 @@ def test_sfa_dynamic(alphabet_allocation_method):
 
     # Check if the budget is correctly allocated
     assert np.mean(np.log2(p.alphabet_sizes)) <= np.log2(alphabet_size)
+
+
+@pytest.mark.parametrize("cls", [SFA, SFAFast])
+def test_get_words_multiple_windows(cls):
+    """Test get_words works when window_size < n_timepoints.
+
+    Regression test for GH #3537: np.squeeze did not remove the n_windows
+    axis, causing _get_chars to receive an array instead of a scalar.
+    """
+    X = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]]])
+    y = np.array([0])
+
+    sfa = cls(word_length=4, alphabet_size=4, window_size=6, save_words=True)
+    sfa.fit(X, y)
+    sfa.transform(X)
+
+    words = sfa.get_words()
+    # 1 case, 5 windows, 4 letters per word
+    assert words.shape == (1, 5, 4)

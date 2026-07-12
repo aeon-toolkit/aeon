@@ -477,8 +477,13 @@ class SFA(BaseCollectionTransformer):
         Array of words
         """
         words = np.squeeze(self.words)
+        if words.ndim == 1:
+            words = words.reshape(1, -1)
         return np.array(
-            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+            [
+                [_get_chars(w, self.word_length, self.alphabet_size) for w in case]
+                for case in words
+            ]
         )
 
     def _binning(self, X, y=None):
