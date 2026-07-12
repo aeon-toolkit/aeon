@@ -10,13 +10,10 @@ __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 from itertools import compress
 
 import numpy as np
-from joblib import Parallel, effective_n_jobs
 from sklearn.metrics import pairwise
-from sklearn.utils import check_random_state, gen_even_slices
+from sklearn.utils import check_random_state
 from sklearn.utils.extmath import safe_sparse_dot
-from sklearn.utils.parallel import delayed
 from sklearn.utils.sparsefuncs_fast import csr_row_norms
-from sklearn.utils.validation import _num_samples
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
@@ -680,31 +677,26 @@ class IndividualBOSS(BaseClassifier):
         self._transformed_data = self._transformer.fit_transform(X, y)
 
 
-def _dist_wrapper(dist_matrix, X, Y, s, XX_all=None, XY_all=None):
-    """Write in-place to a slice of a distance matrix."""
-    for i in range(s.start, s.stop):
-        dist_matrix[i] = boss_distance(X, Y, i, XX_all, XY_all)
-
-
 def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
-    """Find the euclidean distance between all pairs of bop-models."""
+    """Find the Euclidean distance between all pairs of bop-models."""
     if use_boss_distance:
         if Y is None:
             Y = X
 
-        XX_row_norms = csr_row_norms(X)
+        XX = csr_row_norms(X)[:, np.newaxis]
         XY = safe_sparse_dot(X, Y.T, dense_output=True)
 
-        distance_matrix = np.zeros((X.shape[0], Y.shape[0]))
+        X_support = X.copy()
+        X_support.eliminate_zeros()
+        X_support.data = np.ones(X_support.nnz, dtype=np.float64)
 
-        if effective_n_jobs(n_jobs) > 1:
-            Parallel(n_jobs=n_jobs, prefer="threads")(
-                delayed(_dist_wrapper)(distance_matrix, X, Y, s, XX_row_norms, XY)
-                for s in gen_even_slices(_num_samples(X), effective_n_jobs(n_jobs))
-            )
-        else:
-            for i in range(len(distance_matrix)):
-                distance_matrix[i] = boss_distance(X, Y, i, XX_row_norms, XY)
+        Y_squared = Y.astype(np.float64, copy=True)
+        Y_squared.data *= Y_squared.data
+
+        YY = safe_sparse_dot(X_support, Y_squared.T, dense_output=True)
+
+        distance_matrix = XX - 2 * XY + YY
+        np.maximum(distance_matrix, 0, out=distance_matrix)
 
     else:
         distance_matrix = pairwise.pairwise_distances(X, Y, n_jobs=n_jobs)
