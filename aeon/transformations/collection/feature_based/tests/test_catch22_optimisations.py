@@ -15,8 +15,10 @@ from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.feature_based import Catch22
 from aeon.transformations.collection.feature_based._catch22 import (
     _compute_autocorrelations,
+    feature_names,
     feature_names_short,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 N_CASES = 8
 N_CHANNELS = 3
@@ -24,6 +26,27 @@ N_TIMEPOINTS = 128
 # Lengths spanning the autocorrelation FFT sizes: a power of two, one just above
 # it (2**6 + 1 forces the next padded FFT size), and a short interval length.
 AC_LENGTHS = [40, 65, 128]
+
+# Features that aeon's numba code computes identically (to floating-point error)
+# to the reference C implementation in pycatch22. The remaining features differ
+# by small amounts: the histogram-mode, AMI and trev features round their
+# binning arithmetic differently in C and numba, and the two outlier-timing
+# features report values on a coarse quantised grid where the two implementations
+# land on neighbouring steps. Those are not asserted against pycatch22 here.
+PYCATCH22_EQUIVALENT_FEATURES = [
+    "acf_timescale",
+    "acf_first_min",
+    "stretch_high",
+    "transition_matrix",
+    "periodicity",
+    "ami_timescale",
+    "whiten_timescale",
+    "stretch_decreasing",
+    "entropy_pairs",
+    "rs_range",
+    "dfa",
+    "low_freq_power",
+]
 
 
 def _example(n_channels=1, n_timepoints=N_TIMEPOINTS, random_state=0):
@@ -151,3 +174,34 @@ def test_batched_autocorrelation_matches_per_series_reference(n_timepoints):
     constant = np.ones((N_CASES, N_CHANNELS, n_timepoints))
     constant_cache = c22._ac_batch_cache(constant, [2], N_CASES)
     assert np.count_nonzero(constant_cache) == 0
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("pycatch22", severity="none"),
+    reason="skip test if required soft dependency pycatch22 not available",
+)
+def test_matches_pycatch22_reference_on_scale_invariant_features():
+    """Aeon reproduces pycatch22's C output for its scale-invariant features.
+
+    catch22 features are defined on z-normalised series, so both implementations
+    are given the same z-normalised input (pycatch22 also z-normalises
+    internally). For the features in PYCATCH22_EQUIVALENT_FEATURES aeon's numba
+    code and the reference C library agree up to floating-point error.
+    """
+    import pycatch22
+
+    X = _example(n_timepoints=200)
+    z_normalised = (X - X.mean(axis=2, keepdims=True)) / X.std(axis=2, keepdims=True)
+
+    aeon = Catch22(features=PYCATCH22_EQUIVALENT_FEATURES).fit_transform(z_normalised)
+
+    reference_names = pycatch22.catch22_all(list(range(30)))["names"]
+    columns = [
+        reference_names.index(feature_names[feature_names_short.index(feature)])
+        for feature in PYCATCH22_EQUIVALENT_FEATURES
+    ]
+    reference = np.array(
+        [pycatch22.catch22_all(X[i, 0].tolist())["values"] for i in range(N_CASES)]
+    )[:, columns]
+
+    assert_allclose(aeon, reference, atol=1e-6)
