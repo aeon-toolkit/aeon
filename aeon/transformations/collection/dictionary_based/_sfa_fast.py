@@ -975,7 +975,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     return dft[:, start:]
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _apply_pca_transform(dfts, pca_mean, pca_components):
     n_cases = dfts.shape[0]
     n_windows = dfts.shape[1]
@@ -1423,7 +1423,7 @@ def shorten_words(words, amount, letter_bits):
     return new_words
 
 
-@njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath=True, cache=True, parallel=True, nogil=True)
 def _transform_words_case(
     X,
     window_size,
