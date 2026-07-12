@@ -391,6 +391,17 @@ Benchmarking of similarity search speed-ups
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/simhash_index.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/simhash_index.ipynb
+:link-type: ref
+:text-align: center
+
+Deep dive into SimHash and the LSH index
+
+:::
+
 ::::
 
 ## Forecasting

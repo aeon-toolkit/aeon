@@ -86,8 +86,9 @@
     MockUnivariateSeriesTransformer
     MockMultivariateSeriesTransformer
     MockSeriesTransformerNoFit
-    MockSeriesSimilaritySearch
-    MockCollectionSimilaritySearch
+    MockSubsequenceSearch
+    MockDistanceProfileSearch
+    MockWholeSeriesSearch
 ```
 
 ### Utilities
