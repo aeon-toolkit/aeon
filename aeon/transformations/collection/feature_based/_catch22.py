@@ -1878,12 +1878,14 @@ def _transform_case_numba(
         have_minmax = False
         smean = 0.0
         have_mean = False
-        # typed placeholders; real values are assigned before first use
-        outlier_series = series
+        # typed placeholders; real values are assigned before first use. These
+        # must be dtype-fixed (not aliases of series) so the kernel also
+        # compiles for integer input arrays.
+        outlier_series = np.empty(0, np.float64)
         have_outlier = False
         fft = ac_tw[:0]
         have_fft = False
-        ac = series
+        ac = np.empty(0, np.float64)
         have_ac = False
         acfz = 0
         have_acfz = False
