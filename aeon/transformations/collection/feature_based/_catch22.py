@@ -330,13 +330,13 @@ class Catch22(BaseCollectionTransformer):
                     keep = np.ones(len(f_idx) * n_channels, dtype=np.bool_)
                 f_arr = np.asarray(f_idx, dtype=np.int64)
                 # catch24's standard deviation stays a numpy call for exact
-                # reproducibility (numba's np.std can round differently)
+                # reproducibility (numba's np.std can round differently). The
+                # ascontiguousarray is load-bearing: np.std along axis 2 only
+                # matches the per-series np.std bit-for-bit when the last axis is
+                # contiguous, so do not simplify it to np.std(X, axis=2).
                 stds = None
                 if 23 in f_idx:
-                    stds = np.empty((n_cases, n_channels))
-                    for i in range(n_cases):
-                        for c in range(n_channels):
-                            stds[i, c] = np.std(X[i, c])
+                    stds = np.std(np.ascontiguousarray(X), axis=2)
                 # typed empty placeholders for absent caches; the matching
                 # kernel branches are unreachable when a cache was not built
                 no_fft = np.empty((0, 0), dtype=np.complex128)
