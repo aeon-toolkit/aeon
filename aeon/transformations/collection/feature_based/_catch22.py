@@ -616,7 +616,7 @@ class Catch22(BaseCollectionTransformer):
             dim = i * len(f_idx)
             series = list(X[i])
 
-            if self.outlier_norm and (3 in f_idx or 4 in f_idx):
+            if self.outlier_norm and (13 in f_idx or 14 in f_idx):
                 outlier_series = list(z_normalise_series(X[i]))
 
             for n, feature in enumerate(f_idx):
@@ -624,9 +624,9 @@ class Catch22(BaseCollectionTransformer):
                 if not transform_feature[f_count]:
                     continue
 
-                if self.outlier_norm and feature in [3, 4]:
+                if self.outlier_norm and feature in [13, 14]:
                     c22[dim + n] = features[feature](outlier_series)
-                if feature == 22:
+                elif feature == 22:
                     c22[dim + n] = np.mean(series)
                 elif feature == 23:
                     c22[dim + n] = np.std(series)
