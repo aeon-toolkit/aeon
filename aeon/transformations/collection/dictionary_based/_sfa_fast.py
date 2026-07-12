@@ -622,8 +622,8 @@ class SFAFast(BaseCollectionTransformer):
 
             # extract explained variance
             dft = self.pca_transform.fit_transform(dft)
-            self.pca_mean = self.pca_transform.mean_.astype(np.float64)
-            self.pca_components = self.pca_transform.components_.astype(np.float64)
+            self.pca_mean = self.pca_transform.mean_
+            self.pca_components = self.pca_transform.components_
             self.dft_variance = self.pca_transform.explained_variance_ratio_
 
         elif self.anova and y is not None:
