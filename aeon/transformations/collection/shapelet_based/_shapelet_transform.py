@@ -152,7 +152,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         min_shapelet_length: int = 3,
         max_shapelet_length: int | None = None,
         remove_self_similar: bool = True,
-        batch_size: int | None = 100,
+        batch_size: int = 100,
         verbose: bool = False,
         time_limit_in_minutes: float = 0.0,
         contract_max_n_shapelet_samples: float = np.inf,
