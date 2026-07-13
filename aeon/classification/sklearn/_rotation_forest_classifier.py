@@ -8,7 +8,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from aeon.base._estimators.sklearn import BaseRotationForest
@@ -181,7 +181,7 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
 
         X = self._prepare_predict_X(X)
 
-        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+        y_probas = self._parallel(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],

@@ -8,7 +8,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.base import BaseEstimator, RegressorMixin
 
 from aeon.base._estimators.sklearn import BaseRotationForest
@@ -166,7 +166,7 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
 
         X = self._prepare_predict_X(X)
 
-        y_preds = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+        y_preds = self._parallel(
             delayed(self._predict_for_estimator)(
                 X,
                 self.estimators_[i],

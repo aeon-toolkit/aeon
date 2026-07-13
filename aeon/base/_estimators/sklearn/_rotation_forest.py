@@ -15,7 +15,11 @@ from joblib import Parallel, delayed
 from scipy.sparse import issparse
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.exceptions import NotFittedError
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.tree import (
+    BaseDecisionTree,
+    DecisionTreeClassifier,
+    DecisionTreeRegressor,
+)
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils.validation import validate_data
@@ -150,12 +154,28 @@ class BaseRotationForest(BaseEstimator):
 
         super().__init__()
 
+    def _parallel(self, jobs):
+        """Run a sequence of ``delayed`` jobs, skipping joblib when single-threaded.
+
+        ``jobs`` is an iterable of ``delayed(func)(*args, **kwargs)`` tuples. When
+        ``n_jobs == 1`` these are called directly, avoiding joblib's per-task
+        dispatch overhead while preserving the order in which the jobs (and hence
+        any random draws in their arguments) are produced.
+        """
+        if self._n_jobs == 1:
+            return [func(*args, **kwargs) for func, args, kwargs in jobs]
+        return Parallel(n_jobs=self._n_jobs, prefer="threads")(jobs)
+
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
+        # cache the task type once rather than calling is_classifier repeatedly
+        # in the per-group/per-estimator inner loops
+        self._is_classifier = is_classifier(self)
+
         # data processing
         X = self._check_X(X)
         X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
 
-        if is_classifier(self):
+        if self._is_classifier:
             check_classification_targets(y)
         else:
             self._label_average = np.mean(y)
@@ -163,7 +183,7 @@ class BaseRotationForest(BaseEstimator):
         self.n_cases_, self.n_atts_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        if is_classifier(self):
+        if self._is_classifier:
             self.classes_ = np.unique(y)
             self.n_classes_ = self.classes_.shape[0]
             self._class_dictionary = {}
@@ -181,10 +201,14 @@ class BaseRotationForest(BaseEstimator):
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
-            if is_classifier(self):
+            if self._is_classifier:
                 self._base_estimator = DecisionTreeClassifier(criterion="entropy")
             else:
                 self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
+
+        # sklearn decision trees can skip input validation, as we always feed
+        # them a finite, contiguous float32 array we built ourselves
+        self._skip_tree_checks = isinstance(self._base_estimator, BaseDecisionTree)
 
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
@@ -203,7 +227,7 @@ class BaseRotationForest(BaseEstimator):
 
         X_cls_split = (
             [X[np.where(y == i)] for i in self.classes_]
-            if is_classifier(self)
+            if self._is_classifier
             else None
         )
 
@@ -220,7 +244,7 @@ class BaseRotationForest(BaseEstimator):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                fit = self._parallel(
                     delayed(self._fit_estimator)(
                         X,
                         X_cls_split,
@@ -243,7 +267,7 @@ class BaseRotationForest(BaseEstimator):
         else:
             self._n_estimators = self.n_estimators
 
-            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+            fit = self._parallel(
                 delayed(self._fit_estimator)(
                     X,
                     X_cls_split,
@@ -292,8 +316,8 @@ class BaseRotationForest(BaseEstimator):
         X_t = self._transform_for_estimator(X, pcas, groups)
 
         tree = self._make_tree(rng)
-        if self.base_estimator is None:
-            # X_t is already a validated, finite float32 array
+        if self._skip_tree_checks:
+            # X_t is already a validated, finite, contiguous float32 array
             tree.fit(X_t, y, check_input=False)
         else:
             tree.fit(X_t, y)
@@ -309,25 +333,25 @@ class BaseRotationForest(BaseEstimator):
         """
         if self.base_estimator is None:
             seed = rng.randint(np.iinfo(np.int32).max)
-            if is_classifier(self):
+            if self._is_classifier:
                 return DecisionTreeClassifier(criterion="entropy", random_state=seed)
             return DecisionTreeRegressor(criterion="squared_error", random_state=seed)
         return _clone_estimator(self._base_estimator, random_state=rng)
 
     def _sample_group_cases(self, X, X_cls_split, group, rng: np.random.RandomState):
         """Select the subsample of cases used to fit the PCA for a single group."""
-        if is_classifier(self):
+        if self._is_classifier:
             classes = rng.choice(
                 range(self.n_classes_),
                 size=rng.randint(1, self.n_classes_ + 1),
                 replace=False,
             )
 
-            # randomly add the classes with the randomly selected attributes.
-            X_t = np.zeros((0, len(group)))
-            for cls_idx in classes:
-                c = X_cls_split[cls_idx]
-                X_t = np.concatenate((X_t, c[:, group]), axis=0)
+            # gather the selected classes' attributes with a single concatenate
+            # rather than growing the array one class at a time
+            X_t = np.concatenate(
+                [X_cls_split[cls_idx][:, group] for cls_idx in classes], axis=0
+            )
 
             sample_ind = rng.choice(
                 X_t.shape[0],
@@ -376,7 +400,7 @@ class BaseRotationForest(BaseEstimator):
     def _predict_proba_for_estimator(self, X, clf, pcas, groups):
         X_t = self._transform_for_estimator(X, pcas, groups)
 
-        if self.base_estimator is None:
+        if self._skip_tree_checks:
             probas = clf.predict_proba(X_t, check_input=False)
         else:
             probas = clf.predict_proba(X_t)
@@ -392,7 +416,7 @@ class BaseRotationForest(BaseEstimator):
 
     def _predict_for_estimator(self, X, clf, pcas, groups):
         X_t = self._transform_for_estimator(X, pcas, groups)
-        if self.base_estimator is None:
+        if self._skip_tree_checks:
             return clf.predict(X_t, check_input=False)
         return clf.predict(X_t)
 
@@ -407,7 +431,7 @@ class BaseRotationForest(BaseEstimator):
             return [results, oob]
 
         clf = self._make_tree(rng)
-        if self.base_estimator is None:
+        if self._skip_tree_checks:
             clf.fit(X_t[idx][subsample], y[subsample], check_input=False)
             probas = clf.predict_proba(X_t[idx][oob], check_input=False)
         else:
@@ -436,7 +460,7 @@ class BaseRotationForest(BaseEstimator):
             return [results, oob]
 
         clf = self._make_tree(rng)
-        if self.base_estimator is None:
+        if self._skip_tree_checks:
             clf.fit(X_t[idx][subsample], y[subsample], check_input=False)
             preds = clf.predict(X_t[idx][oob], check_input=False)
         else:
@@ -459,10 +483,10 @@ class BaseRotationForest(BaseEstimator):
 
         train_fn = (
             self._train_probas_for_estimator
-            if is_classifier(self)
+            if self._is_classifier
             else self._train_preds_for_estimator
         )
-        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+        p = self._parallel(
             delayed(train_fn)(
                 X_t,
                 y,
