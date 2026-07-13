@@ -284,6 +284,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 )
             )
 
+        self._build_transform_inputs()
+
         if save_distances:
             Xt = np.array([distances[s[7]] for s in self.shapelets]).transpose()
             self.shapelets = [s[:-1] for s in self.shapelets]
@@ -568,22 +570,44 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 flush=True,
             )
 
-    @staticmethod
-    def _transform_block(X, shapelets, sorted_indicies, start, stop):
-        """Transform a contiguous block of cases."""
-        out = np.empty((stop - start, len(shapelets)))
+    def _build_transform_inputs(self):
+        """Pack the fitted shapelets into numba-friendly arrays for transform.
 
-        for i in range(stop - start):
-            series = X[start + i]
-            for n, shapelet in enumerate(shapelets):
-                out[i, n] = _online_shapelet_distance(
-                    series[shapelet[3]],
-                    shapelet[6],
-                    sorted_indicies[n],
-                    shapelet[2],
-                    shapelet[1],
-                )
-        return out
+        ``self.shapelets`` stays a list of tuples for external use; these
+        parallel arrays and typed lists let the whole transform loop run inside
+        a single ``njit`` call instead of dispatching per (case, shapelet).
+        """
+        if len(self.shapelets) == 0:
+            return
+
+        self._transform_lengths = np.array(
+            [s[1] for s in self.shapelets], dtype=np.int32
+        )
+        self._transform_positions = np.array(
+            [s[2] for s in self.shapelets], dtype=np.int32
+        )
+        self._transform_channels = np.array(
+            [s[3] for s in self.shapelets], dtype=np.int32
+        )
+        self._transform_shapelets = List(
+            [np.ascontiguousarray(s[6], dtype=np.float64) for s in self.shapelets]
+        )
+        self._transform_sorted_indices = List(
+            [np.ascontiguousarray(si, dtype=np.int32) for si in self._sorted_indices]
+        )
+
+    def _transform_block(self, X, start, stop):
+        """Transform a contiguous block of cases via the numba kernel."""
+        return _transform_block_numba(
+            X,
+            self._transform_lengths,
+            self._transform_positions,
+            self._transform_channels,
+            self._transform_shapelets,
+            self._transform_sorted_indices,
+            start,
+            stop,
+        )
 
     def _transform(self, X, y=None):
         """Transform X according to the extracted shapelets.
@@ -605,14 +629,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         if n_cases == 0 or n_shapelets == 0:
             return output
 
+        # A typed list of contiguous 2D arrays so the kernel accepts both the
+        # numpy3D and np-list inner types uniformly.
+        X_list = List()
+        for x in X:
+            X_list.append(np.ascontiguousarray(x, dtype=np.float64))
+
         if self._n_jobs == 1 or n_cases == 1:
-            return self._transform_block(
-                X,
-                self.shapelets,
-                self._sorted_indices,
-                0,
-                n_cases,
-            )
+            return self._transform_block(X_list, 0, n_cases)
 
         n_blocks = min(n_cases, self._n_jobs * 4)
         block_size = (n_cases + n_blocks - 1) // n_blocks
@@ -626,16 +650,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             n_jobs=self._n_jobs,
             backend=self.parallel_backend,
             prefer="threads",
-        )(
-            delayed(self._transform_block)(
-                X,
-                self.shapelets,
-                self._sorted_indices,
-                start,
-                stop,
-            )
-            for start, stop in blocks
-        )
+        )(delayed(self._transform_block)(X_list, start, stop) for start, stop in blocks)
 
         for (start, stop), block in zip(blocks, results):
             output[start:stop] = block
@@ -823,20 +838,25 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
 
     sum = 0.0
     sum2 = 0.0
+    shapelet_sq_sum = 0.0
     for i in range(length):
         val = series[position + i]
         sum += val
         sum2 += val * val
+        shapelet_sq_sum += shapelet[i] * shapelet[i]
 
     mean = sum / length
     std = math.sqrt((sum2 - mean * mean * length) / length)
-    use_std = std > AEON_NUMBA_STD_THRESHOLD
 
-    best_dist = 0
-    for i in range(length):
-        val = (series[position + i] - mean) / std if use_std else 0.0
-        temp = shapelet[i] - val
-        best_dist += temp * temp
+    if std > AEON_NUMBA_STD_THRESHOLD:
+        inv_std = 1.0 / std
+        best_dist = 0.0
+        for i in range(length):
+            temp = shapelet[i] - (series[position + i] - mean) * inv_std
+            best_dist += temp * temp
+    else:
+        # flat subsequence normalises to zeros, so the distance is ||shapelet||^2
+        best_dist = shapelet_sq_sum
 
     i = 1
     traverse_left = True
@@ -859,16 +879,18 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
             mean = left_sum / length
             std = math.sqrt((left_sum2 - mean * mean * length) / length)
 
-            dist = 0
-            use_std = std > AEON_NUMBA_STD_THRESHOLD
-            for j in range(length):
-                idx = sorted_indicies[j]
-                val = (series[pos + idx] - mean) / std if use_std else 0
-                temp = shapelet[idx] - val
-                dist += temp * temp
+            if std > AEON_NUMBA_STD_THRESHOLD:
+                inv_std = 1.0 / std
+                dist = 0.0
+                for j in range(length):
+                    idx = sorted_indicies[j]
+                    temp = shapelet[idx] - (series[pos + idx] - mean) * inv_std
+                    dist += temp * temp
 
-                if dist > best_dist:
-                    break
+                    if dist > best_dist:
+                        break
+            else:
+                dist = shapelet_sq_sum
 
             if dist < best_dist:
                 best_dist = dist
@@ -885,16 +907,18 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
             mean = right_sum / length
             std = math.sqrt((right_sum2 - mean * mean * length) / length)
 
-            dist = 0
-            use_std = std > AEON_NUMBA_STD_THRESHOLD
-            for j in range(length):
-                idx = sorted_indicies[j]
-                val = (series[pos + idx] - mean) / std if use_std else 0
-                temp = shapelet[idx] - val
-                dist += temp * temp
+            if std > AEON_NUMBA_STD_THRESHOLD:
+                inv_std = 1.0 / std
+                dist = 0.0
+                for j in range(length):
+                    idx = sorted_indicies[j]
+                    temp = shapelet[idx] - (series[pos + idx] - mean) * inv_std
+                    dist += temp * temp
 
-                if dist > best_dist:
-                    break
+                    if dist > best_dist:
+                        break
+            else:
+                dist = shapelet_sq_sum
 
             if dist < best_dist:
                 best_dist = dist
@@ -902,6 +926,26 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
         i += 1
 
     return best_dist if best_dist == 0 else 1 / length * best_dist
+
+
+@njit(fastmath=True, cache=True)
+def _transform_block_numba(
+    X, lengths, positions, channels, shapelets, sorted_indices, start, stop
+):
+    """Distance from every shapelet to each case in ``X[start:stop]``."""
+    n_shapelets = len(lengths)
+    out = np.empty((stop - start, n_shapelets))
+    for i in range(stop - start):
+        series = X[start + i]
+        for n in range(n_shapelets):
+            out[i, n] = _online_shapelet_distance(
+                series[channels[n]],
+                shapelets[n],
+                sorted_indices[n],
+                positions[n],
+                lengths[n],
+            )
+    return out
 
 
 @njit(fastmath=True, cache=True)
