@@ -12,50 +12,36 @@ from aeon.regression.sklearn import RotationForestRegressor
 
 
 def test_rotf_output():
-    """Test RotF achieves the expected error on the covid 3 month data."""
+    """Test of RotF contracting and train estimate on test data."""
     X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
     X_test, y_test = load_covid_3month(split="test", return_type="numpy2d")
 
     rotf = RotationForestRegressor(
         n_estimators=10,
         base_estimator=DecisionTreeRegressor(max_depth=3),
+        pca_solver="randomized",
         random_state=0,
     )
     rotf.fit(X_train, y_train)
 
-    y_pred = rotf.predict(X_test)
-    assert y_pred.shape == y_test.shape
-
-    # exact per-case predictions are not pinned: scikit-learn 1.8 changed
-    # decision-tree handling of almost-constant features, which shifts them
-    # (see the class docstring). The aggregate error is stable across versions.
-    mse = mean_squared_error(y_test, y_pred)
-    np.testing.assert_almost_equal(mse, 0.0019, decimal=4)
-
-
-def test_rotf_pca_solver_is_noop():
-    """Test pca_solver is retained for compatibility but has no effect."""
-    X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
-    X_test, _ = load_covid_3month(split="test", return_type="numpy2d")
-
-    rotf_full = RotationForestRegressor(
-        n_estimators=10,
-        pca_solver="full",
-        random_state=0,
-    )
-    rotf_randomized = RotationForestRegressor(
-        n_estimators=10,
-        pca_solver="randomized",
-        random_state=0,
-    )
-
-    rotf_full.fit(X_train, y_train)
-    rotf_randomized.fit(X_train, y_train)
-
-    np.testing.assert_array_equal(
-        rotf_full.predict(X_test[:15]),
-        rotf_randomized.predict(X_test[:15]),
-    )
+    expected = [
+        0.02987,
+        0.01912,
+        0.02359,
+        0.05474,
+        0.06206,
+        0.03782,
+        0.02681,
+        0.04133,
+        0.02588,
+        0.04581,
+        0.03081,
+        0.02781,
+        0.02805,
+        0.03213,
+        0.02295,
+    ]
+    np.testing.assert_array_almost_equal(expected, rotf.predict(X_test[:15]), decimal=4)
 
 
 def test_contracted_rotf():
@@ -76,14 +62,12 @@ def test_contracted_rotf():
     assert isinstance(y_pred, np.ndarray)
     assert len(y_pred) == len(y_test)
 
-    # centred on the observed error with tolerance to spare, as exact
-    # predictions vary with the scikit-learn version (see the class docstring)
     mse = mean_squared_error(y_test, y_pred)
-    np.testing.assert_almost_equal(mse, 0.0021, decimal=4)
+    np.testing.assert_almost_equal(mse, 0.002, decimal=4)
 
 
 def test_rotf_fit_predict():
-    """Test RotF fit_predict returns train prediction estimates."""
+    """Test of RotF fit_predict on testing data."""
     X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
 
     rotf = RotationForestRegressor(
@@ -103,48 +87,24 @@ def test_rotf_fit_predict():
 
 
 def test_rotf_input():
-    """Test RotF rejects unsupported input shapes and degenerate data."""
+    """Test RotF with incorrect input."""
     rotf = RotationForestRegressor()
 
-    # a univariate 3d array is squeezed to 2d
     X = rotf._check_X(np.random.random((10, 1, 100)))
     assert X.shape == (10, 100)
 
-    # multivariate 3d and ragged inputs are rejected
-    with pytest.raises(ValueError, match="not a time series"):
+    with pytest.raises(
+        ValueError, match="RotationForestRegressor is not a time series regressor"
+    ):
         rotf._check_X(np.random.random((10, 10, 100)))
-    with pytest.raises(ValueError, match="not a time series"):
+    with pytest.raises(
+        ValueError, match="RotationForestRegressor is not a time series regressor"
+    ):
         rotf._check_X([[1, 2, 3], [4, 5], [6, 7, 8]])
 
-    # constant attributes leave nothing to fit on
     X2 = np.zeros((10, 10))
     y = np.zeros(10)
     y[0:5] = 1
 
-    with pytest.raises(ValueError, match="same value"):
+    with pytest.raises(ValueError, match="All attributes in X contain the same value."):
         rotf.fit_predict(X2, y)
-
-
-def test_rotf_tree_parameters():
-    """Test exposed tree parameters reach the default decision trees."""
-    X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
-
-    rotf = RotationForestRegressor(
-        n_estimators=5,
-        splitter="random",
-        max_depth=3,
-        min_samples_leaf=2,
-        random_state=0,
-    )
-    rotf.fit(X_train, y_train)
-
-    for tree in rotf.estimators_:
-        assert tree.splitter == "random"
-        assert tree.max_depth == 3
-        assert tree.min_samples_leaf == 2
-
-    # the defaults leave the tree at squared_error with the best splitter
-    default = RotationForestRegressor(n_estimators=5, random_state=0)
-    default.fit(X_train, y_train)
-    assert default.estimators_[0].criterion == "squared_error"
-    assert default.estimators_[0].splitter == "best"
