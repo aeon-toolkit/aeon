@@ -289,13 +289,7 @@ class BaseRotationForest(BaseEstimator):
 
         # merge all the pca_transformed data into one instance and build an estimator
         # on it.
-        X_t = np.concatenate(
-            [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
-        )
-        X_t = X_t.astype(np.float32)
-        X_t = np.nan_to_num(
-            X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
-        )
+        X_t = self._transform_for_estimator(X, pcas, groups)
 
         tree = self._make_tree(rng)
         if self.base_estimator is None:
@@ -352,14 +346,32 @@ class BaseRotationForest(BaseEstimator):
             return X_t[:, group]
 
     def _transform_for_estimator(self, X, pcas, groups):
-        """Apply the rotation for a single ensemble member to X."""
-        X_t = np.concatenate(
-            [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
-        )
-        X_t = X_t.astype(np.float32)
-        return np.nan_to_num(
-            X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
-        )
+        """Apply the rotation for a single ensemble member to X.
+
+        Writes each group's rotation straight into a preallocated float32 array
+        rather than building and concatenating a list of per-group arrays. The
+        float64 -> float32 cast happens on assignment, matching a trailing
+        ``astype``.
+        """
+        n_cases = X.shape[0]
+        n_comps = sum(pca.components_.shape[0] for pca in pcas)
+        X_t = np.empty((n_cases, n_comps), dtype=np.float32)
+        pos = 0
+        for pca, group in zip(pcas, groups):
+            rot = pca.transform(X[:, group])
+            width = rot.shape[1]
+            X_t[:, pos : pos + width] = rot
+            pos += width
+
+        # X_t can only be non-finite if the cast to float32 overflowed, which
+        # cannot happen for the normalised inputs and finite components here.
+        # Run the full replacement only in that (essentially unreachable) case
+        # so the common path pays a single finiteness scan instead of three.
+        if not np.isfinite(X_t).all():
+            np.nan_to_num(
+                X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
+            )
+        return X_t
 
     def _predict_proba_for_estimator(self, X, clf, pcas, groups):
         X_t = self._transform_for_estimator(X, pcas, groups)
