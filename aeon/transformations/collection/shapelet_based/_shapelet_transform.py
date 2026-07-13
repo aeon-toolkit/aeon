@@ -474,6 +474,12 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.n_channels_ = X[0].shape[0]
         self.max_n_timepoints_ = max(x.shape[1] for x in X)
 
+        # Lookup table k*log2(k) (with 0 at k=0) so the information-gain scan
+        # over split points uses table entries instead of repeated logarithms.
+        ks = np.arange(self.n_cases_ + 1, dtype=np.float64)
+        self._klog = np.zeros(self.n_cases_ + 1, dtype=np.float64)
+        self._klog[1:] = ks[1:] * np.log2(ks[1:])
+
         if self.max_shapelets is None:
             self._max_shapelets = min(10 * self.n_cases_, 1000)
         else:
@@ -571,9 +577,12 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     def _build_transform_inputs(self):
         """Pack the fitted shapelets into numba-friendly arrays for transform.
 
-        ``self.shapelets_`` stays a list of tuples for external use; these
-        parallel arrays and typed lists let the whole transform loop run inside
-        a single ``njit`` call instead of dispatching per (case, shapelet).
+        ``self.shapelets_`` stays a list of tuples for external use. The ragged
+        shapelet values and sorted indices are packed into single flat arrays
+        with a CSR-style ``offsets`` index (shapelet ``n`` spans
+        ``offsets[n]:offsets[n + 1]``). Flat arrays are plain NumPy, so the
+        fitted estimator pickles cleanly (a ``numba.typed.List`` attribute does
+        not) and the whole transform loop still runs in one ``njit`` call.
         """
         if len(self.shapelets_) == 0:
             return
@@ -587,13 +596,17 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._transform_channels = np.array(
             [s[_CHANNEL] for s in self.shapelets_], dtype=np.int32
         )
-        self._transform_shapelets = List(
+        # A shapelet's values and its sorted indices share the same length, so
+        # one offsets array indexes both flat buffers.
+        self._transform_offsets = np.zeros(len(self.shapelets_) + 1, dtype=np.int64)
+        self._transform_offsets[1:] = np.cumsum(self._transform_lengths)
+        self._transform_values = np.concatenate(
             [
                 np.ascontiguousarray(s[_VALUES], dtype=np.float64)
                 for s in self.shapelets_
             ]
         )
-        self._transform_sorted_indices = List(
+        self._transform_sorted_indices = np.concatenate(
             [np.ascontiguousarray(si, dtype=np.int32) for si in self._sorted_indices]
         )
 
@@ -604,8 +617,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             self._transform_lengths,
             self._transform_positions,
             self._transform_channels,
-            self._transform_shapelets,
+            self._transform_values,
             self._transform_sorted_indices,
+            self._transform_offsets,
             start,
             stop,
         )
@@ -756,6 +770,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             inst_idx,
             self._class_counts[cls_idx],
             self.n_cases_ - self._class_counts[cls_idx],
+            self._klog,
         )
 
         return (
@@ -776,6 +791,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         inst_idx,
         this_cls_count,
         other_cls_count,
+        klog,
     ):
         # Extract, z-normalise and order the shapelet inside numba so the whole
         # per-candidate pipeline is a single Python -> numba crossing. Indices
@@ -811,7 +827,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         orderline.sort()
         return (
-            _calc_binary_ig(orderline, this_cls_count, other_cls_count),
+            _calc_binary_ig(orderline, this_cls_count, other_cls_count, klog),
             distance_vector,
         )
 
@@ -983,65 +999,65 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
 
 @njit(fastmath=True, cache=True, nogil=True)
 def _transform_block_numba(
-    X, lengths, positions, channels, shapelets, sorted_indices, start, stop
+    X, lengths, positions, channels, values, sorted_indices, offsets, start, stop
 ):
-    """Distance from every shapelet to each case in ``X[start:stop]``."""
+    """Distance from every shapelet to each case in ``X[start:stop]``.
+
+    ``values`` and ``sorted_indices`` are flat buffers; shapelet ``n`` occupies
+    ``offsets[n]:offsets[n + 1]`` in both.
+    """
     n_shapelets = len(lengths)
     out = np.empty((stop - start, n_shapelets))
     for i in range(stop - start):
         series = X[start + i]
         for n in range(n_shapelets):
+            lo = offsets[n]
+            hi = offsets[n + 1]
             out[i, n] = _online_shapelet_distance(
                 series[channels[n]],
-                shapelets[n],
-                sorted_indices[n],
+                values[lo:hi],
+                sorted_indices[lo:hi],
                 positions[n],
                 lengths[n],
             )
     return out
 
 
-@njit(fastmath=True, cache=True)
-def _calc_binary_ig(orderline, c1, c2):
-    initial_ent = _binary_entropy(c1, c2)
+@njit(fastmath=True, cache=True, nogil=True)
+def _calc_binary_ig(orderline, c1, c2, klog):
+    # Binary entropy H(a, b) = (klog[a+b] - klog[a] - klog[b]) / (a+b), where
+    # klog[k] = k*log2(k). The left partition at a split has (split+1) elements,
+    # so both partition sizes and class counts are integer indices into klog and
+    # no logarithm is evaluated in the loop. Maximising the information gain
+    #     ig = initial_ent - (left + right) / n
+    # is equivalent to minimising (left + right), so we track that minimum.
+    n = c1 + c2
+    initial_ent = (klog[n] - klog[c1] - klog[c2]) / n
 
-    total_all = c1 + c2
-
-    bsf_ig = 0
+    min_lr = np.inf
     c1_count = 0
     c2_count = 0
-
-    # evaluate each split point
     for split in range(len(orderline)):
-        next_class = orderline[split][1]  # +1 if this class, -1 if other
-        if next_class > 0:
+        if orderline[split][1] > 0:  # +1 this class, -1 other class
             c1_count += 1
         else:
             c2_count += 1
 
-        left_prop = (split + 1) / total_all
-        ent_left = _binary_entropy(c1_count, c2_count)
-
-        right_prop = 1 - left_prop
-        ent_right = _binary_entropy(
-            c1 - c1_count,
-            c2 - c2_count,
+        n_left = split + 1
+        n_right = n - n_left
+        lr = (
+            klog[n_left]
+            + klog[n_right]
+            - klog[c1_count]
+            - klog[c2_count]
+            - klog[c1 - c1_count]
+            - klog[c2 - c2_count]
         )
+        if lr < min_lr:
+            min_lr = lr
 
-        ig = initial_ent - left_prop * ent_left - right_prop * ent_right
-        bsf_ig = max(ig, bsf_ig)
-
-    return bsf_ig
-
-
-@njit(fastmath=True, cache=True)
-def _binary_entropy(c1, c2):
-    ent = 0
-    if c1 != 0:
-        ent -= c1 / (c1 + c2) * np.log2(c1 / (c1 + c2))
-    if c2 != 0:
-        ent -= c2 / (c1 + c2) * np.log2(c2 / (c1 + c2))
-    return ent
+    ig = initial_ent - min_lr / n
+    return ig if ig > 0 else 0.0
 
 
 @njit(fastmath=True, cache=True)
