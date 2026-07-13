@@ -354,7 +354,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         predictions : np.ndarray of shape (prediction_horizon,)
         """
         if y is None:
-            if not hasattr(self, "last_window_"):
+            if self.last_window_ is None:
                 raise ValueError("No fitted data available for prediction.")
             window_data = self.last_window_.copy()
         else:
