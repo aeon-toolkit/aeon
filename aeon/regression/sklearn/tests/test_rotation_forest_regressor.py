@@ -25,23 +25,48 @@ def test_rotf_output():
     rotf.fit(X_train, y_train)
 
     expected = [
-        0.02987,
-        0.01912,
-        0.02359,
-        0.05474,
-        0.06206,
-        0.03782,
-        0.02681,
-        0.04133,
-        0.02588,
-        0.04581,
-        0.03081,
-        0.02781,
-        0.02805,
-        0.03213,
-        0.02295,
+        0.03020,
+        0.02127,
+        0.02160,
+        0.04964,
+        0.06710,
+        0.03825,
+        0.02254,
+        0.04176,
+        0.02631,
+        0.04706,
+        0.02886,
+        0.02560,
+        0.02607,
+        0.03558,
+        0.02300,
     ]
     np.testing.assert_array_almost_equal(expected, rotf.predict(X_test[:15]), decimal=4)
+
+
+def test_rotf_pca_solver_is_noop():
+    """Test pca_solver is retained for compatibility but has no effect."""
+    X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
+    X_test, _ = load_covid_3month(split="test", return_type="numpy2d")
+
+    rotf_full = RotationForestRegressor(
+        n_estimators=10,
+        pca_solver="full",
+        random_state=0,
+    )
+    rotf_randomized = RotationForestRegressor(
+        n_estimators=10,
+        pca_solver="randomized",
+        random_state=0,
+    )
+
+    rotf_full.fit(X_train, y_train)
+    rotf_randomized.fit(X_train, y_train)
+
+    np.testing.assert_array_equal(
+        rotf_full.predict(X_test[:15]),
+        rotf_randomized.predict(X_test[:15]),
+    )
 
 
 def test_contracted_rotf():

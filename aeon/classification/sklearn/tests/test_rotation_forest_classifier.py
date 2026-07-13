@@ -46,6 +46,31 @@ def test_rotf_output():
     )
 
 
+def test_rotf_pca_solver_is_noop():
+    """Test pca_solver is retained for compatibility but has no effect."""
+    X_train, y_train = load_unit_test(split="train", return_type="numpy2d")
+    X_test, _ = load_unit_test(split="test", return_type="numpy2d")
+
+    rotf_full = RotationForestClassifier(
+        n_estimators=10,
+        pca_solver="full",
+        random_state=0,
+    )
+    rotf_randomized = RotationForestClassifier(
+        n_estimators=10,
+        pca_solver="randomized",
+        random_state=0,
+    )
+
+    rotf_full.fit(X_train, y_train)
+    rotf_randomized.fit(X_train, y_train)
+
+    np.testing.assert_array_equal(
+        rotf_full.predict_proba(X_test[:15]),
+        rotf_randomized.predict_proba(X_test[:15]),
+    )
+
+
 def test_contracted_rotf():
     """Test of RotF contracting and train estimate on test data."""
     X_train, y_train = load_unit_test(split="train", return_type="numpy2d")
