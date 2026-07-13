@@ -65,10 +65,14 @@ class BaseRIST(ABC):
         A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. aeon's own implementation is
+        faster than pycatch22 and produces the same features, so it is used
+        instead.
     estimator : sklearn estimator, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         extra trees forest with 200 trees.
@@ -91,13 +95,14 @@ class BaseRIST(ABC):
         The length of each series in the training set.
     """
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     @abstractmethod
     def __init__(
         self,
         n_intervals=None,
         n_shapelets=None,
         series_transformers="default",
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         estimator=None,
         n_jobs=1,
         random_state=None,

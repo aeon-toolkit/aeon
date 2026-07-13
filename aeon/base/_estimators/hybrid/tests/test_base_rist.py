@@ -21,6 +21,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     not _check_soft_dependencies(["statsmodels", "pycatch22"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 def test_rist_soft_dependencies():
     """Test the RIST class with different soft dependencies."""
     rist = RISTClassifier()

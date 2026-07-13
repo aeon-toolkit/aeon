@@ -12,6 +12,9 @@ from sklearn.cluster import KMeans
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    _warn_use_pycatch22_deprecated,
+)
 from aeon.utils.validation import check_n_jobs
 
 
@@ -51,10 +54,14 @@ class Catch22Clusterer(BaseClusterer):
             time series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. aeon's own implementation is
+        faster than pycatch22 and produces the same features, so it is used
+        instead.
     estimator : sklearn clusterer, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn KMeans().
@@ -103,13 +110,14 @@ class Catch22Clusterer(BaseClusterer):
         "algorithm_type": "feature",
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=True,
         outlier_norm=True,
         replace_nans=True,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -120,6 +128,8 @@ class Catch22Clusterer(BaseClusterer):
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
         self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated()
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs

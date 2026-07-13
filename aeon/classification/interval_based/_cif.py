@@ -12,6 +12,9 @@ from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    _warn_use_pycatch22_deprecated,
+)
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
@@ -92,10 +95,14 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. aeon's own implementation is
+        faster than pycatch22 and produces the same features, so it is used
+        instead.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -167,6 +174,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         "algorithm_type": "interval",
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         base_estimator=None,
@@ -177,12 +185,14 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         att_subsample_size=8,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
         self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated()
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -214,7 +224,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             parallel_backend=parallel_backend,
         )
 
-        if use_pycatch22:
+        if use_pycatch22 is True:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _fit(self, X, y):

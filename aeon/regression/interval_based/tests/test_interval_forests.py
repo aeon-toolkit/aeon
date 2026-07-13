@@ -36,6 +36,7 @@ def test_tic_curves_invalid(cls):
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("cls", [CanonicalIntervalForestRegressor, DrCIFRegressor])
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 def test_forest_pycatch22(cls):
     """Test whether the forest regressors with pycatch22 run without error."""
     X_train, y_train = EQUAL_LENGTH_UNIVARIATE_REGRESSION["numpy3D"]["train"]

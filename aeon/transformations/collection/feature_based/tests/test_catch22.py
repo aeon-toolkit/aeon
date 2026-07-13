@@ -51,6 +51,7 @@ def test_catch22_short_on_basic_motions():
     not _check_soft_dependencies("pycatch22", severity="none"),
     reason="skip test if required soft dependency pycatch22 not available",
 )
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 def test_catch22_wrapper_on_basic_motions():
     """Test of Catch22Wrapper on basic motions data."""
     # load basic motions data
@@ -1459,6 +1460,7 @@ catch22wrapper_basic_motions_data = np.array(
     not _check_soft_dependencies("pycatch22", severity="none"),
     reason="skip test if required soft dependency pycatch22 not available",
 )
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 def test_catch22_pycatch22_outlier_norm():
     """Test that outlier_norm passes z-normalised series to DN_OutlierInclude.
 
