@@ -42,20 +42,20 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     """Random Shapelet Transform.
 
     Implementation of the binary shapelet transform along the lines of [1]_, [2]_, with
-    randomly extracted shapelets. A shapelet is a subsequence from the train set. The
+    randomly extracted shapelets. A shapelet is a subsequence from the training set. The
     transform finds a set of shapelets that are good at separating the classes based on
     the distances between shapelets and whole series. The distance between a shapelet
-    and a series (called sDist in the literature) is defined as the minimum Euclidean
-    distance between shapelet and all windows the same length as the shapelet.
+    and a series (called sDist in the literature) is the minimum z-normalised squared
+    distance between the shapelet and every window of the same length in the series.
 
-    Overview: Input n series with d channels of length m. Continuously extract
-    candidate shapelets and filter them in batches.
+    Given ``n`` series with ``d`` channels, candidate shapelets are extracted and
+    filtered in batches.
 
     For each candidate shapelet:
 
     - Extract a shapelet from an instance with random length, position and channel.
     - Z-normalise the shapelet.
-    - Find the distance from the shapelet to all train cases.
+    - Find the distance from the shapelet to all training cases.
     - Derive a binary orderline and score the shapelet by information gain.
     - Retain only the best shapelets per class.
 
@@ -65,34 +65,33 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         Number of candidate shapelets to assess. Ignored when
         ``time_limit_in_minutes > 0``.
     max_shapelets : int or None, default=None
-        Maximum number of shapelets to keep. Each class value will
-        have its own max, set to n_classes / max_shapelets. If None, set to
-        ``min(10 * n_cases, 1000)`` during fit.
+        Maximum number of shapelets to keep. The shapelet budget is divided equally
+        among the classes. If None, set to ``min(10 * n_cases, 1000)`` during fit.
     min_shapelet_length : int, default=3
         Lower bound on candidate shapelet lengths.
     max_shapelet_length : int or None, default=None
-        Upper bound on candidate shapelet lengths. If None the length of the shortest
-        input series is used.
+        Upper bound on candidate shapelet lengths. If None, the length of the longest
+        input series is used. A candidate is also limited by the length of its source
+        series.
     remove_self_similar : bool, default=True
         Remove overlapping "self-similar" shapelets when merging candidate shapelets.
-    batch_size : int or None, default=100
+    batch_size : int, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets.
     verbose : bool, default=False
-        Whether to print progress messages during fitting and transforming.
+        Whether to print progress messages during fitting.
     time_limit_in_minutes : float, default=0.0
         Time contract to limit build time in minutes, overriding n_shapelet_samples.
-        Default of 0 means n_shapelet_samples is used.
+        The default of 0 means ``n_shapelet_samples`` is used.
     contract_max_n_shapelet_samples : float, default=np.inf
-        Max number of shapelets to extract when time_limit_in_minutes is set.
+        Maximum number of shapelets to extract when ``time_limit_in_minutes`` is set.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``transform``.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a
-        ``prefer="threads"`` value is used by default. Valid options are "loky",
-        "multiprocessing", "threading" or a custom backend. See the joblib Parallel
-        documentation for more details.
+        Joblib parallelisation backend. If None, ``prefer="threads"`` is used. Valid
+        options include ``"loky"``, ``"multiprocessing"``, ``"threading"``, or a
+        custom backend. See the Joblib ``Parallel`` documentation for details.
     random_state : int or None, default=None
         Seed for random number generation.
 
@@ -101,21 +100,21 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     n_classes_ : int
         The number of classes.
     n_cases_ : int
-        The number of train cases.
+        The number of training cases.
     n_channels_ : int
         The number of dimensions per case.
-    min_n_timepoints_ : int
-        The minimum length of series in train data.
-    classes_ : list
+    max_n_timepoints_ : int
+        The maximum series length in the training data.
+    classes_ : np.ndarray
         The class labels.
     shapelets_ : list of tuple
         The stored shapelets after fitting. Each tuple has a fixed layout
         ``(quality, length, position, channel, case_index, class_index,
         distance_index, values)``: ``class_index`` indexes ``classes_``,
-        ``distance_index`` is used internally (``-1`` unless distance vectors
-        are cached), and ``values`` is the z-normalised subsequence from the source
-        case. The layout matches the numeric working records used during fitting,
-        which populate every field except ``values``.
+        ``distance_index`` is reserved for fitting and reset to ``-1`` in fitted
+        records, and ``values`` is the z-normalised subsequence from the source case.
+        The layout matches the numeric working records used during fitting, which
+        populate every field except ``values``.
 
     See Also
     --------
@@ -123,8 +122,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
     Notes
     -----
-    For the Java version, see TSML.
-    <https://github.com/time-series-machine-learning/tsml-java/src/java/tsml/>`_.
+    For the Java version, see
+    `TSML <https://github.com/time-series-machine-learning/tsml-java/src/java/tsml/>`_.
 
     References
     ----------
@@ -132,7 +131,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
        Data Mining and Knowledge Discovery, 28(4), 851-881, 2014.
 
     .. [2] A. Bostrom and A. Bagnall, "Binary Shapelet Transform for Multiclass Time
-       Series Classification", Transactions on Large-Scale Data and Knowledge Centered
+       Series Classification", Transactions on Large-Scale Data and Knowledge-Centered
        Systems, 32, 2017.
     """
 
@@ -197,19 +196,20 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._fit_shapelets(X, y, cache_distance_vectors=False)
 
     def _fit_transform(self, X, y=None):
-        """Fit whilst caching the transformed data during fit."""
+        """Fit while caching the transformed training data."""
         return self._fit_shapelets(X, y, cache_distance_vectors=True)
 
     def _fit_shapelets(self, X, y, cache_distance_vectors):
         """Fit shapelets and optionally return transformed training data.
 
-        Scoring a candidate already computes its distance to every train case
+        Scoring a candidate already computes its distance to every training case
         (the orderline used for information gain). When ``cache_distance_vectors``
-        is set (i.e. from ``fit_transform``), those per-shapelet, length-n_cases
-        vectors are kept in ``distance_vectors`` and stacked into ``Xt`` at the
-        end, so the training transform is not recomputed. ``_fit`` leaves it off.
+        is set by ``fit_transform``, those per-shapelet vectors of length ``n_cases``
+        are kept in ``distance_vectors`` and stacked into ``Xt`` at the end, so the
+        training transform is not recomputed. ``_fit`` leaves it off.
         """
         y = self._set_fit_attributes(X, y)
+        X_values, X_offsets = self._pack_collection(X)
 
         max_shapelets_per_class = int(self._max_shapelets / self.n_classes_)
         if max_shapelets_per_class < 1:
@@ -231,7 +231,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         )
         # Find and score shapelets by time limit or by number of shapelets
         shapelets_by_class, distance_vectors = self._run_fit_batches(
-            X=X,
+            X_values=X_values,
+            X_offsets=X_offsets,
             y=y,
             shapelets_by_class=shapelets_by_class,
             distance_vectors=distance_vectors,
@@ -301,13 +302,17 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             Xt = np.array(
                 [distance_vectors[s[_DIST]] for s in self.shapelets_]
             ).transpose()
+            self.shapelets_ = [
+                s[:_DIST] + (-1,) + s[_DIST + 1 :] for s in self.shapelets_
+            ]
             return Xt
 
         return None
 
     def _run_fit_batches(
         self,
-        X,
+        X_values,
+        X_offsets,
         y,
         shapelets_by_class,
         distance_vectors,
@@ -315,7 +320,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         cache_distance_vectors,
         rng,
     ):
-        """Fit candidate batches using fixed-count or time contracted stopping."""
+        """Fit candidate batches using fixed-count or time-contracted stopping."""
         contracted = self.time_limit_in_minutes > 0
         mode = "contract" if contracted else "fixed"
         if contracted:
@@ -344,7 +349,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 )
 
             batch_elapsed, current_kept = self._process_fit_batch(
-                X=X,
+                X_values=X_values,
+                X_offsets=X_offsets,
                 y=y,
                 shapelets_by_class=shapelets_by_class,
                 distance_vectors=distance_vectors,
@@ -385,7 +391,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
     def _process_fit_batch(
         self,
-        X,
+        X_values,
+        X_offsets,
         y,
         shapelets_by_class,
         distance_vectors,
@@ -405,16 +412,24 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         params = []
         for i in range(batch_size):
             child_rng.seed(rng.randint(np.iinfo(np.int32).max))
-            params.append(self._sample_shapelet(X, child_rng, start_idx + i))
+            params.append(self._sample_shapelet(X_offsets, child_rng, start_idx + i))
 
         if self._n_jobs == 1:
-            results = [self._score_shapelet(X, y, *p) for p in params]
+            results = [
+                self._score_shapelet(X_values, X_offsets, y, cache_distance_vectors, *p)
+                for p in params
+            ]
         else:
             results = Parallel(
                 n_jobs=self._n_jobs,
                 backend=self.parallel_backend,
                 prefer="threads",
-            )(delayed(self._score_shapelet)(X, y, *p) for p in params)
+            )(
+                delayed(self._score_shapelet)(
+                    X_values, X_offsets, y, cache_distance_vectors, *p
+                )
+                for p in params
+            )
         candidate_shapelets, candidate_distance_vectors = zip(*results)
 
         if cache_distance_vectors:
@@ -423,7 +438,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 shapelet[_DIST] = len(distance_vectors) + i
             distance_vectors.extend(candidate_distance_vectors)
 
-        candidate_shapelets = List(candidate_shapelets)
+        candidate_shapelets = List([List(shapelet) for shapelet in candidate_shapelets])
 
         for class_idx, heap in enumerate(shapelets_by_class):
             self._merge_shapelets(
@@ -575,14 +590,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             )
 
     def _build_transform_inputs(self):
-        """Pack the fitted shapelets into numba-friendly arrays for transform.
+        """Pack the fitted shapelets into Numba-friendly arrays for transform.
 
         ``self.shapelets_`` stays a list of tuples for external use. The ragged
         shapelet values and sorted indices are packed into single flat arrays
-        with a CSR-style ``offsets`` index (shapelet ``n`` spans
+        with a CSR-style ``offsets`` array (shapelet ``n`` spans
         ``offsets[n]:offsets[n + 1]``). Flat arrays are plain NumPy, so the
-        fitted estimator pickles cleanly (a ``numba.typed.List`` attribute does
-        not) and the whole transform loop still runs in one ``njit`` call.
+        fitted estimator pickles cleanly (a Numba typed-list attribute does
+        not) and each transform block still runs in one ``njit`` call.
         """
         if len(self.shapelets_) == 0:
             return
@@ -610,10 +625,31 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             [np.ascontiguousarray(si, dtype=np.int32) for si in self._sorted_indices]
         )
 
-    def _transform_block(self, X, start, stop):
-        """Transform a contiguous block of cases via the numba kernel."""
+    @staticmethod
+    def _pack_collection(X):
+        """Pack a collection into a picklable flat buffer and case offsets."""
+        n_cases = len(X)
+        if isinstance(X, np.ndarray):
+            case_size = X.shape[1] * X.shape[2]
+            offsets = np.arange(n_cases + 1, dtype=np.int64) * case_size
+            values = np.ascontiguousarray(X, dtype=np.float64).reshape(-1)
+            return values, offsets
+
+        offsets = np.zeros(n_cases + 1, dtype=np.int64)
+        flat_cases = []
+        for i, x in enumerate(X):
+            flat_case = np.ascontiguousarray(x, dtype=np.float64).reshape(-1)
+            flat_cases.append(flat_case)
+            offsets[i + 1] = offsets[i] + flat_case.size
+
+        return np.concatenate(flat_cases), offsets
+
+    def _transform_block(self, X_values, X_offsets, start, stop):
+        """Transform a contiguous block of cases using the Numba kernel."""
         return _transform_block_numba(
-            X,
+            X_values,
+            X_offsets,
+            self.n_channels_,
             self._transform_lengths,
             self._transform_positions,
             self._transform_channels,
@@ -625,16 +661,16 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         )
 
     def _transform(self, X, y=None):
-        """Transform X according to the extracted shapelets.
+        """Transform ``X`` using the extracted shapelets.
 
         Parameters
         ----------
-        X : np.ndarray or list
+        X : np.ndarray or list of np.ndarray
             Collection of time series.
 
         Returns
         -------
-        output : 2D np.array of shape = (n_cases, n_shapelets)
+        output : np.ndarray of shape (n_cases, n_shapelets)
             The transformed data.
         """
         n_cases = len(X)
@@ -644,14 +680,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         if n_cases == 0 or n_shapelets == 0:
             return output
 
-        # A typed list of contiguous 2D arrays so the kernel accepts both the
-        # numpy3D and np-list inner types uniformly.
-        X_list = List()
-        for x in X:
-            X_list.append(np.ascontiguousarray(x, dtype=np.float64))
+        # Plain NumPy buffers remain picklable for process-based Joblib backends.
+        X_values, X_offsets = self._pack_collection(X)
 
         if self._n_jobs == 1 or n_cases == 1:
-            return self._transform_block(X_list, 0, n_cases)
+            return self._transform_block(X_values, X_offsets, 0, n_cases)
 
         n_blocks = min(n_cases, self._n_jobs * 4)
         block_size = (n_cases + n_blocks - 1) // n_blocks
@@ -665,7 +698,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             n_jobs=self._n_jobs,
             backend=self.parallel_backend,
             prefer="threads",
-        )(delayed(self._transform_block)(X_list, start, stop) for start, stop in blocks)
+        )(
+            delayed(self._transform_block)(X_values, X_offsets, start, stop)
+            for start, stop in blocks
+        )
 
         for (start, stop), block in zip(blocks, results):
             output[start:stop] = block
@@ -679,25 +715,25 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         Parameters
         ----------
         parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            Name of the test-parameter set to return. If no special parameters are
+            defined for ``parameter_set``, return the ``"default"`` set.
 
         Returns
         -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        params : dict or list of dict
+            Parameters used to create test instances of the class. Each dictionary
+            constructs a valid test instance using ``MyClass(**params)`` or
+            ``MyClass(**params[i])``.
         """
         if parameter_set == "results_comparison":
             return {"max_shapelets": 10, "n_shapelet_samples": 500}
         else:
             return {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
 
-    def _sample_shapelet(self, X, rng, candidate_index):
+    def _sample_shapelet(self, X_offsets, rng, candidate_index):
         """Draw the source case, length, position and channel of one shapelet.
 
-        The source case is chosen by round-robin over the train set
+        The source case is chosen by round-robin over the training set
         (``candidate_index % n_cases_``); the length, start position and channel
         are drawn from ``rng``. Sampling is separated from scoring so it can run
         serially on the main thread with a single reused generator, leaving the
@@ -705,8 +741,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : list or np.ndarray
-            The training collection; each case is ``(n_channels, n_timepoints)``.
+        X_offsets : np.ndarray
+            Start offsets of the cases in the packed training collection.
         rng : numpy.random.RandomState
             Generator for the random length, position and channel.
         candidate_index : int
@@ -719,50 +755,65 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             ``(inst_idx, length, position, channel)``.
         """
         inst_idx = candidate_index % self.n_cases_
-        minl = min(X[inst_idx].shape[1], self._max_shapelet_length)
+        case_size = X_offsets[inst_idx + 1] - X_offsets[inst_idx]
+        case_length = case_size // self.n_channels_
+        minl = min(case_length, self._max_shapelet_length)
         length = (
             rng.randint(0, minl - self._min_shapelet_length) + self._min_shapelet_length
             if minl - self._min_shapelet_length > 0
             else minl
         )
         position = (
-            rng.randint(0, X[inst_idx].shape[1] - length)
-            if X[inst_idx].shape[1] - length > 0
-            else 0
+            rng.randint(0, case_length - length) if case_length - length > 0 else 0
         )
         channel = rng.randint(0, self.n_channels_)
         return inst_idx, length, position, channel
 
-    def _score_shapelet(self, X, y, inst_idx, length, position, channel):
-        """Score one sampled shapelet against every train case.
+    def _score_shapelet(
+        self,
+        X_values,
+        X_offsets,
+        y,
+        cache_distance_vector,
+        inst_idx,
+        length,
+        position,
+        channel,
+    ):
+        """Score one sampled shapelet against every training case.
 
-        The subsequence is z-normalised and its indices sorted by descending
-        magnitude (for early abandonment), then scored by the information gain of
-        its distances to every train case -- all inside a single numba call, so
-        each candidate crosses into numba once.
+        The subsequence is z-normalised, and its indices are sorted by descending
+        magnitude for early abandonment. It is then scored by the information gain
+        of its distances to every training case. This happens inside a single Numba
+        call, so each candidate crosses into Numba once.
 
         Parameters
         ----------
-        X : list or np.ndarray
-            The training collection; each case is ``(n_channels, n_timepoints)``.
+        X_values, X_offsets : np.ndarray
+            Flat training collection and the start offset of each case.
         y : np.ndarray
-            Label-encoded class index of each train case.
+            Label-encoded class index of each training case.
+        cache_distance_vector : bool
+            Whether to retain the candidate's distances for ``fit_transform``.
         inst_idx, length, position, channel : int
             The sampled shapelet parameters from ``_sample_shapelet``.
 
         Returns
         -------
-        record : numba.typed.List
+        record : list
             The working shapelet record with the ``_QUALITY.._DIST`` fields;
             ``_DIST`` is a ``-1`` placeholder set later only when distance
             vectors are cached.
-        distance_vector : np.ndarray
-            Distance from this shapelet to every train case (length ``n_cases_``),
-            computed while scoring and reused to build ``Xt`` when caching.
+        distance_vector : np.ndarray or None
+            Distance from this shapelet to every training case when caching, otherwise
+            ``None``.
         """
         cls_idx = int(y[inst_idx])
-        quality, distance_vector = self._find_shapelet_quality(
-            X,
+        distance_vector = np.empty(len(y)) if cache_distance_vector else None
+        quality = self._find_shapelet_quality(
+            X_values,
+            X_offsets,
+            self.n_channels_,
             y,
             position,
             length,
@@ -771,19 +822,20 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             self._class_counts[cls_idx],
             self.n_cases_ - self._class_counts[cls_idx],
             self._klog,
+            distance_vector,
         )
 
         return (
-            List(
-                [np.round(quality, 8), length, position, channel, inst_idx, cls_idx, -1]
-            ),
+            [np.round(quality, 8), length, position, channel, inst_idx, cls_idx, -1],
             distance_vector,
         )
 
     @staticmethod
     @njit(fastmath=True, cache=True, nogil=True)
     def _find_shapelet_quality(
-        X,
+        X_values,
+        X_offsets,
+        n_channels,
         y,
         position,
         length,
@@ -792,25 +844,37 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         this_cls_count,
         other_cls_count,
         klog,
+        distance_vector,
     ):
         # Extract, z-normalise and order the shapelet inside numba so the whole
         # per-candidate pipeline is a single Python -> numba crossing. Indices
         # are ordered by descending magnitude (stable, matching a reverse Python
         # sort) so _online_shapelet_distance abandons early on the key points.
-        shapelet = z_normalise_series(X[inst_idx][dim][position : position + length])
+        source_start = X_offsets[inst_idx]
+        source_length = (X_offsets[inst_idx + 1] - source_start) // n_channels
+        channel_start = source_start + dim * source_length
+        shapelet = z_normalise_series(
+            X_values[channel_start + position : channel_start + position + length]
+        )
         sorted_indicies = np.argsort(-np.abs(shapelet), kind="mergesort").astype(
             np.int32
         )
 
         orderline = []
-        distance_vector = np.empty(len(X))
         this_cls_traversed = 0
         other_cls_traversed = 0
 
-        for i, series in enumerate(X):
+        for i in range(len(y)):
             if i != inst_idx:
+                case_start = X_offsets[i]
+                case_length = (X_offsets[i + 1] - case_start) // n_channels
+                channel_start = case_start + dim * case_length
                 distance = _online_shapelet_distance(
-                    series[dim], shapelet, sorted_indicies, position, length
+                    X_values[channel_start : channel_start + case_length],
+                    shapelet,
+                    sorted_indicies,
+                    position,
+                    length,
                 )
             else:
                 distance = 0
@@ -823,16 +887,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 other_cls_traversed += 1
 
             orderline.append((distance, cls))
-            distance_vector[i] = distance
+            if distance_vector is not None:
+                distance_vector[i] = distance
 
         orderline.sort()
-        return (
-            _calc_binary_ig(orderline, this_cls_count, other_cls_count, klog),
-            distance_vector,
-        )
+        return _calc_binary_ig(orderline, this_cls_count, other_cls_count, klog)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(fastmath=True, cache=True, nogil=True)
     def _merge_shapelets(
         shapelet_heap, candidate_shapelets, max_shapelets_per_class, cls_idx
     ):
@@ -999,22 +1061,37 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
 
 @njit(fastmath=True, cache=True, nogil=True)
 def _transform_block_numba(
-    X, lengths, positions, channels, values, sorted_indices, offsets, start, stop
+    X_values,
+    X_offsets,
+    n_channels,
+    lengths,
+    positions,
+    channels,
+    values,
+    sorted_indices,
+    offsets,
+    start,
+    stop,
 ):
-    """Distance from every shapelet to each case in ``X[start:stop]``.
+    """Distance from every shapelet to each packed case in ``start:stop``.
 
-    ``values`` and ``sorted_indices`` are flat buffers; shapelet ``n`` occupies
-    ``offsets[n]:offsets[n + 1]`` in both.
+    Cases are flattened channel-major in ``X_values`` and indexed by
+    ``X_offsets``. ``values`` and ``sorted_indices`` are flat shapelet buffers;
+    shapelet ``n`` occupies ``offsets[n]:offsets[n + 1]`` in both.
     """
     n_shapelets = len(lengths)
     out = np.empty((stop - start, n_shapelets))
     for i in range(stop - start):
-        series = X[start + i]
+        case_idx = start + i
+        case_start = X_offsets[case_idx]
+        case_size = X_offsets[case_idx + 1] - case_start
+        case_length = case_size // n_channels
         for n in range(n_shapelets):
             lo = offsets[n]
             hi = offsets[n + 1]
+            channel_start = case_start + channels[n] * case_length
             out[i, n] = _online_shapelet_distance(
-                series[channels[n]],
+                X_values[channel_start : channel_start + case_length],
                 values[lo:hi],
                 sorted_indices[lo:hi],
                 positions[n],
@@ -1060,7 +1137,7 @@ def _calc_binary_ig(orderline, c1, c2, klog):
     return ig if ig > 0 else 0.0
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def _is_self_similar(s1, s2):
     # not self similar if from different series or dimension
     if s1[_CASE] == s2[_CASE] and s1[_CHANNEL] == s2[_CHANNEL]:
