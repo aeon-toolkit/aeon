@@ -1453,3 +1453,50 @@ catch22wrapper_basic_motions_data = np.array(
         ],
     ]
 )
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("pycatch22", severity="none"),
+    reason="skip test if required soft dependency pycatch22 not available",
+)
+def test_catch22_pycatch22_outlier_norm():
+    """Test that outlier_norm passes z-normalised series to DN_OutlierInclude.
+
+    Regression test for GH #3632: the outlier_norm condition checked the
+    wrong feature indices, so DN_OutlierInclude (features 13, 14) was
+    always computed on the raw series when use_pycatch22=True.
+    """
+    rng = np.random.RandomState(42)
+    X = rng.random((3, 1, 50))
+    X[0, 0, 5] = 100.0  # extreme outlier to ensure z-norm differs from raw
+
+    import pycatch22
+
+    passed_series = {}
+    real_p = pycatch22.DN_OutlierInclude_p_001_mdrmd
+    real_n = pycatch22.DN_OutlierInclude_n_001_mdrmd
+
+    def track_p(s):
+        passed_series["p"] = np.array(s)
+        return real_p(s)
+
+    def track_n(s):
+        passed_series["n"] = np.array(s)
+        return real_n(s)
+
+    pycatch22.DN_OutlierInclude_p_001_mdrmd = track_p
+    pycatch22.DN_OutlierInclude_n_001_mdrmd = track_n
+    try:
+        Catch22(use_pycatch22=True, outlier_norm=True, replace_nans=True).fit_transform(
+            X
+        )
+    finally:
+        pycatch22.DN_OutlierInclude_p_001_mdrmd = real_p
+        pycatch22.DN_OutlierInclude_n_001_mdrmd = real_n
+
+    # The series passed to DN_OutlierInclude should be z-normalised
+    # (mean ~ 0, std ~ 1) when outlier_norm=True
+    assert abs(np.mean(passed_series["p"])) < 1e-10
+    assert abs(np.std(passed_series["p"]) - 1.0) < 1e-10
+    assert abs(np.mean(passed_series["n"])) < 1e-10
+    assert abs(np.std(passed_series["n"]) - 1.0) < 1e-10
