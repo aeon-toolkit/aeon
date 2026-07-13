@@ -11,6 +11,7 @@ from itertools import compress
 
 import numpy as np
 from numba import njit, prange
+from scipy.sparse import isspmatrix_csc, isspmatrix_csr
 from sklearn.metrics import pairwise
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import safe_sparse_dot
@@ -691,12 +692,14 @@ def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
 
         # The BOSS distance is asymmetric: only words present in the left
         # operand X contribute. CSR makes those left-hand rows cheap to scan.
-        X = X.tocsr(copy=True)
+        if not isspmatrix_csr(X):
+            X = X.tocsr(copy=True)
         X.eliminate_zeros()
 
         # The kernel then needs all right-hand rows with a matching word.
         # CSC makes that direct.
-        Y = Y.tocsc(copy=True)
+        if not isspmatrix_csc(X):
+            Y = Y.tocsc(copy=True)
         Y.eliminate_zeros()
 
         distance_matrix = _boss_pairwise_distances(
