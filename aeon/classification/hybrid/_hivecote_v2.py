@@ -71,6 +71,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
         if None a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+    alpha : int or float, default=4
+        Exponent applied to each component's training accuracy to calculate its
+        CAWPE weight.
 
     Attributes
     ----------
@@ -136,6 +139,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        alpha=4,
     ):
         self.stc_params = stc_params
         self.drcif_params = drcif_params
@@ -147,7 +151,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
 
         super().__init__(
             estimators=None,
-            alpha=4,
+            alpha=alpha,
             random_state=random_state,
             n_jobs=n_jobs,
             verbose=verbose,

@@ -95,6 +95,20 @@ def test_get_component_weights_after_fit():
         assert 0.0 <= w <= 1.0, f"weight for {name} out of range: {w}"
 
 
+def test_alpha_controls_component_weight_exponent():
+    """HC2 alpha controls the exponent applied to component train accuracy."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+    params = HIVECOTEV2._get_test_params(parameter_set="default")
+    alpha_two = HIVECOTEV2(alpha=2, random_state=0, **params).fit(X, y)
+    alpha_four = HIVECOTEV2(alpha=4, random_state=0, **params).fit(X, y)
+
+    weights_two = np.asarray(alpha_two.weights_)
+    weights_four = np.asarray(alpha_four.weights_)
+    np.testing.assert_allclose(weights_four, weights_two**2)
+
+
 def test_base_rejects_non_baseclassifier():
     """_BaseHIVECOTE._fit raises TypeError for non-BaseClassifier components."""
     from aeon.classification.hybrid._base_hive_cote import _BaseHIVECOTE
