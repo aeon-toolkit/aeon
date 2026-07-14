@@ -447,8 +447,8 @@ class ShapeletTransformerVisualizer:
             threshold_ = None
 
         elif isinstance(self.estimator, RandomShapeletTransform):
-            values_ = self.estimator.shapelets_[id_shapelet][7]
-            length_ = self.estimator.shapelets_[id_shapelet][1]
+            values_ = self.estimator.shapelets[id_shapelet][7]
+            length_ = self.estimator.shapelets[id_shapelet][1]
             dilation_ = 1
             normalise_ = True
             threshold_ = None
