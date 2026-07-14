@@ -214,6 +214,8 @@ class SFAFast(BaseCollectionTransformer):
         self.variance = variance
         self.anova = anova
         self.pca_transform = None
+        self.pca_mean = np.empty(0, dtype=np.float64)
+        self.pca_components = np.empty((0, 0), dtype=np.float64)
 
         if anova:
             self.feature_selection_strategy = "anova"
@@ -355,7 +357,8 @@ class SFAFast(BaseCollectionTransformer):
                 self.support,
                 self.anova,
                 self.variance,
-                self.pca_transform,
+                self.pca_mean,
+                self.pca_components,
                 self.breakpoints,
                 self.letter_bits,
                 self.bigrams,
@@ -418,7 +421,8 @@ class SFAFast(BaseCollectionTransformer):
             self.support,
             self.anova,
             self.variance,
-            self.pca_transform,
+            self.pca_mean,
+            self.pca_components,
             self.breakpoints,
             self.letter_bits,
             self.bigrams,
@@ -618,6 +622,8 @@ class SFAFast(BaseCollectionTransformer):
 
             # extract explained variance
             dft = self.pca_transform.fit_transform(dft)
+            self.pca_mean = self.pca_transform.mean_
+            self.pca_components = self.pca_transform.components_
             self.dft_variance = self.pca_transform.explained_variance_ratio_
 
         elif self.anova and y is not None:
@@ -802,7 +808,8 @@ class SFAFast(BaseCollectionTransformer):
             self.support,
             self.anova,
             self.variance,
-            self.pca_transform,
+            self.pca_mean,
+            self.pca_components,
             self.inverse_sqrt_win_size,
             self.lower_bounding or self.lower_bounding_distances,
             self.word_length,
@@ -968,7 +975,16 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     return dft[:, start:]
 
 
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
+def _apply_pca_transform(dfts, pca_mean, pca_components):
+    n_cases = dfts.shape[0]
+    n_windows = dfts.shape[1]
+    dfts = np.ascontiguousarray(dfts).reshape(n_cases * n_windows, dfts.shape[2])
+    transformed = np.dot(dfts - pca_mean, pca_components.T)
+    return transformed.reshape(n_cases, n_windows, pca_components.shape[0])
+
+
+@njit(fastmath=True, cache=True)
 def _transform_case(
     X,
     window_size,
@@ -979,7 +995,8 @@ def _transform_case(
     support,
     anova,
     variance,
-    pca_transform,
+    pca_mean,
+    pca_components,
     breakpoints,
     letter_bits,
     bigrams,
@@ -999,13 +1016,8 @@ def _transform_case(
         lower_bounding,
     )
 
-    if pca_transform is not None:
-        # apply PCA transform
-        # with objmode(dfts="float32[:,:,:]"):
-        dfts2 = pca_transform.transform(
-            dfts.reshape(dfts.shape[0] * dfts.shape[1], dfts.shape[2])
-        )
-        dfts = dfts2.reshape(dfts.shape[0], dfts.shape[1], word_length)
+    if pca_components.shape[0] > 0:
+        dfts = _apply_pca_transform(dfts, pca_mean, pca_components)
 
     words = generate_words(
         dfts,
@@ -1411,7 +1423,7 @@ def shorten_words(words, amount, letter_bits):
     return new_words
 
 
-# @njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath=True, cache=True, parallel=True, nogil=True)
 def _transform_words_case(
     X,
     window_size,
@@ -1420,7 +1432,8 @@ def _transform_words_case(
     support,
     anova,
     variance,
-    pca_transform,
+    pca_mean,
+    pca_components,
     inverse_sqrt_win_size,
     lower_bounding,
     word_length,
@@ -1438,11 +1451,8 @@ def _transform_words_case(
         lower_bounding,
     )
 
-    if pca_transform is not None:
-        # apply PCA transform
-        # with objmode(dfts="float32[:,:,:]"):
-        dfts2 = pca_transform.transform(dfts.squeeze(1))
-        dfts = dfts2.reshape(X.shape[0], dfts.shape[1], word_length)
+    if pca_components.shape[0] > 0:
+        dfts = _apply_pca_transform(dfts, pca_mean, pca_components)
 
     words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
     for x in prange(dfts.shape[0]):
