@@ -181,7 +181,7 @@ def test_dispatch_loss_unknown_id_raises():
     """An unknown loss function id raises a ValueError."""
     with pytest.raises(ValueError):
         dispatch_loss(
-            2,
+            3,
             np.array([0.5]),
             np.arange(10.0),
             np.array([1, 0, 0, 1], dtype=np.int32),
