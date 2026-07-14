@@ -61,6 +61,28 @@ def test_hc2_defaults_and_verbosity():
     HIVECOTEV2._DEFAULT_RAND_PARAMS = 50
 
 
+def test_hc2_verbose_progress_and_parameter_output(capsys):
+    """HC2 verbosity two reports ensemble progress and component parameters."""
+    n_cases = 20
+    n_timepoints = 24
+    X, y = make_example_3d_numpy(n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2)
+    hc2 = HIVECOTEV2(
+        verbose=2,
+        **HIVECOTEV2._get_test_params(parameter_set="default"),
+    )
+
+    hc2.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"[HC2] Starting fit: n_cases={n_cases}" in output
+    for component_name in ("STC", "DrCIF", "Arsenal", "TDE"):
+        assert f"[HC2] Starting {component_name}..." in output
+        assert f"[HC2] {component_name} params:" in output
+        assert f"[HC2] Finished {component_name} in " in output
+    assert "[HC2] Finished fit in " in output
+    assert "[HC2] Component summary:" in output
+
+
 def test_get_component_weights_after_fit():
     """get_component_weights returns one weight per component, all in [0, 1]."""
     X, y = make_example_3d_numpy(n_cases=20, n_timepoints=24, n_labels=2)

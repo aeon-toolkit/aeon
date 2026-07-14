@@ -52,7 +52,12 @@ class HIVECOTEV2(_BaseHIVECOTE):
             instead, which returns per-component probabilities without
             modifying the fitted estimator.
     verbose : int, default=0
-        Level of output printed to the console (for information only).
+        Level of output printed to the console.
+
+        - 0: no output
+        - 1: HC2-level progress
+        - 2: also print component parameter summaries
+        - 3 and above: increase the verbosity passed to each component
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -117,6 +122,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
     _DEFAULT_N_PARA_SAMPLES = 250
     _DEFAULT_MAX_ENSEMBLE_SIZE = 50
     _DEFAULT_RAND_PARAMS = 50
+    _verbose_name = "HC2"
 
     def __init__(
         self,
@@ -168,17 +174,17 @@ class HIVECOTEV2(_BaseHIVECOTE):
         ending in "_" and sets is_fitted flag to True.
         """
         if self.stc_params is not None:
-            self._stc_params = self.stc_params
+            self._stc_params = self.stc_params.copy()
         else:
             self._stc_params = {"n_shapelet_samples": self._DEFAULT_N_SHAPELETS}
 
         if self.drcif_params is not None:
-            self._drcif_params = self.drcif_params
+            self._drcif_params = self.drcif_params.copy()
         else:
             self._drcif_params = {"n_estimators": self._DEFAULT_N_TREES}
 
         if self.arsenal_params is not None:
-            self._arsenal_params = self.arsenal_params
+            self._arsenal_params = self.arsenal_params.copy()
         else:
             self._arsenal_params = {
                 "n_kernels": self._DEFAULT_N_KERNELS,
@@ -186,7 +192,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
             }
 
         if self.tde_params is not None:
-            self._tde_params = self.tde_params
+            self._tde_params = self.tde_params.copy()
         else:
             self._tde_params = {
                 "n_parameter_samples": self._DEFAULT_N_PARA_SAMPLES,
@@ -204,14 +210,25 @@ class HIVECOTEV2(_BaseHIVECOTE):
 
         # Build component estimators (stored in _estimators to avoid mutating
         # the self.estimators init parameter, for scikit-learn compatibility)
+        drcif_build_params = self._drcif_params.copy()
+        drcif_build_params.setdefault("parallel_backend", self.parallel_backend)
         self._estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
-            ("DrCIF", DrCIFClassifier(**self._drcif_params)),
+            ("DrCIF", DrCIFClassifier(**drcif_build_params)),
             ("Arsenal", Arsenal(**self._arsenal_params)),
             ("TDE", TemporalDictionaryEnsemble(**self._tde_params)),
         ]
 
         return super()._fit(X, y)
+
+    def _log_fit_configuration(self):
+        """Log the HC2 contract allocation when it is active."""
+        if self.time_limit_in_minutes > 0:
+            component_time = self.time_limit_in_minutes / 6
+            self._log(
+                f"[HC2] Contract time = {self.time_limit_in_minutes} minutes, "
+                f"per-component allocation = {component_time:.4f} minutes"
+            )
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X.

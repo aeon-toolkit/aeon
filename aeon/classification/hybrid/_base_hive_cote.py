@@ -1,5 +1,7 @@
 """Base class for Hierarchical Vote Collective of Transformation-based Ensembles."""
 
+from time import perf_counter
+
 import numpy as np
 from sklearn.base import clone
 from sklearn.metrics import accuracy_score
@@ -60,6 +62,17 @@ class _BaseHIVECOTE(BaseClassifier):
     def _fit(self, X, y):
         """Fit the ensemble to training data and calculate CAWPE weights."""
         self._n_jobs = check_n_jobs(self.n_jobs)
+        verbose_name = getattr(self, "_verbose_name", None)
+        logging_enabled = verbose_name is not None and self.verbose > 0
+        total_start = perf_counter() if logging_enabled else None
+
+        if logging_enabled:
+            self._log(
+                f"[{verbose_name}] Starting fit: n_cases={X.shape[0]}, "
+                f"n_channels={X.shape[1]}, n_timepoints={X.shape[2]}, "
+                f"n_jobs={self._n_jobs}"
+            )
+            self._log_fit_configuration()
 
         # Subclasses may construct their estimator list during fit and store it
         # in self._estimators to avoid mutating the init parameter self.estimators
@@ -83,6 +96,7 @@ class _BaseHIVECOTE(BaseClassifier):
         self.fitted_estimators_ = []
         self.weights_ = []
         self.component_names_ = []
+        component_summaries = []
 
         # Dynamically traverse and train all the underlying components
         for name, estimator in estimators:
@@ -94,17 +108,57 @@ class _BaseHIVECOTE(BaseClassifier):
             if hasattr(est, "n_jobs"):
                 est.n_jobs = self._n_jobs
             if hasattr(est, "verbose"):
-                est.verbose = self.verbose
+                est.verbose = (
+                    max(0, self.verbose - 2)
+                    if verbose_name is not None
+                    else self.verbose
+                )
+
+            if logging_enabled:
+                self._log(f"[{verbose_name}] Starting {name}...")
+                if self.verbose >= 2:
+                    self._log(
+                        f"[{verbose_name}] {name} params: "
+                        f"{est.get_params(deep=False)}",
+                        level=2,
+                    )
 
             # Get OOB/CV predictions and calculate CAWPE weight
+            component_start = perf_counter() if logging_enabled else None
             train_preds = est.fit_predict(X, y)
-            weight = accuracy_score(y, train_preds) ** self.alpha
+            train_acc = accuracy_score(y, train_preds)
+            weight = train_acc**self.alpha
+
+            if logging_enabled:
+                component_elapsed = perf_counter() - component_start
+                self._log(
+                    f"[{verbose_name}] Finished {name} in {component_elapsed:.2f}s, "
+                    f"train_acc={train_acc:.4f}, weight={weight:.4f}"
+                )
+                component_summaries.append(
+                    f"{name}(train_acc={train_acc:.4f}, weight={weight:.4f})"
+                )
 
             self.fitted_estimators_.append(est)
             self.weights_.append(weight)
             self.component_names_.append(name)
 
+        if logging_enabled:
+            total_elapsed = perf_counter() - total_start
+            self._log(f"[{verbose_name}] Finished fit in {total_elapsed:.2f}s")
+            self._log(
+                f"[{verbose_name}] Component summary: " + ", ".join(component_summaries)
+            )
+
         return self
+
+    def _log(self, message, level=1):
+        """Print a message when the configured verbosity reaches ``level``."""
+        if self.verbose >= level:
+            print(message, flush=True)  # noqa: T201
+
+    def _log_fit_configuration(self):
+        """Log subclass-specific fit configuration when verbosity is enabled."""
 
     def _predict(self, X) -> np.ndarray:
         """Predict class labels for X."""
