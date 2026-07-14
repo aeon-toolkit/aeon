@@ -29,36 +29,34 @@ def test_hc1_defaults_and_verbosity():
     HIVECOTEV1._DEFAULT_N_PARA_SAMPLES = 50
 
 
-@pytest.mark.skipif(PR_TESTING, reason="slow test, run overnight only")
-def test_hc2_defaults_and_verbosity():
-    """Test HC2 default parameters and verbose setting."""
-    HIVECOTEV2._DEFAULT_N_TREES = 10
-    HIVECOTEV2._DEFAULT_N_SHAPELETS = 10
-    HIVECOTEV2._DEFAULT_N_KERNELS = 100
-    HIVECOTEV2._DEFAULT_N_ESTIMATORS = 5
-    HIVECOTEV2._DEFAULT_N_PARA_SAMPLES = 10
-    HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE = 5
-    HIVECOTEV2._DEFAULT_RAND_PARAMS = 5
-    X, _ = make_example_3d_numpy(n_cases=20, n_timepoints=20, n_labels=2)
-    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-    hc2 = HIVECOTEV2(verbose=True)
-    hc2.fit(X, y)
-    assert hc2._stc_params == {"n_shapelet_samples": 10}
-    assert hc2._drcif_params == {"n_estimators": 10}
-    assert hc2._arsenal_params == {"n_kernels": 100, "n_estimators": 5}
-    assert hc2._tde_params == {
-        "n_parameter_samples": 10,
-        "max_ensemble_size": 5,
-        "randomly_selected_params": 5,
+def test_hc2_default_component_parameters(monkeypatch):
+    """HC2 constructs its four components from the documented default sizes."""
+    default_sizes = {
+        "_DEFAULT_N_TREES": 1,
+        "_DEFAULT_N_SHAPELETS": 5,
+        "_DEFAULT_N_KERNELS": 5,
+        "_DEFAULT_N_ESTIMATORS": 1,
+        "_DEFAULT_N_PARA_SAMPLES": 1,
+        "_DEFAULT_MAX_ENSEMBLE_SIZE": 1,
+        "_DEFAULT_RAND_PARAMS": 1,
     }
+    for attribute, value in default_sizes.items():
+        monkeypatch.setattr(HIVECOTEV2, attribute, value)
 
-    HIVECOTEV2._DEFAULT_N_TREES = 500
-    HIVECOTEV2._DEFAULT_N_SHAPELETS = 10000
-    HIVECOTEV2._DEFAULT_N_KERNELS = 2000
-    HIVECOTEV2._DEFAULT_N_ESTIMATORS = 25
-    HIVECOTEV2._DEFAULT_N_PARA_SAMPLES = 250
-    HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE = 50
-    HIVECOTEV2._DEFAULT_RAND_PARAMS = 50
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=20, n_labels=2, random_state=0
+    )
+    hc2 = HIVECOTEV2(random_state=0)
+    hc2.fit(X, y)
+
+    components = dict(zip(hc2.component_names_, hc2.fitted_estimators_))
+    assert components["STC"].n_shapelet_samples == 5
+    assert components["DrCIF"].n_estimators == 1
+    assert components["Arsenal"].n_kernels == 5
+    assert components["Arsenal"].n_estimators == 1
+    assert components["TDE"].n_parameter_samples == 1
+    assert components["TDE"].max_ensemble_size == 1
+    assert components["TDE"].randomly_selected_params == 1
 
 
 def test_hc2_verbose_progress_and_parameter_output(capsys):
@@ -81,6 +79,35 @@ def test_hc2_verbose_progress_and_parameter_output(capsys):
         assert f"[HC2] Finished {component_name} in " in output
     assert "[HC2] Finished fit in " in output
     assert "[HC2] Component summary:" in output
+
+
+def test_hc2_contract_allocation_is_logged_without_mutating_params(capsys):
+    """HC2 reports its contract split without changing caller-owned dictionaries."""
+    contract_minutes = 0.01
+    params = HIVECOTEV2._get_test_params(parameter_set="contracting")
+    params["time_limit_in_minutes"] = contract_minutes
+    component_param_names = (
+        "stc_params",
+        "drcif_params",
+        "arsenal_params",
+        "tde_params",
+    )
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+
+    hc2 = HIVECOTEV2(verbose=1, random_state=0, **params).fit(X, y)
+    output = capsys.readouterr().out
+
+    component_minutes = contract_minutes / 6
+    assert "[HC2] Contract time = 0.01 minutes" in output
+    components = dict(zip(hc2.component_names_, hc2.fitted_estimators_))
+    for param_name in component_param_names:
+        assert "time_limit_in_minutes" not in params[param_name]
+    assert all(
+        component.time_limit_in_minutes == component_minutes
+        for component in components.values()
+    )
 
 
 def test_get_component_weights_after_fit():
@@ -107,6 +134,34 @@ def test_alpha_controls_component_weight_exponent():
     weights_two = np.asarray(alpha_two.weights_)
     weights_four = np.asarray(alpha_four.weights_)
     np.testing.assert_allclose(weights_four, weights_two**2)
+
+
+def test_component_probabilities_and_deprecated_storage():
+    """HC2 returns named component probabilities and supports deprecated storage."""
+    n_cases = 20
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=24, n_labels=2, random_state=0
+    )
+    hc2 = HIVECOTEV2(
+        random_state=0,
+        **HIVECOTEV2._get_test_params(parameter_set="results_comparison"),
+    ).fit(X, y)
+    expected = hc2.predict_proba(X)
+
+    combined, components = hc2.predict_proba_with_components(X)
+
+    np.testing.assert_allclose(combined, expected)
+    assert set(components) == {"STC", "DrCIF", "Arsenal", "TDE"}
+    assert all(probas.shape == expected.shape for probas in components.values())
+    assert not hasattr(hc2, "component_probas")
+
+    hc2.save_component_probas = True
+    with pytest.warns(DeprecationWarning, match="mutates object state"):
+        stored = hc2.predict_proba(X)
+
+    np.testing.assert_allclose(stored, expected)
+    for component_name, probas in components.items():
+        np.testing.assert_allclose(hc2.component_probas[component_name], probas)
 
 
 def test_base_rejects_non_baseclassifier():
