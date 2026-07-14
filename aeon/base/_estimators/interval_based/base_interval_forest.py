@@ -366,6 +366,29 @@ class BaseIntervalForest(ABC):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
+        verbose_name = getattr(self, "_verbose_name", None)
+        verbose = getattr(self, "verbose", 0) if verbose_name is not None else 0
+        log_each_estimator = verbose >= 2
+        log_progress = verbose == 1
+        if verbose > 0:
+            fit_start_time = time.time()
+            if (
+                self.time_limit_in_minutes is not None
+                and self.time_limit_in_minutes > 0
+            ):
+                fit_limit = (
+                    f"time_limit={self.time_limit_in_minutes * 60:.2f}s, "
+                    f"max_n_estimators={self.contract_max_n_estimators}"
+                )
+            else:
+                fit_limit = f"n_estimators={self.n_estimators}"
+
+            self._log_forest(
+                f"[{verbose_name}] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
+                f"{fit_limit}, n_jobs={self._n_jobs}"
+            )
+
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
             if is_classifier(self):
@@ -813,6 +836,9 @@ class BaseIntervalForest(ABC):
             time_limit = self.time_limit_in_minutes * 60
             start_time = time.time()
             train_time = 0
+            if log_progress:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
 
             self._n_estimators = 0
             self.estimators_ = []
@@ -847,20 +873,93 @@ class BaseIntervalForest(ABC):
 
                 self._n_estimators += self._n_jobs
                 train_time = time.time() - start_time
+
+                if log_each_estimator:
+                    contract_remaining = self._format_duration(
+                        max(0.0, time_limit - train_time)
+                    )
+                    elapsed = time.time() - fit_start_time
+                    first_estimator = self._n_estimators - len(fit) + 1
+                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
+                        self._log_forest(
+                            f"[{verbose_name}] Estimator {estimator_idx}: "
+                            f"elapsed={elapsed:.2f}s, "
+                            f"contract_remaining={contract_remaining}"
+                        )
+                elif log_progress and train_time >= next_progress:
+                    self._log_forest(
+                        f"[{verbose_name}] Progress: built={self._n_estimators}, "
+                        f"elapsed={time.time() - fit_start_time:.2f}s"
+                    )
+                    next_progress = train_time + progress_interval
         else:
             self._n_estimators = self.n_estimators
+            if verbose > 0:
+                estimator_start_time = time.time()
+                if log_each_estimator:
+                    batch_size = self._n_jobs
+                else:
+                    batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
 
-            fit = self._eval_estimators(
-                [
-                    delayed(self._fit_estimator)(
-                        Xt,
-                        y,
-                        rng.randint(np.iinfo(np.int32).max),
-                        save_transformed_data=save_transformed_data,
+                fit = []
+                for batch_start in range(0, self._n_estimators, batch_size):
+                    current_batch_size = min(
+                        batch_size, self._n_estimators - batch_start
                     )
-                    for _ in range(self._n_estimators)
-                ]
-            )
+                    batch_fit = self._eval_estimators(
+                        [
+                            delayed(self._fit_estimator)(
+                                Xt,
+                                y,
+                                rng.randint(np.iinfo(np.int32).max),
+                                save_transformed_data=save_transformed_data,
+                            )
+                            for _ in range(current_batch_size)
+                        ]
+                    )
+                    fit.extend(batch_fit)
+
+                    built = len(fit)
+                    estimator_elapsed = time.time() - estimator_start_time
+                    if log_each_estimator:
+                        if built == 1:
+                            time_estimate = "estimated_remaining=estimating"
+                        else:
+                            estimated_remaining = (estimator_elapsed / built) * (
+                                self._n_estimators - built
+                            )
+                            time_estimate = (
+                                "estimated_remaining="
+                                f"{self._format_duration(estimated_remaining)}"
+                            )
+                        elapsed = time.time() - fit_start_time
+                        for estimator_idx in range(
+                            batch_start + 1, batch_start + current_batch_size + 1
+                        ):
+                            self._log_forest(
+                                f"[{verbose_name}] Estimator "
+                                f"{estimator_idx}/{self._n_estimators}: "
+                                f"elapsed={elapsed:.2f}s, "
+                                f"{time_estimate}"
+                            )
+                    else:
+                        self._log_forest(
+                            f"[{verbose_name}] Progress: "
+                            f"built={built}/{self._n_estimators}, "
+                            f"elapsed={time.time() - fit_start_time:.2f}s"
+                        )
+            else:
+                fit = self._eval_estimators(
+                    [
+                        delayed(self._fit_estimator)(
+                            Xt,
+                            y,
+                            rng.randint(np.iinfo(np.int32).max),
+                            save_transformed_data=save_transformed_data,
+                        )
+                        for _ in range(self._n_estimators)
+                    ]
+                )
 
             (
                 self.estimators_,
@@ -868,7 +967,33 @@ class BaseIntervalForest(ABC):
                 transformed_intervals,
             ) = zip(*fit)
 
+        if verbose > 0:
+            self._log_forest(
+                f"[{verbose_name}] Finished fit: built={len(self.estimators_)}, "
+                f"elapsed={time.time() - fit_start_time:.2f}s"
+            )
+
         return transformed_intervals
+
+    @staticmethod
+    def _log_forest(message):
+        """Print a forest fit message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_estimator(self, Xt, y, seed, save_transformed_data=False):
         # random state for this estimator

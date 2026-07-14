@@ -60,12 +60,12 @@ def test_hc2_default_component_parameters(monkeypatch):
 
 
 def test_hc2_verbose_progress_and_parameter_output(capsys):
-    """HC2 verbosity two reports ensemble progress and component parameters."""
+    """HC2 verbosity four reports ensemble and detailed component progress."""
     n_cases = 20
     n_timepoints = 24
     X, y = make_example_3d_numpy(n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2)
     hc2 = HIVECOTEV2(
-        verbose=2,
+        verbose=4,
         **HIVECOTEV2._get_test_params(parameter_set="default"),
     )
 
@@ -79,6 +79,12 @@ def test_hc2_verbose_progress_and_parameter_output(capsys):
         assert f"[HC2] Finished {component_name} in " in output
     assert "[HC2] Finished fit in " in output
     assert "[HC2] Component summary:" in output
+    assert "[DrCIF] Estimator 1/" in output
+    assert "[TDE] Candidate 1:" in output
+
+    components = dict(zip(hc2.component_names_, hc2.fitted_estimators_))
+    assert components["DrCIF"].verbose == 2
+    assert components["TDE"].verbose == 2
 
 
 def test_hc2_contract_allocation_is_logged_without_mutating_params(capsys):
@@ -162,6 +168,29 @@ def test_component_probabilities_and_deprecated_storage():
     np.testing.assert_allclose(stored, expected)
     for component_name, probas in components.items():
         np.testing.assert_allclose(hc2.component_probas[component_name], probas)
+
+
+def test_zero_component_weights_return_uniform_probabilities():
+    """HC2 returns valid uniform probabilities when every component weight is zero."""
+    n_cases = 20
+    n_classes = 2
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_timepoints=24,
+        n_labels=n_classes,
+        random_state=0,
+    )
+    hc2 = HIVECOTEV2(
+        random_state=0,
+        **HIVECOTEV2._get_test_params(parameter_set="default"),
+    ).fit(X, y)
+    hc2.weights_ = [0.0] * len(hc2.fitted_estimators_)
+    expected = np.full((n_cases, n_classes), 1.0 / n_classes)
+
+    combined, _ = hc2.predict_proba_with_components(X)
+
+    np.testing.assert_allclose(hc2.predict_proba(X), expected)
+    np.testing.assert_allclose(combined, expected)
 
 
 def test_base_rejects_non_baseclassifier():

@@ -131,6 +131,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every evaluated parameter combination and estimated remaining time.
 
     Attributes
     ----------
@@ -210,6 +214,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
+        verbose=0,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -235,6 +240,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.verbose = verbose
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -329,6 +335,32 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             n_parameter_samples = self.n_parameter_samples
             contract_max_n_parameter_samples = np.inf
 
+        log_each_candidate = self.verbose >= 2
+        log_progress = self.verbose == 1
+        if log_each_candidate:
+            previous_train_time = 0.0
+            candidate_duration_ema = 0.0
+
+        if self.verbose > 0:
+            if time_limit > 0:
+                fit_limit = (
+                    f"time_limit={time_limit:.2f}s, "
+                    f"max_parameter_samples={contract_max_n_parameter_samples}"
+                )
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
+            else:
+                parameter_target = min(n_parameter_samples, len(possible_parameters))
+                fit_limit = f"parameter_samples={parameter_target}"
+                progress_interval = max(1, math.ceil(parameter_target / 10))
+                next_progress = progress_interval
+
+            self._log(
+                f"[TDE] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
+                f"{fit_limit}, max_ensemble_size={self.max_ensemble_size}"
+            )
+
         rng = check_random_state(self.random_state)
 
         if self.bigrams is None:
@@ -398,6 +430,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             else:
                 weight = 0.000000001
 
+            if log_each_candidate:
+                if num_classifiers < self.max_ensemble_size:
+                    candidate_status = "retained"
+                elif tde._accuracy > lowest_acc:
+                    candidate_status = "replaced"
+                else:
+                    candidate_status = "discarded"
+
             if num_classifiers < self.max_ensemble_size:
                 if tde._accuracy < lowest_acc:
                     lowest_acc = tde._accuracy
@@ -415,10 +455,85 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             num_classifiers += 1
             train_time = time.time() - start_time
 
+            if log_each_candidate:
+                candidate_duration = train_time - previous_train_time
+                previous_train_time = train_time
+                if num_classifiers == 1:
+                    candidate_duration_ema = candidate_duration
+                else:
+                    candidate_duration_ema = (
+                        0.3 * candidate_duration + 0.7 * candidate_duration_ema
+                    )
+
+                if time_limit > 0:
+                    time_estimate = (
+                        "contract_remaining="
+                        f"{self._format_duration(max(0.0, time_limit - train_time))}"
+                    )
+                elif num_classifiers == 1:
+                    time_estimate = "estimated_remaining=estimating"
+                else:
+                    remaining_candidates = max(0, parameter_target - num_classifiers)
+                    estimated_remaining = candidate_duration_ema * remaining_candidates
+                    time_estimate = (
+                        "estimated_remaining="
+                        f"{self._format_duration(estimated_remaining)}"
+                    )
+
+                self._log(
+                    f"[TDE] Candidate {num_classifiers}: "
+                    f"window_size={parameters[0]}, word_length={parameters[1]}, "
+                    f"norm={parameters[2]}, levels={parameters[3]}, "
+                    f"igb={parameters[4]}, accuracy={tde._accuracy:.4f}, "
+                    f"status={candidate_status}, retained={len(self.estimators_)}, "
+                    f"elapsed={train_time:.2f}s, {time_estimate}"
+                )
+            elif log_progress:
+                if time_limit > 0:
+                    report_progress = train_time >= next_progress
+                else:
+                    report_progress = num_classifiers >= next_progress
+
+                if report_progress:
+                    self._log(
+                        f"[TDE] Progress: evaluated={num_classifiers}, "
+                        f"retained={len(self.estimators_)}, elapsed={train_time:.2f}s"
+                    )
+                    if time_limit > 0:
+                        next_progress = train_time + progress_interval
+                    else:
+                        next_progress += progress_interval
+
         self.n_estimators_ = len(self.estimators_)
         self._weight_sum = np.sum(self.weights_)
 
+        if self.verbose > 0:
+            self._log(
+                f"[TDE] Finished fit: evaluated={num_classifiers}, "
+                f"retained={self.n_estimators_}, elapsed={train_time:.2f}s"
+            )
+
         return self
+
+    @staticmethod
+    def _log(message):
+        """Print a fit progress message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _predict(self, X) -> np.ndarray:
         """Predict class values of n instances in X.

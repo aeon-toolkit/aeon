@@ -292,9 +292,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         for i, name in enumerate(self.component_names_):
             dists = np.add(dists, component_probas[name] * self.weights_[i])
 
-        sums = dists.sum(axis=1, keepdims=True)
-        sums[sums == 0] = 1.0
-        final_probas = dists / sums
+        final_probas = self._normalise_probabilities(dists)
 
         return final_probas, component_probas
 

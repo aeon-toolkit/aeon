@@ -123,6 +123,10 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
@@ -181,6 +185,8 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         "algorithm_type": "interval",
     }
 
+    _verbose_name = "DrCIF"
+
     def __init__(
         self,
         base_estimator=None,
@@ -195,8 +201,10 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        verbose=0,
     ):
         self.use_pycatch22 = use_pycatch22
+        self.verbose = verbose
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
