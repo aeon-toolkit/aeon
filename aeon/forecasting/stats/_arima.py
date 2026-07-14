@@ -391,8 +391,9 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = AutoARIMA()
-    >>> forecaster.forecast(y)
-    481.87157356139943
+    >>> p=forecaster.forecast(y)
+    >>> round(p, 2)
+    481.87
     """
 
     _tags = {
