@@ -240,7 +240,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
                 "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
+                    "capability:contractable" tag to True to test contracting
                     functionality
 
         Returns
