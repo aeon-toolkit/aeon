@@ -1,4 +1,4 @@
-"""A base class for interval extracting forest estimators."""
+"""Base class for interval-based forest estimators."""
 
 __maintainer__ = []
 __all__ = ["BaseIntervalForest"]
@@ -27,10 +27,10 @@ from aeon.utils.validation import check_n_jobs
 
 
 class BaseIntervalForest(ABC):
-    """A base class for interval extracting forest estimators.
+    """Base class for interval-based forest estimators.
 
-    Allows the implementation of classifiers and regressors along the lines of [1][2][3]
-    which extract intervals and create an ensemble from the subsequent features.
+    Shared implementation for classifiers and regressors that extract features from
+    intervals and fit an ensemble to the resulting tabular data [1]_, [2]_, [3]_.
 
     Parameters
     ----------
@@ -39,106 +39,86 @@ class BaseIntervalForest(ABC):
         simple decision tree.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
-    interval_selection_method : "random", "supervised" or "random-supervised",
-            default="random"
-        The interval selection transformer to use.
-            - "random" uses a RandomIntervalTransformer.
-            - "supervised" uses a SupervisedIntervalTransformer.
-            - "random-supervised" uses a SupervisedIntervalTransformer with
-                randomised elements.
+    interval_selection_method : str, default="random"
+        Interval-selection strategy. ``"random"`` uses ``RandomIntervals``;
+        ``"supervised"`` uses ``SupervisedIntervals``; and ``"random-supervised"``
+        uses ``SupervisedIntervals`` with randomised elements.
 
-        Supervised methods can only be used for classification tasks, and require
-        function inputs for interval_features rather than transformers.
+        Supervised methods are available only for classification and require callable
+        ``interval_features`` rather than transformers.
     n_intervals : int, str, list or tuple, default="sqrt"
-        Number of intervals to extract per tree for each series_transformers series.
+        Number of intervals to extract per tree from each representation.
 
-        An int input will extract that number of intervals from the series, while a str
-        input will return a function of the series length (may differ per
-        series_transformers output) to extract that number of intervals.
-        Valid str inputs are:
-            - "sqrt": square root of the series length.
-            - "sqrt-div": sqrt of series length divided by the number
-                of series_transformers.
+        An integer specifies an exact count. A string derives the count from series
+        length, independently for each representation. Supported values are
+        ``"sqrt"`` for the square root of series length and ``"sqrt-div"`` for that
+        value divided by the number of representations.
 
-        A list or tuple of ints and/or strs will extract the number of intervals using
-        the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(n_timepoints) + 4 intervals.
+        A list or tuple sums counts obtained by these rules. For example,
+        ``[4, "sqrt"]`` produces ``4 + sqrt(n_timepoints)`` intervals. A nested list
+        or tuple specifies counts separately for each representation and must have one
+        entry per representation.
 
-        Different number of intervals for each series_transformers series can be
-        specified using a nested list or tuple. Any list or tuple input containing
-        another list or tuple must be the same length as the number of
-        series_transformers.
+        Random extraction returns at most this many unique intervals. Supervised
+        extraction runs its search this many times and may return more intervals.
+    min_interval_length : int, float, list or tuple, default=3
+        Minimum interval length. An integer specifies a number of time points and a
+        float specifies a proportion of series length.
 
-        While random interval extraction will extract the n_intervals intervals total
-        (removing duplicates), supervised intervals will run the supervised extraction
-        process n_intervals times, returning more intervals than specified.
-    min_interval_length : int, float, list, or tuple, default=3
-        Minimum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the minimum interval length.
+        Different minimum interval lengths for each representation can be specified
+        using a list or tuple with one entry per representation.
+    max_interval_length : int, float, list or tuple, default=np.inf
+        Maximum interval length. An integer specifies a number of time points and a
+        float specifies a proportion of series length.
 
-        Different minimum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    max_interval_length : int, float, list, or tuple, default=np.inf
-        Maximum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the maximum interval length.
+        Different maximum interval lengths for each representation can be specified
+        using a list or tuple with one entry per representation.
 
-        Different maximum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-
-        Ignored for supervised interval_selection_method inputs.
+        Ignored for supervised ``interval_selection_method`` values.
     interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
-        Both transformers and functions should be able to take a 2D np.ndarray input.
-        Functions should output a 1d array (the feature for each series), and
-        transformers should output a 2d array where rows are the features for each
-        series. A list or tuple of transformers and/or functions will extract all
-        features and concatenate the output.
+        Both transformers and functions must accept a 2D ``np.ndarray``. Functions
+        should output a 1D array (one value per series), and transformers should output
+        a 2D array where rows are cases and columns are features. A list or tuple of
+        transformers and functions extracts all features and concatenates their output.
 
-        Different features for each series_transformers series can be specified using a
+        Different features for each representation can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
-        must be the same length as the number of series_transformers.
+        must be the same length as the number of representations.
     series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        A list or tuple of transformers will extract intervals from
-        all transformations concatenate the output. Including None in the list or tuple
-        will use the series as is for interval extraction.
+        A list or tuple applies each transformer and concatenates the interval features.
+        Including None uses the original series as one representation.
     att_subsample_size : int, float, list, tuple or None, default=None
-        The number of attributes to subsample for each estimator. If None, use all
+        Number of attributes sampled for each estimator. An integer specifies an exact
+        count, a float specifies a proportion, and None uses all attributes.
 
-        If int, use that number of attributes for all estimators. If float, use that
-        proportion of attributes for all estimators.
-
-        Different subsample sizes for each series_transformers series can be specified
-        using a list or tuple. Any list or tuple input must be the same length as the
-        number of series_transformers.
+        Different subsample sizes for each representation can be specified using a list
+        or tuple with one entry per representation.
     replace_nan : "nan", int, float or None, default=None
         The value to replace NaNs and infinite values with before fitting the base
-        estimator. int or float input will replace with the specified value, while
-        "nan" will replace infinite values with NaNs. If None, do not replace NaNs.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators are used.
+        estimator. An integer or float replaces both with that value, ``"nan"``
+        replaces infinite values with NaNs, and None leaves them unchanged.
+    time_limit_in_minutes : float or None, default=None
+        Time contract for fitting, in minutes, overriding ``n_estimators``. None or 0
+        uses ``n_estimators``.
     contract_max_n_estimators : int, default=500
-        Max number of estimators when time_limit_in_minutes is set.
+        Maximum number of estimators when ``time_limit_in_minutes`` is set.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib.  If None it uses
-        the Parallel default (loky).
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        Joblib parallel backend. If None, use the joblib default. Valid options include
+        ``"loky"``, ``"multiprocessing"``, ``"threading"``, or a custom backend.
 
     Attributes
     ----------
@@ -150,20 +130,20 @@ class BaseIntervalForest(ABC):
         The length of each series.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of BaseTransformer
-        Stores the interval extraction transformer for all estimators.
+    estimators_ : list of BaseEstimator
+        The fitted base estimators, with length equal to the fitted ensemble size.
+    intervals_ : list of list of BaseTransformer
+        The fitted interval transformers used by each estimator.
 
     References
     ----------
-    .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
-       classification and feature extraction", Information Sciences, 239, 2013
-    .. [2] Matthew Middlehurst and James Large and Anthony Bagnall. "The Canonical
+    .. [1] H. Deng, G. Runger, E. Tuv and M. Vladimir, "A time series forest for
+       classification and feature extraction", Information Sciences, 239, 2013.
+    .. [2] Matthew Middlehurst, James Large and Anthony Bagnall. "The Canonical
        Interval Forest (CIF) Classifier for Time Series Classification."
-       IEEE International Conference on Big Data 2020
+       IEEE International Conference on Big Data 2020.
     .. [3] Cabello, Nestor, et al. "Fast and Accurate Time Series Classification
-       Through Supervised Interval Search." IEEE ICDM 2020
+       Through Supervised Interval Search." IEEE ICDM 2020.
     """
 
     @abstractmethod

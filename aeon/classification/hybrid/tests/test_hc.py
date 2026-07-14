@@ -79,11 +79,17 @@ def test_hc2_verbose_progress_and_parameter_output(capsys):
         assert f"[HC2] Finished {component_name} in " in output
     assert "[HC2] Finished fit in " in output
     assert "[HC2] Component summary:" in output
+    assert "[RST] Batch 1:" in output
     assert "[DrCIF] Estimator 1/" in output
+    assert "[Arsenal] Estimator 1/" in output
     assert "[TDE] Candidate 1:" in output
 
     components = dict(zip(hc2.component_names_, hc2.fitted_estimators_))
+    assert components["STC"].verbose == 2
+    assert components["STC"]._transformer.verbose == 2
+    assert components["STC"]._estimator.verbose == 2
     assert components["DrCIF"].verbose == 2
+    assert components["Arsenal"].verbose == 2
     assert components["TDE"].verbose == 2
 
 

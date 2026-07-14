@@ -28,49 +28,46 @@ from aeon.utils.validation import check_n_jobs
 class RandomIntervals(BaseCollectionTransformer):
     """Random interval feature transformer.
 
-    Extracts intervals with random length, position and dimension from series in fit.
-    Transforms each interval subseries using the given transformer(s)/features and
-    concatenates them into a feature vector in transform.
+    During fit, sample intervals with random lengths, positions, and channels. During
+    transform, apply the configured transformers or functions to each interval and
+    concatenate their outputs into a tabular feature matrix.
 
-    Identical intervals are pruned at the end of fit, as such the number of features may
-    be less than expected from n_intervals.
+    Identical interval-feature combinations are pruned, so the fitted transformer may
+    contain fewer than ``n_intervals`` unique intervals.
 
-    The output type is a 2D numpy array where rows are input cases and columns are
+    The output is a 2D NumPy array where rows are input cases and columns are
     the concatenated interval features.
 
     Parameters
     ----------
-    n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
-        extracted.
+    n_intervals : int, default=100
+        Number of intervals to sample with random length, position, and channel.
     min_interval_length : int, default=3
-        The minimum length of extracted intervals. Minimum value of 3.
-    max_interval_length : int, default=3
-        The maximum length of extracted intervals. Minimum value of min_interval_length.
-    features : aeon transformer, a function taking a 2d numpy array parameter, or list
-            of said transformers and functions, default=None
+        Minimum length of extracted intervals. Must be at least 3.
+    max_interval_length : int or float, default=np.inf
+        The maximum length of extracted intervals. Must be at least
+        ``min_interval_length``; ``np.inf`` uses the full series length.
+    features : BaseTransformer, callable, list or None, default=None
         Transformers and functions used to extract features from selected intervals.
-        If None, defaults to [mean, median, min, max, std, 25% quantile, 75% quantile]
+        Functions must accept a 2D NumPy array. If None, use the mean, median, minimum,
+        maximum, standard deviation, 25th quantile, and 75th quantile.
     dilation : int, list or None, default=None
         Add dilation to extracted intervals. No dilation is added if None or 1. If a
         list of ints, a random dilation value is selected from the list for each
         interval.
 
-        The dilation value is selected after the interval star and end points. If the
-        number of values in the dilated interval is less than the min_interval_length,
-        the amount of dilation applied is reduced.
-    random_state : None, int or instance of RandomState, default=None
-        Seed or RandomState object used for random number generation.
-        If random_state is None, use the RandomState singleton used by np.random.
-        If random_state is an int, use a new RandomState instance seeded with seed.
+        The dilation value is selected after the interval start and end points. If the
+        dilated interval would contain fewer than ``min_interval_length`` values, the
+        dilation is reduced.
+    random_state : int, RandomState instance or None, default=None
+        Seed or random number generator used to sample intervals.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `transform` functions.
-        `-1` means using all processors.
+        The number of jobs used by ``fit`` and ``transform``. ``-1`` uses all
+        processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        Joblib parallel backend. If None, ``prefer="threads"`` is used. Valid options
+        include ``"loky"``, ``"multiprocessing"``, ``"threading"``, or a custom
+        backend.
 
     Attributes
     ----------
@@ -83,10 +80,8 @@ class RandomIntervals(BaseCollectionTransformer):
     n_intervals_ : int
         The number of intervals extracted after pruning identical intervals.
     intervals_ : list of tuples
-        Contains information for each feature extracted in fit. Each tuple contains the
-        interval start, interval end, interval dimension, the feature(s) extracted and
-        the dilation.
-        Length will be n_intervals*len(features).
+        Records each retained interval-feature combination as ``(start, end, channel,
+        feature, dilation)``. Multiple records can correspond to one sampled interval.
 
     See Also
     --------

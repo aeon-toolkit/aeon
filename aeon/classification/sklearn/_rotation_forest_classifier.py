@@ -1,8 +1,4 @@
-"""A Rotation Forest (RotF) vector classifier.
-
-A Rotation Forest aeon implementation for continuous values only. Fits sklearn
-conventions.
-"""
+"""Rotation Forest classifier for continuous tabular attributes."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
@@ -25,15 +21,15 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RotationForestClassifier(ClassifierMixin, BaseEstimator):
-    """
-    A rotation forest (RotF) vector classifier.
+    """Rotation Forest (RotF) vector classifier.
 
-    Implementation of the Rotation Forest classifier described [1]_. Builds a forest
-    of trees build on random portions of the data transformed using PCA.
+    Implementation of the Rotation Forest classifier described in [1]_. Each ensemble
+    member partitions the attributes into random groups, fits PCA on a class-sensitive
+    subsample for each group, and trains a classifier on the rotated attributes.
 
-    Intended as a benchmark for time series data and a base classifier for
-    transformation based approaches such as ShapeletTransformClassifier, this aeon
-    implementation only works with continuous attributes.
+    This vector classifier is intended as a benchmark and as a base classifier for
+    transformation-based approaches such as ``ShapeletTransformClassifier``. It accepts
+    tabular data with continuous attributes rather than time-series collections.
 
     Parameters
     ----------
@@ -45,29 +41,33 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         The maximum size of an attribute subsample group.
     remove_proportion : float, default=0.5
         The proportion of cases to be removed per group.
-    base_estimator : BaseEstimator or None, default="None"
-        Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeClassifier` using entropy as a splitting measure.
+    base_estimator : BaseEstimator or None, default=None
+        Estimator fitted to each rotated data set. If None, use
+        ``DecisionTreeClassifier(criterion="entropy")``.
     pca_solver : str, default="auto"
         Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
         implementation for options.
-    time_limit_in_minutes : int, default=0
+    time_limit_in_minutes : float, default=0.0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
-        Default of `0` means ``n_estimators`` is used.
+        A value of 0 uses ``n_estimators``.
     contract_max_n_estimators : int, default=500
-        Max number of estimators to build when ``time_limit_in_minutes`` is set.
+        Maximum number of estimators to build when ``time_limit_in_minutes`` is set.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
+        ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
-    classes_ : list
+    classes_ : np.ndarray of shape (n_classes_)
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
@@ -75,24 +75,25 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         The number of train cases in the training set.
     n_atts_ : int
         The number of attributes in the training set.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
+    estimators_ : list of BaseEstimator
+        The fitted estimators, with length ``n_estimators`` for a fixed-size fit.
 
     References
     ----------
-    .. [1] Rodriguez, Juan José, Ludmila I. Kuncheva, and Carlos J. Alonso. "Rotation
-       forest: A new classifier ensemble method." IEEE transactions on pattern analysis
-       and machine intelligence 28.10 (2006).
+    .. [1] Rodriguez, Juan Jose, Ludmila I. Kuncheva, and Carlos J. Alonso. "Rotation
+       forest: A new classifier ensemble method." IEEE Transactions on Pattern Analysis
+       and Machine Intelligence 28.10 (2006).
 
     .. [2] Bagnall, A., et al. "Is rotation forest the best classifier for problems
-       with continuous features?." arXiv preprint arXiv:1809.06705 (2018).
+       with continuous features?" arXiv preprint arXiv:1809.06705 (2018).
 
     Examples
     --------
     >>> from aeon.classification.sklearn import RotationForestClassifier
     >>> from aeon.testing.data_generation import make_example_2d_numpy_collection
     >>> X, y = make_example_2d_numpy_collection(
-    ...         n_cases=10, n_timepoints=12, random_state=0)
+    ...     n_cases=10, n_timepoints=12, random_state=0
+    ... )
     >>> clf = RotationForestClassifier(n_estimators=10)
     >>> clf.fit(X, y)
     RotationForestClassifier(n_estimators=10)
@@ -112,6 +113,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
+        verbose: int = 0,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -123,6 +125,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.verbose = verbose
 
         super().__init__()
 
@@ -320,6 +323,21 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         start_time = time.time()
         train_time = 0
 
+        log_each_estimator = self.verbose >= 2
+        log_progress = self.verbose == 1
+        if self.verbose > 0:
+            if time_limit > 0:
+                fit_limit = (
+                    f"time_limit={self._format_duration(time_limit)}, "
+                    f"max_n_estimators={self.contract_max_n_estimators}"
+                )
+            else:
+                fit_limit = f"n_estimators={self.n_estimators}"
+            self._log(
+                f"[RotF] Starting fit: n_cases={self.n_cases_}, "
+                f"n_attributes={self.n_atts_}, {fit_limit}, n_jobs={self._n_jobs}"
+            )
+
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
             self._base_estimator = DecisionTreeClassifier(criterion="entropy")
@@ -344,6 +362,10 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         rng = check_random_state(self.random_state)
 
         if time_limit > 0:
+            if log_progress:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
+
             self._n_estimators = 0
             self.estimators_ = []
             self._pcas = []
@@ -374,24 +396,118 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
 
                 self._n_estimators += self._n_jobs
                 train_time = time.time() - start_time
+
+                if log_each_estimator:
+                    contract_remaining = self._format_duration(
+                        max(0.0, time_limit - train_time)
+                    )
+                    first_estimator = self._n_estimators - len(fit) + 1
+                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
+                        self._log(
+                            f"[RotF] Estimator {estimator_idx}: "
+                            f"elapsed={train_time:.2f}s, "
+                            f"contract_remaining={contract_remaining}"
+                        )
+                elif log_progress and train_time >= next_progress:
+                    self._log(
+                        f"[RotF] Progress: built={self._n_estimators}, "
+                        f"elapsed={train_time:.2f}s"
+                    )
+                    next_progress = train_time + progress_interval
         else:
             self._n_estimators = self.n_estimators
+            if self.verbose > 0:
+                estimator_start_time = time.time()
+                if log_each_estimator:
+                    batch_size = self._n_jobs
+                else:
+                    batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
 
-            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(self._fit_estimator)(
-                    X,
-                    X_cls_split,
-                    y,
-                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                    save_transformed_data,
+                fit = []
+                for batch_start in range(0, self._n_estimators, batch_size):
+                    current_batch_size = min(
+                        batch_size, self._n_estimators - batch_start
+                    )
+                    batch_fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                        delayed(self._fit_estimator)(
+                            X,
+                            X_cls_split,
+                            y,
+                            check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                            save_transformed_data,
+                        )
+                        for _ in range(current_batch_size)
+                    )
+                    fit.extend(batch_fit)
+
+                    built = len(fit)
+                    estimator_elapsed = time.time() - estimator_start_time
+                    if log_each_estimator:
+                        if built == 1:
+                            time_estimate = "estimated_remaining=estimating"
+                        else:
+                            estimated_remaining = (estimator_elapsed / built) * (
+                                self._n_estimators - built
+                            )
+                            time_estimate = (
+                                "estimated_remaining="
+                                f"{self._format_duration(estimated_remaining)}"
+                            )
+                        elapsed = time.time() - start_time
+                        for estimator_idx in range(
+                            batch_start + 1, batch_start + current_batch_size + 1
+                        ):
+                            self._log(
+                                f"[RotF] Estimator "
+                                f"{estimator_idx}/{self._n_estimators}: "
+                                f"elapsed={elapsed:.2f}s, {time_estimate}"
+                            )
+                    else:
+                        self._log(
+                            f"[RotF] Progress: built={built}/{self._n_estimators}, "
+                            f"elapsed={time.time() - start_time:.2f}s"
+                        )
+            else:
+                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                    delayed(self._fit_estimator)(
+                        X,
+                        X_cls_split,
+                        y,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                        save_transformed_data,
+                    )
+                    for _ in range(self._n_estimators)
                 )
-                for _ in range(self._n_estimators)
-            )
 
             self.estimators_, self._pcas, self._groups, X_t = zip(*fit)
 
         self._is_fitted = True
+        if self.verbose > 0:
+            self._log(
+                f"[RotF] Finished fit: built={len(self.estimators_)}, "
+                f"elapsed={time.time() - start_time:.2f}s"
+            )
         return X_t
+
+    @staticmethod
+    def _log(message):
+        """Print a fit progress message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_estimator(
         self,

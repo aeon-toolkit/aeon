@@ -1,7 +1,6 @@
-"""TDE classifiers.
+"""Temporal Dictionary Ensemble classifiers.
 
-Dictionary based TDE classifiers based on SFA transform. Contains a single
-IndividualTDE and TDE.
+Dictionary-based classifiers using the Symbolic Fourier Approximation transform.
 """
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -57,42 +56,24 @@ def _kernel_ridge_preds(x_hist, y_hist, candidates):
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
-    """
-    Temporal Dictionary Ensemble (TDE).
+    """Temporal Dictionary Ensemble (TDE).
 
-    Implementation of the dictionary based Temporal Dictionary Ensemble as described
-    in [1]_.
+    TDE evaluates parameter settings for ``IndividualTDE`` classifiers and retains an
+    accuracy-weighted ensemble, as described in [1]_. After an initial random search,
+    kernel ridge regression fitted to previously evaluated settings guides parameter
+    selection. The reference paper describes this surrogate model as a Gaussian process
+    regressor.
 
-    Overview: Input 'n' series of length 'm' with 'd' dimensions.
-    TDE searches 'k' parameter values, using kernel ridge regression over
-    previously evaluated parameter combinations to predict the accuracy of
-    candidate parameter sets, and evaluates each selected set with a LOOCV.
-    (The reference paper [1] describes this step as a Gaussian process
-    regressor.) It then retains 's' ensemble members.
-    There are six primary parameters for individual classifiers:
-            - alpha: alphabet size
-            - w: window length
-            - l: word length
-            - p: normalise/no normalise
-            - h: levels
-            - b: MCB/IGB
-    For any combination, an individual TDE classifier slides a window of
-    length w along the series. The w length window is shortened to
-    an l length word through taking a Fourier transform and keeping the
-    first l/2 complex coefficients. These coefficients are then discretised
-    into alpha possible values, to form a word of length l using breakpoints
-    found using b. A histogram of words for each series is formed and stored,
-    using a spatial pyramid of h levels. For multivariate series, accuracy
-    from a reduced histogram is used to select dimensions.
-
-    fit involves finding n histograms.
-    predict uses 1 nearest neighbour with the histogram intersection
-    similarity function.
+    An individual classifier applies a sliding window, shortens each window with a
+    Fourier transform, discretises the retained coefficients into symbolic words, and
+    stores word counts in a spatial-pyramid histogram. Predictions use 1-nearest
+    neighbour with histogram-intersection similarity. For multivariate data, TDE also
+    selects dimensions using accuracy estimated from reduced histograms.
 
     Parameters
     ----------
     n_parameter_samples : int, default=250
-        Number of parameter combinations to consider for the final ensemble.
+        Number of parameter combinations to evaluate.
     max_ensemble_size : int, default=50
         Maximum number of estimators in the ensemble.
     max_win_len_prop : float, default=1
@@ -103,28 +84,28 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Number of parameters randomly selected before the kernel ridge regression
         guided parameter selection is used.
     bigrams : bool or None, default=None
-        Whether to use bigrams, defaults to true for univariate data and false for
+        Whether to use bigrams. If None, use True for univariate data and False for
         multivariate data.
     dim_threshold : float, default=0.85
         Dimension accuracy threshold for multivariate data, must be between 0 and 1.
     max_dims : int, default=20
-        Max number of dimensions per classifier for multivariate data.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_parameter_samples.
-        Default of 0 means n_parameter_samples is used.
-    contract_max_n_parameter_samples : int, default=np.inf
-        Max number of parameter combinations to consider when time_limit_in_minutes is
-        set.
-    typed_dict : bool, default="deprecated"
+        Maximum number of dimensions per classifier for multivariate data.
+    time_limit_in_minutes : float, default=0.0
+        Time contract for fitting, in minutes, overriding ``n_parameter_samples``. A
+        value of 0 uses ``n_parameter_samples``.
+    contract_max_n_parameter_samples : int or float, default=np.inf
+        Maximum number of parameter combinations to evaluate when
+        ``time_limit_in_minutes > 0``.
+    typed_dict : bool or str, default="deprecated"
         Has no effect: word counts are now stored as sorted arrays.
 
         Deprecated and will be removed in v1.7.0.
     train_estimate_method : str, default="loocv"
-        Method used to generate train estimates in `fit_predict` and
-        `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
-        "oob" for out of bag estimates.
+        Method used to generate train estimates in ``fit_predict`` and
+        ``fit_predict_proba``. Options are ``"loocv"`` for leave-one-out
+        cross-validation and ``"oob"`` for out-of-bag estimates.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for `predict`. `fit` is
+        The number of jobs to run in parallel for ``predict``. ``fit`` is
         single threaded. ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
@@ -140,20 +121,20 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     ----------
     n_classes_ : int
         The number of classes.
-    classes_ : list
-        The classes labels.
+    classes_ : np.ndarray of shape (n_classes_)
+        The class labels.
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
-    estimators_ : list of shape (n_estimators) of IndividualTDE
-        The collections of estimators trained in fit.
+    estimators_ : list of IndividualTDE
+        The classifiers retained in the ensemble.
     n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size`.
-    weights_ : list of shape (n_estimators) of float
-        Weight of each estimator in the ensemble.
+        The number of classifiers retained, at most ``max_ensemble_size``.
+    weights_ : list of float
+        Fourth power of training accuracy for each classifier in ``estimators_``.
 
     See Also
     --------
@@ -750,21 +731,11 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualTDE(BaseClassifier):
-    """
-    Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
+    """Single TDE classifier extending the Bag of SFA Symbols (BOSS) model.
 
-    Base classifier for the TDE classifier. Implementation of single TDE base model
-    from [1]_.
-
-    Overview: input "n" series of length "m" and IndividualTDE performs a SFA
-    transform to form a sparse histogram of discretised words. The resulting
-    histogram is used with the histogram intersection similarity function in a
-    1-nearest neighbour.
-
-    fit involves finding "n" histograms.
-
-    predict uses 1 nearest neighbour with the histogram intersection similarity
-    function.
+    This is the base classifier used by ``TemporalDictionaryEnsemble``. It applies an
+    SFA transform to form a sparse histogram of discretised words for each series, then
+    predicts with 1-nearest neighbour using histogram-intersection similarity [1]_.
 
     Parameters
     ----------
@@ -779,11 +750,11 @@ class IndividualTDE(BaseClassifier):
     igb : bool, default=False
         Whether to use Information Gain Binning (IGB) or
         Multiple Coefficient Binning (MCB) for the SFA transform.
-    alphabet_size : int, default="deprecated"
+    alphabet_size : int or str, default="deprecated"
         Has no effect: the alphabet size is fixed to 4.
 
         Deprecated and will be removed in v1.7.0.
-    bigrams : bool, default=False
+    bigrams : bool, default=True
         Whether to record word bigrams in the SFA transform.
     dim_threshold : float, default=0.85
         Accuracy threshold as a proportion of the highest accuracy dimension for words
@@ -791,22 +762,22 @@ class IndividualTDE(BaseClassifier):
     max_dims : int, default=20
         Maximum number of dimensions words are extracted from. Only applicable for
         multivariate data.
-    typed_dict : bool, default="deprecated"
+    typed_dict : bool or str, default="deprecated"
         Has no effect: word counts are now stored as sorted arrays.
 
         Deprecated and will be removed in v1.7.0.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for `predict`. `fit` is
+        The number of jobs to run in parallel for ``predict``. ``fit`` is
         single threaded. ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for the random number generator.
+    random_state : int, RandomState instance or None, default=None
+        Seed or random number generator used for dimension selection and tie breaking.
 
     Attributes
     ----------
     n_classes_ : int
         The number of classes.
-    classes_ : list
-        The classes labels.
+    classes_ : np.ndarray of shape (n_classes_)
+        The class labels.
     n_cases_ : int
         The number of train cases.
     n_channels_ : int

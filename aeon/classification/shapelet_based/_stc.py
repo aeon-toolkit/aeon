@@ -1,12 +1,13 @@
-"""A shapelet transform classifier (STC).
+"""Shapelet Transform Classifier (STC).
 
-Shapelet transform classifier pipeline that simply performs a (configurable) shapelet
-transform then builds (by default) a rotation forest classifier on the output.
+Pipeline combining a configurable shapelet transform with a tabular classifier.
 """
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ShapeletTransformClassifier"]
 
+
+from time import perf_counter
 
 import numpy as np
 from sklearn.model_selection import cross_val_predict
@@ -20,53 +21,54 @@ from aeon.utils.validation import check_n_jobs
 
 
 class ShapeletTransformClassifier(BaseClassifier):
-    """
-    A shapelet transform classifier (STC).
+    """Shapelet Transform Classifier (STC).
 
-    Implementation of the binary shapelet transform classifier pipeline along the lines
-    of [1]_, [2]_, but with random shapelet sampling. Transforms the data using the
-    configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
-    classifier.
+    STC transforms time series into distances from discriminative subsequences using
+    ``RandomShapeletTransform``, then fits a classifier to the transformed data. The
+    default classifier is ``RotationForestClassifier``. This implementation follows
+    [1]_ and [2]_, with random candidate-shapelet sampling.
 
-    As some implementations and applications contract the transformation solely,
-    contracting is available for the transform only and both classifier and transform.
+    The shapelet transform can be contracted independently, or a total contract can be
+    divided between the transform and an estimator that supports
+    ``time_limit_in_minutes``.
 
     Parameters
     ----------
     n_shapelet_samples : int, default=10000
-        The number of candidate shapelets to be considered for the final transform.
-        Filtered down to ``<= max_shapelets``, keeping the shapelets with the most
-        information gain.
+        Number of candidate shapelets assessed by the transform. The transform retains
+        at most ``max_shapelets`` candidates with the highest information gain.
     max_shapelets : int or None, default=None
-        Max number of shapelets to keep for the final transform. Each class value will
-        have its own max, set to ``n_classes_ / max_shapelets``. If `None`, uses the
-        minimum between ``10 * n_cases_`` and `1000`.
+        Maximum number of shapelets retained by the transform. The budget is divided
+        equally among classes. If None, use the smaller of 10 times the number of
+        training cases and 1000.
     max_shapelet_length : int or None, default=None
-        Lower bound on candidate shapelet lengths for the transform. If ``None``, no
-        max length is used
+        Upper bound on candidate shapelet lengths. If None, use the length of the
+        longest training series.
     estimator : BaseEstimator or None, default=None
-        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RotationForestClassifier` classifier is used.
-    batch_size : int or None, default=100
+        Classifier fitted to the transformed data. Must implement the scikit-learn
+        estimator interface. If None, use ``RotationForestClassifier``.
+    batch_size : int, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets in the transform.
-    verbose : bool, default=False
-        Whether to print progress messages during fitting and transforming.
-    transform_limit_in_minutes : int, default=0
-        Time contract to limit transform time in minutes for the shapelet transform,
-        overriding `n_shapelet_samples`. A value of `0` means ``n_shapelet_samples``
-        is used.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding ``n_shapelet_samples``
-        and ``transform_limit_in_minutes``. The ``estimator`` will only be contracted if
-        a ``time_limit_in_minutes parameter`` is present. Default of `0` means
-        ``n_shapelet_samples`` or ``transform_limit_in_minutes`` is used.
-    contract_max_n_shapelet_samples : int, default=np.inf
-        Max number of shapelets to extract when contracting the transform with
-        ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
+    verbose : int, default=0
+        Level of output printed to the console. ``0`` prints no output, ``1``
+        prints STC phase timings and component progress, and ``2`` or greater
+        prints detailed progress from the shapelet transform and estimator.
+    transform_limit_in_minutes : float, default=0
+        Independent time contract for fitting the shapelet transform, in minutes,
+        overriding ``n_shapelet_samples``. A value of 0 uses
+        ``n_shapelet_samples``.
+    time_limit_in_minutes : float, default=0
+        Total time contract for fitting STC, in minutes. A positive value overrides
+        ``transform_limit_in_minutes`` and divides time between the transform and the
+        classifier. The classifier is contracted only if it exposes a
+        ``time_limit_in_minutes`` parameter.
+    contract_max_n_shapelet_samples : int or float, default=np.inf
+        Maximum number of candidate shapelets assessed when contracting the
+        transform via ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
+        The number of jobs used by the transform and classifier. ``-1`` uses all
+        processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -75,11 +77,11 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     Attributes
     ----------
-    classes_ : list
+    classes_ : np.ndarray of shape (n_classes_)
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
-    n_cases_ : int
+    n_instances_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -138,7 +140,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         max_shapelet_length: int | None = None,
         estimator=None,
         batch_size: int | None = 100,
-        verbose: bool = False,
+        verbose: int = 0,
         transform_limit_in_minutes: int = 0,
         time_limit_in_minutes: int = 0,
         contract_max_n_shapelet_samples: int = np.inf,
@@ -179,15 +181,22 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
+        fit_start = perf_counter() if self.verbose > 0 else None
         X_t = self._fit_stc_shared(X, y)
 
-        if self.verbose:
-            print("Fitting estimator...")  # noqa: T201
-
+        estimator_start = perf_counter() if self.verbose > 0 else None
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Starting estimator fit "
+                f"({type(self._estimator).__name__})..."
+            )
         self._estimator.fit(X_t, y)
-
-        if self.verbose:
-            print("Finished fitting estimator...")  # noqa: T201
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished estimator fit in "
+                f"{perf_counter() - estimator_start:.2f}s"
+            )
+            self._log(f"[STC] Finished fit in {perf_counter() - fit_start:.2f}s")
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
@@ -202,20 +211,26 @@ class ShapeletTransformClassifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        if self.verbose:
-            print("Transforming predict X...")  # noqa: T201
-
+        transform_start = perf_counter() if self.verbose > 0 else None
+        if self.verbose > 0:
+            self._log("[STC] Starting transform for predict...")
         X_t = self._transformer.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished transform for predict in "
+                f"{perf_counter() - transform_start:.2f}s"
+            )
 
-        if self.verbose:
-            print("Finished transforming predict X...")  # noqa: T201
-            print("Predicting...")  # noqa: T201
-
+        predict_start = perf_counter() if self.verbose > 0 else None
+        if self.verbose > 0:
+            self._log("[STC] Starting prediction...")
         pred = self._estimator.predict(X_t)
-
-        if self.verbose:
-            print("Finished predicting...")  # noqa: T201
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished prediction in "
+                f"{perf_counter() - predict_start:.2f}s"
+            )
 
         return pred
 
@@ -232,16 +247,20 @@ class ShapeletTransformClassifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        if self.verbose:
-            print("Transforming predict_proba X...")  # noqa: T201
-
+        transform_start = perf_counter() if self.verbose > 0 else None
+        if self.verbose > 0:
+            self._log("[STC] Starting transform for predict_proba...")
         X_t = self._transformer.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished transform for predict_proba in "
+                f"{perf_counter() - transform_start:.2f}s"
+            )
 
-        if self.verbose:
-            print("Finished transforming predict_proba X...")  # noqa: T201
-            print("Predicting probabilities...")  # noqa: T201
-
+        predict_start = perf_counter() if self.verbose > 0 else None
+        if self.verbose > 0:
+            self._log("[STC] Starting probability prediction...")
         m = getattr(self._estimator, "predict_proba", None)
         if callable(m):
             proba = self._estimator.predict_proba(X_t)
@@ -251,8 +270,11 @@ class ShapeletTransformClassifier(BaseClassifier):
             for i in range(0, len(X)):
                 proba[i, np.where(self.classes_ == preds[i])] = 1
 
-        if self.verbose:
-            print("Finished predicting probabilities...")  # noqa: T201
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished probability prediction in "
+                f"{perf_counter() - predict_start:.2f}s"
+            )
 
         return proba
 
@@ -266,22 +288,25 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
+        fit_start = perf_counter() if self.verbose > 0 else None
         X_t = self._fit_stc_shared(X, y)
 
+        estimator_start = perf_counter() if self.verbose > 0 else None
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
         ):
-            if self.verbose:
-                print(  # noqa: T201
-                    "Fitting estimator and generating train set estimates (RotF OOB)..."
+            if self.verbose > 0:
+                self._log(
+                    "[STC] Starting estimator fit and train estimates "
+                    "(RotationForest OOB)..."
                 )
 
             proba = self._estimator.fit_predict_proba(X_t, y)
         else:
-            if self.verbose:
-                print(  # noqa: T201
-                    "Fitting estimator and generating train set estimates "
-                    "(10 fold CV)..."
+            if self.verbose > 0:
+                self._log(
+                    "[STC] Starting estimator fit and train estimates "
+                    "(cross-validation)..."
                 )
 
             self._estimator.fit(X_t, y)
@@ -302,6 +327,8 @@ class ShapeletTransformClassifier(BaseClassifier):
                     )
 
             estimator = _clone_estimator(self.estimator, self.random_state)
+            if hasattr(estimator, "verbose"):
+                estimator.verbose = self.verbose
 
             proba = cross_val_predict(
                 estimator,
@@ -312,10 +339,12 @@ class ShapeletTransformClassifier(BaseClassifier):
                 n_jobs=self._n_jobs,
             )
 
-        if self.verbose:
-            print(  # noqa: T201
-                "Finished fitting estimator and generating train set estimates..."
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished estimator fit and train estimates in "
+                f"{perf_counter() - estimator_start:.2f}s"
             )
+            self._log(f"[STC] Finished fit in {perf_counter() - fit_start:.2f}s")
 
         return proba
 
@@ -360,16 +389,36 @@ class ShapeletTransformClassifier(BaseClassifier):
         if m is not None and self.time_limit_in_minutes > 0:
             self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        if self.verbose:
-            print("Fitting and transforming shapelets...")  # noqa: T201
+        if hasattr(self._estimator, "verbose"):
+            self._estimator.verbose = self.verbose
 
+        transform_start = perf_counter() if self.verbose > 0 else None
+        if self.verbose > 0:
+            if self._transform_limit_in_minutes > 0:
+                transform_limit = f"time_limit={self._transform_limit_in_minutes:.2f}m"
+            else:
+                transform_limit = f"shapelet_samples={self.n_shapelet_samples}"
+            self._log(
+                f"[STC] Starting fit: n_cases={self.n_instances_}, "
+                f"n_channels={self.n_channels_}, {transform_limit}, "
+                f"n_jobs={self._n_jobs}"
+            )
+            self._log("[STC] Starting shapelet transform...")
         X_t = self._transformer.fit_transform(X, y)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
-
-        if self.verbose:
-            print("Finished and transforming shapelets...")  # noqa: T201
+        if self.verbose > 0:
+            self._log(
+                f"[STC] Finished shapelet transform in "
+                f"{perf_counter() - transform_start:.2f}s, "
+                f"retained={len(self._transformer.shapelets_)}"
+            )
 
         return X_t
+
+    def _log(self, message, level=1):
+        """Print a message when the configured verbosity reaches ``level``."""
+        if self.verbose >= level:
+            print(message, flush=True)  # noqa: T201
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:

@@ -101,3 +101,76 @@ def test_transform_with_process_backend(unequal_length):
     process = transformer.transform(X)
 
     assert_array_equal(process, threaded)
+
+
+@pytest.mark.parametrize("verbose", [0, 1, 2])
+def test_fit_verbosity_levels(verbose, capsys):
+    """RST verbosity controls summary and per-batch fit progress."""
+    X, y = _make_test_data()
+    transformer = RandomShapeletTransform(verbose=verbose, **_RST_TEST_PARAMS)
+
+    transformer.fit(X, y)
+    output = capsys.readouterr().out
+
+    if verbose == 0:
+        assert output == ""
+    else:
+        assert "[RST] Starting fit: mode=fixed" in output
+        assert "[RST] Finished fit: extracted=20/20" in output
+        if verbose == 1:
+            assert "[RST] Progress: extracted=" in output
+            assert "[RST] Batch " not in output
+        else:
+            assert "[RST] Batch 1: extracted=10/20" in output
+            assert "estimated_remaining=" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "formatted_limit"),
+    [(1, "1:00"), (2, "2:00"), (120, "2:00:00")],
+)
+def test_contract_verbosity_reports_remaining_time(
+    time_limit_in_minutes, formatted_limit, capsys
+):
+    """RST level-two output reports short and long fit contracts."""
+    X, y = _make_test_data()
+    transformer = RandomShapeletTransform(
+        verbose=2,
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_shapelet_samples=10,
+        **_RST_TEST_PARAMS,
+    )
+
+    transformer.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"time_limit={formatted_limit}" in output
+    assert "[RST] Batch 1: extracted=10/10" in output
+    assert "contract_remaining=" in output
+    assert "projected_total~" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "reports_progress"),
+    [(0.0005, True), (120, False)],
+)
+def test_contract_level_one_progress_is_rate_limited(
+    time_limit_in_minutes, reports_progress, capsys
+):
+    """RST level one reports contract progress only after a budget interval."""
+    X, y = _make_test_data()
+    transformer = RandomShapeletTransform(
+        n_shapelet_samples=100,
+        max_shapelets=6,
+        batch_size=100,
+        random_state=0,
+        verbose=1,
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_shapelet_samples=100,
+    )
+
+    transformer.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert ("[RST] Progress: extracted=100/100" in output) is reports_progress
+    assert "[RST] Batch " not in output

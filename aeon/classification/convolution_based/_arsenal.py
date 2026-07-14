@@ -1,6 +1,6 @@
 """Arsenal classifier.
 
-kernel based ensemble of ROCKET classifiers.
+Kernel-based ensemble of ROCKET classifiers.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
@@ -26,51 +26,47 @@ from aeon.utils.validation import check_n_jobs
 
 
 class Arsenal(BaseClassifier):
-    """
-    Arsenal ensemble.
+    """Arsenal ensemble.
 
-    Overview: an ensemble of ROCKET transformers using RidgeClassifierCV base
-    classifier. Weights each classifier using the accuracy from the ridge
-    cross-validation. Allows for generation of probability estimates at the
-    expense of scalability compared to RocketClassifier.
+    Arsenal fits an ensemble of ROCKET transforms followed by ``RidgeClassifierCV``
+    classifiers. It weights each classifier by its internal cross-validation accuracy,
+    enabling probability estimates at the cost of lower scalability than a single
+    ``RocketClassifier`` [1]_.
 
     Parameters
     ----------
-    n_kernels : int, default=2,000
+    n_kernels : int, default=2000
         Number of kernels for each ROCKET transform.
     n_estimators : int, default=25
         Number of estimators to build for the ensemble.
     rocket_transform : str, default="rocket"
-        The type of Rocket transformer to use.
-        Valid inputs = ["rocket","minirocket","multirocket"].
+        ROCKET transform used by each ensemble member. Valid values are ``"rocket"``,
+        ``"minirocket"``, and ``"multirocket"``.
     max_dilations_per_kernel : int, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
     n_features_per_kernel : int, default=4
         MultiRocket only. The number of features per kernel.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators is used.
+    time_limit_in_minutes : float, default=0.0
+        Time contract for fitting, in minutes, overriding ``n_estimators``. A value of 0
+        uses ``n_estimators``.
     contract_max_n_estimators : int, default=100
-        Max number of estimators when time_limit_in_minutes is set.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
-        From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
-        The “balanced” mode uses the values of y to automatically adjust weights
-        inversely proportional to class frequencies in the input data as
-        n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
-        For multi-output, the weights of each column of y will be multiplied.
-        Note that these weights will be multiplied with sample_weight (passed through
-        the fit method) if sample_weight is specified.
+        Maximum number of estimators when ``time_limit_in_minutes`` is set.
+    class_weight : dict, "balanced" or None, default=None
+        Class weights passed to each ``RidgeClassifierCV``. If None, all classes have
+        weight one. ``"balanced"`` weights classes inversely to their frequencies in
+        the training data.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
@@ -82,12 +78,12 @@ class Arsenal(BaseClassifier):
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
-    classes_ : list
-        The classes labels.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
-    weights_ : list of shape (n_estimators) of float
-        Weight of each estimator in the ensemble.
+    classes_ : np.ndarray of shape (n_classes_)
+        The class labels.
+    estimators_ : list of Pipeline
+        The fitted ROCKET, scaler, and ridge-classifier pipelines.
+    weights_ : list of float
+        Cross-validation accuracy of each fitted pipeline.
     n_estimators_ : int
         The number of estimators in the ensemble.
 
@@ -105,8 +101,8 @@ class Arsenal(BaseClassifier):
     References
     ----------
     .. [1] Middlehurst, M., Large, J., Flynn, M. et al.
-       HIVE-COTE 2.0: a new meta ensemble for time series classification.
-       Mach Learn 110, 3211–3243 (2021).
+       "HIVE-COTE 2.0: a new meta ensemble for time series classification."
+       Machine Learning 110, 3211--3243 (2021).
        https://doi.org/10.1007/s10994-021-06057-9
 
     Examples
@@ -114,7 +110,7 @@ class Arsenal(BaseClassifier):
     >>> from aeon.classification.convolution_based import Arsenal
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test =load_unit_test(split="test")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = Arsenal(n_kernels=100, n_estimators=5)
     >>> clf.fit(X_train, y_train)
     Arsenal(...)
@@ -141,6 +137,7 @@ class Arsenal(BaseClassifier):
         class_weight=None,
         n_jobs: int = 1,
         random_state=None,
+        verbose: int = 0,
     ):
         self.n_kernels = n_kernels
         self.n_estimators = n_estimators
@@ -153,6 +150,7 @@ class Arsenal(BaseClassifier):
         self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.verbose = verbose
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -283,6 +281,24 @@ class Arsenal(BaseClassifier):
         start_time = time.time()
         train_time = 0
 
+        log_each_estimator = self.verbose >= 2
+        log_progress = self.verbose == 1
+        if self.verbose > 0:
+            if time_limit > 0:
+                fit_limit = (
+                    f"time_limit={self._format_duration(time_limit)}, "
+                    f"max_n_estimators={self.contract_max_n_estimators}"
+                )
+            else:
+                fit_limit = f"n_estimators={self.n_estimators}"
+            self._log(
+                f"[Arsenal] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, "
+                f"n_timepoints={self.n_timepoints_}, "
+                f"transform={self.rocket_transform}, n_kernels={self.n_kernels}, "
+                f"{fit_limit}, n_jobs={self._n_jobs}"
+            )
+
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(n_kernels=self.n_kernels)
         elif self.rocket_transform == "minirocket":
@@ -302,6 +318,10 @@ class Arsenal(BaseClassifier):
         rng = check_random_state(self.random_state)
 
         if time_limit > 0:
+            if log_progress:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
+
             self.n_estimators_ = 0
             self.estimators_ = []
             Xt = []
@@ -329,16 +349,89 @@ class Arsenal(BaseClassifier):
 
                 self.n_estimators_ += self._n_jobs
                 train_time = time.time() - start_time
+
+                if log_each_estimator:
+                    contract_remaining = self._format_duration(
+                        max(0.0, time_limit - train_time)
+                    )
+                    first_estimator = self.n_estimators_ - len(fit) + 1
+                    for estimator_idx in range(first_estimator, self.n_estimators_ + 1):
+                        self._log(
+                            f"[Arsenal] Estimator {estimator_idx}: "
+                            f"elapsed={train_time:.2f}s, "
+                            f"contract_remaining={contract_remaining}"
+                        )
+                elif log_progress and train_time >= next_progress:
+                    self._log(
+                        f"[Arsenal] Progress: built={self.n_estimators_}, "
+                        f"elapsed={train_time:.2f}s"
+                    )
+                    next_progress = train_time + progress_interval
         else:
-            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(self._fit_ensemble_estimator)(
-                    _clone_estimator(base_rocket, rng.randint(np.iinfo(np.int32).max)),
-                    X,
-                    y,
-                    keep_transformed_data=keep_transformed_data,
+            if self.verbose > 0:
+                estimator_start_time = time.time()
+                if log_each_estimator:
+                    batch_size = self._n_jobs
+                else:
+                    batch_size = max(self._n_jobs, (self.n_estimators + 9) // 10)
+
+                fit = []
+                for batch_start in range(0, self.n_estimators, batch_size):
+                    current_batch_size = min(
+                        batch_size, self.n_estimators - batch_start
+                    )
+                    batch_fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                        delayed(self._fit_ensemble_estimator)(
+                            _clone_estimator(
+                                base_rocket, rng.randint(np.iinfo(np.int32).max)
+                            ),
+                            X,
+                            y,
+                            keep_transformed_data=keep_transformed_data,
+                        )
+                        for _ in range(current_batch_size)
+                    )
+                    fit.extend(batch_fit)
+
+                    built = len(fit)
+                    estimator_elapsed = time.time() - estimator_start_time
+                    if log_each_estimator:
+                        if built == 1:
+                            time_estimate = "estimated_remaining=estimating"
+                        else:
+                            estimated_remaining = (estimator_elapsed / built) * (
+                                self.n_estimators - built
+                            )
+                            time_estimate = (
+                                "estimated_remaining="
+                                f"{self._format_duration(estimated_remaining)}"
+                            )
+                        elapsed = time.time() - start_time
+                        for estimator_idx in range(
+                            batch_start + 1, batch_start + current_batch_size + 1
+                        ):
+                            self._log(
+                                f"[Arsenal] Estimator "
+                                f"{estimator_idx}/{self.n_estimators}: "
+                                f"elapsed={elapsed:.2f}s, {time_estimate}"
+                            )
+                    else:
+                        self._log(
+                            f"[Arsenal] Progress: built={built}/{self.n_estimators}, "
+                            f"elapsed={time.time() - start_time:.2f}s"
+                        )
+            else:
+                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                    delayed(self._fit_ensemble_estimator)(
+                        _clone_estimator(
+                            base_rocket, rng.randint(np.iinfo(np.int32).max)
+                        ),
+                        X,
+                        y,
+                        keep_transformed_data=keep_transformed_data,
+                    )
+                    for _ in range(self.n_estimators)
                 )
-                for i in range(self.n_estimators)
-            )
 
             self.estimators_, Xt = zip(*fit)
             self.n_estimators_ = self.n_estimators
@@ -350,7 +443,33 @@ class Arsenal(BaseClassifier):
             self.weights_.append(weight)
             self._weight_sum += weight
 
+        if self.verbose > 0:
+            self._log(
+                f"[Arsenal] Finished fit: built={self.n_estimators_}, "
+                f"elapsed={time.time() - start_time:.2f}s"
+            )
+
         return Xt
+
+    @staticmethod
+    def _log(message):
+        """Print a fit progress message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_ensemble_estimator(self, rocket, X, y, keep_transformed_data):
         transformed_x = rocket.fit_transform(X)

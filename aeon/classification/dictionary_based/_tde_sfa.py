@@ -45,7 +45,7 @@ LETTER_BITS = 2
 
 
 class _TDE_SFA:
-    """Symbolic Fourier Approximation transform, TDE feature set only.
+    """Symbolic Fourier Approximation transform specialised for TDE.
 
     Parameters
     ----------
@@ -67,8 +67,8 @@ class _TDE_SFA:
 
     Attributes
     ----------
-    breakpoints : 2D np.ndarray (word_length, 4)
-        Discretisation boundaries per letter, last column is DBL_MAX.
+    breakpoints : np.ndarray of shape (word_length, 4)
+        Discretisation boundaries for each letter. The last column is ``DBL_MAX``.
     """
 
     def __init__(
