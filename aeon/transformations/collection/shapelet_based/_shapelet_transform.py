@@ -821,18 +821,23 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
     if position + length > len(series):
         position = int((len(series) - length) / 2)
 
+    # Subtract a fixed reference before accumulating sum/sum-of-squares.
+    # This avoids catastrophic cancellation when the series has a large
+    # constant offset relative to its variance (see GH #3643).
+    ref = series[position]
     subseq = series[position : position + length]
 
     sum = 0.0
     sum2 = 0.0
     for i in subseq:
-        sum += i
-        sum2 += i * i
+        v = i - ref
+        sum += v
+        sum2 += v * v
 
     mean = sum / length
     std = math.sqrt((sum2 - mean * mean * length) / length)
     if std > AEON_NUMBA_STD_THRESHOLD:
-        subseq = (subseq - mean) / std
+        subseq = (subseq - (mean + ref)) / std
     else:
         subseq = np.zeros(length)
 
@@ -855,8 +860,8 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
             if not traverse[n]:
                 continue
 
-            start = series[pos - n]
-            end = series[pos - n + length]
+            start = series[pos - n] - ref
+            end = series[pos - n + length] - ref
 
             sums[n] += mod * end - mod * start
             sums2[n] += mod * end * end - mod * start * start
@@ -867,7 +872,11 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
             dist = 0
             use_std = std > AEON_NUMBA_STD_THRESHOLD
             for j in range(length):
-                val = (series[pos + sorted_indicies[j]] - mean) / std if use_std else 0
+                val = (
+                    (series[pos + sorted_indicies[j]] - (mean + ref)) / std
+                    if use_std
+                    else 0
+                )
                 temp = shapelet[sorted_indicies[j]] - val
                 dist += temp * temp
 
