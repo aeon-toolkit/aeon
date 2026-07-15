@@ -2,10 +2,7 @@ __all__ = [
     "plot_sax_representation",
 ]
 
-import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from scipy.stats import norm
 
 
 def plot_sax_representation(
@@ -18,6 +15,10 @@ def plot_sax_representation(
     window_index=None,
 ):
     """Plot a standard SAX word or one selected word from windowed SAX."""
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    from scipy.stats import norm
+
     n_timepoints = X.shape[-1]
     timepoints = np.arange(n_timepoints)
 
