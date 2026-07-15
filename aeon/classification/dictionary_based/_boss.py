@@ -698,7 +698,7 @@ def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
 
         # The kernel then needs all right-hand rows with a matching word.
         # CSC makes that direct.
-        if not isspmatrix_csc(X):
+        if not isspmatrix_csc(Y):
             Y = Y.tocsc(copy=True)
         Y.eliminate_zeros()
 
