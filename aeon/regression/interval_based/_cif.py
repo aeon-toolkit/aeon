@@ -7,8 +7,8 @@ import numpy as np
 
 from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
-from aeon.transformations.collection.feature_based import Catch22
 from aeon.transformations.collection.feature_based._catch22 import (
+    _InternalCatch22,
     _warn_use_pycatch22_deprecated,
 )
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
@@ -89,9 +89,9 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
 
-        Deprecated and will be removed in v1.7.0. aeon's own implementation is
-        faster than pycatch22 and produces the same features, so it is used
-        instead.
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -173,10 +173,10 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     ):
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22 != "deprecated":
-            _warn_use_pycatch22_deprecated()
+            _warn_use_pycatch22_deprecated(self)
 
         interval_features = [
-            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            _InternalCatch22(outlier_norm=True, use_pycatch22=use_pycatch22),
             row_mean,
             row_std,
             row_slope,

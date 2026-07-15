@@ -53,9 +53,9 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
 
-        Deprecated and will be removed in v1.7.0. aeon's own implementation is
-        faster than pycatch22 and produces the same features, so it is used
-        instead.
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         ExtraTreesClassifier with 200 trees.
@@ -120,7 +120,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         d = ["statsmodels"]
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22 != "deprecated":
-            _warn_use_pycatch22_deprecated()
+            _warn_use_pycatch22_deprecated(self)
         if use_pycatch22 is True:
             d.append("pycatch22")
 

@@ -14,7 +14,7 @@ from aeon.transformations.collection import (
     ARCoefficientTransformer,
     PeriodogramTransformer,
 )
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import _InternalCatch22
 from aeon.transformations.collection.interval_based import RandomIntervals
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
@@ -70,9 +70,9 @@ class BaseRIST(ABC):
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
 
-        Deprecated and will be removed in v1.7.0. aeon's own implementation is
-        faster than pycatch22 and produces the same features, so it is used
-        instead.
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     estimator : sklearn estimator, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         extra trees forest with 200 trees.
@@ -189,7 +189,7 @@ class BaseRIST(ABC):
             ct = RandomIntervals(
                 n_intervals=n_intervals,
                 features=[
-                    Catch22(
+                    _InternalCatch22(
                         outlier_norm=True,
                         replace_nans=True,
                         use_pycatch22=self.use_pycatch22,
