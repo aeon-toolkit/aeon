@@ -91,55 +91,43 @@ def test_iterate_validation():
         MSTLSeriesTransformer(periods=[12], iterate=0).fit_transform(y)
 
 
-def test_mstl_numba_parity_vs_numpy():
-    """MSTL using Numba-STL should match NumPy-STL results closely."""
-    pytest.importorskip("numba")  # skip if Numba not installed
+def test_mstl_imputes_missing_values_before_decomposition():
+    """Built-in imputation matches decomposition of explicitly interpolated data."""
+    period = 24
+    missing_index = 100
+    y = _toy_two_season(n=period * 10)
+    y_with_missing = y.copy()
+    y_with_missing[missing_index] = np.nan
+    y_interpolated = y.copy()
+    y_interpolated[missing_index] = (y[missing_index - 1] + y[missing_index + 1]) / 2
+    mstl_params = {
+        "periods": [period],
+        "iterate": 1,
+        "s_windows": [11],
+        "output": "all",
+    }
 
-    n = 24 * 21
-    t = np.arange(n, dtype=float)
-    y = (
-        1.2 * np.sin(2 * np.pi * t / 24 + 0.3)
-        + 0.8 * np.sin(2 * np.pi * t / 168)
-        + 0.01 * t
-    )
+    imputed_components = MSTLSeriesTransformer(
+        **mstl_params, impute_missing=True
+    ).fit_transform(y_with_missing)
+    expected_components = MSTLSeriesTransformer(
+        **mstl_params, impute_missing=False
+    ).fit_transform(y_interpolated)
 
-    s_windows = [11, 15]
-
-    mstl_np = MSTLSeriesTransformer(
-        periods=[24, 168],
-        iterate=2,
-        s_windows=s_windows,
-        output="all",
-        stl_use_numba=False,
-    )
-    mstl_nb = MSTLSeriesTransformer(
-        periods=[24, 168],
-        iterate=2,
-        s_windows=s_windows,
-        output="all",
-        stl_use_numba=True,
-    )
-
-    Z_np = mstl_np.fit_transform(y)
-    Z_nb = mstl_nb.fit_transform(y)
-
-    assert np.allclose(Z_nb, Z_np, atol=1e-6, rtol=1e-7)
+    np.testing.assert_allclose(imputed_components, expected_components)
 
 
-def test_mstl_numba_smoke_with_jumps():
-    """Numba-STL inside MSTL with knot jumps runs and returns proper shapes."""
-    pytest.importorskip("numba")
-
+def test_mstl_with_jumps_reconstructs_input():
+    """MSTL with knot jumps returns components that reconstruct the input."""
     y = _toy_two_season(n=24 * 21)
 
-    mstl_nb = MSTLSeriesTransformer(
+    components = MSTLSeriesTransformer(
         periods=[24, 168],
         iterate=2,
         s_windows=[11, 15],
         seasonal_jump=2,
         trend_jump=2,
         output="all",
-        stl_use_numba=True,
-    )
-    Z = mstl_nb.fit_transform(y)
-    assert isinstance(Z, np.ndarray) and Z.shape == (len(y), 4)
+    ).fit_transform(y)
+
+    np.testing.assert_allclose(components.sum(axis=1), y, atol=1e-8)
