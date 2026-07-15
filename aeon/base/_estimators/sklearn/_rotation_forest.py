@@ -12,7 +12,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from joblib import Parallel, delayed
+from joblib import delayed
 from scipy.sparse import issparse
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.exceptions import NotFittedError
@@ -26,6 +26,7 @@ from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
+from aeon.utils._parallel import _run_jobs
 from aeon.utils.validation import check_n_jobs
 
 
@@ -192,18 +193,6 @@ class BaseRotationForest(BaseEstimator):
 
         super().__init__()
 
-    def _parallel(self, jobs):
-        """Run a sequence of ``delayed`` jobs, skipping joblib when single-threaded.
-
-        ``jobs`` is an iterable of ``delayed(func)(*args, **kwargs)`` tuples. When
-        ``n_jobs == 1`` these are called directly, avoiding joblib's per-task
-        dispatch overhead while preserving the order in which the jobs (and hence
-        any random draws in their arguments) are produced.
-        """
-        if self._n_jobs == 1:
-            return [func(*args, **kwargs) for func, args, kwargs in jobs]
-        return Parallel(n_jobs=self._n_jobs, prefer="threads")(jobs)
-
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         if self.pca_solver != "deprecated":
             warnings.warn(
@@ -289,15 +278,19 @@ class BaseRotationForest(BaseEstimator):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = self._parallel(
-                    delayed(self._fit_estimator)(
-                        X,
-                        X_cls_split,
-                        y,
-                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                        save_transformed_data,
-                    )
-                    for _ in range(self._n_jobs)
+                fit = _run_jobs(
+                    (
+                        delayed(self._fit_estimator)(
+                            X,
+                            X_cls_split,
+                            y,
+                            check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                            save_transformed_data,
+                        )
+                        for _ in range(self._n_jobs)
+                    ),
+                    self._n_jobs,
+                    prefer="threads",
                 )
 
                 estimators, pcas, groups, transformed_data = zip(*fit)
@@ -312,15 +305,19 @@ class BaseRotationForest(BaseEstimator):
         else:
             self._n_estimators = self.n_estimators
 
-            fit = self._parallel(
-                delayed(self._fit_estimator)(
-                    X,
-                    X_cls_split,
-                    y,
-                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                    save_transformed_data,
-                )
-                for _ in range(self._n_estimators)
+            fit = _run_jobs(
+                (
+                    delayed(self._fit_estimator)(
+                        X,
+                        X_cls_split,
+                        y,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                        save_transformed_data,
+                    )
+                    for _ in range(self._n_estimators)
+                ),
+                self._n_jobs,
+                prefer="threads",
             )
 
             self.estimators_, self._pcas, self._groups, X_t = zip(*fit)
@@ -545,14 +542,18 @@ class BaseRotationForest(BaseEstimator):
             if self._is_classifier
             else self._train_preds_for_estimator
         )
-        p = self._parallel(
-            delayed(train_fn)(
-                X_t,
-                y,
-                i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-            )
-            for i in range(self._n_estimators)
+        p = _run_jobs(
+            (
+                delayed(train_fn)(
+                    X_t,
+                    y,
+                    i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                )
+                for i in range(self._n_estimators)
+            ),
+            self._n_jobs,
+            prefer="threads",
         )
         y_preds, oobs = zip(*p)
 

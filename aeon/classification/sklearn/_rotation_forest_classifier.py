@@ -12,6 +12,7 @@ from joblib import delayed
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from aeon.base._estimators.sklearn import BaseRotationForest
+from aeon.utils._parallel import _run_jobs
 
 
 class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
@@ -220,14 +221,18 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
 
         X = self._prepare_predict_X(X)
 
-        y_probas = self._parallel(
-            delayed(self._predict_proba_for_estimator)(
-                X,
-                self.estimators_[i],
-                self._pcas[i],
-                self._groups[i],
-            )
-            for i in range(self._n_estimators)
+        y_probas = _run_jobs(
+            (
+                delayed(self._predict_proba_for_estimator)(
+                    X,
+                    self.estimators_[i],
+                    self._pcas[i],
+                    self._groups[i],
+                )
+                for i in range(self._n_estimators)
+            ),
+            self._n_jobs,
+            prefer="threads",
         )
 
         output = np.sum(y_probas, axis=0) / (
