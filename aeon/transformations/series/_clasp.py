@@ -26,26 +26,6 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import check_n_jobs
 
 
-def _sliding_window(X, m):
-    """Return the sliding windows for a time series and a window size.
-
-    Parameters
-    ----------
-    X : array-like, shape = [n]
-        A single univariate time series of length n
-    m : int
-        The window size to generate sliding windows
-
-    Returns
-    -------
-    windows : array of shape [n-m+1, m]
-        The sliding windows of length over the time series of length n
-    """
-    shape = X.shape[:-1] + (X.shape[-1] - m + 1, m)
-    strides = X.strides + (X.strides[-1],)
-    return np.lib.stride_tricks.as_strided(X, shape=shape, strides=strides)
-
-
 @njit(fastmath=True, cache=True)
 def _sliding_dot_product(query, time_series):
     m = len(query)
@@ -250,10 +230,10 @@ def _binary_f1_score(y_true, y_pred):
         fp = np.sum(np.logical_and(y_true != label, y_pred == label))
         fn = np.sum(np.logical_and(y_true == label, y_pred != label))
 
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
+        pr = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        re = tp / (tp + fn) if (tp + fn) > 0 else 0.0
 
-        f1 = 2 * (pr * re) / (pr + re)
+        f1 = 2 * (pr * re) / (pr + re) if (pr + re) > 0 else 0.0
         f1_scores[label] = f1
 
     return np.mean(f1_scores)
@@ -529,5 +509,4 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
         if scoring_metric == "ROC_AUC":
             return _roc_auc_score
-        elif scoring_metric == "F1":
-            return _binary_f1_score
+        return _binary_f1_score
