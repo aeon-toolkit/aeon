@@ -71,3 +71,10 @@ def test_multivariate():
     combined = np.vstack([x1, x2, x3])
     c3 = acf.fit_transform(combined)
     assert np.allclose(c2, c3)
+
+
+def test_acf_default_lags_error_reports_remaining_observations():
+    """Default lags raise the intended error for a series that is too short."""
+    x = np.array([1.0])
+    with pytest.raises(ValueError, match="0 observations"):
+        AutoCorrelationSeriesTransformer().fit_transform(x)

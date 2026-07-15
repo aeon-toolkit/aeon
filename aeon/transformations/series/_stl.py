@@ -621,7 +621,9 @@ class STLSeriesTransformer(BaseSeriesTransformer):
                 "`output` must be one of {'resid','seasonal','trend','all'}."
             )
 
-    def _resolve_use_numba_local(self) -> bool:
+    def _resolve_use_numba_local(self) -> bool | None:
+        if self.use_numba is None:
+            return None
         return bool(self.use_numba)
 
     @staticmethod
