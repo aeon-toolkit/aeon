@@ -692,15 +692,15 @@ def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
 
         # The BOSS distance is asymmetric: only words present in the left
         # operand X contribute. CSR makes those left-hand rows cheap to scan.
+        X.eliminate_zeros()
         if not isspmatrix_csr(X):
             X = X.tocsr(copy=True)
-        X.eliminate_zeros()
 
         # The kernel then needs all right-hand rows with a matching word.
         # CSC makes that direct.
+        Y.eliminate_zeros()
         if not isspmatrix_csc(Y):
             Y = Y.tocsc(copy=True)
-        Y.eliminate_zeros()
 
         distance_matrix = _boss_pairwise_distances(
             # Convert int counts to float64
