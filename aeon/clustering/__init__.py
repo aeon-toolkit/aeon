@@ -12,8 +12,10 @@ __all__ = [
     "ElasticSOM",
     "KSpectralCentroid",
     "DummyClusterer",
+    "TimeSeriesAgglomerative",
 ]
 
+from aeon.clustering._agglomerative import TimeSeriesAgglomerative
 from aeon.clustering._clara import TimeSeriesCLARA
 from aeon.clustering._clarans import TimeSeriesCLARANS
 from aeon.clustering._elastic_som import ElasticSOM
