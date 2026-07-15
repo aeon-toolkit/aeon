@@ -97,6 +97,17 @@ Interval based TSC
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/interval.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/interval_based/drcif.ipynb
+:link-type: ref
+:text-align: center
+
+DrCIF
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/classification/img/shapelet.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/shapelet_based.ipynb
