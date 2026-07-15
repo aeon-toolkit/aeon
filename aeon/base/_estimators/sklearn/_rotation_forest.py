@@ -8,6 +8,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseRotationForest"]
 
 import time
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -125,10 +126,13 @@ class BaseRotationForest(BaseEstimator):
     min_samples_leaf : int or float, default=1
         The ``min_samples_leaf`` passed to the default decision tree. Only used
         when ``base_estimator`` is None.
-    pca_solver : str, default="auto"
-        Deprecated and has no effect. The group PCA is computed with an exact
+    pca_solver : str, default="deprecated"
+        Has no effect. The group PCA is always computed with an exact
         eigendecomposition of the covariance matrix, equivalent to the
-        scikit-learn PCA "full" solver. Will be removed in a future release.
+        scikit-learn PCA "full" solver.
+
+        .. deprecated:: 1.6.0
+            ``pca_solver`` has no effect and will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -163,7 +167,7 @@ class BaseRotationForest(BaseEstimator):
         max_depth: int | None = None,
         max_leaf_nodes: int | None = None,
         min_samples_leaf=1,
-        pca_solver: str = "auto",
+        pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
@@ -201,6 +205,16 @@ class BaseRotationForest(BaseEstimator):
         return Parallel(n_jobs=self._n_jobs, prefer="threads")(jobs)
 
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
+        if self.pca_solver != "deprecated":
+            warnings.warn(
+                "The pca_solver parameter is deprecated and has no effect, it "
+                "will be removed in v1.7.0. The group PCA is always computed "
+                "with an exact eigendecomposition equivalent to the "
+                "scikit-learn PCA 'full' solver.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         # cache the task type once rather than calling is_classifier repeatedly
         # in the per-group/per-estimator inner loops
         self._is_classifier = is_classifier(self)

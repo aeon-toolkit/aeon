@@ -62,10 +62,13 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
     min_samples_leaf : int or float, default=1
         The ``min_samples_leaf`` passed to the default ``DecisionTreeRegressor``.
         Only used when ``base_estimator`` is None.
-    pca_solver : str, default="full"
-        Deprecated and has no effect. The group PCA is computed with an exact
+    pca_solver : str, default="deprecated"
+        Has no effect. The group PCA is always computed with an exact
         eigendecomposition of the covariance matrix, equivalent to the
-        scikit-learn PCA "full" solver. Will be removed in a future release.
+        scikit-learn PCA "full" solver.
+
+        .. deprecated:: 1.6.0
+            ``pca_solver`` has no effect and will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -136,7 +139,7 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         max_depth: int | None = None,
         max_leaf_nodes: int | None = None,
         min_samples_leaf=1,
-        pca_solver: str = "full",
+        pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
