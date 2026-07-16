@@ -152,7 +152,12 @@ def test_rotf_contract_verbosity_reports_remaining_time(
 def test_rotf_contract_level_one_progress_is_rate_limited(
     time_limit_in_minutes, reports_progress, capsys
 ):
-    """RotationForest level one limits output for short completed contracts."""
+    """Level-one contract progress is emitted per tenth of the contract.
+
+    A contract far shorter than the fit reports progress, a contract far
+    longer than the fit is silent, and per-estimator lines never appear at
+    level one.
+    """
     X, y = load_unit_test(split="train", return_type="numpy2d")
     rotf = RotationForestClassifier(
         time_limit_in_minutes=time_limit_in_minutes,
