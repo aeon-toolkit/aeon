@@ -43,6 +43,12 @@ class Rocket(BaseCollectionTransformer):
     --------
     MiniRocket, MultiRocket
 
+    Notes
+    -----
+    The convolutions are computed in single precision, matching the original
+    ROCKET implementation: input series are cast to float32 before the
+    kernels are applied.
+
     References
     ----------
     .. [1] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph
@@ -143,7 +149,12 @@ class Rocket(BaseCollectionTransformer):
         prev_threads = get_num_threads()
         try:
             set_num_threads(self._n_jobs)
-            X_ = _apply_kernels(X, self.kernels)
+
+            # convolve in single precision: the kernel weights are float32 and
+            # the output features are float32, so float64 input only adds
+            # per-element promotion in the hot loop. asarray avoids a copy if
+            # X is already float32.
+            X_ = _apply_kernels(np.asarray(X, dtype=np.float32), self.kernels)
         finally:
             set_num_threads(prev_threads)
         return X_
@@ -253,10 +264,9 @@ def _apply_kernels(X, kernels):
         for j in range(n_kernels):
             b1 = a1 + n_channel_indices[j] * lengths[j]
             b2 = a2 + n_channel_indices[j]
-            b3 = a3 + 2
 
             if n_channel_indices[j] == 1:
-                _X[i][a3:b3] = _apply_kernel_univariate(
+                _ppv, _max = _apply_kernel_univariate(
                     X[i][channel_indices[a2]],
                     weights[a1:b1],
                     lengths[j],
@@ -268,7 +278,7 @@ def _apply_kernels(X, kernels):
             else:
                 _weights = weights[a1:b1].reshape((n_channel_indices[j], lengths[j]))
 
-                _X[i][a3:b3] = _apply_kernel_multivariate(
+                _ppv, _max = _apply_kernel_multivariate(
                     X[i],
                     _weights,
                     lengths[j],
@@ -279,11 +289,15 @@ def _apply_kernels(X, kernels):
                     channel_indices[a2:b2],
                 )
 
+            _X[i, a3] = _ppv
+            _X[i, a3 + 1] = _max
+
             a1 = b1
             a2 = b2
-            a3 = b3
+            a3 = a3 + 2
 
-    return _X.astype(np.float32)
+    # _X is already float32; astype would copy the whole feature matrix
+    return _X
 
 
 @njit(fastmath=True, cache=True)
