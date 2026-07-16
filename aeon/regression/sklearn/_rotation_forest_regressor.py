@@ -37,32 +37,11 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         The maximum size of an attribute subsample group.
     remove_proportion : float, default=0.5
         The proportion of cases to be removed per group.
-    base_estimator : BaseEstimator or None, default="None"
+    base_estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeRegressor` using MSE as a splitting measure. When set, the
-        ``criterion``, ``splitter``, ``max_features``, ``max_depth``,
-        ``max_leaf_nodes`` and ``min_samples_leaf`` parameters below are ignored.
-    criterion : str, default="squared_error"
-        The ``criterion`` passed to the default ``DecisionTreeRegressor``. Only
-        used when ``base_estimator`` is None.
-    splitter : str, default="best"
-        The ``splitter`` passed to the default ``DecisionTreeRegressor``.
-        ``"random"`` is faster but less accurate. Only used when
-        ``base_estimator`` is None.
-    max_features : int, float, str or None, default=None
-        The ``max_features`` passed to the default ``DecisionTreeRegressor``.
-        ``None`` considers all (rotated) features at each split; a smaller value
-        speeds up fitting. Only used when ``base_estimator`` is None.
-    max_depth : int or None, default=None
-        The ``max_depth`` passed to the default ``DecisionTreeRegressor``.
-        Limiting depth speeds up fitting. Only used when ``base_estimator`` is
-        None.
-    max_leaf_nodes : int or None, default=None
-        The ``max_leaf_nodes`` passed to the default ``DecisionTreeRegressor``.
-        Only used when ``base_estimator`` is None.
-    min_samples_leaf : int or float, default=1
-        The ``min_samples_leaf`` passed to the default ``DecisionTreeRegressor``.
-        Only used when ``base_estimator`` is None.
+        `DecisionTreeRegressor` using MSE as a splitting measure. Pass a
+        configured estimator to change tree parameters such as the criterion
+        or depth.
     pca_solver : str, default="deprecated"
         Has no effect. The group PCA is always computed with an exact
         eigendecomposition of the covariance matrix, equivalent to the
@@ -134,12 +113,6 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         max_group: int = 3,
         remove_proportion: float = 0.5,
         base_estimator: BaseEstimator | None = None,
-        criterion: str = "squared_error",
-        splitter: str = "best",
-        max_features=None,
-        max_depth: int | None = None,
-        max_leaf_nodes: int | None = None,
-        min_samples_leaf=1,
         pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
@@ -152,12 +125,6 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
             max_group=max_group,
             remove_proportion=remove_proportion,
             base_estimator=base_estimator,
-            criterion=criterion,
-            splitter=splitter,
-            max_features=max_features,
-            max_depth=max_depth,
-            max_leaf_nodes=max_leaf_nodes,
-            min_samples_leaf=min_samples_leaf,
             pca_solver=pca_solver,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
