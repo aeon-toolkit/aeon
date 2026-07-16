@@ -43,6 +43,12 @@ class Rocket(BaseCollectionTransformer):
     --------
     MiniRocket, MultiRocket
 
+    Notes
+    -----
+    The convolutions are computed in single precision, matching the original
+    ROCKET implementation: input series are cast to float32 before the
+    kernels are applied.
+
     References
     ----------
     .. [1] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph
@@ -139,7 +145,11 @@ class Rocket(BaseCollectionTransformer):
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
 
-        X_ = _apply_kernels(X, self.kernels)
+        # convolve in single precision: the kernel weights are float32 and the
+        # output features are float32, so float64 input only adds per-element
+        # promotion in the hot loop. asarray avoids a copy if X is already
+        # float32.
+        X_ = _apply_kernels(np.asarray(X, dtype=np.float32), self.kernels)
 
         set_num_threads(prev_threads)
         return X_
