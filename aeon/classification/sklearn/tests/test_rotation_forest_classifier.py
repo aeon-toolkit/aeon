@@ -147,7 +147,7 @@ def test_rotf_contract_verbosity_reports_remaining_time(
 
 @pytest.mark.parametrize(
     ("time_limit_in_minutes", "reports_progress"),
-    [(0.0005, True), (120, False)],
+    [(1e-06, True), (120, False)],
 )
 def test_rotf_contract_level_one_progress_is_rate_limited(
     time_limit_in_minutes, reports_progress, capsys
