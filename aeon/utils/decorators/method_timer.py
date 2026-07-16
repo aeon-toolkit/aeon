@@ -5,7 +5,7 @@ import time
 from collections.abc import Callable
 
 
-def method_timer(attr: str) -> Callable:
+def method_timer(attr: str, overwrite=True, remove_on_start=True) -> Callable:
     """Time a method call.
 
     A decorator factory that times a method call in milliseconds and writes it to
@@ -16,6 +16,11 @@ def method_timer(attr: str) -> Callable:
     ----------
     attr : str
         The name of the attribute to write the timing to.
+    overwrite : bool, default=True
+        Whether to overwrite the attribute if it exists.
+    remove_on_start : bool, default=True
+        Whether to remove the attribute if it exists before calling the decorated
+        method.
 
     Returns
     -------
@@ -37,12 +42,16 @@ def method_timer(attr: str) -> Callable:
                     f"{attr!r} on {type(self).__name__}."
                 )
 
+            if remove_on_start and hasattr(self, attr):
+                delattr(self, attr)
+
             start = time.perf_counter()
             try:
                 return func(*args, **kwargs)
             finally:
                 ms = int((time.perf_counter() - start) * 1000)
-                setattr(self, attr, ms)
+                if overwrite or not hasattr(self, attr):
+                    setattr(self, attr, ms)
 
         return wrapper
 
