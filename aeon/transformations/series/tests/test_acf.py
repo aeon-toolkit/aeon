@@ -4,7 +4,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
+from aeon.transformations.series._acf import (
+    AutoCorrelationSeriesTransformer,
+    StatsModelsACF,
+    StatsModelsPACF,
+)
 
 
 def test_acf():
@@ -22,6 +26,17 @@ def test_acf():
     y = acf.fit_transform(x, axis=0)
     assert y.shape == (n_lags, 1)
     # Test with axis = 0
+
+
+@pytest.mark.parametrize(
+    "transformer",
+    [StatsModelsACF, StatsModelsPACF],
+)
+def test_statsmodels_transformers_deprecated(transformer):
+    """Test that statsmodels wrappers raise their deprecation warnings."""
+    match = f"{transformer.__name__}.*removed in v1.7.0"
+    with pytest.warns(FutureWarning, match=match):
+        transformer()
 
 
 TEST_DATA = [
