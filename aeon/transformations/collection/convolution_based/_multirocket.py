@@ -165,11 +165,21 @@ class MultiRocket(BaseCollectionTransformer):
         -------
         pandas DataFrame, transformed features
         """
-        _, n_channels, n_timepoints = X.shape
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
+        return self._transform_kernels(X)
+
+    def _transform_kernels(self, X):
+        """Apply fitted kernels to input that needs no further normalisation.
+
+        The kernels-only part of ``_transform``: callers that normalise input
+        themselves (or use ``normalise=False``) can call this directly, so
+        ensembles that normalise once can treat every rocket transformer
+        uniformly.
+        """
+        _, n_channels, n_timepoints = X.shape
         # change n_jobs depending on value and existing cores
         prev_threads = get_num_threads()
         if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():

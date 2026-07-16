@@ -145,7 +145,13 @@ class Rocket(BaseCollectionTransformer):
         return self._transform_kernels(X)
 
     def _transform_kernels(self, X):
-        """Apply fitted kernels to input that needs no further normalization."""
+        """Apply fitted kernels to input that needs no further normalisation.
+
+        The kernels-only part of ``_transform``: callers that normalise input
+        themselves (or use ``normalise=False``) can call this directly, so
+        ensembles that normalise once can treat every rocket transformer
+        uniformly.
+        """
         prev_threads = get_num_threads()
         try:
             set_num_threads(self._n_jobs)

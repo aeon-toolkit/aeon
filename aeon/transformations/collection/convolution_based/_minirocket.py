@@ -163,6 +163,15 @@ class MiniRocket(BaseCollectionTransformer):
         set_num_threads(prev_threads)
         return X_
 
+    def _transform_kernels(self, X):
+        """Apply fitted kernels to input that needs no further normalisation.
+
+        MiniRocket applies no normalisation of its own, so this is its whole
+        transform. The method exists so ensembles that normalise input once
+        can treat every rocket transformer uniformly.
+        """
+        return self._transform(X)
+
 
 def _fit_dilations(n_timepoints, n_features, max_dilations_per_kernel):
     n_kernels = 84
