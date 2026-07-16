@@ -11,6 +11,7 @@ from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils._parallel import _NUMBA_PARALLEL_LOCK
 from aeon.utils.validation import check_n_jobs
 
 
@@ -148,20 +149,50 @@ class MiniRocket(BaseCollectionTransformer):
         """
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
+
+        if self._n_jobs == 1:
+            # the serial nogil kernels never enter numba's threading layer,
+            # so ensemble members can transform concurrently in joblib
+            # threads (concurrent entry aborts the default workqueue layer)
+            if n_channels == 1:
+                return _static_transform_uni_serial(
+                    X.squeeze(1), self.parameters, MiniRocket._indices
+                )
+            return _static_transform_multi_serial(
+                X, self.parameters, MiniRocket._indices
+            )
+
         # change n_jobs depending on value and existing cores
-        prev_threads = get_num_threads()
         if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
         else:
             n_jobs = self._n_jobs
-        set_num_threads(n_jobs)
-        if n_channels == 1:
-            X = X.squeeze(1)
-            X_ = _static_transform_uni(X, self.parameters, MiniRocket._indices)
-        else:
-            X_ = _static_transform_multi(X, self.parameters, MiniRocket._indices)
-        set_num_threads(prev_threads)
+        # the lock serialises parallel launches and the global thread-count
+        # swap across Python threads
+        with _NUMBA_PARALLEL_LOCK:
+            prev_threads = get_num_threads()
+            try:
+                set_num_threads(n_jobs)
+                if n_channels == 1:
+                    X_ = _static_transform_uni(
+                        X.squeeze(1), self.parameters, MiniRocket._indices
+                    )
+                else:
+                    X_ = _static_transform_multi(
+                        X, self.parameters, MiniRocket._indices
+                    )
+            finally:
+                set_num_threads(prev_threads)
         return X_
+
+    def _transform_kernels(self, X):
+        """Apply fitted kernels to input that needs no further normalisation.
+
+        MiniRocket applies no normalisation of its own, so this is its whole
+        transform. The method exists so ensembles that normalise input once
+        can treat every rocket transformer uniformly.
+        """
+        return self._transform(X)
 
 
 def _fit_dilations(n_timepoints, n_features, max_dilations_per_kernel):
@@ -246,12 +277,7 @@ def _PPV(a, b):
     return 0
 
 
-@njit(
-    fastmath=True,
-    parallel=True,
-    cache=True,
-)
-def _static_transform_uni(X, parameters, indices):
+def _static_transform_uni_impl(X, parameters, indices):
     """Transform a 2D collection of univariate time series.
 
     Implemented separately to the multivariate version for numba efficiency reasons.
@@ -311,12 +337,18 @@ def _static_transform_uni(X, parameters, indices):
     return features
 
 
-@njit(
-    fastmath=True,
-    parallel=True,
-    cache=True,
+# one body, two compilations: parallel for standalone n_jobs > 1 use, and a
+# serial nogil version (prange degrades to range) that never enters numba's
+# threading layer, so ensemble members can transform concurrently in threads
+_static_transform_uni = njit(fastmath=True, parallel=True, cache=True)(
+    _static_transform_uni_impl
 )
-def _static_transform_multi(X, parameters, indices):
+_static_transform_uni_serial = njit(fastmath=True, nogil=True, cache=True)(
+    _static_transform_uni_impl
+)
+
+
+def _static_transform_multi_impl(X, parameters, indices):
     n_cases, n_channels, n_timepoints = X.shape
     (
         n_channels_per_combination,
@@ -386,6 +418,14 @@ def _static_transform_multi(X, parameters, indices):
                 comb += 1
                 n_channels_start = n_channels_end
     return features
+
+
+_static_transform_multi = njit(fastmath=True, parallel=True, cache=True)(
+    _static_transform_multi_impl
+)
+_static_transform_multi_serial = njit(fastmath=True, nogil=True, cache=True)(
+    _static_transform_multi_impl
+)
 
 
 @njit(
