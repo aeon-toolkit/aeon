@@ -9,10 +9,7 @@ from aeon.classification.convolution_based._arsenal import (
     _get_oob_indices,
     _normalise_oob_probabilities,
 )
-from aeon.testing.data_generation import (
-    make_example_2d_numpy_collection,
-    make_example_3d_numpy,
-)
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
@@ -35,58 +32,46 @@ def test_contracted_arsenal():
     assert 1 < len(arsenal.estimators_) <= contract_max_n_estimators
 
 
-def test_arsenal():
-    """Test correct rocket variant is selected."""
-    X_train, y_train = make_example_2d_numpy_collection(n_cases=20, n_timepoints=50)
-    afc = Arsenal(n_kernels=20, n_estimators=2)
-    afc.fit(X_train, y_train)
-    for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], Rocket)
-    assert len(afc.estimators_) == 2
-    afc = Arsenal(
-        n_kernels=100,
-        rocket_transform="minirocket",
-        max_dilations_per_kernel=2,
-        n_estimators=2,
+@pytest.mark.parametrize("n_channels", [1, 4])
+@pytest.mark.parametrize(
+    ("rocket_transform", "expected_transformer"),
+    [
+        ("rocket", Rocket),
+        ("minirocket", MiniRocket),
+        ("multirocket", MultiRocket),
+    ],
+)
+def test_arsenal_rocket_variants(rocket_transform, expected_transformer, n_channels):
+    """Every ensemble member is built on the requested rocket transformer."""
+    n_estimators = 2
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_channels=n_channels, n_timepoints=50, random_state=0
     )
-    afc.fit(X_train, y_train)
-    for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MiniRocket)
-    afc = Arsenal(
+
+    clf = Arsenal(
         n_kernels=100,
-        rocket_transform="multirocket",
+        rocket_transform=rocket_transform,
         max_dilations_per_kernel=2,
-        n_estimators=2,
+        n_estimators=n_estimators,
+        random_state=0,
     )
-    afc.fit(X_train, y_train)
-    for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MultiRocket)
-    X_train, y_train = make_example_3d_numpy(n_cases=20, n_timepoints=50, n_channels=4)
-    afc = Arsenal(
-        n_kernels=100,
-        rocket_transform="minirocket",
-        max_dilations_per_kernel=2,
-        n_estimators=2,
-    )
-    afc.fit(X_train, y_train)
-    for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MiniRocket)
-    afc = Arsenal(
-        n_kernels=100,
-        rocket_transform="multirocket",
-        max_dilations_per_kernel=2,
-        n_estimators=2,
-    )
-    afc.fit(X_train, y_train)
-    for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MultiRocket)
-    afc = Arsenal(rocket_transform="fubar")
-    with pytest.raises(ValueError, match="Invalid Rocket transformer: fubar"):
-        afc.fit(X_train, y_train)
+    clf.fit(X, y)
+
+    assert len(clf.estimators_) == n_estimators
+    for pipeline in clf.estimators_:
+        assert isinstance(pipeline[0], expected_transformer)
+
+
+def test_arsenal_invalid_rocket_transform():
+    """An unknown rocket_transform raises at fit."""
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=20, random_state=0)
+
+    with pytest.raises(ValueError, match="Invalid Rocket transformer"):
+        Arsenal(rocket_transform="fubar").fit(X, y)
 
 
 def test_arsenal_normalises_rocket_input_once(monkeypatch):
-    """Arsenal should share normalization across its ROCKET ensemble members."""
+    """Input is normalised once per fit and once per predict, not per member."""
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=3, n_timepoints=30, random_state=0
     )
@@ -111,7 +96,7 @@ def test_arsenal_normalises_rocket_input_once(monkeypatch):
 
 
 def test_arsenal_rocket_pipeline_accepts_raw_input():
-    """Stored ROCKET pipelines should retain their raw-input prediction behavior."""
+    """Stored pipelines predict on raw input as Arsenal does on normalised input."""
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=3, n_timepoints=30, random_state=0
     )
@@ -140,8 +125,8 @@ def test_arsenal_oob_indices_with_duplicates():
     np.testing.assert_array_equal(oob, [1, 3, 5])
 
 
-def test_arsenal_vectorised_oob_probability_normalisation():
-    """OOB rows should use their available weight or uniform probabilities."""
+def test_arsenal_oob_probability_normalisation():
+    """OOB rows divide by their available weight; unseen rows become uniform."""
     probabilities = np.array(
         [
             [0.5, 0.0],
@@ -171,8 +156,8 @@ def test_arsenal_vectorised_oob_probability_normalisation():
     np.testing.assert_allclose(actual, expected)
 
 
-def test_arsenal_compact_class_vote_aggregation():
-    """Compact class-index outputs should aggregate without dense worker matrices."""
+def test_arsenal_class_vote_aggregation():
+    """Weighted class-index votes aggregate into the expected probabilities."""
     predictions = [
         np.array([0, 1, 1]),
         np.array([1, 1, 0]),
