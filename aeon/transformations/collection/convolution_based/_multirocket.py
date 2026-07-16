@@ -581,9 +581,12 @@ def _transform_uni_impl(
 
 # one body, two compilations: parallel for standalone n_jobs > 1 use, and a
 # serial nogil version (prange degrades to range) that never enters numba's
-# threading layer, so ensemble members can transform concurrently in threads
-_transform_uni = njit(fastmath=True, parallel=True, cache=True)(_transform_uni_impl)
-_transform_uni_serial = njit(fastmath=True, nogil=True, cache=True)(_transform_uni_impl)
+# threading layer, so ensemble members can transform concurrently in threads.
+# Compiled without fastmath so both compilations produce identical results
+# (measured as ~free for these kernels); fastmath would let them reassociate
+# differently and break n_jobs invariance.
+_transform_uni = njit(parallel=True, cache=True)(_transform_uni_impl)
+_transform_uni_serial = njit(nogil=True, cache=True)(_transform_uni_impl)
 
 
 def _transform_multi_impl(
@@ -902,10 +905,8 @@ def _transform_multi_impl(
     return features
 
 
-_transform_multi = njit(fastmath=True, parallel=True, cache=True)(_transform_multi_impl)
-_transform_multi_serial = njit(fastmath=True, nogil=True, cache=True)(
-    _transform_multi_impl
-)
+_transform_multi = njit(parallel=True, cache=True)(_transform_multi_impl)
+_transform_multi_serial = njit(nogil=True, cache=True)(_transform_multi_impl)
 
 
 @njit(

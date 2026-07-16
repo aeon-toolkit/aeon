@@ -150,25 +150,18 @@ class MiniRocket(BaseCollectionTransformer):
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
 
-        if self._n_jobs == 1:
-            # the serial nogil kernels never enter numba's threading layer,
-            # so ensemble members can transform concurrently in joblib
-            # threads (concurrent entry aborts the default workqueue layer)
-            if n_channels == 1:
-                return _static_transform_uni_serial(
-                    X.squeeze(1), self.parameters, MiniRocket._indices
-                )
-            return _static_transform_multi_serial(
-                X, self.parameters, MiniRocket._indices
-            )
-
         # change n_jobs depending on value and existing cores
         if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
         else:
             n_jobs = self._n_jobs
-        # the lock serialises parallel launches and the global thread-count
-        # swap across Python threads
+        # a single compiled kernel serves every n_jobs value so results are
+        # identical across thread counts; MiniRocket keeps fastmath (a 1.4x
+        # transform win), and dual serial/parallel compilations of a fastmath
+        # body can differ at float32 precision. The lock serialises parallel
+        # launches and the global thread-count swap across Python threads:
+        # ensembles fit members in joblib threads, and concurrent entry
+        # aborts numba's default workqueue threading layer.
         with _NUMBA_PARALLEL_LOCK:
             prev_threads = get_num_threads()
             try:
@@ -337,13 +330,7 @@ def _static_transform_uni_impl(X, parameters, indices):
     return features
 
 
-# one body, two compilations: parallel for standalone n_jobs > 1 use, and a
-# serial nogil version (prange degrades to range) that never enters numba's
-# threading layer, so ensemble members can transform concurrently in threads
 _static_transform_uni = njit(fastmath=True, parallel=True, cache=True)(
-    _static_transform_uni_impl
-)
-_static_transform_uni_serial = njit(fastmath=True, nogil=True, cache=True)(
     _static_transform_uni_impl
 )
 
@@ -421,9 +408,6 @@ def _static_transform_multi_impl(X, parameters, indices):
 
 
 _static_transform_multi = njit(fastmath=True, parallel=True, cache=True)(
-    _static_transform_multi_impl
-)
-_static_transform_multi_serial = njit(fastmath=True, nogil=True, cache=True)(
     _static_transform_multi_impl
 )
 

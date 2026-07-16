@@ -315,9 +315,12 @@ def _apply_kernels_impl(X, kernels):
 # one kernel body, two compilations: a parallel dispatcher for standalone
 # n_jobs > 1 use, and a serial nogil dispatcher (prange degrades to range
 # without parallel=True) that never enters numba's threading layer, so
-# ensemble members can transform concurrently from joblib threads
-_apply_kernels = njit(parallel=True, fastmath=True, cache=True)(_apply_kernels_impl)
-_apply_kernels_serial = njit(fastmath=True, nogil=True, cache=True)(_apply_kernels_impl)
+# ensemble members can transform concurrently from joblib threads. The
+# transform kernels are compiled without fastmath so both compilations
+# produce identical results (measured as free here); fastmath would let
+# them reassociate differently and break n_jobs invariance.
+_apply_kernels = njit(parallel=True, cache=True)(_apply_kernels_impl)
+_apply_kernels_serial = njit(nogil=True, cache=True)(_apply_kernels_impl)
 
 
 @njit(fastmath=True, cache=True)
