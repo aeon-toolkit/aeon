@@ -83,6 +83,21 @@ def test_method_timer_sets_attr_if_existing_attr_removed():
     assert a.t_ms >= 0
 
 
+def test_method_timer_default_keeps_existing_attr_during_call():
+    """Test the default leaves an existing attribute available to the method."""
+
+    class _A:
+        @method_timer("t_ms")
+        def f(self):
+            return self.t_ms
+
+    a = _A()
+    a.t_ms = "existing value"
+
+    assert a.f() == "existing value"
+    assert isinstance(a.t_ms, int)
+
+
 def test_method_timer_missing_self_raises_typeerror():
     """Test raises TypeError if the decorated function is missing self."""
 
