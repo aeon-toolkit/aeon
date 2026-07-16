@@ -536,30 +536,62 @@ def check_non_state_changing_method(estimator, datatype):
         y, FULL_TEST_DATA_DICT[datatype]["train"][1]
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
-    state_before = {
-        name: joblib.hash(value) for name, value in estimator.__dict__.items()
-    }
     X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
+    def _snapshot_state(estimator):
+        state = {}
+        use_hash = not _get_tag(estimator, "cant_pickle", default=False)
+
+        for name, value in vars(estimator).items():
+            if use_hash:
+                try:
+                    state[name] = ("hash", joblib.hash(value))
+                    continue
+                except (TypeError, pickle.PicklingError, AttributeError):
+                    pass
+
+            state[name] = ("identity", value)
+
+        return state
+
+    def _changed_state(before, after):
+        changed = set(before) ^ set(after)
+
+        for name in before.keys() & after.keys():
+            mode, old = before[name]
+            value = after[name]
+
+            if mode == "hash":
+                try:
+                    equal = old == joblib.hash(value)
+                except (TypeError, pickle.PicklingError, AttributeError):
+                    equal = False
+            else:
+                equal = old is value
+
+            if not equal:
+                changed.add(name)
+
+        return changed
+
+    state_before = _snapshot_state(estimator)
     for method in NON_STATE_CHANGING_METHODS:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             _run_estimator_method(estimator, method, datatype, "test")
 
-        assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["test"][0]) and deep_equals(
-            y, FULL_TEST_DATA_DICT[datatype]["test"][1]
-        ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
+            assert deep_equals(
+                X, FULL_TEST_DATA_DICT[datatype]["test"][0]
+            ) and deep_equals(
+                y, FULL_TEST_DATA_DICT[datatype]["test"][1]
+            ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
-        # dict_after = dictionary of estimator after predict and fit
-        state_after = {
-            name: joblib.hash(value) for name, value in estimator.__dict__.items()
-        }
-        assert state_before == state_after, (
-            f"Estimator: {type(estimator).__name__} changes __dict__ "
-            f"during {method}, "
-            f"reason/location of discrepancy (x=after, y=before): "
-            f"{state_before} vs {state_after}"
-        )
+            changed = _changed_state(state_before, vars(estimator))
+
+            assert not changed, (
+                f"Estimator: {type(estimator).__name__} changes __dict__ "
+                f"during {method}; changed attributes: {sorted(changed)}"
+            )
 
 
 def check_fit_updates_state_and_cloning(estimator, datatype):

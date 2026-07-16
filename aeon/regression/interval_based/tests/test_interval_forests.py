@@ -48,5 +48,5 @@ def test_forest_pycatch22(cls):
 
     reg = cls(**params)
     reg.fit(X_train, y_train)
-    prob = reg.predict(X_test)
-    _assert_predict_labels(prob, X_test)
+    pred = reg.predict(X_test)
+    _assert_predict_labels(pred, X_test)
