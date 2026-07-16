@@ -292,11 +292,7 @@ class Arsenal(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        _, train_estimates = self._fit_arsenal(
-            X,
-            y,
-            return_train_estimates=True,
-        )
+        train_estimates = self._fit_arsenal(X, y, return_train_estimates=True)
         class_indices, weights, oobs = zip(*train_estimates)
 
         results = _aggregate_class_votes(
@@ -313,13 +309,7 @@ class Arsenal(BaseClassifier):
             self.n_classes_,
         )
 
-    def _fit_arsenal(
-        self,
-        X,
-        y,
-        keep_transformed_data=False,
-        return_train_estimates=False,
-    ):
+    def _fit_arsenal(self, X, y, return_train_estimates=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
@@ -352,7 +342,6 @@ class Arsenal(BaseClassifier):
         if time_limit > 0:
             self.n_estimators_ = 0
             self.estimators_ = []
-            Xt = []
             train_estimates = []
 
             while (
@@ -367,8 +356,6 @@ class Arsenal(BaseClassifier):
                             ),
                             X,
                             y,
-                            keep_transformed_data=keep_transformed_data,
-                            return_train_estimates=return_train_estimates,
                             train_rng=(
                                 check_random_state(
                                     train_rng.randint(np.iinfo(np.int32).max)
@@ -383,15 +370,9 @@ class Arsenal(BaseClassifier):
                     prefer="threads",
                 )
 
-                if return_train_estimates:
-                    estimators, transformed_data, train_data = zip(*fit)
-                else:
-                    estimators, transformed_data = zip(*fit)
-
+                estimators, train_data = zip(*fit)
                 self.estimators_ += estimators
-                Xt += transformed_data
-                if return_train_estimates:
-                    train_estimates += train_data
+                train_estimates += train_data
 
                 self.n_estimators_ += self._n_jobs
                 train_time = time.time() - start_time
@@ -404,8 +385,6 @@ class Arsenal(BaseClassifier):
                         ),
                         X,
                         y,
-                        keep_transformed_data=keep_transformed_data,
-                        return_train_estimates=return_train_estimates,
                         train_rng=(
                             check_random_state(
                                 train_rng.randint(np.iinfo(np.int32).max)
@@ -420,11 +399,7 @@ class Arsenal(BaseClassifier):
                 prefer="threads",
             )
 
-            if return_train_estimates:
-                self.estimators_, Xt, train_data = zip(*fit)
-                train_estimates = list(train_data)
-            else:
-                self.estimators_, Xt = zip(*fit)
+            self.estimators_, train_estimates = zip(*fit)
             self.n_estimators_ = self.n_estimators
 
         self.weights_ = []
@@ -434,17 +409,9 @@ class Arsenal(BaseClassifier):
             self.weights_.append(weight)
             self._weight_sum += weight
 
-        return (Xt, train_estimates) if return_train_estimates else Xt
+        return list(train_estimates) if return_train_estimates else None
 
-    def _fit_ensemble_estimator(
-        self,
-        rocket,
-        X,
-        y,
-        keep_transformed_data,
-        return_train_estimates=False,
-        train_rng=None,
-    ):
+    def _fit_ensemble_estimator(self, rocket, X, y, train_rng=None):
         if isinstance(rocket, Rocket):
             rocket.fit(X)
             transformed_x = rocket._transform_kernels(X)
@@ -457,16 +424,13 @@ class Arsenal(BaseClassifier):
         )
         ridge.fit(scaler.transform(transformed_x), y)
         pipeline = make_pipeline(rocket, scaler, ridge)
-        if return_train_estimates:
-            train_estimate = self._train_probas_for_estimator(
-                [transformed_x], y, 0, train_rng
-            )
-            return [
-                pipeline,
-                transformed_x if keep_transformed_data else None,
-                train_estimate,
-            ]
-        return [pipeline, transformed_x if keep_transformed_data else None]
+
+        train_estimate = (
+            self._train_probas_for_estimator(transformed_x, y, train_rng)
+            if train_rng is not None
+            else None
+        )
+        return pipeline, train_estimate
 
     def _predict_for_estimator(self, X, classifier):
         if self.rocket_transform == "rocket":
@@ -477,7 +441,7 @@ class Arsenal(BaseClassifier):
             preds = classifier.predict(X)
         return np.searchsorted(self.classes_, preds)
 
-    def _train_probas_for_estimator(self, Xt, y, idx, rng):
+    def _train_probas_for_estimator(self, Xt, y, rng):
         subsample = rng.choice(self.n_cases_, size=self.n_cases_)
         oob = _get_oob_indices(subsample, self.n_cases_)
 
@@ -490,8 +454,8 @@ class Arsenal(BaseClassifier):
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             ),
         )
-        clf.fit(Xt[idx][subsample], y[subsample])
-        preds = clf.predict(Xt[idx][oob])
+        clf.fit(Xt[subsample], y[subsample])
+        preds = clf.predict(Xt[oob])
 
         weight = clf.steps[1][1].best_score_
 

@@ -131,8 +131,8 @@ def test_arsenal_rocket_pipeline_accepts_raw_input():
     np.testing.assert_array_equal(actual, expected)
 
 
-def test_arsenal_oob_indices_preserve_order_with_duplicates():
-    """OOB selection should handle bootstrap duplicates without a quadratic search."""
+def test_arsenal_oob_indices_with_duplicates():
+    """OOB indices are the sorted cases absent from a duplicated bootstrap."""
     subsample = np.array([4, 0, 4, 2, 0, 6, 2])
 
     oob = _get_oob_indices(subsample, n_cases=7)
@@ -197,15 +197,48 @@ def test_arsenal_compact_class_vote_aggregation():
 
 
 def test_arsenal_fit_predict_returns_train_estimates():
-    """Arsenal fit_predict should execute the fused train-estimate path."""
+    """Arsenal fit_predict labels come from valid OOB probability estimates."""
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=1, n_timepoints=20, random_state=0
     )
 
-    predictions = Arsenal(
-        n_kernels=5,
-        n_estimators=2,
-        random_state=0,
-    ).fit_predict(X, y)
+    clf = Arsenal(n_kernels=5, n_estimators=2, random_state=0)
+    proba = clf.fit_predict_proba(X, y)
 
-    assert predictions.shape == (20,)
+    assert proba.shape == (len(y), clf.n_classes_)
+    assert np.all(proba >= 0)
+    np.testing.assert_allclose(proba.sum(axis=1), np.ones(len(y)))
+
+    predictions = Arsenal(n_kernels=5, n_estimators=2, random_state=0).fit_predict(X, y)
+    assert predictions.shape == (len(y),)
+    assert set(predictions).issubset(set(clf.classes_))
+
+
+def test_arsenal_n_jobs_does_not_change_output():
+    """Threaded and sequential Arsenal fits produce identical results."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=30, random_state=0
+    )
+    X_test, _ = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=30, random_state=1
+    )
+
+    sequential = Arsenal(n_kernels=20, n_estimators=3, random_state=0, n_jobs=1)
+    threaded = Arsenal(n_kernels=20, n_estimators=3, random_state=0, n_jobs=2)
+
+    sequential.fit(X, y)
+    threaded.fit(X, y)
+    assert threaded._n_jobs == 2
+
+    np.testing.assert_array_equal(sequential.weights_, threaded.weights_)
+    np.testing.assert_array_equal(
+        sequential.predict_proba(X_test), threaded.predict_proba(X_test)
+    )
+
+    sequential_train = Arsenal(
+        n_kernels=20, n_estimators=3, random_state=0, n_jobs=1
+    ).fit_predict_proba(X, y)
+    threaded_train = Arsenal(
+        n_kernels=20, n_estimators=3, random_state=0, n_jobs=2
+    ).fit_predict_proba(X, y)
+    np.testing.assert_array_equal(sequential_train, threaded_train)
