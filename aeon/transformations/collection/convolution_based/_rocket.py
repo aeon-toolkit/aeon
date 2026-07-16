@@ -249,10 +249,9 @@ def _apply_kernels(X, kernels):
         for j in range(n_kernels):
             b1 = a1 + n_channel_indices[j] * lengths[j]
             b2 = a2 + n_channel_indices[j]
-            b3 = a3 + 2
 
             if n_channel_indices[j] == 1:
-                _X[i][a3:b3] = _apply_kernel_univariate(
+                _ppv, _max = _apply_kernel_univariate(
                     X[i][channel_indices[a2]],
                     weights[a1:b1],
                     lengths[j],
@@ -264,7 +263,7 @@ def _apply_kernels(X, kernels):
             else:
                 _weights = weights[a1:b1].reshape((n_channel_indices[j], lengths[j]))
 
-                _X[i][a3:b3] = _apply_kernel_multivariate(
+                _ppv, _max = _apply_kernel_multivariate(
                     X[i],
                     _weights,
                     lengths[j],
@@ -275,11 +274,15 @@ def _apply_kernels(X, kernels):
                     channel_indices[a2:b2],
                 )
 
+            _X[i, a3] = _ppv
+            _X[i, a3 + 1] = _max
+
             a1 = b1
             a2 = b2
-            a3 = b3
+            a3 = a3 + 2
 
-    return _X.astype(np.float32)
+    # _X is already float32; astype would copy the whole feature matrix
+    return _X
 
 
 @njit(fastmath=True, cache=True)
