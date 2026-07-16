@@ -6,6 +6,7 @@ from numba import get_num_threads, njit, prange, set_num_threads
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils._parallel import _NUMBA_PARALLEL_LOCK
 from aeon.utils.validation import check_n_jobs
 
 
@@ -180,43 +181,57 @@ class MultiRocket(BaseCollectionTransformer):
         uniformly.
         """
         _, n_channels, n_timepoints = X.shape
+        X = X.astype(np.float32)
+
+        if n_channels > 1:
+            X1 = np.diff(X, 1)
+        else:
+            X = X.reshape(X.shape[0], X.shape[2])
+            X1 = np.diff(X, 1)
+
+        if self._n_jobs == 1:
+            # the serial nogil kernels never enter numba's threading layer,
+            # so ensemble members can transform concurrently in joblib
+            # threads (concurrent entry aborts the default workqueue layer)
+            transform = (
+                _transform_multi_serial if n_channels > 1 else _transform_uni_serial
+            )
+            X = transform(
+                X,
+                X1,
+                self.parameter,
+                self.parameter1,
+                self.n_features_per_kernel,
+                MultiRocket._indices,
+                self.random_state_,
+            )
+            return np.nan_to_num(X)  # not sure about this!
+
         # change n_jobs depending on value and existing cores
-        prev_threads = get_num_threads()
         if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
         else:
             n_jobs = self._n_jobs
-        set_num_threads(n_jobs)
+        # the lock serialises parallel launches and the global thread-count
+        # swap across Python threads
+        with _NUMBA_PARALLEL_LOCK:
+            prev_threads = get_num_threads()
+            try:
+                set_num_threads(n_jobs)
+                transform = _transform_multi if n_channels > 1 else _transform_uni
+                X = transform(
+                    X,
+                    X1,
+                    self.parameter,
+                    self.parameter1,
+                    self.n_features_per_kernel,
+                    MultiRocket._indices,
+                    self.random_state_,
+                )
+            finally:
+                set_num_threads(prev_threads)
 
-        X = X.astype(np.float32)
-        if n_channels > 1:
-            X1 = np.diff(X, 1)
-            X = _transform_multi(
-                X,
-                X1,
-                self.parameter,
-                self.parameter1,
-                self.n_features_per_kernel,
-                MultiRocket._indices,
-                self.random_state_,
-            )
-        else:
-            X = X.reshape(X.shape[0], X.shape[2])
-            X1 = np.diff(X, 1)
-            X = _transform_uni(
-                X,
-                X1,
-                self.parameter,
-                self.parameter1,
-                self.n_features_per_kernel,
-                MultiRocket._indices,
-                self.random_state_,
-            )
-
-        X = np.nan_to_num(X)  # not sure about this!
-
-        set_num_threads(prev_threads)
-        return X
+        return np.nan_to_num(X)  # not sure about this!
 
     def _fit_univariate(self, X):
         _, input_length = X.shape
@@ -297,12 +312,7 @@ class MultiRocket(BaseCollectionTransformer):
         )
 
 
-@njit(
-    fastmath=True,
-    parallel=True,
-    cache=True,
-)
-def _transform_uni(
+def _transform_uni_impl(
     X, X1, parameters, parameters1, n_features_per_kernel, indices, seed
 ):
     if seed is not None:
@@ -569,12 +579,14 @@ def _transform_uni(
     return features
 
 
-@njit(
-    fastmath=True,
-    parallel=True,
-    cache=True,
-)
-def _transform_multi(
+# one body, two compilations: parallel for standalone n_jobs > 1 use, and a
+# serial nogil version (prange degrades to range) that never enters numba's
+# threading layer, so ensemble members can transform concurrently in threads
+_transform_uni = njit(fastmath=True, parallel=True, cache=True)(_transform_uni_impl)
+_transform_uni_serial = njit(fastmath=True, nogil=True, cache=True)(_transform_uni_impl)
+
+
+def _transform_multi_impl(
     X, X1, parameters, parameters1, n_features_per_kernel, indices, seed
 ):
     n_cases, n_channels, n_timepoints = X.shape
@@ -888,6 +900,12 @@ def _transform_multi(
                 n_channels_start = n_channels_end
 
     return features
+
+
+_transform_multi = njit(fastmath=True, parallel=True, cache=True)(_transform_multi_impl)
+_transform_multi_serial = njit(fastmath=True, nogil=True, cache=True)(
+    _transform_multi_impl
+)
 
 
 @njit(
