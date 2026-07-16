@@ -22,17 +22,17 @@ from aeon.transformations.collection.convolution_based import (
 
 
 def test_contracted_arsenal():
-    """Test of contracted Arsenal on unit test data."""
-    # load unit test data
+    """Contracted Arsenal builds at least two members and respects the cap."""
     X_train, y_train = make_example_3d_numpy()
-    # train contracted Arsenal
+
+    contract_max_n_estimators = 3
     arsenal = Arsenal(
         time_limit_in_minutes=0.25,
-        contract_max_n_estimators=3,
+        contract_max_n_estimators=contract_max_n_estimators,
         n_kernels=20,
     )
     arsenal.fit(X_train, y_train)
-    assert len(arsenal.estimators_) > 1
+    assert 1 < len(arsenal.estimators_) <= contract_max_n_estimators
 
 
 def test_arsenal():
@@ -212,6 +212,20 @@ def test_arsenal_fit_predict_returns_train_estimates():
     predictions = Arsenal(n_kernels=5, n_estimators=2, random_state=0).fit_predict(X, y)
     assert predictions.shape == (len(y),)
     assert set(predictions).issubset(set(clf.classes_))
+
+
+def test_arsenal_class_weight_reaches_ridge():
+    """The class_weight parameter is passed to every member's ridge."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=30, random_state=0
+    )
+
+    clf = Arsenal(
+        n_kernels=20, n_estimators=2, class_weight="balanced", random_state=0
+    ).fit(X, y)
+
+    for pipeline in clf.estimators_:
+        assert pipeline[-1].class_weight == "balanced"
 
 
 def test_arsenal_weights_are_cv_accuracies():
