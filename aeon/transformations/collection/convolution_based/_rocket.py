@@ -136,12 +136,16 @@ class Rocket(BaseCollectionTransformer):
             norm = Normalizer()
             X = norm.fit_transform(X)
 
+        return self._transform_kernels(X)
+
+    def _transform_kernels(self, X):
+        """Apply fitted kernels to input that needs no further normalization."""
         prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
-
-        X_ = _apply_kernels(X, self.kernels)
-
-        set_num_threads(prev_threads)
+        try:
+            set_num_threads(self._n_jobs)
+            X_ = _apply_kernels(X, self.kernels)
+        finally:
+            set_num_threads(prev_threads)
         return X_
 
 
