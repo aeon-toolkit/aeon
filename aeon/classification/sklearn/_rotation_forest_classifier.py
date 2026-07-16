@@ -38,31 +38,9 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         The proportion of cases to be removed per group.
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeClassifier` using entropy as a splitting measure. When set,
-        the ``criterion``, ``splitter``, ``max_features``, ``max_depth``,
-        ``max_leaf_nodes`` and ``min_samples_leaf`` parameters below are ignored.
-    criterion : str, default="entropy"
-        The ``criterion`` passed to the default ``DecisionTreeClassifier``.
-        ``"gini"`` is faster to compute than ``"entropy"``. Only used when
-        ``base_estimator`` is None.
-    splitter : str, default="best"
-        The ``splitter`` passed to the default ``DecisionTreeClassifier``.
-        ``"random"`` is faster but less accurate. Only used when
-        ``base_estimator`` is None.
-    max_features : int, float, str or None, default=None
-        The ``max_features`` passed to the default ``DecisionTreeClassifier``.
-        ``None`` considers all (rotated) features at each split; a smaller value
-        speeds up fitting. Only used when ``base_estimator`` is None.
-    max_depth : int or None, default=None
-        The ``max_depth`` passed to the default ``DecisionTreeClassifier``.
-        Limiting depth speeds up fitting. Only used when ``base_estimator`` is
-        None.
-    max_leaf_nodes : int or None, default=None
-        The ``max_leaf_nodes`` passed to the default ``DecisionTreeClassifier``.
-        Only used when ``base_estimator`` is None.
-    min_samples_leaf : int or float, default=1
-        The ``min_samples_leaf`` passed to the default ``DecisionTreeClassifier``.
-        Only used when ``base_estimator`` is None.
+        `DecisionTreeClassifier` using entropy as a splitting measure. Pass a
+        configured estimator to change tree parameters such as the criterion
+        or depth.
     pca_solver : str, default="deprecated"
         Has no effect. The group PCA is always computed with an exact
         eigendecomposition of the covariance matrix, equivalent to the
@@ -134,12 +112,6 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         max_group: int = 3,
         remove_proportion: float = 0.5,
         base_estimator: BaseEstimator | None = None,
-        criterion: str = "entropy",
-        splitter: str = "best",
-        max_features=None,
-        max_depth: int | None = None,
-        max_leaf_nodes: int | None = None,
-        min_samples_leaf=1,
         pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
@@ -153,12 +125,6 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
             max_group=max_group,
             remove_proportion=remove_proportion,
             base_estimator=base_estimator,
-            criterion=criterion,
-            splitter=splitter,
-            max_features=max_features,
-            max_depth=max_depth,
-            max_leaf_nodes=max_leaf_nodes,
-            min_samples_leaf=min_samples_leaf,
             pca_solver=pca_solver,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,

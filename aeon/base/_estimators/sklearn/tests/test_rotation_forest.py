@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.regression.sklearn import RotationForestRegressor
@@ -67,39 +68,38 @@ def test_rotf_pca_solver_is_deprecated():
 
 
 @pytest.mark.parametrize(
-    "cls,criterion,default_criterion",
+    "cls,base_estimator,default_criterion",
     [
-        (RotationForestClassifier, "gini", "entropy"),
-        (RotationForestRegressor, "friedman_mse", "squared_error"),
+        (
+            RotationForestClassifier,
+            DecisionTreeClassifier(criterion="gini", max_depth=3),
+            "entropy",
+        ),
+        (
+            RotationForestRegressor,
+            DecisionTreeRegressor(criterion="friedman_mse", max_depth=3),
+            "squared_error",
+        ),
     ],
 )
-def test_rotf_tree_parameters(cls, criterion, default_criterion):
-    """Test exposed tree parameters reach the default decision trees."""
+def test_rotf_base_estimator_configuration(cls, base_estimator, default_criterion):
+    """A configured base_estimator reaches every member; defaults are unchanged."""
     X, y = _example_data(cls)
-
     n_estimators = 3
-    max_depth = 3
-    min_samples_leaf = 2
 
     rotf = cls(
         n_estimators=n_estimators,
-        criterion=criterion,
-        splitter="random",
-        max_depth=max_depth,
-        min_samples_leaf=min_samples_leaf,
+        base_estimator=base_estimator,
         random_state=0,
     )
     rotf.fit(X, y)
 
     assert len(rotf.estimators_) == n_estimators
     for tree in rotf.estimators_:
-        assert tree.criterion == criterion
-        assert tree.splitter == "random"
-        assert tree.max_depth == max_depth
-        assert tree.min_samples_leaf == min_samples_leaf
+        assert tree.criterion == base_estimator.criterion
+        assert tree.max_depth == base_estimator.max_depth
 
     default = cls(n_estimators=n_estimators, random_state=0)
     default.fit(X, y)
     assert default.estimators_[0].criterion == default_criterion
-    assert default.estimators_[0].splitter == "best"
     assert default.estimators_[0].max_depth is None

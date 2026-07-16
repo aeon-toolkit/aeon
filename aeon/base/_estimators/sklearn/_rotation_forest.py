@@ -104,29 +104,8 @@ class BaseRotationForest(BaseEstimator):
         Base estimator for the ensemble. By default, uses the sklearn
         ``DecisionTreeClassifier`` using entropy as a splitting measure for
         classifiers and the sklearn ``DecisionTreeRegressor`` using MSE as a
-        splitting measure for regressors. When set, the ``criterion``,
-        ``splitter``, ``max_features``, ``max_depth``, ``max_leaf_nodes`` and
-        ``min_samples_leaf`` parameters below are ignored.
-    criterion : str
-        The ``criterion`` passed to the default decision tree. Defaults to
-        ``"entropy"`` for classifiers and ``"squared_error"`` for regressors.
-        Only used when ``base_estimator`` is None.
-    splitter : str, default="best"
-        The ``splitter`` passed to the default decision tree. ``"random"`` is
-        faster but less accurate. Only used when ``base_estimator`` is None.
-    max_features : int, float, str or None, default=None
-        The ``max_features`` passed to the default decision tree. ``None`` uses
-        all (rotated) features at each split; a smaller value speeds up fitting.
-        Only used when ``base_estimator`` is None.
-    max_depth : int or None, default=None
-        The ``max_depth`` passed to the default decision tree. Limiting depth
-        speeds up fitting. Only used when ``base_estimator`` is None.
-    max_leaf_nodes : int or None, default=None
-        The ``max_leaf_nodes`` passed to the default decision tree. Only used
-        when ``base_estimator`` is None.
-    min_samples_leaf : int or float, default=1
-        The ``min_samples_leaf`` passed to the default decision tree. Only used
-        when ``base_estimator`` is None.
+        splitting measure for regressors. Pass a configured estimator to
+        change tree parameters such as the criterion or depth.
     pca_solver : str, default="deprecated"
         Has no effect. The group PCA is always computed with an exact
         eigendecomposition of the covariance matrix, equivalent to the
@@ -166,12 +145,6 @@ class BaseRotationForest(BaseEstimator):
         max_group: int = 3,
         remove_proportion: float = 0.5,
         base_estimator: BaseEstimator | None = None,
-        criterion: str = "entropy",
-        splitter: str = "best",
-        max_features=None,
-        max_depth: int | None = None,
-        max_leaf_nodes: int | None = None,
-        min_samples_leaf=1,
         pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
@@ -184,12 +157,6 @@ class BaseRotationForest(BaseEstimator):
         self.max_group = max_group
         self.remove_proportion = remove_proportion
         self.base_estimator = base_estimator
-        self.criterion = criterion
-        self.splitter = splitter
-        self.max_features = max_features
-        self.max_depth = max_depth
-        self.max_leaf_nodes = max_leaf_nodes
-        self.min_samples_leaf = min_samples_leaf
         self.pca_solver = pca_solver
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
@@ -494,19 +461,12 @@ class BaseRotationForest(BaseEstimator):
         return tree, pcas, groups, X_t if save_transformed_data else None
 
     def _new_default_tree(self, random_state=None):
-        """Build the default decision tree from the exposed tree parameters."""
-        tree_cls = (
-            DecisionTreeClassifier if self._is_classifier else DecisionTreeRegressor
-        )
-        return tree_cls(
-            criterion=self.criterion,
-            splitter=self.splitter,
-            max_features=self.max_features,
-            max_depth=self.max_depth,
-            max_leaf_nodes=self.max_leaf_nodes,
-            min_samples_leaf=self.min_samples_leaf,
-            random_state=random_state,
-        )
+        """Build the default decision tree for the estimator type."""
+        if self._is_classifier:
+            return DecisionTreeClassifier(
+                criterion="entropy", random_state=random_state
+            )
+        return DecisionTreeRegressor(random_state=random_state)
 
     def _make_tree(self, rng: np.random.RandomState):
         """Construct a base estimator, avoiding clone overhead for the default.
