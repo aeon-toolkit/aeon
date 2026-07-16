@@ -536,8 +536,9 @@ def check_non_state_changing_method(estimator, datatype):
         y, FULL_TEST_DATA_DICT[datatype]["train"][1]
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
-    # dict_before = copy of dictionary of estimator before predict, post fit
-    dict_before = deepcopy(estimator.__dict__)
+    state_before = {
+        name: joblib.hash(value) for name, value in estimator.__dict__.items()
+    }
     X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
@@ -550,11 +551,14 @@ def check_non_state_changing_method(estimator, datatype):
         ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
         # dict_after = dictionary of estimator after predict and fit
-        is_equal, msg = deep_equals(estimator.__dict__, dict_before, return_msg=True)
-        assert is_equal, (
+        state_after = {
+            name: joblib.hash(value) for name, value in estimator.__dict__.items()
+        }
+        assert state_before == state_after, (
             f"Estimator: {type(estimator).__name__} changes __dict__ "
             f"during {method}, "
-            f"reason/location of discrepancy (x=after, y=before): {msg}"
+            f"reason/location of discrepancy (x=after, y=before): "
+            f"{state_before} vs {state_after}"
         )
 
 
