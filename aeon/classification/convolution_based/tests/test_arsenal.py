@@ -214,6 +214,18 @@ def test_arsenal_fit_predict_returns_train_estimates():
     assert set(predictions).issubset(set(clf.classes_))
 
 
+def test_arsenal_weights_are_cv_accuracies():
+    """Ensemble weights are LOO CV accuracies, so they lie in [0, 1]."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=30, random_state=0
+    )
+
+    clf = Arsenal(n_kernels=20, n_estimators=3, random_state=0).fit(X, y)
+
+    assert len(clf.weights_) == 3
+    assert all(0 <= weight <= 1 for weight in clf.weights_)
+
+
 def test_arsenal_n_jobs_does_not_change_output():
     """Threaded and sequential Arsenal fits produce identical results."""
     X, y = make_example_3d_numpy(

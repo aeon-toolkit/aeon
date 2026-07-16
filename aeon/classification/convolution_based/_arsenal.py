@@ -419,8 +419,13 @@ class Arsenal(BaseClassifier):
             transformed_x = rocket.fit_transform(X)
         scaler = StandardScaler(with_mean=False)
         scaler.fit(transformed_x, y)
+        # scoring="accuracy" makes best_score_ the LOO CV accuracy used to
+        # weight this member; with the default scorer it is the negative LOO
+        # mean squared error, which inverts the weighting
         ridge = RidgeClassifierCV(
-            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            alphas=np.logspace(-3, 3, 10),
+            class_weight=self.class_weight,
+            scoring="accuracy",
         )
         ridge.fit(scaler.transform(transformed_x), y)
         pipeline = make_pipeline(rocket, scaler, ridge)
@@ -451,7 +456,9 @@ class Arsenal(BaseClassifier):
         clf = make_pipeline(
             StandardScaler(with_mean=False),
             RidgeClassifierCV(
-                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+                alphas=np.logspace(-3, 3, 10),
+                class_weight=self.class_weight,
+                scoring="accuracy",
             ),
         )
         clf.fit(Xt[subsample], y[subsample])
