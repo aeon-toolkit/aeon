@@ -6,19 +6,20 @@ from aeon.utils.decorators.method_timer import method_timer
 
 
 def test_method_timer_sets_attr_and_returns_value():
-    """Test sets the attribute and returns the method output."""
+    """Test default behaviour, output, timing, and preserved metadata."""
 
     class _A:
         @method_timer("t_ms")
         def f(self, x):
             """Docstring here."""
+            assert self.t_ms == "existing value"
             return x + 1
 
     a = _A()
+    a.t_ms = "existing value"
     out = a.f(3)
 
     assert out == 4
-    assert hasattr(a, "t_ms")
     assert isinstance(a.t_ms, int)
     assert a.t_ms >= 0
     assert _A.f.__name__ == "f"
@@ -37,29 +38,24 @@ def test_method_timer_sets_attr_even_if_method_raises():
     with pytest.raises(ValueError, match="nope"):
         a.boom()
 
-    assert hasattr(a, "t_ms")
     assert isinstance(a.t_ms, int)
     assert a.t_ms >= 0
 
 
 @pytest.mark.parametrize("overwrite", [True, False])
-@pytest.mark.parametrize(
-    "remove_on_start, expected_existing", [(True, False), (False, True)]
-)
-def test_method_timer_options(overwrite, remove_on_start, expected_existing):
-    """Test overwrite and remove_on_start options."""
+def test_method_timer_options(overwrite):
+    """Test removal and optional overwriting of a method-supplied value."""
 
     class _A:
-        @method_timer("t_ms", overwrite=overwrite, remove_on_start=remove_on_start)
+        @method_timer("t_ms", overwrite=overwrite, remove_on_start=True)
         def f(self):
-            existing = hasattr(self, "t_ms")
+            assert not hasattr(self, "t_ms")
             self.t_ms = "method value"
-            return existing
 
     a = _A()
     a.t_ms = "existing value"
+    a.f()
 
-    assert a.f() is expected_existing
     if overwrite:
         assert isinstance(a.t_ms, int)
         assert a.t_ms >= 0
@@ -81,21 +77,6 @@ def test_method_timer_sets_attr_if_existing_attr_removed():
 
     assert isinstance(a.t_ms, int)
     assert a.t_ms >= 0
-
-
-def test_method_timer_default_keeps_existing_attr_during_call():
-    """Test the default leaves an existing attribute available to the method."""
-
-    class _A:
-        @method_timer("t_ms")
-        def f(self):
-            return self.t_ms
-
-    a = _A()
-    a.t_ms = "existing value"
-
-    assert a.f() == "existing value"
-    assert isinstance(a.t_ms, int)
 
 
 def test_method_timer_missing_self_raises_typeerror():
