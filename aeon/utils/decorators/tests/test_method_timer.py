@@ -42,6 +42,47 @@ def test_method_timer_sets_attr_even_if_method_raises():
     assert a.t_ms >= 0
 
 
+@pytest.mark.parametrize("overwrite", [True, False])
+@pytest.mark.parametrize(
+    "remove_on_start, expected_existing", [(True, False), (False, True)]
+)
+def test_method_timer_options(overwrite, remove_on_start, expected_existing):
+    """Test overwrite and remove_on_start options."""
+
+    class _A:
+        @method_timer("t_ms", overwrite=overwrite, remove_on_start=remove_on_start)
+        def f(self):
+            existing = hasattr(self, "t_ms")
+            self.t_ms = "method value"
+            return existing
+
+    a = _A()
+    a.t_ms = "existing value"
+
+    assert a.f() is expected_existing
+    if overwrite:
+        assert isinstance(a.t_ms, int)
+        assert a.t_ms >= 0
+    else:
+        assert a.t_ms == "method value"
+
+
+def test_method_timer_sets_attr_if_existing_attr_removed():
+    """Test timer is stored if the method does not replace a removed attribute."""
+
+    class _A:
+        @method_timer("t_ms", overwrite=False, remove_on_start=True)
+        def f(self):
+            assert not hasattr(self, "t_ms")
+
+    a = _A()
+    a.t_ms = "existing value"
+    a.f()
+
+    assert isinstance(a.t_ms, int)
+    assert a.t_ms >= 0
+
+
 def test_method_timer_missing_self_raises_typeerror():
     """Test raises TypeError if the decorated function is missing self."""
 
