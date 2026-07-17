@@ -58,7 +58,7 @@ EXCLUDED_TESTS = {
     "ROCKAD": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
-    "COPODr": ["check_non_state_changing_method"],
+    "COPOD": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
     "RISTRegressor": ["check_regressor_against_expected_results"],
     # Requires y to be passed in inverse_transform,
