@@ -53,6 +53,7 @@ alphabet_allocation_methods = {
 
 MFT_DIRECT_DFT_THRESHOLD = 64
 MFT_DIRECT_DFT_MAX_PAIRS = 3
+BAG_FEATURE_LOOKUP_THRESHOLD = 1_000_000
 
 simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
@@ -948,7 +949,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     -------
     1D array of fourier term, real_0,imag_0, real_1, imag_1 etc, length
     num_atts or
-    num_atts-2 if if self.norm is True
+    num_atts-2 if self.norm is True
     """
     # first two are real and imaginary parts
     start = 2 if norm else 0
@@ -1348,21 +1349,42 @@ def create_bag_feature_selection(
     remove_repeat_words,
 ):
     relevant_features = Dict.empty(key_type=types.uint32, value_type=types.uint32)
+    max_feature_name = np.uint32(0)
     for k, v in zip(
         feature_names[relevant_features_idx],
         np.arange(len(relevant_features_idx), dtype=np.uint32),
     ):
         relevant_features[k] = v
+        if k > max_feature_name:
+            max_feature_name = k
 
     if remove_repeat_words:
         if 0 in relevant_features:
             del relevant_features[0]
 
     all_win_words = np.zeros((n_cases, len(relevant_features_idx)), dtype=np.uint32)
-    for j in range(sfa_words.shape[0]):
-        for key in sfa_words[j]:
-            if key in relevant_features:
-                all_win_words[j, relevant_features[key]] += 1
+    if max_feature_name <= BAG_FEATURE_LOOKUP_THRESHOLD:
+        lookup = np.full(np.int64(max_feature_name) + 1, -1, dtype=np.int32)
+        for k, v in zip(
+            feature_names[relevant_features_idx],
+            np.arange(len(relevant_features_idx), dtype=np.uint32),
+        ):
+            lookup[k] = v
+
+        if remove_repeat_words and lookup.shape[0] > 0:
+            lookup[0] = -1
+
+        for j in range(sfa_words.shape[0]):
+            for key in sfa_words[j]:
+                if key <= max_feature_name:
+                    o = lookup[key]
+                    if o >= 0:
+                        all_win_words[j, o] += 1
+    else:
+        for j in range(sfa_words.shape[0]):
+            for key in sfa_words[j]:
+                if key in relevant_features:
+                    all_win_words[j, relevant_features[key]] += 1
     return all_win_words, relevant_features
 
 
