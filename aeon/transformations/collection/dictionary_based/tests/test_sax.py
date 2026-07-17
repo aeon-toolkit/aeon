@@ -32,6 +32,7 @@ def test_sax_standard_output_and_inverse_shapes(shape, n_segments, alphabet_size
     sax = SAX(
         n_segments=n_segments,
         alphabet_size=alphabet_size,
+        znormalized=True,
         n_jobs=2,
     )
 
@@ -107,6 +108,7 @@ def test_sax_custom_alphabet_is_preserved(alphabet):
         n_segments=4,
         alphabet_size=4,
         alphabet=alphabet,
+        znormalized=True,
     )
     X_sax = sax.fit_transform(X)
 
@@ -125,6 +127,7 @@ def test_sax_custom_alphabet_round_trip():
         n_segments=4,
         alphabet_size=4,
         alphabet=["low", "mid-low", "mid-high", "high"],
+        znormalized=True,
     )
 
     X_sax = sax.fit_transform(X)
@@ -144,6 +147,7 @@ def test_sax_inverse_rejects_duplicate_alphabet():
         n_segments=4,
         alphabet_size=4,
         alphabet=["a", "a", "b", "c"],
+        znormalized=True,
     )
     X_sax = np.array([[["a", "a", "b", "c"]]])
 
@@ -157,6 +161,7 @@ def test_sax_inverse_rejects_unknown_symbol():
         n_segments=4,
         alphabet_size=4,
         alphabet=["a", "b", "c", "d"],
+        znormalized=True,
     )
     X_sax = np.array([[["a", "b", "unknown", "d"]]])
 
@@ -203,6 +208,128 @@ def test_sax_znormalized_false_handles_constant_series():
     )
 
 
+def test_windowed_sax_normalizes_each_window_independently():
+    """Test that windowed SAX z-normalizes each window independently."""
+    X = np.array(
+        [
+            [
+                [
+                    0.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                    100.0,
+                    100.0,
+                    110.0,
+                    110.0,
+                ]
+            ]
+        ],
+        dtype=np.float64,
+    )
+
+    sax = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        alphabet=["a", "b", "c", "d"],
+        znormalized=False,
+        window_size=4,
+        stride=4,
+    )
+
+    X_sax = sax.fit_transform(X)
+    expected = np.array([[[["a", "d"], ["a", "d"]]]])
+    np.testing.assert_array_equal(X_sax, expected)
+
+
+def test_windowed_sax_matches_manual_per_window_normalization():
+    """Test windowed normalization against manually normalized windows."""
+    X = np.array(
+        [
+            [
+                [
+                    1.0,
+                    2.0,
+                    4.0,
+                    8.0,
+                    10.0,
+                    11.0,
+                    13.0,
+                    20.0,
+                ]
+            ]
+        ],
+        dtype=np.float64,
+    )
+
+    window_size = 4
+    stride = 4
+
+    words_internal = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=False,
+        window_size=window_size,
+        stride=stride,
+    ).fit_transform(X)
+
+    windows = X.reshape(1, 1, 2, window_size)
+    means = windows.mean(axis=-1, keepdims=True)
+    stds = windows.std(axis=-1, keepdims=True)
+    stds[stds == 0] = 1.0
+    windows_normalized = (windows - means) / stds
+    X_manual = windows_normalized.reshape(2, 1, window_size)
+
+    words_manual = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=True,
+    ).fit_transform(X_manual)
+    words_manual = words_manual.reshape(1, 2, 1, 2).transpose(0, 2, 1, 3)
+
+    np.testing.assert_array_equal(words_internal, words_manual)
+
+
+def test_windowed_sax_differs_from_whole_series_normalization():
+    """Test that per-window and whole-series normalization are distinct."""
+    X = np.array(
+        [
+            [
+                [
+                    0.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                    100.0,
+                    100.0,
+                    110.0,
+                    110.0,
+                ]
+            ]
+        ],
+        dtype=np.float64,
+    )
+
+    words_per_window = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=False,
+        window_size=4,
+        stride=4,
+    ).fit_transform(X)
+
+    X_whole_normalized = _z_normalize(X)
+    words_whole_normalized = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=True,
+        window_size=4,
+        stride=4,
+    ).fit_transform(X_whole_normalized)
+
+    assert not np.array_equal(words_per_window, words_whole_normalized)
+
+
 @pytest.mark.parametrize(
     "window_size,stride,expected_n_windows",
     [
@@ -221,6 +348,7 @@ def test_windowed_sax_output_shape(window_size, stride, expected_n_windows):
     sax = SAX(
         n_segments=4,
         alphabet_size=4,
+        znormalized=True,
         window_size=window_size,
         stride=stride,
     )
@@ -235,10 +363,11 @@ def test_windowed_sax_output_shape(window_size, stride, expected_n_windows):
 
 
 def test_windowed_sax_known_words_non_overlapping():
-    """Test exact words for two non-overlapping windows.
+    """Test exact words after independent per-window normalization.
 
-    Window one has PAA means -1 and 1, yielding ``a d``.
-    Window two has PAA means -0.2 and 0.2, yielding ``b c``.
+    The two windows differ only in scale. After each window is independently
+    z-normalized, both become ``[-1, -1, 1, 1]``. Their two PAA segments are
+    therefore -1 and 1, yielding the SAX word ``a d`` for both windows.
     """
     X = np.array(
         [[[-1.0, -1.0, 1.0, 1.0, -0.2, -0.2, 0.2, 0.2]]],
@@ -249,6 +378,29 @@ def test_windowed_sax_known_words_non_overlapping():
         n_segments=2,
         alphabet_size=4,
         alphabet=["a", "b", "c", "d"],
+        znormalized=False,
+        window_size=4,
+        stride=4,
+    )
+
+    X_sax = sax.fit_transform(X)
+
+    expected = np.array([[[["a", "d"], ["a", "d"]]]])
+    np.testing.assert_array_equal(X_sax, expected)
+
+
+def test_windowed_sax_known_words_without_internal_normalization():
+    """Test exact words when input windows are treated as pre-normalized."""
+    X = np.array(
+        [[[-1.0, -1.0, 1.0, 1.0, -0.2, -0.2, 0.2, 0.2]]],
+        dtype=np.float64,
+    )
+
+    sax = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        alphabet=["a", "b", "c", "d"],
+        znormalized=True,
         window_size=4,
         stride=4,
     )
@@ -267,6 +419,7 @@ def test_windowed_inverse_known_non_overlapping_result():
         n_segments=2,
         alphabet_size=4,
         alphabet=["a", "b", "c", "d"],
+        znormalized=True,
         window_size=4,
         stride=4,
     )
@@ -304,6 +457,7 @@ def test_windowed_inverse_averages_overlaps():
         n_segments=2,
         alphabet_size=4,
         alphabet=["a", "b", "c", "d"],
+        znormalized=True,
         window_size=4,
         stride=2,
     )
@@ -337,6 +491,7 @@ def test_windowed_inverse_infers_covered_length():
         n_segments=2,
         alphabet_size=4,
         alphabet=["a", "b", "c", "d"],
+        znormalized=True,
         window_size=4,
         stride=2,
     )
@@ -358,6 +513,7 @@ def test_windowed_sax_multivariate_custom_alphabet():
         n_segments=4,
         alphabet_size=5,
         alphabet=alphabet,
+        znormalized=True,
         window_size=12,
         stride=6,
     )
@@ -388,6 +544,7 @@ def test_invalid_window_parameters_raise(window_size, stride, error_type, match)
     sax = SAX(
         n_segments=4,
         alphabet_size=4,
+        znormalized=True,
         window_size=window_size,
         stride=stride,
     )
@@ -402,6 +559,7 @@ def test_non_integer_window_size_raises():
     sax = SAX(
         n_segments=4,
         alphabet_size=4,
+        znormalized=True,
         window_size=8.5,
         stride=1,
     )
@@ -412,7 +570,7 @@ def test_non_integer_window_size_raises():
 
 def test_standard_inverse_requires_original_length():
     """Test that standard inverse SAX requires a target length."""
-    sax = SAX(n_segments=4, alphabet_size=4)
+    sax = SAX(n_segments=4, alphabet_size=4, znormalized=True)
     X_sax = np.zeros((1, 1, 4), dtype=np.intp)
 
     with pytest.raises(ValueError, match="original_length"):
@@ -421,7 +579,7 @@ def test_standard_inverse_requires_original_length():
 
 def test_inverse_rejects_invalid_number_of_dimensions():
     """Test that inverse SAX rejects arrays that are not 3D or 4D."""
-    sax = SAX(n_segments=4, alphabet_size=4)
+    sax = SAX(n_segments=4, alphabet_size=4, znormalized=True)
 
     with pytest.raises(ValueError, match="shape"):
         sax.inverse_sax(np.zeros((1, 4), dtype=np.intp), original_length=8)
@@ -433,6 +591,7 @@ def test_windowed_inverse_rejects_too_short_original_length():
     sax = SAX(
         n_segments=2,
         alphabet_size=4,
+        znormalized=True,
         window_size=4,
         stride=2,
     )
@@ -445,7 +604,7 @@ def test_windowed_inverse_rejects_too_short_original_length():
 def test_unsupported_distribution_raises():
     """Test that unsupported distributions are rejected."""
     with pytest.raises(NotImplementedError):
-        SAX(distribution="bogus")
+        SAX(distribution="bogus", znormalized=True)
 
 
 def test_alphabet_length_must_match_alphabet_size():
@@ -454,7 +613,13 @@ def test_alphabet_length_must_match_alphabet_size():
         SAX(
             alphabet_size=4,
             alphabet=["a", "b", "c"],
+            znormalized=True,
         )
+
+
+def test_sax_default_znormalized_is_true():
+    """Test that SAX treats input as pre-normalized by default."""
+    assert SAX().znormalized is True
 
 
 def test_sax_get_test_params():

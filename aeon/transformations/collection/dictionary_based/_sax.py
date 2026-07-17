@@ -42,11 +42,10 @@ class SAX(BaseCollectionTransformer):
         distribution is "Gaussian" and this parameter is None
         then the default setup is {"scale" : 1.0}
     znormalized : bool, default = True,
-        this parameter is set to True when the input time series
-        are assume to be z-normalized, i.e. the mean of each
-        time series should be 0 and the standard deviation should be
-        equal to 1. If this parameter is set to False, the z-normalization
-        is applied before the transformation.
+        Whether the input is already z-normalized. If False, each complete
+        series is normalized before PAA when ``window_size=None``. When
+        windowing is enabled, each extracted window is normalized independently
+        before PAA, as required by the sliding-window SAX formulation.
     window_size : int, default = None,
         The size of the sliding window to use when transforming the time series,
         if this parameter is None then the whole time series is used to
@@ -150,6 +149,14 @@ class SAX(BaseCollectionTransformer):
         if not isinstance(self.stride, int) or self.stride <= 0:
             raise ValueError("stride must be a positive integer")
 
+    @staticmethod
+    def _z_normalize(X):
+        """Z-normalize each series/channel independently along time."""
+        means = np.mean(X, axis=-1, keepdims=True)
+        stds = np.std(X, axis=-1, keepdims=True)
+        stds[stds == 0] = 1.0
+        return (X - means) / stds
+
     def _get_paa(self, X):
         """Transform the input time series to PAA segments.
 
@@ -164,10 +171,7 @@ class SAX(BaseCollectionTransformer):
             The output of the PAA transformation
         """
         if not self.znormalized:
-            means = np.mean(X, axis=-1, keepdims=True)
-            stds = np.std(X, axis=-1, keepdims=True)
-            stds[stds == 0] = 1.0
-            X = (X - means) / (stds)
+            X = self._z_normalize(X)
 
         paa = PAA(n_segments=self.n_segments, n_jobs=self.n_jobs)
         X_paa = paa.fit_transform(X=X)
