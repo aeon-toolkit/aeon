@@ -68,7 +68,12 @@ from aeon.testing.testing_config import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
+from aeon.testing.utils.estimator_checks import (
+    _changed_state,
+    _get_tag,
+    _run_estimator_method,
+    _snapshot_state,
+)
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.base import VALID_ESTIMATOR_BASES
 from aeon.utils.tags import check_valid_tags
@@ -538,42 +543,6 @@ def check_non_state_changing_method(estimator, datatype):
 
     X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
-
-    def _snapshot_state(estimator):
-        state = {}
-        use_hash = not _get_tag(estimator, "cant_pickle", default=False)
-
-        for name, value in vars(estimator).items():
-            if use_hash:
-                try:
-                    state[name] = ("hash", joblib.hash(value))
-                    continue
-                except (TypeError, pickle.PicklingError, AttributeError):
-                    pass
-
-            state[name] = ("identity", value)
-
-        return state
-
-    def _changed_state(before, after):
-        changed = set(before) ^ set(after)
-
-        for name in before.keys() & after.keys():
-            mode, old = before[name]
-            value = after[name]
-
-            if mode == "hash":
-                try:
-                    equal = old == joblib.hash(value)
-                except (TypeError, pickle.PicklingError, AttributeError):
-                    equal = False
-            else:
-                equal = old is value
-
-            if not equal:
-                changed.add(name)
-
-        return changed
 
     state_before = _snapshot_state(estimator)
     for method in NON_STATE_CHANGING_METHODS:

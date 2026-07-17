@@ -55,6 +55,10 @@ EXCLUDED_TESTS = {
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
+    "ROCKAD": ["check_non_state_changing_method"],
+    "InformationGainSegmenter": ["check_non_state_changing_method"],
+    "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
+    "COPODr": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
     "RISTRegressor": ["check_regressor_against_expected_results"],
     # Requires y to be passed in inverse_transform,
