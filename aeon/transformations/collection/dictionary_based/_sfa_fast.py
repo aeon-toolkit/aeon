@@ -905,25 +905,23 @@ def _binning_dft(
     # Windowing
     if num_windows_per_inst > 1:
         # Splits individual time series into windows and returns the DFT for each
-        data = np.zeros((len(X), num_windows_per_inst, window_size))
+        data = np.zeros((len(X) * num_windows_per_inst, window_size))
         for i in prange(len(X)):
+            offset = i * num_windows_per_inst
             for j in range(num_windows_per_inst - 1):
-                data[i, j] = X[i, window_size * j : window_size * (j + 1)]
+                data[offset + j] = X[i, window_size * j : window_size * (j + 1)]
 
             start = n_timepoints - window_size
-            data[i, -1] = X[i, start:n_timepoints]
+            data[offset + num_windows_per_inst - 1] = X[i, start:n_timepoints]
 
-        dft = np.zeros((len(X), num_windows_per_inst, dft_length))
-        for i in prange(len(X)):
-            return_val = _fast_fourier_transform(
-                data[i], norm, dft_length, inverse_sqrt_win_size, True
-            )
-            dft[i] = return_val
+        dft = _fast_fourier_transform(
+            data, norm, dft_length, inverse_sqrt_win_size, True
+        )
 
         if lower_bounding:
-            dft[:, :, 1::2] = dft[:, :, 1::2] * -1  # lower bounding
+            dft[:, 1::2] = dft[:, 1::2] * -1  # lower bounding
 
-        return dft.reshape(dft.shape[0] * dft.shape[1], dft_length)
+        return dft
 
     # No Windowing (Whole Series)
     else:
