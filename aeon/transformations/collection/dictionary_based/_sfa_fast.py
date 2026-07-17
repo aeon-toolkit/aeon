@@ -51,6 +51,9 @@ alphabet_allocation_methods = {
     "sqrt_scale",
 }
 
+MFT_DIRECT_DFT_THRESHOLD = 64
+MFT_DIRECT_DFT_MAX_PAIRS = 3
+
 simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
@@ -1084,6 +1087,33 @@ def _get_phis(window_size, length):
     return phis
 
 
+@njit(fastmath=True, cache=True)
+def _mft_first_window_direct(X, window_size, selected_indices, transformed):
+    const = 2 * np.pi / window_size
+    n_pairs = selected_indices.shape[0] // 2
+    cos_values = np.zeros((n_pairs, window_size))
+    sin_values = np.zeros((n_pairs, window_size))
+    for p in range(n_pairs):
+        k = selected_indices[p * 2] // 2
+        for n in range(window_size):
+            angle = const * k * n
+            cos_values[p, n] = math.cos(angle)
+            sin_values[p, n] = math.sin(angle)
+
+    for a in range(X.shape[0]):
+        for p in range(n_pairs):
+            real = 0.0
+            imag = 0.0
+            for n in range(window_size):
+                value = X[a, n]
+                real += value * cos_values[p, n]
+                imag -= value * sin_values[p, n]
+
+            c = p * 2
+            transformed[a, 0, c] = real
+            transformed[a, 0, c + 1] = imag
+
+
 @njit(fastmath=True, cache=True, parallel=True)
 def generate_words(
     dfts, bigrams, skip_grams, window_size, breakpoints, word_length, letter_bits
@@ -1147,6 +1177,7 @@ def _mft(
     inverse_sqrt_win_size,
     lower_bounding,
 ):
+    X = np.ascontiguousarray(X)
     start_offset = 2 if norm else 0
     length = dft_length + start_offset + dft_length % 2
     end = max(1, len(X[0]) - window_size + 1)
@@ -1168,36 +1199,51 @@ def _mft(
         indices = np.full(length, True)
 
     phis = _get_phis(window_size, length)
-    transformed = np.zeros((X.shape[0], end, length))
-
-    # 1. First run using DFT
-    with objmode(X_ffts="complex128[:, :]"):
-        X_ffts = scipy.fft.rfft(X[:, :window_size], axis=1, workers=-1).astype(
-            np.complex128
-        )
-
-    reals = np.real(X_ffts)  # float64[]
-    imags = np.imag(X_ffts)  # float64[]
-    transformed[:, 0, 0::2] = reals[:, 0 : length // 2]
-    transformed[:, 0, 1::2] = imags[:, 0 : length // 2]
-
-    # 2. Other runs using MFT
-    # X2 = X.reshape(X.shape[0], X.shape[1], 1)
-    # Bugfix to allow for slices on original X like in TEASER
-    X2 = X.copy().reshape(X.shape[0], X.shape[1], 1)
 
     # compute only those indices needed and not all
+    selected_count = np.sum(indices)
+    selected_indices = np.empty(selected_count, dtype=np.int64)
+    selected_pos = 0
+    for i in range(length):
+        if indices[i]:
+            selected_indices[selected_pos] = i
+            selected_pos += 1
+
     phis2 = phis[indices]
-    transformed2 = transformed[:, :, indices]
+    transformed2 = np.zeros((X.shape[0], end, selected_count))
+    selected_pairs = selected_count // 2
+
+    # 1. First run using DFT
+    if (
+        window_size <= MFT_DIRECT_DFT_THRESHOLD
+        and selected_pairs <= MFT_DIRECT_DFT_MAX_PAIRS
+    ):
+        _mft_first_window_direct(X, window_size, selected_indices, transformed2)
+    else:
+        with objmode(X_ffts="complex128[:, :]"):
+            X_ffts = scipy.fft.rfft(X[:, :window_size], axis=1, workers=-1).astype(
+                np.complex128
+            )
+
+        reals = np.real(X_ffts)  # float64[]
+        imags = np.imag(X_ffts)  # float64[]
+        for a in range(X.shape[0]):
+            for i in range(selected_count):
+                idx = selected_indices[i]
+                if idx % 2 == 0:
+                    transformed2[a, 0, i] = reals[a, idx // 2]
+                else:
+                    transformed2[a, 0, i] = imags[a, idx // 2]
+
+    # 2. Other runs using MFT
     for i in range(1, end):
-        reals = transformed2[:, i - 1, 0::2] + X2[:, i + window_size - 1] - X2[:, i - 1]
-        imags = transformed2[:, i - 1, 1::2]
-        transformed2[:, i, 0::2] = (
-            reals * phis2[:length:2] - imags * phis2[1 : (length + 1) : 2]
-        )
-        transformed2[:, i, 1::2] = (
-            reals * phis2[1 : (length + 1) : 2] + phis2[:length:2] * imags
-        )
+        for a in range(X.shape[0]):
+            diff = X[a, i + window_size - 1] - X[a, i - 1]
+            for c in range(0, selected_count, 2):
+                real = transformed2[a, i - 1, c] + diff
+                imag = transformed2[a, i - 1, c + 1]
+                transformed2[a, i, c] = real * phis2[c] - imag * phis2[c + 1]
+                transformed2[a, i, c + 1] = real * phis2[c + 1] + phis2[c] * imag
 
     transformed2 = transformed2 * inverse_sqrt_win_size
     if lower_bounding:
