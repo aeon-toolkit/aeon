@@ -204,7 +204,49 @@ def wdtw_cost_matrix(
 def _wdtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> float:
-    return _wdtw_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
+    """Compute the WDTW distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
+    """
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # WDTW is symmetric: the weight depends only on abs(i - j) (unchanged by a
+    # swap) and max_size = max(x_size, y_size) is also unchanged, so swapping x
+    # and y and transposing the bounding matrix leaves the distance unchanged.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    max_size = max(x_size, y_size)
+    weight_vector = np.array(
+        [1 / (1 + np.exp(-g * (i - max_size / 2))) for i in range(0, max_size)]
+    )
+
+    # prev is row i-1, curr is row i; size y_size + 1 to hold the boundary at 0.
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        # Boundary: the cell to the left of the first column is infinity.
+        curr[0] = np.inf
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                cost = (
+                    _univariate_squared_distance(x[:, i], y[:, j])
+                    * weight_vector[abs(i - j)]
+                )
+                # prev[j] -> diagonal, prev[j + 1] -> top, curr[j] -> left
+                curr[j + 1] = cost + min(prev[j + 1], curr[j], prev[j])
+            else:
+                curr[j + 1] = np.inf
+        # Ping-pong the buffers instead of copying.
+        prev, curr = curr, prev
+
+    return prev[y_size]
 
 
 @njit(cache=True, fastmath=True)
