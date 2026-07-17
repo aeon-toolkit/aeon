@@ -186,10 +186,51 @@ def _edr_distance(
     bounding_matrix: np.ndarray,
     epsilon: float | None = None,
 ) -> float:
-    distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
-    return float(distance / max(x.shape[1], y.shape[1]))
+    """Compute the EDR distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer (O(M) space)
+    instead of allocating the full O(NM) cost matrix. The buffers are sized by
+    ``y`` (no swap) so the asymmetric EDR boundary is reproduced exactly.
+    """
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    if epsilon is None:
+        epsilon = float(max(np.std(x), np.std(y))) / 4
+
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Row 0 boundary (matches _edr_cost_matrix exactly, including the j == 0 case
+    # that reads bounding_matrix[0, -1]).
+    for j in range(y_size):
+        if bounding_matrix[0, j - 1]:
+            prev[j] = 0
+    prev[0] = 0
+
+    for i in range(1, x_size + 1):
+        # Column 0 boundary: 0 if in bounds, else inf.
+        if bounding_matrix[i - 1, 0]:
+            curr[0] = 0
+        else:
+            curr[0] = np.inf
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) < epsilon:
+                    cost = 0
+                else:
+                    cost = 1
+                curr[j] = min(
+                    prev[j - 1] + cost,
+                    prev[j] + 1,
+                    curr[j - 1] + 1,
+                )
+            else:
+                curr[j] = np.inf
+        # Ping-pong the buffers instead of copying.
+        prev, curr = curr, prev
+
+    distance = prev[y_size]
+    return float(distance / max(x_size, y_size))
 
 
 @njit(cache=True, fastmath=True)
