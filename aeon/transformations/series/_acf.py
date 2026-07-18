@@ -4,6 +4,7 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["AutoCorrelationSeriesTransformer", "StatsModelsACF", "StatsModelsPACF"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numba import njit
 
 from aeon.transformations.series.base import BaseSeriesTransformer
@@ -131,8 +132,22 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         return [{}, {"n_lags": 1}]
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason=(
+        "StatsModelsACF is deprecated and will be removed in v1.7.0. "
+        "Use AutoCorrelationSeriesTransformer or statsmodels.tsa.stattools.acf "
+        "directly instead."
+    ),
+    category=FutureWarning,
+)
 class StatsModelsACF(BaseSeriesTransformer):
     """Auto-correlation wrapper for statsmodels.
+
+    Deprecated and will be removed in v1.7.0. Use
+    :class:`AutoCorrelationSeriesTransformer` or
+    :func:`statsmodels.tsa.stattools.acf` directly instead.
 
     The autocorrelation function measures how correlated a timeseries is
     with itself at different lags. The StatsModelsACF returns
@@ -254,8 +269,20 @@ class StatsModelsACF(BaseSeriesTransformer):
         return [{}, {"n_lags": 1}]
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason=(
+        "StatsModelsPACF is deprecated and will be removed in v1.7.0. "
+        "Use statsmodels.tsa.stattools.pacf directly instead."
+    ),
+    category=FutureWarning,
+)
 class StatsModelsPACF(BaseSeriesTransformer):
     """Partial auto-correlation wrapper for statsmodels.
+
+    Deprecated and will be removed in v1.7.0. Use
+    :func:`statsmodels.tsa.stattools.pacf` directly instead.
 
     The partial autocorrelation function measures the conditional correlation
     between a timeseries and its self at different lags. In particular,
