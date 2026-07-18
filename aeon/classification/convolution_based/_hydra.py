@@ -135,6 +135,14 @@ class HydraClassifier(BaseClassifier):
     def _predict(self, X) -> np.ndarray:
         return self._clf.predict(X)
 
+    def _predict_proba(self, X) -> np.ndarray:
+        """Return one-hot probabilities from Hydra's class predictions."""
+        preds = self._predict(X)
+        class_indices = np.searchsorted(self.classes_, preds)
+        dists = np.zeros((len(preds), self.n_classes_))
+        dists[np.arange(len(preds)), class_indices] = 1
+        return dists
+
 
 class _SparseScaler:
     """Sparse Scaler for hydra transform."""
