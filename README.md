@@ -10,10 +10,12 @@
 </p>
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
-It covers classification, regression, clustering, forecasting, anomaly detection, distances,
-segmentation, similarity search, transformations and benchmarking.
+It covers classification, regression, clustering, forecasting, anomaly detection,
+distances, segmentation, similarity search, transformations and benchmarking.
 
-Many implementations in `aeon` are contributed and maintained by the researchers who developed the original methods. These include state-of-the-art models for forecasting, classification, regression, and clustering, including deep learning approaches.
+Many implementations in `aeon` are contributed and maintained by the researchers who
+developed the original methods. These include state-of-the-art models for forecasting,
+classification, regression, and clustering, including deep learning approaches.
 
 [Documentation](https://www.aeon-toolkit.org/) ·
 [Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
@@ -54,7 +56,6 @@ evaluate new methods. That means:
 - **State of the art, sooner.** New methods often land in `aeon` alongside publication.
 - **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
 
-
 A selection of algorithms available in `aeon` written by `aeon` core developers or contributors:
 
 | Method                | Reference                                                                                 | Task                   |
@@ -69,7 +70,6 @@ A selection of algorithms available in `aeon` written by `aeon` core developers 
 | **TDE**               | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
 
 Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies:
-
 
 | Study                             | Reference                                                                                 | Area         |
 |-----------------------------------|-------------------------------------------------------------------------------------------|--------------|
@@ -102,8 +102,12 @@ pip install aeon[all_extras]
 For development installs and platform-specific notes, see the
 [installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
 
+The latest version of `aeon` is v1.5.1.
+
 ## Quick start
+
 Fit a classifier on a standard UCR dataset:
+
 ```python
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.datasets import load_gunpoint
@@ -136,9 +140,13 @@ Ten task areas, one consistent API:
 
 ## Getting started examples
 
+For more examples across tasks, visit the
+[examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
+
 ### Classification
 
-Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series.
+Time series classification predicts class labels for unseen series using a model fitted
+on a collection of labelled time series.
 
 ```python
 import numpy as np
@@ -164,7 +172,6 @@ y_pred = clf.predict(X_test)
 print(y_pred)
 # ['low' 'low' 'high']
 ```
-
 
 ### Clustering
 
@@ -197,7 +204,8 @@ pred = forecaster.forecast(y)
 
 print(pred)
 ```
-For more advanced forecasting, `aeon` also includes deep learning and machine learning methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
+For more advanced forecasting, `aeon` also includes deep learning and machine learning
+methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
 
 ### Deep learning
 
@@ -227,9 +235,6 @@ print(clf.score(X_test, y_test))
 See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
 for GPU usage, custom architectures, and benchmarking against classical methods.
 
-For more examples across tasks, visit the
-[examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
-
 ## Support aeon
 
 There are several ways to engage with the project:
@@ -255,7 +260,8 @@ Useful links:
 - [Governance](https://github.com/aeon-toolkit/aeon/blob/main/GOVERNANCE.md)
 - [Project website](https://www.aeon-toolkit.org/)
 
-The `aeon` developers are volunteers, so please be patient with issue triage and pull request review.
+The `aeon` developers are volunteers, so please be patient with issue triage and
+pull request review.
 
 ## Citation
 
@@ -274,16 +280,26 @@ If you use `aeon` in academic work, please cite the project:
 }
 ```
 
-If you let us know about your paper using `aeon`, we will happily list it on the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
+If you let us know about your paper using `aeon`, we will happily list it on
+the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
 
 ## Project history
 
-`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core developers, and has since been substantially rewritten and extended.
-Our core development team of 13 spans academia and industry, representing seven nationalities across the globe.
-You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
+developers, and has since been substantially rewritten and extended.
+Our core development team of 13 spans academia and industry, representing seven
+nationalities across the globe.
+You can read more about the project's history, values, and governance on the
+[About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
 
 ## Project status
 
-`aeon` is under active development. The core package is stable and widely used. The following modules are currently considered in development, and the deprecation policy does not necessarily apply (although we only rarely make non-compatible changes): `anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`, `visualisation`, `transformations.collection.self_supervised`, `transformations.collection.imbalance`.
+`aeon` is under active development. The core package is stable and widely used.
+The following modules are currently considered in development, and the deprecation
+policy does not necessarily apply (although we only rarely make non-compatible changes):
+`anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`,
+`visualisation`, `transformations.collection.self_supervised`,
+`transformations.collection.imbalance`.
 
-Please check the documentation for task-specific capabilities, limitations, and current status.
+Please check the documentation for task-specific capabilities, limitations, and
+current status.
