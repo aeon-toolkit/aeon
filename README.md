@@ -102,7 +102,7 @@ pip install aeon[all_extras]
 For development installs and platform-specific notes, see the
 [installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
 
-The latest version of `aeon` is v1.5.1.
+The latest version of `aeon` is v1.6.0.
 
 ## Quick start
 
