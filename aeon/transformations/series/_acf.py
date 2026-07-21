@@ -76,7 +76,7 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         if X.shape[1] - n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
-                f"series, autocorrelation would be calculated with just"
+                f"series, autocorrelation would be calculated with just "
                 f"{X.shape[1] - n_lags} observations."
             )
         return self._acf(X, max_lag=n_lags)

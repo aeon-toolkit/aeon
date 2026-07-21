@@ -159,6 +159,12 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
         swin = self._resolve_s_windows(self.s_windows, m)
 
         z = x.astype(float, copy=True)
+        if np.isnan(z).any() and not self._as_bool(self.impute_missing):
+            raise ValueError(
+                "Input contains missing values, but impute_missing=False. "
+                "Set impute_missing=True to interpolate missing values before "
+                "decomposition."
+            )
         # Missing-value interpolation and Box–Cox transform
         if self._as_bool(self.impute_missing) and np.isnan(z).any():
             z = self._na_interp_linear(z)
