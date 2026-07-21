@@ -80,13 +80,13 @@ def test_tde_incorrect_input():
 
 
 def test_tde_multivariate():
-    """Test multivariate dimension selection respects max_dims.
+    """Test multivariate channel selection respects max_channels.
 
     dim_threshold=0 keeps every channel eligible, so the random truncation
-    down to max_dims dimensions must run.
+    down to max_channels channels must run.
     """
     X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
-    tde = IndividualTDE(max_dims=1, dim_threshold=0.0, random_state=0)
+    tde = IndividualTDE(max_channels=1, dim_threshold=0.0, random_state=0)
     tde._fit(X, y)
     assert len(tde._dims) == 1
 
@@ -191,9 +191,9 @@ def test_tde_predict_multithreading_equivalence():
 
 
 def test_tde_deprecated_parameters_warn():
-    """Test the deprecated alphabet_size and typed_dict parameters.
+    """Test the deprecated max_dims, alphabet_size and typed_dict parameters.
 
-    Both parameters have no effect and raise a FutureWarning when a value is
+    Deprecated parameters raise a FutureWarning when a value is
     passed; the defaults must stay silent. TODO remove in v1.7.0 along with
     the parameters.
     """
@@ -206,6 +206,14 @@ def test_tde_deprecated_parameters_warn():
 
     with pytest.warns(FutureWarning, match="alphabet_size"):
         IndividualTDE(alphabet_size=4)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        individual = IndividualTDE(max_dims=1)
+    assert individual.max_channels == 1
+    with pytest.warns(FutureWarning, match="max_dims"):
+        ensemble = TemporalDictionaryEnsemble(max_dims=1)
+    assert ensemble.max_channels == 1
+    ensemble = TemporalDictionaryEnsemble(max_channels=1)
+    assert ensemble.max_channels == 1
     with pytest.warns(FutureWarning, match="typed_dict"):
         IndividualTDE(typed_dict=True)
     with pytest.warns(FutureWarning, match="typed_dict"):
