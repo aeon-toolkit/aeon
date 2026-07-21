@@ -306,7 +306,7 @@ class REDCOMETS(BaseClassifier):
         return sfa_transforms, sfa_clfs, sax_transforms, sax_clfs
 
     def _build_dimension_ensemble(self, X, y):
-        """Build an ensemble of univariate RED CoMETS ensembles over dimensions.
+        """Build an ensemble of univariate RED CoMETS ensembles over channels.
 
         Parameters
         ----------
@@ -442,7 +442,7 @@ class REDCOMETS(BaseClassifier):
         return pred_mat
 
     def _predict_proba_dimension_ensemble(self, X) -> np.ndarray:
-        """Predicts labels probabilities using ensemble over the dimensions.
+        """Predicts labels probabilities using ensemble over the channels.
 
         Parameters
         ----------
