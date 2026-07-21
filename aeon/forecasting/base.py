@@ -60,7 +60,7 @@ class BaseForecaster(BaseSeriesEstimator):
         super().__init__(axis)
 
     @final
-    @method_timer("fit_time_millis_")
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, y, exog=None, axis=1):
         """Fit forecaster to series y.
 
