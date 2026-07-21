@@ -1,6 +1,13 @@
-"""TDE test code."""
+"""Tests for the Temporal Dictionary Ensemble classifiers.
+
+Covers the ensemble train estimates, input validation, multivariate dimension
+selection, pickling, the deprecated parameters, the numpy parameter-selection
+helper and the public histogram intersection function. The TDE-specific SFA
+transform has its own tests in test_tde_sfa.py.
+"""
 
 import pickle
+import re
 
 import numpy as np
 import pytest
@@ -17,8 +24,12 @@ from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_tde_oob_train_estimate():
-    """Test of TDE oob train estimate on unit test data."""
-    # load unit test data
+    """Test the out-of-bag train estimate on unit test data.
+
+    With train_estimate_method="oob", each member votes only on the training
+    cases outside its subsample. The returned train probabilities must have
+    one row per case and each row must sum to one.
+    """
     X_train, y_train = load_unit_test(split="train")
 
     # train TDE
@@ -37,8 +48,12 @@ def test_tde_oob_train_estimate():
 
 
 def test_tde_incorrect_input():
-    """Test TDE with incorrect input."""
-    # train TDE
+    """Test parameter validation and correction on fit.
+
+    An unknown train_estimate_method must raise a clear ValueError, and a
+    min_window larger than the series length must be capped to the series
+    length (with a warning) rather than failing.
+    """
     tde = TemporalDictionaryEnsemble(
         n_parameter_samples=5,
         max_ensemble_size=2,
@@ -66,26 +81,40 @@ def test_tde_incorrect_input():
 
 
 def test_tde_multivariate():
-    """Test TDE with incorrect input."""
-    # train TDE
+    """Test multivariate dimension selection respects max_dims.
+
+    dim_threshold=0 keeps every channel eligible, so the random truncation
+    down to max_dims dimensions must run.
+    """
     X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
-    tde = IndividualTDE(max_dims=1)
+    tde = IndividualTDE(max_dims=1, dim_threshold=0.0, random_state=0)
     tde._fit(X, y)
     assert len(tde._dims) == 1
 
 
 def test_tde_pickle():
-    """Test the dict conversion work around for pickle."""
+    """Test that a fitted IndividualTDE round-trips through pickle.
+
+    The array-backed bags should pickle natively and the unpickled model
+    should produce the same predictions as the original.
+    """
     X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
-    tde = IndividualTDE(typed_dict=True)
+    tde = IndividualTDE(random_state=0)
     tde.fit(X, y)
-    pickled_tde = pickle.dumps(tde)
-    unpickled_tde = pickle.loads(pickled_tde)
+
+    unpickled_tde = pickle.loads(pickle.dumps(tde))
+
     assert isinstance(unpickled_tde, IndividualTDE)
+    np.testing.assert_array_equal(tde.predict(X), unpickled_tde.predict(X))
 
 
 def test_histogram_intersection():
-    """Test the histogram intersection function used by TDE."""
+    """Test the public histogram intersection similarity function.
+
+    The similarity is the sum of minimum counts over shared words. The same
+    result must be returned for all three accepted input types: dense arrays,
+    plain dicts and numba typed Dicts.
+    """
     first = np.array([1, 0, 0, 1, 0])
     second = np.array([1, 2, 3, 5, 10])
     res = histogram_intersection(first, second)
@@ -105,10 +134,249 @@ def test_histogram_intersection():
     assert res == 2
 
 
+def test_tde_loocv_train_estimate_and_predict():
+    """Test the loocv train estimate path and ensemble prediction.
+
+    fit_predict_proba with the default "loocv" method exercises the stored
+    per-member train predictions; predict and predict_proba are then checked
+    on the fitted ensemble.
+    """
+    X_train, y_train = load_unit_test(split="train")
+
+    tde = TemporalDictionaryEnsemble(
+        n_parameter_samples=5,
+        max_ensemble_size=2,
+        randomly_selected_params=3,
+        train_estimate_method="loocv",
+        random_state=0,
+    )
+    train_proba = tde.fit_predict_proba(X_train, y_train)
+
+    assert train_proba.shape == (len(X_train), 2)
+    np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)
+
+    proba = tde.predict_proba(X_train)
+    preds = tde.predict(X_train)
+
+    assert proba.shape == (len(X_train), 2)
+    np.testing.assert_almost_equal(proba.sum(axis=1), 1, decimal=4)
+    assert all(p in tde.classes_ for p in preds)
+
+
+def test_tde_predict_multithreading_equivalence():
+    """Test that n_jobs > 1 predictions match single threaded ones.
+
+    Prediction is parallelised over ensemble members (and over test case
+    chunks in IndividualTDE); results are gathered in order, so the outputs
+    must be identical for any n_jobs.
+    """
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
+
+    def ensemble(n_jobs):
+        return TemporalDictionaryEnsemble(
+            n_parameter_samples=4,
+            max_ensemble_size=3,
+            randomly_selected_params=2,
+            random_state=0,
+            n_jobs=n_jobs,
+        )
+
+    st = ensemble(1).fit(X, y)
+    mt = ensemble(2).fit(X, y)
+    np.testing.assert_array_equal(st.predict_proba(X), mt.predict_proba(X))
+
+    Xm, ym = make_example_3d_numpy(n_cases=16, n_channels=3, n_timepoints=40)
+    it_st = IndividualTDE(window_size=12, random_state=0, n_jobs=1).fit(Xm, ym)
+    it_mt = IndividualTDE(window_size=12, random_state=0, n_jobs=3).fit(Xm, ym)
+    np.testing.assert_array_equal(it_st.predict(Xm), it_mt.predict(Xm))
+
+
+@pytest.mark.parametrize(
+    ("verbose", "expected_output", "excluded_output"),
+    [
+        (1, "[TDE] Progress: evaluated=", "[TDE] Candidate 1:"),
+        (2, "[TDE] Candidate 1:", "[TDE] Progress: evaluated="),
+    ],
+)
+def test_tde_fit_verbosity_levels(verbose, expected_output, excluded_output, capsys):
+    """TDE verbosity controls whether fit output is periodic or per candidate."""
+    n_cases = 20
+    n_timepoints = 24
+    n_parameter_samples = 4
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    tde = TemporalDictionaryEnsemble(
+        n_parameter_samples=n_parameter_samples,
+        max_ensemble_size=1,
+        randomly_selected_params=3,
+        random_state=0,
+        verbose=verbose,
+    )
+
+    tde.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"[TDE] Starting fit: n_cases={n_cases}" in output
+    assert expected_output in output
+    assert excluded_output not in output
+    assert f"[TDE] Finished fit: evaluated={n_parameter_samples}" in output
+    if verbose == 2:
+        assert "estimated_remaining=" in output
+        for status in ("retained", "replaced", "discarded"):
+            assert f"status={status}" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "remaining_time_pattern"),
+    [
+        (1, r"contract_remaining=\d+\.\d+s"),
+        (2, r"contract_remaining=\d+m \d+s"),
+        (120, r"contract_remaining=\d+h \d+m"),
+    ],
+)
+def test_tde_contract_verbosity_reports_remaining_time(
+    time_limit_in_minutes, remaining_time_pattern, capsys
+):
+    """TDE level-two output reports the remaining fit contract."""
+    n_cases = 20
+    n_timepoints = 24
+    max_parameter_samples = 2
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    tde = TemporalDictionaryEnsemble(
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_parameter_samples=max_parameter_samples,
+        max_ensemble_size=1,
+        randomly_selected_params=1,
+        random_state=0,
+        verbose=2,
+    )
+
+    tde.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert re.search(remaining_time_pattern, output)
+    assert "estimated_remaining=" not in output
+    assert f"[TDE] Finished fit: evaluated={max_parameter_samples}" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "expect_progress"),
+    [(1e-12, True), (120, False)],
+)
+def test_tde_contract_level_one_progress_is_rate_limited(
+    time_limit_in_minutes, expect_progress, capsys
+):
+    """TDE level-one contract progress is emitted only after its interval."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+    tde = TemporalDictionaryEnsemble(
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_parameter_samples=2,
+        max_ensemble_size=1,
+        randomly_selected_params=1,
+        random_state=0,
+        verbose=1,
+    )
+
+    tde.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert ("[TDE] Progress: evaluated=" in output) is expect_progress
+    assert "[TDE] Candidate " not in output
+
+
+def test_tde_deprecated_parameters_warn():
+    """Test the deprecated alphabet_size and typed_dict parameters.
+
+    Both parameters have no effect and raise a FutureWarning when a value is
+    passed; the defaults must stay silent. TODO remove in v1.7.0 along with
+    the parameters.
+    """
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        IndividualTDE()
+        TemporalDictionaryEnsemble()
+
+    with pytest.warns(FutureWarning, match="alphabet_size"):
+        IndividualTDE(alphabet_size=4)
+    with pytest.warns(FutureWarning, match="typed_dict"):
+        IndividualTDE(typed_dict=True)
+    with pytest.warns(FutureWarning, match="typed_dict"):
+        TemporalDictionaryEnsemble(typed_dict=False)
+
+
+def test_kernel_ridge_parameter_selection_matches_sklearn():
+    """Test the numpy kernel ridge helper against the sklearn original.
+
+    The ensemble's guided parameter selection replaced StandardScaler +
+    KernelRidge(kernel="poly", degree=1) with a direct numpy computation;
+    the predictions must match sklearn's to numerical precision.
+    """
+    from sklearn.kernel_ridge import KernelRidge
+    from sklearn.preprocessing import StandardScaler
+
+    from aeon.classification.dictionary_based._tde import _kernel_ridge_preds
+
+    rng = np.random.RandomState(0)
+    x_hist = rng.randint(0, 20, size=(30, 5)).astype(np.float64)
+    x_hist[:, 3] = 1.0  # constant column, exercises the zero-std guard
+    y_hist = rng.rand(30)
+    candidates = rng.randint(0, 20, size=(40, 5)).astype(np.float64)
+
+    scaler = StandardScaler().fit(x_hist)
+    gp = KernelRidge(kernel="poly", degree=1)
+    gp.fit(scaler.transform(x_hist), y_hist)
+    expected = gp.predict(scaler.transform(candidates))
+
+    actual = _kernel_ridge_preds(x_hist, y_hist, candidates)
+
+    np.testing.assert_allclose(actual, expected, rtol=1e-8, atol=1e-10)
+
+
+def test_individual_train_acc_fallback_matches_symmetric_kernel(monkeypatch):
+    """Test the per-case LOOCV fallback agrees with the symmetric kernel.
+
+    Above _SYMMETRIC_LOOCV_MAX_N cases the ensemble falls back to per-case
+    nearest neighbour searches instead of materialising the n x n similarity
+    matrix. Forcing the threshold to zero must not change the accuracy
+    estimate or the resulting ensemble behaviour.
+    """
+    from aeon.classification.dictionary_based import _tde
+
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
+
+    def fit_ensemble():
+        tde = TemporalDictionaryEnsemble(
+            n_parameter_samples=4,
+            max_ensemble_size=2,
+            randomly_selected_params=2,
+            random_state=0,
+        )
+        tde.fit(X, y)
+        return tde
+
+    fast = fit_ensemble()
+    monkeypatch.setattr(_tde, "_SYMMETRIC_LOOCV_MAX_N", 0)
+    slow = fit_ensemble()
+
+    assert [e._accuracy for e in fast.estimators_] == [
+        e._accuracy for e in slow.estimators_
+    ]
+    np.testing.assert_array_equal(fast.predict(X), slow.predict(X))
+
+
 def test_subsampling_in_highly_imbalanced_datasets():
     """Test the subsampling during fit for highly imbalanced datasets.
 
-    This test case tests the fix for bug #1726.
+    Member subsamples are redrawn until they contain at least two classes,
+    so fitting a dataset with a single minority case must succeed rather
+    than producing single-class members. Regression test for bug #1726:
     https://github.com/aeon-toolkit/aeon/issues/1726
     """
     X = np.random.rand(10, 1, 20)

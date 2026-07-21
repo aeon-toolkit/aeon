@@ -1,7 +1,7 @@
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
-Upgraded hybrid ensemble of classifiers from 4 separate time series classification
-representations, using the weighted probabilistic CAWPE as an ensemble controller.
+Hybrid ensemble combining classifiers from four time-series representations using the
+weighted probabilistic CAWPE structure.
 """
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
@@ -19,32 +19,34 @@ from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV2(_BaseHIVECOTE):
-    """
-    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
+    """Hierarchical Vote Collective of Transformation Ensembles (HIVE-COTE) V2.
 
-    An ensemble of the STC, DrCIF, Arsenal and TDE classifiers from different feature
-    representations using the CAWPE structure as described in [1]_.
+    HIVE-COTE 2.0 combines classifiers built on shapelet, interval, convolution, and
+    dictionary representations. The STC, DrCIF, Arsenal, and TDE components are
+    weighted by their training accuracy using the CAWPE structure described in [1]_.
 
     Parameters
     ----------
     stc_params : dict or None, default=None
-        Parameters for the ShapeletTransformClassifier module. If None, uses the
-        default parameters with a 2 hour transform contract.
+        Parameters passed to ``ShapeletTransformClassifier``. If None, use
+        ``n_shapelet_samples=10000`` and the component defaults.
     drcif_params : dict or None, default=None
-        Parameters for the DrCIF module. If None, uses the default parameters with
-        n_estimators set to 500.
+        Parameters passed to ``DrCIFClassifier``. If None, use ``n_estimators=500``
+        and the component defaults.
     arsenal_params : dict or None, default=None
-        Parameters for the Arsenal module. If None, uses the default parameters.
+        Parameters passed to ``Arsenal``. If None, use ``n_kernels=2000`` and
+        ``n_estimators=25`` with the component defaults.
     tde_params : dict or None, default=None
-        Parameters for the TemporalDictionaryEnsemble module. If None, uses the default
-        parameters.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding
-        n_estimators/n_parameter_samples for each component.
-        Default of 0 means n_estimators/n_parameter_samples for each component is used.
+        Parameters passed to ``TemporalDictionaryEnsemble``. If None, use
+        ``n_parameter_samples=250``, ``max_ensemble_size=50``, and
+        ``randomly_selected_params=50`` with the component defaults.
+    time_limit_in_minutes : float, default=0
+        Time contract for fitting the ensemble, in minutes. A positive value allocates
+        one sixth of the contract to each component; otherwise, each component uses its
+        configured estimator or parameter-sample count.
     save_component_probas : bool, default=False
-        When predict/predict_proba is called, save each HIVE-COTEV2 component
-        probability predictions in component_probas.
+        Whether ``predict`` and ``predict_proba`` save each component's probability
+        predictions in ``component_probas``.
 
         .. deprecated::
             ``save_component_probas`` is deprecated because it mutates object
@@ -52,7 +54,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
             instead, which returns per-component probabilities without
             modifying the fitted estimator.
     verbose : int, default=0
-        Level of output printed to the console (for information only).
+        Level of output printed during fit. Level 1 reports HC2 progress, level 2 also
+        reports component parameters, level 3 enables summary progress within each
+        component, and level 4 and above enables detailed component progress.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -62,17 +66,25 @@ class HIVECOTEV2(_BaseHIVECOTE):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib for Catch22,
-        if None a 'prefer' value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        Joblib parallel backend passed to the DrCIF component. If None, DrCIF uses its
+        default backend. Valid options include ``"loky"``, ``"multiprocessing"``,
+        ``"threading"``, or a custom backend.
+    alpha : int or float, default=4
+        Exponent applied to each component's training accuracy to calculate its
+        CAWPE weight.
 
     Attributes
     ----------
     n_classes_ : int
         The number of classes.
-    classes_ : list
+    classes_ : np.ndarray of shape (n_classes_)
         The unique class labels.
+    fitted_estimators_ : list of BaseClassifier
+        The fitted STC, DrCIF, Arsenal, and TDE components, in that order.
+    component_names_ : list of str
+        Names corresponding to the estimators in ``fitted_estimators_``.
+    weights_ : list of float
+        CAWPE weights for the fitted components.
     stc_weight_ : float
         The weight for STC probabilities.
     drcif_weight_ : float
@@ -82,13 +94,16 @@ class HIVECOTEV2(_BaseHIVECOTE):
     tde_weight_ : float
         The weight for TDE probabilities.
     component_probas : dict
-        Only used if save_component_probas is true. Saved probability predictions for
-        each HIVE-COTEV2 component.
+        Component probability predictions from the most recent prediction when
+        ``save_component_probas=True``. This deprecated attribute is created only when
+        component probabilities are saved.
 
     See Also
     --------
-    HIVECOTEV1, ShapeletTransformClassifier, DrCIF, Arsenal, TemporalDictionaryEnsemble
-        Components of HIVECOTE.
+    HIVECOTEV1
+        The first version of HIVE-COTE.
+    ShapeletTransformClassifier, DrCIFClassifier, Arsenal, TemporalDictionaryEnsemble
+        The four HIVE-COTE 2.0 components.
 
     Notes
     -----
@@ -117,6 +132,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
     _DEFAULT_N_PARA_SAMPLES = 250
     _DEFAULT_MAX_ENSEMBLE_SIZE = 50
     _DEFAULT_RAND_PARAMS = 50
+    _verbose_name = "HC2"
 
     def __init__(
         self,
@@ -130,6 +146,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        alpha=4,
     ):
         self.stc_params = stc_params
         self.drcif_params = drcif_params
@@ -141,7 +158,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
 
         super().__init__(
             estimators=None,
-            alpha=4,
+            alpha=alpha,
             random_state=random_state,
             n_jobs=n_jobs,
             verbose=verbose,
@@ -168,17 +185,17 @@ class HIVECOTEV2(_BaseHIVECOTE):
         ending in "_" and sets is_fitted flag to True.
         """
         if self.stc_params is not None:
-            self._stc_params = self.stc_params
+            self._stc_params = self.stc_params.copy()
         else:
             self._stc_params = {"n_shapelet_samples": self._DEFAULT_N_SHAPELETS}
 
         if self.drcif_params is not None:
-            self._drcif_params = self.drcif_params
+            self._drcif_params = self.drcif_params.copy()
         else:
             self._drcif_params = {"n_estimators": self._DEFAULT_N_TREES}
 
         if self.arsenal_params is not None:
-            self._arsenal_params = self.arsenal_params
+            self._arsenal_params = self.arsenal_params.copy()
         else:
             self._arsenal_params = {
                 "n_kernels": self._DEFAULT_N_KERNELS,
@@ -186,7 +203,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
             }
 
         if self.tde_params is not None:
-            self._tde_params = self.tde_params
+            self._tde_params = self.tde_params.copy()
         else:
             self._tde_params = {
                 "n_parameter_samples": self._DEFAULT_N_PARA_SAMPLES,
@@ -204,14 +221,25 @@ class HIVECOTEV2(_BaseHIVECOTE):
 
         # Build component estimators (stored in _estimators to avoid mutating
         # the self.estimators init parameter, for scikit-learn compatibility)
+        drcif_build_params = self._drcif_params.copy()
+        drcif_build_params.setdefault("parallel_backend", self.parallel_backend)
         self._estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
-            ("DrCIF", DrCIFClassifier(**self._drcif_params)),
+            ("DrCIF", DrCIFClassifier(**drcif_build_params)),
             ("Arsenal", Arsenal(**self._arsenal_params)),
             ("TDE", TemporalDictionaryEnsemble(**self._tde_params)),
         ]
 
         return super()._fit(X, y)
+
+    def _log_fit_configuration(self):
+        """Log the HC2 contract allocation when it is active."""
+        if self.time_limit_in_minutes > 0:
+            component_time = self.time_limit_in_minutes / 6
+            self._log(
+                f"[HC2] Contract time = {self.time_limit_in_minutes} minutes, "
+                f"per-component allocation = {component_time:.4f} minutes"
+            )
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X.
@@ -271,9 +299,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         for i, name in enumerate(self.component_names_):
             dists = np.add(dists, component_probas[name] * self.weights_[i])
 
-        sums = dists.sum(axis=1, keepdims=True)
-        sums[sums == 0] = 1.0
-        final_probas = dists / sums
+        final_probas = self._normalise_probabilities(dists)
 
         return final_probas, component_probas
 

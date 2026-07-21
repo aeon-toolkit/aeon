@@ -1,7 +1,7 @@
 """DrCIF regressor.
 
-Interval-based DrCIF regressor extracting catch22 features from random intervals on
-periodogram and differences representations as well as the base series.
+Interval-based regressor extracting catch22 features from the original, first-
+difference, and periodogram representations.
 """
 
 import numpy as np
@@ -26,20 +26,11 @@ from aeon.utils.numba.stats import (
 class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     """Diverse Representation Canonical Interval Forest (DrCIF) Regressor.
 
-    Extension of the CIF algorithm using multiple representations. Implementation of the
-    interval-based forest making use of the catch22 feature set on randomly selected
-    intervals on the base series, periodogram representation and differences
-    representation described in the HIVE-COTE 2.0 paper Middlehurst et al (2021). [1]_
-
-    Overview: Input "n" series with "d" dimensions of length "m".
-    For each tree
-        - Sample n_intervals intervals per representation of random position and length
-        - Subsample att_subsample_size catch22 or summary statistic attributes randomly
-        - Randomly select dimension for each interval
-        - Calculate attributes for each interval from its representation, concatenate
-          to form new data set
-        - Build a decision tree on new data set
-    Ensemble the trees with averaged label estimates
+    DrCIF extends the Canonical Interval Forest (CIF) with three representations: the
+    original series, first differences, and the periodogram. Each tree samples random
+    intervals and dimensions, extracts a random subset of catch22 and summary-statistic
+    features, and fits a decision tree regressor to the resulting tabular data [1]_.
+    Predictions average the estimates over the trees.
 
     Parameters
     ----------
@@ -48,57 +39,45 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         simple decision tree.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
-    n_intervals : int, str, list or tuple, default="sqrt"
-        Number of intervals to extract per tree for each series_transformers series.
+    n_intervals : int, str, list or tuple, default=(4, "sqrt-div")
+        Number of intervals to extract per tree from each representation.
 
-        An int input will extract that number of intervals from the series, while a str
-        input will return a function of the series length (may differ per
-        series_transformers output) to extract that number of intervals.
-        Valid str inputs are:
-            - "sqrt": square root of the series length.
-            - "sqrt-div": sqrt of series length divided by the number
-                of series_transformers.
+        An integer specifies an exact count. A string derives the count from series
+        length, independently for each representation. Supported values are
+        ``"sqrt"`` for the square root of series length and ``"sqrt-div"`` for that
+        value divided by the number of representations.
 
-        A list or tuple of ints and/or strs will extract the number of intervals using
-        the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(n_timepoints) + 4 intervals.
+        A list or tuple sums counts obtained by these rules. For example,
+        ``[4, "sqrt"]`` produces ``4 + sqrt(n_timepoints)`` intervals. A nested list
+        or tuple specifies counts separately for each representation and must have one
+        entry per representation.
+    min_interval_length : int, float, list or tuple, default=3
+        Minimum interval length. An integer specifies a number of time points and a
+        float specifies a proportion of series length.
 
-        Different number of intervals for each series_transformers series can be
-        specified using a nested list or tuple. Any list or tuple input containing
-        another list or tuple must be the same length as the number of
-        series_transformers.
-    min_interval_length : int, float, list, or tuple, default=3
-        Minimum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the minimum interval length.
+        Different minimum interval lengths for each representation can be specified
+        using a list or tuple with one entry per representation.
+    max_interval_length : int, float, list or tuple, default=0.5
+        Maximum interval length. An integer specifies a number of time points and a
+        float specifies a proportion of series length.
 
-        Different minimum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    max_interval_length : int, float, list, or tuple, default=np.inf
-        Maximum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the maximum interval length.
+        Different maximum interval lengths for each representation can be specified
+        using a list or tuple with one entry per representation.
+    att_subsample_size : int, float, list, tuple or None, default=10
+        Number of attributes sampled for each estimator. An integer specifies an exact
+        count, a float specifies a proportion, and None uses all attributes.
 
-        Different maximum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    att_subsample_size : int, float, list, tuple or None, default=None
-        The number of attributes to subsample for each estimator. If None, use all
-
-        If int, use that number of attributes for all estimators. If float, use that
-        proportion of attributes for all estimators.
-
-        Different subsample sizes for each series_transformers series can be specified
-        using a list or tuple. Any list or tuple input must be the same length as the
-        number of series_transformers.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators are used.
+        Different subsample sizes for each representation can be specified using a list
+        or tuple with one entry per representation.
+    time_limit_in_minutes : float or None, default=None
+        Time contract for fitting, in minutes, overriding ``n_estimators``. None or 0
+        uses ``n_estimators``.
     contract_max_n_estimators : int, default=500
-        Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, optional, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
+        Maximum number of estimators when ``time_limit_in_minutes`` is set.
+    use_pycatch22 : bool, default=False
+        Whether to use the C-based
+        `pycatch22 <https://github.com/DynamicsAndNeuralSystems/pycatch22>`_
+        implementation. This requires the ``pycatch22`` package.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -108,10 +87,8 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib. If None it uses
-        the Parallel default (loky).
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        Joblib parallel backend. If None, use the joblib default. Valid options include
+        ``"loky"``, ``"multiprocessing"``, ``"threading"``, or a custom backend.
 
     Attributes
     ----------
@@ -123,10 +100,10 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         The length of each series in the training set.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of TransformerMixin
-        Stores the interval extraction transformer for all estimators.
+    estimators_ : list of BaseEstimator
+        The fitted base estimators, with length equal to the fitted ensemble size.
+    intervals_ : list of list of BaseTransformer
+        The fitted interval transformers used by each estimator.
 
     See Also
     --------

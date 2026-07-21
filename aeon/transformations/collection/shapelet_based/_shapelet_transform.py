@@ -23,7 +23,7 @@ from aeon.utils.validation import check_n_jobs
 
 # Column layout of a shapelet record, constant across its whole lifecycle. The
 # working records built during fitting are a numba ``List`` of floats populating
-# indices 0-6; the fitted records in ``self.shapelets`` extend this with the
+# indices 0-6; the fitted records in ``self.shapelets_`` extend this with the
 # z-normalised subsequence at index 7 (``_VALUES``). Every index means the same
 # thing in both forms.
 (
@@ -45,9 +45,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     randomly extracted shapelets. A shapelet is a subsequence from the training set. The
     transform finds a set of shapelets that are good at separating the classes based on
     the distances between shapelets and whole series. The distance between a shapelet
-    and a series (called sDist in the literature) is the minimum mean squared distance
-    between the z-normalised shapelet and every z-normalised window of the same length
-    in the series.
+    and a series (called sDist in the literature) is the minimum z-normalised squared
+    distance between the shapelet and every window of the same length in the series.
 
     Given ``n`` series with ``d`` channels, candidate shapelets are extracted and
     filtered in batches.
@@ -79,13 +78,17 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     batch_size : int, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets.
-    verbose : bool, default=False
-        Whether to print progress messages during fitting.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every candidate batch and estimated remaining time.
     time_limit_in_minutes : float, default=0.0
-        Time contract to limit build time in minutes, overriding n_shapelet_samples.
+        Time contract to limit build time in minutes, overriding
+        ``n_shapelet_samples``.
         The default of 0 means ``n_shapelet_samples`` is used.
-    contract_max_n_shapelet_samples : float, default=np.inf
-        Maximum number of shapelets to extract when ``time_limit_in_minutes`` is set.
+    contract_max_n_shapelet_samples : int or float, default=np.inf
+        Maximum number of candidate shapelets to assess when
+        ``time_limit_in_minutes > 0``.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``transform``.
         ``-1`` means using all processors.
@@ -108,7 +111,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         The maximum series length in the training data.
     classes_ : np.ndarray
         The class labels.
-    shapelets : list of tuple
+    shapelets_ : list of tuple
         The stored shapelets after fitting. Each tuple has a fixed layout
         ``(quality, length, position, channel, case_index, class_index,
         distance_index, values)``: ``class_index`` indexes ``classes_``,
@@ -129,11 +132,23 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     References
     ----------
     .. [1] Jon Hills et al., "Classification of time series by shapelet transformation",
-       Data Mining and Knowledge Discovery, 28(4), 851-881, 2014.
+       Data Mining and Knowledge Discovery, 28(4), 851--881, 2014.
 
     .. [2] A. Bostrom and A. Bagnall, "Binary Shapelet Transform for Multiclass Time
        Series Classification", Transactions on Large-Scale Data and Knowledge-Centered
        Systems, 32, 2017.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.transformations.collection.shapelet_based import (
+    ...     RandomShapeletTransform,
+    ... )
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> rst = RandomShapeletTransform(
+    ...     n_shapelet_samples=20, max_shapelets=5, random_state=0
+    ... )
+    >>> X_transform = rst.fit_transform(X_train, y_train)
     """
 
     _tags = {
@@ -154,7 +169,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         max_shapelet_length: int | None = None,
         remove_self_similar: bool = True,
         batch_size: int = 100,
-        verbose: bool = False,
+        verbose: int = 0,
         time_limit_in_minutes: float = 0.0,
         contract_max_n_shapelet_samples: float = np.inf,
         n_jobs: int = 1,
@@ -180,7 +195,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.n_channels_ = 0
         self.max_n_timepoints_ = 0
         self.classes_ = []
-        self.shapelets = []
+        self.shapelets_ = []
 
         # Protected attributes
         self._max_shapelets = max_shapelets
@@ -188,6 +203,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._n_jobs = n_jobs
         self._batch_size = batch_size
         self._class_counts = []
+        self._class_dictionary = {}
         self._sorted_indices = []
 
         super().__init__()
@@ -208,6 +224,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         are kept in ``distance_vectors`` and stacked into ``Xt`` at the end, so the
         training transform is not recomputed. ``_fit`` leaves it off.
         """
+        fit_start = perf_counter() if self.verbose > 0 else None
         y = self._set_fit_attributes(X, y)
         X_values, X_offsets = self._pack_collection(X)
 
@@ -230,7 +247,12 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             ]
         )
         # Find and score shapelets by time limit or by number of shapelets
-        shapelets_by_class, distance_vectors = self._run_fit_batches(
+        (
+            shapelets_by_class,
+            distance_vectors,
+            n_shapelets_extracted,
+            sample_limit,
+        ) = self._run_fit_batches(
             X_values=X_values,
             X_offsets=X_offsets,
             y=y,
@@ -241,7 +263,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             rng=rng,
         )
         # Extract all shapelet parameters and normalised shapelets
-        self.shapelets = []
+        self.shapelets_ = []
         for class_shapelets in shapelets_by_class:
             for shapelet in class_shapelets:
                 if shapelet[_QUALITY] <= 0:
@@ -253,7 +275,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         + int(shapelet[_LENGTH])
                     ]
                 )
-                self.shapelets.append(
+                self.shapelets_.append(
                     (
                         shapelet[_QUALITY],
                         int(shapelet[_LENGTH]),
@@ -266,7 +288,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     )
                 )
         # Sort by quality
-        self.shapelets.sort(
+        self.shapelets_.sort(
             reverse=True,
             key=lambda s: (
                 s[_QUALITY],
@@ -276,15 +298,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 s[_CASE],
             ),
         )
-        if self.shapelets:
-            to_keep = self._remove_identical_shapelets(List(self.shapelets))
-            self.shapelets = [n for (n, b) in zip(self.shapelets, to_keep) if b]
-
-        if self.verbose:
-            print(f"Final shapelet count: {len(self.shapelets)}")  # noqa: T201
+        to_keep = self._remove_identical_shapelets(List(self.shapelets_))
+        self.shapelets_ = [n for (n, b) in zip(self.shapelets_, to_keep) if b]
 
         self._sorted_indices = []
-        for s in self.shapelets:
+        for s in self.shapelets_:
             sabs = np.abs(s[_VALUES])
             self._sorted_indices.append(
                 np.array(
@@ -299,12 +317,20 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         self._build_transform_inputs()
 
+        if self.verbose > 0:
+            self._log(
+                f"[RST] Finished fit: "
+                f"extracted={n_shapelets_extracted}/{sample_limit}, "
+                f"retained={len(self.shapelets_)}, "
+                f"elapsed={self._format_seconds(perf_counter() - fit_start)}"
+            )
+
         if cache_distance_vectors:
             Xt = np.array(
-                [distance_vectors[s[_DIST]] for s in self.shapelets]
+                [distance_vectors[s[_DIST]] for s in self.shapelets_]
             ).transpose()
-            self.shapelets = [
-                s[:_DIST] + (-1,) + s[_DIST + 1 :] for s in self.shapelets
+            self.shapelets_ = [
+                s[:_DIST] + (-1,) + s[_DIST + 1 :] for s in self.shapelets_
             ]
             return Xt
 
@@ -331,6 +357,30 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             time_limit = np.inf
             sample_limit = self.n_shapelet_samples
         total_start = perf_counter()
+
+        log_each_batch = self.verbose >= 2
+        log_progress = self.verbose == 1
+        if self.verbose > 0:
+            if contracted:
+                fit_limit = (
+                    f"time_limit={self._format_seconds(time_limit)}, "
+                    f"max_samples={sample_limit}"
+                )
+            else:
+                fit_limit = f"candidate_samples={sample_limit}"
+            self._log(
+                f"[RST] Starting fit: mode={mode}, n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, {fit_limit}, "
+                f"batch_size={self._batch_size}, n_jobs={self._n_jobs}"
+            )
+
+        if log_progress:
+            if contracted:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
+            else:
+                total_batches = math.ceil(sample_limit / self._batch_size)
+                progress_batch_interval = max(1, math.ceil(total_batches / 10))
 
         n_shapelets_extracted = 0
         timed_shapelets_extracted = 0
@@ -368,27 +418,52 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
             # Ignore first batch for averages and rate estimates, it is dominated
             # by numba/joblib start-up.
-            if n_batches > 1:
+            if n_batches > 1 and log_each_batch:
                 timed_shapelets_extracted += batch_size
                 timed_elapsed += batch_elapsed
                 avg_batch_time = self._update_average_batch_time(
                     avg_batch_time, batch_elapsed
                 )
 
-                if self.verbose:
-                    self._log_fit_progress(
-                        mode=mode,
-                        n_shapelets_extracted=n_shapelets_extracted,
-                        timed_shapelets_extracted=timed_shapelets_extracted,
-                        current_kept=current_kept,
-                        timed_elapsed=timed_elapsed,
-                        total_elapsed=total_elapsed,
-                        avg_batch_time=avg_batch_time,
-                        time_limit=time_limit,
-                        n_shapelet_samples=self.n_shapelet_samples,
+            if log_each_batch:
+                self._log_fit_progress(
+                    mode=mode,
+                    batch_number=n_batches,
+                    batch_elapsed=batch_elapsed,
+                    n_shapelets_extracted=n_shapelets_extracted,
+                    timed_shapelets_extracted=timed_shapelets_extracted,
+                    current_kept=current_kept,
+                    timed_elapsed=timed_elapsed,
+                    total_elapsed=total_elapsed,
+                    avg_batch_time=avg_batch_time,
+                    time_limit=time_limit,
+                    sample_limit=sample_limit,
+                )
+            elif log_progress:
+                if contracted:
+                    report_progress = total_elapsed >= next_progress
+                else:
+                    report_progress = (
+                        n_batches % progress_batch_interval == 0
+                        or n_shapelets_extracted >= sample_limit
                     )
 
-        return shapelets_by_class, distance_vectors
+                if report_progress:
+                    self._log(
+                        f"[RST] Progress: "
+                        f"extracted={n_shapelets_extracted}/{sample_limit}, "
+                        f"kept={current_kept}, "
+                        f"elapsed={self._format_seconds(total_elapsed)}"
+                    )
+                    if contracted:
+                        next_progress = total_elapsed + progress_interval
+
+        return (
+            shapelets_by_class,
+            distance_vectors,
+            n_shapelets_extracted,
+            sample_limit,
+        )
 
     def _process_fit_batch(
         self,
@@ -479,6 +554,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         self.classes_, self._class_counts = np.unique(y, return_counts=True)
         self.n_classes_ = self.classes_.shape[0]
+        self._class_dictionary = {}
+        for index, class_val in enumerate(self.classes_):
+            self._class_dictionary[class_val] = index
 
         le = preprocessing.LabelEncoder()
         y = le.fit_transform(y)
@@ -535,6 +613,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     def _log_fit_progress(
         self,
         mode,
+        batch_number,
+        batch_elapsed,
         n_shapelets_extracted,
         timed_shapelets_extracted,
         current_kept,
@@ -542,7 +622,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         total_elapsed,
         avg_batch_time,
         time_limit=None,
-        n_shapelet_samples=None,
+        sample_limit=None,
     ):
         """Log progress during shapelet extraction using post-warm-up estimates."""
         rate = (
@@ -550,22 +630,25 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             if timed_elapsed > 0
             else float("nan")
         )
+        avg_batch = (
+            f"{avg_batch_time:.2f}s" if avg_batch_time is not None else "estimating"
+        )
+        rate_text = f"{rate:.1f}/s" if np.isfinite(rate) else "estimating"
 
         if mode == "fixed":
-            remaining = max(0, n_shapelet_samples - n_shapelets_extracted)
+            remaining = max(0, sample_limit - n_shapelets_extracted)
             eta_seconds = (
                 remaining / rate if rate > 0 and np.isfinite(rate) else float("nan")
             )
 
-            print(  # noqa: T201
-                "[RST] "
-                f"extracted={n_shapelets_extracted}/{n_shapelet_samples}, "
+            self._log(
+                f"[RST] Batch {batch_number}: "
+                f"extracted={n_shapelets_extracted}/{sample_limit}, "
                 f"kept={current_kept}, "
-                f"avg_batch={avg_batch_time:.2f}s, "
-                f"rate={rate:.1f}/s, "
-                f"elapsed (h:m:s/m:s)={self._format_seconds(total_elapsed)}, "
-                f"remaining={self._format_seconds(eta_seconds)}",
-                flush=True,
+                f"batch={batch_elapsed:.2f}s, avg_batch={avg_batch}, "
+                f"rate={rate_text}, "
+                f"elapsed={self._format_seconds(total_elapsed)}, "
+                f"estimated_remaining={self._format_seconds(eta_seconds)}"
             )
         else:
             remaining_time = max(0.0, time_limit - total_elapsed)
@@ -575,48 +658,54 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 else n_shapelets_extracted
             )
 
-            print(  # noqa: T201
-                "[RST] "
-                f"extracted={n_shapelets_extracted}, "
+            self._log(
+                f"[RST] Batch {batch_number}: "
+                f"extracted={n_shapelets_extracted}/{sample_limit}, "
                 f"kept={current_kept}, "
-                f"avg_batch={avg_batch_time:.2f}s, "
+                f"batch={batch_elapsed:.2f}s, avg_batch={avg_batch}, "
+                f"rate={rate_text}, "
                 f"elapsed={self._format_seconds(total_elapsed)}/"
                 f"{self._format_seconds(time_limit)}, "
-                f"remaining={self._format_seconds(remaining_time)}, "
-                f"projected_total~{projected_total}",
-                flush=True,
+                f"contract_remaining={self._format_seconds(remaining_time)}, "
+                f"projected_total~{projected_total}"
             )
+
+    @staticmethod
+    def _log(message):
+        """Print a fit progress message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
 
     def _build_transform_inputs(self):
         """Pack the fitted shapelets into Numba-friendly arrays for transform.
 
-        ``self.shapelets`` stays a list of tuples for external use. The ragged
+        ``self.shapelets_`` stays a list of tuples for external use. The ragged
         shapelet values and sorted indices are packed into single flat arrays
         with a CSR-style ``offsets`` array (shapelet ``n`` spans
         ``offsets[n]:offsets[n + 1]``). Flat arrays are plain NumPy, so the
         fitted estimator pickles cleanly (a Numba typed-list attribute does
         not) and each transform block still runs in one ``njit`` call.
         """
+        if len(self.shapelets_) == 0:
+            return
+
         self._transform_lengths = np.array(
-            [s[_LENGTH] for s in self.shapelets], dtype=np.int32
+            [s[_LENGTH] for s in self.shapelets_], dtype=np.int32
         )
         self._transform_positions = np.array(
-            [s[_POSITION] for s in self.shapelets], dtype=np.int32
+            [s[_POSITION] for s in self.shapelets_], dtype=np.int32
         )
         self._transform_channels = np.array(
-            [s[_CHANNEL] for s in self.shapelets], dtype=np.int32
+            [s[_CHANNEL] for s in self.shapelets_], dtype=np.int32
         )
         # A shapelet's values and its sorted indices share the same length, so
         # one offsets array indexes both flat buffers.
-        self._transform_offsets = np.zeros(len(self.shapelets) + 1, dtype=np.int64)
+        self._transform_offsets = np.zeros(len(self.shapelets_) + 1, dtype=np.int64)
         self._transform_offsets[1:] = np.cumsum(self._transform_lengths)
-        if len(self.shapelets) == 0:
-            self._transform_values = np.empty(0, dtype=np.float64)
-            self._transform_sorted_indices = np.empty(0, dtype=np.int32)
-            return
-
         self._transform_values = np.concatenate(
-            [np.ascontiguousarray(s[_VALUES], dtype=np.float64) for s in self.shapelets]
+            [
+                np.ascontiguousarray(s[_VALUES], dtype=np.float64)
+                for s in self.shapelets_
+            ]
         )
         self._transform_sorted_indices = np.concatenate(
             [np.ascontiguousarray(si, dtype=np.int32) for si in self._sorted_indices]
@@ -671,7 +760,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             The transformed data.
         """
         n_cases = len(X)
-        n_shapelets = len(self.shapelets)
+        n_shapelets = len(self.shapelets_)
         output = np.empty((n_cases, n_shapelets))
 
         if n_cases == 0 or n_shapelets == 0:

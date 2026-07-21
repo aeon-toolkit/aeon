@@ -1,4 +1,4 @@
-"""A base class for interval extracting forest estimators."""
+"""Base class for interval-based forest estimators."""
 
 __maintainer__ = []
 __all__ = ["BaseIntervalForest"]
@@ -9,7 +9,7 @@ import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.base import BaseEstimator, is_classifier, is_regressor
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier, DecisionTreeRegressor
@@ -22,15 +22,16 @@ from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
 )
+from aeon.utils._parallel import _run_jobs
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 
 
 class BaseIntervalForest(ABC):
-    """A base class for interval extracting forest estimators.
+    """Base class for interval-based forest estimators.
 
-    Allows the implementation of classifiers and regressors along the lines of [1][2][3]
-    which extract intervals and create an ensemble from the subsequent features.
+    Shared implementation for classifiers and regressors that extract features from
+    intervals and fit an ensemble to the resulting tabular data [1]_, [2]_, [3]_.
 
     Parameters
     ----------
@@ -39,106 +40,86 @@ class BaseIntervalForest(ABC):
         simple decision tree.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
-    interval_selection_method : "random", "supervised" or "random-supervised",
-            default="random"
-        The interval selection transformer to use.
-            - "random" uses a RandomIntervalTransformer.
-            - "supervised" uses a SupervisedIntervalTransformer.
-            - "random-supervised" uses a SupervisedIntervalTransformer with
-                randomised elements.
+    interval_selection_method : str, default="random"
+        Interval-selection strategy. ``"random"`` uses ``RandomIntervals``;
+        ``"supervised"`` uses ``SupervisedIntervals``; and ``"random-supervised"``
+        uses ``SupervisedIntervals`` with randomised elements.
 
-        Supervised methods can only be used for classification tasks, and require
-        function inputs for interval_features rather than transformers.
+        Supervised methods are available only for classification and require callable
+        ``interval_features`` rather than transformers.
     n_intervals : int, str, list or tuple, default="sqrt"
-        Number of intervals to extract per tree for each series_transformers series.
+        Number of intervals to extract per tree from each representation.
 
-        An int input will extract that number of intervals from the series, while a str
-        input will return a function of the series length (may differ per
-        series_transformers output) to extract that number of intervals.
-        Valid str inputs are:
-            - "sqrt": square root of the series length.
-            - "sqrt-div": sqrt of series length divided by the number
-                of series_transformers.
+        An integer specifies an exact count. A string derives the count from series
+        length, independently for each representation. Supported values are
+        ``"sqrt"`` for the square root of series length and ``"sqrt-div"`` for that
+        value divided by the number of representations.
 
-        A list or tuple of ints and/or strs will extract the number of intervals using
-        the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(n_timepoints) + 4 intervals.
+        A list or tuple sums counts obtained by these rules. For example,
+        ``[4, "sqrt"]`` produces ``4 + sqrt(n_timepoints)`` intervals. A nested list
+        or tuple specifies counts separately for each representation and must have one
+        entry per representation.
 
-        Different number of intervals for each series_transformers series can be
-        specified using a nested list or tuple. Any list or tuple input containing
-        another list or tuple must be the same length as the number of
-        series_transformers.
+        Random extraction returns at most this many unique intervals. Supervised
+        extraction runs its search this many times and may return more intervals.
+    min_interval_length : int, float, list or tuple, default=3
+        Minimum interval length. An integer specifies a number of time points and a
+        float specifies a proportion of series length.
 
-        While random interval extraction will extract the n_intervals intervals total
-        (removing duplicates), supervised intervals will run the supervised extraction
-        process n_intervals times, returning more intervals than specified.
-    min_interval_length : int, float, list, or tuple, default=3
-        Minimum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the minimum interval length.
+        Different minimum interval lengths for each representation can be specified
+        using a list or tuple with one entry per representation.
+    max_interval_length : int, float, list or tuple, default=np.inf
+        Maximum interval length. An integer specifies a number of time points and a
+        float specifies a proportion of series length.
 
-        Different minimum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    max_interval_length : int, float, list, or tuple, default=np.inf
-        Maximum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the maximum interval length.
+        Different maximum interval lengths for each representation can be specified
+        using a list or tuple with one entry per representation.
 
-        Different maximum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-
-        Ignored for supervised interval_selection_method inputs.
+        Ignored for supervised ``interval_selection_method`` values.
     interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
-        Both transformers and functions should be able to take a 2D np.ndarray input.
-        Functions should output a 1d array (the feature for each series), and
-        transformers should output a 2d array where rows are the features for each
-        series. A list or tuple of transformers and/or functions will extract all
-        features and concatenate the output.
+        Both transformers and functions must accept a 2D ``np.ndarray``. Functions
+        should output a 1D array (one value per series), and transformers should output
+        a 2D array where rows are cases and columns are features. A list or tuple of
+        transformers and functions extracts all features and concatenates their output.
 
-        Different features for each series_transformers series can be specified using a
+        Different features for each representation can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
-        must be the same length as the number of series_transformers.
+        must be the same length as the number of representations.
     series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        A list or tuple of transformers will extract intervals from
-        all transformations concatenate the output. Including None in the list or tuple
-        will use the series as is for interval extraction.
+        A list or tuple applies each transformer and concatenates the interval features.
+        Including None uses the original series as one representation.
     att_subsample_size : int, float, list, tuple or None, default=None
-        The number of attributes to subsample for each estimator. If None, use all
+        Number of attributes sampled for each estimator. An integer specifies an exact
+        count, a float specifies a proportion, and None uses all attributes.
 
-        If int, use that number of attributes for all estimators. If float, use that
-        proportion of attributes for all estimators.
-
-        Different subsample sizes for each series_transformers series can be specified
-        using a list or tuple. Any list or tuple input must be the same length as the
-        number of series_transformers.
+        Different subsample sizes for each representation can be specified using a list
+        or tuple with one entry per representation.
     replace_nan : "nan", int, float or None, default=None
         The value to replace NaNs and infinite values with before fitting the base
-        estimator. int or float input will replace with the specified value, while
-        "nan" will replace infinite values with NaNs. If None, do not replace NaNs.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators are used.
+        estimator. An integer or float replaces both with that value, ``"nan"``
+        replaces infinite values with NaNs, and None leaves them unchanged.
+    time_limit_in_minutes : float or None, default=None
+        Time contract for fitting, in minutes, overriding ``n_estimators``. None or 0
+        uses ``n_estimators``.
     contract_max_n_estimators : int, default=500
-        Max number of estimators when time_limit_in_minutes is set.
+        Maximum number of estimators when ``time_limit_in_minutes`` is set.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib.  If None it uses
-        the Parallel default (loky).
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        Joblib parallel backend. If None, use the joblib default. Valid options include
+        ``"loky"``, ``"multiprocessing"``, ``"threading"``, or a custom backend.
 
     Attributes
     ----------
@@ -150,20 +131,20 @@ class BaseIntervalForest(ABC):
         The length of each series.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of BaseTransformer
-        Stores the interval extraction transformer for all estimators.
+    estimators_ : list of BaseEstimator
+        The fitted base estimators, with length equal to the fitted ensemble size.
+    intervals_ : list of list of BaseTransformer
+        The fitted interval transformers used by each estimator.
 
     References
     ----------
-    .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
-       classification and feature extraction", Information Sciences, 239, 2013
-    .. [2] Matthew Middlehurst and James Large and Anthony Bagnall. "The Canonical
+    .. [1] H. Deng, G. Runger, E. Tuv and M. Vladimir, "A time series forest for
+       classification and feature extraction", Information Sciences, 239, 2013.
+    .. [2] Matthew Middlehurst, James Large and Anthony Bagnall. "The Canonical
        Interval Forest (CIF) Classifier for Time Series Classification."
-       IEEE International Conference on Big Data 2020
+       IEEE International Conference on Big Data 2020.
     .. [3] Cabello, Nestor, et al. "Fast and Accurate Time Series Classification
-       Through Supervised Interval Search." IEEE ICDM 2020
+       Through Supervised Interval Search." IEEE ICDM 2020.
     """
 
     @abstractmethod
@@ -225,25 +206,11 @@ class BaseIntervalForest(ABC):
 
         return self
 
-    def _eval_estimators(self, tasks):
-        """Run a list of joblib ``delayed`` tasks over the estimators.
-
-        Runs sequentially when ``n_jobs == 1`` to avoid the joblib dispatch
-        overhead (a ``Parallel`` object plus per-task wrapping) for what is the
-        default and dominant case, otherwise runs them in parallel. The tasks
-        must be built as a list so that any random draws in their arguments
-        happen in the same order joblib would consume a generator, keeping the
-        result identical to the parallel path.
-        """
-        if self._n_jobs == 1:
-            return [func(*args, **kwargs) for func, args, kwargs in tasks]
-        return Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(tasks)
-
     def _predict(self, X):
         if is_regressor(self):
             Xt = self._predict_setup(X)
 
-            y_preds = self._eval_estimators(
+            y_preds = _run_jobs(
                 [
                     delayed(self._predict_for_estimator)(
                         Xt,
@@ -252,7 +219,9 @@ class BaseIntervalForest(ABC):
                         predict_proba=False,
                     )
                     for i in range(self._n_estimators)
-                ]
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
             )
 
             return np.mean(y_preds, axis=0)
@@ -264,7 +233,7 @@ class BaseIntervalForest(ABC):
     def _predict_proba(self, X):
         Xt = self._predict_setup(X)
 
-        y_probas = self._eval_estimators(
+        y_probas = _run_jobs(
             [
                 delayed(self._predict_for_estimator)(
                     Xt,
@@ -273,7 +242,9 @@ class BaseIntervalForest(ABC):
                     predict_proba=True,
                 )
                 for i in range(self._n_estimators)
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
         )
 
         output = np.sum(y_probas, axis=0) / (
@@ -287,7 +258,7 @@ class BaseIntervalForest(ABC):
         if is_regressor(self):
             Xt = self._fit_forest(X, y, save_transformed_data=True)
 
-            p = self._eval_estimators(
+            p = _run_jobs(
                 [
                     delayed(self._train_estimate_for_estimator)(
                         Xt,
@@ -296,7 +267,9 @@ class BaseIntervalForest(ABC):
                         check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(self._n_estimators)
-                ]
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
             )
             y_preds, oobs = zip(*p)
 
@@ -331,7 +304,7 @@ class BaseIntervalForest(ABC):
 
         rng = check_random_state(self.random_state)
 
-        p = self._eval_estimators(
+        p = _run_jobs(
             [
                 delayed(self._train_estimate_for_estimator)(
                     Xt,
@@ -341,7 +314,9 @@ class BaseIntervalForest(ABC):
                     probas=True,
                 )
                 for i in range(self._n_estimators)
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
         )
         y_probas, oobs = zip(*p)
 
@@ -365,6 +340,29 @@ class BaseIntervalForest(ABC):
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
+
+        verbose_name = getattr(self, "_verbose_name", None)
+        verbose = getattr(self, "verbose", 0) if verbose_name is not None else 0
+        log_each_estimator = verbose >= 2
+        log_progress = verbose == 1
+        if verbose > 0:
+            fit_start_time = time.time()
+            if (
+                self.time_limit_in_minutes is not None
+                and self.time_limit_in_minutes > 0
+            ):
+                fit_limit = (
+                    f"time_limit={self.time_limit_in_minutes * 60:.2f}s, "
+                    f"max_n_estimators={self.contract_max_n_estimators}"
+                )
+            else:
+                fit_limit = f"n_estimators={self.n_estimators}"
+
+            self._log_forest(
+                f"[{verbose_name}] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
+                f"{fit_limit}, n_jobs={self._n_jobs}"
+            )
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -813,6 +811,9 @@ class BaseIntervalForest(ABC):
             time_limit = self.time_limit_in_minutes * 60
             start_time = time.time()
             train_time = 0
+            if log_progress:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
 
             self._n_estimators = 0
             self.estimators_ = []
@@ -823,7 +824,7 @@ class BaseIntervalForest(ABC):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = self._eval_estimators(
+                fit = _run_jobs(
                     [
                         delayed(self._fit_estimator)(
                             Xt,
@@ -832,7 +833,9 @@ class BaseIntervalForest(ABC):
                             save_transformed_data=save_transformed_data,
                         )
                         for _ in range(self._n_jobs)
-                    ]
+                    ],
+                    self._n_jobs,
+                    backend=self.parallel_backend,
                 )
 
                 (
@@ -847,20 +850,97 @@ class BaseIntervalForest(ABC):
 
                 self._n_estimators += self._n_jobs
                 train_time = time.time() - start_time
+
+                if log_each_estimator:
+                    contract_remaining = self._format_duration(
+                        max(0.0, time_limit - train_time)
+                    )
+                    elapsed = time.time() - fit_start_time
+                    first_estimator = self._n_estimators - len(fit) + 1
+                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
+                        self._log_forest(
+                            f"[{verbose_name}] Estimator {estimator_idx}: "
+                            f"elapsed={elapsed:.2f}s, "
+                            f"contract_remaining={contract_remaining}"
+                        )
+                elif log_progress and train_time >= next_progress:
+                    self._log_forest(
+                        f"[{verbose_name}] Progress: built={self._n_estimators}, "
+                        f"elapsed={time.time() - fit_start_time:.2f}s"
+                    )
+                    next_progress = train_time + progress_interval
         else:
             self._n_estimators = self.n_estimators
+            if verbose > 0:
+                estimator_start_time = time.time()
+                if log_each_estimator:
+                    batch_size = self._n_jobs
+                else:
+                    batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
 
-            fit = self._eval_estimators(
-                [
-                    delayed(self._fit_estimator)(
-                        Xt,
-                        y,
-                        rng.randint(np.iinfo(np.int32).max),
-                        save_transformed_data=save_transformed_data,
+                fit = []
+                for batch_start in range(0, self._n_estimators, batch_size):
+                    current_batch_size = min(
+                        batch_size, self._n_estimators - batch_start
                     )
-                    for _ in range(self._n_estimators)
-                ]
-            )
+                    batch_fit = _run_jobs(
+                        [
+                            delayed(self._fit_estimator)(
+                                Xt,
+                                y,
+                                rng.randint(np.iinfo(np.int32).max),
+                                save_transformed_data=save_transformed_data,
+                            )
+                            for _ in range(current_batch_size)
+                        ],
+                        self._n_jobs,
+                        backend=self.parallel_backend,
+                    )
+                    fit.extend(batch_fit)
+
+                    built = len(fit)
+                    estimator_elapsed = time.time() - estimator_start_time
+                    if log_each_estimator:
+                        if built == 1:
+                            time_estimate = "estimated_remaining=estimating"
+                        else:
+                            estimated_remaining = (estimator_elapsed / built) * (
+                                self._n_estimators - built
+                            )
+                            time_estimate = (
+                                "estimated_remaining="
+                                f"{self._format_duration(estimated_remaining)}"
+                            )
+                        elapsed = time.time() - fit_start_time
+                        for estimator_idx in range(
+                            batch_start + 1, batch_start + current_batch_size + 1
+                        ):
+                            self._log_forest(
+                                f"[{verbose_name}] Estimator "
+                                f"{estimator_idx}/{self._n_estimators}: "
+                                f"elapsed={elapsed:.2f}s, "
+                                f"{time_estimate}"
+                            )
+                    else:
+                        self._log_forest(
+                            f"[{verbose_name}] Progress: "
+                            f"built={built}/{self._n_estimators}, "
+                            f"elapsed={time.time() - fit_start_time:.2f}s"
+                        )
+            else:
+                fit = _run_jobs(
+                    [
+                        delayed(self._fit_estimator)(
+                            Xt,
+                            y,
+                            rng.randint(np.iinfo(np.int32).max),
+                            save_transformed_data=save_transformed_data,
+                        )
+                        for _ in range(self._n_estimators)
+                    ],
+                    self._n_jobs,
+                    backend=self.parallel_backend,
+                )
 
             (
                 self.estimators_,
@@ -868,7 +948,33 @@ class BaseIntervalForest(ABC):
                 transformed_intervals,
             ) = zip(*fit)
 
+        if verbose > 0:
+            self._log_forest(
+                f"[{verbose_name}] Finished fit: built={len(self.estimators_)}, "
+                f"elapsed={time.time() - fit_start_time:.2f}s"
+            )
+
         return transformed_intervals
+
+    @staticmethod
+    def _log_forest(message):
+        """Print a forest fit message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_estimator(self, Xt, y, seed, save_transformed_data=False):
         # random state for this estimator

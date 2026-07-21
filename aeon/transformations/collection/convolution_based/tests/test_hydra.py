@@ -117,6 +117,53 @@ def test_hydra_univariate():
     not _check_soft_dependencies("torch", severity="none"),
     reason="Skip test if torch not available",
 )
+def test_hydra_batch_matches_forward():
+    """Batched kernel application equals a single pass over all cases.
+
+    Covers both branches of ``batch``: everything in one batch when
+    ``n_cases <= batch_size``, and split-and-concatenate when smaller
+    batches are requested.
+    """
+    import torch
+
+    n_cases = 10
+    X = np.random.default_rng(0).random(size=(n_cases, 1, 20))
+
+    hydra = HydraTransformer(n_kernels=4, n_groups=8, random_state=42)
+    hydra.fit(X)
+    X_tensor = torch.tensor(X).float()
+
+    full = hydra._hydra(X_tensor)
+
+    assert torch.equal(hydra._hydra.batch(X_tensor), full)
+    assert torch.equal(hydra._hydra.batch(X_tensor, batch_size=4), full)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
+def test_hydra_single_group():
+    """A single kernel group transforms without the first-difference branch.
+
+    With ``n_groups=1`` the group divisor is 1, so ``forward`` never takes
+    its first-difference path; the output keeps the feature-count invariant
+    ``2 * n_kernels * n_groups * num_dilations``.
+    """
+    n_cases, n_kernels, n_groups, n_timepoints = 6, 2, 1, 20
+    X = np.random.default_rng(0).random(size=(n_cases, 1, n_timepoints))
+
+    hydra = HydraTransformer(n_kernels=n_kernels, n_groups=n_groups, random_state=42)
+    Xt = hydra.fit_transform(X)
+
+    num_dilations = int(np.log2((n_timepoints - 1) / 8)) + 1
+    assert Xt.shape == (n_cases, 2 * n_kernels * n_groups * num_dilations)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
 def test_hydra_random_state_instance():
     """Test seeded RandomState instances produce reproducible transforms."""
     X = np.random.default_rng(0).random(size=(10, 2, 20))
