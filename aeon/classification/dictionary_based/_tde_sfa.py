@@ -12,7 +12,7 @@ the feature set TDE uses:
   merge-based histogram intersection. No dicts anywhere.
 - the sliding-window MFT is computed once in fit and reused by transform on
   the same data; MCB breakpoints use rows from the MFT, while IGB and reduced
-  dimension-selection bags use the old direct non-overlapping DFT path because
+  channel-selection bags use the old direct non-overlapping DFT path because
   tiny MFT/direct roundoff differences can change IGB thresholds
 - IGB (information gain binning) is implemented directly in numba as a
   best-first entropy tree on one feature, replacing per-letter sklearn
@@ -26,7 +26,7 @@ Key encoding (matches the aeon typed-dict SFA logically):
 
 Remaining options are the TDE parameter space: word_length, window_size,
 norm, levels, MCB equi-depth or IGB binning, bigrams, and binning_bags()
-for multivariate dimension selection.
+for multivariate channel selection.
 """
 
 __maintainer__ = ["TonyBagnall"]
@@ -63,7 +63,7 @@ class _TDE_SFA:
         Whether to add bigram words (pairs of words window_size apart).
     keep_binning_dft : bool, default=False
         Keep the binning DFT after fit so `binning_bags()` can build the
-        reduced bags used by TDE's multivariate dimension selection.
+        reduced bags used by TDE's multivariate channel selection.
 
     Attributes
     ----------
@@ -199,7 +199,7 @@ class _TDE_SFA:
         return self._bags(self._fit_mft)
 
     def binning_bags(self):
-        """Bags built from the binning DFT (reduced bags for dim selection)."""
+        """Bags built from the binning DFT (reduced bags for channel selection)."""
         if self._binning_dft is None:
             raise ValueError("fit with keep_binning_dft=True first")
         return self._bags(self._binning_dft)
@@ -728,31 +728,31 @@ def _histogram_intersection(keys1, keys2, counts, a0, a1, b0, b1):
 
 
 @njit(cache=True, nogil=True)
-def combine_dim_bags(
+def combine_channel_bags(
     all_k1,
     all_k2,
     all_v,
-    dim_case_offsets,
-    dim_starts,
-    dims,
+    channel_case_offsets,
+    channel_starts,
+    channels,
     levels,
-    highest_dim_bit,
+    highest_channel_bit,
 ):
-    """Merge per-dimension bags into combined multivariate bags.
+    """Merge per-channel bags into combined multivariate bags.
 
-    Every per-dimension bag is already sorted by (key1, key2) and the
-    dimension rewrite of key2 ((key2 << highest_dim_bit) | dim for levels
-    > 1, dim otherwise) is monotone, so each stream stays sorted and a
+    Every per-channel bag is already sorted by (key1, key2) and the
+    channel rewrite of key2 ((key2 << highest_channel_bit) | channel for levels
+    > 1, channel otherwise) is monotone, so each stream stays sorted and a
     k-way merge produces the combined bag in lexicographic order. Keys
-    from different dimensions can never be equal (the dim is in key2), so
+    from different channels can never be equal (the channel is in key2), so
     no aggregation is needed.
 
-    all_* are the per-dimension arrays concatenated in dim order,
-    dim_starts[d] is where dimension d's block begins and
-    dim_case_offsets[d] is dimension d's per-case offsets array.
+    all_* are the per-channel arrays concatenated in channel order,
+    channel_starts[d] is where channel d's block begins and
+    channel_case_offsets[d] is channel d's per-case offsets array.
     """
-    n_dims = dim_case_offsets.shape[0]
-    n_cases = dim_case_offsets.shape[1] - 1
+    n_channels = channel_case_offsets.shape[0]
+    n_cases = channel_case_offsets.shape[1] - 1
     total = all_k1.shape[0]
 
     out_k1 = np.empty(total, dtype=np.int64)
@@ -760,34 +760,38 @@ def combine_dim_bags(
     out_v = np.empty(total, dtype=np.uint32)
     offsets = np.zeros(n_cases + 1, dtype=np.int64)
 
-    ptr = np.empty(n_dims, dtype=np.int64)
-    end = np.empty(n_dims, dtype=np.int64)
-    cur1 = np.empty(n_dims, dtype=np.int64)
-    cur2 = np.empty(n_dims, dtype=np.int64)
+    ptr = np.empty(n_channels, dtype=np.int64)
+    end = np.empty(n_channels, dtype=np.int64)
+    cur1 = np.empty(n_channels, dtype=np.int64)
+    cur2 = np.empty(n_channels, dtype=np.int64)
 
     pos = 0
     for n in range(n_cases):
         active = 0
-        for d in range(n_dims):
-            ptr[d] = dim_starts[d] + dim_case_offsets[d, n]
-            end[d] = dim_starts[d] + dim_case_offsets[d, n + 1]
-            if ptr[d] < end[d]:
-                cur1[d] = all_k1[ptr[d]]
+        for channel in range(n_channels):
+            ptr[channel] = channel_starts[channel] + channel_case_offsets[channel, n]
+            end[channel] = (
+                channel_starts[channel] + channel_case_offsets[channel, n + 1]
+            )
+            if ptr[channel] < end[channel]:
+                cur1[channel] = all_k1[ptr[channel]]
                 if levels > 1:
-                    cur2[d] = (all_k2[ptr[d]] << highest_dim_bit) | dims[d]
+                    cur2[channel] = (
+                        all_k2[ptr[channel]] << highest_channel_bit
+                    ) | channels[channel]
                 else:
-                    cur2[d] = dims[d]
+                    cur2[channel] = channels[channel]
                 active += 1
 
         while active > 0:
             best = -1
-            for d in range(n_dims):
-                if ptr[d] < end[d] and (
+            for channel in range(n_channels):
+                if ptr[channel] < end[channel] and (
                     best < 0
-                    or cur1[d] < cur1[best]
-                    or (cur1[d] == cur1[best] and cur2[d] < cur2[best])
+                    or cur1[channel] < cur1[best]
+                    or (cur1[channel] == cur1[best] and cur2[channel] < cur2[best])
                 ):
-                    best = d
+                    best = channel
 
             out_k1[pos] = cur1[best]
             out_k2[pos] = cur2[best]
@@ -798,9 +802,11 @@ def combine_dim_bags(
             if ptr[best] < end[best]:
                 cur1[best] = all_k1[ptr[best]]
                 if levels > 1:
-                    cur2[best] = (all_k2[ptr[best]] << highest_dim_bit) | dims[best]
+                    cur2[best] = (all_k2[ptr[best]] << highest_channel_bit) | channels[
+                        best
+                    ]
                 else:
-                    cur2[best] = dims[best]
+                    cur2[best] = channels[best]
             else:
                 active -= 1
 

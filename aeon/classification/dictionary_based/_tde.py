@@ -20,7 +20,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based._tde_sfa import (
     _TDE_SFA,
-    combine_dim_bags,
+    combine_channel_bags,
     loocv_train_acc,
     nn_first_max,
     nn_predict_loocv,
@@ -63,7 +63,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series of length 'm' with 'd' dimensions.
+    Overview: Input 'n' series of length 'm' with 'd' channels.
     TDE searches 'k' parameter values, using kernel ridge regression over
     previously evaluated parameter combinations to predict the accuracy of
     candidate parameter sets, and evaluates each selected set with a LOOCV.
@@ -83,7 +83,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     into alpha possible values, to form a word of length l using breakpoints
     found using b. A histogram of words for each series is formed and stored,
     using a spatial pyramid of h levels. For multivariate series, accuracy
-    from a reduced histogram is used to select dimensions.
+    from a reduced histogram is used to select channels.
 
     fit involves finding n histograms.
     predict uses 1 nearest neighbour with the histogram intersection
@@ -105,8 +105,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
-    dim_threshold : float, default=0.85
-        Dimension accuracy threshold for multivariate data, must be between 0 and 1.
+    channel_threshold : float, default=0.85
+        Channel accuracy threshold for multivariate data, must be between 0 and 1.
+    dim_threshold : float, default="deprecated"
+        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
     max_channels : int, default=20
         Max number of channels per classifier for multivariate data.
     max_dims : int, default="deprecated"
@@ -143,7 +145,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     estimators_ : list of shape (n_estimators) of IndividualTDE
@@ -195,7 +197,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         "algorithm_type": "dictionary",
     }
 
-    # TODO remove 'max_dims' and 'typed_dict' in v1.7.0
+    # TODO remove 'dim_threshold', 'max_dims' and 'typed_dict' in v1.7.0
     def __init__(
         self,
         n_parameter_samples=250,
@@ -204,7 +206,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         min_window=10,
         randomly_selected_params=50,
         bigrams=None,
-        dim_threshold=0.85,
+        dim_threshold="deprecated",
         max_dims="deprecated",
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
@@ -213,6 +215,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         n_jobs=1,
         random_state=None,
         max_channels=20,
+        channel_threshold=0.85,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -223,6 +226,15 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         # multivariate
         self.dim_threshold = dim_threshold
+        self.channel_threshold = channel_threshold
+        if dim_threshold != "deprecated":
+            warnings.warn(
+                "The 'dim_threshold' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'channel_threshold' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.channel_threshold = dim_threshold
         self.max_dims = max_dims
         self.max_channels = max_channels
         if max_dims != "deprecated":
@@ -391,7 +403,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             tde = IndividualTDE(
                 *parameters,
                 bigrams=use_bigrams,
-                dim_threshold=self.dim_threshold,
+                channel_threshold=self.channel_threshold,
                 max_channels=self.max_channels,
                 random_state=self.random_state,
             )
@@ -682,9 +694,11 @@ class IndividualTDE(BaseClassifier):
         Deprecated and will be removed in v1.7.0.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
-    dim_threshold : float, default=0.85
-        Accuracy threshold as a proportion of the highest accuracy dimension for words
-        extracted from each dimension. Only applicable for multivariate data.
+    channel_threshold : float, default=0.85
+        Accuracy threshold as a proportion of the highest accuracy channel for words
+        extracted from each channel. Only applicable for multivariate data.
+    dim_threshold : float, default="deprecated"
+        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
     max_channels : int, default=20
         Maximum number of channels words are extracted from. Only applicable for
         multivariate data.
@@ -709,7 +723,7 @@ class IndividualTDE(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
 
@@ -748,7 +762,8 @@ class IndividualTDE(BaseClassifier):
         "capability:multithreading": True,
     }
 
-    # TODO remove 'alphabet_size', 'max_dims' and 'typed_dict' in v1.7.0
+    # TODO remove 'dim_threshold', 'alphabet_size', 'max_dims' and 'typed_dict'
+    # in v1.7.0
     def __init__(
         self,
         window_size=10,
@@ -758,12 +773,13 @@ class IndividualTDE(BaseClassifier):
         igb=False,
         alphabet_size="deprecated",
         bigrams=True,
-        dim_threshold=0.85,
+        dim_threshold="deprecated",
         max_dims="deprecated",
         typed_dict="deprecated",
         n_jobs=1,
         random_state=None,
         max_channels=20,
+        channel_threshold=0.85,
     ):
         self.window_size = window_size
         self.word_length = word_length
@@ -782,6 +798,15 @@ class IndividualTDE(BaseClassifier):
 
         # multivariate
         self.dim_threshold = dim_threshold
+        self.channel_threshold = channel_threshold
+        if dim_threshold != "deprecated":
+            warnings.warn(
+                "The 'dim_threshold' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'channel_threshold' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.channel_threshold = dim_threshold
         self.max_dims = max_dims
         self.max_channels = max_channels
         if max_dims != "deprecated":
@@ -811,8 +836,8 @@ class IndividualTDE(BaseClassifier):
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
-        self._dims = []
-        self._highest_dim_bit = 0
+        self._channels = []
+        self._highest_channel_bit = 0
         self._accuracy = 0
         self._subsample = []
         self._train_predictions = []
@@ -843,15 +868,15 @@ class IndividualTDE(BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
-        # select dimensions using accuracy estimate if multivariate
+        # select channels using accuracy estimate if multivariate
         if self.n_channels_ > 1:
-            self._dims, self._transformers = self._select_dims(X, y)
-            dim_words = [
+            self._channels, self._transformers = self._select_channels(X, y)
+            channel_words = [
                 self._transformers[i].transform(self._transformers[i]._fit_X)
-                for i in range(len(self._dims))
+                for i in range(len(self._channels))
             ]
-            self._transformed_data = self._combine_dim_bags(
-                dim_words, self._dims, self.n_cases_
+            self._transformed_data = self._combine_channel_bags(
+                channel_words, self._channels, self.n_cases_
             )
         else:
             self._transformers.append(
@@ -887,11 +912,13 @@ class IndividualTDE(BaseClassifier):
         n_cases = X.shape[0]
 
         if self.n_channels_ > 1:
-            dim_words = [
-                self._transformers[i].transform(np.ascontiguousarray(X[:, dim, :]))
-                for i, dim in enumerate(self._dims)
+            channel_words = [
+                self._transformers[i].transform(np.ascontiguousarray(X[:, channel, :]))
+                for i, channel in enumerate(self._channels)
             ]
-            test_bags = self._combine_dim_bags(dim_words, self._dims, n_cases)
+            test_bags = self._combine_channel_bags(
+                channel_words, self._channels, n_cases
+            )
         else:
             test_bags = self._transformers[0].transform(
                 np.ascontiguousarray(X[:, 0, :])
@@ -968,39 +995,39 @@ class IndividualTDE(BaseClassifier):
 
         return nn
 
-    def _combine_dim_bags(self, dim_bags, dims, n_cases):
-        # per-dimension bags are already sorted, so a numba k-way merge
+    def _combine_channel_bags(self, channel_bags, channels, n_cases):
+        # per-channel bags are already sorted, so a numba k-way merge
         # builds the combined sorted bags without any re-sorting
-        all_k1 = np.concatenate([b[0] for b in dim_bags])
-        all_k2 = np.concatenate([b[1] for b in dim_bags])
-        all_v = np.concatenate([b[2] for b in dim_bags])
-        dim_case_offsets = np.vstack([b[3] for b in dim_bags])
-        sizes = np.array([len(b[0]) for b in dim_bags], dtype=np.int64)
-        dim_starts = np.zeros(len(dim_bags), dtype=np.int64)
-        dim_starts[1:] = np.cumsum(sizes)[:-1]
+        all_k1 = np.concatenate([b[0] for b in channel_bags])
+        all_k2 = np.concatenate([b[1] for b in channel_bags])
+        all_v = np.concatenate([b[2] for b in channel_bags])
+        channel_case_offsets = np.vstack([b[3] for b in channel_bags])
+        sizes = np.array([len(b[0]) for b in channel_bags], dtype=np.int64)
+        channel_starts = np.zeros(len(channel_bags), dtype=np.int64)
+        channel_starts[1:] = np.cumsum(sizes)[:-1]
 
-        return combine_dim_bags(
+        return combine_channel_bags(
             all_k1,
             all_k2,
             all_v,
-            dim_case_offsets,
-            dim_starts,
-            np.asarray(dims, dtype=np.int64),
+            channel_case_offsets,
+            channel_starts,
+            np.asarray(channels, dtype=np.int64),
             self.levels,
-            self._highest_dim_bit,
+            self._highest_channel_bit,
         )
 
-    def _select_dims(self, X, y):
-        self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
-        accs = []
+    def _select_channels(self, X, y):
+        self._highest_channel_bit = (math.ceil(math.log2(self.n_channels_))) + 1
+        channel_accs = []
         transformers = []
 
         _, y_codes = np.unique(y, return_inverse=True)
         y_codes = y_codes.astype(np.int64)
 
-        # select dimensions based on reduced bag size accuracy
-        for i in range(self.n_channels_):
-            self._dims.append(i)
+        # select channels based on reduced bag size accuracy
+        for channel in range(self.n_channels_):
+            self._channels.append(channel)
             transformers.append(
                 _TDE_SFA(
                     word_length=self.word_length,
@@ -1013,12 +1040,12 @@ class IndividualTDE(BaseClassifier):
                 )
             )
 
-            X_dim = np.ascontiguousarray(X[:, i, :])
+            X_channel = np.ascontiguousarray(X[:, channel, :])
 
-            transformers[i].fit(X_dim, y)
-            sfa = transformers[i].binning_bags()
-            transformers[i].keep_binning_dft = False
-            transformers[i]._binning_dft = None
+            transformers[channel].fit(X_channel, y)
+            sfa = transformers[channel].binning_bags()
+            transformers[channel].keep_binning_dft = False
+            transformers[channel]._binning_dft = None
 
             if self.n_cases_ <= _SYMMETRIC_LOOCV_MAX_N:
                 # whole LOOCV in one numba call, each symmetric pair
@@ -1030,24 +1057,24 @@ class IndividualTDE(BaseClassifier):
                     if self._train_predict(n, sfa) == y[n]:
                         correct = correct + 1
 
-            accs.append(correct)
+            channel_accs.append(correct)
 
-        max_acc = max(accs)
+        max_acc = max(channel_accs)
 
-        dims = []
+        channels = []
         fin_transformers = []
-        for i in range(self.n_channels_):
-            if accs[i] >= max_acc * self.dim_threshold:
-                dims.append(i)
-                fin_transformers.append(transformers[i])
+        for channel in range(self.n_channels_):
+            if channel_accs[channel] >= max_acc * self.channel_threshold:
+                channels.append(channel)
+                fin_transformers.append(transformers[channel])
 
-        if len(dims) > self.max_channels:
+        if len(channels) > self.max_channels:
             rng = check_random_state(self.random_state)
-            idx = rng.choice(len(dims), self.max_channels, replace=False).tolist()
-            dims = [dims[i] for i in idx]
+            idx = rng.choice(len(channels), self.max_channels, replace=False).tolist()
+            channels = [channels[i] for i in idx]
             fin_transformers = [fin_transformers[i] for i in idx]
 
-        return dims, fin_transformers
+        return channels, fin_transformers
 
     def _train_predict(self, train_num, bags=None):
         if bags is None:
