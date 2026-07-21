@@ -4,7 +4,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
+from aeon.transformations.series._acf import (
+    AutoCorrelationSeriesTransformer,
+)
 
 
 def test_acf():
