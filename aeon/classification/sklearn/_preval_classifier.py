@@ -65,13 +65,20 @@ class PreValClassifier(BaseClassifier):
         if self.lambdas is None:
             self.lambdas_ = np.logspace(-3, 3, 10).astype(np.float32)
         else:
-            self.lambdas_ = np.asarray(self.lambdas, dtype=np.float32)
+            self.lambdas_ = np.asarray(self.lambdas, dtype=np.float32).reshape(-1)
+
+        if self.lambdas_.size == 0:
+            raise ValueError("lambdas must contain at least one positive value.")
+        if not np.all(np.isfinite(self.lambdas_)):
+            raise ValueError("lambdas must contain only finite values.")
+        if np.any(self.lambdas_ <= 0):
+            raise ValueError("lambdas must contain only positive values.")
 
         self.n_cases_, self.n_atts_ = X.shape
 
         # drop low-variance columns
-        self._mask = X.std(0) < 1e-6
-        X = X[:, ~self._mask]
+        self.mask_ = X.std(0) < 1e-6
+        X = X[:, ~self.mask_]
 
         X = np.hstack((np.ones((X.shape[0], 1), dtype=np.float32), X))
 
@@ -86,8 +93,8 @@ class PreValClassifier(BaseClassifier):
             Y = np.hstack((-Y, Y))
 
         # centre Y
-        self.B0 = Y.mean(0)
-        Y = Y - self.B0
+        self.intercept_ = Y.mean(0)
+        Y = Y - self.intercept_
 
         # svd via eigendecomposition
         # on X^T X (for n >= p)
@@ -141,7 +148,7 @@ class PreValClassifier(BaseClassifier):
             result = minimize(
                 fun=_log_loss,
                 x0=1.0,
-                args=(Y, Y_loocv, self.B0),
+                args=(Y, Y_loocv, self.intercept_),
                 method="BFGS",
                 jac="2-point",
             )
@@ -155,12 +162,10 @@ class PreValClassifier(BaseClassifier):
                 self.lambda_ = lambda_
                 alpha_hat_best = alpha_hat
 
-        self.B = self.c * (V @ alpha_hat_best)
-        self.mask_ = self._mask
-        self.label_binarizer_ = self._lb
-        self.intercept_ = self.B0
-        self.coef_ = self.B
         self.scale_ = self.c
+        self.lambda_ = np.float32(self.lambda_)
+        self.coef_ = self.scale_ * (V @ alpha_hat_best)
+        self.label_binarizer_ = self._lb
         self.best_loss_ = best_loss
         # TODO: Revisit which fitted attributes we want to expose once the port settles.
 
@@ -174,11 +179,11 @@ class PreValClassifier(BaseClassifier):
         """Predict class probabilities for X."""
         X = X.astype(np.float32, copy=False)
 
-        X = X[:, ~self._mask]
+        X = X[:, ~self.mask_]
 
         X = np.hstack((np.ones((X.shape[0], 1), dtype=np.float32), X))
 
-        return _softmax(X @ self.B + self.B0)
+        return _softmax(X @ self.coef_ + self.intercept_)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
