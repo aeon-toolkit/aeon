@@ -43,7 +43,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     feature for the transform.
 
     Multivariate capability is added by running the supervised interval extraction
-    process on each dimension of the input data.
+    process on each channel of the input data.
 
     As the interval features are already extracted for the supervised
     evaluation in fit, the fit_transform method is recommended if the transformed fit
@@ -54,7 +54,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     n_intervals : int, default=50
         The number of times the supervised interval selection process is run.
         Each supervised extraction will output a varying amount of features based on
-        series length, number of dimensions and the number of features.
+        series length, number of channels and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
     features : callable, list of callables, default=None
@@ -93,12 +93,12 @@ class SupervisedIntervals(BaseCollectionTransformer):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     intervals_ : list of tuples
         Contains information for each feature extracted in fit. Each tuple contains the
-        interval start, interval end, interval dimension and the feature extracted.
+        interval start, interval end, interval channel and the feature extracted.
         Length will be the same as the amount of transformed features.
 
     See Also
