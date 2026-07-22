@@ -91,7 +91,7 @@ def _warn_use_pycatch22_deprecated(estimator):
 class Catch22(BaseCollectionTransformer):
     """Canonical Time-series Characteristics (Catch22).
 
-    Overview: Input n series with d dimensions of length m.
+    Overview: Input n series with d channels of length m.
     Transforms series into the 22 Catch22 [1]_ features extracted from the hctsa [2]_
     toolbox.
 
@@ -242,7 +242,7 @@ class Catch22(BaseCollectionTransformer):
         Returns
         -------
         Xt : array-like, shape = [n_cases, num_features*n_channels]
-            The catch22 features for each dimension.
+            The catch22 features for each channel.
         """
         n_cases = len(X)
 

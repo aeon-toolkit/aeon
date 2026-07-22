@@ -33,7 +33,6 @@ excluded_estimators = [
     # wrappers
     "MrSEQLClassifier",
     "MrSQMClassifier",
-    "LearningShapeletClassifier",
     # Unknown failure, needs investigation
     "SignatureClassifier",
     "TDMVDCClassifier",
