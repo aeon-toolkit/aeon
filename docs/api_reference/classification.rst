@@ -81,6 +81,8 @@ Distance-based
     KNeighborsTimeSeriesClassifier
     ProximityForest
     ProximityTree
+    ProximityTree2
+    ProximityForest2
 
 Feature-based
 -------------
