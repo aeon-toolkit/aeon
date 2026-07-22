@@ -407,7 +407,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 max_channels=self.max_channels,
                 random_state=self.random_state,
             )
-            tde.fit(X_subsample, y_subsample)
+            # X_subsample/y_subsample are a subsample of the X/y this
+            # ensemble already validated in full, so _fit is called
+            # directly rather than through the public fit
+            tde._fit(X_subsample, y_subsample)
             tde._subsample = subsample
 
             tde._accuracy = self._individual_train_acc(
@@ -536,7 +539,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 if len(oob) == 0:
                     continue
 
-                preds = clf.predict(X[oob])
+                # X[oob] is a subset of the already-validated X passed to
+                # this method, so _predict is called directly as in
+                # _predict_proba above
+                preds = clf._predict(X[oob])
 
                 for n, pred in enumerate(preds):
                     results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
