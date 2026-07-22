@@ -29,6 +29,7 @@ Clustering Algorithms
     TimeSeriesCLARANS
     ElasticSOM
     KSpectralCentroid
+    RClusterer
 
 Deep learning
 -------------
