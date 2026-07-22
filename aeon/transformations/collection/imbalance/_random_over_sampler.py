@@ -40,6 +40,7 @@ class RandomOverSampler(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, random_state=None):

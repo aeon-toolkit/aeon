@@ -228,7 +228,10 @@ class REDCOMETS(BaseClassifier):
                     distance="euclidean",
                     n_jobs=self._n_jobs,
                 ).fit_transform(X_3d, y)
-            except (ValueError, IndexError):
+            except ValueError:
+                # aeon SMOTE raises ValueError when n_neighbors exceeds the
+                # minority class size; do not catch broader exceptions that
+                # could hide real bugs by silently falling back to ROS.
                 X_smote, y_smote = RandomOverSampler(
                     random_state=self.random_state
                 ).fit_transform(X_3d, y)

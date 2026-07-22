@@ -37,7 +37,7 @@ def _redcomets_resample_aeon(X2d, y, random_state=0, n_jobs=1):
             distance="euclidean",
             n_jobs=n_jobs,
         ).fit_transform(X_3d, y)
-    except (ValueError, IndexError):
+    except ValueError:
         X_smote, y_smote = RandomOverSampler(random_state=random_state).fit_transform(
             X_3d, y
         )

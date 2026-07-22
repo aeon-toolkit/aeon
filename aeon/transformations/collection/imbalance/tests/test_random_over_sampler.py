@@ -31,6 +31,20 @@ def test_random_over_sampler_keeps_originals():
     assert np.array_equal(y_res[:8], y)
 
 
+def test_random_over_sampler_multivariate():
+    """RandomOverSampler should accept multi-channel series and copy whole cases."""
+    rng = check_random_state(2)
+    X = rng.randn(9, 3, 16)
+    y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1])
+    X_res, y_res = RandomOverSampler(random_state=2).fit_transform(X, y)
+    _, counts = np.unique(y_res, return_counts=True)
+    assert X_res.shape == (12, 3, 16)
+    assert counts.tolist() == [6, 6]
+    # originals preserved at the front; all channels kept
+    assert np.allclose(X_res[:9], X)
+    assert np.array_equal(y_res[:9], y)
+
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(
         "imbalanced-learn",
