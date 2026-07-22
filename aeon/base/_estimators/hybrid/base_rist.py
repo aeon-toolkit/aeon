@@ -44,7 +44,7 @@ class BaseRIST(ABC):
     Parameters
     ----------
     n_intervals : int, callable or None, default=None,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted for the interval portion of the pipeline. Input should be an int or
         a function that takes a 3D np.ndarray input and returns an int. Functions may
         extract a different number of intervals per `series_transformer` output.
@@ -86,7 +86,7 @@ class BaseRIST(ABC):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     """
