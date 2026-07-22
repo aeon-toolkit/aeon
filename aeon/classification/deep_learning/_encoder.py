@@ -95,6 +95,10 @@ class EncoderClassifier(BaseDeepClassifier):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -136,6 +140,8 @@ class EncoderClassifier(BaseDeepClassifier):
         random_state=None,
         use_bias: bool = True,
         optimizer=None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
@@ -159,6 +165,9 @@ class EncoderClassifier(BaseDeepClassifier):
         self.metrics = metrics
         self.use_bias = use_bias
         self.optimizer = optimizer
+
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         self.history = None
 
@@ -221,11 +230,20 @@ class EncoderClassifier(BaseDeepClassifier):
             else self.optimizer
         )
 
+        compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **compile_args,
         )
 
         return model
@@ -278,6 +296,14 @@ class EncoderClassifier(BaseDeepClassifier):
                 file_name=self.file_name_,
             )
 
+        fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
+
         self.history = self.training_model_.fit(
             X,
             y_onehot,
@@ -285,6 +311,7 @@ class EncoderClassifier(BaseDeepClassifier):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **fit_args,
         )
 
         try:
