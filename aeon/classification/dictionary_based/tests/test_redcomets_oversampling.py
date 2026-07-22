@@ -8,7 +8,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.dictionary_based import REDCOMETS
 from aeon.transformations.collection import Normalizer
-from aeon.transformations.collection.imbalance import RandomOverSampler, SMOTE
+from aeon.transformations.collection.imbalance import SMOTE, RandomOverSampler
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

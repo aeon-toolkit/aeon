@@ -18,7 +18,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.dictionary_based import SAX, SFAFast
-from aeon.transformations.collection.imbalance import RandomOverSampler, SMOTE
+from aeon.transformations.collection.imbalance import SMOTE, RandomOverSampler
 from aeon.utils.validation import check_n_jobs
 
 
