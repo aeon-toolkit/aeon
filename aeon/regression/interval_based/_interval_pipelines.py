@@ -18,14 +18,14 @@ from aeon.utils.validation import check_n_jobs
 class RandomIntervalRegressor(BaseRegressor):
     """Random Interval Regressor.
 
-    Extracts multiple intervals with random length, position and dimension from series
+    Extracts multiple intervals with random length, position and channel from series
     and concatenates them into a feature vector. Builds an estimator on the
     transformed data.
 
     Parameters
     ----------
     n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
@@ -64,7 +64,7 @@ class RandomIntervalRegressor(BaseRegressor):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
 
