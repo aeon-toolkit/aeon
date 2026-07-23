@@ -5,13 +5,14 @@ import pytest
 from scipy.stats import norm
 
 from aeon.transformations.collection.dictionary_based import SAX
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
 def _z_normalize(X):
     """Z-normalize each channel of each series independently."""
     means = np.mean(X, axis=-1, keepdims=True)
     stds = np.std(X, axis=-1, keepdims=True)
-    stds[stds == 0] = 1.0
+    stds[stds <= AEON_NUMBA_STD_THRESHOLD] = 1.0
     return (X - means) / stds
 
 
@@ -276,7 +277,7 @@ def test_windowed_sax_matches_manual_per_window_normalization():
     windows = X.reshape(1, 1, 2, window_size)
     means = windows.mean(axis=-1, keepdims=True)
     stds = windows.std(axis=-1, keepdims=True)
-    stds[stds == 0] = 1.0
+    stds[stds <= AEON_NUMBA_STD_THRESHOLD] = 1.0
     windows_normalized = (windows - means) / stds
     X_manual = windows_normalized.reshape(2, 1, window_size)
 
@@ -524,6 +525,124 @@ def test_windowed_sax_multivariate_custom_alphabet():
     assert X_sax.shape == (2, 3, 3, 4)
     assert X_inverse.shape == X.shape
     assert set(np.unique(X_sax)).issubset(set(alphabet))
+
+
+def test_windowed_inverse_denormalizes_before_overlap_average():
+    """Test that each window is denormalized before overlap averaging."""
+    X_sax = np.array([[[["a", "d"], ["a", "d"]]]])
+
+    sax = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        alphabet=["a", "b", "c", "d"],
+        znormalized=False,
+        window_size=4,
+        stride=2,
+    )
+
+    window_means = np.array([[[[10.0], [100.0]]]])
+    window_stds = np.array([[[[2.0], [10.0]]]])
+
+    X_inverse = sax.inverse_sax(
+        X_sax,
+        original_length=6,
+        window_means=window_means,
+        window_stds=window_stds,
+    )
+
+    low = sax.breakpoints_mid[0]
+    high = sax.breakpoints_mid[3]
+
+    first_low = low * 2.0 + 10.0
+    first_high = high * 2.0 + 10.0
+    second_low = low * 10.0 + 100.0
+    second_high = high * 10.0 + 100.0
+
+    expected = np.array(
+        [
+            [
+                [
+                    first_low,
+                    first_low,
+                    (first_high + second_low) / 2,
+                    (first_high + second_low) / 2,
+                    second_high,
+                    second_high,
+                ]
+            ]
+        ]
+    )
+
+    np.testing.assert_allclose(X_inverse, expected, rtol=0, atol=1e-12)
+
+
+def test_windowed_inverse_uses_stats_from_latest_transform():
+    """Test automatic reuse of statistics from the latest transformation."""
+    X = np.array(
+        [[[0.0, 0.0, 2.0, 2.0, 10.0, 10.0, 14.0, 14.0]]],
+        dtype=np.float64,
+    )
+
+    sax = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=False,
+        window_size=4,
+        stride=4,
+    )
+
+    X_sax = sax.fit_transform(X)
+    X_inverse = sax.inverse_sax(X_sax, original_length=X.shape[-1])
+
+    assert X_inverse.shape == X.shape
+    assert np.isfinite(X_inverse).all()
+    assert np.mean(X_inverse[0, 0, :4]) == pytest.approx(X[0, 0, :4].mean())
+    assert np.mean(X_inverse[0, 0, 4:]) == pytest.approx(X[0, 0, 4:].mean())
+
+
+def test_windowed_inverse_requires_stats_for_denormalization():
+    """Test that external SAX words require stats when denormalizing."""
+    sax = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=False,
+        window_size=4,
+        stride=2,
+    )
+
+    X_sax = np.zeros((1, 1, 2, 2), dtype=np.intp)
+
+    with pytest.raises(ValueError, match="window_means and window_stds"):
+        sax.inverse_sax(X_sax, original_length=6)
+
+
+@pytest.mark.parametrize("parameter_name", ["window_means", "window_stds"])
+def test_windowed_inverse_rejects_invalid_stats_shape(parameter_name):
+    """Test validation of per-window normalization statistic shapes."""
+    sax = SAX(
+        n_segments=2,
+        alphabet_size=4,
+        znormalized=False,
+        window_size=4,
+        stride=2,
+    )
+
+    X_sax = np.zeros((1, 1, 2, 2), dtype=np.intp)
+    valid_stats = np.ones((1, 1, 2, 1))
+    invalid_stats = np.ones((1, 1, 2))
+
+    kwargs = {
+        "window_means": valid_stats,
+        "window_stds": valid_stats,
+    }
+    kwargs[parameter_name] = invalid_stats
+
+    with pytest.raises(ValueError, match=parameter_name):
+        sax.inverse_sax(
+            X_sax,
+            original_length=6,
+            **kwargs,
+        )
 
 
 @pytest.mark.parametrize(

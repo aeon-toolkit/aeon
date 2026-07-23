@@ -7,6 +7,8 @@ import numpy as np
 import scipy.stats
 from numba import get_num_threads, njit, prange, set_num_threads
 
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
+
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.dictionary_based import PAA
 from aeon.utils.validation import check_n_jobs
@@ -150,12 +152,20 @@ class SAX(BaseCollectionTransformer):
             raise ValueError("stride must be a positive integer")
 
     @staticmethod
-    def _z_normalize(X):
+    def _z_normalize(X, return_stats=False):
         """Z-normalize each series/channel independently along time."""
         means = np.mean(X, axis=-1, keepdims=True)
         stds = np.std(X, axis=-1, keepdims=True)
-        stds[stds == 0] = 1.0
-        return (X - means) / stds
+
+        safe_stds = stds.copy()
+        safe_stds[safe_stds <= AEON_NUMBA_STD_THRESHOLD] = 1.0
+
+        X_normalized = (X - means) / safe_stds
+
+        if return_stats:
+            return X_normalized, means, safe_stds
+
+        return X_normalized
 
     def _get_paa(self, X):
         """Transform the input time series to PAA segments.
@@ -224,7 +234,32 @@ class SAX(BaseCollectionTransformer):
             self.window_size,
         )
 
-        X_paa = self._get_paa(X_windows_3d)
+        if self.znormalized:
+            X_windows_normalized = X_windows_3d
+            self._window_means_ = None
+            self._window_stds_ = None
+        else:
+            X_windows_normalized, means, stds = self._z_normalize(
+                X_windows_3d,
+                return_stats=True,
+            )
+
+            self._window_means_ = means.reshape(
+                n_cases,
+                n_windows,
+                n_channels,
+                1,
+            ).transpose(0, 2, 1, 3)
+
+            self._window_stds_ = stds.reshape(
+                n_cases,
+                n_windows,
+                n_channels,
+                1,
+            ).transpose(0, 2, 1, 3)
+
+        paa = PAA(n_segments=self.n_segments, n_jobs=self.n_jobs)
+        X_paa = paa.fit_transform(X_windows_normalized)
         sax_symbols = self._get_sax_symbols(X_paa)
 
         # Convert:
@@ -265,7 +300,14 @@ class SAX(BaseCollectionTransformer):
 
         return sax_symbols
 
-    def inverse_sax(self, X, original_length=None, y=None):
+    def inverse_sax(
+        self,
+        X,
+        original_length=None,
+        window_means=None,
+        window_stds=None,
+        y=None,
+    ):
         """Reconstruct time series from SAX symbols.
 
         Supports both standard and windowed SAX output.
@@ -285,6 +327,16 @@ class SAX(BaseCollectionTransformer):
             For windowed SAX, this is the desired reconstructed series length.
             If omitted, the covered length is inferred from the number of
             windows, window size and stride.
+        window_means : np.ndarray, optional
+            Per-window means with shape
+            (n_cases, n_channels, n_windows, 1). Required to restore the
+            original scale when ``znormalized=False`` unless the statistics
+            were stored by the most recent call to ``transform``.
+        window_stds : np.ndarray, optional
+            Per-window standard deviations with shape
+            (n_cases, n_channels, n_windows, 1). Required to restore the
+            original scale when ``znormalized=False`` unless the statistics
+            were stored by the most recent call to ``transform``.
 
         Returns
         -------
@@ -351,12 +403,79 @@ class SAX(BaseCollectionTransformer):
                         "covered by the SAX windows"
                     )
 
+                if self.znormalized:
+                    if window_means is None:
+                        window_means = np.zeros(
+                            (
+                                sax_indices.shape[0],
+                                sax_indices.shape[1],
+                                n_windows,
+                                1,
+                            ),
+                            dtype=self.breakpoints_mid.dtype,
+                        )
+                    if window_stds is None:
+                        window_stds = np.ones(
+                            (
+                                sax_indices.shape[0],
+                                sax_indices.shape[1],
+                                n_windows,
+                                1,
+                            ),
+                            dtype=self.breakpoints_mid.dtype,
+                        )
+                else:
+                    if window_means is None:
+                        window_means = getattr(self, "_window_means_", None)
+                    if window_stds is None:
+                        window_stds = getattr(self, "_window_stds_", None)
+
+                    if window_means is None or window_stds is None:
+                        raise ValueError(
+                            "window_means and window_stds are required to "
+                            "denormalize windowed SAX output when "
+                            "znormalized=False"
+                        )
+
+                window_means = np.asarray(
+                    window_means,
+                    dtype=self.breakpoints_mid.dtype,
+                )
+                window_stds = np.asarray(
+                    window_stds,
+                    dtype=self.breakpoints_mid.dtype,
+                )
+
+                expected_stats_shape = (
+                    sax_indices.shape[0],
+                    sax_indices.shape[1],
+                    n_windows,
+                    1,
+                )
+
+                if window_means.shape != expected_stats_shape:
+                    raise ValueError(
+                        "window_means must have shape "
+                        f"{expected_stats_shape}, but found "
+                        f"{window_means.shape}"
+                    )
+
+                if window_stds.shape != expected_stats_shape:
+                    raise ValueError(
+                        "window_stds must have shape "
+                        f"{expected_stats_shape}, but found "
+                        f"{window_stds.shape}"
+                    )
+
                 return _invert_windowed_sax_symbols(
                     sax_symbols=sax_indices,
                     original_length=original_length,
                     window_size=self.window_size,
                     stride=effective_stride,
                     breakpoints_mid=self.breakpoints_mid,
+                    window_means=window_means,
+                    window_stds=window_stds,
+                    denormalize=not self.znormalized,
                 )
 
             raise ValueError(
@@ -520,8 +639,11 @@ def _invert_windowed_sax_symbols(
     window_size,
     stride,
     breakpoints_mid,
+    window_means,
+    window_stds,
+    denormalize,
 ):
-    """Invert windowed SAX using overlap averaging."""
+    """Invert windowed SAX, optionally denormalize, and average overlaps."""
     n_cases, n_channels, n_windows, n_segments = sax_symbols.shape
 
     reconstructed = np.zeros(
@@ -557,15 +679,23 @@ def _invert_windowed_sax_symbols(
                         segment_index,
                     ]
 
-                    reconstructed[i, c, global_t] += breakpoints_mid[symbol_index]
+                    value = breakpoints_mid[symbol_index]
+
+                    if denormalize:
+                        value = (
+                            value * window_stds[i, c, w, 0] + window_means[i, c, w, 0]
+                        )
+
+                    reconstructed[i, c, global_t] += value
 
                     counts[i, c, global_t] += 1
 
             for t in range(original_length):
                 if counts[i, c, t] > 0:
                     reconstructed[i, c, t] /= counts[i, c, t]
+                    last_value = reconstructed[i, c, t]
                 else:
-                    reconstructed[i, c, t] = np.nan
+                    reconstructed[i, c, t] = last_value
 
     return reconstructed
 
