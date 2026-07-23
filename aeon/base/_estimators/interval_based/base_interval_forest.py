@@ -36,7 +36,13 @@ class BaseIntervalForest(ABC):
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e. ``DecisionTreeClassifier(criterion="entropy")`` for
+        classification and ``DecisionTreeRegressor(criterion="squared_error")`` for
+        regression. Versions prior to and including 1.5.0 used
+        ``DecisionTreeRegressor(criterion="absolute_error")`` for regression by
+        default, which scales poorly with the number of cases and can be orders of
+        magnitude slower for larger datasets. Pass such an estimator explicitly to
+        restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     interval_selection_method : "random", "supervised" or "random-supervised",
@@ -371,7 +377,7 @@ class BaseIntervalForest(ABC):
             if is_classifier(self):
                 self._base_estimator = DecisionTreeClassifier(criterion="entropy")
             elif is_regressor(self):
-                self._base_estimator = DecisionTreeRegressor(criterion="absolute_error")
+                self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
             else:
                 raise ValueError(
                     f"{self} must be a scikit-learn compatible classifier or "
