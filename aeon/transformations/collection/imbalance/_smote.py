@@ -150,7 +150,7 @@ class SMOTE(BaseCollectionTransformer):
         return X_resampled, y_resampled
 
     def _make_samples(
-        self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, y=None
+        self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0
     ):
         """Make artificial samples constructed based on nearest neighbours.
 
@@ -180,10 +180,6 @@ class SMOTE(BaseCollectionTransformer):
         step_size : float, default=1.0
             The step size to create samples.
 
-        y : ndarray of shape (n_samples_all,), default=None
-            The true target associated with `nn_data`. Used by Borderline SMOTE-2 to
-            weight the distances in the sample generation process.
-
         Returns
         -------
         X_new : ndarray
@@ -201,13 +197,11 @@ class SMOTE(BaseCollectionTransformer):
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
 
-        X_new = self._generate_samples(X, nn_data, nn_num, rows, cols, steps, y_type, y)
+        X_new = self._generate_samples(X, nn_data, nn_num, rows, cols, steps)
         y_new = np.full(n_samples, fill_value=y_type, dtype=y_dtype)
         return X_new, y_new
 
-    def _generate_samples(
-        self, X, nn_data, nn_num, rows, cols, steps, y_type=None, y=None
-    ):
+    def _generate_samples(self, X, nn_data, nn_num, rows, cols, steps):
         r"""Generate a synthetic sample.
 
         The rule for the generation is:
@@ -237,12 +231,6 @@ class SMOTE(BaseCollectionTransformer):
             will be used when creating new samples.
         steps : ndarray of shape (n_samples,), dtype=float
             Step sizes for new samples.
-        y_type : str, int or None, default=None
-            Class label of the current target classes for which we want to generate
-            samples.
-        y : ndarray of shape (n_samples_all,), default=None
-            The true target associated with `nn_data`. Used by Borderline SMOTE-2 to
-            weight the distances in the sample generation process.
 
         Returns
         -------
@@ -250,11 +238,6 @@ class SMOTE(BaseCollectionTransformer):
             Synthetically generated samples.
         """
         diffs = nn_data[nn_num[rows, cols]] - X[rows]
-        if y is not None:
-            mask_pair_samples = y[nn_num[rows, cols]] != y_type
-            diffs[mask_pair_samples] *= self._random_state.uniform(
-                low=0.0, high=0.5, size=(mask_pair_samples.sum(), 1)
-            )
         X_new = X[rows] + steps * diffs
         return X_new.astype(X.dtype)
 

@@ -159,7 +159,6 @@ class ESMOTE(BaseCollectionTransformer):
                 nn_ts,
                 distance=self.distance,
                 step=steps[count],
-                return_bias=False,
                 **self._distance_params,
             )
 
@@ -185,7 +184,6 @@ class ESMOTE(BaseCollectionTransformer):
         transformation_precomputed: bool = False,
         transformed_x: np.ndarray | None = None,
         transformed_y: np.ndarray | None = None,
-        return_bias=False,
     ):
         """
         Generate a single synthetic sample using soft distance.
@@ -227,8 +225,5 @@ class ESMOTE(BaseCollectionTransformer):
             empty_of_array[:, k] = curr_ts[:, k] - nn_ts[:, key]
 
         bias = step * empty_of_array
-        if return_bias:
-            return bias
-
         new_ts = new_ts - bias
         return new_ts
