@@ -17,11 +17,11 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     Implementation of the interval-based forest making use of the catch22 feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_
 
-    Overview: Input "n" series with "d" dimensions of length "m".
+    Overview: Input "n" series with "d" channels of length "m".
     For each tree
         - Sample n_intervals intervals of random position and length
         - Subsample att_subsample_size catch22 or summary statistic attributes randomly
-        - Randomly select dimension for each interval
+        - Randomly select channel for each interval
         - Calculate attributes for each interval, concatenate to form new
           data set
         - Build a decision tree on new data set
@@ -104,7 +104,7 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     total_intervals_ : int

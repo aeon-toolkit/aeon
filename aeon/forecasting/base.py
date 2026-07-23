@@ -60,7 +60,7 @@ class BaseForecaster(BaseSeriesEstimator):
         super().__init__(axis)
 
     @final
-    @method_timer("fit_time_millis_")
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, y, exog=None, axis=1):
         """Fit forecaster to series y.
 
@@ -303,6 +303,8 @@ class IterativeForecastingMixin:
         Raises
         ------
         ValueError
+            If the forecaster was configured with ``horizon`` other than 1.
+        ValueError
             If ``prediction_horizon`` is less than 1.
         ValueError
             If only one of ``exog`` and ``future_exog`` is provided.
@@ -320,6 +322,15 @@ class IterativeForecastingMixin:
         >>> f.iterative_forecast(y, 2)
         array([3., 2.])
         """
+        if self.horizon != 1:
+            raise ValueError(
+                "iterative_forecast requires the forecaster to be configured with "
+                f"horizon=1, but {self.__class__.__name__} has horizon="
+                f"{self.horizon}. Iterative forecasting recursively applies a "
+                "one-step-ahead model, feeding each prediction back as the next "
+                "observation, so a horizon greater than 1 has no meaning here. Use "
+                "direct_forecast for multi-step forecasting, or set horizon=1."
+            )
         y, exog, future_exog = self._check_iterative_forecast_inputs(
             y, prediction_horizon, exog, future_exog
         )

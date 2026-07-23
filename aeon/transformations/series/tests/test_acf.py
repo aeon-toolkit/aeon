@@ -4,7 +4,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
+from aeon.transformations.series._acf import (
+    AutoCorrelationSeriesTransformer,
+)
 
 
 def test_acf():
@@ -89,3 +91,10 @@ def test_acf_default_n_lags_is_quarter_series_length():
     acf = AutoCorrelationSeriesTransformer()
     y = acf.fit_transform(x)
     assert y.shape == (1, expected_n_lags)
+
+
+def test_acf_default_lags_error_reports_remaining_observations():
+    """Default lags raise the intended error for a series that is too short."""
+    x = np.array([1.0])
+    with pytest.raises(ValueError, match="0 observations"):
+        AutoCorrelationSeriesTransformer().fit_transform(x)
