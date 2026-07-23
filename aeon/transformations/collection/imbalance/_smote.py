@@ -125,7 +125,7 @@ class SMOTE(BaseCollectionTransformer):
         return self
 
     def _transform(self, X, y=None):
-        # remove the channel dimension to be compatible with sklearn
+        # remove the channel axis to be compatible with sklearn
         X = np.squeeze(X, axis=1)
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
