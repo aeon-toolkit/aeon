@@ -118,6 +118,84 @@ def test_mstl_imputes_missing_values_before_decomposition():
     np.testing.assert_allclose(imputed_components, expected_components)
 
 
+def test_short_series_raises():
+    """MSTL rejects a series too short for STL decomposition."""
+    with pytest.raises(ValueError, match="length >= 3"):
+        MSTLSeriesTransformer(periods=[2]).fit_transform(np.array([1.0, 2.0]))
+
+
+@pytest.mark.parametrize("boxcox_lambda", [0.0, 0.5])
+def test_boxcox_components_reconstruct_transformed_series(boxcox_lambda):
+    """MSTL components reconstruct the requested Box-Cox transformed series."""
+    n_timepoints = 120
+    period = 12
+    t = np.arange(n_timepoints, dtype=float)
+    y = 2.0 + 0.5 * np.sin(2 * np.pi * t / period) + 0.01 * t
+    expected = (
+        np.log(y)
+        if boxcox_lambda == 0.0
+        else (np.power(y, boxcox_lambda) - 1.0) / boxcox_lambda
+    )
+
+    components = MSTLSeriesTransformer(
+        periods=[period],
+        s_windows=[11],
+        iterate=1,
+        boxcox_lambda=boxcox_lambda,
+        output="all",
+    ).fit_transform(y)
+
+    np.testing.assert_allclose(components.sum(axis=1), expected, atol=1e-8)
+
+
+def test_boxcox_requires_positive_data():
+    """Box-Cox preprocessing rejects non-positive MSTL input."""
+    n_timepoints = 120
+    y = -np.arange(1, n_timepoints + 1, dtype=float)
+    mstl = MSTLSeriesTransformer(periods=[12], boxcox_lambda=0.5)
+    with pytest.raises(ValueError, match="strictly positive"):
+        mstl.fit_transform(y)
+
+
+def test_s_windows_none_element_uses_default():
+    """A ``None`` seasonal window gives the documented first default of 11."""
+    n_timepoints = 120
+    period = 12
+    t = np.arange(n_timepoints, dtype=float)
+    y = np.sin(2 * np.pi * t / period) + 0.01 * t
+    params = {
+        "periods": [period],
+        "iterate": 1,
+        "output": "all",
+    }
+
+    actual = MSTLSeriesTransformer(**params, s_windows=[None]).fit_transform(y)
+    expected = MSTLSeriesTransformer(**params, s_windows=[11]).fit_transform(y)
+
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "params, match",
+    [
+        ({"iterate": 1.5}, "integer"),
+        ({"periods": [12, 24], "s_windows": [11]}, "must match"),
+        ({"s_windows": [4]}, "odd integer"),
+        ({"periods": 12}, "non-empty sequence"),
+        ({"periods": [1]}, "integers >= 2"),
+        ({"output": "bogus"}, "output"),
+    ],
+)
+def test_invalid_mstl_options_raise(params, match):
+    """Invalid public MSTL options raise a distinguishing error."""
+    n_timepoints = 120
+    y = np.arange(n_timepoints, dtype=float)
+    transformer_params = {"periods": [12], **params}
+
+    with pytest.raises(ValueError, match=match):
+        MSTLSeriesTransformer(**transformer_params).fit_transform(y)
+
+
 @pytest.mark.parametrize("boxcox_lambda", [None, 0.5])
 def test_mstl_rejects_missing_values_without_imputation(boxcox_lambda):
     """Missing values give a clear error when imputation is disabled."""
