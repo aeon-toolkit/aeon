@@ -3,13 +3,11 @@
 from collections import Counter
 
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.classification.dictionary_based import REDCOMETS
 from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.imbalance import SMOTE, RandomOverSampler
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def _normalise_2d(X2d):
@@ -44,41 +42,27 @@ def _redcomets_resample_aeon(X2d, y, random_state=0, n_jobs=1):
     return np.squeeze(X_smote, 1), y_smote
 
 
-def test_redcomets_smote_class_counts_match_imblearn():
-    """Class counts and samples after aeon SMOTE match the previous imblearn path."""
-    if not _check_soft_dependencies(
-        "imbalanced-learn",
-        package_import_alias={"imbalanced-learn": "imblearn"},
-        severity="none",
-    ):
-        return
+def test_redcomets_smote_oversampling_balances_classes():
+    """The REDCOMETS SMOTE path balances classes and preserves the original cases.
 
-    from imblearn.over_sampling import SMOTE as ImbSMOTE
-
+    Mirrors the REDCOMETS wiring: normalise, cap the neighbour count at six, use
+    ``min_class_count - 2`` neighbours, then SMOTE. SMOTE's numerical parity with
+    imbalanced-learn is locked separately in the SMOTE tests; here the contract is
+    that the oversampling balances the classes to the majority count and leaves the
+    original (normalised) cases unchanged at the front of the output.
+    """
     rng = check_random_state(0)
     X2d = rng.randn(40, 30)
     y = np.array([0] * 24 + [1] * 16)
-    Xn = _normalise_2d(X2d)
-    min_neighbours = 6
-    X_imb, y_imb = ImbSMOTE(
-        sampling_strategy="all",
-        k_neighbors=NearestNeighbors(n_neighbors=min_neighbours - 1),
-        random_state=0,
-    ).fit_resample(Xn, y)
+    n_original = len(y)
+
     X_aeon, y_aeon = _redcomets_resample_aeon(X2d, y, random_state=0)
 
-    assert Counter(map(str, y_imb)) == Counter(map(str, y_aeon))
-    assert X_imb.shape == X_aeon.shape
-
-    def sort_xy(X, y):
-        y = np.asarray(y).astype(str)
-        idx = np.lexsort((X[:, 0], y))
-        return X[idx], y[idx]
-
-    Xi, yi = sort_xy(X_imb, y_imb)
-    Xa, ya = sort_xy(X_aeon, y_aeon)
-    assert np.array_equal(yi, ya)
-    assert np.allclose(Xi, Xa)
+    assert X_aeon.shape == (2 * 24, 30)
+    assert Counter(map(int, y_aeon)) == {0: 24, 1: 24}
+    # original normalised cases are preserved, unchanged, before the synthetic ones
+    assert np.allclose(X_aeon[:n_original], _normalise_2d(X2d))
+    assert np.array_equal(y_aeon[:n_original], y)
 
 
 def test_redcomets_fits_without_imblearn_tag():
