@@ -473,8 +473,7 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [6, 7, 8, 9]:
                 dimension_pred_mats = None
             for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
-                sfa_dics = sfa.transform_words(X_d)
-                X_sfa = sfa_dics[:, 0, :]
+                X_sfa = sfa.transform_words(X_d)[0]
 
                 rf_pred_mat = rf.predict_proba(X_sfa)
 
