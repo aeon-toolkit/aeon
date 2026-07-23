@@ -5,18 +5,6 @@ aeon/testing/expected_results/_results_reproduction/write_expected_results.py
 """
 
 univariate_expected_results = {
-    "CanonicalIntervalForestRegressor": [
-        0.0302,
-        0.0301,
-        0.0277,
-        0.0276,
-        0.0197,
-        0.0309,
-        0.0279,
-        0.0203,
-        0.0208,
-        0.0329,
-    ],
     "Catch22Regressor": [
         0.0164,
         0.0116,
@@ -235,18 +223,6 @@ univariate_expected_results = {
     ],
 }
 multivariate_expected_results = {
-    "CanonicalIntervalForestRegressor": [
-        0.0798,
-        0.0755,
-        0.1795,
-        0.1158,
-        0.0884,
-        0.1452,
-        0.1303,
-        0.1665,
-        0.0785,
-        0.005,
-    ],
     "Catch22Regressor": [
         -0.0209,
         0.1121,
