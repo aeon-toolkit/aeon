@@ -1,14 +1,13 @@
-"""PreVal vector classifier."""
+"""Prevalidated ridge classifier."""
 
 __maintainer__ = []
-__all__ = ["PreValClassifier"]
+__all__ = ["PrevalidatedRidgeClassifier"]
 
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.preprocessing import LabelBinarizer
 
 from aeon.classification import BaseClassifier
-
 
 EPS = np.finfo(np.float32).eps
 LOG_EPS = np.log(EPS)
@@ -29,8 +28,8 @@ def _log_loss(c, *args):
     return -np.log((Y * P).max(1)).sum()
 
 
-class PreValClassifier(BaseClassifier):
-    """Initial aeon port of the PreVal tabular classifier.
+class PrevalidatedRidgeClassifier(BaseClassifier):
+    """Prevalidated ridge classifier for tabular data.
 
     This first version is intentionally a light port of the original standalone
     implementation. It is only intended for 2D tabular input.
@@ -54,7 +53,7 @@ class PreValClassifier(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit PreVal to tabular data.
+        """Fit the prevalidated ridge classifier to tabular data.
 
         Notes
         -----

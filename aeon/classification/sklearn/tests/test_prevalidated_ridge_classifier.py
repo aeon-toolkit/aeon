@@ -1,12 +1,12 @@
-"""Smoke tests for the PreVal classifier."""
+"""Unit tests for the prevalidated ridge classifier."""
 
 import numpy as np
 import pytest
 
-from aeon.classification.sklearn import PreValClassifier
+from aeon.classification.sklearn import PrevalidatedRidgeClassifier
 
 
-def test_preval_classifier_lifecycle_binary():
+def test_prevalidated_ridge_classifier_lifecycle_binary():
     """Test the full estimator lifecycle on a small binary problem."""
     X = np.array(
         [
@@ -22,7 +22,7 @@ def test_preval_classifier_lifecycle_binary():
     y = np.array(["a", "a", "b", "b", "a", "b"])
     lambdas = np.logspace(-2, 2, 5).astype(np.float32)
 
-    clf = PreValClassifier(lambdas=lambdas)
+    clf = PrevalidatedRidgeClassifier(lambdas=lambdas)
     result = clf.fit(X, y)
 
     preds = clf.predict(X)
@@ -45,7 +45,7 @@ def test_preval_classifier_lifecycle_binary():
     np.testing.assert_array_equal(clf.classes_, np.array(["a", "b"]))
 
 
-def test_preval_classifier_lifecycle_multiclass():
+def test_prevalidated_ridge_classifier_lifecycle_multiclass():
     """Test the full estimator lifecycle on a small multiclass problem."""
     X = np.array(
         [
@@ -60,7 +60,7 @@ def test_preval_classifier_lifecycle_multiclass():
     )
     y = np.array([0, 1, 2, 0, 1, 2])
 
-    clf = PreValClassifier(lambdas=np.logspace(-2, 2, 5).astype(np.float32))
+    clf = PrevalidatedRidgeClassifier(lambdas=np.logspace(-2, 2, 5).astype(np.float32))
     clf.fit(X, y)
 
     preds = clf.predict(X)
@@ -77,7 +77,7 @@ def test_preval_classifier_lifecycle_multiclass():
     np.testing.assert_array_equal(clf.classes_, np.array([0, 1, 2]))
 
 
-def test_preval_classifier_n_lt_p_with_low_variance_columns():
+def test_prevalidated_ridge_classifier_n_lt_p_with_low_variance_columns():
     """Test the high-dimensional path and removal of low-variance columns."""
     rng = np.random.default_rng(0)
     X = rng.normal(size=(6, 10)).astype(np.float32)
@@ -85,7 +85,7 @@ def test_preval_classifier_n_lt_p_with_low_variance_columns():
     X[:, 1] = np.linspace(0.0, 1e-7, X.shape[0], dtype=np.float32)
     y = np.array([0, 1, 0, 1, 0, 1])
 
-    clf = PreValClassifier(lambdas=np.array([0.1, 1.0], dtype=np.float32))
+    clf = PrevalidatedRidgeClassifier(lambdas=np.array([0.1, 1.0], dtype=np.float32))
     clf.fit(X, y)
 
     proba = clf.predict_proba(X)
@@ -101,10 +101,10 @@ def test_preval_classifier_n_lt_p_with_low_variance_columns():
 
 
 @pytest.mark.parametrize("lambdas", [[], [0.0, 1.0], [-1.0, 1.0], [1.0, np.inf]])
-def test_preval_classifier_invalid_lambdas(lambdas):
+def test_prevalidated_ridge_classifier_invalid_lambdas(lambdas):
     """Test invalid lambda grids are rejected early."""
     X = np.array([[0.0, 1.0], [1.0, 0.0], [0.2, 0.8], [0.8, 0.2]], dtype=np.float32)
     y = np.array(["a", "a", "b", "b"])
 
     with pytest.raises(ValueError, match="lambdas must contain"):
-        PreValClassifier(lambdas=lambdas).fit(X, y)
+        PrevalidatedRidgeClassifier(lambdas=lambdas).fit(X, y)
