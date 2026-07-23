@@ -7,10 +7,9 @@ import numpy as np
 import scipy.stats
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
-
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.dictionary_based import PAA
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.validation import check_n_jobs
 
 
