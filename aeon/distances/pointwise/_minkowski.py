@@ -230,7 +230,7 @@ def _minkowski_pairwise_distance(
                 distances[i, j] = minkowski_distance(X[i], X[j], p)
             else:
                 # Reshape weights to 2D for matching instance
-                # dimensions in distance calculation.
+                # channels in distance calculation.
                 _w = w[i].reshape((1, w.shape[1]))
                 distances[i, j] = minkowski_distance(X[i], X[j], p, _w)
             distances[j, i] = distances[i, j]
