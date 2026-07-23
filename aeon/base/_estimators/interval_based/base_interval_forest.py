@@ -882,7 +882,7 @@ class BaseIntervalForest(ABC):
 
         intervals = []
         transform_data_lengths = []
-        interval_features = np.empty((self.n_cases_, 0))
+        interval_feature_parts = []
 
         # for each transformed series
         for r in range(len(Xt)):
@@ -1017,9 +1017,12 @@ class BaseIntervalForest(ABC):
             intervals.append(selector)
             f = intervals[r].fit_transform(Xt[r], y)
 
-            # concatenate the data and save this transforms number of attributes
+            # save this transforms number of attributes
             transform_data_lengths.append(f.shape[1])
-            interval_features = np.hstack((interval_features, f))
+            interval_feature_parts.append(f)
+
+        # concatenate once rather than growing the array with a copy per transform
+        interval_features = np.hstack(interval_feature_parts)
 
         if isinstance(self.replace_nan, str) and self.replace_nan.lower() == "nan":
             interval_features = np.nan_to_num(

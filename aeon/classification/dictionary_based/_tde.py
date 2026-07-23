@@ -33,7 +33,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series length 'm' with 'd' dimensions
+    Overview: Input 'n' series length 'm' with 'd' channels
     TDE searches 'k' parameter values selected using a Gaussian processes
     regressor, evaluating each with a LOOCV. It then retains 's'
     ensemble members.
@@ -51,7 +51,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     into alpha possible values, to form a word length l using breakpoints
     found using b. A histogram of words for each series is formed and stored,
     using a spatial pyramid of h levels. For multivariate series, accuracy
-    from a reduced histogram is used to select dimensions.
+    from a reduced histogram is used to select channels.
 
     fit involves finding n histograms.
     predict uses 1 nearest neighbour with the histogram intersection
@@ -74,9 +74,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
     dim_threshold : float, default=0.85
-        Dimension accuracy threshold for multivariate data, must be between 0 and 1.
+        Channel accuracy threshold for multivariate data, must be between 0 and 1.
     max_dims : int, default=20
-        Max number of dimensions per classifier for multivariate data.
+        Max number of channels per classifier for multivariate data.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
@@ -110,7 +110,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     estimators_ : list of shape (n_estimators) of IndividualTDE
@@ -618,10 +618,10 @@ class IndividualTDE(BaseClassifier):
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
     dim_threshold : float, default=0.85
-        Accuracy threshold as a proportion of the highest accuracy dimension for words
-        extracted from each dimensions. Only applicable for multivariate data.
+        Accuracy threshold as a proportion of the highest accuracy channel for words
+        extracted from each channel. Only applicable for multivariate data.
     max_dims : int, default=20
-        Maximum number of dimensions words are extracted from. Only applicable for
+        Maximum number of channels words are extracted from. Only applicable for
         multivariate data.
     typed_dict : bool, default=True
         Use a numba TypedDict to store word counts. May increase memory usage, but will
@@ -641,7 +641,7 @@ class IndividualTDE(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
 
@@ -785,7 +785,7 @@ class IndividualTDE(BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
-        # select dimensions using accuracy estimate if multivariate
+        # select channels using accuracy estimate if multivariate
         if self.n_channels_ > 1:
             self._dims, self._transformers = self._select_dims(X, y)
 
@@ -922,7 +922,7 @@ class IndividualTDE(BaseClassifier):
         accs = []
         transformers = []
 
-        # select dimensions based on reduced bag size accuracy
+        # select channels based on reduced bag size accuracy
         for i in range(self.n_channels_):
             self._dims.append(i)
             transformers.append(

@@ -28,7 +28,7 @@ from aeon.utils.validation import check_n_jobs
 class RandomIntervals(BaseCollectionTransformer):
     """Random interval feature transformer.
 
-    Extracts intervals with random length, position and dimension from series in fit.
+    Extracts intervals with random length, position and channel from series in fit.
     Transforms each interval subseries using the given transformer(s)/features and
     concatenates them into a feature vector in transform.
 
@@ -41,7 +41,7 @@ class RandomIntervals(BaseCollectionTransformer):
     Parameters
     ----------
     n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
@@ -77,14 +77,14 @@ class RandomIntervals(BaseCollectionTransformer):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_intervals_ : int
         The number of intervals extracted after pruning identical intervals.
     intervals_ : list of tuples
         Contains information for each feature extracted in fit. Each tuple contains the
-        interval start, interval end, interval dimension, the feature(s) extracted and
+        interval start, interval end, interval channel, the feature(s) extracted and
         the dilation.
         Length will be n_intervals*len(features).
 
@@ -358,7 +358,7 @@ class RandomIntervals(BaseCollectionTransformer):
         while interval_length / dilation < self._min_interval_length:
             dilation -= 1
 
-        Xt = np.empty((self.n_cases_, 0)) if transform else None
+        Xt_parts = [] if transform else None
         intervals = []
 
         for feature in self._features:
@@ -379,7 +379,7 @@ class RandomIntervals(BaseCollectionTransformer):
                     if t.ndim == 3 and t.shape[1] == 1:
                         t = t.reshape((t.shape[0], t.shape[2]))
 
-                    Xt = np.hstack((Xt, t))
+                    Xt_parts.append(t)
                 else:
                     feature.fit(
                         np.expand_dims(
@@ -391,9 +391,14 @@ class RandomIntervals(BaseCollectionTransformer):
                 t = np.asarray(
                     feature(X[:, dim, interval_start:interval_end:dilation])
                 ).reshape(-1, 1)
-                Xt = np.hstack((Xt, t))
+                Xt_parts.append(t)
 
             intervals.append((interval_start, interval_end, dim, feature, dilation))
+
+        # concatenate once rather than growing Xt with a fresh copy per feature
+        Xt = None
+        if transform:
+            Xt = np.hstack(Xt_parts) if Xt_parts else np.empty((self.n_cases_, 0))
 
         return intervals, Xt
 

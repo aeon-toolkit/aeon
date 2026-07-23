@@ -23,7 +23,7 @@ class RSTSF(BaseClassifier):
 
     An ensemble of decision trees built on intervals selected through a supervised
     process as described in _[1].
-    Overview: Input n series of length m with d dimensions
+    Overview: Input n series of length m with d channels
         - sample X using class-balanced bagging
         - sample intervals for all 4 series representations and 9 features using
             supervised method
@@ -36,7 +36,7 @@ class RSTSF(BaseClassifier):
     n_intervals : int, default=50
         The number of times the supervised interval selection process is run.
         Each supervised extraction will output a varying amount of features based on
-        series length, number of dimensions and the number of features.
+        series length, number of channels and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
     random_state : None, int or instance of RandomState, default=None

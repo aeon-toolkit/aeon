@@ -79,7 +79,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     total_intervals_ : int
