@@ -68,7 +68,12 @@ from aeon.testing.testing_config import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
+from aeon.testing.utils.estimator_checks import (
+    _changed_state,
+    _get_tag,
+    _run_estimator_method,
+    _snapshot_state,
+)
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.base import VALID_ESTIMATOR_BASES
 from aeon.utils.tags import check_valid_tags
@@ -536,26 +541,26 @@ def check_non_state_changing_method(estimator, datatype):
         y, FULL_TEST_DATA_DICT[datatype]["train"][1]
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
-    # dict_before = copy of dictionary of estimator before predict, post fit
-    dict_before = estimator.__dict__.copy()
     X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
+    state_before = _snapshot_state(estimator)
     for method in NON_STATE_CHANGING_METHODS:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             _run_estimator_method(estimator, method, datatype, "test")
 
-        assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["test"][0]) and deep_equals(
-            y, FULL_TEST_DATA_DICT[datatype]["test"][1]
-        ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
+            assert deep_equals(
+                X, FULL_TEST_DATA_DICT[datatype]["test"][0]
+            ) and deep_equals(
+                y, FULL_TEST_DATA_DICT[datatype]["test"][1]
+            ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
-        # dict_after = dictionary of estimator after predict and fit
-        is_equal, msg = deep_equals(estimator.__dict__, dict_before, return_msg=True)
-        assert is_equal, (
-            f"Estimator: {type(estimator).__name__} changes __dict__ "
-            f"during {method}, "
-            f"reason/location of discrepancy (x=after, y=before): {msg}"
-        )
+            changed = _changed_state(state_before, vars(estimator))
+
+            assert not changed, (
+                f"Estimator: {type(estimator).__name__} changes __dict__ "
+                f"during {method}; changed attributes: {sorted(changed)}"
+            )
 
 
 def check_fit_updates_state_and_cloning(estimator, datatype):

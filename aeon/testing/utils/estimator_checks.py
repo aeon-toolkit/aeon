@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 from inspect import isclass, signature
 
+import joblib
 import numpy as np
 
 from aeon.similarity_search import BaseSimilaritySearch
@@ -107,3 +108,41 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
     assert np.all(y_proba >= 0)
     assert np.all(y_proba <= 1)
     assert np.allclose(np.sum(y_proba, axis=1), 1)
+
+
+def _snapshot_state(estimator):
+    state = {}
+    use_hash = not _get_tag(estimator, "cant_pickle", default=False)
+
+    for name, value in vars(estimator).items():
+        if use_hash:
+            try:
+                state[name] = ("hash", joblib.hash(value))
+                continue
+            except Exception:
+                pass
+
+        state[name] = ("identity", value)
+
+    return state
+
+
+def _changed_state(before, after):
+    changed = set(before) ^ set(after)
+
+    for name in before.keys() & after.keys():
+        mode, old = before[name]
+        value = after[name]
+
+        if mode == "hash":
+            try:
+                equal = old == joblib.hash(value)
+            except Exception:
+                equal = False
+        else:
+            equal = old is value
+
+        if not equal:
+            changed.add(name)
+
+    return changed
