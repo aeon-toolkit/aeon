@@ -78,7 +78,7 @@ def test_output_dimensions(num_levels, corr_n_timepoints):
 
 
 def test_dwt_performs_correcly_along_each_dim():
-    """Check that DWT produces the same result along each dimension."""
+    """Check that DWT produces the same result along each channel."""
     X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
     d = DWTTransformer(n_levels=3).fit(X)
     res = d.transform(X)
