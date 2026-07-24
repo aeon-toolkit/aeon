@@ -42,7 +42,7 @@ class SAX(BaseCollectionTransformer):
         the parameters of the used distribution, if the used
         distribution is "Gaussian" and this parameter is None
         then the default setup is {"scale" : 1.0}
-    znormalized : bool, default = True,
+    znormalize : bool, default = True,
         Whether the input is already z-normalized. If False, each complete
         series is normalized before PAA when ``window_size=None``. When
         windowing is enabled, each extracted window is normalized independently
@@ -92,7 +92,7 @@ class SAX(BaseCollectionTransformer):
         alphabet: list = None,
         distribution: str = "Gaussian",
         distribution_params: dict = None,
-        znormalized: bool = True,
+        znormalize: bool = True,
         window_size: int = None,
         stride: int = 1,
         n_jobs: int = 1,
@@ -110,7 +110,7 @@ class SAX(BaseCollectionTransformer):
         self.distribution = distribution
         self.n_jobs = n_jobs
         self.distribution_params = distribution_params
-        self.znormalized = znormalized
+        self.znormalize = znormalize
 
         self.window_size = window_size
         self.stride = stride
@@ -181,7 +181,7 @@ class SAX(BaseCollectionTransformer):
         X_paa : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the PAA transformation
         """
-        if not self.znormalized:
+        if not self.znormalize:
             X = self._z_normalize(X)
 
         paa = PAA(n_segments=self.n_segments, n_jobs=self.n_jobs)
@@ -235,7 +235,7 @@ class SAX(BaseCollectionTransformer):
             self.window_size,
         )
 
-        if self.znormalized:
+        if self.znormalize:
             X_windows_normalized = X_windows_3d
             self._window_means_ = None
             self._window_stds_ = None
@@ -333,12 +333,12 @@ class SAX(BaseCollectionTransformer):
         window_means : np.ndarray, optional
             Per-window means with shape
             (n_cases, n_channels, n_windows, 1). Required to restore the
-            original scale when ``znormalized=False`` unless the statistics
+            original scale when ``znormalize=False`` unless the statistics
             were stored by the most recent call to ``transform``.
         window_stds : np.ndarray, optional
             Per-window standard deviations with shape
             (n_cases, n_channels, n_windows, 1). Required to restore the
-            original scale when ``znormalized=False`` unless the statistics
+            original scale when ``znormalize=False`` unless the statistics
             were stored by the most recent call to ``transform``.
 
         Returns
@@ -411,7 +411,7 @@ class SAX(BaseCollectionTransformer):
                         "covered by the SAX windows"
                     )
 
-                if self.znormalized:
+                if self.znormalize:
                     if window_means is None:
                         window_means = np.zeros(
                             (
@@ -442,7 +442,7 @@ class SAX(BaseCollectionTransformer):
                         raise ValueError(
                             "window_means and window_stds are required to "
                             "denormalize windowed SAX output when "
-                            "znormalized=False"
+                            "znormalize=False"
                         )
 
                 window_means = np.asarray(
@@ -483,7 +483,7 @@ class SAX(BaseCollectionTransformer):
                     breakpoints_mid=self.breakpoints_mid,
                     window_means=window_means,
                     window_stds=window_stds,
-                    denormalize=not self.znormalized,
+                    denormalize=not self.znormalize,
                 )
 
             raise ValueError(
