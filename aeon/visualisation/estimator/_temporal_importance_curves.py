@@ -29,11 +29,23 @@ def plot_temporal_importance_curves(
     -------
     fig : plt.Figure
     ax : plt.Axis
+
+    Raises
+    ------
+    ValueError
+        If ``curves`` is empty, e.g. because the fitted forest contains no
+        splits.
     """
     # find attributes to display by max information gain for any time point.
     _check_soft_dependencies("matplotlib")
 
     import matplotlib.pyplot as plt
+
+    if len(curves) == 0:
+        raise ValueError(
+            "No temporal importance curves are available because the fitted "
+            "forest contains no splits."
+        )
 
     top_curves_shown = len(curves) if top_curves_shown is None else top_curves_shown
     top_curves_shown = (
