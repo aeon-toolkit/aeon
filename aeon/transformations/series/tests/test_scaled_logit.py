@@ -19,10 +19,14 @@ TEST_SERIES = np.array([30, 40, 60])
     ],
 )
 def test_scaled_logit_transform(lower, upper, output):
-    """Test that we get the right output."""
+    """Test forward and inverse values for each bound configuration."""
     transformer = ScaledLogitSeriesTransformer(lower, upper)
     y_transformed = transformer.fit_transform(TEST_SERIES)
     assert_array_equal(y_transformed.squeeze(), output)
+    y_inverted = transformer.inverse_transform(y_transformed)
+    np.testing.assert_allclose(
+        y_inverted.squeeze(), TEST_SERIES, rtol=1e-10, atol=1e-10
+    )
 
 
 def test_scaled_logit_bound_warnings():
