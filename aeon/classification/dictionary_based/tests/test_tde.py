@@ -69,7 +69,20 @@ def test_tde_multivariate():
     """Test TDE with incorrect input."""
     # train TDE
     X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
-    tde = IndividualTDE(max_dims=1)
+    tde = IndividualTDE(max_channels=1)
+    tde._fit(X, y)
+    assert len(tde._dims) == 1
+
+
+def test_tde_max_dims_deprecation():
+    """Test that the deprecated max_dims parameter warns and still works."""
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
+
+    with pytest.warns(FutureWarning, match="max_dims"):
+        tde = IndividualTDE(max_dims=1)
+
+    assert tde.max_channels == 1
+
     tde._fit(X, y)
     assert len(tde._dims) == 1
 
