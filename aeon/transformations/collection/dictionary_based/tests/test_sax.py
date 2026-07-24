@@ -5,15 +5,6 @@ import pytest
 from scipy.stats import norm
 
 from aeon.transformations.collection.dictionary_based import SAX
-from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
-
-
-def _z_normalize(X):
-    """Z-normalize each channel of each series independently."""
-    means = np.mean(X, axis=-1, keepdims=True)
-    stds = np.std(X, axis=-1, keepdims=True)
-    stds[stds <= AEON_NUMBA_STD_THRESHOLD] = 1.0
-    return (X - means) / stds
 
 
 @pytest.mark.parametrize(
@@ -28,7 +19,7 @@ def _z_normalize(X):
 def test_sax_standard_output_and_inverse_shapes(shape, n_segments, alphabet_size):
     """Test standard SAX and inverse SAX for several collection shapes."""
     rng = np.random.RandomState(42)
-    X = _z_normalize(rng.normal(size=shape))
+    X = SAX._z_normalize(rng.normal(size=shape))
 
     sax = SAX(
         n_segments=n_segments,
@@ -174,7 +165,7 @@ def test_sax_znormalized_false_matches_manual_normalization():
     """Test that internal normalization matches manual z-normalization."""
     rng = np.random.RandomState(0)
     X = rng.normal(loc=5, scale=2, size=(5, 2, 40))
-    X_normalized = _z_normalize(X)
+    X_normalized = SAX._z_normalize(X)
 
     words_internal = SAX(
         n_segments=8,
@@ -275,10 +266,7 @@ def test_windowed_sax_matches_manual_per_window_normalization():
     ).fit_transform(X)
 
     windows = X.reshape(1, 1, 2, window_size)
-    means = windows.mean(axis=-1, keepdims=True)
-    stds = windows.std(axis=-1, keepdims=True)
-    stds[stds <= AEON_NUMBA_STD_THRESHOLD] = 1.0
-    windows_normalized = (windows - means) / stds
+    windows_normalized = SAX._z_normalize(windows)
     X_manual = windows_normalized.reshape(2, 1, window_size)
 
     words_manual = SAX(
@@ -319,7 +307,7 @@ def test_windowed_sax_differs_from_whole_series_normalization():
         stride=4,
     ).fit_transform(X)
 
-    X_whole_normalized = _z_normalize(X)
+    X_whole_normalized = SAX._z_normalize(X)
     words_whole_normalized = SAX(
         n_segments=2,
         alphabet_size=4,
@@ -344,7 +332,7 @@ def test_windowed_sax_differs_from_whole_series_normalization():
 def test_windowed_sax_output_shape(window_size, stride, expected_n_windows):
     """Test window counts and output shape for several window setups."""
     rng = np.random.RandomState(7)
-    X = _z_normalize(rng.normal(size=(3, 2, 32)))
+    X = SAX._z_normalize(rng.normal(size=(3, 2, 32)))
 
     sax = SAX(
         n_segments=4,
@@ -507,7 +495,7 @@ def test_windowed_inverse_infers_covered_length():
 def test_windowed_sax_multivariate_custom_alphabet():
     """Test windowed SAX with multiple channels and a string alphabet."""
     rng = np.random.RandomState(11)
-    X = _z_normalize(rng.normal(size=(2, 3, 24)))
+    X = SAX._z_normalize(rng.normal(size=(2, 3, 24)))
 
     alphabet = np.array(["A", "B", "C", "D", "E"])
     sax = SAX(
