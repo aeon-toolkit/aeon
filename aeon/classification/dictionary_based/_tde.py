@@ -75,8 +75,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         multivariate data.
     dim_threshold : float, default=0.85
         Channel accuracy threshold for multivariate data, must be between 0 and 1.
-    max_dims : int, default=20
+    max_channels : int, default=20
         Max number of channels per classifier for multivariate data.
+    max_dims : int, default="deprecated"
+        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
@@ -162,6 +164,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         "algorithm_type": "dictionary",
     }
 
+    # TODO remove 'max_dims' in v1.7.0
     def __init__(
         self,
         n_parameter_samples=250,
@@ -171,13 +174,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         randomly_selected_params=50,
         bigrams=None,
         dim_threshold=0.85,
-        max_dims=20,
+        max_channels=20,
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
         typed_dict=True,
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
+        max_dims="deprecated",
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -188,7 +192,16 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         # multivariate
         self.dim_threshold = dim_threshold
+        self.max_channels = max_channels
         self.max_dims = max_dims
+        if max_dims != "deprecated":
+            warnings.warn(
+                "The 'max_dims' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'max_channels' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.max_channels = max_dims
 
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
@@ -336,7 +349,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 alphabet_size=self._alphabet_size,
                 bigrams=use_bigrams,
                 dim_threshold=self.dim_threshold,
-                max_dims=self.max_dims,
+                max_channels=self.max_channels,
                 typed_dict=self.typed_dict,
                 n_jobs=self._n_jobs,
                 random_state=self.random_state,
@@ -620,9 +633,11 @@ class IndividualTDE(BaseClassifier):
     dim_threshold : float, default=0.85
         Accuracy threshold as a proportion of the highest accuracy channel for words
         extracted from each channel. Only applicable for multivariate data.
-    max_dims : int, default=20
+    max_channels : int, default=20
         Maximum number of channels words are extracted from. Only applicable for
         multivariate data.
+    max_dims : int, default="deprecated"
+        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     typed_dict : bool, default=True
         Use a numba TypedDict to store word counts. May increase memory usage, but will
         be faster for larger datasets.
@@ -680,6 +695,7 @@ class IndividualTDE(BaseClassifier):
         "capability:multithreading": True,
     }
 
+    # TODO remove 'max_dims' in v1.7.0
     def __init__(
         self,
         window_size=10,
@@ -690,10 +706,11 @@ class IndividualTDE(BaseClassifier):
         alphabet_size=4,
         bigrams=True,
         dim_threshold=0.85,
-        max_dims=20,
+        max_channels=20,
         typed_dict=True,
         n_jobs=1,
         random_state=None,
+        max_dims="deprecated",
     ):
         self.window_size = window_size
         self.word_length = word_length
@@ -705,7 +722,16 @@ class IndividualTDE(BaseClassifier):
 
         # multivariate
         self.dim_threshold = dim_threshold
+        self.max_channels = max_channels
         self.max_dims = max_dims
+        if max_dims != "deprecated":
+            warnings.warn(
+                "The 'max_dims' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'max_channels' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.max_channels = max_dims
 
         self.typed_dict = typed_dict
         self.n_jobs = n_jobs
@@ -970,9 +996,9 @@ class IndividualTDE(BaseClassifier):
                 dims.append(i)
                 fin_transformers.append(transformers[i])
 
-        if len(dims) > self.max_dims:
+        if len(dims) > self.max_channels:
             rng = check_random_state(self.random_state)
-            idx = rng.choice(len(dims), self.max_dims, replace=False).tolist()
+            idx = rng.choice(len(dims), self.max_channels, replace=False).tolist()
             dims = [dims[i] for i in idx]
             fin_transformers = [fin_transformers[i] for i in idx]
 
