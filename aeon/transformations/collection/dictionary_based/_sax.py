@@ -100,6 +100,8 @@ class SAX(BaseCollectionTransformer):
         self.n_segments = n_segments
 
         self.alphabet_size = alphabet_size
+        if self.alphabet_size <= 0:
+            raise ValueError("alphabet_size must be greater than 0")
         self.alphabet = alphabet
         assert (
             self.alphabet is None or len(self.alphabet) == self.alphabet_size
