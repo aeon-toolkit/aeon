@@ -290,14 +290,16 @@ class SAX(BaseCollectionTransformer):
         prev_threads = get_num_threads()
         _n_jobs = check_n_jobs(self.n_jobs)
 
-        set_num_threads(_n_jobs)
-        sax_symbols = _parallel_get_sax_symbols(
-            X_paa, breakpoints=self.breakpoints, right=False, alphabet=self.alphabet
-        )
-
-        set_num_threads(prev_threads)
-
-        return sax_symbols
+        try:
+            set_num_threads(_n_jobs)
+            return _parallel_get_sax_symbols(
+                X_paa,
+                breakpoints=self.breakpoints,
+                right=False,
+                alphabet=self.alphabet,
+            )
+        finally:
+            set_num_threads(prev_threads)
 
     def inverse_sax(
         self,
@@ -347,6 +349,11 @@ class SAX(BaseCollectionTransformer):
 
         if self.alphabet is None:
             sax_indices = X.astype(np.intp, copy=False)
+            if np.any(sax_indices < 0) or np.any(sax_indices >= self.alphabet_size):
+                raise ValueError(
+                    "SAX symbols must be integer indices between 0 and "
+                    f"{self.alphabet_size - 1}"
+                )
         else:
             alphabet = np.asarray(self.alphabet)
 
