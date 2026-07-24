@@ -1,4 +1,4 @@
-"""Tests for the Symbolic Aggregate approXimation (SAX) transformer."""
+"""Tests for the Symbolic Aggregate approXimation (SAX) transformation."""
 
 import numpy as np
 import pytest
