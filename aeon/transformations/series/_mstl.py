@@ -65,8 +65,6 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
         - "seasonal_sum": sum of all seasonal components, (n,)
         - "seasonals": (n, m) matrix with one column per period (ascending)
         - "all": (n, m+2) matrix with columns [*seasonals, trend, remainder]
-    stl_use_numba : {True, False, None}, default=None
-        Forwarded to STL. None => "auto": use Numba if available, otherwise NumPy.
 
     References
     ----------
@@ -79,6 +77,7 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
         "input_data_type": "Series",
         "output_data_type": "Series",
         "capability:multivariate": False,
+        "capability:missing_values": True,
         "fit_is_empty": True,
         "capability:inverse_transform": False,
         "requires_y": False,
@@ -102,7 +101,6 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
         boxcox_lambda: float | None = None,
         impute_missing: bool = True,
         output: str = "remainder",
-        stl_use_numba: bool | None = None,
     ):
         self.periods = periods
         self.iterate = iterate
@@ -119,7 +117,6 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
         self.boxcox_lambda = boxcox_lambda
         self.impute_missing = impute_missing
         self.output = output
-        self.stl_use_numba = stl_use_numba
 
         self.components_ = {}
         super().__init__(axis=1)
@@ -162,6 +159,12 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
         swin = self._resolve_s_windows(self.s_windows, m)
 
         z = x.astype(float, copy=True)
+        if np.isnan(z).any() and not self._as_bool(self.impute_missing):
+            raise ValueError(
+                "Input contains missing values, but impute_missing=False. "
+                "Set impute_missing=True to interpolate missing values before "
+                "decomposition."
+            )
         # Missing-value interpolation and Box–Cox transform
         if self._as_bool(self.impute_missing) and np.isnan(z).any():
             z = self._na_interp_linear(z)
@@ -196,8 +199,6 @@ class MSTLSeriesTransformer(BaseSeriesTransformer):
                         None if self.outer_iter is None else int(self.outer_iter)
                     ),
                     output="all",
-                    # forward Numba flag without mutating
-                    use_numba=self.stl_use_numba,
                 )
             )
 
