@@ -1305,6 +1305,9 @@ class BaseIntervalForest(ABC):
                 names.append(f"{rep}{key[2]}{dim}")
                 values.append(value)
 
+            if len(names) == 0:
+                return [], []
+
             names, values = zip(*sorted(zip(names, values)))
 
             return list(names), list(values)

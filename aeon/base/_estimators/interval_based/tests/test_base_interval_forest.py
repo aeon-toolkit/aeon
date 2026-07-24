@@ -286,6 +286,29 @@ def test_temporal_importance_curves(base_estimator):
     assert all(np.all(c >= 0) for c in curves)
 
 
+def test_temporal_importance_curves_all_stumps():
+    """Test temporal_importance_curves returns empty results for all-stump forests.
+
+    Regression test for #3677, where a forest made up entirely of
+    ContinuousIntervalTree stumps (no splits) caused temporal_importance_curves to
+    raise a ValueError instead of returning an empty result.
+    """
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, random_state=0)
+
+    est = IntervalForestClassifier(
+        base_estimator=ContinuousIntervalTree(max_depth=0),
+        n_estimators=3,
+        n_intervals=2,
+        random_state=0,
+    )
+    est.fit(X, y)
+
+    names, curves = est.temporal_importance_curves()
+
+    assert names == []
+    assert curves == []
+
+
 def test_interval_forest_invalid_base_estimator():
     """Test BaseIntervalForest raises ValueError for invalid base_estimator."""
     X, y = make_example_3d_numpy()
