@@ -175,15 +175,19 @@ def test_load_daphnet_s06r02e0():
     assert y.shape == (7040,)
 
 
+# TODO: remove in v1.7.0
 @pytest.mark.parametrize(
     "learning_type", ["unsupervised", "semi-supervised", "supervised"]
 )
 def test_load_ecg_diff_count_3(learning_type):
-    """Test load ecg-diff-count-3 dataset."""
+    """Deprecated ecg-diff-count-3 loader warns but still loads until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        loaded = load_ecg_diff_count_3(learning_type)
+
     if learning_type == "unsupervised":
-        X, y = load_ecg_diff_count_3(learning_type)
+        X, y = loaded
     else:
-        X, y, X_train, y_train = load_ecg_diff_count_3(learning_type)
+        X, y, X_train, y_train = loaded
         assert isinstance(X_train, np.ndarray)
         assert X_train.shape == (10000,)
         assert isinstance(y_train, np.ndarray)
