@@ -3,8 +3,21 @@
 import numpy as np
 import pytest
 
-from aeon.transformations.series._mstl import MSTLSeriesTransformer
+from aeon.transformations import series
+from aeon.transformations.series import MSTLSeriesTransformer
 from aeon.transformations.series._stl import STLSeriesTransformer
+
+
+def test_mstl_is_in_public_api():
+    """MSTL is available through the series transformations public API."""
+    assert "MSTLSeriesTransformer" in series.__all__
+
+
+def test_mstl_module_declares_public_export():
+    """The implementation module declares MSTL as its public export."""
+    from aeon.transformations.series import _mstl
+
+    assert _mstl.__all__ == ["MSTLSeriesTransformer"]
 
 
 def _toy_two_season(n=504):
