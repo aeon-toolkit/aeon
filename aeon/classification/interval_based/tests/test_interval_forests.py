@@ -2,6 +2,7 @@
 
 import warnings
 
+import numpy as np
 import pytest
 
 from aeon.classification.interval_based import (
@@ -42,7 +43,7 @@ def test_tic_curves(cls):
     params = cls._get_test_params()
     if isinstance(params, list):
         params = params[0]
-    params.update({"base_estimator": ContinuousIntervalTree()})
+    params.update({"base_estimator": ContinuousIntervalTree(), "random_state": 0})
 
     clf = cls(**params)
     clf.fit(X_train, y_train)
@@ -59,6 +60,43 @@ def test_tic_curves_invalid(cls):
         NotImplementedError, match="No temporal importance curves available."
     ):
         clf.temporal_importance_curves()
+
+
+def test_tic_curves_all_stumps():
+    """Test that an all-stump forest returns empty curves instead of raising.
+
+    A constant input series gives the base estimators no useful split, so
+    every tree in the forest is a stump with no internal nodes. In this case
+    ``temporal_importance_curves`` should return empty results rather than
+    raising a ValueError, and the plotting function should raise a clear
+    error rather than silently plotting nothing.
+    """
+    X_train = np.zeros((10, 1, 20))
+    y_train = np.array([0, 1] * 5)
+
+    clf = CanonicalIntervalForestClassifier(
+        n_estimators=2,
+        n_intervals=2,
+        att_subsample_size=2,
+        base_estimator=ContinuousIntervalTree(),
+        random_state=0,
+    )
+    clf.fit(X_train, y_train)
+
+    names, curves = clf.temporal_importance_curves()
+    assert names == []
+    assert curves == []
+
+    curves_dict = clf.temporal_importance_curves(return_dict=True)
+    assert curves_dict == {}
+
+    if _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"):
+        import matplotlib
+
+        matplotlib.use("Agg")
+
+        with pytest.raises(ValueError, match="no splits"):
+            plot_temporal_importance_curves(curves, names)
 
 
 def test_drcif_warns_once_for_use_pycatch22():
