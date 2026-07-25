@@ -293,14 +293,17 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             validation_split=self.validation_split,
         )
 
-        try:
+        # with save_best_only=True the checkpoint file is not guaranteed to have
+        # been written, fall back to the trained model if it is missing
+        file_path = self.file_path + self.file_name_ + ".keras"
+        if os.path.exists(file_path):
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras",
+                file_path,
                 compile=False,
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".keras")
-        except FileNotFoundError:
+                os.remove(file_path)
+        else:
             self.model_ = deepcopy(self.training_model_)
 
         self._fit_clustering(X=X)

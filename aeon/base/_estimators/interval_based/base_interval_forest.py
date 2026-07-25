@@ -1158,9 +1158,11 @@ class BaseIntervalForest(ABC):
         Returns
         -------
         names : list of str
-            The names of the features.
+            The names of the features. Empty if the fitted forest contains no
+            splits (e.g. every tree is a stump).
         curves : list of np.ndarray
-            The temporal importance curves for each feature.
+            The temporal importance curves for each feature. Empty if the
+            fitted forest contains no splits (e.g. every tree is a stump).
         """
         if is_regressor(self):
             raise NotImplementedError(
@@ -1297,6 +1299,9 @@ class BaseIntervalForest(ABC):
         if return_dict:
             return curves
         else:
+            if not curves:
+                return [], []
+
             names = []
             values = []
             for key, value in curves.items():
