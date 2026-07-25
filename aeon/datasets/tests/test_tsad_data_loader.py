@@ -164,9 +164,11 @@ def test_load_kdd_tsad_135():
     assert y_train.shape == (1200,)
 
 
+# TODO: remove in v1.7.0
 def test_load_daphnet_s06r02e0():
-    """Test load Daphnet S06R02E0 dataset."""
-    X, y = load_daphnet_s06r02e0()
+    """Deprecated Daphnet loader warns on use but still loads until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        X, y = load_daphnet_s06r02e0()
     assert isinstance(X, np.ndarray)
     assert X.shape == (7040, 9)
     assert isinstance(y, np.ndarray)

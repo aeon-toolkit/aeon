@@ -18,6 +18,7 @@ from urllib.request import urlopen
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 import aeon
 from aeon.datasets.tsad_datasets import _load_indexfile, tsad_datasets
@@ -312,15 +313,31 @@ def load_kdd_tsad_135(
     return X, y
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_daphnet_s06r02e0 and the Daphnet_S06R02E0 dataset are deprecated and "
+    "will be removed in v1.7.0. The shipped S06R02E0 excerpt contains no labelled "
+    "freeze-of-gait episodes, so it cannot be used to evaluate an anomaly detector, "
+    "and it is unused elsewhere in aeon. Use load_anomaly_detection to download a "
+    "labelled TimeEval collection instead.",
+    category=FutureWarning,
+)
 def load_daphnet_s06r02e0() -> tuple[np.ndarray, np.ndarray]:
     """Load the Daphnet S06R02E0 multivariate time series dataset.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. The shipped excerpt contains no
+        labelled anomalies; use ``load_anomaly_detection`` to download a labelled
+        TimeEval collection instead.
 
     Returns
     -------
     X : np.ndarray
-        Multivariate time series with shape (28800,9).
+        Multivariate time series with shape (7040,9).
     y : np.ndarray
-        Binary anomaly labels with shape (28800,).
+        Binary anomaly labels with shape (7040,). All labels are 0 in this excerpt,
+        as it contains no freeze-of-gait episodes.
 
     Examples
     --------
