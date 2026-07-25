@@ -269,8 +269,21 @@ def load_arrow_head(split=None, return_type="numpy3d"):
     return _load_saved_dataset(name="ArrowHead", split=split, return_type=return_type)
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_acsf1 and the shipped ACSF1 dataset are deprecated and will be "
+    "removed in v1.7.0. At 3.2 MB it is the largest dataset shipped with aeon and is "
+    "unused elsewhere in the toolkit. The dataset remains available from Zenodo via "
+    'load_classification("ACSF1").',
+    category=FutureWarning,
+)
 def load_acsf1(split=None, return_type="numpy3d"):
     """Load the ACSF1 univariate dataset on power consumption of typical appliances.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. Use
+        ``load_classification("ACSF1")`` to download the dataset from Zenodo instead.
 
     Parameters
     ----------

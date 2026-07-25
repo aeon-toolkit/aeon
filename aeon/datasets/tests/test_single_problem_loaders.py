@@ -29,7 +29,6 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
 )
 
 UNIVARIATE_PROBLEMS = [
-    load_acsf1,
     load_arrow_head,
     load_italy_power_demand,
     load_unit_test,
@@ -140,11 +139,14 @@ def test_deprecated_forecasting_loaders_warn(loader):
 
 
 # TODO: remove in v1.7.0
-def test_deprecated_load_osuleaf_warns():
-    """Deprecated OSULeaf loader warns on use but still loads until removal."""
+@pytest.mark.parametrize(
+    "loader, shape", [(load_osuleaf, (442, 1, 427)), (load_acsf1, (200, 1, 1460))]
+)
+def test_deprecated_classification_loaders_warn(loader, shape):
+    """Deprecated loaders warn on use but still load their data until removal."""
     with pytest.warns(FutureWarning, match="removed in v1.7.0"):
-        X, y = load_osuleaf()
-    assert X.shape == (442, 1, 427)
+        X, y = loader()
+    assert X.shape == shape
     assert len(y) == len(X)
 
 
