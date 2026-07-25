@@ -32,7 +32,6 @@ UNIVARIATE_PROBLEMS = [
     load_acsf1,
     load_arrow_head,
     load_italy_power_demand,
-    load_osuleaf,
     load_unit_test,
 ]
 MULTIVARIATE_PROBLEMS = [
@@ -138,6 +137,15 @@ def test_deprecated_forecasting_loaders_warn(loader):
     with pytest.warns(FutureWarning, match="removed in v1.7.0"):
         y = loader()
     assert isinstance(y, np.ndarray)
+
+
+# TODO: remove in v1.7.0
+def test_deprecated_load_osuleaf_warns():
+    """Deprecated OSULeaf loader warns on use but still loads until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        X, y = load_osuleaf()
+    assert X.shape == (442, 1, 427)
+    assert len(y) == len(X)
 
 
 def test_uschange():

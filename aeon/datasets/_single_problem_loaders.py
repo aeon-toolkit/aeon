@@ -78,8 +78,22 @@ def load_gunpoint(split=None, return_type="numpy3d"):
     return _load_tsc_dataset("GunPoint", split, return_type=return_type)
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_osuleaf and the shipped OSULeaf dataset are deprecated and will be "
+    "removed in v1.7.0. At 2.1 MB it is one of the largest datasets shipped with aeon "
+    "and is unused elsewhere in the toolkit. The dataset remains available from "
+    'Zenodo via load_classification("OSULeaf").',
+    category=FutureWarning,
+)
 def load_osuleaf(split=None, return_type="numpy3d"):
     """Load the OSULeaf univariate time series classification problem.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. Use
+        ``load_classification("OSULeaf")`` to download the dataset from Zenodo
+        instead.
 
     Parameters
     ----------
