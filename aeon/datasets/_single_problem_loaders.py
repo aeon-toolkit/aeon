@@ -27,6 +27,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.datasets import load_from_tsf_file
 from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
@@ -622,8 +623,20 @@ def load_unit_test_tsf(return_type="tsf_default"):
 
 
 # forecasting data sets
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_shampoo_sales and the ShampooSales dataset are deprecated and will "
+    "be removed in v1.7.0. It is unused elsewhere in aeon; use load_airline for a "
+    "monthly univariate forecasting series.",
+    category=FutureWarning,
+)
 def load_shampoo_sales(return_array=True):
     """Load the shampoo sales univariate time series dataset for forecasting.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. Use ``load_airline`` for a monthly
+        univariate forecasting series.
 
     Parameters
     ----------
@@ -672,8 +685,20 @@ def load_shampoo_sales(return_array=True):
     return y
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_lynx and the Lynx dataset are deprecated and will be removed in "
+    "v1.7.0. It is unused elsewhere in aeon; use load_airline for a univariate "
+    "forecasting series.",
+    category=FutureWarning,
+)
 def load_lynx(return_array=True):
     """Load the lynx univariate time series dataset for forecasting.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. Use ``load_airline`` for a
+        univariate forecasting series.
 
     Parameters
     ----------
@@ -829,8 +854,20 @@ def load_solar(return_array=True):
     return y
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_PBS_dataset and the PBS_dataset dataset are deprecated and will be "
+    "removed in v1.7.0. It is unused elsewhere in aeon; use load_airline for a "
+    "monthly univariate forecasting series.",
+    category=FutureWarning,
+)
 def load_PBS_dataset(return_array=True):
     """Load the Pharmaceutical Benefit Scheme univariate time series dataset [1]_.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. Use ``load_airline`` for a monthly
+        univariate forecasting series.
 
     Parameters
     ----------

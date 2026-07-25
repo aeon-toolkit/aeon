@@ -131,6 +131,15 @@ def test_univariate_forecasting_loaders(data):
     assert y.shape == y2.shape
 
 
+# TODO: remove in v1.7.0
+@pytest.mark.parametrize("loader", [load_lynx, load_shampoo_sales, load_PBS_dataset])
+def test_deprecated_forecasting_loaders_warn(loader):
+    """Deprecated loaders warn on use but still load their series until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        y = loader()
+    assert isinstance(y, np.ndarray)
+
+
 def test_uschange():
     """Test if multivariate uschange dataset is loaded correctly."""
     data = load_uschange()
