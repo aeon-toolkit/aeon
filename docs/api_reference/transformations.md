@@ -220,6 +220,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     MatrixProfileTransformer
     LogTransformer
     PLASeriesTransformer
+    STLSeriesTransformer
     MSTLSeriesTransformer
     StatsModelsACF
     StatsModelsPACF
