@@ -3,6 +3,8 @@
 __maintainer__ = []
 __all__ = ["SAX", "_invert_sax_symbols"]
 
+import warnings
+
 import numpy as np
 import scipy.stats
 from numba import get_num_threads, njit, prange, set_num_threads
@@ -47,6 +49,10 @@ class SAX(BaseCollectionTransformer):
         series is normalized before PAA when ``window_size=None``. When
         windowing is enabled, each extracted window is normalized independently
         before PAA, as required by the sliding-window SAX formulation.
+    znormalized : bool, default = "deprecated",
+            Old indetifier for znormalize. If used will set znormalize
+
+            Deprecated and will be removed in v1.6.0. Please use `znormalize` instead.
     window_size : int, default = None,
         The size of the sliding window to use when transforming the time series,
         if this parameter is None then the whole time series is used to
@@ -93,6 +99,7 @@ class SAX(BaseCollectionTransformer):
         distribution: str = "Gaussian",
         distribution_params: dict = None,
         znormalize: bool = True,
+        znormalized="deprecated",
         window_size: int = None,
         stride: int = 1,
         n_jobs: int = 1,
@@ -111,6 +118,14 @@ class SAX(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.distribution_params = distribution_params
         self.znormalize = znormalize
+        if znormalized != "deprecated":
+            warnings.warn(
+                "The `znormalized` parameter is deprecated "
+                "and will be removed in v1.6.0. "
+                "Use `znormalize` instead.",
+                FutureWarning,
+            )
+            self.znormalize = znormalized
 
         self.window_size = window_size
         self.stride = stride
