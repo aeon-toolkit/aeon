@@ -118,6 +118,7 @@ class SAX(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.distribution_params = distribution_params
         self.znormalize = znormalize
+        self.znormalized = znormalized
         if znormalized != "deprecated":
             warnings.warn(
                 "The `znormalized` parameter is deprecated "
