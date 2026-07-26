@@ -3,7 +3,6 @@
 __maintainer__ = []
 __all__ = ["SAX", "_invert_sax_symbols"]
 
-import warnings
 
 import numpy as np
 import scipy.stats
@@ -120,6 +119,8 @@ class SAX(BaseCollectionTransformer):
         self.znormalize = znormalize
         self.znormalized = znormalized
         if znormalized != "deprecated":
+            import warnings
+
             warnings.warn(
                 "The `znormalized` parameter is deprecated "
                 "and will be removed in v1.6.0. "
