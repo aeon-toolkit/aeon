@@ -50,7 +50,7 @@ class SAX(BaseCollectionTransformer):
         windowing is enabled, each extracted window is normalized independently
         before PAA, as required by the sliding-window SAX formulation.
     znormalized : bool, default = "deprecated",
-            Old indetifier for znormalize. If used will set znormalize
+            Old indetifier for znormalize. If used will set znormalize.
 
             Deprecated and will be removed in v1.6.0. Please use `znormalize` instead.
     window_size : int, default = None,
