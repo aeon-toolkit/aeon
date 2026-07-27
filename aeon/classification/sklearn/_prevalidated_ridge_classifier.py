@@ -31,13 +31,26 @@ def _log_loss(c, *args):
 class PrevalidatedRidgeClassifier(BaseClassifier):
     """Prevalidated ridge classifier for tabular data.
 
-    This first version is intentionally a light port of the original standalone
-    implementation. It is only intended for 2D tabular input.
+    Prevalidated Ridge Regression [1]_ is a probabilistic classifier based on
+    efficiently tuned ridge regression. This implementation is intended for 2D
+    tabular input.
 
     Parameters
     ----------
     lambdas : np.ndarray or None, default=None
         Ridge parameters to search over. If None, a simple default grid is used.
+
+    References
+    ----------
+    .. [1] Dempster, A., Webb, G. I., and Schmidt, D. F.,
+       "Prevalidated Ridge Regression is a Highly-Efficient Drop-In Replacement
+       for Logistic Regression for High-Dimensional Data", 2024,
+       https://arxiv.org/abs/2401.15610
+
+    Notes
+    -----
+    Directly adapted from the original implementation
+    https://github.com/angus924/preval with owner permission.
     """
 
     _tags = {
