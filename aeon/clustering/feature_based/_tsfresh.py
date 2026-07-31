@@ -47,6 +47,12 @@ class TSFreshClusterer(BaseClusterer):
     n_clusters : int, default=8
         Number of clusters for KMeans (or other estimators that support n_clusters).
 
+    Attributes
+    ----------
+    estimator_ : sklearn clusterer
+        The fitted sklearn clusterer used to compute cluster labels from the
+        TSFresh-transformed data.
+
     See Also
     --------
     TSFresh
@@ -99,7 +105,7 @@ class TSFreshClusterer(BaseClusterer):
         self.n_clusters = n_clusters
 
         self._transformer = None
-        self._estimator = None
+        self.estimator_ = None
 
         super().__init__()
 
@@ -136,7 +142,7 @@ class TSFreshClusterer(BaseClusterer):
         n_clusters = 8 if self.n_clusters is None else self.n_clusters
 
         if self.estimator is None:
-            self._estimator = _clone_estimator(
+            self.estimator_ = _clone_estimator(
                 KMeans(n_clusters=n_clusters), self.random_state
             )
         else:
@@ -146,16 +152,16 @@ class TSFreshClusterer(BaseClusterer):
             ):
                 self.estimator.n_clusters = self.n_clusters
 
-            self._estimator = _clone_estimator(self.estimator, self.random_state)
+            self.estimator_ = _clone_estimator(self.estimator, self.random_state)
 
         if self.verbose < 2:
             self._transformer.show_warnings = False
             if self.verbose < 1:
                 self._transformer.disable_progressbar = True
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
@@ -165,9 +171,9 @@ class TSFreshClusterer(BaseClusterer):
                 "include more features or disable the relevant feature extractor."
             )
         else:
-            self._estimator.fit(X_t, y)
+            self.estimator_.fit(X_t, y)
 
-        self.labels_ = self._estimator.labels_
+        self.labels_ = self.estimator_.labels_
         return self
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -185,7 +191,7 @@ class TSFreshClusterer(BaseClusterer):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -204,9 +210,9 @@ class TSFreshClusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
             return super()._predict_proba(X)
 
