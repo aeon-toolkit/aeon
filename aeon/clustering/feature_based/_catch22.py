@@ -79,6 +79,12 @@ class Catch22Clusterer(BaseClusterer):
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
+    Attributes
+    ----------
+    estimator_ : sklearn clusterer
+        The fitted sklearn clusterer used to compute cluster labels from the
+        Catch22-transformed data.
+
     See Also
     --------
     Catch22
@@ -169,18 +175,18 @@ class Catch22Clusterer(BaseClusterer):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (KMeans() if self.estimator is None else self.estimator),
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
-        self.labels_ = self._estimator.labels_
+        self.estimator_.fit(X_t, y)
+        self.labels_ = self.estimator_.labels_
 
         return self
 
@@ -197,7 +203,7 @@ class Catch22Clusterer(BaseClusterer):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -214,9 +220,9 @@ class Catch22Clusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
             return super()._predict_proba(X)
 
