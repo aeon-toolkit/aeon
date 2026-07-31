@@ -8,6 +8,9 @@ from sklearn.preprocessing import FunctionTransformer
 
 from aeon.base._estimators.hybrid import BaseRIST
 from aeon.classification import BaseClassifier
+from aeon.transformations.collection.feature_based._catch22 import (
+    _warn_use_pycatch22_deprecated,
+)
 from aeon.utils.numba.general import first_order_differences_3d
 
 
@@ -24,7 +27,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     Parameters
     ----------
     n_intervals : int, callable or None, default=None,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted for the interval portion of the pipeline. Input should be an int or
         a function that takes a 3D np.ndarray input and returns an int. Functions may
         extract a different number of intervals per `series_transformer` output.
@@ -45,10 +48,14 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         ExtraTreesClassifier with 200 trees.
@@ -66,7 +73,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     n_classes_ : int
@@ -99,19 +106,22 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         n_intervals=None,
         n_shapelets=None,
         series_transformers="default",
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         estimator=None,
         n_jobs=1,
         random_state=None,
     ):
         d = ["statsmodels"]
         self.use_pycatch22 = use_pycatch22
-        if use_pycatch22:
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated(self)
+        if use_pycatch22 is True:
             d.append("pycatch22")
 
         super().__init__(
