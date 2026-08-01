@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from aeon.distances import euclidean_distance, pairwise_distance
 from aeon.similarity_search.whole_series._simhash_index_ann import (
     SimHashIndexANN,
     _collection_to_signature,
@@ -553,3 +554,312 @@ def test_predict_wrong_query_length_raises():
     )[0]
     with pytest.raises(ValueError, match="timepoints"):
         rp.predict(bad_query)
+
+
+# =============================================================================
+# Tests for the optional re-ranking distance
+# =============================================================================
+
+
+def test_rerank_distance_defaults_to_none():
+    """The re-ranking distance is opt-in: unset means collision-count ranking."""
+    assert SimHashIndexANN().rerank_distance is None
+
+
+def test_predict_rerank_none_keeps_the_collision_count_ranking():
+    """Leaving rerank_distance unset changes nothing about predict.
+
+    An instance built without the parameter and one built with an explicit
+    ``rerank_distance=None`` must agree, and both must still return the proxy
+    distances ``1 / collision_count`` rather than true distances.
+    """
+    X = make_example_3d_numpy(n_cases=40, n_channels=2, n_timepoints=40, return_y=False)
+    common = dict(n_tables=10, n_bits_per_table=4, random_state=0)
+    default = SimHashIndexANN(**common).fit(X)
+    explicit = SimHashIndexANN(**common, rerank_distance=None).fit(X)
+
+    for query_index in (0, 5, 20):
+        idx_default, dist_default = default.predict(X[query_index], k=5)
+        idx_explicit, dist_explicit = explicit.predict(X[query_index], k=5)
+        np.testing.assert_array_equal(idx_default, idx_explicit)
+        np.testing.assert_allclose(dist_default, dist_explicit)
+        # still the reciprocal of an integer collision count in [1, n_tables]
+        inv = 1.0 / dist_default
+        np.testing.assert_allclose(inv, np.round(inv))
+        assert np.all(inv >= 1) and np.all(inv <= 10)
+
+
+def test_predict_rerank_string_distance_returns_true_distances():
+    """A string rerank_distance returns real distances to the query, ascending."""
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(
+        n_tables=10, n_bits_per_table=4, rerank_distance="dtw", random_state=0
+    ).fit(X)
+
+    idx, dist = rp.predict(X[0], k=5)
+    # Reference built from an independently normalized collection, not from rp.X_:
+    # comparing against the estimator's own stored array would pass whatever
+    # scaling it happened to keep.
+    expected = pairwise_distance(
+        z_normalise_series_3d(X)[idx],
+        z_normalise_series_2d(X[0])[np.newaxis],
+        method="dtw",
+    ).reshape(-1)
+    np.testing.assert_allclose(dist, expected)
+    assert np.all(np.diff(dist) >= 0)
+
+
+def test_predict_rerank_callable_distance():
+    """A callable rerank_distance is accepted at fit and used by predict."""
+    X = make_example_3d_numpy(n_cases=30, n_channels=1, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(
+        n_tables=10,
+        n_bits_per_table=4,
+        rerank_distance=euclidean_distance,
+        random_state=0,
+    ).fit(X)
+
+    idx, dist = rp.predict(X[0], k=3)
+    expected = pairwise_distance(
+        z_normalise_series_3d(X)[idx],
+        z_normalise_series_2d(X[0])[np.newaxis],
+        method=euclidean_distance,
+    ).reshape(-1)
+    np.testing.assert_allclose(dist, expected)
+
+
+def test_predict_rerank_self_match_is_at_distance_zero():
+    """Re-ranking scores the self-match of a query taken from the collection at 0."""
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(
+        n_tables=10, n_bits_per_table=4, rerank_distance="euclidean", random_state=0
+    ).fit(X)
+
+    idx, dist = rp.predict(X[3], k=1)
+    assert idx[0] == 3
+    np.testing.assert_allclose(dist[0], 0.0, atol=1e-8)
+
+
+def test_fit_unknown_rerank_distance_raises_before_building_the_index():
+    """A typo'd rerank_distance fails at fit, not at the first predict.
+
+    Building the index is the expensive half of this estimator, so the failure
+    must come before any table is built.
+    """
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(n_tables=4, n_bits_per_table=4, rerank_distance="dwt")
+    with pytest.raises(ValueError, match="Invalid rerank_distance 'dwt'"):
+        rp.fit(X)
+    assert not hasattr(rp, "tables_")
+
+
+def test_fit_always_stores_the_raw_collection():
+    """``X_`` holds what was fitted, whatever the ranking and normalization.
+
+    Re-ranking needs the candidates on the query's scale, but it normalizes them
+    when it scores them rather than normalizing what is stored. Making ``X_``
+    depend on ``rerank_distance`` would mean the correctness of a re-ranked
+    distance rested on a parameter that can be changed after fit.
+    """
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=40, return_y=False)
+    X = 5.0 * X + 10.0  # far from zero mean, so normalizing is not a near no-op
+    common = dict(n_tables=4, n_bits_per_table=4, random_state=0)
+
+    for kwargs in (
+        dict(rerank_distance="euclidean", normalize=True),
+        dict(rerank_distance="euclidean", normalize=False),
+        dict(normalize=True),
+        dict(normalize=False),
+    ):
+        est = SimHashIndexANN(**common, **kwargs).fit(X)
+        np.testing.assert_allclose(est.X_, X, err_msg=f"X_ altered by {kwargs}")
+
+
+def test_predict_rerank_is_correct_when_set_after_fit():
+    """Re-ranking turned on after fit still scores on the query's scale.
+
+    A regression test for making the scale of the scored collection depend on
+    ``rerank_distance`` at fit time: an estimator fitted without re-ranking and
+    switched to it afterwards would then silently compare a normalized query
+    against a raw collection, self-matching at a large distance instead of zero.
+    """
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    X = 5.0 * X + 10.0
+    est = SimHashIndexANN(
+        n_tables=10, n_bits_per_table=4, random_state=0, normalize=True
+    ).fit(X)
+
+    est.set_params(rerank_distance="euclidean")
+    idx, dist = est.predict(X[3], k=3)
+    assert idx[0] == 3
+    np.testing.assert_allclose(dist[0], 0.0, atol=1e-8)
+
+
+def test_predict_rerank_scores_query_and_collection_on_the_same_scale():
+    """A re-ranked distance is computed on the normalization the query got.
+
+    The query is z-normalized before it is scored, so the fitted collection must
+    be as well. Scoring a normalized query against the raw collection is a
+    different, wrong number: the raw reference is asserted to differ, so this
+    test genuinely discriminates between the two.
+    """
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    # Push the collection well away from zero mean and unit variance so that
+    # z-normalizing it is not a near no-op.
+    X = 5.0 * X + 10.0
+    rp = SimHashIndexANN(
+        n_tables=10,
+        n_bits_per_table=4,
+        rerank_distance="euclidean",
+        random_state=0,
+        normalize=True,
+    ).fit(X)
+
+    idx, dist = rp.predict(X[0], k=3)
+    query = z_normalise_series_2d(X[0])
+    normalized_reference = pairwise_distance(
+        z_normalise_series_3d(X)[idx], query[np.newaxis], method="euclidean"
+    ).reshape(-1)
+    raw_reference = pairwise_distance(
+        X[idx], query[np.newaxis], method="euclidean"
+    ).reshape(-1)
+
+    np.testing.assert_allclose(dist, normalized_reference)
+    assert not np.allclose(dist, raw_reference)
+
+
+@pytest.mark.parametrize(
+    "n_cases,n_tables,n_bits",
+    [
+        # loose buckets: many hits per query -> dense bincount tally branch
+        (40, 10, 5),
+        # selective buckets over more cases: few hits -> sparse unique tally branch
+        (200, 10, 16),
+    ],
+)
+def test_predict_rerank_ranking_matches_dense_reference(n_cases, n_tables, n_bits):
+    """The re-ranked order equals an explicit dense reference.
+
+    The reference tallies collisions with a dense bincount, scores every
+    candidate with ``pairwise_distance`` and sorts by distance ascending with an
+    ascending-index tie-break. Both tally branches of ``_gather_candidates`` and
+    both normalize settings are covered.
+    """
+
+    def _reference_rank(rp, query, k):
+        q = z_normalise_series_2d(query) if rp.normalize else query
+        signature = _series_to_signature(q, rp.hash_funcs_flat_)
+        keys = _signatures_to_keys(
+            signature[None, :], rp.n_tables, rp.n_bits_per_table
+        )[0]
+        hit_arrays = []
+        for t in range(rp.n_tables):
+            bucket = rp.tables_[t].get(int(keys[t]))
+            if bucket is not None:
+                hit_arrays.append(bucket)
+        if not hit_arrays:
+            return np.zeros(0, dtype=int), np.zeros(0, dtype=float)
+        counts = np.bincount(np.concatenate(hit_arrays), minlength=rp.n_cases_)
+        cand = np.nonzero(counts)[0]
+        neighbors = z_normalise_series_3d(rp.X_[cand]) if rp.normalize else rp.X_[cand]
+        dists = pairwise_distance(
+            neighbors, q[np.newaxis], method=rp.rerank_distance
+        ).reshape(-1)
+        order = np.lexsort((cand, dists))
+        return cand[order][:k], dists[order][:k]
+
+    for seed in range(3):
+        X = make_example_3d_numpy(
+            n_cases=n_cases,
+            n_channels=2,
+            n_timepoints=30,
+            return_y=False,
+        )
+        for normalize in (True, False):
+            rp = SimHashIndexANN(
+                n_tables=n_tables,
+                n_bits_per_table=n_bits,
+                rerank_distance="euclidean",
+                random_state=seed,
+                normalize=normalize,
+            ).fit(X)
+            for qi in (0, 5, 20):
+                for k in (1, 3, 5):
+                    got_idx, got_dist = rp.predict(X[qi], k=k)
+                    exp_idx, exp_dist = _reference_rank(rp, X[qi], k)
+                    np.testing.assert_array_equal(got_idx, exp_idx)
+                    np.testing.assert_allclose(got_dist, exp_dist)
+
+
+def test_predict_rerank_empty_candidates_warns():
+    """An empty candidate set warns and returns nothing on the re-ranking path."""
+    X = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(
+        n_tables=5, n_bits_per_table=8, rerank_distance="euclidean", random_state=0
+    ).fit(X)
+    for table in rp.tables_:
+        table.clear()
+
+    with pytest.warns(UserWarning, match="No candidates"):
+        idx, dist = rp.predict(X[0], k=3)
+    assert len(idx) == 0
+    assert len(dist) == 0
+
+
+def test_predict_rerank_breaks_distance_ties_by_ascending_index():
+    """Equal distances are ordered by ascending index, not by candidate order.
+
+    The dense reference above sorts exactly as the implementation does, and random
+    data never ties, so neither pins the tie-break. Duplicated series force real
+    ties: ``np.argsort`` alone would be free to return them in any order.
+    """
+    base = make_example_3d_numpy(
+        n_cases=5, n_channels=1, n_timepoints=40, return_y=False
+    )
+    # Every series appears four times, so each distance has a four-way tie.
+    X = np.concatenate([base, base, base, base], axis=0)
+    rp = SimHashIndexANN(
+        n_tables=10, n_bits_per_table=2, rerank_distance="euclidean", random_state=0
+    ).fit(X)
+
+    idx, dist = rp.predict(X[7], k=4)
+    # The four copies of series 7 (indices 2, 7, 12, 17) are all at distance 0.
+    np.testing.assert_allclose(dist, 0.0, atol=1e-8)
+    np.testing.assert_array_equal(idx, [2, 7, 12, 17])
+
+
+def test_predict_rerank_too_few_candidates_warns():
+    """The re-ranking path warns when fewer than k candidates collided."""
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(
+        n_tables=2, n_bits_per_table=20, rerank_distance="euclidean", random_state=0
+    ).fit(X)
+    # Only the query itself is left in the tables, so k=3 cannot be satisfied.
+    for table in rp.tables_:
+        for key, bucket in list(table.items()):
+            table[key] = bucket[:1]
+
+    with pytest.warns(UserWarning, match="fewer than the requested"):
+        idx, _ = rp.predict(X[0], k=3)
+    assert len(idx) < 3
+
+
+def test_fit_unhashable_rerank_distance_raises_a_named_error():
+    """An unhashable rerank_distance names the parameter it came from.
+
+    The name lookup raises TypeError rather than ValueError for these, which would
+    otherwise surface as a bare "unhashable type" with no mention of the parameter.
+    """
+    X = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=40, return_y=False)
+    rp = SimHashIndexANN(n_tables=4, n_bits_per_table=4, rerank_distance=["dtw"])
+    with pytest.raises(ValueError, match="Invalid rerank_distance"):
+        rp.fit(X)
+    assert not hasattr(rp, "tables_")
+
+
+def test_get_test_params_covers_both_ranking_modes():
+    """The check harness must exercise the collision and the re-ranking paths."""
+    params = SimHashIndexANN._get_test_params()
+    assert isinstance(params, list) and len(params) == 2
+    assert "rerank_distance" not in params[0]
+    assert params[1]["rerank_distance"] == "dtw"

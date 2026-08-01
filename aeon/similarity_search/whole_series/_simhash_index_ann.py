@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 from threadpoolctl import threadpool_limits
 
+from aeon.distances import get_distance_function, pairwise_distance
 from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
 from aeon.similarity_search.whole_series._commons import (
     _build_hash_tables,
@@ -126,20 +127,27 @@ class SimHashIndexANN(BaseWholeSeriesSearch):
       is a candidate if it shares the query's bucket in *any* table).
 
     A query probes its bucket in each of the ``L`` tables and gathers the candidates
-    that share at least one of those buckets. Candidates are ranked by their
-    **collision count** -- the number of tables in which they land in the query's
-    bucket -- and the top ``k`` are returned. The collision count is a cheap proxy for
-    angular similarity (a closer series agrees on more bits, so it collides in more
-    tables); the returned distance is its reciprocal ``1 / collision_count``, which is
-    monotone in that proxy (smaller means more collisions, i.e. closer). Probing a
-    handful of buckets instead of scanning the whole collection, with no exact distance
-    computation, is what makes the query sublinear.
+    that share at least one of those buckets. ``rerank_distance`` decides how those
+    candidates are then ranked:
+
+    - ``None``, the default, ranks them by their **collision count** -- the number of
+      tables in which they land in the query's bucket. That count is a cheap proxy for
+      angular similarity (a closer series agrees on more bits, so it collides in more
+      tables), and the returned distance is its reciprocal ``1 / collision_count``,
+      which is monotone in that proxy (smaller means more collisions, i.e. closer).
+      Probing a handful of buckets instead of scanning the whole collection, with no
+      exact distance computation, is what makes the query sublinear.
+    - a distance re-scores the candidates -- and only the candidates -- with it and
+      ranks them by that, returning true distances. This is what :class:`SSHIndexANN`
+      does unconditionally; it costs one distance computation per candidate and buys
+      an exact ordering of a set the collision count can only rank coarsely.
 
     Note that this method provides **approximate** results: a true neighbor is missed
-    only if it never shares a bucket with the query in any table, and ties in the
-    collision count are broken arbitrarily (by index). Larger ``n_tables`` raises recall
-    (and candidate-set size); larger ``n_bits_per_table`` makes buckets more selective
-    (smaller candidate sets, faster queries, lower recall).
+    only if it never shares a bucket with the query in any table. Ties in the collision
+    count are broken arbitrarily (by index) unless ``rerank_distance`` resolves them.
+    Larger ``n_tables`` raises recall (and candidate-set size); larger
+    ``n_bits_per_table`` makes buckets more selective (smaller candidate sets, faster
+    queries, lower recall).
 
     Parameters
     ----------
@@ -150,6 +158,17 @@ class SimHashIndexANN(BaseWholeSeriesSearch):
         Number of bits ``k`` concatenated into each table key (AND-amplification).
         More bits make buckets more selective: smaller candidate sets and faster
         queries, but lower recall.
+    rerank_distance : str or callable, default=None
+        Distance used to re-rank the candidate set. ``None`` keeps the collision-count
+        ranking and its ``1 / collision_count`` proxy distances; set it to score the
+        candidates with a real distance instead and return true distances. A list of
+        valid strings can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`; the name is resolved at fit
+        time, so a typo fails before the index is built. There is no
+        ``distance_params`` argument: to use non-default parameters, pass a callable
+        such as ``partial(dtw_distance, window=0.1)``. The handful of distances whose
+        parameters are *required* (``"sax"``, ``"sfa"``, ``"paa_sax"``, ``"dft_sfa"``)
+        therefore cannot be given by name, and must be passed configured.
     hash_func_distribution : {"gaussian", "discrete", "uniform"}, default="gaussian"
         Distribution used to draw the random projection vectors. ``"gaussian"`` draws
         from a standard normal, the only choice for which the bit-collision
@@ -162,12 +181,18 @@ class SimHashIndexANN(BaseWholeSeriesSearch):
         Whether to z-normalize series before hashing. Recommended for scale-independent
         matching: the sign random projections then capture angular (cosine) similarity.
     n_jobs : int, default=1
-        Number of parallel threads used to hash the collection at fit time.
+        Number of parallel threads used to hash the collection at fit time and, when
+        ``rerank_distance`` is set, for the re-ranking distance computation.
 
     Attributes
     ----------
     X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
-        The fitted collection of time series (as stored by the base class).
+        The fitted collection of time series (as stored by the base class), raw
+        whatever ``normalize`` and ``rerank_distance`` are set to. Re-ranking
+        normalizes the candidates it scores rather than the stored collection, so
+        this attribute always gives back what was fitted. Note that
+        :class:`SSHIndexANN` differs here: it always re-ranks, so it stores the
+        normalized collection once instead of normalizing per query.
     tables_ : list of dict
         The ``n_tables`` hash tables, each mapping a ``k``-bit bucket key (the
         ``k`` table bits packed into an integer in ``[0, 2 ** k)``) to an int array
@@ -201,6 +226,11 @@ n_channels * n_timepoints)
 
     Unlike :class:`NaiveSeriesSearch`, this estimator does **not** accept
     ``dist_threshold`` or ``X_index``; passing them raises a ``TypeError``.
+
+    ``rerank_distance`` trades query time for ranking quality: the default ranking
+    reads no series data at all, while re-ranking scores every candidate. Candidate
+    sets grow with ``n_tables`` and shrink with ``n_bits_per_table``, so those two
+    parameters set the cost of re-ranking just as much as they set recall.
 
     See Also
     --------
@@ -239,6 +269,7 @@ n_channels * n_timepoints)
         self,
         n_tables=20,
         n_bits_per_table=8,
+        rerank_distance=None,
         hash_func_distribution="gaussian",
         random_state=None,
         normalize=True,
@@ -246,6 +277,7 @@ n_channels * n_timepoints)
     ):
         self.n_tables = n_tables
         self.n_bits_per_table = n_bits_per_table
+        self.rerank_distance = rerank_distance
         self.hash_func_distribution = hash_func_distribution
         self.random_state = random_state
         self.normalize = normalize
@@ -282,6 +314,20 @@ n_channels * n_timepoints)
                 "n_bits_per_table must be between 1 and 64 (a table key packs its "
                 f"k bits into a 64-bit integer), got {self.n_bits_per_table}."
             )
+        # Resolve ``rerank_distance`` here rather than at the first predict: building
+        # the index is the expensive half of this estimator, and a typo that only
+        # surfaces once it is paid for wastes exactly what the index is meant to
+        # amortise. A callable is returned unchanged.
+        if self.rerank_distance is not None:
+            # TypeError as well as ValueError: an unhashable argument (a list, say)
+            # fails the name lookup with a TypeError that never mentions which
+            # parameter was at fault.
+            try:
+                get_distance_function(self.rerank_distance)
+            except (ValueError, TypeError) as error:
+                raise ValueError(
+                    f"Invalid rerank_distance {self.rerank_distance!r}: {error}"
+                ) from error
         # Hash in the caller's floating precision (float64 by default). Converting
         # the input to float32 therefore speeds up hashing at no cost to the
         # sign-only signatures; see the similarity search example notebook.
@@ -358,12 +404,15 @@ n_channels * n_timepoints)
         Returns
         -------
         indexes : np.ndarray of shape (n_found,)
-            Indices of the neighbor series in the database, ordered by decreasing
-            collision count (most likely neighbor first). ``n_found`` may be smaller
-            than ``k`` if too few candidates collide with the query.
+            Indices of the neighbor series in the database, most likely neighbor
+            first: by decreasing collision count when ``rerank_distance`` is None, by
+            increasing ``rerank_distance`` otherwise. ``n_found`` may be smaller than
+            ``k`` if too few candidates collide with the query.
         distances : np.ndarray of shape (n_found,)
-            Proxy distances ``1 / collision_count`` for the returned neighbors;
-            smaller means the neighbor collided in more tables.
+            With ``rerank_distance=None``, the proxy distances
+            ``1 / collision_count``, smaller meaning the neighbor collided in more
+            tables. Otherwise, the true distances of the returned neighbors to the
+            query under ``rerank_distance``.
         """
         if inverse_distance:
             raise NotImplementedError(
@@ -387,7 +436,11 @@ n_channels * n_timepoints)
             k = self.n_cases_
 
         candidates, collisions = self._gather_candidates(X)
-        return self._rank_candidates(candidates, collisions, k)
+        if self.rerank_distance is None:
+            return self._rank_candidates(candidates, collisions, k)
+        # The collision count only selected the candidates here; the ranking comes
+        # from the distance instead.
+        return self._rerank_candidates(X, candidates, k)
 
     def _gather_candidates(self, X):
         """
@@ -461,11 +514,84 @@ n_channels * n_timepoints)
             )
         return candidates[order], 1.0 / collisions[order]
 
+    def _rerank_candidates(self, X, candidates, k):
+        """
+        Score the candidate set with ``rerank_distance`` and keep the top k.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape (n_channels, n_timepoints)
+            Query series (already normalized if ``normalize`` is True).
+        candidates : np.ndarray of shape (n_candidates,)
+            Distinct candidate case indices (sorted ascending), as returned by
+            ``_gather_candidates``.
+        k : int
+            Number of neighbors to return.
+
+        Returns
+        -------
+        indexes : np.ndarray of shape (n_found,)
+            Top-k candidate indices ordered by increasing distance (ties broken by
+            ascending index for determinism).
+        distances : np.ndarray of shape (n_found,)
+            The true distances under ``rerank_distance``, aligned with ``indexes``.
+        """
+        if len(candidates) == 0:
+            warnings.warn(
+                "No candidates collided with the query in any table; returning no "
+                "neighbors. Increase n_tables or decrease n_bits_per_table.",
+                UserWarning,
+                stacklevel=3,
+            )
+            return np.zeros(0, dtype=int), np.zeros(0, dtype=float)
+
+        # ``_predict`` z-normalized the query, so the candidates have to be scored on
+        # that same scale or the distances are meaningless. Normalizing them here
+        # rather than storing a normalized collection at fit time keeps ``X_`` raw --
+        # its documented content, and unchanged for the default ranking -- and keeps
+        # this correct however ``rerank_distance`` was set. z-normalization is
+        # per-series, so normalizing the candidate rows equals normalizing the whole
+        # collection and then selecting them. The cost is linear in the length of the
+        # candidates that are about to be scored by a distance quadratic in it.
+        neighbors = self.X_[candidates]
+        if self.normalize:
+            neighbors = z_normalise_series_3d(neighbors)
+
+        # Score the candidates only: this is what keeps the query sublinear while
+        # still returning true distances.
+        distances = pairwise_distance(
+            neighbors,
+            X[np.newaxis],
+            method=self.rerank_distance,
+            n_jobs=self._n_jobs,
+        ).reshape(-1)
+        # primary key: distance ascending; tie-break: index ascending.
+        order = np.lexsort((candidates, distances))
+        n_found = min(k, len(candidates))
+        order = order[:n_found]
+
+        if n_found < k:
+            warnings.warn(
+                f"Only {n_found} candidates collided with the query, fewer than the "
+                f"requested k={k}. Increase n_tables or decrease n_bits_per_table.",
+                UserWarning,
+                stacklevel=3,
+            )
+        return candidates[order], distances[order]
+
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
-        """Return testing parameter settings for the estimator."""
+        """
+        Return testing parameter settings for the estimator.
+
+        Two settings are returned so that aeon's check harness covers both
+        rankings: the default collision count and a re-ranking distance.
+        """
         if parameter_set == "default":
-            return {"n_tables": 4, "n_bits_per_table": 4}
+            return [
+                {"n_tables": 4, "n_bits_per_table": 4},
+                {"n_tables": 4, "n_bits_per_table": 4, "rerank_distance": "dtw"},
+            ]
         raise NotImplementedError(
             f"The parameter set {parameter_set} is not yet implemented"
         )
