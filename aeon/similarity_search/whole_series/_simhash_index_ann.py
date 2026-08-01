@@ -356,7 +356,8 @@ n_channels * n_timepoints)
         )
 
         if self._normalize:
-            self.X_ = z_normalise_series_3d(X)
+            X = z_normalise_series_3d(X)
+            self.X_ = X
 
         self._initialize_hash_functions()
         # Hashing the collection is a single BLAS matrix product; cap its thread
