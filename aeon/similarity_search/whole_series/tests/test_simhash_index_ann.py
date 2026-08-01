@@ -1,5 +1,7 @@
 """Tests for SimHashIndexANN (multi-table LSH)."""
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -655,26 +657,104 @@ def test_fit_unknown_rerank_distance_raises_before_building_the_index():
     assert not hasattr(rp, "tables_")
 
 
-def test_fit_always_stores_the_raw_collection():
-    """``X_`` holds what was fitted, whatever the ranking and normalization.
+def test_fit_stores_the_collection_on_the_searched_scale():
+    """``X_`` holds the collection on the scale queries are compared on.
 
-    Re-ranking needs the candidates on the query's scale, but it normalizes them
-    when it scores them rather than normalizing what is stored. Making ``X_``
-    depend on ``rerank_distance`` would mean the correctness of a re-ranked
-    distance rested on a parameter that can be changed after fit.
+    ``normalize`` alone decides that scale, never ``rerank_distance``: re-ranking
+    scores candidates by indexing straight into ``X_``, so if storage depended on
+    ``rerank_distance`` then enabling it after fit would score a normalized query
+    against a raw collection.
     """
     X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=40, return_y=False)
     X = 5.0 * X + 10.0  # far from zero mean, so normalizing is not a near no-op
     common = dict(n_tables=4, n_bits_per_table=4, random_state=0)
+    normalized = z_normalise_series_3d(X)
 
     for kwargs in (
         dict(rerank_distance="euclidean", normalize=True),
-        dict(rerank_distance="euclidean", normalize=False),
         dict(normalize=True),
+    ):
+        est = SimHashIndexANN(**common, **kwargs).fit(X)
+        np.testing.assert_allclose(
+            est.X_, normalized, err_msg=f"X_ not normalized for {kwargs}"
+        )
+
+    for kwargs in (
+        dict(rerank_distance="euclidean", normalize=False),
         dict(normalize=False),
     ):
         est = SimHashIndexANN(**common, **kwargs).fit(X)
         np.testing.assert_allclose(est.X_, X, err_msg=f"X_ altered by {kwargs}")
+
+
+def test_fit_failure_stores_nothing():
+    """A parameter error raises before ``fit`` attaches the collection.
+
+    Validation runs from ``_validate_fit_params``, i.e. before the base ``fit``
+    stores ``X_``, so a rejected estimator does not keep the whole collection
+    referenced.
+    """
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=40, return_y=False)
+    for kwargs, match in (
+        (dict(rerank_distance="dwt"), "Invalid rerank_distance 'dwt'"),
+        (dict(n_tables=0), "n_tables must be a positive integer"),
+        (dict(n_bits_per_table=65), "n_bits_per_table must be between 1 and 64"),
+        (dict(hash_func_distribution="nope"), "hash_func_distribution must be one of"),
+    ):
+        est = SimHashIndexANN(**kwargs)
+        with pytest.raises((ValueError, TypeError), match=match):
+            est.fit(X)
+        assert not hasattr(est, "X_"), f"X_ left behind by {kwargs}"
+        assert not hasattr(est, "tables_")
+
+
+def test_predict_normalize_is_frozen_at_fit():
+    """Setting ``normalize`` on a fitted estimator does not change predictions.
+
+    The scale of ``X_`` is fixed at fit, so honouring a later change of the flag
+    would z-normalize the query against a collection that is no longer on that
+    scale. The flag is read once, into ``_normalize``, and predictions are
+    unaffected until the estimator is refitted.
+    """
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    X = 5.0 * X + 10.0
+    est = SimHashIndexANN(
+        n_tables=10,
+        n_bits_per_table=4,
+        rerank_distance="euclidean",
+        random_state=0,
+        normalize=True,
+    ).fit(X)
+
+    before_idx, before_dist = est.predict(X[3], k=3)
+    est.set_params(normalize=False)
+    after_idx, after_dist = est.predict(X[3], k=3)
+
+    np.testing.assert_array_equal(before_idx, after_idx)
+    np.testing.assert_allclose(before_dist, after_dist)
+    # The self-match stays at distance zero rather than picking up the scale of
+    # the un-normalized query.
+    assert after_idx[0] == 3
+    np.testing.assert_allclose(after_dist[0], 0.0, atol=1e-8)
+
+
+def test_predict_k_inf_returns_every_candidate_without_warning():
+    """``k=np.inf`` is the documented "return all matches" sentinel, not a mistake.
+
+    It must not trigger the "k is larger than the number of indexed cases"
+    warning, which is meant for an oversized integer ``k``.
+    """
+    X = make_example_3d_numpy(n_cases=30, n_channels=2, n_timepoints=40, return_y=False)
+    est = SimHashIndexANN(n_tables=10, n_bits_per_table=4, random_state=0).fit(X)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        idx, dist = est.predict(X[0], k=np.inf)
+    assert not any(
+        "larger than the number of indexed cases" in str(w.message) for w in caught
+    )
+    assert len(idx) == len(dist)
+    assert len(idx) <= est.n_cases_
 
 
 def test_predict_rerank_is_correct_when_set_after_fit():
@@ -764,9 +844,10 @@ def test_predict_rerank_ranking_matches_dense_reference(n_cases, n_tables, n_bit
             return np.zeros(0, dtype=int), np.zeros(0, dtype=float)
         counts = np.bincount(np.concatenate(hit_arrays), minlength=rp.n_cases_)
         cand = np.nonzero(counts)[0]
-        neighbors = z_normalise_series_3d(rp.X_[cand]) if rp.normalize else rp.X_[cand]
+        # ``X_`` is already on the query's scale, so the candidates are scored
+        # straight out of it, exactly as ``_rerank_candidates`` does.
         dists = pairwise_distance(
-            neighbors, q[np.newaxis], method=rp.rerank_distance
+            rp.X_[cand], q[np.newaxis], method=rp.rerank_distance
         ).reshape(-1)
         order = np.lexsort((cand, dists))
         return cand[order][:k], dists[order][:k]

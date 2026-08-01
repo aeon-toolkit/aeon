@@ -180,6 +180,8 @@ class SimHashIndexANN(BaseWholeSeriesSearch):
     normalize : bool, default=True
         Whether to z-normalize series before hashing. Recommended for scale-independent
         matching: the sign random projections then capture angular (cosine) similarity.
+        Read at fit time: ``X_`` is stored on the scale it selects, so setting it on a
+        fitted estimator has no effect until that estimator is refitted.
     n_jobs : int, default=1
         Number of parallel threads used to hash the collection at fit time and, when
         ``rerank_distance`` is set, for the re-ranking distance computation.
@@ -187,12 +189,12 @@ class SimHashIndexANN(BaseWholeSeriesSearch):
     Attributes
     ----------
     X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
-        The fitted collection of time series (as stored by the base class), raw
-        whatever ``normalize`` and ``rerank_distance`` are set to. Re-ranking
-        normalizes the candidates it scores rather than the stored collection, so
-        this attribute always gives back what was fitted. Note that
-        :class:`SSHIndexANN` differs here: it always re-ranks, so it stores the
-        normalized collection once instead of normalizing per query.
+        The collection the index searches: the z-normalized collection when
+        ``normalize=True``, the raw fitted one otherwise. Storing it on the scale
+        queries are compared on is what lets ``rerank_distance`` score candidates by
+        indexing straight into it, with no per-query normalization, and what lets it
+        be set on an already fitted estimator and still score on the query's scale.
+        The default collision-count ranking never reads this attribute at all.
     tables_ : HashTables
         The ``n_tables`` hash tables, holding the case indices of every bucket in
         a flat compressed layout. A bucket key is the ``k`` table bits packed
@@ -285,21 +287,15 @@ n_channels * n_timepoints)
         self.n_jobs = n_jobs
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _validate_fit_params(self):
         """
-        Build the multi-table LSH index from X.
+        Validate the parameters before the collection is stored and hashed.
 
-        Parameters
-        ----------
-        X : np.ndarray shape (n_cases, n_channels, n_timepoints)
-            Input data to index and search against the query given to predict.
-        y : ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        self : a fitted instance of the estimator
+        Everything checked here is independent of the fitted data, but running it
+        from this hook rather than from ``_fit`` means a bad parameter raises
+        before ``fit`` stores ``X_``, so a failed fit leaves nothing of the
+        collection attached to the estimator.
         """
-        self._n_jobs = check_n_jobs(self.n_jobs)
         for name, value in (
             ("n_tables", self.n_tables),
             ("n_bits_per_table", self.n_bits_per_table),
@@ -315,6 +311,12 @@ n_channels * n_timepoints)
                 "n_bits_per_table must be between 1 and 64 (a table key packs its "
                 f"k bits into a 64-bit integer), got {self.n_bits_per_table}."
             )
+        if self.hash_func_distribution not in ("gaussian", "discrete", "uniform"):
+            raise ValueError(
+                "hash_func_distribution must be one of "
+                "{'gaussian', 'discrete', 'uniform'}, got "
+                f"{self.hash_func_distribution!r}."
+            )
         # Resolve ``rerank_distance`` here rather than at the first predict: building
         # the index is the expensive half of this estimator, and a typo that only
         # surfaces once it is paid for wastes exactly what the index is meant to
@@ -329,6 +331,23 @@ n_channels * n_timepoints)
                 raise ValueError(
                     f"Invalid rerank_distance {self.rerank_distance!r}: {error}"
                 ) from error
+
+    def _fit(self, X, y=None):
+        """
+        Build the multi-table LSH index from X.
+
+        Parameters
+        ----------
+        X : np.ndarray shape (n_cases, n_channels, n_timepoints)
+            Input data to index and search against the query given to predict.
+        y : ignored, exists for API consistency reasons.
+
+        Returns
+        -------
+        self : a fitted instance of the estimator
+        """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        self._normalize = self.normalize
         # Hash in the caller's floating precision (float64 by default). Converting
         # the input to float32 therefore speeds up hashing at no cost to the
         # sign-only signatures; see the similarity search example notebook.
@@ -336,8 +355,8 @@ n_channels * n_timepoints)
             X.dtype if np.issubdtype(X.dtype, np.floating) else np.float64
         )
 
-        if self.normalize:
-            X = z_normalise_series_3d(X)
+        if self._normalize:
+            self.X_ = z_normalise_series_3d(X)
 
         self._initialize_hash_functions()
         # Hashing the collection is a single BLAS matrix product; cap its thread
@@ -356,14 +375,9 @@ n_channels * n_timepoints)
             self.hash_funcs_ = rng.standard_normal(size=shape)
         elif self.hash_func_distribution == "discrete":
             self.hash_funcs_ = rng.choice([-1, 1], size=shape)
-        elif self.hash_func_distribution == "uniform":
-            self.hash_funcs_ = rng.uniform(low=-1, high=1.0, size=shape)
         else:
-            raise ValueError(
-                "hash_func_distribution must be one of "
-                "{'gaussian', 'discrete', 'uniform'}, got "
-                f"{self.hash_func_distribution!r}."
-            )
+            # "uniform", the only value left once ``_validate_fit_params`` has run.
+            self.hash_funcs_ = rng.uniform(low=-1, high=1.0, size=shape)
 
         # Flatten to one vector per projection in the fitted data's precision:
         # hashing is then a single BLAS matrix product (see
@@ -424,10 +438,14 @@ n_channels * n_timepoints)
             )
         self._check_query_length(X)
 
-        if self.normalize:
+        if self._normalize:
             X = z_normalise_series_2d(X)
 
-        if k > self.n_cases_:
+        if k == np.inf:
+            # "Return every match": clamping is the documented meaning here, not
+            # a user mistake, so it must not warn.
+            k = self.n_cases_
+        elif k > self.n_cases_:
             warnings.warn(
                 f"k={k} is larger than the number of indexed cases "
                 f"({self.n_cases_}). Returning at most {self.n_cases_} neighbors.",
@@ -546,22 +564,10 @@ n_channels * n_timepoints)
             )
             return np.zeros(0, dtype=int), np.zeros(0, dtype=float)
 
-        # ``_predict`` z-normalized the query, so the candidates have to be scored on
-        # that same scale or the distances are meaningless. Normalizing them here
-        # rather than storing a normalized collection at fit time keeps ``X_`` raw --
-        # its documented content, and unchanged for the default ranking -- and keeps
-        # this correct however ``rerank_distance`` was set. z-normalization is
-        # per-series, so normalizing the candidate rows equals normalizing the whole
-        # collection and then selecting them. The cost is linear in the length of the
-        # candidates that are about to be scored by a distance quadratic in it.
-        neighbors = self.X_[candidates]
-        if self.normalize:
-            neighbors = z_normalise_series_3d(neighbors)
-
         # Score the candidates only: this is what keeps the query sublinear while
         # still returning true distances.
         distances = pairwise_distance(
-            neighbors,
+            self.X_[candidates],
             X[np.newaxis],
             method=self.rerank_distance,
             n_jobs=self._n_jobs,

@@ -560,6 +560,48 @@ def test_fit_normalize_replaces_stored_collection():
     np.testing.assert_allclose(raw.X_, X)
 
 
+def test_fit_failure_stores_nothing():
+    """A parameter error raises before ``fit`` attaches the collection.
+
+    Validation runs from ``_validate_fit_params``, i.e. before the base ``fit``
+    stores ``X_``, so a rejected estimator does not keep the whole collection
+    referenced.
+    """
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=50, return_y=False)
+    for kwargs, match in (
+        (dict(window_length=999), "window_length must be at most"),
+        (dict(shingle_size=65), "shingle_size must be at most 64"),
+        (dict(n_tables=0), "n_tables must be a positive integer"),
+        (dict(distance="dwt"), "Invalid distance 'dwt'"),
+    ):
+        est = SSHIndexANN(**_fit_kwargs(**kwargs))
+        with pytest.raises((ValueError, TypeError), match=match):
+            est.fit(X)
+        assert not hasattr(est, "X_"), f"X_ left behind by {kwargs}"
+        assert not hasattr(est, "tables_")
+
+
+def test_predict_normalize_is_frozen_at_fit():
+    """Setting ``normalize`` on a fitted estimator does not change predictions.
+
+    ``X_`` is stored on the scale chosen at fit, so honouring a later change of
+    the flag would score a raw query against a normalized collection: the
+    self-match of a fitted series would land at a large distance instead of zero.
+    """
+    X = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=50, return_y=False)
+    X = 5.0 * X + 10.0  # far from zero mean, so normalizing is not a near no-op
+    est = SSHIndexANN(**_fit_kwargs(normalize=True, n_tables=10)).fit(X)
+
+    before_idx, before_dist = est.predict(X[3], k=3)
+    est.set_params(normalize=False)
+    after_idx, after_dist = est.predict(X[3], k=3)
+
+    np.testing.assert_array_equal(before_idx, after_idx)
+    np.testing.assert_allclose(before_dist, after_dist)
+    assert after_idx[0] == 3
+    np.testing.assert_allclose(after_dist[0], 0.0, atol=1e-8)
+
+
 def test_fit_identical_series_share_every_bucket():
     """Identical series hash identically, so each table holds a single bucket."""
     base = make_example_3d_numpy(

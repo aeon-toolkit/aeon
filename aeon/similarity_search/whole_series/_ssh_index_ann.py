@@ -357,11 +357,10 @@ class SSHIndexANN(BaseWholeSeriesSearch):
 
     SSH is a data-independent LSH index whose bucket collisions are designed to
     correlate with **DTW** similarity (empirically; see [1]_) rather than with
-    cosine similarity. What it provably hashes is the weighted Jaccard similarity
-    of shingle multisets, described in step 3 below; DTW is not a metric, so no
-    LSH family can be exact for it. Where :class:`SimHashIndexANN` projects the
-    whole series and is therefore destroyed by a shift, SSH hashes a
-    representation that is invariant to where a pattern occurs:
+    cosine similarity. What it truly hash is the weighted Jaccard similarity
+    of shingle multisets. (DTW is not a metric, so no LSH family can be exact
+    for it). The main advantage of SSH is that it hashes a representation that
+    is invariant to where a pattern occurs, doing so in 3 steps:
 
     1. **Sketch.** One Gaussian filter of length ``window_length`` slides over the
        series with step ``shift``; each position contributes one bit, the sign of
@@ -387,7 +386,7 @@ class SSHIndexANN(BaseWholeSeriesSearch):
     ranking: too many candidates tie at the top count for it to order anything,
     so the ranking would come down to the index tie-break.
 
-    Note that this method provides **approximate** results: a true neighbor is
+    This method provides **approximate** results: a true neighbor is
     missed if it never shares a bucket with the query. Larger ``n_tables`` raises
     recall and the candidate-set size; larger ``n_hashes_per_table`` makes buckets
     more selective, so candidate sets shrink and queries speed up at the cost of
@@ -424,7 +423,9 @@ class SSHIndexANN(BaseWholeSeriesSearch):
         Random seed for reproducibility of the filter and the MinHash seeds.
     normalize : bool, default=True
         Whether to z-normalize series before sketching. The fitted collection is
-        stored normalized, so re-ranking compares like with like.
+        stored normalized, so re-ranking compares like with like. Read at fit time:
+        ``X_`` is stored on the scale it selects, so setting it on a fitted
+        estimator has no effect until that estimator is refitted.
     n_jobs : int, default=1
         Number of parallel threads used to hash the collection at fit time and
         for the re-ranking distance computation. Cases are hashed independently,
@@ -591,12 +592,13 @@ class SSHIndexANN(BaseWholeSeriesSearch):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
         self._distance_params = self.distance_params or {}
+        self._normalize = self.normalize
         self.n_sketch_bits_ = _n_sketch_bits(
             self.n_timepoints_, self.window_length, self.shift
         )
         self.n_shingles_ = self.n_sketch_bits_ - self.shingle_size + 1
 
-        if self.normalize:
+        if self._normalize:
             # Replace the raw collection stored by the base ``fit`` with its
             # z-normalized version: both the sketch and the re-ranking read it,
             # so only one copy is kept.
@@ -694,7 +696,7 @@ class SSHIndexANN(BaseWholeSeriesSearch):
             )
         self._check_query_length(X)
 
-        if self.normalize:
+        if self._normalize:
             X = z_normalise_series_2d(X)
 
         if k == np.inf:
