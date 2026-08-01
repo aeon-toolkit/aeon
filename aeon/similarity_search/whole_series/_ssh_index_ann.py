@@ -20,12 +20,6 @@ from aeon.utils.numba.general import (
 )
 from aeon.utils.validation import check_n_jobs
 
-# Number of cases one parallel task hashes. Each task allocates the scratch
-# buffers of ``_hash_collection`` once and reuses them across its cases, so this
-# amortises the allocation; keeping it small keeps the tasks balanced. The kernel
-# lowers it further when the collection is too small to give every thread a task.
-_HASH_BLOCK = 16
-
 # splitmix64 constants. All are typed ``np.uint64`` so the arithmetic is
 # explicitly modular: numba infers uint64 from these, whereas a Python int
 # literal would make the expression float64.
@@ -61,7 +55,7 @@ def _n_sketch_bits(n_timepoints, window_length, shift):
     return (n_timepoints - window_length) // shift + 1
 
 
-@njit(cache=True, inline="always")
+@njit(cache=True)
 def _splitmix64(x):
     """
     Apply the splitmix64 finalizer to a 64-bit value.
@@ -82,7 +76,7 @@ def _splitmix64(x):
     return z ^ (z >> _SHIFT_31)
 
 
-@njit(cache=True, fastmath=True, inline="always")
+@njit(cache=True, fastmath=True)
 def _series_to_sketch(x, filter_, shift, bits):
     """
     Write the sliding-window sign sketch of one series into ``bits``.
@@ -122,7 +116,7 @@ def _series_to_sketch(x, filter_, shift, bits):
         bits[j] = inner >= 0
 
 
-@njit(cache=True, inline="always")
+@njit(cache=True)
 def _sketch_to_minhash(bits, shingle_size, seeds, minhashes, ids, counts, stamps, tag):
     """
     Shingle a sketch and reduce it to one MinHash value per seed.
@@ -214,7 +208,7 @@ def _sketch_to_minhash(bits, shingle_size, seeds, minhashes, ids, counts, stamps
                 minhashes[s] = value
 
 
-@njit(cache=True, inline="always")
+@njit(cache=True)
 def _minhash_to_keys(minhashes, n_hashes_per_table, keys):
     """
     Fold each table's MinHash values into a single bucket key.
@@ -239,7 +233,7 @@ def _minhash_to_keys(minhashes, n_hashes_per_table, keys):
 
 @njit(cache=True, parallel=True)
 def _hash_collection_kernel(
-    X, filter_, shift, shingle_size, seeds, n_tables, n_per_table, block
+    X, filter_, shift, shingle_size, seeds, n_tables, n_per_table, n_tasks
 ):
     """
     Run the whole SSH pipeline on a collection and return its bucket keys.
@@ -250,13 +244,10 @@ def _hash_collection_kernel(
     of the ``(n_cases, n_shingles)`` intermediates of a staged implementation --
     which is why this needs none of the chunking that one required.
 
-    Cases are handed out in blocks rather than one by one so that the scratch
-    buffers, in particular the occurrence table, are allocated once per task and
-    reused across its cases. ``block`` is passed in rather than derived from
-    ``get_num_threads()`` here: that function is backed by a ctypes pointer,
-    which numba counts as a dynamic global and which would silently drop this
-    kernel's ``cache=True``, making every fresh process pay the compilation
-    again.
+    The collection is cut into ``n_tasks`` contiguous slices of equal size to
+    within one case, rather than iterated case by case, so the scratch buffers --
+    the occurrence table above all -- are allocated once per task and reused
+    across its cases.
 
     Parameters
     ----------
@@ -274,8 +265,9 @@ def _hash_collection_kernel(
         Number of hash tables ``d``.
     n_per_table : int
         Number of MinHash values ``k`` folded into each table key.
-    block : int
-        Number of cases per parallel task, at least 1.
+    n_tasks : int
+        Number of parallel tasks to cut the collection into, at least 1 and at
+        most ``n_cases``.
 
     Returns
     -------
@@ -292,15 +284,14 @@ def _hash_collection_kernel(
     while table_size < 2 * n_shingles:
         table_size *= 2
 
-    n_blocks = (n_cases + block - 1) // block
     keys = np.empty((n_cases, n_tables), dtype=np.uint64)
-    for b in prange(n_blocks):
+    for b in prange(n_tasks):
         bits = np.empty(n_bits, dtype=np.bool_)
         minhashes = np.empty(seeds.shape[0], dtype=np.uint64)
         ids = np.empty(table_size, dtype=np.uint64)
         counts = np.empty(table_size, dtype=np.int64)
         stamps = np.full(table_size, -1, dtype=np.int64)
-        for i in range(b * block, min((b + 1) * block, n_cases)):
+        for i in range(b * n_cases // n_tasks, (b + 1) * n_cases // n_tasks):
             _series_to_sketch(X[i], filter_, shift, bits)
             _sketch_to_minhash(
                 bits, shingle_size, seeds, minhashes, ids, counts, stamps, i
@@ -335,10 +326,8 @@ def _hash_collection(X, filter_, shift, shingle_size, seeds, n_tables, n_per_tab
     keys : np.ndarray of shape (n_cases, n_tables), dtype uint64
         Bucket key of every case in every table.
     """
-    n_threads = get_num_threads()
-    # ``_HASH_BLOCK`` is an upper bound, not a target: a collection too small to
-    # give every thread a block is split finer instead.
-    block = min(_HASH_BLOCK, max(1, -(-X.shape[0] // n_threads)))
+    # One task per thread, and never more tasks than cases.
+    n_tasks = max(1, min(get_num_threads(), X.shape[0]))
     return _hash_collection_kernel(
         np.ascontiguousarray(X),
         filter_,
@@ -347,7 +336,7 @@ def _hash_collection(X, filter_, shift, shingle_size, seeds, n_tables, n_per_tab
         seeds,
         n_tables,
         n_per_table,
-        block,
+        n_tasks,
     )
 
 

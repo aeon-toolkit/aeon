@@ -780,9 +780,9 @@ def test_hash_collection_is_row_independent():
 def test_hash_collection_is_thread_count_invariant(n_cases):
     """The number of threads changes nothing but the speed.
 
-    Cases are split into blocks whose size depends on the thread count, and each
-    block reuses one occurrence table across its cases, so a bug in either would
-    show up as keys that depend on ``n_jobs``.
+    Cases are cut into one contiguous slice per thread, and each slice reuses a
+    single occurrence table across its cases, so a bug in either the cut or the
+    reuse would show up as keys that depend on ``n_jobs``.
     """
     rng = np.random.default_rng(2)
     X = rng.standard_normal((n_cases, 1, 50))
