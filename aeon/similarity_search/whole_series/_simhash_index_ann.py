@@ -193,10 +193,11 @@ class SimHashIndexANN(BaseWholeSeriesSearch):
         this attribute always gives back what was fitted. Note that
         :class:`SSHIndexANN` differs here: it always re-ranks, so it stores the
         normalized collection once instead of normalizing per query.
-    tables_ : list of dict
-        The ``n_tables`` hash tables, each mapping a ``k``-bit bucket key (the
-        ``k`` table bits packed into an integer in ``[0, 2 ** k)``) to an int array
-        of the case indices that fall in that bucket.
+    tables_ : HashTables
+        The ``n_tables`` hash tables, holding the case indices of every bucket in
+        a flat compressed layout. A bucket key is the ``k`` table bits packed
+        into an integer in ``[0, 2 ** k)``. ``_bucket_dicts`` materializes them
+        as one ``{bucket key: case indices}`` dict per table.
     hash_funcs_ : np.ndarray of shape (n_tables * n_bits_per_table, n_channels, \
 n_timepoints)
         The Gaussian (or discrete/uniform) random projection vectors.

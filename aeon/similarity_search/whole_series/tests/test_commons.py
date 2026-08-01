@@ -3,17 +3,46 @@
 import numpy as np
 
 from aeon.similarity_search.whole_series._commons import (
+    _bucket_dicts,
     _build_hash_tables,
     _tally_bucket_collisions,
 )
 
 
+def assert_same_buckets(expected, actual):
+    """Assert two ``HashTables`` hold the same buckets, in the same case order.
+
+    Shared with the estimator test modules, which compare the index two fits
+    build.
+    """
+    expected_buckets = _bucket_dicts(expected)
+    actual_buckets = _bucket_dicts(actual)
+    assert len(expected_buckets) == len(actual_buckets)
+    for expected_table, actual_table in zip(expected_buckets, actual_buckets):
+        assert expected_table.keys() == actual_table.keys()
+        for key, bucket in expected_table.items():
+            np.testing.assert_array_equal(bucket, actual_table[key])
+
+
+def emptied(tables):
+    """Return the same tables with every bucket removed.
+
+    Shared with the estimator test modules, which use it to drive a query into
+    the no-candidates path.
+    """
+    return tables._replace(
+        table_offsets=np.zeros_like(tables.table_offsets),
+        bucket_keys=np.zeros(0, dtype=np.uint64),
+        bucket_starts=np.zeros(0, dtype=np.int64),
+    )
+
+
 def test_build_hash_tables_partitions_cases():
     """Each table assigns every case to exactly one bucket."""
     keys = np.array([[1, 7], [1, 8], [2, 7], [2, 7]], dtype=np.uint64)
-    tables = _build_hash_tables(keys, n_tables=2)
-    assert len(tables) == 2
-    for table in tables:
+    buckets = _bucket_dicts(_build_hash_tables(keys, n_tables=2))
+    assert len(buckets) == 2
+    for table in buckets:
         assert sum(len(bucket) for bucket in table.values()) == 4
         assert set(np.concatenate(list(table.values())).tolist()) == {0, 1, 2, 3}
 
@@ -21,7 +50,7 @@ def test_build_hash_tables_partitions_cases():
 def test_build_hash_tables_groups_equal_keys_in_case_order():
     """Cases sharing a key land in one bucket, in ascending case order."""
     keys = np.array([[5], [3], [5], [3], [5]], dtype=np.uint64)
-    table = _build_hash_tables(keys, n_tables=1)[0]
+    table = _bucket_dicts(_build_hash_tables(keys, n_tables=1))[0]
     np.testing.assert_array_equal(table[5], [0, 2, 4])
     np.testing.assert_array_equal(table[3], [1, 3])
 
@@ -29,23 +58,52 @@ def test_build_hash_tables_groups_equal_keys_in_case_order():
 def test_build_hash_tables_bucket_dtype_is_intp():
     """Buckets are intp arrays, so np.bincount can consume them directly."""
     keys = np.array([[1], [1], [2]], dtype=np.uint64)
-    table = _build_hash_tables(keys, n_tables=1)[0]
+    table = _bucket_dicts(_build_hash_tables(keys, n_tables=1))[0]
     for bucket in table.values():
         assert bucket.dtype == np.intp
 
 
 def test_build_hash_tables_matches_dict_loop_reference():
-    """The sort-based build equals a plain per-case dict-append loop."""
+    """The compressed build equals a plain per-case dict-append loop."""
     rng = np.random.default_rng(0)
     keys = rng.integers(0, 6, size=(40, 5)).astype(np.uint64)
-    tables = _build_hash_tables(keys, n_tables=5)
+    buckets = _bucket_dicts(_build_hash_tables(keys, n_tables=5))
     for t in range(5):
         reference = {}
         for case_idx, key in enumerate(keys[:, t].tolist()):
             reference.setdefault(key, []).append(case_idx)
-        assert set(tables[t].keys()) == set(reference.keys())
+        assert set(buckets[t].keys()) == set(reference.keys())
         for key, expected in reference.items():
-            np.testing.assert_array_equal(tables[t][key], expected)
+            np.testing.assert_array_equal(buckets[t][key], expected)
+
+
+def test_build_hash_tables_keys_are_sorted_within_each_table():
+    """Bucket keys ascend within a table, so a query can binary-search them."""
+    rng = np.random.default_rng(2)
+    keys = rng.integers(0, 2**63, size=(60, 4)).astype(np.uint64)
+    tables = _build_hash_tables(keys, n_tables=4)
+    for t in range(4):
+        low = tables.table_offsets[t]
+        high = tables.table_offsets[t + 1]
+        table_keys = tables.bucket_keys[low:high]
+        assert np.all(np.diff(table_keys) > 0)
+        assert set(table_keys.tolist()) == set(keys[:, t].tolist())
+
+
+def test_build_hash_tables_layout_is_consistent():
+    """Every case appears exactly once per table, inside its own key's bucket."""
+    rng = np.random.default_rng(3)
+    n_cases, n_tables = 40, 5
+    keys = rng.integers(0, 7, size=(n_cases, n_tables)).astype(np.uint64)
+    tables = _build_hash_tables(keys, n_tables)
+
+    assert tables.table_offsets[0] == 0
+    assert tables.table_offsets[-1] == tables.bucket_keys.shape[0]
+    assert tables.case_indices.shape == (n_tables, n_cases)
+    for t in range(n_tables):
+        assert sorted(tables.case_indices[t].tolist()) == list(range(n_cases))
+        for key, bucket in _bucket_dicts(tables)[t].items():
+            np.testing.assert_array_equal(keys[bucket, t], key)
 
 
 def test_tally_bucket_collisions_counts_tables():

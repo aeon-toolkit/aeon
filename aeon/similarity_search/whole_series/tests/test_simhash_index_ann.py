@@ -4,12 +4,14 @@ import numpy as np
 import pytest
 
 from aeon.distances import euclidean_distance, pairwise_distance
+from aeon.similarity_search.whole_series._commons import _bucket_dicts
 from aeon.similarity_search.whole_series._simhash_index_ann import (
     SimHashIndexANN,
     _collection_to_signature,
     _series_to_signature,
     _signatures_to_keys,
 )
+from aeon.similarity_search.whole_series.tests.test_commons import emptied as _emptied
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
 
@@ -131,8 +133,8 @@ def test_fit_creates_index():
     rp.fit(X)
 
     assert hasattr(rp, "tables_")
-    assert len(rp.tables_) == 6
-    assert all(isinstance(table, dict) for table in rp.tables_)
+    assert len(_bucket_dicts(rp.tables_)) == 6
+    assert rp.tables_.case_indices.shape == (6, 20)
     assert hasattr(rp, "hash_funcs_")
     assert rp.n_cases_ == 20
     assert rp.n_channels_ == 2
@@ -236,7 +238,7 @@ def test_fit_accepts_numpy_integer_params():
         n_tables=np.int64(4), n_bits_per_table=np.int32(4), random_state=0
     )
     rp.fit(X)
-    assert len(rp.tables_) == 4
+    assert len(_bucket_dicts(rp.tables_)) == 4
 
 
 def test_fit_reproducibility():
@@ -253,7 +255,7 @@ def test_fit_all_series_indexed_in_each_table():
     X = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=50, return_y=False)
     rp = SimHashIndexANN(n_tables=4, n_bits_per_table=6, random_state=0).fit(X)
 
-    for table in rp.tables_:
+    for table in _bucket_dicts(rp.tables_):
         indexed = set()
         total = 0
         for bucket in table.values():
@@ -292,7 +294,7 @@ def test_build_index_buckets_match_dict_loop_reference():
                 reference = {}
                 for case_idx, key in enumerate(keys[:, t].tolist()):
                     reference.setdefault(key, []).append(case_idx)
-                got = rp.tables_[t]
+                got = _bucket_dicts(rp.tables_)[t]
                 assert set(got.keys()) == set(reference.keys())
                 for key in reference:
                     np.testing.assert_array_equal(
@@ -364,9 +366,10 @@ def test_predict_ranking_matches_dense_bincount_reference(n_cases, n_tables, n_b
         keys = _signatures_to_keys(
             signature[None, :], rp.n_tables, rp.n_bits_per_table
         )[0]
+        buckets = _bucket_dicts(rp.tables_)
         hit_arrays = []
         for t in range(rp.n_tables):
-            bucket = rp.tables_[t].get(int(keys[t]))
+            bucket = buckets[t].get(int(keys[t]))
             if bucket is not None:
                 hit_arrays.append(bucket)
         if not hit_arrays:
@@ -446,8 +449,7 @@ def test_predict_empty_candidates_warns():
     """An empty candidate set warns and returns no neighbors."""
     X = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=40, return_y=False)
     rp = SimHashIndexANN(n_tables=5, n_bits_per_table=8, random_state=0).fit(X)
-    for table in rp.tables_:
-        table.clear()
+    rp.tables_ = _emptied(rp.tables_)
 
     with pytest.warns(UserWarning):
         idx, dist = rp.predict(X[0], k=3)
@@ -470,7 +472,7 @@ def test_identical_series_same_bucket():
         n_tables=4, n_bits_per_table=8, random_state=0, normalize=False
     ).fit(X)
 
-    for table in rp.tables_:
+    for table in _bucket_dicts(rp.tables_):
         assert len(table) == 1
         assert set(next(iter(table.values()))) == {0, 1, 2}
 
@@ -752,9 +754,10 @@ def test_predict_rerank_ranking_matches_dense_reference(n_cases, n_tables, n_bit
         keys = _signatures_to_keys(
             signature[None, :], rp.n_tables, rp.n_bits_per_table
         )[0]
+        buckets = _bucket_dicts(rp.tables_)
         hit_arrays = []
         for t in range(rp.n_tables):
-            bucket = rp.tables_[t].get(int(keys[t]))
+            bucket = buckets[t].get(int(keys[t]))
             if bucket is not None:
                 hit_arrays.append(bucket)
         if not hit_arrays:
@@ -797,8 +800,7 @@ def test_predict_rerank_empty_candidates_warns():
     rp = SimHashIndexANN(
         n_tables=5, n_bits_per_table=8, rerank_distance="euclidean", random_state=0
     ).fit(X)
-    for table in rp.tables_:
-        table.clear()
+    rp.tables_ = _emptied(rp.tables_)
 
     with pytest.warns(UserWarning, match="No candidates"):
         idx, dist = rp.predict(X[0], k=3)
@@ -834,10 +836,13 @@ def test_predict_rerank_too_few_candidates_warns():
     rp = SimHashIndexANN(
         n_tables=2, n_bits_per_table=20, rerank_distance="euclidean", random_state=0
     ).fit(X)
-    # Only the query itself is left in the tables, so k=3 cannot be satisfied.
-    for table in rp.tables_:
-        for key, bucket in list(table.items()):
-            table[key] = bucket[:1]
+    # 20 bits over 30 series makes every bucket a singleton, so the query only
+    # ever collides with itself and k=3 cannot be satisfied.
+    assert all(
+        len(bucket) == 1
+        for table in _bucket_dicts(rp.tables_)
+        for bucket in table.values()
+    )
 
     with pytest.warns(UserWarning, match="fewer than the requested"):
         idx, _ = rp.predict(X[0], k=3)

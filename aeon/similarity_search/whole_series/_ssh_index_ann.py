@@ -6,8 +6,7 @@ __all__ = ["SSHIndexANN"]
 import warnings
 
 import numpy as np
-from numpy.lib.stride_tricks import sliding_window_view
-from threadpoolctl import threadpool_limits
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.distances import get_distance_function, pairwise_distance
 from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
@@ -21,22 +20,23 @@ from aeon.utils.numba.general import (
 )
 from aeon.utils.validation import check_n_jobs
 
-# Target size, in bytes, of the transient arrays the whole SSH pipeline holds at
-# once. ``_hash_chunk_size`` turns it into a number of cases and
-# ``SSHIndexANN._hash_collection`` hashes the collection in chunks of that size,
-# which is what keeps peak memory independent of ``n_cases``.
-#
-# This is a working-set target, not just a ceiling: it is set well below what a
-# modern machine could hold because the pipeline is memory-bound, and a chunk whose
-# arrays stay in cache is markedly faster. Fitting 5000 ECG5000 series
-# (n_tables=40, k=8) takes 434 ms at 8 MiB against 1534 ms at 64 MiB, and 1005 ms
-# against 3394 ms for the longer sketch of ``shift=1`` -- 1.6x to 3.8x, with peak
-# memory 20 MB against 66 MB. Raising it costs time as well as memory.
-_HASH_CHUNK_BYTES = 8 * 1024 * 1024
+# Number of cases one parallel task hashes. Each task allocates the scratch
+# buffers of ``_hash_collection`` once and reuses them across its cases, so this
+# amortises the allocation; keeping it small keeps the tasks balanced. The kernel
+# lowers it further when the collection is too small to give every thread a task.
+_HASH_BLOCK = 16
 
-# Number of ``(n_chunk, n_shingles)`` 8-byte arrays that ``_hash_chunk_size``
-# budgets for; see its docstring for how the count is derived from the code.
-_LIVE_SHINGLE_ARRAYS = 7
+# splitmix64 constants. All are typed ``np.uint64`` so the arithmetic is
+# explicitly modular: numba infers uint64 from these, whereas a Python int
+# literal would make the expression float64.
+_SPLITMIX_GAMMA = np.uint64(0x9E3779B97F4A7C15)
+_SPLITMIX_MIX1 = np.uint64(0xBF58476D1CE4E5B9)
+_SPLITMIX_MIX2 = np.uint64(0x94D049BB133111EB)
+_SHIFT_30 = np.uint64(30)
+_SHIFT_27 = np.uint64(27)
+_SHIFT_31 = np.uint64(31)
+_UINT64_ONE = np.uint64(1)
+_UINT64_MAX = np.uint64(0xFFFFFFFFFFFFFFFF)
 
 
 def _n_sketch_bits(n_timepoints, window_length, shift):
@@ -61,269 +61,294 @@ def _n_sketch_bits(n_timepoints, window_length, shift):
     return (n_timepoints - window_length) // shift + 1
 
 
-def _hash_chunk_size(n_bits, n_shingles, n_channels, window_length, itemsize):
+@njit(cache=True, inline="always")
+def _splitmix64(x):
     """
-    Return how many cases the SSH pipeline may hash in a single pass.
-
-    Every stage of the pipeline is row-independent, so a collection can be hashed
-    in chunks of rows, and peak memory -- and the working set the pipeline sweeps
-    per stage -- then depends on the chunk size instead of on ``n_cases``. Two
-    families of allocation are budgeted for, per case:
-
-    - the strided window block that ``_collection_to_sketch`` copies before its
-      matrix product, ``n_bits * n_channels * window_length * itemsize`` bytes;
-    - the ``(n_chunk, n_shingles)`` 8-byte arrays of the stages after it. Six of
-      them are live at the same time at the worst point, which is inside
-      ``_occurrence_ranks``: ``ids`` (held by the caller), ``order``,
-      ``sorted_ids``, ``group_start``, ``ranks_sorted`` and ``ranks``.
-      ``_LIVE_SHINGLE_ARRAYS`` is one above that count, as headroom for the
-      boolean ``new_group`` (an eighth of the size) and for the indexing
-      temporaries of ``np.put_along_axis``. Measured with ``tracemalloc``, the
-      pipeline peaks at 6.3 times ``n_shingles * 8`` bytes per case.
-
-    The two families are never live simultaneously -- the window block is freed
-    when ``_collection_to_sketch`` returns, before shingling starts -- so adding
-    them errs on the side of a smaller chunk than the budget would allow.
+    Apply the splitmix64 finalizer to a 64-bit value.
 
     Parameters
     ----------
-    n_bits : int
-        Length of the sketch bit string, ``_n_sketch_bits(...)``.
-    n_shingles : int
-        Number of shingle occurrences per case, ``n_bits - shingle_size + 1``.
-    n_channels : int
-        Number of channels of the collection.
-    window_length : int
-        Length ``W`` of the sketch filter.
-    itemsize : int
-        Size in bytes of one element of the sketch's floating dtype.
+    x : np.uint64
+        Value to mix.
 
     Returns
     -------
-    chunk : int
-        Number of cases to hash at once, at least 1. A chunk of 1 case is
-        returned when a single case does not fit the budget: the pipeline cannot
-        split a case any further.
+    mixed : np.uint64
+        Well-distributed 64-bit mix of ``x``.
     """
-    per_case = (
-        n_bits * n_channels * window_length * itemsize
-        + _LIVE_SHINGLE_ARRAYS * 8 * n_shingles
-    )
-    return max(1, _HASH_CHUNK_BYTES // per_case)
+    z = x + _SPLITMIX_GAMMA
+    z = (z ^ (z >> _SHIFT_30)) * _SPLITMIX_MIX1
+    z = (z ^ (z >> _SHIFT_27)) * _SPLITMIX_MIX2
+    return z ^ (z >> _SHIFT_31)
 
 
-def _collection_to_sketch(X, filter_flat, window_length, shift):
+@njit(cache=True, fastmath=True, inline="always")
+def _series_to_sketch(x, filter_, shift, bits):
     """
-    Compute the sliding-window sign sketch of a collection of time series.
+    Write the sliding-window sign sketch of one series into ``bits``.
 
-    The filter slides over each series with step ``shift``; every position
+    The filter slides over the series with step ``shift``; every position
     contributes one bit, the sign of the inner product between the filter and the
     ``window_length`` values under it. This is a signed random projection of a
     *local* subsequence, so bit agreement is a crude LSH for local shape.
 
-    Each row's bits depend only on that row, and the strided window block is
-    materialized for the whole of ``X`` at once, so bounding memory is the
-    caller's job: ``SSHIndexANN._hash_collection`` calls this on chunks of at
-    most ``_hash_chunk_size`` cases.
+    The window block is never materialized: each bit reads its window straight
+    out of ``x``, which stays in cache across the whole sketch. That is what makes
+    the sketch cheap despite each point being read up to ``W / shift`` times.
 
     Parameters
     ----------
-    X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
-        Time series collection to sketch.
-    filter_flat : np.ndarray of shape (n_channels * window_length,)
-        The random filter, flattened in C order from ``(n_channels,
-        window_length)``. Its dtype sets the precision of the matrix product.
-    window_length : int
-        Length ``W`` of the filter.
+    x : np.ndarray of shape (n_channels, n_timepoints)
+        Series to sketch.
+    filter_ : np.ndarray of shape (n_channels, window_length)
+        The random filter. Channel ``c`` of a window is paired with row ``c`` of
+        the filter, so a multivariate sketch mixes the channels of one window.
     shift : int
         Step size ``delta``.
-
-    Returns
-    -------
-    bits : np.ndarray of shape (n_cases, n_bits), dtype bool
-        The sketch of every series, ``True`` where the inner product is >= 0.
+    bits : np.ndarray of shape (n_bits,), dtype bool
+        Output buffer, ``True`` where the inner product is >= 0.
     """
-    n_cases, n_channels, n_timepoints = X.shape
-    n_bits = _n_sketch_bits(n_timepoints, window_length, shift)
-    X = X.astype(filter_flat.dtype, copy=False)
-
-    # A view, not a copy: (n_cases, n_channels, n_timepoints - W + 1, W), then
-    # every ``shift``-th position.
-    windows = sliding_window_view(X, window_length, axis=2)[:, :, ::shift, :]
-
-    # The transpose puts the window axis before the channel axis, so the reshape
-    # flattens each window channel-major -- the same C order in which
-    # ``filter_flat`` was flattened from (n_channels, window_length). The two
-    # orders must agree or a multivariate sketch pairs channels with the wrong
-    # filter coefficients.
-    block = windows.transpose(0, 2, 1, 3).reshape(-1, n_channels * window_length)
-    return (block @ filter_flat).reshape(n_cases, n_bits) >= 0
+    n_channels, window_length = filter_.shape
+    for j in range(bits.shape[0]):
+        # Accumulate in float64 whatever the input precision: the sketch is a
+        # sign test, so the bits must not depend on the dtype the caller happens
+        # to pass. It costs nothing -- the loop is latency-bound, not
+        # bandwidth-bound, and float32 input times the same either way.
+        inner = 0.0
+        offset = j * shift
+        for c in range(n_channels):
+            for w in range(window_length):
+                inner += x[c, offset + w] * filter_[c, w]
+        bits[j] = inner >= 0
 
 
-def _sketch_to_shingle_ids(bits, shingle_size):
+@njit(cache=True, inline="always")
+def _sketch_to_minhash(bits, shingle_size, seeds, minhashes, ids, counts, stamps, tag):
     """
-    Pack every length-``shingle_size`` window of a sketch into an integer id.
+    Shingle a sketch and reduce it to one MinHash value per seed.
 
-    No sliding window is materialized: bit ``b`` of every shingle is the slice
-    ``bits[..., b : b + n_shingles]``, so the ids accumulate in ``shingle_size``
-    bit-plane ORs. This mirrors ``_signatures_to_keys`` in
-    ``_simhash_index_ann.py`` and keeps peak memory at one uint64 array.
+    Steps 2 and 3 of SSH share a single pass over the shingle positions, because
+    every intermediate is consumed where it is produced: a shingle id feeds its
+    own occurrence rank, the pair feeds one element id, and the element updates
+    the running minima. Materializing them instead -- an ``(n_shingles,)`` array
+    per intermediate -- is what the numpy implementation used to do, and it is
+    slower even though the arrays are small enough to stay in cache.
+
+    Two loop-level identities keep the pass linear:
+
+    - **Rolling shingle id.** Consecutive shingles overlap in all but one bit, so
+      the id of shingle ``j + 1`` is the id of shingle ``j`` shifted down by one
+      with the newly entered bit placed on top. That is O(1) per shingle instead
+      of the O(``shingle_size``) repacking of every window.
+    - **Occurrence ranks by open addressing.** The rank of a shingle is how many
+      times it already occurred in this series, which a hash table counts in one
+      pass; the numpy implementation needed a sort of the whole row. The table is
+      shared across the cases of a parallel task and never cleared: an entry
+      counts for the current case only if ``stamps`` marks it with ``tag``, so a
+      stale entry from the previous case reads as empty.
+
+    Ranking occurrences this way is the multiset expansion behind the weighted
+    MinHash: a shingle with count ``c`` contributes elements
+    ``(s, 0) ... (s, c - 1)``, so the pairs form a plain set whose Jaccard is
+    exactly the weighted Jaccard of the shingle counts, and plain MinHash over
+    them is an exact LSH for it.
 
     Parameters
     ----------
-    bits : np.ndarray of shape (..., n_bits), dtype bool
-        Sketch of one series (1D) or of a collection (2D).
+    bits : np.ndarray of shape (n_bits,), dtype bool
+        Sketch of one series.
     shingle_size : int
         Shingle length ``n``, at most 64.
-
-    Returns
-    -------
-    ids : np.ndarray of shape (..., n_bits - shingle_size + 1), dtype uint64
-        Integer id of each shingle; bit ``b`` of the shingle contributes
-        ``2 ** b``.
-    """
-    n_shingles = bits.shape[-1] - shingle_size + 1
-    ids = np.zeros(bits.shape[:-1] + (n_shingles,), dtype=np.uint64)
-    for b in range(shingle_size):
-        ids |= bits[..., b : b + n_shingles].astype(np.uint64) << np.uint64(b)
-    return ids
-
-
-def _splitmix64(x):
-    """
-    Apply the splitmix64 finalizer to a uint64 array.
-
-    All constants are typed ``np.uint64`` to keep the arithmetic explicitly
-    modular. Under NEP 50 (numpy >= 2) a Python int operand is weak and would
-    stay uint64 anyway, but it raises ``OverflowError`` once the constant exceeds
-    ``2 ** 63``, and on numpy 1.x it promoted the whole expression to float64.
-
-    Parameters
-    ----------
-    x : np.ndarray
-        Values to mix; cast to uint64.
-
-    Returns
-    -------
-    mixed : np.ndarray of dtype uint64
-        Well-distributed 64-bit mix of ``x``, same shape as ``x``.
-    """
-    z = np.asarray(x, dtype=np.uint64) + np.uint64(0x9E3779B97F4A7C15)
-    z = (z ^ (z >> np.uint64(30))) * np.uint64(0xBF58476D1CE4E5B9)
-    z = (z ^ (z >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
-    return z ^ (z >> np.uint64(31))
-
-
-def _occurrence_ranks(ids):
-    """
-    Return how many times each shingle already occurred earlier in its row.
-
-    This materializes the multiset expansion behind the weighted MinHash: a
-    shingle with count ``c`` gets ranks ``0 ... c - 1``, so the pairs
-    ``(shingle, rank)`` form a plain set whose Jaccard is exactly the weighted
-    Jaccard of the shingle counts.
-
-    Parameters
-    ----------
-    ids : np.ndarray of shape (n_rows, n_shingles), dtype uint64
-        Shingle ids, one row per series.
-
-    Returns
-    -------
-    ranks : np.ndarray of shape (n_rows, n_shingles), dtype uint64
-        Occurrence index of each shingle within its own row.
-    """
-    n_rows, n_shingles = ids.shape
-    order = np.argsort(ids, axis=1, kind="stable")
-    sorted_ids = np.take_along_axis(ids, order, axis=1)
-
-    new_group = np.empty(sorted_ids.shape, dtype=bool)
-    new_group[:, 0] = True
-    new_group[:, 1:] = sorted_ids[:, 1:] != sorted_ids[:, :-1]
-
-    positions = np.broadcast_to(np.arange(n_shingles), sorted_ids.shape)
-    # Running max of the positions where a group starts gives, for each sorted
-    # element, the start index of the group it belongs to.
-    group_start = np.maximum.accumulate(np.where(new_group, positions, 0), axis=1)
-    ranks_sorted = (positions - group_start).astype(np.uint64)
-
-    ranks = np.empty_like(ranks_sorted)
-    np.put_along_axis(ranks, order, ranks_sorted, axis=1)
-    return ranks
-
-
-def _shingles_to_elements(ids, ranks):
-    """
-    Map each ``(shingle, occurrence)`` pair to a 64-bit element id.
-
-    Parameters
-    ----------
-    ids : np.ndarray of dtype uint64
-        Shingle ids.
-    ranks : np.ndarray of dtype uint64
-        Occurrence ranks, aligned with ``ids``.
-
-    Returns
-    -------
-    elements : np.ndarray of dtype uint64
-        Element ids of the expanded multiset, same shape as ``ids``. Distinct
-        pairs collide with negligible probability at 64 bits.
-    """
-    return _splitmix64(ids ^ _splitmix64(ranks))
-
-
-def _elements_to_minhash(elements, seeds):
-    """
-    Compute one MinHash value per seed for each row of expanded elements.
-
-    Because the elements are the multiset expansion of the shingle counts, the
-    probability that two rows agree on a given seed is exactly the weighted
-    Jaccard similarity of their shingle sets.
-
-    Parameters
-    ----------
-    elements : np.ndarray of shape (n_rows, n_shingles), dtype uint64
-        Expanded element ids, as returned by ``_shingles_to_elements``.
     seeds : np.ndarray of shape (n_seeds,), dtype uint64
         One seed per hash function.
-
-    Returns
-    -------
-    minhashes : np.ndarray of shape (n_rows, n_seeds), dtype uint64
-        The minimum mixed element id of each row under each seed.
+    minhashes : np.ndarray of shape (n_seeds,), dtype uint64
+        Output buffer: the minimum mixed element id under each seed.
+    ids : np.ndarray of shape (table_size,), dtype uint64
+        Scratch: keys of the open-addressing table. ``table_size`` must be a
+        power of two of at least ``2 * n_shingles``, so the table never fills.
+    counts : np.ndarray of shape (table_size,), dtype int64
+        Scratch: occurrence count of each live table entry.
+    stamps : np.ndarray of shape (table_size,), dtype int64
+        Scratch: which case each table entry belongs to. Must be filled with a
+        value no case ever uses as ``tag`` (-1) before the first call.
+    tag : int
+        Identifier of the current case, unique within the calls that share these
+        scratch buffers.
     """
-    minhashes = np.empty((elements.shape[0], seeds.shape[0]), dtype=np.uint64)
-    # Loop over seeds rather than broadcasting: peak memory stays at one
-    # (n_rows, n_shingles) temporary instead of n_seeds times that.
-    for j in range(seeds.shape[0]):
-        minhashes[:, j] = _splitmix64(elements + seeds[j]).min(axis=1)
-    return minhashes
+    n_shingles = bits.shape[0] - shingle_size + 1
+    n_seeds = seeds.shape[0]
+    mask = np.uint64(ids.shape[0] - 1)
+    top_bit = np.uint64(shingle_size - 1)
+
+    for s in range(n_seeds):
+        minhashes[s] = _UINT64_MAX
+
+    shingle = np.uint64(0)
+    for b in range(shingle_size):
+        if bits[b]:
+            shingle |= _UINT64_ONE << np.uint64(b)
+
+    for j in range(n_shingles):
+        if j > 0:
+            shingle >>= _UINT64_ONE
+            if bits[j + shingle_size - 1]:
+                shingle |= _UINT64_ONE << top_bit
+
+        slot = _splitmix64(shingle) & mask
+        while stamps[slot] == tag and ids[slot] != shingle:
+            slot = (slot + _UINT64_ONE) & mask
+        if stamps[slot] != tag:
+            stamps[slot] = tag
+            ids[slot] = shingle
+            counts[slot] = 0
+        rank = np.uint64(counts[slot])
+        counts[slot] += 1
+
+        # Element id of the (shingle, occurrence) pair. Mixing the rank before
+        # the xor stops pairs that differ by a swap of the two from colliding;
+        # at 64 bits distinct pairs collide with negligible probability.
+        element = _splitmix64(shingle ^ _splitmix64(rank))
+        for s in range(n_seeds):
+            value = _splitmix64(element + seeds[s])
+            if value < minhashes[s]:
+                minhashes[s] = value
 
 
-def _minhash_to_keys(minhashes, n_tables, n_hashes_per_table):
+@njit(cache=True, inline="always")
+def _minhash_to_keys(minhashes, n_hashes_per_table, keys):
     """
     Fold each table's MinHash values into a single bucket key.
 
     Parameters
     ----------
-    minhashes : np.ndarray of shape (n_rows, n_tables * n_hashes_per_table)
-        MinHash values, dtype uint64.
-    n_tables : int
-        Number of hash tables ``d``.
+    minhashes : np.ndarray of shape (n_tables * n_hashes_per_table,), uint64
+        MinHash values of one series, table-major.
     n_hashes_per_table : int
         Number of MinHash values ``k`` concatenated into each table key.
+    keys : np.ndarray of shape (n_tables,), dtype uint64
+        Output buffer: bucket key of the series in every table. Two series share
+        a table's bucket only if all ``k`` of that table's MinHash values agree.
+    """
+    for t in range(keys.shape[0]):
+        key = np.uint64(0)
+        base = t * n_hashes_per_table
+        for m in range(n_hashes_per_table):
+            key = _splitmix64(key ^ minhashes[base + m])
+        keys[t] = key
+
+
+@njit(cache=True, parallel=True)
+def _hash_collection_kernel(
+    X, filter_, shift, shingle_size, seeds, n_tables, n_per_table, block
+):
+    """
+    Run the whole SSH pipeline on a collection and return its bucket keys.
+
+    A case is sketched, shingled and hashed without ever leaving the scratch
+    buffers of the task that owns it, so the only array that grows with the
+    collection is the output. Peak memory is a few kilobytes per thread instead
+    of the ``(n_cases, n_shingles)`` intermediates of a staged implementation --
+    which is why this needs none of the chunking that one required.
+
+    Cases are handed out in blocks rather than one by one so that the scratch
+    buffers, in particular the occurrence table, are allocated once per task and
+    reused across its cases. ``block`` is passed in rather than derived from
+    ``get_num_threads()`` here: that function is backed by a ctypes pointer,
+    which numba counts as a dynamic global and which would silently drop this
+    kernel's ``cache=True``, making every fresh process pay the compilation
+    again.
+
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        Collection to hash, already normalized if ``normalize`` is True.
+    filter_ : np.ndarray of shape (n_channels, window_length)
+        The random filter.
+    shift : int
+        Step size ``delta``.
+    shingle_size : int
+        Shingle length ``n``.
+    seeds : np.ndarray of shape (n_tables * n_hashes_per_table,), uint64
+        One seed per MinHash function.
+    n_tables : int
+        Number of hash tables ``d``.
+    n_per_table : int
+        Number of MinHash values ``k`` folded into each table key.
+    block : int
+        Number of cases per parallel task, at least 1.
 
     Returns
     -------
-    keys : np.ndarray of shape (n_rows, n_tables), dtype uint64
-        Bucket key of every row in every table. Two rows share a table's bucket
-        only if all ``k`` of that table's MinHash values agree.
+    keys : np.ndarray of shape (n_cases, n_tables), dtype uint64
+        Bucket key of every case in every table.
     """
-    chunks = minhashes.reshape(minhashes.shape[0], n_tables, n_hashes_per_table)
-    keys = np.zeros((minhashes.shape[0], n_tables), dtype=np.uint64)
-    for i in range(n_hashes_per_table):
-        keys = _splitmix64(keys ^ chunks[:, :, i])
+    n_cases, _, n_timepoints = X.shape
+    n_bits = (n_timepoints - filter_.shape[1]) // shift + 1
+    n_shingles = n_bits - shingle_size + 1
+
+    # Load factor at most 1/2, so linear probing stays short and the table can
+    # never fill up.
+    table_size = 1
+    while table_size < 2 * n_shingles:
+        table_size *= 2
+
+    n_blocks = (n_cases + block - 1) // block
+    keys = np.empty((n_cases, n_tables), dtype=np.uint64)
+    for b in prange(n_blocks):
+        bits = np.empty(n_bits, dtype=np.bool_)
+        minhashes = np.empty(seeds.shape[0], dtype=np.uint64)
+        ids = np.empty(table_size, dtype=np.uint64)
+        counts = np.empty(table_size, dtype=np.int64)
+        stamps = np.full(table_size, -1, dtype=np.int64)
+        for i in range(b * block, min((b + 1) * block, n_cases)):
+            _series_to_sketch(X[i], filter_, shift, bits)
+            _sketch_to_minhash(
+                bits, shingle_size, seeds, minhashes, ids, counts, stamps, i
+            )
+            _minhash_to_keys(minhashes, n_per_table, keys[i])
     return keys
+
+
+def _hash_collection(X, filter_, shift, shingle_size, seeds, n_tables, n_per_table):
+    """
+    Hash a collection with ``_hash_collection_kernel``, sizing its tasks.
+
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        Collection to hash, already normalized if ``normalize`` is True.
+    filter_ : np.ndarray of shape (n_channels, window_length)
+        The random filter.
+    shift : int
+        Step size ``delta``.
+    shingle_size : int
+        Shingle length ``n``.
+    seeds : np.ndarray of shape (n_tables * n_hashes_per_table,), uint64
+        One seed per MinHash function.
+    n_tables : int
+        Number of hash tables ``d``.
+    n_per_table : int
+        Number of MinHash values ``k`` folded into each table key.
+
+    Returns
+    -------
+    keys : np.ndarray of shape (n_cases, n_tables), dtype uint64
+        Bucket key of every case in every table.
+    """
+    n_threads = get_num_threads()
+    # ``_HASH_BLOCK`` is an upper bound, not a target: a collection too small to
+    # give every thread a block is split finer instead.
+    block = min(_HASH_BLOCK, max(1, -(-X.shape[0] // n_threads)))
+    return _hash_collection_kernel(
+        np.ascontiguousarray(X),
+        filter_,
+        shift,
+        shingle_size,
+        seeds,
+        n_tables,
+        n_per_table,
+        block,
+    )
 
 
 class SSHIndexANN(BaseWholeSeriesSearch):
@@ -401,8 +426,9 @@ class SSHIndexANN(BaseWholeSeriesSearch):
         Whether to z-normalize series before sketching. The fitted collection is
         stored normalized, so re-ranking compares like with like.
     n_jobs : int, default=1
-        Number of parallel threads used for the sketch matrix product at fit time
-        and for the re-ranking distance computation.
+        Number of parallel threads used to hash the collection at fit time and
+        for the re-ranking distance computation. Cases are hashed independently,
+        so fit time scales close to linearly with this.
 
     Attributes
     ----------
@@ -412,13 +438,12 @@ class SSHIndexANN(BaseWholeSeriesSearch):
     filter_ : np.ndarray of shape (n_channels, window_length)
         The single Gaussian filter, shared by every series and every table. Table
         independence comes from ``hash_seeds_``, not from redrawing the filter.
-    filter_flat_ : np.ndarray of shape (n_channels * window_length,)
-        ``filter_`` flattened in C order, in the fitted data's floating precision.
     hash_seeds_ : np.ndarray of shape (n_tables * n_hashes_per_table,), uint64
         One seed per MinHash function.
-    tables_ : list of dict
-        The ``n_tables`` hash tables, each mapping a uint64 bucket key to an int
-        array of the case indices in that bucket.
+    tables_ : HashTables
+        The ``n_tables`` hash tables, holding the case indices of every bucket
+        in a flat compressed layout. ``_bucket_dicts`` materializes them as one
+        ``{bucket key: case indices}`` dict per table.
     n_sketch_bits_ : int
         Length of the sketch bit string.
     n_shingles_ : int
@@ -566,12 +591,6 @@ class SSHIndexANN(BaseWholeSeriesSearch):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
         self._distance_params = self.distance_params or {}
-        # Sketch in the caller's floating precision (float64 by default): float32
-        # input roughly halves the matmul cost and, since only the sign is kept,
-        # leaves the bits unchanged.
-        self._input_dtype = (
-            X.dtype if np.issubdtype(X.dtype, np.floating) else np.float64
-        )
         self.n_sketch_bits_ = _n_sketch_bits(
             self.n_timepoints_, self.window_length, self.shift
         )
@@ -585,10 +604,7 @@ class SSHIndexANN(BaseWholeSeriesSearch):
             self.X_ = X
 
         self._initialize_hash_functions()
-        # The sketch is a BLAS matrix product; cap its thread pool to honour
-        # n_jobs.
-        with threadpool_limits(limits=self._n_jobs, user_api="blas"):
-            keys = self._hash_collection(X)
+        keys = self._hash_collection(X)
         self.tables_ = _build_hash_tables(keys, self.n_tables)
         return self
 
@@ -596,9 +612,6 @@ class SSHIndexANN(BaseWholeSeriesSearch):
         """Draw the sketch filter and the MinHash seeds."""
         rng = np.random.default_rng(self.random_state)
         self.filter_ = rng.standard_normal(size=(self.n_channels_, self.window_length))
-        self.filter_flat_ = self.filter_.reshape(-1).astype(
-            self._input_dtype, copy=False
-        )
         self.hash_seeds_ = rng.integers(
             0,
             np.iinfo(np.uint64).max,
@@ -606,41 +619,9 @@ class SSHIndexANN(BaseWholeSeriesSearch):
             dtype=np.uint64,
         )
 
-    def _hash_chunk(self, X):
-        """
-        Run the full SSH pipeline on a chunk of cases and return its bucket keys.
-
-        Every intermediate array of the pipeline is proportional to the number of
-        rows given here, so this must be called on chunks sized by
-        ``_hash_chunk_size`` rather than on a whole collection.
-
-        Parameters
-        ----------
-        X : np.ndarray of shape (n_chunk, n_channels, n_timepoints)
-            Cases to hash, already normalized if ``normalize`` is True.
-
-        Returns
-        -------
-        keys : np.ndarray of shape (n_chunk, n_tables), dtype uint64
-            Bucket key of every case of the chunk in every table.
-        """
-        bits = _collection_to_sketch(
-            X, self.filter_flat_, self.window_length, self.shift
-        )
-        ids = _sketch_to_shingle_ids(bits, self.shingle_size)
-        elements = _shingles_to_elements(ids, _occurrence_ranks(ids))
-        minhashes = _elements_to_minhash(elements, self.hash_seeds_)
-        return _minhash_to_keys(minhashes, self.n_tables, self.n_hashes_per_table)
-
     def _hash_collection(self, X):
         """
-        Hash a collection chunk by chunk and return the bucket keys of every case.
-
-        Every stage of the pipeline is row-independent, so the collection is cut
-        into chunks of ``_hash_chunk_size`` cases and the keys of each chunk are
-        written into a preallocated output. Peak memory is then set by the chunk
-        rather than by ``n_cases``, and the only allocation that grows with the
-        collection is ``keys`` itself, at ``8 * n_tables`` bytes per case.
+        Run the SSH pipeline on a collection and return the bucket keys.
 
         Parameters
         ----------
@@ -652,19 +633,20 @@ class SSHIndexANN(BaseWholeSeriesSearch):
         keys : np.ndarray of shape (n_cases, n_tables), dtype uint64
             Bucket key of every series in every table.
         """
-        n_cases = X.shape[0]
-        chunk = _hash_chunk_size(
-            self.n_sketch_bits_,
-            self.n_shingles_,
-            self.n_channels_,
-            self.window_length,
-            np.dtype(self._input_dtype).itemsize,
-        )
-        keys = np.empty((n_cases, self.n_tables), dtype=np.uint64)
-        for start in range(0, n_cases, chunk):
-            stop = min(start + chunk, n_cases)
-            keys[start:stop] = self._hash_chunk(X[start:stop])
-        return keys
+        previous_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
+        try:
+            return _hash_collection(
+                X,
+                self.filter_,
+                self.shift,
+                self.shingle_size,
+                self.hash_seeds_,
+                self.n_tables,
+                self.n_hashes_per_table,
+            )
+        finally:
+            set_num_threads(previous_threads)
 
     def _hash_series(self, X):
         """

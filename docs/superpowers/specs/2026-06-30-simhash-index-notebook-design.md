@@ -34,7 +34,11 @@ Key facts the notebook draws on:
 - `(k, L)` amplification: `n_bits_per_table` (`k`) bits AND-ed into one table key,
   `n_tables` (`L`) tables OR-ed together (Indyk–Motwani 1998).
 - `_signatures_to_keys` packs each table's `k` bits into an integer bucket key via
-  powers of two; `tables_` is a list of `dict` mapping key → list of case indices.
+  powers of two; `_build_hash_tables` (in `_commons.py`) groups the cases into
+  per-table buckets and `tables_` is the resulting `HashTables` NamedTuple, holding
+  every table's buckets in a flat compressed layout (`table_offsets`, `bucket_keys`,
+  `bucket_starts`, `case_indices`). `_bucket_dicts(tables_)` materializes the
+  equivalent key → case indices dict per table.
 - A query is ranked by **collision count** (number of tables whose bucket it
   shares with the query); reported proxy distance is `1 / collision_count`.
 - `normalize=True` z-normalizes series so the sign projections capture angular
@@ -112,8 +116,10 @@ plots as noted.
      (`_collection_to_signature`); show the boolean signature matrix shape.
    - Packing a table's `k` bits into an integer key via powers of two
      (`_signatures_to_keys`); show a few real keys.
-   - Building `tables_`: one `dict` per table, key → list of case indices; inspect a
-     bucket. Reference the real fitted attributes (`hash_funcs_flat_`, `tables_`).
+   - Building `tables_`: a `HashTables` NamedTuple whose flat arrays hold every
+     table's buckets, so do not index `tables_[t]` or call `.get()`; use
+     `_bucket_dicts(tables_)` to inspect a bucket as key → case indices. Reference
+     the real fitted attributes (`hash_funcs_flat_`, `tables_`).
 
 7. **Answering a query** *(markdown + code/plot)*
    The query path: hash the query, probe its bucket in each of `L` tables, gather the
