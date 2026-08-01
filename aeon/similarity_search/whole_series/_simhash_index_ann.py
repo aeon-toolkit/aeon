@@ -204,6 +204,8 @@ n_channels * n_timepoints)
 
     See Also
     --------
+    SSHIndexANN : LSH index whose collisions are designed to correlate with DTW
+        similarity, and which is therefore not defeated by a time shift.
     NaiveSeriesSearch : Exact nearest neighbor search (slower but exact).
 
     References
