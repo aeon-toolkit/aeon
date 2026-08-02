@@ -147,3 +147,11 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
         return self.classifier.predict(Xt)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Return one-hot probabilities from MultiRocket-Hydra predictions."""
+        preds = self._predict(X)
+        class_indices = np.searchsorted(self.classes_, preds)
+        dists = np.zeros((len(preds), self.n_classes_))
+        dists[np.arange(len(preds)), class_indices] = 1
+        return dists

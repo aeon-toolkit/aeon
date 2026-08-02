@@ -189,10 +189,10 @@ class RocketClassifier(BaseClassifier):
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:
+            preds = self._predict(X)
+            class_indices = np.searchsorted(self.classes_, preds)
             dists = np.zeros((len(X), self.n_classes_))
-            preds = self.pipeline_.predict(X)
-            for i in range(0, len(X)):
-                dists[i, np.where(self.classes_ == preds[i])] = 1
+            dists[np.arange(len(X)), class_indices] = 1
             return dists
 
     @classmethod

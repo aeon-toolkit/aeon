@@ -189,10 +189,10 @@ class MiniRocketClassifier(BaseClassifier):
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
             preds = self.pipeline_.predict(X)
-            for i in range(0, X.shape[0]):
-                dists[i, np.where(self.classes_ == preds[i])] = 1
+            class_indices = np.searchsorted(self.classes_, preds)
+            dists = np.zeros((len(preds), self.n_classes_))
+            dists[np.arange(len(preds)), class_indices] = 1
             return dists
 
     @classmethod
