@@ -15,6 +15,9 @@ from aeon.utils.numba.general import (
     sliding_mean_std_one_series,
     unique_count,
     z_normalise_series,
+    z_normalise_series_2d,
+    z_normalise_series_2d_with_mean_std,
+    z_normalise_series_3d,
     z_normalise_series_with_mean_std,
 )
 
@@ -48,6 +51,47 @@ def test_z_normalise_series(type):
     a_expected = np.array([0, 0, 0], dtype=type)
     a_result = z_normalise_series(a)
     assert_array_equal(a_result, a_expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_2d_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.array([[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_2d(X).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_3d_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.array([[[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]]], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_3d(X).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_2d_with_mean_std_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.array([[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]], dtype=dtype)
+    mean = X.mean(axis=1).astype(np.float64)
+    std = X.std(axis=1).astype(np.float64)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_2d_with_mean_std(X, mean, std).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_3d_values_unchanged(dtype):
+    """Preserving the input precision must not change the normalised values."""
+    X = np.array(
+        [
+            [[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]],
+            [[4, 4, 4, 3, 3, 1], [8, 8, 8, 7, 7, 5]],
+        ],
+        dtype=dtype,
+    )
+    result = z_normalise_series_3d(X)
+    expected = (X - X.mean(axis=-1, keepdims=True)) / X.std(axis=-1, keepdims=True)
+    assert_array_almost_equal(result, expected, decimal=5)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
@@ -127,6 +171,33 @@ def test_normalise_subsequences(dtype):
     X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
     assert np.all(X_norm == 0)
     assert np.all(X.shape == X_norm.shape)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_subsequences_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.asarray([[[1, 2, 3, 4]], [[4, 5, 6, 8]]], dtype=dtype)
+    X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert X_norm.dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_subsequences_values_unchanged(dtype):
+    """Preserving the input precision must not change the normalised values."""
+    X = np.asarray([[[1, 2, 3, 4]], [[4, 5, 6, 8]]], dtype=dtype)
+    X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
+    expected = (X - X.mean(axis=2, keepdims=True)) / X.std(axis=2, keepdims=True)
+    assert_array_almost_equal(X_norm, expected, decimal=5)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_subsequences_zeroes_below_std_threshold(dtype):
+    """Constant subsequences must still fall back to the zero-filled default."""
+    X = np.asarray([[[2, 2, 2, 2]], [[1, 2, 3, 4]]], dtype=dtype)
+    X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
+    assert np.all(X_norm[0] == 0)
+    assert not np.all(X_norm[1] == 0)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
