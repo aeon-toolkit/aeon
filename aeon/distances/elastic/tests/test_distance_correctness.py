@@ -9,6 +9,7 @@ from numpy.testing import assert_almost_equal
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.distances import (
     ddtw_distance,
+    dtw_arow_distance,
     dtw_distance,
     dtw_gi_distance,
     edr_distance,
@@ -34,6 +35,7 @@ distances = [
     "ddtw",
     "wddtw",
     "twe",
+    "dtw_arow",
 ]
 
 distance_parameters = {
@@ -67,6 +69,7 @@ basic_motions_distances = {
     "squared": 757.25971908652,
     "dtw": [757.259719, 330.834497, 330.834497],
     "dtw_gi": [259.5333502342899, 310.10738471013804, 310.10738471013804],
+    "dtw_arow": 18.188856402051858,
     "wdtw": [165.41724, 3.308425, 0],
     "msm": [70.014828, 89.814828, 268.014828],
     "erp": [169.3715, 102.0979, 102.097904],
@@ -91,6 +94,8 @@ def test_multivariate_correctness():
     assert_almost_equal(d, basic_motions_distances["euclidean"], 4)
     d = squared_distance(case1, case2)
     assert_almost_equal(d, basic_motions_distances["squared"], 4)
+    d = dtw_arow_distance(case1, case2)
+    assert_almost_equal(d, basic_motions_distances["dtw_arow"], 4)
     for j in range(0, 3):
         d = dtw_distance(case1, case2, window=distance_parameters["dtw"][j])
         assert_almost_equal(d, basic_motions_distances["dtw"][j], 4)
