@@ -363,30 +363,33 @@ class RandomIntervals(BaseCollectionTransformer):
 
         for feature in self._features:
             if isinstance(feature, BaseTransformer):
+                # The interval slice is already validated (at the top-level fit)
+                # and in the numpy3D inner type, so collection transformers use
+                # the private path to skip redundant per-slice input checks.
+                interval = np.expand_dims(
+                    X[:, dim, interval_start:interval_end:dilation], axis=1
+                )
+                is_collection = isinstance(feature, BaseCollectionTransformer)
                 if transform:
                     feature = _clone_estimator(
                         feature,
                         seed,
                     )
 
-                    t = feature.fit_transform(
-                        np.expand_dims(
-                            X[:, dim, interval_start:interval_end:dilation], axis=1
-                        ),
-                        y,
+                    t = (
+                        feature._fit_transform(interval, y)
+                        if is_collection
+                        else feature.fit_transform(interval, y)
                     )
 
                     if t.ndim == 3 and t.shape[1] == 1:
                         t = t.reshape((t.shape[0], t.shape[2]))
 
                     Xt_parts.append(t)
+                elif is_collection:
+                    feature._fit(interval, y)
                 else:
-                    feature.fit(
-                        np.expand_dims(
-                            X[:, dim, interval_start:interval_end:dilation], axis=1
-                        ),
-                        y,
-                    )
+                    feature.fit(interval, y)
             elif transform:
                 t = np.asarray(
                     feature(X[:, dim, interval_start:interval_end:dilation])
@@ -415,8 +418,14 @@ class RandomIntervals(BaseCollectionTransformer):
                 return np.zeros((X.shape[0], 1))
 
         if isinstance(feature, BaseTransformer):
-            Xt = feature.transform(
-                np.expand_dims(X[:, dim, interval_start:interval_end:dilation], axis=1)
+            interval = np.expand_dims(
+                X[:, dim, interval_start:interval_end:dilation], axis=1
+            )
+            # See _generate_interval: private path skips redundant per-slice checks.
+            Xt = (
+                feature._transform(interval)
+                if isinstance(feature, BaseCollectionTransformer)
+                else feature.transform(interval)
             )
 
             if Xt.ndim == 3:
