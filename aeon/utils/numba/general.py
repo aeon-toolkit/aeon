@@ -244,6 +244,21 @@ def z_normalise_series_with_mean_std(
 
 
 @njit(fastmath=True, cache=True)
+def _zeros_normalised(X: np.ndarray) -> np.ndarray:
+    """Allocate the output of a z-normalisation, preserving floating precision.
+
+    ``np.zeros(X.shape)`` always returns float64, which silently doubles the memory
+    of a float32 collection. Numba supports neither ``np.promote_types`` nor a
+    comparison against ``X.dtype``, so the output dtype is taken from a true
+    division of two scalars of the input dtype: this is the very operation the
+    normalisation performs, so it reproduces numpy's promotion exactly (any integer
+    or boolean dtype gives float64, float32 gives float32, float64 gives float64).
+    """
+    one = np.ones(1, X.dtype)[0]
+    return np.zeros(X.shape, dtype=type(one / one))
+
+
+@njit(fastmath=True, cache=True)
 def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 2d numpy array.
 
@@ -264,7 +279,7 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_norm = z_normalise_series_2d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = _zeros_normalised(X)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series(X[i])
     return arr
@@ -291,7 +306,7 @@ def z_normalise_series_2d_with_mean_std(
     arr : array, shape = (n_channels, n_timepoints)
         The normalised array
     """
-    arr = np.zeros(X.shape)
+    arr = _zeros_normalised(X)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series_with_mean_std(X[i], series_mean[i], series_std[i])
     return arr
@@ -321,7 +336,7 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_norm = z_normalise_series_3d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = _zeros_normalised(X)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series_2d(X[i])
     return arr
@@ -594,8 +609,8 @@ def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.n
     array, shape = (n_timepoints-(length-1)*dilation, n_channels, length)
         Z-normalised subsequences.
     """
-    n_subsequences, n_channels, length = X_subs.shape
-    X_new = np.zeros((n_subsequences, n_channels, length))
+    n_subsequences, n_channels, _ = X_subs.shape
+    X_new = _zeros_normalised(X_subs)
     for i_sub in prange(n_subsequences):
         for i_channel in prange(n_channels):
             if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
