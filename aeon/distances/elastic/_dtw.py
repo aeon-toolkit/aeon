@@ -8,7 +8,10 @@ from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
-from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
+from aeon.distances.elastic._bounding_matrix import (
+    create_band_bounds,
+    create_bounding_matrix,
+)
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
@@ -25,7 +28,7 @@ def dtw_distance(
     r"""Compute the DTW distance between two time series.
 
     DTW is the most widely researched and used elastic distance method. It mitigates
-    distortions in the time axis by realligning (warping) the series to best match
+    distortions in the time axis by realigning (warping) the series to best match
     each other. A good background into DTW can be found in [1]_. For two series,
     possibly of unequal length,
     :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
@@ -54,12 +57,13 @@ def dtw_distance(
     is the path that has the minimum distance, hence the DTW distance between series is
 
     .. math::
-        d_{dtw}(\mathbf{x}, \mathbf{x}) =D_{P*}(\mathbf{x},\mathbf{x}, M).
+        d_{dtw}(\mathbf{x}, \mathbf{y}) =D_{P*}(\mathbf{x},\mathbf{y}, M).
 
     The optimal warping path :math:`P^*` can be found exactly through a dynamic
     programming formulation. This can be a time consuming operation, and it is common to
     put a restriction on the amount of warping allowed. This is implemented through
-    the bounding_matrix structure, that supplies a mask for allowable warpings.
+    per-row band bounds that restrict which cells of :math:`M` the dynamic program
+    visits, so a narrower band reduces both computation and memory.
     The most common bounding strategies include the Sakoe-Chiba band [2]_. The width
     of the allowed warping is controlled through the ``window`` parameter
     which sets the maximum proportion of warping allowed.
@@ -78,11 +82,11 @@ def dtw_distance(
         Window is a percentage deviation from the diagonal of the DTW cost matrix, so if
         ``window = 0.1`` then 10% of the series length is the maximum warping allowed.
         This parameter limits how far DTW is allowed to warp in time by restricting
-        alignments to a diagonal band whose width is given by a fraction of the maximum
-        series length.
-        For example, if there are 10 time points in the longer series and window = 0.1,
-        DTW alignments are restricted such that the warping path may deviate by at most
-        one cell from the diagonal.
+        alignments to a diagonal band whose half-width is ``int(window * n)`` cells,
+        where ``n`` is the length of the shorter series. For unequal-length series the
+        band follows the interpolated diagonal of the cost matrix.
+        For example, if both series have 10 time points and ``window = 0.1``, the
+        warping path may deviate by at most one cell from the diagonal.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -122,15 +126,9 @@ def dtw_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(
-            _x.shape[1], _y.shape[1], window, itakura_max_slope
-        )
-        return _dtw_distance(_x, _y, bounding_matrix)
+        return _dtw_distance_direct(_x, _y, window, itakura_max_slope)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(
-            x.shape[1], y.shape[1], window, itakura_max_slope
-        )
-        return _dtw_distance(x, y, bounding_matrix)
+        return _dtw_distance_direct(x, y, window, itakura_max_slope)
     raise ValueError("x and y must be 1D or 2D")
 
 
@@ -141,10 +139,12 @@ def dtw_cost_matrix(
     window: float | None = None,
     itakura_max_slope: float | None = None,
 ) -> np.ndarray:
-    r"""Compute the DTW cost matrix between two time series.
+    r"""Compute the DTW accumulated cost matrix between two time series.
 
-    The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the DTW path calculations.
+    Entry :math:`(i,j)` of the returned matrix is the cost of the optimal warping
+    path aligning the first :math:`i+1` points of ``x`` with the first :math:`j+1`
+    points of ``y``, where the pointwise cost is the squared distance
+    :math:`(x_i-y_j)^2`. It is used in the DTW path calculations.
 
     Parameters
     ----------
@@ -158,7 +158,6 @@ def dtw_cost_matrix(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1``,
         10% of the series length is the max warping allowed.
-        is used.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -261,6 +260,146 @@ def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> 
 
 
 @njit(cache=True, fastmath=True)
+def _dtw_distance_direct(
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float | None,
+    itakura_max_slope: float | None,
+) -> float:
+    """DTW distance without materializing a dense bounding matrix.
+
+    Computes per-row band bounds directly (O(n) memory instead of O(n*m)) and
+    runs a banded DP that only visits in-band cells, so a Sakoe-Chiba window or
+    Itakura parallelogram reduces work proportionally instead of just masking.
+    """
+    # Iterate over the larger dimension so the rolling buffers are sized by the
+    # smaller one (same optimization as _dtw_distance). Bounds are computed after
+    # the swap, which matches the dense version's transposed construction.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    if itakura_max_slope is None and x_size == y_size:
+        # Equal-length Sakoe-Chiba rows have closed-form bounds
+        # [max(0, i - t), min(n, i + t + 1)) with t = int(window * n) -- identical
+        # to create_bounding_matrix's stepping construction in this case -- so no
+        # bounds arrays are needed at all: the only O(n) memory is the two rolling
+        # cost rows, matching dtaidistance's compact storage.
+        if window is None or window == 1.0:
+            thickness = y_size  # covers the whole matrix: full window
+        else:
+            if window < 0 or window > 1:
+                raise ValueError("window must be between 0 and 1")
+            thickness = int(window * y_size)
+        return _dtw_distance_sakoe_equal(x, y, thickness)
+    j_start, j_end = create_band_bounds(x_size, y_size, window, itakura_max_slope)
+    return _dtw_distance_banded(x, y, j_start, j_end)
+
+
+@njit(cache=True, fastmath=True)
+def _dtw_distance_sakoe_equal(x: np.ndarray, y: np.ndarray, thickness: int) -> float:
+    """Banded DTW for equal-length series with inline Sakoe-Chiba row bounds.
+
+    Same recurrence and buffer discipline as _dtw_distance_banded, but the band
+    [max(0, i - thickness), min(n, i + thickness + 1)) is computed per row instead
+    of stored, eliminating the bounds arrays.
+    """
+    n = x.shape[1]
+    prev = np.full(n + 1, np.inf)
+    curr = np.full(n + 1, np.inf)
+    prev[0] = 0.0
+
+    # Univariate fast path: read scalars from flat 1D views instead of creating two
+    # strided column views and running the channel loop for every DP cell.
+    univariate = x.shape[0] == 1 and y.shape[0] == 1
+    x0 = x[0]
+    y0 = y[0]
+
+    for i in range(n):
+        start = i - thickness
+        if start < 0:
+            start = 0
+        end = i + thickness + 1
+        if end > n:
+            end = n
+        curr[start] = np.inf
+
+        if univariate:
+            xi = x0[i]
+            for j in range(start, end):
+                difference = xi - y0[j]
+                curr[j + 1] = difference * difference + min(
+                    prev[j], prev[j + 1], curr[j]
+                )
+        else:
+            for j in range(start, end):
+                cost = _univariate_squared_distance(x[:, i], y[:, j])
+                curr[j + 1] = cost + min(prev[j], prev[j + 1], curr[j])
+
+        prev, curr = curr, prev
+
+    return prev[n]
+
+
+@njit(cache=True, fastmath=True)
+def _dtw_distance_banded(
+    x: np.ndarray, y: np.ndarray, j_start: np.ndarray, j_end: np.ndarray
+) -> float:
+    """Banded DTW on per-row column bounds [j_start[i], j_end[i]).
+
+    Uses the same two-buffer O(min(N, M))-space scheme as _dtw_distance, but the
+    inner loop covers only the in-band range, and the row hand-off is a buffer
+    swap instead of an O(M) copy.
+
+    Correctness of buffer reuse relies on j_start and j_end being non-decreasing
+    (guaranteed by create_band_bounds): positions right of a row's band still
+    hold +inf from initialization (no earlier row's band reached them), and the
+    single readable position left of the band is explicitly set to +inf each row.
+    """
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # A row with an empty band (possible for extreme Itakura slopes) means no
+    # valid warping path exists; the dense-masked DP yields +inf there too.
+    for i in range(x_size):
+        if j_end[i] <= j_start[i]:
+            return np.inf
+
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+    prev[0] = 0.0
+
+    # Univariate fast path: read scalars from flat 1D views instead of creating two
+    # strided column views and running the channel loop for every DP cell.
+    univariate = x.shape[0] == 1 and y.shape[0] == 1
+    x0 = x[0]
+    y0 = y[0]
+
+    for i in range(x_size):
+        start = j_start[i]
+        end = j_end[i]
+        # curr[start] stores cell (i, start - 1), which is out of band (or the
+        # column-0 boundary when start == 0): always +inf.
+        curr[start] = np.inf
+
+        if univariate:
+            xi = x0[i]
+            for j in range(start, end):
+                difference = xi - y0[j]
+                curr[j + 1] = difference * difference + min(
+                    prev[j], prev[j + 1], curr[j]
+                )
+        else:
+            for j in range(start, end):
+                cost = _univariate_squared_distance(x[:, i], y[:, j])
+                curr[j + 1] = cost + min(prev[j], prev[j + 1], curr[j])
+
+        prev, curr = curr, prev
+
+    return prev[y_size]
+
+
+@njit(cache=True, fastmath=True)
 def _dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
@@ -335,7 +474,7 @@ def dtw_pairwise_distance(
     np.ndarray
         DTW pairwise matrix between the instances of X of shape
         ``(n_cases, n_cases)`` or between X and y of shape ``(n_cases,
-        n_cases)``.
+        m_cases)``.
 
     Raises
     ------
@@ -376,19 +515,13 @@ def dtw_pairwise_distance(
            [292.,  83.,   0.]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = _convert_collection_to_numba_list(
-        X, "X", multivariate_conversion
-    )
+    _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
 
     if y is None:
         # To self
-        return _dtw_pairwise_distance(_X, window, itakura_max_slope, unequal_length)
-    _y, unequal_length = _convert_collection_to_numba_list(
-        y, "y", multivariate_conversion
-    )
-    return _dtw_from_multiple_to_multiple_distance(
-        _X, _y, window, itakura_max_slope, unequal_length
-    )
+        return _dtw_pairwise_distance(_X, window, itakura_max_slope)
+    _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
+    return _dtw_from_multiple_to_multiple_distance(_X, _y, window, itakura_max_slope)
 
 
 @njit(cache=True, fastmath=True, parallel=True)
@@ -396,24 +529,18 @@ def _dtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: float | None,
     itakura_max_slope: float | None,
-    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    if not unequal_length:
-        n_timepoints = X[0].shape[1]
-        bounding_matrix = create_bounding_matrix(
-            n_timepoints, n_timepoints, window, itakura_max_slope
-        )
+    # _dtw_distance_direct computes band bounds per pair: closed-form (zero setup)
+    # for equal-length pairs, O(n) bounds arrays otherwise -- so nothing needs to
+    # be hoisted here and no dense mask is ever built.
     for i in prange(n_cases):
         for j in range(i + 1, n_cases):
-            x1, x2 = X[i], X[j]
-            if unequal_length:
-                bounding_matrix = create_bounding_matrix(
-                    x1.shape[1], x2.shape[1], window, itakura_max_slope
-                )
-            distances[i, j] = _dtw_distance(x1, x2, bounding_matrix)
+            distances[i, j] = _dtw_distance_direct(
+                X[i], X[j], window, itakura_max_slope
+            )
             distances[j, i] = distances[i, j]
 
     return distances
@@ -425,24 +552,17 @@ def _dtw_from_multiple_to_multiple_distance(
     y: NumbaList[np.ndarray],
     window: float | None,
     itakura_max_slope: float | None,
-    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    if not unequal_length:
-        bounding_matrix = create_bounding_matrix(
-            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
-        )
+    # See _dtw_pairwise_distance: per-pair band bounds replace the dense mask.
     for i in prange(n_cases):
         for j in range(m_cases):
-            x1, y1 = x[i], y[j]
-            if unequal_length:
-                bounding_matrix = create_bounding_matrix(
-                    x1.shape[1], y1.shape[1], window, itakura_max_slope
-                )
-            distances[i, j] = _dtw_distance(x1, y1, bounding_matrix)
+            distances[i, j] = _dtw_distance_direct(
+                x[i], y[j], window, itakura_max_slope
+            )
     return distances
 
 
