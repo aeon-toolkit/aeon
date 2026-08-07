@@ -160,7 +160,7 @@ class REDCOMETS(BaseClassifier):
                     self.sax_clfs,
                 ) = self._build_univariate_ensemble(X_concat, y)
 
-            elif self.variant in [4, 5, 6, 7, 8, 9]:  # Ensemble
+            else:  # Ensemble (variants 4-9)
                 (
                     self.sfa_transforms,
                     self.sfa_clfs,
@@ -396,8 +396,8 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
                 return self._predict_proba_unvivariate(X_concat)
-            elif self.variant in [4, 5, 6, 7, 8, 9]:
-                return self._predict_proba_dimension_ensemble(X)  # Ensemble
+            else:  # Ensemble (variants 4-9)
+                return self._predict_proba_dimension_ensemble(X)
 
     def _predict_proba_unvivariate(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in univariate X.
@@ -473,8 +473,7 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [6, 7, 8, 9]:
                 dimension_pred_mats = None
             for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
-                sfa_dics = sfa.transform_words(X_d)
-                X_sfa = sfa_dics[:, 0, :]
+                X_sfa = sfa.transform_words(X_d)[0]
 
                 rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -486,7 +485,7 @@ class REDCOMETS(BaseClassifier):
                             (ensemble_pred_mats, [rf_pred_mat])
                         )
 
-                elif self.variant in [6, 7, 8, 9]:
+                else:  # variants 6-9
                     if dimension_pred_mats is None:
                         dimension_pred_mats = [rf_pred_mat]
                     else:
@@ -507,7 +506,7 @@ class REDCOMETS(BaseClassifier):
                             (ensemble_pred_mats, [rf_pred_mat])
                         )
 
-                elif self.variant in [6, 7, 8, 9]:
+                else:  # variants 6-9
                     if dimension_pred_mats is None:
                         dimension_pred_mats = [rf_pred_mat]
                     else:
@@ -518,7 +517,7 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [6, 7, 8, 9]:
                 if self.variant in [6, 7]:
                     fused_dimension_pred_mat = np.sum(dimension_pred_mats, axis=0)
-                elif self.variant in [8, 9]:
+                else:  # variants 8, 9
                     weights = np.array(
                         [np.mean(mat.max(axis=1)) for mat in dimension_pred_mats]
                     ).reshape(-1, 1)
@@ -535,7 +534,7 @@ class REDCOMETS(BaseClassifier):
 
         if self.variant in [4, 6, 7]:
             pred_mat = np.sum(np.array(ensemble_pred_mats), axis=0)
-        elif self.variant in [5, 8, 9]:
+        else:  # variants 5, 8, 9
             weights = np.array(
                 [np.mean(mat.max(axis=1)) for mat in ensemble_pred_mats]
             ).reshape(-1, 1)
