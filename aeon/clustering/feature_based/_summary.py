@@ -88,7 +88,6 @@ class SummaryClusterer(BaseClusterer):
         self.random_state = random_state
 
         self._transformer = None
-        self.estimator_ = None
 
         super().__init__()
 
