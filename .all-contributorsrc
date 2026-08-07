@@ -2957,6 +2957,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "Hrafz",
+      "name": "Achraf Ez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/100241333?v=4",
+      "profile": "https://github.com/Hrafz",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "montyy123",
+      "name": "Souvik Kumar Mohanty",
+      "avatar_url": "https://avatars.githubusercontent.com/u/206427581?v=4",
+      "profile": "https://github.com/montyy123",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
