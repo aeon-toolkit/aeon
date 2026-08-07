@@ -360,7 +360,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.is_fitted = True
 
         # use deep copy to preserve fit state
-        self._estimator = deepcopy(estimator)
+        self.estimator_ = deepcopy(estimator)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
