@@ -105,7 +105,6 @@ class TSFreshClusterer(BaseClusterer):
         self.n_clusters = n_clusters
 
         self._transformer = None
-        self.estimator_ = None
 
         super().__init__()
 
