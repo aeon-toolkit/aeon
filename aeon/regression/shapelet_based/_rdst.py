@@ -145,7 +145,6 @@ class RDSTRegressor(BaseRegressor):
         self.transformed_data_ = []
 
         self._transformer = None
-        self.estimator_ = None
 
         super().__init__()
 
