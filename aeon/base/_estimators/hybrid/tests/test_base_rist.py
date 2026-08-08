@@ -1,5 +1,7 @@
 """Tests for the RIST estimators."""
 
+import warnings
+
 import numpy as np
 import pytest
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
@@ -26,12 +28,18 @@ def test_rist_soft_dependencies():
     rist = RISTClassifier()
     assert rist.get_tag("python_dependencies") == "statsmodels"
 
-    rist = RISTClassifier(use_pycatch22=True)
-    assert rist.get_tag("python_dependencies") == ["statsmodels", "pycatch22"]
-
     X, y = make_example_3d_numpy()
-    rist.fit(X, y)
-    preds = rist.predict(X)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", FutureWarning)
+        rist = RISTClassifier(use_pycatch22=True)
+        assert rist.get_tag("python_dependencies") == ["statsmodels", "pycatch22"]
+        rist.fit(X, y)
+        preds = rist.predict(X)
+
+    deprecation_warnings = [
+        warning for warning in caught if "use_pycatch22" in str(warning.message)
+    ]
+    assert len(deprecation_warnings) == 1
 
     assert isinstance(preds, np.ndarray)
     assert preds.shape[0] == 10
