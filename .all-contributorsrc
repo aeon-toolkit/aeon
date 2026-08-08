@@ -2975,6 +2975,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "aashoday",
+      "name": "Aashoday",
+      "avatar_url": "https://avatars.githubusercontent.com/u/182349767?v=4",
+      "profile": "https://github.com/aashoday",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
