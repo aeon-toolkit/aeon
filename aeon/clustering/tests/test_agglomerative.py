@@ -144,3 +144,17 @@ def test_non_finite_distance_matrix_raises(monkeypatch):
 
     with pytest.raises(ValueError, match="NaN|infinite"):
         model.fit(X)
+
+
+def test_estimator_attribute_created_on_fit():
+    """Test that estimator_ is only set after fitting, not before."""
+    X = make_example_3d_numpy(20, 1, 10, random_state=1, return_y=False)
+    model = TimeSeriesAgglomerative(n_clusters=2, distance="euclidean")
+
+    assert not hasattr(model, "estimator_")
+
+    model.fit(X)
+
+    assert hasattr(model, "estimator_")
+    assert isinstance(model.estimator_, AgglomerativeClustering)
+    assert not hasattr(model, "_estimator")

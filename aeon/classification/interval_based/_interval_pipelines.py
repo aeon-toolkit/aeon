@@ -22,14 +22,14 @@ class RandomIntervalClassifier(BaseClassifier):
     """
     Random Interval Classifier.
 
-    Extracts multiple intervals with random length, position and dimension from series
+    Extracts multiple intervals with random length, position and channel from series
     and concatenates them into a feature vector. Builds an estimator on the
     transformed data.
 
     Parameters
     ----------
     n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
@@ -68,7 +68,7 @@ class RandomIntervalClassifier(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_classes_ : int
@@ -262,7 +262,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         The number of times the supervised interval selection process is run. This
         process will extract more then one interval per run.
         Each supervised extraction will output a varying amount of features based on
-        series length, number of dimensions and the number of features.
+        series length, number of channels and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
     features : callable, list of callables, default=None
@@ -304,7 +304,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_classes_ : int

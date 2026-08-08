@@ -60,6 +60,8 @@ class HydraClassifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
+    clf_ : sklearn classifier
+        The fitted classifier.
 
     See Also
     --------
@@ -121,19 +123,19 @@ class HydraClassifier(BaseClassifier):
             random_state=self.random_state,
         )
 
-        self._clf = make_pipeline(
+        self.clf_ = make_pipeline(
             transform,
             _SparseScaler(),
             RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             ),
         )
-        self._clf.fit(X, y)
+        self.clf_.fit(X, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        return self._clf.predict(X)
+        return self.clf_.predict(X)
 
 
 class _SparseScaler:
