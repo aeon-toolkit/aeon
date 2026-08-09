@@ -68,6 +68,8 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         Coefficients for autoregressive terms (length p).
     theta_ : np.ndarray
         Coefficients for moving average terms (length q).
+    model_ : np.ndarray
+        Array containing the structure of the fitted model (constant, p, q).
 
     References
     ----------

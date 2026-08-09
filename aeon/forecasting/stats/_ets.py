@@ -75,6 +75,9 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Log-likelihood of the fitted model.
     n_timepoints_ : int
         Number of time points in the training series.
+    model_ : np.ndarray
+        Array containing the structure of the fitted model (error, trend,
+        seasonality, seasonal_period).
 
     References
     ----------
