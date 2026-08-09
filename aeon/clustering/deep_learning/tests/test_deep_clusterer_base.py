@@ -53,8 +53,10 @@ def test_deep_clusterer_estimator_attribute():
     clusterer = MockDeepClusterer()
 
     assert not hasattr(clusterer, "estimator_")
+    assert not hasattr(clusterer, "_estimator")
 
     clusterer.fit(X)
 
     assert hasattr(clusterer, "estimator_")
     assert clusterer.estimator_ is not None
+    assert not hasattr(clusterer, "_estimator")
