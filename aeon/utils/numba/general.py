@@ -397,7 +397,7 @@ def get_subsequence(
         The resulting subsequence.
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length))
+    values = np.zeros((n_channels, length), dtype=(X[:0] / 1).dtype)
     idx = i_start
     for i_length in prange(length):
         values[:, i_length] = X[:, idx]
@@ -433,9 +433,10 @@ def get_subsequence_with_mean_std(
         The std of each channel
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length), dtype=np.float64)
-    means = np.zeros(n_channels, dtype=np.float64)
-    stds = np.zeros(n_channels, dtype=np.float64)
+    output_dtype = (X[:0] / 1).dtype
+    values = np.zeros((n_channels, length), dtype=output_dtype)
+    means = np.zeros(n_channels, dtype=output_dtype)
+    stds = np.zeros(n_channels, dtype=output_dtype)
     for i_channel in prange(n_channels):
         _sum = 0
         _sum2 = 0
@@ -527,8 +528,9 @@ def sliding_mean_std_one_series(
         raise ValueError(
             "Invalid input parameter for sliding mean and std computations"
         )
-    mean = np.zeros((n_channels, n_subs))
-    std = np.zeros((n_channels, n_subs))
+    output_dtype = (X[:0] / 1).dtype
+    mean = np.zeros((n_channels, n_subs), dtype=output_dtype)
+    std = np.zeros((n_channels, n_subs), dtype=output_dtype)
 
     for i_mod_dil in prange(dilation):
         # Array mainting indexes of a dilated subsequence
@@ -684,7 +686,7 @@ def slope_derivative(X: np.ndarray) -> np.ndarray:
     """
     if X.shape[0] < 3:
         raise ValueError("Time series must have at least 3 points.")
-    result = np.zeros(X.shape[0] - 2)
+    result = np.zeros(X.shape[0] - 2, dtype=(X[:0] / 1).dtype)
     for i in range(1, X.shape[0] - 1):
         result[i - 1] = ((X[i] - X[i - 1]) + (X[i + 1] - X[i - 1]) / 2.0) / 2.0
     return result
@@ -731,7 +733,7 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_der = slope_derivative_2d(X)
     """
-    arr = np.zeros((X.shape[0], X.shape[1] - 2))
+    arr = np.zeros((X.shape[0], X.shape[1] - 2), dtype=(X[:0] / 1).dtype)
     for i in range(X.shape[0]):
         arr[i] = slope_derivative(X[i])
     return arr
@@ -781,7 +783,7 @@ def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_der = slope_derivative_3d(X)
     """
-    arr = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
+    arr = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2), dtype=(X[:0] / 1).dtype)
     for i in range(X.shape[0]):
         arr[i] = slope_derivative_2d(X[i])
     return arr
