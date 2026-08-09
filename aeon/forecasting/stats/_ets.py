@@ -123,7 +123,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
-        self._model = []
+        self.model_ = []
         self.parameters_ = []
         self.alpha_ = 0
         self.beta_ = 0
@@ -169,7 +169,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self._seasonal_period = self.seasonal_period
         if self._seasonal_period < 1 or self._seasonality_type == 0:
             self._seasonal_period = 1
-        self._model = np.array(
+        self.model_ = np.array(
             [
                 self._error_type,
                 self._trend_type,
@@ -183,11 +183,11 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             1,
             1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
             data,
-            self._model,
+            self.model_,
             max_iter=self.iterations,
         )
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
-            self.parameters_, self._model
+            self.parameters_, self.model_
         )
         (
             self.aic_,
@@ -200,7 +200,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.avg_mean_sq_err_,
             self.likelihood_,
             self.k_,
-        ) = _ets_fit(self.parameters_, data, self._model)
+        ) = _ets_fit(self.parameters_, data, self.model_)
         self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
