@@ -154,6 +154,33 @@ def first_order_differences_3d(X: np.ndarray) -> np.ndarray:
     return X[:, :, 1:] - X[:, :, :-1]
 
 
+@njit(fastmath=True, cache=True, nogil=True)
+def _as_normalised_float(X: np.ndarray) -> np.ndarray:
+    """Return a float copy of ``X``, in the dtype its z-normalisation should output.
+
+    ``np.zeros(X.shape)`` always returns float64, which silently doubles the memory
+    of a float32 input. Dividing by one is the operation the normalisation performs,
+    so numpy's promotion rules give the intended output dtype: float32 stays float32,
+    and every integer or boolean dtype normalises in float64. Numba supports neither
+    ``np.promote_types`` nor ``np.result_type``, so it is also the simplest way to
+    ask numpy for that rule from a jitted function.
+    """
+    return X / 1
+
+
+@njit(fastmath=True, cache=True, nogil=True)
+def _z_normalise_inplace(arr: np.ndarray, series_mean: float, series_std: float):
+    """Z-normalise a 1d float array in place, dividing only above the std threshold.
+
+    ``series_mean`` and ``series_std`` are left in float64: an in-place operation is
+    evaluated in the promoted dtype and rounded on the store, so a float32 ``arr``
+    still gets the accuracy of float64 statistics.
+    """
+    arr -= series_mean
+    if series_std > AEON_NUMBA_STD_THRESHOLD:
+        arr /= series_std
+
+
 @njit(fastmath=True, cache=True)
 def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array with mean.
@@ -178,11 +205,8 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_norm = z_normalise_series_with_mean(X, mean(X))
     """
-    s = stats.std(X)
-    if s > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - series_mean) / s
-    else:
-        arr = X - series_mean
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, series_mean, stats.std(X))
     return arr
 
 
@@ -207,11 +231,8 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_norm = z_normalise_series(X)
     """
-    s = stats.std(X)
-    if s > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - stats.mean(X)) / s
-    else:
-        arr = X - stats.mean(X)
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, stats.mean(X), stats.std(X))
     return arr
 
 
@@ -236,26 +257,9 @@ def z_normalise_series_with_mean_std(
     arr :  1d numpy array
         The normalised series
     """
-    if series_std > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - series_mean) / series_std
-    else:
-        return X - series_mean
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, series_mean, series_std)
     return arr
-
-
-@njit(fastmath=True, cache=True)
-def _zeros_normalised(X: np.ndarray) -> np.ndarray:
-    """Allocate the output of a z-normalisation, preserving floating precision.
-
-    ``np.zeros(X.shape)`` always returns float64, which silently doubles the memory
-    of a float32 collection. Numba supports neither ``np.promote_types`` nor a
-    comparison against ``X.dtype``, so the output dtype is taken from a true
-    division of two scalars of the input dtype: this is the very operation the
-    normalisation performs, so it reproduces numpy's promotion exactly (any integer
-    or boolean dtype gives float64, float32 gives float32, float64 gives float64).
-    """
-    one = np.ones(1, X.dtype)[0]
-    return np.zeros(X.shape, dtype=type(one / one))
 
 
 @njit(fastmath=True, cache=True)
@@ -279,9 +283,9 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_norm = z_normalise_series_2d(X)
     """
-    arr = _zeros_normalised(X)
+    arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        arr[i] = z_normalise_series(X[i])
+        _z_normalise_inplace(arr[i], stats.mean(X[i]), stats.std(X[i]))
     return arr
 
 
@@ -306,9 +310,9 @@ def z_normalise_series_2d_with_mean_std(
     arr : array, shape = (n_channels, n_timepoints)
         The normalised array
     """
-    arr = _zeros_normalised(X)
-    for i in range(X.shape[0]):
-        arr[i] = z_normalise_series_with_mean_std(X[i], series_mean[i], series_std[i])
+    arr = _as_normalised_float(X)
+    for i in range(arr.shape[0]):
+        _z_normalise_inplace(arr[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -336,9 +340,10 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_norm = z_normalise_series_3d(X)
     """
-    arr = _zeros_normalised(X)
+    arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        arr[i] = z_normalise_series_2d(X[i])
+        for j in range(X.shape[1]):
+            _z_normalise_inplace(arr[i, j], stats.mean(X[i, j]), stats.std(X[i, j]))
     return arr
 
 
@@ -610,14 +615,17 @@ def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.n
         Z-normalised subsequences.
     """
     n_subsequences, n_channels, _ = X_subs.shape
-    X_new = _zeros_normalised(X_subs)
+    X_new = _as_normalised_float(X_subs)
     for i_sub in prange(n_subsequences):
         for i_channel in prange(n_channels):
             if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
-                X_new[i_sub, i_channel] = (
-                    X_subs[i_sub, i_channel] - X_means[i_channel, i_sub]
-                ) / X_stds[i_channel, i_sub]
-            # else it gives 0, the default value
+                _z_normalise_inplace(
+                    X_new[i_sub, i_channel],
+                    X_means[i_channel, i_sub],
+                    X_stds[i_channel, i_sub],
+                )
+            else:
+                X_new[i_sub, i_channel] = 0
     return X_new
 
 

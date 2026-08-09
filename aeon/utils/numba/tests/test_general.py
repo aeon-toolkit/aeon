@@ -18,6 +18,7 @@ from aeon.utils.numba.general import (
     z_normalise_series_2d,
     z_normalise_series_2d_with_mean_std,
     z_normalise_series_3d,
+    z_normalise_series_with_mean,
     z_normalise_series_with_mean_std,
 )
 
@@ -51,6 +52,40 @@ def test_z_normalise_series(type):
     a_expected = np.array([0, 0, 0], dtype=type)
     a_result = z_normalise_series(a)
     assert_array_equal(a_result, a_expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    a = np.array([1, 2, 2, 3, 3, 3], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series(a).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_with_mean_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    a = np.array([1, 2, 2, 3, 3, 3], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_with_mean(a, a.mean()).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_with_mean_std_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    a = np.array([1, 2, 2, 3, 3, 3], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_with_mean_std(a, a.mean(), a.std()).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_constant_input_preserves_float_precision(dtype):
+    """The below-threshold std branch must return the same dtype as the main one."""
+    a = np.full(6, 2, dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series(a).dtype == expected
+    assert z_normalise_series_with_mean(a, a.mean()).dtype == expected
+    assert z_normalise_series_with_mean_std(a, a.mean(), a.std()).dtype == expected
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
