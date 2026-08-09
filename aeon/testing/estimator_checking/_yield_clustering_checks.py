@@ -170,7 +170,7 @@ def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
                 FULL_TEST_DATA_DICT[datatype]["train"][1],
             )
 
-            estimator_pre_trained = deep_cltr_train._estimator
+            estimator_pre_trained = deep_cltr_train.estimator_
 
             deep_cltr_best = estimator_class()
             deep_cltr_best.load_model(
