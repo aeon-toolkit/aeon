@@ -84,6 +84,9 @@ class TimeSeriesAgglomerative(BaseClusterer):
         ``compute_distances=True``.
     distance_matrix_ : np.ndarray of shape (n_cases, n_cases)
         Pairwise time-series distance matrix used for clustering.
+    estimator_ : sklearn.cluster.AgglomerativeClustering
+        The fitted scikit-learn ``AgglomerativeClustering`` estimator used
+        internally to perform clustering.
 
     Examples
     --------
@@ -161,7 +164,7 @@ class TimeSeriesAgglomerative(BaseClusterer):
         if hasattr(estimator, "distances_"):
             self.distances_ = estimator.distances_
 
-        self._estimator = estimator
+        self.estimator_ = estimator
 
         return self
 
