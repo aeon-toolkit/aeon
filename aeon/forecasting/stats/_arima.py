@@ -102,7 +102,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self.residuals_ = []
         self.fitted_values_ = []
         self.aic_ = 0
-        self._model = []
+        self.model_ = []
         self._parameters = []
         self.exog_ = None
         self.beta_ = None
@@ -146,17 +146,17 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             self.exog_n_features_ = None
 
         # Model is an array of the (c,p,q)
-        self._model = np.array(
+        self.model_ = np.array(
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(series_for_arima, n=self.d)
-        s = 0.1 / (np.sum(self._model) + 1)  # Randomise
+        s = 0.1 / (np.sum(self.model_) + 1)  # Randomise
         # Nelder Mead returns the parameters in a single array
         self._parameters, self.aic_ = nelder_mead(
             0,
-            np.sum(self._model[:3]),
+            np.sum(self.model_[:3]),
             self._differenced_series,
-            self._model,
+            self.model_,
             max_iter=self.iterations,
             simplex_init=s,
         )
@@ -164,10 +164,10 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self.aic_, self.residuals_, self.fitted_values_ = _arima_model(
             self._parameters,
             self._differenced_series,
-            self._model,
+            self.model_,
         )
         formatted_params = _extract_arma_params(
-            self._parameters, self._model
+            self._parameters, self.model_
         )  # Extract
         # parameters
         differenced_forecast = self.fitted_values_[-1]
