@@ -30,7 +30,7 @@ from aeon.utils.validation import check_n_jobs
     _QUALITY,  # information-gain score separating the classes (higher is better)
     _LENGTH,  # number of time points in the shapelet
     _POSITION,  # start index of the subsequence within its source series
-    _CHANNEL,  # channel (dimension) the subsequence was taken from
+    _CHANNEL,  # channel the subsequence was taken from
     _CASE,  # index of the source train case the shapelet was extracted from
     _CLASS,  # encoded class index; the label is ``classes_[_CLASS]``
     _DIST,  # row in the cached distance-vectors list, or -1 when not caching
@@ -103,7 +103,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     n_cases_ : int
         The number of training cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     max_n_timepoints_ : int
         The maximum series length in the training data.
     classes_ : np.ndarray
@@ -1136,7 +1136,7 @@ def _calc_binary_ig(orderline, c1, c2, klog):
 
 @njit(fastmath=True, cache=True, nogil=True)
 def _is_self_similar(s1, s2):
-    # not self similar if from different series or dimension
+    # not self similar if from different series or channel
     if s1[_CASE] == s2[_CASE] and s1[_CHANNEL] == s2[_CHANNEL]:
         if s2[_POSITION] <= s1[_POSITION] <= s2[_POSITION] + s2[_LENGTH]:
             return True

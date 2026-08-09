@@ -3,6 +3,7 @@
 __maintainer__ = []
 
 import numpy as np
+import pytest
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
 
 from aeon.transformations.series._dobin import Dobin
@@ -177,6 +178,16 @@ def test_pca_reduction():
     X_actual = fitted_model._X_pca
 
     assert np.allclose(abs(X_expected), abs(X_actual), rtol=0.001)
+
+
+def test_univariate_input_warns_and_returns_input():
+    """Test univariate DOBIN input warns and bypasses basis reduction."""
+    n_observations = 10
+    X = np.random.RandomState(0).normal(size=(n_observations, 1))
+    model = Dobin()
+    with pytest.warns(UserWarning, match="Input data X is univariate"):
+        Xt = model.fit_transform(X, axis=0)
+    np.testing.assert_allclose(Xt, X)
 
 
 def test_zero_variance():

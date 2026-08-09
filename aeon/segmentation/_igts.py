@@ -122,7 +122,7 @@ class _IGTS:
 
        GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
-       dimensions. A technique proposed in the paper [1]_ us to subtract the
+       channel. A technique proposed in the paper [1]_ is to subtract the
        series from it's largest element and append to the series.
 
     Parameters
@@ -280,7 +280,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
        GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
-       dimensions. A technique proposed in the paper [1]_ us to subtract the
+       channel. A technique proposed in the paper [1]_ is to subtract the
        series from it's largest element and append to the series.
 
     Parameters
