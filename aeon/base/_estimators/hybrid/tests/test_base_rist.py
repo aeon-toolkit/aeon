@@ -55,11 +55,11 @@ def test_rist_estimator_input():
 
     rist = RISTClassifier(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
-    assert isinstance(rist._estimator, ExtraTreesClassifier)
+    assert isinstance(rist.estimator_, ExtraTreesClassifier)
 
     rist = RISTRegressor(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
-    assert isinstance(rist._estimator, ExtraTreesRegressor)
+    assert isinstance(rist.estimator_, ExtraTreesRegressor)
 
     with pytest.raises(
         ValueError, match="base_estimator must be a scikit-learn BaseEstimator"
