@@ -473,3 +473,18 @@ def test_auto_arima_zero_order_limits():
     f.fit(y)
     assert f.p_ == 0
     assert f.q_ == 0
+
+
+def test_arima_model_attribute_lifecycle():
+    """Test model_ set after fitting, not before and _model doesn't exist."""
+    y = np.arange(30.0)
+    forecaster = ARIMA()
+
+    assert not hasattr(forecaster, "model_")
+    assert not hasattr(forecaster, "_model")
+
+    forecaster.fit(y)
+
+    assert hasattr(forecaster, "model_")
+    assert not hasattr(forecaster, "_model")
+    assert isinstance(forecaster.model_, np.ndarray)
