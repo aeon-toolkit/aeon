@@ -97,7 +97,8 @@ class BaseRIST(ABC):
         The fitted base estimator.
     transformers_ : list
         The list of fitted transformers used in the RIST pipeline.
-
+    series_transformers_ : list
+        The list of fitted series transformers used in the RIST pipeline.
     """
 
     # TODO remove 'use_pycatch22' in v1.7.0
