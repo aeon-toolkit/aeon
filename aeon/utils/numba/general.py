@@ -172,9 +172,10 @@ def _as_normalised_float(X: np.ndarray) -> np.ndarray:
 def _z_normalise_inplace(arr: np.ndarray, series_mean: float, series_std: float):
     """Z-normalise a 1d float array in place, dividing only above the std threshold.
 
-    ``series_mean`` and ``series_std`` are left in float64: an in-place operation is
-    evaluated in the promoted dtype and rounded on the store, so a float32 ``arr``
-    still gets the accuracy of float64 statistics.
+    ``arr`` keeps its own dtype. An in-place operation writes back into the buffer it
+    already has, so even if ``series_mean`` and ``series_std``are float64, they cannot
+    widen a float32 ``arr`` to float64. In such case, each element is computed in
+    float64, then rounded once when it is stored.
     """
     arr -= series_mean
     if series_std > AEON_NUMBA_STD_THRESHOLD:
