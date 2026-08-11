@@ -434,3 +434,17 @@ def test_auto_ets_negative_data_skips_multiplicative():
     assert f.trend_type_ != 2
     assert f.seasonality_type_ != 2
     assert np.isfinite(f.forecast_)
+
+
+def test_ets_model_attribute_lifecycle():
+    """Test model_ set after fitting, not before and _model doesn't exist."""
+    y = np.arange(30.0)
+    forecaster = ETS()
+
+    assert not hasattr(forecaster, "model_")
+    assert not hasattr(forecaster, "_model")
+
+    forecaster.fit(y)
+
+    assert hasattr(forecaster, "model_")
+    assert not hasattr(forecaster, "_model")
