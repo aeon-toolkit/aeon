@@ -126,7 +126,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
-        self.model_ = []
         self.parameters_ = []
         self.alpha_ = 0
         self.beta_ = 0
