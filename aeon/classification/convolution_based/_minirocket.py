@@ -62,6 +62,8 @@ class MiniRocketClassifier(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
+    estimator_ : sklearn classifier
+        The fitted estimator.
 
     References
     ----------
@@ -137,7 +139,7 @@ class MiniRocketClassifier(BaseClassifier):
             random_state=self.random_state,
         )
         self._scaler = StandardScaler(with_mean=False)
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RidgeClassifierCV(
                     alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
@@ -151,7 +153,7 @@ class MiniRocketClassifier(BaseClassifier):
         self.pipeline_ = make_pipeline(
             self._transformer,
             self._scaler,
-            self._estimator,
+            self.estimator_,
         )
         self.pipeline_.fit(X, y)
 
@@ -185,7 +187,7 @@ class MiniRocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:

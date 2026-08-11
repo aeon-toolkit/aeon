@@ -13,14 +13,13 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
-from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.transformations.collection.imbalance import SMOTE, RandomOverSampler
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class REDCOMETS(BaseClassifier):
@@ -92,7 +91,6 @@ class REDCOMETS(BaseClassifier):
     """
 
     _tags = {
-        "python_dependencies": "imblearn",
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -195,15 +193,6 @@ class REDCOMETS(BaseClassifier):
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
-        _check_soft_dependencies(
-            "imbalanced-learn",
-            package_import_alias={"imbalanced-learn": "imblearn"},
-            severity="error",
-            obj=self,
-        )
-
-        from imblearn.over_sampling import SMOTE, RandomOverSampler
-
         X = Normalizer().fit_transform(X).squeeze(1)
 
         if self.variant in [1, 2, 3]:
@@ -221,21 +210,32 @@ class REDCOMETS(BaseClassifier):
             y_smote = y
 
         else:
+            # Cap the minority count used for neighbour selection, matching the
+            # previous imblearn path: NearestNeighbors(n_neighbors=min_c-1)
+            # with self-exclusion leaves (min_c-2) synthesis neighbours.
             if min_neighbours > 5:
                 min_neighbours = 6
+            n_neighbors = min_neighbours - 2
+            X_3d = X[:, np.newaxis, :]
             try:
+                if n_neighbors < 1:
+                    raise ValueError(
+                        "Not enough minority samples for SMOTE neighbour search"
+                    )
                 X_smote, y_smote = SMOTE(
-                    sampling_strategy="all",
-                    k_neighbors=NearestNeighbors(
-                        n_neighbors=min_neighbours - 1, n_jobs=self._n_jobs
-                    ),
+                    n_neighbors=n_neighbors,
                     random_state=self.random_state,
-                ).fit_resample(X, y)
-
+                    distance="euclidean",
+                    n_jobs=self._n_jobs,
+                ).fit_transform(X_3d, y)
             except ValueError:
+                # aeon SMOTE raises ValueError when n_neighbors exceeds the
+                # minority class size; do not catch broader exceptions that
+                # could hide real bugs by silently falling back to ROS.
                 X_smote, y_smote = RandomOverSampler(
-                    sampling_strategy="all", random_state=self.random_state
-                ).fit_resample(X, y)
+                    random_state=self.random_state
+                ).fit_transform(X_3d, y)
+            X_smote = np.squeeze(X_smote, 1)
 
         lenses = self._get_random_lenses(X_smote, n_lenses)
         sfa_lenses = lenses[: n_lenses // 2]
