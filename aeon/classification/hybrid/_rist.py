@@ -80,6 +80,12 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
+    estimator_ : sklearn estimator
+        The fitted base estimator.
+    transformers_ : list
+        The list of fitted transformenrs used in the RIST pipeline.
+    series_transformers_ : list
+        The list of fitted series transformers used in the RIST pipeline.
 
     See Also
     --------
