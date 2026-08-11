@@ -150,7 +150,7 @@ class BaseRIST(ABC):
             self.estimator_.n_jobs = self._n_jobs
 
         if self.series_transformers == "default":
-            self._series_transformers = [
+            self.series_transformers_ = [
                 None,
                 FunctionTransformer(func=first_order_differences_3d, validate=False),
                 PeriodogramTransformer(),
@@ -159,12 +159,12 @@ class BaseRIST(ABC):
                 ),
             ]
         elif isinstance(self.series_transformers, (list, tuple)):
-            self._series_transformers = [
+            self.series_transformers_ = [
                 None if st is None else _clone_estimator(st, random_state=rng)
                 for st in self.series_transformers
             ]
         else:
-            self._series_transformers = [
+            self.series_transformers_ = [
                 (
                     None
                     if self.series_transformers is None
@@ -174,7 +174,7 @@ class BaseRIST(ABC):
 
         Xt = np.empty((X.shape[0], 0))
         self.transformers_ = []
-        for st in self._series_transformers:
+        for st in self.series_transformers_:
             if st is not None:
                 m = getattr(st, "n_jobs", "missing")
                 if m != "missing":
@@ -254,7 +254,7 @@ class BaseRIST(ABC):
 
     def _transform_data(self, X):
         Xt = np.empty((X.shape[0], 0))
-        for i, st in enumerate(self._series_transformers):
+        for i, st in enumerate(self.series_transformers_):
             if st is not None:
                 s = st.transform(X)
             else:
