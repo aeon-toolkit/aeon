@@ -104,7 +104,6 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self.residuals_ = []
         self.fitted_values_ = []
         self.aic_ = 0
-        self.model_ = []
         self._parameters = []
         self.exog_ = None
         self.beta_ = None
