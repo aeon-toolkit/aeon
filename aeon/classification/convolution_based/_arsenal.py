@@ -34,6 +34,39 @@ def _get_oob_indices(subsample, n_cases):
     return np.flatnonzero(~in_bag)
 
 
+def _fit_ridge_classifier(X, y, class_weight):
+    """Fit Arsenal's ridge, falling back if NumPy's LOO SVD does not converge."""
+    ridge = RidgeClassifierCV(
+        alphas=np.logspace(-3, 3, 10),
+        class_weight=class_weight,
+        scoring="accuracy",
+    )
+    try:
+        ridge.fit(X, y)
+        ridge.svd_fallback_ = False
+        return ridge
+    except np.linalg.LinAlgError:
+        # RidgeClassifierCV's efficient leave-one-out path uses an SVD for
+        # wide design matrices. Exceptionally ill-conditioned ROCKET feature
+        # matrices can make the LAPACK decomposition fail even when all values
+        # are finite. Explicit stratified CV avoids that decomposition while
+        # preserving deterministic accuracy-based alpha selection.
+        _, class_counts = np.unique(y, return_counts=True)
+        n_splits = min(5, int(class_counts.min()))
+        if n_splits < 2:
+            raise
+
+        ridge = RidgeClassifierCV(
+            alphas=np.logspace(-3, 3, 10),
+            class_weight=class_weight,
+            scoring="accuracy",
+            cv=n_splits,
+        )
+        ridge.fit(X, y)
+        ridge.svd_fallback_ = True
+        return ridge
+
+
 def _normalise_oob_probabilities(probabilities, weights, oobs, n_classes):
     """Normalize summed OOB probabilities by each case's available weight."""
     divisors = np.zeros(probabilities.shape[0])
@@ -555,12 +588,9 @@ class Arsenal(BaseClassifier):
         # scoring="accuracy" makes best_score_ the LOO CV accuracy used to
         # weight this member; with the default scorer it is the negative LOO
         # mean squared error, which inverts the weighting
-        ridge = RidgeClassifierCV(
-            alphas=np.logspace(-3, 3, 10),
-            class_weight=self.class_weight,
-            scoring="accuracy",
+        ridge = _fit_ridge_classifier(
+            scaler.fit_transform(transformed_x), y, self.class_weight
         )
-        ridge.fit(scaler.fit_transform(transformed_x), y)
         pipeline = make_pipeline(rocket, scaler, ridge)
 
         train_estimate = (
@@ -585,18 +615,15 @@ class Arsenal(BaseClassifier):
             # so its weight is zero evidence rather than a fake accuracy
             return np.empty(0, dtype=np.intp), 0.0, oob
 
-        clf = make_pipeline(
-            StandardScaler(with_mean=False),
-            RidgeClassifierCV(
-                alphas=np.logspace(-3, 3, 10),
-                class_weight=self.class_weight,
-                scoring="accuracy",
-            ),
+        scaler = StandardScaler(with_mean=False)
+        ridge = _fit_ridge_classifier(
+            scaler.fit_transform(Xt[subsample]),
+            y[subsample],
+            self.class_weight,
         )
-        clf.fit(Xt[subsample], y[subsample])
-        preds = clf.predict(Xt[oob])
+        preds = ridge.predict(scaler.transform(Xt[oob]))
 
-        weight = clf.steps[1][1].best_score_
+        weight = ridge.best_score_
 
         return np.searchsorted(self.classes_, preds), weight, oob
 

@@ -8,6 +8,7 @@ import pytest
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.convolution_based._arsenal import (
     _aggregate_class_votes,
+    _fit_ridge_classifier,
     _get_oob_indices,
     _normalise_oob_probabilities,
 )
@@ -225,6 +226,33 @@ def test_arsenal_weights_are_cv_accuracies():
 
     assert len(clf.weights_) == 3
     assert all(0 <= weight <= 1 for weight in clf.weights_)
+
+
+def test_arsenal_ridge_retries_svd_failure(monkeypatch):
+    """A failed LOO SVD falls back to deterministic explicit CV."""
+    from sklearn.linear_model import RidgeClassifierCV
+
+    rng = np.random.RandomState(0)
+    X = rng.normal(size=(20, 30))
+    y = np.repeat([0, 1], 10)
+    original_fit = RidgeClassifierCV.fit
+    fit_calls = 0
+
+    def fail_first_fit(self, X, y, **kwargs):
+        nonlocal fit_calls
+        fit_calls += 1
+        if fit_calls == 1:
+            raise np.linalg.LinAlgError("SVD did not converge")
+        return original_fit(self, X, y, **kwargs)
+
+    monkeypatch.setattr(RidgeClassifierCV, "fit", fail_first_fit)
+
+    ridge = _fit_ridge_classifier(X, y, class_weight=None)
+
+    assert fit_calls == 2
+    assert ridge.cv == 5
+    assert ridge.svd_fallback_
+    assert 0 <= ridge.best_score_ <= 1
 
 
 def test_arsenal_n_jobs_does_not_change_output():
