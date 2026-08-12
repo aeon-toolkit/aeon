@@ -88,7 +88,6 @@ def test_probability_threshold_estimator_attribute_lifecycle():
 
     X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20)
 
-    # Pass a simple, fast estimator to avoid DrCIF/numba dependencies and crashes
     base_est = TimeSeriesForestClassifier(n_estimators=2)
     clf = ProbabilityThresholdEarlyClassifier(
         classification_points=[5, 10, 15], estimator=base_est
