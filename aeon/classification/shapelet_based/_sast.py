@@ -41,7 +41,7 @@ class SASTClassifier(BaseClassifier):
     Attributes
     ----------
     pipeline_ : Pipeline
-        The fitted pipeline consisting of the transformers and classifiers.
+        The fitted pipeline consisting of the transformer and classifier.
 
 
     References
