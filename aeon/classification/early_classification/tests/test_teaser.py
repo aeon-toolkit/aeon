@@ -130,3 +130,27 @@ teaser_if_unit_test_probas = np.array(
         [1.0, 0.0],
     ]
 )
+
+
+def test_teaser_estimator_attribute_lifecycle():
+    """Test estimator attributes are created only on fit."""
+    from aeon.classification.early_classification import TEASER
+    from aeon.classification.interval_based import TimeSeriesForestClassifier
+    from aeon.testing.data_generation import make_example_3d_numpy
+
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20)
+
+    base_est = TimeSeriesForestClassifier(n_estimators=2)
+    clf = TEASER(classification_points=[5, 10, 15], estimator=base_est)
+
+    assert not hasattr(clf, "estimator_")
+    assert not hasattr(clf, "estimators_")
+    assert not hasattr(clf, "_estimator")
+    assert not hasattr(clf, "_estimators")
+
+    clf.fit(X, y)
+
+    assert hasattr(clf, "estimator_")
+    assert hasattr(clf, "estimators_")
+    assert not hasattr(clf, "_estimator")
+    assert not hasattr(clf, "_estimators")
