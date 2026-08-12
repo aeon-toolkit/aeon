@@ -63,6 +63,10 @@ def test_sast_pipeline_attribute_lifecycle():
     assert not hasattr(clf, "_pipeline")
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statmodels", severity="none"),
+    reason="skip test if statsmodels not installed",
+)
 def test_rsast_pipeline_attribute_lifecycle():
     """Test that pipeline_ attribute is created only on fit."""
     import numpy as np

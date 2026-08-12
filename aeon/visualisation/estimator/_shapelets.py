@@ -727,7 +727,7 @@ class ShapeletClassifierVisualizer:
 
         """
         if isinstance(self.estimator, (RDSTClassifier, ShapeletTransformClassifier)):
-            classifier = self.estimator._estimator
+            classifier = self.estimator.estimator_
         elif isinstance(self.estimator, (RSASTClassifier, SASTClassifier)):
             classifier = self.estimator._classifier
         else:
