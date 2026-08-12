@@ -43,3 +43,39 @@ def test_plot_most_important_feature_on_ts():
     plt.gcf().canvas.draw_idle()
     assert isinstance(fig, plt.Figure)
     plt.close()
+
+
+def test_sast_pipeline_attribute_lifecycle():
+    """Test that pipeline_ attribute is created only on fit."""
+    import numpy as np
+
+    from aeon.classification.shapelet_based import SASTClassifier
+
+    X = np.random.randn(10, 1, 20)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+    clf = SASTClassifier()
+    assert not hasattr(clf, "pipeline_")
+    assert not hasattr(clf, "_pipeline")
+
+    clf.fit(X, y)
+    assert hasattr(clf, "pipeline_")
+    assert not hasattr(clf, "_pipeline")
+
+
+def test_rsast_pipeline_attribute_lifecycle():
+    """Test that pipeline_ attribute is created only on fit."""
+    import numpy as np
+
+    from aeon.classification.shapelet_based import RSASTClassifier
+
+    X = np.random.randn(10, 1, 20)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+    clf = RSASTClassifier()
+    assert not hasattr(clf, "pipeline_")
+    assert not hasattr(clf, "_pipeline")
+
+    clf.fit(X, y)
+    assert hasattr(clf, "pipeline_")
+    assert not hasattr(clf, "_pipeline")
