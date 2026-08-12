@@ -38,6 +38,10 @@ class RSASTClassifier(BaseClassifier):
     n_jobs : int, default -1
         Number of threads to use for the transform.
 
+    Attributes
+    ----------
+    pipeline_ : Pipeline
+        The fitted pipeline consisting of the transformer and classifier.
 
     References
     ----------
@@ -116,9 +120,9 @@ class RSASTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        self._pipeline = make_pipeline(self._transformer, self._classifier)
+        self.pipeline_ = make_pipeline(self._transformer, self._classifier)
 
-        self._pipeline.fit(X, y)
+        self.pipeline_.fit(X, y)
 
         return self
 
@@ -135,7 +139,7 @@ class RSASTClassifier(BaseClassifier):
         array-like or list
             Predicted class labels.
         """
-        return self._pipeline.predict(X)
+        return self.pipeline_.predict(X)
 
     def _predict_proba(self, X):
         """Predict labels probabilities for the input.
@@ -152,10 +156,10 @@ class RSASTClassifier(BaseClassifier):
         """
         m = getattr(self._classifier, "predict_proba", None)
         if callable(m):
-            dists = self._pipeline.predict_proba(X)
+            dists = self.pipeline_.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._pipeline.predict(X)
+            preds = self.pipeline_.predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
