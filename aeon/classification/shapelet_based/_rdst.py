@@ -99,7 +99,8 @@ class RDSTClassifier(BaseClassifier):
         ``save_transformed_data`` is `True`.
     estimator_ : sklearn estimator
         The fitted base estimator.
-
+    transformer_ : RandomDilatedShapeletTransform
+        The fitted shapelet transformer.
 
     See Also
     --------
@@ -166,8 +167,6 @@ class RDSTClassifier(BaseClassifier):
 
         self.transformed_data_ = []
 
-        self._transformer = None
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -191,7 +190,7 @@ class RDSTClassifier(BaseClassifier):
         ending in "_".
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-        self._transformer = RandomDilatedShapeletTransform(
+        self.transformer_ = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
             shapelet_lengths=self.shapelet_lengths,
             proba_normalization=self.proba_normalization,
@@ -216,8 +215,8 @@ class RDSTClassifier(BaseClassifier):
             if m is not None:
                 self.estimator_.n_jobs = self._n_jobs
 
-        X_t = self._transformer.fit_transform(X, y)
-        self.n_shapelets_ = self._transformer.n_shapelets_
+        X_t = self.transformer_.fit_transform(X, y)
+        self.n_shapelets_ = self.transformer_.n_shapelets_
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
@@ -239,7 +238,7 @@ class RDSTClassifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        X_t = self._transformer.transform(X)
+        X_t = self.transformer_.transform(X)
 
         return self.estimator_.predict(X_t)
 
@@ -256,7 +255,7 @@ class RDSTClassifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        X_t = self._transformer.transform(X)
+        X_t = self.transformer_.transform(X)
 
         m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):

@@ -42,6 +42,10 @@ class SASTClassifier(BaseClassifier):
     ----------
     pipeline_ : Pipeline
         The fitted pipeline consisting of the transformer and classifier.
+    classifier_ : BaseEstimator
+        The fitted classifier.
+    transformer_ : BaseTransformer
+        The fitted shapelet transformer.
 
 
     References
@@ -105,7 +109,7 @@ class SASTClassifier(BaseClassifier):
 
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-        self._transformer = SAST(
+        self.transformer_ = SAST(
             self.length_list,
             self.stride,
             self.nb_inst_per_class,
@@ -113,7 +117,7 @@ class SASTClassifier(BaseClassifier):
             self._n_jobs,
         )
 
-        self._classifier = _clone_estimator(
+        self.classifier_ = _clone_estimator(
             (
                 RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
                 if self.classifier is None
@@ -122,7 +126,7 @@ class SASTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        self.pipeline_ = make_pipeline(self._transformer, self._classifier)
+        self.pipeline_ = make_pipeline(self.transformer_, self.classifier_)
 
         self.pipeline_.fit(X, y)
 
@@ -156,7 +160,7 @@ class SASTClassifier(BaseClassifier):
         dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
-        m = getattr(self._classifier, "predict_proba", None)
+        m = getattr(self.classifier_, "predict_proba", None)
         if callable(m):
             dists = self.pipeline_.predict_proba(X)
         else:
@@ -188,7 +192,7 @@ class SASTClassifier(BaseClassifier):
         # get overall importance irrespective of class
         feature_importance = [abs(x) for x in feature_importance]
 
-        features = zip(self._transformer._kernel_orig, feature_importance)
+        features = zip(self.transformer_._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)
 
         max_ = min(limit, len(sorted_features))
