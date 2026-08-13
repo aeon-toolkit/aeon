@@ -147,14 +147,14 @@ def test_teaser_estimator_attribute_lifecycle():
     base_est = TimeSeriesForestClassifier(n_estimators=2)
     clf = TEASER(classification_points=[5, 10, 15], estimator=base_est)
 
-    assert not hasattr(clf, "estimator_")
+    assert not hasattr(clf, "one_class_classifiers_")
     assert not hasattr(clf, "estimators_")
-    assert not hasattr(clf, "_estimator")
+    assert not hasattr(clf, "_one_class_classifiers")
     assert not hasattr(clf, "_estimators")
 
     clf.fit(X, y)
 
-    assert hasattr(clf, "estimator_")
+    assert hasattr(clf, "one_class_classifiers_")
     assert hasattr(clf, "estimators_")
-    assert not hasattr(clf, "_estimator")
+    assert not hasattr(clf, "_one_class_classifiers")
     assert not hasattr(clf, "_estimators")

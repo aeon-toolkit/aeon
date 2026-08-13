@@ -97,14 +97,10 @@ def test_probability_threshold_estimator_attribute_lifecycle():
         classification_points=[5, 10, 15], estimator=base_est
     )
 
-    assert not hasattr(clf, "estimator_")
     assert not hasattr(clf, "estimators_")
-    assert not hasattr(clf, "_estimator")
     assert not hasattr(clf, "_estimators")
 
     clf.fit(X, y)
 
-    assert hasattr(clf, "estimator_")
     assert hasattr(clf, "estimators_")
-    assert not hasattr(clf, "_estimator")
     assert not hasattr(clf, "_estimators")

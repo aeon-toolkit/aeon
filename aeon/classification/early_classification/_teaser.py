@@ -85,10 +85,10 @@ class TEASER(BaseEarlyClassifier):
         the results of previous method calls.
         Records in order: the time stamp index, the number of consecutive decisions
         made, the predicted class and the series length.
-    estimator_ : BaseEstimator
-        The cloned base estimator used for early classification.
     estimators_ : list of BaseEstimator
         The fitted estimators for each time stamp.
+    one_class_classifiers_ : list of OneClassSVM
+        The fitted one-class SVM classifiers for each time stamp.
 
     References
     ----------
@@ -133,7 +133,6 @@ class TEASER(BaseEarlyClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._one_class_classifiers = []
         self._classification_points = []
         self._consecutive_predictions = 0
 
@@ -151,7 +150,7 @@ class TEASER(BaseEarlyClassifier):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.estimator_ = (
+        self._estimator = (
             (
                 MUSE(support_probabilities=True, alphabet_size=4)
                 if self.n_channels_ > 1
@@ -161,7 +160,7 @@ class TEASER(BaseEarlyClassifier):
             else self.estimator
         )
 
-        m = getattr(self.estimator_, "predict_proba", None)
+        m = getattr(self._estimator, "predict_proba", None)
         if not callable(m):
             raise ValueError("Base estimator must have a predict_proba method.")
 
@@ -187,7 +186,7 @@ class TEASER(BaseEarlyClassifier):
             self._classification_point_dictionary[classification_point] = index
 
         # avoid nested parallelism
-        m = getattr(self.estimator_, "n_jobs", None)
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
         rng = check_random_state(self.random_state)
@@ -202,7 +201,7 @@ class TEASER(BaseEarlyClassifier):
             for i in range(len(self._classification_points))
         )
 
-        self.estimators_, self._one_class_classifiers, X_oc, train_preds = zip(*fit)
+        self.estimators_, self.one_class_classifiers_, X_oc, train_preds = zip(*fit)
 
         # tune consecutive predictions required to best harmonic mean
         best_hm = -1
@@ -249,7 +248,7 @@ class TEASER(BaseEarlyClassifier):
             )
 
         # avoid nested parallelism
-        m = getattr(self.estimator_, "n_jobs", None)
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
         rng = check_random_state(self.random_state)
@@ -328,7 +327,7 @@ class TEASER(BaseEarlyClassifier):
             )
 
         # avoid nested parallelism
-        m = getattr(self.estimator_, "n_jobs", None)
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
         rng = check_random_state(self.random_state)
@@ -384,7 +383,7 @@ class TEASER(BaseEarlyClassifier):
 
     def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
-            self.estimator_,
+            self._estimator,
             rng,
         )
 
@@ -515,12 +514,12 @@ class TEASER(BaseEarlyClassifier):
         full_length_ts = idx == len(self._classification_points) - 1
         if full_length_ts:
             accept_decision = np.ones(n_cases, dtype=bool)
-        elif self._one_class_classifiers[idx] is not None:
+        elif self.one_class_classifiers_[idx] is not None:
             offsets = np.argwhere(finished == 0).flatten()
             accept_decision = np.ones(n_cases, dtype=bool)
             if len(offsets) > 0:
                 decisions_subset = (
-                    self._one_class_classifiers[idx].predict(X_oc[offsets]) == 1
+                    self.one_class_classifiers_[idx].predict(X_oc[offsets]) == 1
                 )
                 accept_decision[offsets] = decisions_subset
 
