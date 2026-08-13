@@ -49,10 +49,12 @@ class RSTSF(BaseClassifier):
 
     Attributes
     ----------
-    transformers_ : list
-        The fitted transformers for the classifier.
-    series_transformers_ : list
-        The fitted series transformers for the classifier.
+    transformers_ : list of SupervisedIntervals
+        The fitted supervised interval transformers for each representation.
+    series_transformers_ : list of transformers
+        The fitted series transformers (differences, periodogram, AR coefficients).
+    clf_ : ExtraTreesClassifier
+        The fitted ensemble classifier.
 
     See Also
     --------
