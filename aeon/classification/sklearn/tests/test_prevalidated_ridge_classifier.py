@@ -119,6 +119,45 @@ def test_prevalidated_ridge_classifier_public_coefficients_reproduce_proba():
     np.testing.assert_allclose(clf.predict_proba(X), expected, atol=1e-6)
 
 
+def test_prevalidated_ridge_classifier_against_reference_implementation():
+    """Test probabilities against hard-coded output from the reference PreVal."""
+    X = np.array(
+        [
+            [0.0, 0.0, 2.0],
+            [0.0, 1.0, 2.0],
+            [1.0, 0.0, 2.0],
+            [1.0, 1.0, 2.0],
+            [2.0, 0.0, 2.0],
+            [2.0, 1.0, 2.0],
+        ],
+        dtype=np.float32,
+    )
+    y = np.array([0, 1, 2, 0, 1, 2])
+    X_test = np.array(
+        [[0.25, 0.75, 2.0], [1.5, 0.25, 2.0], [2.0, 1.0, 2.0]],
+        dtype=np.float32,
+    )
+    lambdas = np.logspace(-2, 2, 5).astype(np.float32)
+
+    # Generated with https://github.com/angus924/preval as follows:
+    # from preval import PreVal
+    # reference = PreVal(lambdas=lambdas)
+    # reference.fit(X, y)
+    # print(repr(reference.predict_proba(X_test)))
+    reference_proba = np.array(
+        [
+            [1.0800920e-08, 1.0392226e-04, 9.9989605e-01],
+            [9.9787033e-01, 2.1251689e-03, 4.5259776e-06],
+            [9.9999517e-01, 4.8196589e-06, 2.3229221e-11],
+        ],
+        dtype=np.float32,
+    )
+
+    clf = PrevalidatedRidgeClassifier(lambdas=lambdas).fit(X, y)
+
+    np.testing.assert_allclose(clf.predict_proba(X_test), reference_proba, rtol=1e-5)
+
+
 @pytest.mark.parametrize("lambdas", [[], [0.0, 1.0], [-1.0, 1.0], [1.0, np.inf]])
 def test_prevalidated_ridge_classifier_invalid_lambdas(lambdas):
     """Test invalid lambda grids are rejected early."""
