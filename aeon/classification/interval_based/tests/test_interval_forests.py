@@ -42,7 +42,7 @@ def test_tic_curves(cls):
     params = cls._get_test_params()
     if isinstance(params, list):
         params = params[0]
-    params.update({"base_estimator": ContinuousIntervalTree()})
+    params.update({"base_estimator": ContinuousIntervalTree(), "random_state": 0})
 
     clf = cls(**params)
     clf.fit(X_train, y_train)
@@ -106,3 +106,22 @@ def test_forest_pycatch22(cls):
     ]
     assert len(deprecation_warnings) == 1
     _assert_predict_probabilities(prob, X_test, n_classes=2)
+
+
+def test_tic_curves_all_stump_forest():
+    """All-stump forests should return empty TIC outputs, not raise."""
+    import numpy as np
+
+    X = np.zeros((10, 1, 20))
+    y = np.array([0, 1] * 5)
+    clf = CanonicalIntervalForestClassifier(
+        n_estimators=2,
+        n_intervals=2,
+        att_subsample_size=2,
+        base_estimator=ContinuousIntervalTree(),
+        random_state=0,
+    )
+    clf.fit(X, y)
+    names, curves = clf.temporal_importance_curves()
+    assert names == []
+    assert curves == []

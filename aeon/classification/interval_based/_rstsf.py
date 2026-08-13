@@ -47,6 +47,13 @@ class RSTSF(BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `predict` functions.
         `-1` means using all processors.
 
+    Attributes
+    ----------
+    transformers_ : list
+        The fitted transformers for the classifier.
+    series_transformers_ : list
+        The fitted series transformers for the classifier.
+
     See Also
     --------
     SupervisedIntervals
@@ -99,16 +106,16 @@ class RSTSF(BaseClassifier):
 
         lags = int(12 * (X.shape[2] / 100.0) ** 0.25)
 
-        self._series_transformers = [
+        self.series_transformers_ = [
             FunctionTransformer(func=first_order_differences_3d, validate=False),
             PeriodogramTransformer(),
             ARCoefficientTransformer(order=lags, replace_nan=True),
         ]
 
-        transforms = [X] + [t.fit_transform(X) for t in self._series_transformers]
+        transforms = [X] + [t.fit_transform(X) for t in self.series_transformers_]
 
         Xt = np.empty((X.shape[0], 0))
-        self._transformers = []
+        self.transformers_ = []
         transform_data_lengths = []
         for t in transforms:
             si = SupervisedIntervals(
@@ -120,7 +127,7 @@ class RSTSF(BaseClassifier):
             )
             features = si.fit_transform(t, y)
             Xt = np.hstack((Xt, features))
-            self._transformers.append(si)
+            self.transformers_.append(si)
             transform_data_lengths.append(features.shape[1])
 
         self.clf_ = ExtraTreesClassifier(
@@ -144,7 +151,7 @@ class RSTSF(BaseClassifier):
 
         count = 0
         for r in range(len(transforms)):
-            self._transformers[r].set_features_to_transform(
+            self.transformers_[r].set_features_to_transform(
                 features_to_transform[count : count + transform_data_lengths[r]],
                 raise_error=False,
             )
@@ -161,11 +168,11 @@ class RSTSF(BaseClassifier):
         return self.clf_.predict_proba(Xt)
 
     def _predict_transform(self, X):
-        transforms = [X] + [t.transform(X) for t in self._series_transformers]
+        transforms = [X] + [t.transform(X) for t in self.series_transformers_]
 
         Xt = np.empty((X.shape[0], 0))
         for i, t in enumerate(transforms):
-            si = self._transformers[i]
+            si = self.transformers_[i]
             Xt = np.hstack((Xt, si.transform(t)))
 
         return Xt
