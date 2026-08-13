@@ -105,8 +105,8 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
             Y = np.hstack((-Y, Y))
 
         # centre Y
-        self.intercept_ = Y.mean(0)
-        Y = Y - self.intercept_
+        target_mean = Y.mean(0)
+        Y = Y - target_mean
 
         # svd via eigendecomposition
         # on X^T X (for n >= p)
@@ -160,7 +160,7 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
             result = minimize(
                 fun=_log_loss,
                 x0=1.0,
-                args=(Y, Y_loocv, self.intercept_),
+                args=(Y, Y_loocv, target_mean),
                 method="BFGS",
                 jac="2-point",
             )
@@ -176,11 +176,14 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
 
         self.scale_ = self.c
         self.lambda_ = np.float32(self.lambda_)
-        self.coef_ = self.scale_ * (V @ alpha_hat_best)
+        reference_coef = self.scale_ * (V @ alpha_hat_best)
+        self.intercept_ = target_mean + reference_coef[0]
+        self.coef_ = np.zeros(
+            (len(self.classes_), self.n_atts_), dtype=reference_coef.dtype
+        )
+        self.coef_[:, ~self.mask_] = reference_coef[1:].T
         self.label_binarizer_ = self._lb
         self.best_loss_ = best_loss
-        # TODO: Revisit which fitted attributes we want to expose once the port settles.
-
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -191,11 +194,7 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
         """Predict class probabilities for X."""
         X = X.astype(np.float32, copy=False)
 
-        X = X[:, ~self.mask_]
-
-        X = np.hstack((np.ones((X.shape[0], 1), dtype=np.float32), X))
-
-        return _softmax(X @ self.coef_ + self.intercept_)
+        return _softmax(X @ self.coef_.T + self.intercept_)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

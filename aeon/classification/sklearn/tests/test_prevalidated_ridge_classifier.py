@@ -40,7 +40,8 @@ def test_prevalidated_ridge_classifier_lifecycle_binary():
     assert clf.scale_.shape == ()
     assert clf.mask_.shape == (X.shape[1],)
     np.testing.assert_array_equal(clf.mask_, [False, False, True])
-    assert clf.coef_.shape == (3, 2)
+    assert clf.coef_.shape == (2, X.shape[1])
+    np.testing.assert_array_equal(clf.coef_[:, clf.mask_], 0.0)
     assert clf.intercept_.shape == (2,)
     np.testing.assert_array_equal(clf.classes_, np.array(["a", "b"]))
 
@@ -72,7 +73,7 @@ def test_prevalidated_ridge_classifier_lifecycle_multiclass():
     np.testing.assert_allclose(proba.sum(axis=1), 1.0, atol=1e-6)
     assert np.all((proba >= 0.0) & (proba <= 1.0))
     np.testing.assert_array_equal(preds, clf.classes_[np.argmax(proba, axis=1)])
-    assert clf.coef_.shape == (X.shape[1] + 1, 3)
+    assert clf.coef_.shape == (3, X.shape[1])
     assert clf.intercept_.shape == (3,)
     np.testing.assert_array_equal(clf.classes_, np.array([0, 1, 2]))
 
@@ -96,8 +97,26 @@ def test_prevalidated_ridge_classifier_n_lt_p_with_low_variance_columns():
     assert not np.any(clf.mask_[2:])
     assert clf.n_cases_ == X.shape[0]
     assert clf.n_atts_ == X.shape[1]
-    assert clf.coef_.shape == (X.shape[1] - 2 + 1, 2)
+    assert clf.coef_.shape == (2, X.shape[1])
+    np.testing.assert_array_equal(clf.coef_[:, clf.mask_], 0.0)
     assert clf.intercept_.shape == (2,)
+
+
+def test_prevalidated_ridge_classifier_public_coefficients_reproduce_proba():
+    """Test that sklearn-style fitted attributes reproduce probabilities."""
+    rng = np.random.default_rng(42)
+    X = rng.normal(size=(12, 5)).astype(np.float32)
+    X[:, 2] = 3.0
+    y = np.array([0, 1, 2] * 4)
+
+    clf = PrevalidatedRidgeClassifier(lambdas=np.array([0.1, 1.0])).fit(X, y)
+
+    logits = X @ clf.coef_.T + clf.intercept_
+    log_eps = np.log(np.finfo(np.float32).eps)
+    exp_logits = np.exp(logits.clip(log_eps, -log_eps))
+    expected = exp_logits / exp_logits.sum(axis=1, keepdims=True)
+
+    np.testing.assert_allclose(clf.predict_proba(X), expected, atol=1e-6)
 
 
 @pytest.mark.parametrize("lambdas", [[], [0.0, 1.0], [-1.0, 1.0], [1.0, np.inf]])
