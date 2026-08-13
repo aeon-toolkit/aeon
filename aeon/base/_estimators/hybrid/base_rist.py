@@ -14,7 +14,7 @@ from aeon.transformations.collection import (
     ARCoefficientTransformer,
     PeriodogramTransformer,
 )
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import _InternalCatch22
 from aeon.transformations.collection.interval_based import RandomIntervals
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
@@ -44,7 +44,7 @@ class BaseRIST(ABC):
     Parameters
     ----------
     n_intervals : int, callable or None, default=None,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted for the interval portion of the pipeline. Input should be an int or
         a function that takes a 3D np.ndarray input and returns an int. Functions may
         extract a different number of intervals per `series_transformer` output.
@@ -65,10 +65,14 @@ class BaseRIST(ABC):
         A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     estimator : sklearn estimator, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         extra trees forest with 200 trees.
@@ -86,18 +90,25 @@ class BaseRIST(ABC):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
+    estimator_ : sklearn estimator
+        The fitted base estimator.
+    transformers_ : list
+        The list of fitted transformers used in the RIST pipeline.
+    series_transformers_ : list
+        The list of fitted series transformers used in the RIST pipeline.
     """
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     @abstractmethod
     def __init__(
         self,
         n_intervals=None,
         n_shapelets=None,
         series_transformers="default",
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         estimator=None,
         n_jobs=1,
         random_state=None,
@@ -118,14 +129,14 @@ class BaseRIST(ABC):
 
         rng = check_random_state(self.random_state)
 
-        self._estimator = self.estimator
+        self.estimator_ = self.estimator
         if self.estimator is None:
             if is_classifier(self):
-                self._estimator = ExtraTreesClassifier(
+                self.estimator_ = ExtraTreesClassifier(
                     n_estimators=200, criterion="entropy"
                 )
             elif is_regressor(self):
-                self._estimator = ExtraTreesRegressor(n_estimators=200)
+                self.estimator_ = ExtraTreesRegressor(n_estimators=200)
         # base_estimator must be an sklearn estimator
         elif not isinstance(self.estimator, BaseEstimator):
             raise ValueError(
@@ -133,14 +144,14 @@ class BaseRIST(ABC):
                 f"Found: {self.estimator}"
             )
 
-        self._estimator = _clone_estimator(self._estimator, rng)
+        self.estimator_ = _clone_estimator(self.estimator_, rng)
 
-        m = getattr(self._estimator, "n_jobs", "missing")
+        m = getattr(self.estimator_, "n_jobs", "missing")
         if m != "missing":
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         if self.series_transformers == "default":
-            self._series_transformers = [
+            self.series_transformers_ = [
                 None,
                 FunctionTransformer(func=first_order_differences_3d, validate=False),
                 PeriodogramTransformer(),
@@ -149,12 +160,12 @@ class BaseRIST(ABC):
                 ),
             ]
         elif isinstance(self.series_transformers, (list, tuple)):
-            self._series_transformers = [
+            self.series_transformers_ = [
                 None if st is None else _clone_estimator(st, random_state=rng)
                 for st in self.series_transformers
             ]
         else:
-            self._series_transformers = [
+            self.series_transformers_ = [
                 (
                     None
                     if self.series_transformers is None
@@ -163,8 +174,8 @@ class BaseRIST(ABC):
             ]
 
         Xt = np.empty((X.shape[0], 0))
-        self._transformers = []
-        for st in self._series_transformers:
+        self.transformers_ = []
+        for st in self.series_transformers_:
             if st is not None:
                 m = getattr(st, "n_jobs", "missing")
                 if m != "missing":
@@ -184,7 +195,7 @@ class BaseRIST(ABC):
             ct = RandomIntervals(
                 n_intervals=n_intervals,
                 features=[
-                    Catch22(
+                    _InternalCatch22(
                         outlier_norm=True,
                         replace_nans=True,
                         use_pycatch22=self.use_pycatch22,
@@ -201,7 +212,7 @@ class BaseRIST(ABC):
                 n_jobs=self._n_jobs,
             )
             _set_random_states(ct, rng)
-            self._transformers.append(ct)
+            self.transformers_.append(ct)
             t = ct.fit_transform(s, y)
 
             Xt = np.hstack((Xt, t))
@@ -217,43 +228,43 @@ class BaseRIST(ABC):
                 max_shapelets=n_shapelets, n_jobs=self._n_jobs
             )
             _set_random_states(st, rng)
-            self._transformers.append(st)
+            self.transformers_.append(st)
             t = st.fit_transform(s, y)
 
             Xt = np.hstack((Xt, t))
 
         Xt = np.nan_to_num(Xt, nan=0.0, posinf=0.0, neginf=0.0)
 
-        self._estimator.fit(Xt, y)
+        self.estimator_.fit(Xt, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        return self._estimator.predict(self._transform_data(X))
+        return self.estimator_.predict(self._transform_data(X))
 
     def _predict_proba(self, X) -> np.ndarray:
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transform_data(X))
+            return self.estimator_.predict_proba(self._transform_data(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transform_data(X))
+            preds = self.estimator_.predict(self._transform_data(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
 
     def _transform_data(self, X):
         Xt = np.empty((X.shape[0], 0))
-        for i, st in enumerate(self._series_transformers):
+        for i, st in enumerate(self.series_transformers_):
             if st is not None:
                 s = st.transform(X)
             else:
                 s = X
 
-            t = self._transformers[i * 2].transform(s)
+            t = self.transformers_[i * 2].transform(s)
             Xt = np.hstack((Xt, t))
 
-            t = self._transformers[i * 2 + 1].transform(s)
+            t = self.transformers_[i * 2 + 1].transform(s)
             Xt = np.hstack((Xt, t))
 
         Xt = np.nan_to_num(Xt, nan=0.0, posinf=0.0, neginf=0.0)

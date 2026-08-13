@@ -141,7 +141,6 @@ Shapelet-based
     :toctree: auto_generated/
     :template: class.rst
 
-    LearningShapeletClassifier
     RDSTClassifier
     SASTClassifier
     RSASTClassifier
