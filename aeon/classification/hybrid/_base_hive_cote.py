@@ -62,10 +62,10 @@ class _BaseHIVECOTE(BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         # Subclasses may construct their estimator list during fit and store it
-        # in self._estimators to avoid mutating the init parameter self.estimators
+        # in self.estimators_ to avoid mutating the init parameter self.estimators
         # (required for scikit-learn compatibility: __init__ parameters must not
         # be modified by fit).
-        estimators = getattr(self, "_estimators", None)
+        estimators = getattr(self, "estimators_", None)
         if estimators is None:
             estimators = self.estimators
 
