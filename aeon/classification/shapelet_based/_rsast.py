@@ -45,7 +45,7 @@ class RSASTClassifier(BaseClassifier):
     classifier_ : BaseEstimator
         The fitted classifier.
     transformer_ : BaseTransformer
-        The fitted shapelet transformer
+        The fitted shapelet transformer.
 
     References
     ----------
