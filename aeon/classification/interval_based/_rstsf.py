@@ -47,6 +47,15 @@ class RSTSF(BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `predict` functions.
         `-1` means using all processors.
 
+    Attributes
+    ----------
+    transformers_ : list of SupervisedIntervals
+        The fitted supervised interval transformers for each representation.
+    series_transformers_ : list of transformers
+        The fitted series transformers (differences, periodogram, AR coefficients).
+    clf_ : ExtraTreesClassifier
+        The fitted ensemble classifier.
+
     See Also
     --------
     SupervisedIntervals
