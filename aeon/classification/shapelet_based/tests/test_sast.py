@@ -46,7 +46,7 @@ def test_plot_most_important_feature_on_ts():
 
 
 def test_sast_pipeline_attribute_lifecycle():
-    """Test that pipeline_ attribute is created only on fit."""
+    """Test pipeline_, classifier_, transformer_ attributes are created on fit."""
     import numpy as np
 
     from aeon.classification.shapelet_based import SASTClassifier
@@ -56,15 +56,23 @@ def test_sast_pipeline_attribute_lifecycle():
 
     clf = SASTClassifier()
     assert not hasattr(clf, "pipeline_")
+    assert not hasattr(clf, "classifier_")
+    assert not hasattr(clf, "transformer_")
     assert not hasattr(clf, "_pipeline")
+    assert not hasattr(clf, "_classifier")
+    assert not hasattr(clf, "_transformer")
 
     clf.fit(X, y)
     assert hasattr(clf, "pipeline_")
+    assert hasattr(clf, "classifier_")
+    assert hasattr(clf, "transformer_")
     assert not hasattr(clf, "_pipeline")
+    assert not hasattr(clf, "_classifier")
+    assert not hasattr(clf, "_transformer")
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("statmodels", severity="none"),
+    not _check_soft_dependencies("statsmodels", severity="none"),
     reason="skip test if statsmodels not installed",
 )
 def test_rsast_pipeline_attribute_lifecycle():
@@ -78,8 +86,16 @@ def test_rsast_pipeline_attribute_lifecycle():
 
     clf = RSASTClassifier()
     assert not hasattr(clf, "pipeline_")
+    assert not hasattr(clf, "classifier_")
+    assert not hasattr(clf, "transformer_")
     assert not hasattr(clf, "_pipeline")
+    assert not hasattr(clf, "_classifier")
+    assert not hasattr(clf, "_transformer")
 
     clf.fit(X, y)
     assert hasattr(clf, "pipeline_")
+    assert hasattr(clf, "classifier_")
+    assert hasattr(clf, "transformer_")
     assert not hasattr(clf, "_pipeline")
+    assert not hasattr(clf, "_classifier")
+    assert not hasattr(clf, "_transformer")
