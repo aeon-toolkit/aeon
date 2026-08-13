@@ -61,5 +61,5 @@ def test_stc_attribute_lifecycle():
     clf.fit(X, y)
     assert hasattr(clf, "estimator_")
     assert hasattr(clf, "transformer_")
-    assert not hasattr(clf, "_estimator_")
+    assert not hasattr(clf, "_estimator")
     assert not hasattr(clf, "_transformer")
