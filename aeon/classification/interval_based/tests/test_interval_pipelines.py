@@ -9,6 +9,7 @@ from aeon.classification.interval_based import (
 )
 from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
 from aeon.testing.utils.estimator_checks import _assert_predict_probabilities
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.parametrize(
@@ -30,6 +31,10 @@ def test_interval_pipeline_classifiers(cls):
     _assert_predict_probabilities(prob, X_test, n_classes=2)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_interval_classifier_estimator_attribute_lifecycle():
     """Test estimator and transformer attributes are created only on fit."""
     from aeon.classification.interval_based import (
@@ -65,6 +70,10 @@ def test_interval_classifier_estimator_attribute_lifecycle():
         assert not hasattr(clf, "_transformer")
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_rstsf_transformers_attribute_lifecycle():
     """Test transformers and series_transformers attributes are created only on fit."""
     from aeon.classification.interval_based import RSTSF
