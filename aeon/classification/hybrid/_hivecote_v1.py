@@ -72,6 +72,8 @@ class HIVECOTEV1(_BaseHIVECOTE):
         The weight for RISE probabilities.
     cboss_weight_ : float
         The weight for cBOSS probabilities.
+    estimators_ : list of tuples
+        The fitted estimators for the ensemble.
 
     See Also
     --------
@@ -166,7 +168,7 @@ class HIVECOTEV1(_BaseHIVECOTE):
         else:
             self._cboss_params = self.cboss_params
 
-        self._estimators = [
+        self.estimators_ = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
             ("TSF", TimeSeriesForestClassifier(**self._tsf_params)),
             ("RISE", RandomIntervalSpectralEnsembleClassifier(**self._rise_params)),
