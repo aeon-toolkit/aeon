@@ -120,4 +120,4 @@ class MockDeepClusterer(BaseDeepClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
+        return self.estimator_.score(latent_space)
