@@ -83,6 +83,10 @@ class ShapeletTransformClassifier(BaseClassifier):
         The number of train cases in the training set.
     n_channels_ : int
         The number of channels per case in the training set.
+    estimator_ : BaseEstimator
+        The fitted base classifier.
+    transformer_ : RandomShapeletTransform
+        The fitted shapelet transformer.
 
     See Also
     --------
@@ -184,7 +188,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         if self.verbose:
             print("Fitting estimator...")  # noqa: T201
 
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         if self.verbose:
             print("Finished fitting estimator...")  # noqa: T201
@@ -205,14 +209,14 @@ class ShapeletTransformClassifier(BaseClassifier):
         if self.verbose:
             print("Transforming predict X...")  # noqa: T201
 
-        X_t = self._transformer.transform(X)
+        X_t = self.transformer_.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
 
         if self.verbose:
             print("Finished transforming predict X...")  # noqa: T201
             print("Predicting...")  # noqa: T201
 
-        pred = self._estimator.predict(X_t)
+        pred = self.estimator_.predict(X_t)
 
         if self.verbose:
             print("Finished predicting...")  # noqa: T201
@@ -235,19 +239,19 @@ class ShapeletTransformClassifier(BaseClassifier):
         if self.verbose:
             print("Transforming predict_proba X...")  # noqa: T201
 
-        X_t = self._transformer.transform(X)
+        X_t = self.transformer_.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
 
         if self.verbose:
             print("Finished transforming predict_proba X...")  # noqa: T201
             print("Predicting probabilities...")  # noqa: T201
 
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            proba = self._estimator.predict_proba(X_t)
+            proba = self.estimator_.predict_proba(X_t)
         else:
             proba = np.zeros((len(X), self.n_classes_))
-            preds = self._estimator.predict(X_t)
+            preds = self.estimator_.predict(X_t)
             for i in range(0, len(X)):
                 proba[i, np.where(self.classes_ == preds[i])] = 1
 
@@ -276,7 +280,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                     "Fitting estimator and generating train set estimates (RotF OOB)..."
                 )
 
-            proba = self._estimator.fit_predict_proba(X_t, y)
+            proba = self.estimator_.fit_predict_proba(X_t, y)
         else:
             if self.verbose:
                 print(  # noqa: T201
@@ -284,9 +288,9 @@ class ShapeletTransformClassifier(BaseClassifier):
                     "(10 fold CV)..."
                 )
 
-            self._estimator.fit(X_t, y)
+            self.estimator_.fit(X_t, y)
 
-            m = getattr(self._estimator, "predict_proba", None)
+            m = getattr(self.estimator_, "predict_proba", None)
             if not callable(m):
                 raise ValueError("Estimator must have a predict_proba method.")
 
@@ -335,7 +339,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         elif self.transform_limit_in_minutes > 0:
             self._transform_limit_in_minutes = self.transform_limit_in_minutes
 
-        self._transformer = RandomShapeletTransform(
+        self.transformer_ = RandomShapeletTransform(
             n_shapelet_samples=self.n_shapelet_samples,
             max_shapelets=self.max_shapelets,
             max_shapelet_length=self.max_shapelet_length,
@@ -347,23 +351,23 @@ class ShapeletTransformClassifier(BaseClassifier):
             random_state=self.random_state,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             RotationForestClassifier() if self.estimator is None else self.estimator,
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
-        m = getattr(self._estimator, "time_limit_in_minutes", None)
+        m = getattr(self.estimator_, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
-            self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
+            self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
 
         if self.verbose:
             print("Fitting and transforming shapelets...")  # noqa: T201
 
-        X_t = self._transformer.fit_transform(X, y)
+        X_t = self.transformer_.fit_transform(X, y)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
 
         if self.verbose:
