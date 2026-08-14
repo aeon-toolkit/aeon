@@ -32,13 +32,48 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
     """Prevalidated ridge classifier for tabular data.
 
     Prevalidated Ridge Regression [1]_ is a probabilistic classifier based on
-    efficiently tuned ridge regression. This implementation is intended for 2D
-    tabular input.
+    efficiently tuned ridge regression. It uses efficient leave-one-out
+    cross-validation to select the ridge parameter and calibrate the resulting class
+    probabilities. This implementation is intended for 2D tabular input.
+
+    The method expects features to be appropriately centred and standardised. Feature
+    scaling is deliberately not performed internally, allowing the preprocessing to
+    be chosen for the data. For example, use ``StandardScaler`` in a pipeline as shown
+    below. Features with a standard deviation below ``1e-6`` are omitted during
+    fitting and assigned zero coefficients in ``coef_``.
 
     Parameters
     ----------
     lambdas : np.ndarray or None, default=None
         Ridge parameters to search over. If None, a simple default grid is used.
+
+    Attributes
+    ----------
+    classes_ : np.ndarray of shape (n_classes,)
+        The class labels found in the training data.
+    n_classes_ : int
+        The number of classes found in the training data.
+    n_cases_ : int
+        The number of cases in the training data.
+    n_atts_ : int
+        The number of features in the training data.
+    lambdas_ : np.ndarray of shape (n_lambdas,)
+        The validated ridge parameters searched during fitting.
+    lambda_ : np.float32
+        The ridge parameter selected using prevalidated log loss.
+    scale_ : np.float32
+        The probability calibration scale selected during fitting.
+    coef_ : np.ndarray of shape (n_classes, n_atts_)
+        Coefficients for each class and input feature. Features omitted due to low
+        variance have coefficients of zero.
+    intercept_ : np.ndarray of shape (n_classes,)
+        Intercept for each class.
+    mask_ : np.ndarray of shape (n_atts_)
+        Boolean mask indicating features omitted due to low variance.
+    label_binarizer_ : sklearn.preprocessing.LabelBinarizer
+        Label binarizer fitted to the training class labels.
+    best_loss_ : float
+        Lowest prevalidated log loss found during the ridge parameter search.
 
     References
     ----------
@@ -51,6 +86,18 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
     -----
     Directly adapted from the original implementation
     https://github.com/angus924/preval with owner permission.
+
+    Examples
+    --------
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.pipeline import make_pipeline
+    >>> from sklearn.preprocessing import StandardScaler
+    >>> from aeon.classification.sklearn import PrevalidatedRidgeClassifier
+    >>> X, y = make_classification(n_samples=30, n_features=5, random_state=0)
+    >>> clf = make_pipeline(StandardScaler(), PrevalidatedRidgeClassifier())
+    >>> clf.fit(X, y)
+    Pipeline(...)
+    >>> y_pred = clf.predict(X)
     """
 
     _tags = {
