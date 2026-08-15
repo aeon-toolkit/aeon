@@ -531,7 +531,7 @@ def sliding_mean_std_one_series(
     std = np.zeros((n_channels, n_subs))
 
     for i_mod_dil in prange(dilation):
-        # Array mainting indexes of a dilated subsequence
+        # Array maintaining indices of a dilated subsequence
         _idx_sub = np.zeros(length, dtype=np.intp)
         for i_length in prange(length):
             _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
