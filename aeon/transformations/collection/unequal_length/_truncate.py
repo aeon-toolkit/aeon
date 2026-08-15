@@ -18,7 +18,7 @@ class Truncator(BaseCollectionTransformer):
     """Truncate unequal length time series to equal, fixed length.
 
     Truncates the input dataset to either a fixed series length or finds the
-    max/min length series across all series and channels and truncates to that.
+    max/min length series across all series and truncates to that.
 
     Parameters
     ----------
@@ -28,10 +28,12 @@ class Truncator(BaseCollectionTransformer):
         longest series seen in ``fit``. If an integer, will truncate to that length.
         Calling ``fit`` is not required if ``truncated_length`` is an int.
     error_on_short : bool, default=True
-        If True, raise an error if a series is shorter than truncated_length.
-        If False, will ignore series shorter than truncated_length. As the series
-        collection could remain unequal length, a list of numpy arrays will be returned
-        instead of a 3D numpy array.
+        If True, raise an error if a series is shorter than ``truncated_length``.
+        If False, series shorter than ``truncated_length`` are returned unchanged
+        rather than raising. The collection could therefore remain unequal length, so a
+        list of numpy arrays is returned instead of a 3D numpy array. This is the case
+        for ``truncated_length="max"`` whenever the collection is unequal length, as
+        every series shorter than the longest one is left as it is.
 
     Examples
     --------
@@ -68,7 +70,10 @@ class Truncator(BaseCollectionTransformer):
         )
 
     def _fit(self, X, y=None):
-        """Fit transformer to X and y.
+        """Fit truncation transformer to X and y.
+
+        Calculates the max/min length in X unless the truncation length was passed as
+        an integer.
 
         Parameters
         ----------
@@ -95,13 +100,15 @@ class Truncator(BaseCollectionTransformer):
         Parameters
         ----------
         X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
-            where length_i can vary between time series.
+            where length_i can vary between time series or 3D numpy of equal length
+            series.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : numpy3D array (n_cases, n_channels, self._truncated_length)
-            truncated time series from X.
+        Xt : numpy3D array (n_cases, n_channels, self._truncated_length) or list
+            Truncated time series from X. A list is returned when ``error_on_short`` is
+            False because the collection may remain unequal length.
         """
         # Must call fit unless truncated_length is an int
         truncated_length = (

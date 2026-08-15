@@ -95,3 +95,12 @@ def test_iterative_forecast_rejects_future_exog():
     future = np.arange(3.0)
     with pytest.raises(NotImplementedError, match="does not support exog"):
         Theta().iterative_forecast(y, prediction_horizon=3, future_exog=future)
+
+
+def test_fit_predict_numba_zero_time_variance():
+    """A single observation has zero time variance, so the trend is flat."""
+    from aeon.forecasting.stats._theta import _fit_predict_numba
+
+    forecast, a, b, alpha = _fit_predict_numba(np.array([5.0]), 3, 2.0, 0.5)
+    assert b == 0.0 and a == 5.0
+    assert np.allclose(forecast, 5.0)

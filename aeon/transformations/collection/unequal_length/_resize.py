@@ -17,13 +17,13 @@ from aeon.transformations.collection.unequal_length._commons import (
 class Resizer(BaseCollectionTransformer):
     """Resize unequal length time series to equal, fixed length.
 
-    Resize the series using linear interpolation to either a fixed length or
-    finds the max/min length series across all series and channels and resizes
-    all series to that length.
+    Resizes the input dataset to either a fixed length or finds the max/min length
+    series across all series and resizes all series to that length using linear
+    interpolation.
 
     Parameters
     ----------
-    resized_length  : int, "min" or "max", default="max"
+    resized_length : int, "min" or "max", default="max"
         Length to resize the series to. If "min", will resize the transformed series
         to the shortest series seen in ``fit``. If "max", will resize to the longest
         series seen in ``fit``. If an integer, will resize to that length.
@@ -58,6 +58,23 @@ class Resizer(BaseCollectionTransformer):
         self.set_tags(**{"fit_is_empty": _is_positive_integer_length(resized_length)})
 
     def _fit(self, X, y=None):
+        """Fit resizing transformer to X and y.
+
+        Calculates the max/min length in X unless the resize length was passed as an
+        integer.
+
+        Parameters
+        ----------
+        X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
+            where length_i can vary between time series or 3D numpy of equal length
+            series
+        y : ignored argument for interface compatibility
+            Additional data, e.g., labels for transformation
+
+        Returns
+        -------
+        self : reference to self
+        """
         if self.resized_length == "min":
             self._resized_length = _get_min_length(X)
         elif self.resized_length == "max":
