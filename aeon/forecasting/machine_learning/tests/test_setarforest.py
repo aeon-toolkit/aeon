@@ -163,6 +163,37 @@ def test_forest_prediction_equals_mean_of_base_tree_predictions():
     assert forest_pred == pytest.approx(mean_base, rel=1e-12, abs=1e-12)
 
 
+def test_setar_forest_random_hyperparameters_per_tree():
+    """Randomised per-tree hyperparameters are drawn when enabled."""
+    y, _ = _make_series_with_exog(T=100, seed=3)
+    f = SETARForest(
+        lag=5,
+        n_estimators=2,
+        max_depth=2,
+        random_tree_significance=True,
+        random_significance_divider=True,
+        random_tree_error_threshold=True,
+        random_state=5,
+    )
+    f.fit(y)
+    assert len(f.estimators_) == 2
+    assert np.isfinite(f.predict(y))
+
+
+def test_setar_forest_short_series_raises():
+    """Fitting on a series shorter than lag + 1 raises on the empty embedding."""
+    f = SETARForest(lag=10)
+    with pytest.raises(ValueError, match="empty embedded matrix"):
+        f.fit(np.arange(5.0))
+
+
+def test_setar_forest_predict_before_fit_raises():
+    """_predict raises RuntimeError when no trees have been trained."""
+    f = SETARForest(lag=5)
+    with pytest.raises(RuntimeError, match="not fitted"):
+        f._predict(np.arange(20.0))
+
+
 def test_setar_forest_bagging_and_feature_subset_sizes_numpy():
     """Feature subsets are recorded and have valid sizes (NumPy indices)."""
     y, exog = _make_series_with_exog(T=110, seed=4)

@@ -287,7 +287,7 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
             horizon capability, returns single step prediction.
         """
         if y is None:
-            if not hasattr(self, "last_window_"):
+            if self.last_window_ is None:
                 raise ValueError("No fitted data available for prediction.")
             y_inner = self.last_window_
         else:

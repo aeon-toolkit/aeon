@@ -75,6 +75,15 @@ body:
     required: true
 - type: textarea
   attributes:
+    label: Suggested fix
+    description: >
+      If you have an idea for where the issue comes from or how it could be
+      fixed, please describe it here. This is optional.
+    placeholder: >
+      For example: move the validation from __init__ to _fit, or add a guard for
+      empty input before calling the downstream function.
+- type: textarea
+  attributes:
     label: Versions
     description: |
       Please run the following code snippet and paste the output here.

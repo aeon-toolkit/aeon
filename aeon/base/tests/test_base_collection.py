@@ -230,6 +230,22 @@ def test_preprocess_collection(data):
     assert meta == cls.metadata_
 
 
+def test_check_X_low_variance_warns():
+    """Test near-constant data warns rather than raises in _check_X.
+
+    Interval and shapelet based estimators call transformers on small subseries
+    internally, which are often near-constant. A hard error here aborts fits on
+    valid data, see issue #3570.
+    """
+    dummy = MockClassifier()
+    X = np.ones((5, 1, 10))
+    X[0][0][0] += 1e-8
+
+    with pytest.warns(UserWarning, match="very little variation"):
+        meta = dummy._check_X(X)
+    assert meta
+
+
 def test_convert_np_list():
     """Test np-list of 1D numpy converted to 2D."""
     x1 = np.random.random(size=(1, 10))

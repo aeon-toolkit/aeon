@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -110,3 +111,29 @@ def test_hydra_univariate():
     # Check that output has the expected number of samples
     assert output.shape[0] == 10
     assert output.shape[1] > 0
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
+def test_hydra_random_state_instance():
+    """Test seeded RandomState instances produce reproducible transforms."""
+    X = np.random.default_rng(0).random(size=(10, 2, 20))
+    hydra1 = HydraTransformer(
+        n_kernels=4,
+        n_groups=8,
+        random_state=check_random_state(42),
+        output_type="numpy",
+    )
+    hydra2 = HydraTransformer(
+        n_kernels=4,
+        n_groups=8,
+        random_state=check_random_state(42),
+        output_type="numpy",
+    )
+
+    Xt1 = hydra1.fit_transform(X)
+    Xt2 = hydra2.fit_transform(X)
+
+    np.testing.assert_array_equal(Xt1, Xt2)
