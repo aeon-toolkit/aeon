@@ -2984,6 +2984,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "AnkitKumarIISERB",
+      "name": "Ankit Kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/221970172?v=4",
+      "profile": "https://github.com/AnkitKumarIISERB",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
