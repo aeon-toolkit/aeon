@@ -2984,6 +2984,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "AnkitKumarIISERB",
+      "name": "Ankit Kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/221970172?v=4",
+      "profile": "https://github.com/AnkitKumarIISERB",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "mkzung",
+      "name": "Max Gorbuk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/103102868?v=4",
+      "profile": "https://profiles.stanford.edu/gorbuk",
+      "contributions": [
+        "maintenance"
+      ]
     }
   ],
   "commitType": "docs"
