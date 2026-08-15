@@ -144,8 +144,8 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
         n, p = X.shape
 
         # encode class as regression target, Y in {-1, +1}
-        self._lb = LabelBinarizer(neg_label=-1)
-        Y = self._lb.fit_transform(y).astype(np.float32)
+        self.label_binarizer_ = LabelBinarizer(neg_label=-1)
+        Y = self.label_binarizer_.fit_transform(y).astype(np.float32)
 
         # fix for binary classes
         if Y.shape[-1] == 1:
@@ -181,7 +181,7 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
         RTY = R.T @ Y
 
         best_loss = np.inf
-        self.c = np.float32(1.0)
+        calibration_scale = np.float32(1.0)
         self.lambda_ = None
 
         for lambda_ in self.lambdas_:
@@ -217,11 +217,11 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
 
             if nll < best_loss:
                 best_loss = nll
-                self.c = np.float32(result.x.item())
+                calibration_scale = np.float32(result.x.item())
                 self.lambda_ = lambda_
                 alpha_hat_best = alpha_hat
 
-        self.scale_ = self.c
+        self.scale_ = calibration_scale
         self.lambda_ = np.float32(self.lambda_)
         reference_coef = self.scale_ * (V @ alpha_hat_best)
         self.intercept_ = target_mean + reference_coef[0]
@@ -229,13 +229,12 @@ class PrevalidatedRidgeClassifier(BaseClassifier):
             (len(self.classes_), self.n_atts_), dtype=reference_coef.dtype
         )
         self.coef_[:, ~self.mask_] = reference_coef[1:].T
-        self.label_binarizer_ = self._lb
         self.best_loss_ = best_loss
         return self
 
     def _predict(self, X) -> np.ndarray:
         """Predict labels for X."""
-        return self._lb.classes_[self._predict_proba(X).argmax(1)]
+        return self.label_binarizer_.classes_[self._predict_proba(X).argmax(1)]
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X."""
