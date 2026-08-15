@@ -2948,6 +2948,42 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "Solaris-star",
+      "name": "Solaris-star",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67425364?v=4",
+      "profile": "https://github.com/Solaris-star",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Hrafz",
+      "name": "Achraf Ez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/100241333?v=4",
+      "profile": "https://github.com/Hrafz",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "montyy123",
+      "name": "Souvik Kumar Mohanty",
+      "avatar_url": "https://avatars.githubusercontent.com/u/206427581?v=4",
+      "profile": "https://github.com/montyy123",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "aashoday",
+      "name": "Aashoday",
+      "avatar_url": "https://avatars.githubusercontent.com/u/182349767?v=4",
+      "profile": "https://github.com/aashoday",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
