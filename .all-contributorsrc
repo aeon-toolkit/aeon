@@ -3000,7 +3000,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/103102868?v=4",
       "profile": "https://profiles.stanford.edu/gorbuk",
       "contributions": [
-        "maintenance"
+        "maintenance",
+        "bug"
       ]
     }
   ],
