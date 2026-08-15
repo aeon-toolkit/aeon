@@ -1,6 +1,6 @@
 """MADRID anomaly detector."""
 
-__maintainer__ = []
+__maintainer__ = ["JayeshSuryavanshi"]
 __all__ = ["MADRID"]
 
 import warnings
@@ -11,14 +11,15 @@ from numba import njit
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import std
+from aeon.utils.windowing import reverse_windowing
 
 
 class MADRID(BaseSeriesAnomalyDetector):
     """MADRID multi-length discord anomaly detector.
 
-    MADRID (Multi-length Anomaly Detection with Irregular Density) is a
-    parameter-light discord discovery algorithm that finds time series anomalies
-    of *all* lengths at once [1]_. Instead of committing to a single subsequence
+    MADRID is a discord discovery algorithm that finds time series anomalies of
+    *all* lengths at once [1]_, rather than committing to a single subsequence
+    length. Instead of committing to a single subsequence
     length, MADRID runs the left-discord matrix-profile method DAMP for every
     subsequence length in a candidate set and combines the length-normalised
     discord profiles into a single per-point anomaly score. It is the faster
@@ -28,10 +29,14 @@ class MADRID(BaseSeriesAnomalyDetector):
     matrix profile with DAMP (the distance from each subsequence to its nearest
     neighbour that starts strictly to its left), normalises it by ``sqrt(m)`` so
     that profiles of different lengths are comparable, and stores it as a row of a
-    multi-length discord table ``M``. The per-point anomaly score returned by
-    :meth:`predict` is the column-wise maximum of ``M``, i.e. for each time point
-    the most anomalous length-normalised discord contribution starting at that
-    point. Higher scores indicate more anomalous points.
+    multi-length discord table ``M``. Row scores of ``M`` describe subsequences
+    *starting* at each position; :meth:`predict` converts them to pointwise
+    scores, as the aeon contract requires: within each length, every point
+    covered by a subsequence inherits that subsequence's score (reverse
+    windowing with a max reduction), and the final score of a point is the
+    maximum over lengths, i.e. the score of the most anomalous subsequence of
+    any candidate length that covers it. Higher scores indicate more anomalous
+    points.
 
     Points before ``train_test_split`` form a warm-up (training) region that is
     only used as reference history and is always scored zero, mirroring DAMP's
@@ -147,9 +152,20 @@ class MADRID(BaseSeriesAnomalyDetector):
             np.ascontiguousarray(X, dtype=np.float64), split, m_set
         )
 
-        # aggregate the multi-length discord table into a per-point score using
-        # the column-wise maximum of the length-normalised discord contributions
-        return np.max(discord_table, axis=0)
+        # Convert subsequence scores to pointwise scores. Each row of the discord
+        # table scores subsequences *starting* at each position; a point's
+        # anomalousness is that of the subsequences covering it. Within a length,
+        # every covered point inherits the window score via reverse windowing with
+        # a max reduction (a discord score is a property of the whole subsequence,
+        # and a mean would dilute a single-window discord with its normal
+        # neighbours); across lengths the maximum is taken, so a point is as
+        # anomalous as the most anomalous subsequence of any length covering it.
+        point_scores = np.zeros(n)
+        for i, m in enumerate(m_set):
+            windowed = discord_table[i, : n - int(m) + 1]
+            pointwise = reverse_windowing(windowed, int(m), np.nanmax)
+            point_scores = np.maximum(point_scores, pointwise)
+        return point_scores
 
     def _resolve_split(self, n):
         split = self.train_test_split

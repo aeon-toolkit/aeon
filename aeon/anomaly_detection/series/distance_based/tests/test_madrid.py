@@ -31,6 +31,31 @@ def test_madrid():
     assert 118 <= np.argmax(pred) <= 135
 
 
+def test_madrid_pointwise_interval_elevation():
+    """Check the detected discord's whole cover is elevated, not just its start.
+
+    DAMP's pruning means entries away from the top discord hold unrefined
+    estimates, so only the top-discord region carries a pointwise guarantee; the
+    assertions reflect that contract.
+    """
+    anomaly = (120, 135)
+    series = _make_series_with_anomaly(anomaly=anomaly)
+    ad = MADRID(min_length=8, max_length=20, train_test_split=40)
+    pred = ad.fit_predict(series)
+
+    # the global maximum falls inside the injected interval
+    assert anomaly[0] <= np.argmax(pred) < anomaly[1]
+    # the top-scoring subsequence's cover is elevated as a block: at least
+    # min_length consecutive points share the maximal score
+    at_max = np.flatnonzero(pred >= pred.max() - 1e-12)
+    assert len(at_max) >= 8
+    assert np.all(np.diff(at_max) == 1)
+    # and the discord block clearly outscores the typical background point
+    scored = np.ones(len(pred), dtype=bool)
+    scored[:40] = False
+    assert pred[at_max].min() > np.median(pred[scored])
+
+
 def test_madrid_multi_length():
     """Test MADRID aggregates a multi-length discord table of the right shape."""
     series = _make_series_with_anomaly()
