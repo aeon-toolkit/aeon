@@ -3,6 +3,7 @@
 __maintainer__ = []
 __all__ = [
     "MockCluster",
+    "MockTransductiveCluster",
     "MockDeepClusterer",
 ]
 
@@ -20,6 +21,7 @@ class MockCluster(BaseClusterer):
 
     def _fit(self, X):
         """Mock fit."""
+        self.labels_ = np.zeros(len(X), dtype=int)
         return self
 
     def _predict(self, X):
@@ -30,6 +32,28 @@ class MockCluster(BaseClusterer):
         """Mock predict proba."""
         y = np.random.rand(len(X))
         return y
+
+
+class MockTransductiveCluster(BaseClusterer):
+    """Mock transductive clusterer without out-of-sample prediction."""
+
+    _tags = {
+        "capability:predict": False,
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    def _fit(self, X):
+        """Mock fit."""
+        self.labels_ = np.arange(len(X)) % 2
+        return self
+
+    def _predict(self, X):
+        """Mock predict, unreachable through the public API."""
+        raise RuntimeError(
+            "predict should not be reachable for transductive clusterers."
+        )
 
 
 class MockDeepClusterer(BaseDeepClusterer):
