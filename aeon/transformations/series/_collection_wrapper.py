@@ -67,12 +67,14 @@ class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransfo
         if not self.get_tag("fit_is_empty"):
             t = self.collection_transformer_
 
-        return t.transform(X, y)
+        # the single case went in as a collection of one and comes back as one,
+        # and a series transformer returns a series
+        return t.transform(X, y)[0]
 
     def _fit_transform(self, X, y=None):
         X = X.reshape(1, X.shape[0], X.shape[1])
         self.collection_transformer_ = self.transformer.clone()
-        return self.collection_transformer_.fit_transform(X, y)
+        return self.collection_transformer_.fit_transform(X, y)[0]
 
     def _inverse_transform(self, X, y=None):
         X = X.reshape(1, X.shape[0], X.shape[1])
@@ -81,7 +83,7 @@ class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransfo
         if not self.get_tag("fit_is_empty"):
             t = self.collection_transformer_
 
-        return t.inverse_transform(X, y)
+        return t.inverse_transform(X, y)[0]
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
