@@ -166,3 +166,6 @@ local_code/
 local/
 local_code.py
 local.py
+
+# coding tools
+.claude/

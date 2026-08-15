@@ -19,6 +19,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
+import warnings
 from abc import abstractmethod
 
 import numpy as np
@@ -196,7 +197,16 @@ class BaseCollectionEstimator(BaseAeonEstimator):
             )
             raise ValueError(msg)
 
-        check_collection_variance(X)
+        if not check_collection_variance(X, raise_error=False):
+            warnings.warn(
+                f"Data seen by instance of {type(self).__name__} has one or more "
+                "case/channel pairs with very little variation (std <= 1e-07). "
+                "Some aeon methods may treat these series as effectively constant. "
+                "If this is unintended, rescale (e.g., multiply by a constant) or "
+                "normalise your data.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         return metadata
 

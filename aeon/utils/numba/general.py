@@ -186,7 +186,7 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     return arr
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def z_normalise_series(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array.
 

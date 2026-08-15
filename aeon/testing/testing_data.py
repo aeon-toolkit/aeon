@@ -11,8 +11,7 @@ from aeon.clustering import BaseClusterer
 from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.segmentation import BaseSegmenter
-from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
-from aeon.similarity_search.series import BaseSeriesSimilaritySearch
+from aeon.similarity_search._base import BaseSimilaritySearch
 from aeon.testing.data_generation import (
     make_example_2d_dataframe_collection,
     make_example_2d_numpy_collection,
@@ -1112,7 +1111,7 @@ def _get_task_for_estimator(estimator):
         or isinstance(estimator, BaseClusterer)
         or isinstance(estimator, BaseCollectionTransformer)
         or isinstance(estimator, BaseCollectionAnomalyDetector)
-        or isinstance(estimator, BaseCollectionSimilaritySearch)
+        or isinstance(estimator, BaseSimilaritySearch)
     ):
         data_label = "Classification"
     # collection data with continuous target labels
@@ -1123,7 +1122,6 @@ def _get_task_for_estimator(estimator):
         isinstance(estimator, BaseSegmenter)
         or isinstance(estimator, BaseSeriesTransformer)
         or isinstance(estimator, BaseForecaster)
-        or isinstance(estimator, BaseSeriesSimilaritySearch)
     ):
         data_label = "None"
     # series data with 0/1 anomaly labels

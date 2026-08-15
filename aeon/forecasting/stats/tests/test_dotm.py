@@ -391,3 +391,139 @@ def test_dotm_invalid_seasonal_arguments_raise(kwargs, match):
     forecaster = DOTM(**kwargs)
     with pytest.raises(ValueError, match=match):
         forecaster.fit(Y_EXAMPLE)
+
+
+def _seasonal_series(n=24, m=4, noise=0.05, offset=10.0, seed=0):
+    rng = np.random.default_rng(seed)
+    t = np.arange(n)
+    return offset + np.sin(2 * np.pi * t / m) + noise * rng.standard_normal(n)
+
+
+def test_dotm_iterative_forecast_invalid_horizon():
+    """Horizon below one raises before fitting."""
+    with pytest.raises(ValueError, match="greater than or equal to 1"):
+        DOTM().iterative_forecast(Y_EXAMPLE, 0)
+
+
+def test_dotm_parameter_bound_validation_errors():
+    """Each bound validation failure raises a distinct ValueError."""
+    with pytest.raises(ValueError, match="bounds must be finite"):
+        DOTM(initial_level_bounds=(np.nan, 1.0)).fit(Y_EXAMPLE)
+    with pytest.raises(ValueError, match="must not exceed upper"):
+        DOTM(initial_level_bounds=(10.0, -10.0)).fit(Y_EXAMPLE)
+    with pytest.raises(ValueError, match="finite and in bounds"):
+        DOTM(alpha=0.05, alpha_bounds=(0.1, 0.99)).fit(Y_EXAMPLE)
+    with pytest.raises(ValueError, match="alpha bounds"):
+        DOTM(alpha_bounds=(0.0, 0.99)).fit(Y_EXAMPLE)
+    with pytest.raises(ValueError, match="theta lower bound"):
+        DOTM(theta_bounds=(0.5, 10.0)).fit(Y_EXAMPLE)
+
+
+def test_dotm_initial_level_start_clipped_to_bounds():
+    """The optimiser start point is clipped into the level bounds."""
+    f_lo = DOTM(initial_level_bounds=(100.0, 200.0), max_iter=50).fit(Y_EXAMPLE)
+    assert 100.0 <= f_lo.initial_level_ <= 200.0
+    f_hi = DOTM(initial_level_bounds=(-200.0, -100.0), max_iter=50).fit(Y_EXAMPLE)
+    assert -200.0 <= f_hi.initial_level_ <= -100.0
+
+
+def test_dotm_tiny_bound_range_step_fallback():
+    """Simplex steps fall back when the start value and range are tiny."""
+    y = np.arange(0.0, 12.0)  # y[0] == 0 gives a zero-length first step
+    f = DOTM(initial_level_bounds=(-1e-7, 1e-7), max_iter=50).fit(y)
+    assert -1e-7 <= f.initial_level_ <= 1e-7
+
+
+def test_dotm_additive_seasonal_predict():
+    """Forced additive decomposition round-trips through predict."""
+    y = _seasonal_series()
+    f = DOTM(
+        season_length=4,
+        seasonal_test=True,
+        decomposition_type="additive",
+        max_iter=50,
+    ).fit(y)
+    assert f.deseasonalised_ and f.decomposition_type_ == "additive"
+    assert np.isfinite(f._predict(y.reshape(1, -1)))
+
+
+def test_dotm_odd_season_length():
+    """Odd seasonal periods use the plain centred moving average."""
+    y = _seasonal_series(n=21, m=3)
+    f = DOTM(season_length=3, seasonal_test=True, max_iter=50).fit(y)
+    assert f.deseasonalised_
+    assert np.isfinite(f.forecast_)
+
+
+def test_dotm_auto_seasonal_test_runs_acf():
+    """seasonal_test='auto' runs the ACF significance test on noisy data."""
+    y = _seasonal_series(n=32, m=4, noise=0.2)
+    f = DOTM(season_length=4, seasonal_test="auto", max_iter=50).fit(y)
+    assert np.isfinite(f.forecast_)
+
+
+def test_acf_seasonal_test_degenerate_inputs():
+    """Short and constant series return False from the ACF test."""
+    from aeon.forecasting.stats._dotm import _acf_seasonal_test_numba
+
+    assert not _acf_seasonal_test_numba(np.arange(5.0), 5, 1.645)
+    assert not _acf_seasonal_test_numba(np.ones(20), 4, 1.645)
+
+
+def test_seasonal_decompose_returns_none_when_too_short():
+    """Decomposition degrades to 'none' when the series is too short."""
+    from aeon.forecasting.stats._dotm import _seasonal_decompose
+
+    factors, adjusted, used = _seasonal_decompose(np.arange(3.0) + 1, 5, "additive")
+    assert used == "none" and factors is None
+    factors, adjusted, used = _seasonal_decompose(np.arange(4.0) + 1, 4, "additive")
+    assert used == "none"
+    # long enough for the MA but with empty seasonal positions
+    factors, adjusted, used = _seasonal_decompose(
+        np.arange(6.0) + 1.0, 4, "multiplicative"
+    )
+    assert used == "none"
+
+
+def test_dotm_core_zero_alpha_paths():
+    """Alpha == 0 uses the zero slope-term branches in the numba cores."""
+    from aeon.forecasting.stats._dotm import (
+        _dotm_fitted_values,
+        _dotm_forecast_from_state,
+    )
+
+    fitted, residuals, level, a, b, mean_y = _dotm_fitted_values(
+        Y_EXAMPLE, 1.0, 0.0, 2.0
+    )
+    assert np.all(np.isfinite(fitted))
+    fc = _dotm_forecast_from_state(5, 2, 1.0, 1.0, 0.1, 1.0, 0.0, 2.0)
+    assert fc.shape == (2,) and np.all(np.isfinite(fc))
+
+
+def test_dotm_sse_bound_rejections():
+    """Out-of-bound or degenerate parameters score 1e300."""
+    from aeon.forecasting.stats._dotm import (
+        _dotm_sse,
+        _dotm_sse_values,
+        _free_score,
+    )
+
+    y = Y_EXAMPLE
+    mask = np.zeros(3, dtype=np.bool_)
+    vals = np.full(3, np.nan)
+    lower = np.array([-10.0, -1.0, 0.0])
+    upper = np.array([10.0, 2.0, 100.0])
+    big = 1e300
+    assert _dotm_sse(np.array([99.0, 0.5, 2.0]), y, mask, vals, lower, upper) == big
+    assert _dotm_sse(np.array([1.0, 5.0, 2.0]), y, mask, vals, lower, upper) == big
+    assert _dotm_sse(np.array([1.0, 0.5, 999.0]), y, mask, vals, lower, upper) == big
+    assert _dotm_sse(np.array([1.0, 0.0, 2.0]), y, mask, vals, lower, upper) == big
+
+    # scale fallback for all-zero series and non-finite residual guard
+    assert np.isfinite(_dotm_sse_values(0.5, 0.5, 2.0, np.zeros(6)))
+    assert _dotm_sse_values(0.5, 0.5, 2.0, np.array([1.0, np.inf, 3.0, 4.0])) == big
+
+    idx_level = np.array([0], dtype=np.int64)
+    idx_alpha = np.array([1], dtype=np.int64)
+    assert _free_score(np.array([99.0]), y, mask, vals, lower, upper, idx_level) == big
+    assert _free_score(np.array([0.0]), y, mask, vals, lower, upper, idx_alpha) == big
