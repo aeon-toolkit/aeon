@@ -4,11 +4,28 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["CollectionToSeriesWrapper"]
 
 
+import numpy as np
+
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.series.base import (
     BaseSeriesTransformer,
     SeriesInverseTransformerMixin,
 )
+
+
+def _single_case(Xt):
+    """Unwrap a collection of one case, and leave anything else alone.
+
+    The wrapper feeds the collection transformer one case, so a collection
+    comes back holding one. Not every collection transformer returns a
+    collection though: SFAWhole returns a tuple of two arrays, and indexing
+    that would keep the first and drop the second.
+    """
+    if isinstance(Xt, np.ndarray) and Xt.ndim == 3 and Xt.shape[0] == 1:
+        return Xt[0]
+    if isinstance(Xt, list) and len(Xt) == 1:
+        return Xt[0]
+    return Xt
 
 
 class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransformer):
@@ -28,6 +45,8 @@ class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransfo
     >>> transformer = Resizer(resized_length=5)
     >>> wrapper = CollectionToSeriesWrapper(transformer)
     >>> X_t = wrapper.fit_transform(X)
+    >>> X_t.shape
+    (1, 5)
     """
 
     # These tags are not set from the collection transformer.
@@ -67,14 +86,12 @@ class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransfo
         if not self.get_tag("fit_is_empty"):
             t = self.collection_transformer_
 
-        # the single case went in as a collection of one and comes back as one,
-        # and a series transformer returns a series
-        return t.transform(X, y)[0]
+        return _single_case(t.transform(X, y))
 
     def _fit_transform(self, X, y=None):
         X = X.reshape(1, X.shape[0], X.shape[1])
         self.collection_transformer_ = self.transformer.clone()
-        return self.collection_transformer_.fit_transform(X, y)[0]
+        return _single_case(self.collection_transformer_.fit_transform(X, y))
 
     def _inverse_transform(self, X, y=None):
         X = X.reshape(1, X.shape[0], X.shape[1])
@@ -83,7 +100,7 @@ class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransfo
         if not self.get_tag("fit_is_empty"):
             t = self.collection_transformer_
 
-        return t.inverse_transform(X, y)[0]
+        return _single_case(t.inverse_transform(X, y))
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

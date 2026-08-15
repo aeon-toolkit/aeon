@@ -1,4 +1,4 @@
-"""Tests for SeriesToCollectionBroadcaster transformer."""
+"""Tests for CollectionToSeriesWrapper transformer."""
 
 import numpy as np
 
@@ -43,8 +43,7 @@ def test_broadcaster_returns_a_series():
     bc.fit(X)
     assert bc.transform(X).shape == X.shape
 
-    # CollectionId is the one collection transformer with an inverse that is not
-    # this wrapper, so it is what the inverse path can be checked against
+    # a second transformer, because the first is a mock and this one is not
     bc = CollectionToSeriesWrapper(CollectionId())
     bc.fit(X)
     assert bc.transform(X).shape == X.shape
