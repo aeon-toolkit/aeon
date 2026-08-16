@@ -16,10 +16,8 @@ from aeon.transformations.series.base import (
 def _single_case(Xt):
     """Unwrap a collection of one case, and leave anything else alone.
 
-    The wrapper feeds the collection transformer one case, so a collection
-    comes back holding one. Not every collection transformer returns a
-    collection though: SFAWhole returns a tuple of two arrays, and indexing
-    that would keep the first and drop the second.
+    Not every collection transformer returns a collection. SFAWhole returns a
+    tuple of two arrays, and indexing that drops the second in silence.
     """
     if isinstance(Xt, np.ndarray) and Xt.ndim == 3 and Xt.shape[0] == 1:
         return Xt[0]
