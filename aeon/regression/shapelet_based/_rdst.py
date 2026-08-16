@@ -50,7 +50,7 @@ class RDSTRegressor(BaseRegressor):
         will be used.
     alpha_similarity : float, default=0.5
         The strength of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
+        the allowed number of common indices with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
         the whole search space has been covered. The default is 0.5, and the maximum is

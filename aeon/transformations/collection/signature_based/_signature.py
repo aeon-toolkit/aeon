@@ -268,7 +268,7 @@ def _window_getter(
     -------
     list:
         A list of lists where the inner lists are lists of tuples that
-        denote the start and end indexes of each window.
+        denote the start and end indices of each window.
     """
     # Setup all available windows here
     length_step = {"length": window_length, "step": window_step}
