@@ -194,8 +194,34 @@ def lcss_cost_matrix(
 def _lcss_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
-    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1], y.shape[1]]
-    distance = 1 - (float(distance / min(x.shape[1], y.shape[1])))
+    """Compute the LCSS distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer (O(M) space)
+    instead of allocating the full O(NM) cost matrix.
+    """
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # Row 0 and column 0 of the LCSS cost matrix are zero; excluded cells also
+    # stay zero, so zero-initialised buffers reproduce the matrix exactly.
+    prev = np.zeros(y_size + 1)
+    curr = np.zeros(y_size + 1)
+
+    for i in range(1, x_size + 1):
+        curr[0] = 0.0
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
+                    curr[j] = 1 + prev[j - 1]
+                else:
+                    curr[j] = max(curr[j - 1], prev[j])
+            else:
+                curr[j] = 0.0
+        # Ping-pong the buffers instead of copying.
+        prev, curr = curr, prev
+
+    distance = prev[y_size]
+    distance = 1 - (float(distance / min(x_size, y_size)))
     if distance < 0.0:
         return 0.0
     return distance
