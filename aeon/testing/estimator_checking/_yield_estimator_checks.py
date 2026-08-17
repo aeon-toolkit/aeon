@@ -525,6 +525,24 @@ def check_dl_constructor_initializes_deeply(estimator):
             assert vars(estimator._network)[key] == value
 
 
+def _method_is_callable(estimator, method):
+    """Check whether a method can be validly called on an estimator.
+
+    Clusterers with the ``capability:predict`` tag set to False do not support
+    out-of-sample prediction, so ``predict`` and ``predict_proba`` deliberately
+    raise and are excluded from generic method loops.
+    """
+    if not (hasattr(estimator, method) and callable(getattr(estimator, method))):
+        return False
+    if (
+        isinstance(estimator, BaseClusterer)
+        and method in ("predict", "predict_proba")
+        and not estimator.get_tag("capability:predict")
+    ):
+        return False
+    return True
+
+
 def check_non_state_changing_method(estimator, datatype):
     """Check that non-state-changing methods behave correctly.
 
@@ -546,7 +564,7 @@ def check_non_state_changing_method(estimator, datatype):
 
     state_before = _snapshot_state(estimator)
     for method in NON_STATE_CHANGING_METHODS:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
+        if _method_is_callable(estimator, method):
             _run_estimator_method(estimator, method, datatype, "test")
 
             assert deep_equals(
@@ -646,7 +664,7 @@ def check_persistence_via_pickle(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
+        if _method_is_callable(estimator, method):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
@@ -656,7 +674,7 @@ def check_persistence_via_pickle(estimator, datatype):
 
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
+        if _method_is_callable(estimator, method):
             output = _run_estimator_method(estimator, method, datatype, "test")
             same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
@@ -675,7 +693,7 @@ def check_fit_deterministic(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
+        if _method_is_callable(estimator, method):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
@@ -685,7 +703,7 @@ def check_fit_deterministic(estimator, datatype):
     # check output of predict/transform etc does not change
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
+        if _method_is_callable(estimator, method):
             output = _run_estimator_method(estimator, method, datatype, "test")
             same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
