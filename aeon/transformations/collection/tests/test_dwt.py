@@ -111,3 +111,20 @@ def test_dwt_performs_correcly_along_each_dim():
         ]
     )
     np.testing.assert_array_almost_equal(res, orig)
+
+
+@pytest.mark.parametrize(
+    "dtype, expected_dtype",
+    [
+        (np.float32, np.float32),
+        (np.float64, np.float64),
+        (np.int64, np.float64),
+    ],
+)
+def test_dwt_preserves_float_precision(dtype, expected_dtype):
+    """Check dwt preserves float32 and promotes proper dtype output."""
+    X = np.arange(16, dtype=dtype).reshape(2, 1, 8)
+
+    Xt = DWTTransformer(n_levels=2).fit_transform(X)
+
+    assert Xt.dtype == expected_dtype

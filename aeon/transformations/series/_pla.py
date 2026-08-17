@@ -87,6 +87,7 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             raise ValueError("Invalid max_error: it has to be a number.")
         if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
             raise ValueError("Invalid buffer_size: use a number only or keep empty.")
+        out_dtype = np.float32 if X.dtype == np.float32 else np.float64
         results = None
         X = np.concatenate(X)
         if isinstance(self.transformer, (str)):
@@ -105,7 +106,7 @@ class PLASeriesTransformer(BaseSeriesTransformer):
         else:
             raise ValueError("Invalid transformer: it has to be a string.")
 
-        return np.concatenate(results)
+        return np.concatenate(results).astype(out_dtype, copy=False)
 
     def _sliding_window(self, X):
         """Transform a time series using the sliding window algorithm (Online).
