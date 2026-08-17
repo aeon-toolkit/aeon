@@ -1934,7 +1934,10 @@ def _transform_case_numba(
         # typed placeholders; real values are assigned before first use. These
         # must be dtype-fixed (not aliases of series) so the kernel also
         # compiles for integer input arrays.
-        outlier_series = np.empty(0, np.float64)
+        # / 1 applies the same dtype promotion z_normalise_series_with_mean
+        # uses internally (float32 stays float32, everything else becomes
+        # float64), so this placeholder always matches the real value's dtype.
+        outlier_series = series[:0] / 1
         have_outlier = False
         fft = ac_tw[:0]
         have_fft = False
