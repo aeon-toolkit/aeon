@@ -75,3 +75,23 @@ def test_slope_performs_correcly_along_each_dim():
         ]
     )
     np.testing.assert_array_almost_equal(res, orig, decimal=5)
+
+
+@pytest.mark.parametrize(
+    "dtype, expected_dtype",
+    [
+        (np.float32, np.float32),
+        (np.float64, np.float64),
+        (np.int64, np.float64),
+    ],
+)
+def test_slope_preserves_float_precision(dtype, expected_dtype):
+    """Check that Slope preserved float32 and promotes proper dtype output."""
+    X = np.array(
+        [[[4, 6, 10, 12, 8, 6, 5, 5]]],
+        dtype=dtype,
+    )
+
+    Xt = SlopeTransformer(n_intervals=2).fit_transform(X)
+
+    assert Xt.dtype == expected_dtype

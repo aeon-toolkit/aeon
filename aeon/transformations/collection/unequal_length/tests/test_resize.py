@@ -87,3 +87,23 @@ def test_incorrect_arguments():
     resizer = Resizer(resized_length="invalid")
     with pytest.raises(ValueError, match="resized_length must be"):
         resizer.fit_transform(X)
+
+
+@pytest.mark.parametrize(
+    "dtype, expected_dtype",
+    [
+        (np.float32, np.float32),
+        (np.float64, np.float64),
+        (np.int64, np.float64),
+    ],
+)
+def test_resizer_preserves_float_precision(dtype, expected_dtype):
+    """Test Resizer preserved float32 and promotes proper dtype output."""
+    X = [
+        np.array([[0, 1, 2, 3]], dtype=dtype),
+        np.array([[0, 2, 4, 6, 8]], dtype=dtype),
+    ]
+
+    Xt = Resizer(resized_length=6).fit_transform(X)
+
+    assert Xt.dtype == expected_dtype

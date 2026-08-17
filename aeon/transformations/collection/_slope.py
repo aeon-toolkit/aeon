@@ -62,6 +62,7 @@ class SlopeTransformer(BaseCollectionTransformer):
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape
         self._check_parameters(n_timepoints)
+        out_dtype = np.float32 if X.dtype == np.float32 else np.float64
         full_data = []
         for i in range(n_cases):
             case_data = []
@@ -70,7 +71,7 @@ class SlopeTransformer(BaseCollectionTransformer):
                 # Calculate gradients
                 res = [self._get_gradient(x) for x in splits]
                 case_data.append(res)
-            full_data.append(np.asarray(case_data))
+            full_data.append(np.asarray(case_data, dtype=out_dtype))
 
         return np.array(full_data)
 
