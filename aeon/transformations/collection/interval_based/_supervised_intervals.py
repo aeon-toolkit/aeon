@@ -208,7 +208,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
         for i in range(1, self.n_intervals):
             Xt = np.hstack((Xt, transformed_intervals[i]))
 
-        return Xt
+        out_dtype = np.float32 if X.dtype == np.float32 else np.float64
+        return Xt.astype(dtype=out_dtype, copy=False)
 
     def _fit(self, X, y=None):
         X, y, rng = self._fit_setup(X, y)
@@ -251,7 +252,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
             for i in range(len(self.intervals_))
         )
 
-        Xt = np.zeros((X.shape[0], len(transform)))
+        out_dtype = np.float32 if X.dtype == np.float32 else np.float64
+        Xt = np.zeros((X.shape[0], len(transform)), dtype=out_dtype)
         for i, t in enumerate(transform):
             Xt[:, i] = t
 
