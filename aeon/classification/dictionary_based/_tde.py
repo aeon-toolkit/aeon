@@ -4,26 +4,56 @@ Dictionary based TDE classifiers based on SFA transform. Contains a single
 IndividualTDE and TDE.
 """
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["TemporalDictionaryEnsemble", "IndividualTDE", "histogram_intersection"]
 
 import math
-import os
 import time
 import warnings
-from collections import defaultdict
 
 import numpy as np
 from joblib import Parallel, delayed
 from numba import njit, types
 from numba.typed import Dict
-from sklearn import preprocessing
-from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.dictionary_based import SFA
+from aeon.classification.dictionary_based._tde_sfa import (
+    _TDE_SFA,
+    combine_channel_bags,
+    loocv_train_acc,
+    nn_first_max,
+    nn_predict_loocv,
+    nn_similarities_all,
+    nn_tie_break,
+)
 from aeon.utils.validation import check_n_jobs
+
+# largest number of cases for which the LOOCV nearest neighbour search
+# materialises the full similarity matrix (n^2 int32); above this the
+# per-case search is used instead
+_SYMMETRIC_LOOCV_MAX_N = 4096
+
+
+def _kernel_ridge_preds(x_hist, y_hist, candidates):
+    """Kernel ridge predictions for the ensemble parameter selection.
+
+    The same computation as sklearn StandardScaler + KernelRidge(
+    kernel="poly", degree=1) with default alpha=1, gamma=1/n_features and
+    coef0=1, i.e. linear ridge regression on standardised features in dual
+    form, without the per-call sklearn validation overhead.
+    """
+    mean = x_hist.mean(axis=0)
+    std = x_hist.std(axis=0)
+    std[std == 0.0] = 1.0
+    xs = (x_hist - mean) / std
+    cs = (candidates - mean) / std
+
+    gamma = 1.0 / xs.shape[1]
+    k = xs @ xs.T * gamma + 1.0
+    k.flat[:: k.shape[0] + 1] += 1.0  # alpha = 1 regularisation
+    dual = np.linalg.solve(k, y_hist)
+    return (cs @ xs.T * gamma + 1.0) @ dual
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
@@ -33,10 +63,12 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series length 'm' with 'd' channels
-    TDE searches 'k' parameter values selected using a Gaussian processes
-    regressor, evaluating each with a LOOCV. It then retains 's'
-    ensemble members.
+    Overview: Input 'n' series of length 'm' with 'd' channels.
+    TDE searches 'k' parameter values, using kernel ridge regression over
+    previously evaluated parameter combinations to predict the accuracy of
+    candidate parameter sets, and evaluates each selected set with a LOOCV.
+    (The reference paper [1] describes this step as a Gaussian process
+    regressor.) It then retains 's' ensemble members.
     There are six primary parameters for individual classifiers:
             - alpha: alphabet size
             - w: window length
@@ -47,15 +79,15 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     For any combination, an individual TDE classifier slides a window of
     length w along the series. The w length window is shortened to
     an l length word through taking a Fourier transform and keeping the
-    first l/2 complex coefficients. These lcoefficients are then discretised
-    into alpha possible values, to form a word length l using breakpoints
+    first l/2 complex coefficients. These coefficients are then discretised
+    into alpha possible values, to form a word of length l using breakpoints
     found using b. A histogram of words for each series is formed and stored,
     using a spatial pyramid of h levels. For multivariate series, accuracy
     from a reduced histogram is used to select channels.
 
     fit involves finding n histograms.
     predict uses 1 nearest neighbour with the histogram intersection
-    distance function.
+    similarity function.
 
     Parameters
     ----------
@@ -68,33 +100,36 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     min_window : int, default=10
         Minimum window length.
     randomly_selected_params : int, default=50
-        Number of parameters randomly selected before the Gaussian process parameter
-        selection is used.
+        Number of parameters randomly selected before the kernel ridge regression
+        guided parameter selection is used.
     bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
-    dim_threshold : float, default=0.85
+    channel_threshold : float, default=0.85
         Channel accuracy threshold for multivariate data, must be between 0 and 1.
-    max_dims : int, default=20
+    dim_threshold : float, default="deprecated"
+        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
+    max_channels : int, default=20
         Max number of channels per classifier for multivariate data.
+    max_dims : int, default="deprecated"
+        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    typed_dict : bool, default=True
-        Use a numba typed Dict to store word counts. May increase memory usage, but will
-        be faster for larger datasets. As the Dict cannot be pickled currently, there
-        will be some overhead converting it to a python dict with multiple threads and
-        pickling.
+    typed_dict : bool, default="deprecated"
+        Has no effect: word counts are now stored as sorted arrays.
+
+        Deprecated and will be removed in v1.7.0.
     train_estimate_method : str, default="loocv"
         Method used to generate train estimates in `fit_predict` and
         `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
         "oob" for out of bag estimates.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+        The number of jobs to run in parallel for `predict`. `fit` is
+        single threaded. ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -162,6 +197,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         "algorithm_type": "dictionary",
     }
 
+    # TODO remove 'dim_threshold', 'max_dims' and 'typed_dict' in v1.7.0
     def __init__(
         self,
         n_parameter_samples=250,
@@ -170,14 +206,16 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         min_window=10,
         randomly_selected_params=50,
         bigrams=None,
-        dim_threshold=0.85,
-        max_dims=20,
+        dim_threshold="deprecated",
+        max_dims="deprecated",
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        typed_dict=True,
+        typed_dict="deprecated",
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
+        max_channels=20,
+        channel_threshold=0.85,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -188,11 +226,36 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         # multivariate
         self.dim_threshold = dim_threshold
+        self.channel_threshold = channel_threshold
+        if dim_threshold != "deprecated":
+            warnings.warn(
+                "The 'dim_threshold' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'channel_threshold' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.channel_threshold = dim_threshold
         self.max_dims = max_dims
+        self.max_channels = max_channels
+        if max_dims != "deprecated":
+            warnings.warn(
+                "The 'max_dims' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'max_channels' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.max_channels = max_dims
 
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
         self.typed_dict = typed_dict
+        if typed_dict != "deprecated":
+            warnings.warn(
+                "The 'typed_dict' parameter has no effect and will be removed "
+                "in v1.7.0. Word counts are now stored as sorted arrays.",
+                FutureWarning,
+                stacklevel=2,
+            )
         self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -208,7 +271,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self._norm_options = [True, False]
         self._levels = [1, 2, 3]
         self._igb_options = [True, False]
-        self._alphabet_size = 4
         self._weight_sum = 0
         self._prev_parameters_x = []
         self._prev_parameters_y = []
@@ -219,8 +281,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         """Fit an ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of base TDE classifiers from the training set (X,
-        y), through an optimised selection over the para space to make a fixed size
-        ensemble of the best.
+        y), through an optimised selection over the parameter space to make a
+        fixed size ensemble of the best.
 
         Parameters
         ----------
@@ -273,6 +335,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             win_inc = 1
 
         possible_parameters = self._unique_parameters(max_window, win_inc)
+        # float array mirror of possible_parameters for the kernel ridge
+        # parameter selection, kept in sync as parameters are popped
+        candidate_parameters = np.array(possible_parameters, dtype=np.float64)
         num_classifiers = 0
         subsample_size = int(self.n_cases_ * 0.7)
         lowest_acc = 1
@@ -307,20 +372,21 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             or num_classifiers < n_parameter_samples
         ) and len(possible_parameters) > 0:
             if num_classifiers < self.randomly_selected_params:
-                parameters = possible_parameters.pop(
-                    rng.randint(0, len(possible_parameters))
-                )
+                idx = rng.randint(0, len(possible_parameters))
             else:
-                scaler = preprocessing.StandardScaler()
-                scaler.fit(self._prev_parameters_x)
-                gp = KernelRidge(kernel="poly", degree=1)
-                gp.fit(
-                    scaler.transform(self._prev_parameters_x), self._prev_parameters_y
+                # kernel ridge regression on standardised parameters, the
+                # same computation as StandardScaler + KernelRidge(
+                # kernel="poly", degree=1) but without the sklearn
+                # per-call validation overhead
+                preds = _kernel_ridge_preds(
+                    np.array(self._prev_parameters_x, dtype=np.float64),
+                    np.array(self._prev_parameters_y, dtype=np.float64),
+                    candidate_parameters,
                 )
-                preds = gp.predict(scaler.transform(possible_parameters))
-                parameters = possible_parameters.pop(
-                    rng.choice(np.flatnonzero(preds == preds.max()))
-                )
+                idx = rng.choice(np.flatnonzero(preds == preds.max()))
+
+            parameters = possible_parameters.pop(idx)
+            candidate_parameters = np.delete(candidate_parameters, idx, axis=0)
 
             while True:
                 subsample = rng.choice(
@@ -331,17 +397,20 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 if len(np.unique(y_subsample)) > 1:
                     break
 
+            # members are kept single threaded: the ensemble parallelises
+            # over members in predict, so member-level threads would only
+            # oversubscribe
             tde = IndividualTDE(
                 *parameters,
-                alphabet_size=self._alphabet_size,
                 bigrams=use_bigrams,
-                dim_threshold=self.dim_threshold,
-                max_dims=self.max_dims,
-                typed_dict=self.typed_dict,
-                n_jobs=self._n_jobs,
+                channel_threshold=self.channel_threshold,
+                max_channels=self.max_channels,
                 random_state=self.random_state,
             )
-            tde.fit(X_subsample, y_subsample)
+            # X_subsample/y_subsample are a subsample of the X/y this
+            # ensemble already validated in full, so _fit is called
+            # directly rather than through the public fit
+            tde._fit(X_subsample, y_subsample)
             tde._subsample = subsample
 
             tde._accuracy = self._individual_train_acc(
@@ -419,8 +488,19 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
-        for n, clf in enumerate(self.estimators_):
-            preds = clf.predict(X)
+        # each member's predict is dominated by nogil numba kernels, so
+        # thread-based parallelism over members scales. X is validated once
+        # by the public predict_proba wrapper, so members' _predict is
+        # called directly. Results are gathered in member order, so the
+        # aggregation below is identical for any n_jobs.
+        if self._n_jobs > 1:
+            all_preds = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                delayed(clf._predict)(X) for clf in self.estimators_
+            )
+        else:
+            all_preds = [clf._predict(X) for clf in self.estimators_]
+
+        for n, preds in enumerate(all_preds):
             for i in range(0, X.shape[0]):
                 sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
 
@@ -459,7 +539,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 if len(oob) == 0:
                     continue
 
-                preds = clf.predict(X[oob])
+                # X[oob] is a subset of the already-validated X passed to
+                # this method, so _predict is called directly as in
+                # _predict_proba above
+                preds = clf._predict(X[oob])
 
                 for n, pred in enumerate(preds):
                     results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
@@ -505,34 +588,31 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        if self._n_jobs > 1:
-            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(tde._train_predict)(
-                    i,
-                )
-                for i in range(train_size)
+        # run the whole LOOCV in one numba call, computing each symmetric
+        # pair intersection only once. The n x n similarity matrix is small
+        # for typical subsample sizes; fall back to a per-case search for
+        # very large n.
+        if train_size <= _SYMMETRIC_LOOCV_MAX_N:
+            _, y_codes = np.unique(y, return_inverse=True)
+            n_done, correct, preds = loocv_train_acc(
+                *tde._transformed_data, y_codes.astype(np.int64), required_correct
             )
+            if keep_train_preds:
+                for i in range(n_done):
+                    tde._train_predictions.append(tde._class_vals[preds[i]])
+            return -1 if correct == -1 else correct / train_size
 
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
-                elif c[i] == y[i]:
-                    correct += 1
+        for i in range(train_size):
+            if correct + train_size - i < required_correct:
+                return -1
 
-                if keep_train_preds:
-                    tde._train_predictions.append(c[i])
-        else:
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
+            c = tde._train_predict(i)
 
-                c = tde._train_predict(i)
+            if c == y[i]:
+                correct += 1
 
-                if c == y[i]:
-                    correct += 1
-
-                if keep_train_preds:
-                    tde._train_predictions.append(c)
+            if keep_train_preds:
+                tde._train_predictions.append(c)
 
         return correct / train_size
 
@@ -550,7 +630,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
                 "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
+                    "capability:contractable" tag to True to test contracting
                     functionality
                 "train_estimate" - used in some classifiers that set the
                     "capability:train_estimate" tag to True to allow for more efficient
@@ -592,20 +672,21 @@ class IndividualTDE(BaseClassifier):
     from [1]_.
 
     Overview: input "n" series of length "m" and IndividualTDE performs a SFA
-    transform to form a sparse dictionary of discretised words. The resulting
-    dictionary is used with the histogram intersection distance function in a
-    1-nearest neighbor.
+    transform to form a sparse histogram of discretised words. The resulting
+    histogram is used with the histogram intersection similarity function in a
+    1-nearest neighbour.
 
     fit involves finding "n" histograms.
 
-    predict uses 1 nearest neighbor with the histogram intersection distance function.
+    predict uses 1 nearest neighbour with the histogram intersection similarity
+    function.
 
     Parameters
     ----------
     window_size : int, default=10
         Size of the window to use in the SFA transform.
     word_length : int, default=8
-        Length of word to use to use in the SFA transform.
+        Length of word to use in the SFA transform.
     norm : bool, default=False
         Whether to normalize SFA words by dropping the first Fourier coefficient.
     levels : int, default=1
@@ -613,24 +694,31 @@ class IndividualTDE(BaseClassifier):
     igb : bool, default=False
         Whether to use Information Gain Binning (IGB) or
         Multiple Coefficient Binning (MCB) for the SFA transform.
-    alphabet_size : default=4
-        Number of possible letters (values) for each word.
+    alphabet_size : int, default="deprecated"
+        Has no effect: the alphabet size is fixed to 4.
+
+        Deprecated and will be removed in v1.7.0.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
-    dim_threshold : float, default=0.85
+    channel_threshold : float, default=0.85
         Accuracy threshold as a proportion of the highest accuracy channel for words
         extracted from each channel. Only applicable for multivariate data.
-    max_dims : int, default=20
+    dim_threshold : float, default="deprecated"
+        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
+    max_channels : int, default=20
         Maximum number of channels words are extracted from. Only applicable for
         multivariate data.
-    typed_dict : bool, default=True
-        Use a numba TypedDict to store word counts. May increase memory usage, but will
-        be faster for larger datasets.
+    max_dims : int, default="deprecated"
+        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
+    typed_dict : bool, default="deprecated"
+        Has no effect: word counts are now stored as sorted arrays.
+
+        Deprecated and will be removed in v1.7.0.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+        The number of jobs to run in parallel for `predict`. `fit` is
+        single threaded. ``-1`` means using all processors.
     random_state : int or None, default=None
-        Seed for random, integer.
+        Seed for the random number generator.
 
     Attributes
     ----------
@@ -647,7 +735,7 @@ class IndividualTDE(BaseClassifier):
 
     See Also
     --------
-    TemporalDictinaryEnsemble, SFA
+    TemporalDictionaryEnsemble, SFA
         TDE extends BOSS and uses SFA.
 
     Notes
@@ -680,6 +768,8 @@ class IndividualTDE(BaseClassifier):
         "capability:multithreading": True,
     }
 
+    # TODO remove 'dim_threshold', 'alphabet_size', 'max_dims' and 'typed_dict'
+    # in v1.7.0
     def __init__(
         self,
         window_size=10,
@@ -687,13 +777,15 @@ class IndividualTDE(BaseClassifier):
         norm=False,
         levels=1,
         igb=False,
-        alphabet_size=4,
+        alphabet_size="deprecated",
         bigrams=True,
-        dim_threshold=0.85,
-        max_dims=20,
-        typed_dict=True,
+        dim_threshold="deprecated",
+        max_dims="deprecated",
+        typed_dict="deprecated",
         n_jobs=1,
         random_state=None,
+        max_channels=20,
+        channel_threshold=0.85,
     ):
         self.window_size = window_size
         self.word_length = word_length
@@ -701,13 +793,45 @@ class IndividualTDE(BaseClassifier):
         self.levels = levels
         self.igb = igb
         self.alphabet_size = alphabet_size
+        if alphabet_size != "deprecated":
+            warnings.warn(
+                "The 'alphabet_size' parameter has no effect and will be "
+                "removed in v1.7.0. The alphabet size is fixed to 4.",
+                FutureWarning,
+                stacklevel=2,
+            )
         self.bigrams = bigrams
 
         # multivariate
         self.dim_threshold = dim_threshold
+        self.channel_threshold = channel_threshold
+        if dim_threshold != "deprecated":
+            warnings.warn(
+                "The 'dim_threshold' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'channel_threshold' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.channel_threshold = dim_threshold
         self.max_dims = max_dims
+        self.max_channels = max_channels
+        if max_dims != "deprecated":
+            warnings.warn(
+                "The 'max_dims' parameter is deprecated and will be removed "
+                "in v1.7.0. Use 'max_channels' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.max_channels = max_dims
 
         self.typed_dict = typed_dict
+        if typed_dict != "deprecated":
+            warnings.warn(
+                "The 'typed_dict' parameter has no effect and will be removed "
+                "in v1.7.0. Word counts are now stored as sorted arrays.",
+                FutureWarning,
+                stacklevel=2,
+            )
         self.n_jobs = n_jobs
         self.random_state = random_state
 
@@ -715,51 +839,16 @@ class IndividualTDE(BaseClassifier):
         self.n_channels_ = 0
         self.n_timepoints_ = 0
 
-        # we will disable typed_dict if numba is disabled
-        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
-
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
-        self._dims = []
-        self._highest_dim_bit = 0
+        self._channels = []
+        self._highest_channel_bit = 0
         self._accuracy = 0
         self._subsample = []
         self._train_predictions = []
 
         super().__init__()
-
-    # todo remove along with BOSS and SFA workarounds when Dict becomes serialisable.
-    def __getstate__(self):
-        """Return state as dictionary for pickling, required for typed Dict objects."""
-        state = self.__dict__.copy()
-        if self._typed_dict:
-            nl = [None] * len(self._transformed_data)
-            for i, ndict in enumerate(state["_transformed_data"]):
-                pdict = dict()
-                for key, val in ndict.items():
-                    pdict[key] = val
-                nl[i] = pdict
-            state["_transformed_data"] = nl
-        return state
-
-    def __setstate__(self, state):
-        """Set current state using input pickling, required for typed Dict objects."""
-        self.__dict__.update(state)
-        if self._typed_dict:
-            nl = [None] * len(self._transformed_data)
-            for i, pdict in enumerate(self._transformed_data):
-                ndict = (
-                    Dict.empty(
-                        key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
-                    )
-                    if self.levels > 1 or self.n_channels_ > 1
-                    else Dict.empty(key_type=types.int64, value_type=types.uint32)
-                )
-                for key, val in pdict.items():
-                    ndict[key] = val
-                nl[i] = ndict
-            self._transformed_data = nl
 
     def _fit(self, X, y):
         """Fit a single base TDE classifier on n_cases cases (X,y).
@@ -787,60 +876,30 @@ class IndividualTDE(BaseClassifier):
 
         # select channels using accuracy estimate if multivariate
         if self.n_channels_ > 1:
-            self._dims, self._transformers = self._select_dims(X, y)
-
-            words = (
-                [
-                    Dict.empty(
-                        key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
-                    )
-                    for _ in range(self.n_cases_)
-                ]
-                if self._typed_dict
-                else [defaultdict(int) for _ in range(self.n_cases_)]
+            self._channels, self._transformers = self._select_channels(X, y)
+            channel_words = [
+                self._transformers[i].transform(self._transformers[i]._fit_X)
+                for i in range(len(self._channels))
+            ]
+            self._transformed_data = self._combine_channel_bags(
+                channel_words, self._channels, self.n_cases_
             )
-
-            for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(self.n_cases_, 1, self.n_timepoints_)
-                dim_words = self._transformers[i].transform(X_dim, y)
-                dim_words = dim_words[0]
-
-                for n in range(self.n_cases_):
-                    if self._typed_dict:
-                        for word, count in dim_words[n].items():
-                            if self.levels > 1:
-                                words[n][
-                                    (word[0], word[1] << self._highest_dim_bit | dim)
-                                ] = count
-                            else:
-                                words[n][(word, dim)] = count
-                    else:
-                        for word, count in dim_words[n].items():
-                            words[n][word << self._highest_dim_bit | dim] = count
-
-            self._transformed_data = words
         else:
             self._transformers.append(
-                SFA(
+                _TDE_SFA(
                     word_length=self.word_length,
-                    alphabet_size=self.alphabet_size,
                     window_size=self.window_size,
                     norm=self.norm,
                     levels=self.levels,
                     binning_method="information-gain" if self.igb else "equi-depth",
                     bigrams=self.bigrams,
-                    remove_repeat_words=True,
-                    lower_bounding=False,
-                    save_words=False,
-                    use_fallback_dft=True,
-                    typed_dict=self.typed_dict,
-                    n_jobs=self._n_jobs,
                 )
             )
-            # todo use fit_transform when SFA is interface compliant
-            self._transformers[0].fit(X, y)
-            sfa = self._transformers[0].transform(X, y)
-            self._transformed_data = sfa[0]
+            self._transformed_data = self._transformers[0].fit_transform(
+                np.ascontiguousarray(X[:, 0, :]), y
+            )
+
+        self._clear_transformer_fit_cache()
 
     def _predict(self, X):
         """Predict class values of all instances in X.
@@ -859,163 +918,196 @@ class IndividualTDE(BaseClassifier):
         n_cases = X.shape[0]
 
         if self.n_channels_ > 1:
-            words = (
-                [
-                    Dict.empty(
-                        key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
-                    )
-                    for _ in range(n_cases)
-                ]
-                if self._typed_dict
-                else [defaultdict(int) for _ in range(n_cases)]
+            channel_words = [
+                self._transformers[i].transform(np.ascontiguousarray(X[:, channel, :]))
+                for i, channel in enumerate(self._channels)
+            ]
+            test_bags = self._combine_channel_bags(
+                channel_words, self._channels, n_cases
             )
-
-            for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(n_cases, 1, self.n_timepoints_)
-                dim_words = self._transformers[i].transform(X_dim)
-                dim_words = dim_words[0]
-
-                for n in range(n_cases):
-                    if self._typed_dict:
-                        for word, count in dim_words[n].items():
-                            if self.levels > 1:
-                                words[n][
-                                    (word[0], word[1] << self._highest_dim_bit | dim)
-                                ] = count
-                            else:
-                                words[n][(word, dim)] = count
-                    else:
-                        for word, count in dim_words[n].items():
-                            words[n][word << self._highest_dim_bit | dim] = count
-
-            test_bags = words
         else:
-            test_bags = self._transformers[0].transform(X)
-            test_bags = test_bags[0]
-
-        classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._test_nn)(
-                test_bag,
+            test_bags = self._transformers[0].transform(
+                np.ascontiguousarray(X[:, 0, :])
             )
-            for test_bag in test_bags
-        )
 
+        # all test-vs-train similarities in numba calls that release the GIL,
+        # then a cheap per-case tie-break loop. With n_jobs > 1 the test
+        # cases are chunked across threads; chunk results are stacked in
+        # order, so the similarities are identical for any n_jobs.
+        keys1, keys2, counts, t_offsets = test_bags
+        if self._n_jobs > 1 and n_cases > 1:
+            chunks = np.array_split(np.arange(n_cases), min(self._n_jobs, n_cases))
+            sims = np.vstack(
+                Parallel(n_jobs=self._n_jobs, prefer="threads")(
+                    delayed(nn_similarities_all)(
+                        *self._transformed_data,
+                        keys1,
+                        keys2,
+                        counts,
+                        t_offsets[chunk[0] : chunk[-1] + 2],
+                    )
+                    for chunk in chunks
+                )
+            )
+        else:
+            sims = nn_similarities_all(
+                *self._transformed_data, keys1, keys2, counts, t_offsets
+            )
+
+        if isinstance(self.random_state, (int, np.integer)) and not isinstance(
+            self.random_state, bool
+        ):
+            # with an integer seed every case's tie-break generator yields
+            # the same sequence, so one precomputed draw pool resolves all
+            # cases inside numba, exactly as per-case generators would
+            draws = check_random_state(self.random_state).random(sims.shape[1])
+            nn_idx = nn_tie_break(sims, draws)
+            classes = [self._class_vals[nn_idx[i]] for i in range(n_cases)]
+        else:
+            # unseeded or shared generators consume draws across cases, so
+            # tie events must be resolved sequentially; the running maximum
+            # is draw-independent, so tie-free cases are resolved in numba
+            nn0, has_tie = nn_first_max(sims)
+            classes = [
+                self._nn_from_sims(sims[i]) if has_tie[i] else self._class_vals[nn0[i]]
+                for i in range(n_cases)
+            ]
         return np.array(classes)
 
-    def _test_nn(self, test_bag):
-        rng = check_random_state(self.random_state)
+    def _clear_transformer_fit_cache(self):
+        for transformer in self._transformers:
+            if hasattr(transformer, "_fit_X"):
+                transformer._fit_X = None
+            if hasattr(transformer, "_fit_mft"):
+                transformer._fit_mft = None
 
+    def _nn_from_sims(self, sims):
+        # the rng is only consumed on similarity ties, so construct it
+        # lazily: seeding a RandomState per test case is far more expensive
+        # than the tie-break draws themselves
+        rng = None
         best_sim = -1
         nn = None
-
-        for n, bag in enumerate(self._transformed_data):
-            sim = histogram_intersection(test_bag, bag)
-
-            if sim > best_sim or (sim == best_sim and rng.random() < 0.5):
+        for n in range(len(sims)):
+            sim = sims[n]
+            if sim > best_sim:
                 best_sim = sim
                 nn = self._class_vals[n]
+            elif sim == best_sim:
+                if rng is None:
+                    rng = check_random_state(self.random_state)
+                if rng.random() < 0.5:
+                    nn = self._class_vals[n]
 
         return nn
 
-    def _select_dims(self, X, y):
-        self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
-        accs = []
+    def _combine_channel_bags(self, channel_bags, channels, n_cases):
+        # per-channel bags are already sorted, so a numba k-way merge
+        # builds the combined sorted bags without any re-sorting
+        all_k1 = np.concatenate([b[0] for b in channel_bags])
+        all_k2 = np.concatenate([b[1] for b in channel_bags])
+        all_v = np.concatenate([b[2] for b in channel_bags])
+        channel_case_offsets = np.vstack([b[3] for b in channel_bags])
+        sizes = np.array([len(b[0]) for b in channel_bags], dtype=np.int64)
+        channel_starts = np.zeros(len(channel_bags), dtype=np.int64)
+        channel_starts[1:] = np.cumsum(sizes)[:-1]
+
+        return combine_channel_bags(
+            all_k1,
+            all_k2,
+            all_v,
+            channel_case_offsets,
+            channel_starts,
+            np.asarray(channels, dtype=np.int64),
+            self.levels,
+            self._highest_channel_bit,
+        )
+
+    def _select_channels(self, X, y):
+        self._highest_channel_bit = (math.ceil(math.log2(self.n_channels_))) + 1
+        channel_accs = []
         transformers = []
 
+        _, y_codes = np.unique(y, return_inverse=True)
+        y_codes = y_codes.astype(np.int64)
+
         # select channels based on reduced bag size accuracy
-        for i in range(self.n_channels_):
-            self._dims.append(i)
+        for channel in range(self.n_channels_):
+            self._channels.append(channel)
             transformers.append(
-                SFA(
+                _TDE_SFA(
                     word_length=self.word_length,
-                    alphabet_size=self.alphabet_size,
                     window_size=self.window_size,
                     norm=self.norm,
                     levels=self.levels,
                     binning_method="information-gain" if self.igb else "equi-depth",
                     bigrams=self.bigrams,
-                    remove_repeat_words=True,
-                    lower_bounding=False,
-                    save_words=False,
                     keep_binning_dft=True,
-                    use_fallback_dft=True,
-                    typed_dict=self.typed_dict,
-                    n_jobs=self._n_jobs,
                 )
             )
 
-            X_dim = X[:, i, :].reshape(self.n_cases_, 1, self.n_timepoints_)
+            X_channel = np.ascontiguousarray(X[:, channel, :])
 
-            transformers[i].fit(X_dim, y)
-            sfa = transformers[i].transform(
-                X_dim,
-                y,
-            )
-            transformers[i].keep_binning_dft = False
-            transformers[i].binning_dft = None
+            transformers[channel].fit(X_channel, y)
+            sfa = transformers[channel].binning_bags()
+            transformers[channel].keep_binning_dft = False
+            transformers[channel]._binning_dft = None
 
-            correct = 0
-            for i in range(self.n_cases_):
-                if self._train_predict(i, sfa[0]) == y[i]:
-                    correct = correct + 1
+            if self.n_cases_ <= _SYMMETRIC_LOOCV_MAX_N:
+                # whole LOOCV in one numba call, each symmetric pair
+                # intersection computed once
+                _, correct, _ = loocv_train_acc(*sfa, y_codes, 0)
+            else:
+                correct = 0
+                for n in range(self.n_cases_):
+                    if self._train_predict(n, sfa) == y[n]:
+                        correct = correct + 1
 
-            accs.append(correct)
+            channel_accs.append(correct)
 
-        max_acc = max(accs)
+        max_acc = max(channel_accs)
 
-        dims = []
+        channels = []
         fin_transformers = []
-        for i in range(self.n_channels_):
-            if accs[i] >= max_acc * self.dim_threshold:
-                dims.append(i)
-                fin_transformers.append(transformers[i])
+        for channel in range(self.n_channels_):
+            if channel_accs[channel] >= max_acc * self.channel_threshold:
+                channels.append(channel)
+                fin_transformers.append(transformers[channel])
 
-        if len(dims) > self.max_dims:
+        if len(channels) > self.max_channels:
             rng = check_random_state(self.random_state)
-            idx = rng.choice(len(dims), self.max_dims, replace=False).tolist()
-            dims = [dims[i] for i in idx]
+            idx = rng.choice(len(channels), self.max_channels, replace=False).tolist()
+            channels = [channels[i] for i in idx]
             fin_transformers = [fin_transformers[i] for i in idx]
 
-        return dims, fin_transformers
+        return channels, fin_transformers
 
     def _train_predict(self, train_num, bags=None):
         if bags is None:
             bags = self._transformed_data
 
-        test_bag = bags[train_num]
-        best_sim = -1
-        nn = None
-
-        for n, bag in enumerate(bags):
-            if n == train_num:
-                continue
-
-            sim = histogram_intersection(test_bag, bag)
-
-            if sim > best_sim:
-                best_sim = sim
-                nn = self._class_vals[n]
-
-        return nn
+        nn_idx = nn_predict_loocv(*bags, train_num)
+        return self._class_vals[nn_idx] if nn_idx >= 0 else None
 
 
 def histogram_intersection(first, second):
-    """Find the distance between two histograms using the histogram intersection.
+    """Find the similarity between two histograms using the histogram intersection.
 
-    This distance function is designed for sparse matrix, represented as a
-    dictionary or numba Dict, but can accept arrays in dense format.
+    This similarity function is designed for sparse histograms represented as
+    a dictionary or numba Dict, but can accept arrays in dense format.
 
     Parameters
     ----------
-    first : dict, numba.Dict or 1 D array of integers
-        First histogram used in distance measurement.
-    second : dict, numba.Dict or 1 D array of integers
-        Second histogram that will be used to measure distance from `first`.
+    first : dict, numba.Dict or 1D array of integers
+        First histogram used in the similarity measurement.
+    second : dict, numba.Dict or 1D array of integers
+        Second histogram that will be used to measure similarity to `first`.
 
     Returns
     -------
-    dist : float
-        The histogram intersection distance between the first and second dictionaries.
+    sim : int
+        The histogram intersection similarity (the sum of minimum counts over
+        shared words) between the first and second histograms.
     """
     if isinstance(first, dict):
         sim = 0
