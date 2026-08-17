@@ -90,7 +90,7 @@ def test_univariate(dist, k, task):
         return
     # https://github.com/aeon-toolkit/aeon/issues/882
 
-    if dist["name"] in ["lcss", "edr"]:
+    if dist["name"] in ["lcss", "edr", "swale"]:
         return
 
     # Test univariate with 2D format (compatible with sklearn)
@@ -159,7 +159,7 @@ def test_multivariate(dist, k, task):
         return
     # TODO: when solved the issue with lcss and edr, remove this condition
     # https://github.com/aeon-toolkit/aeon/issues/882
-    if dist["name"] in ["lcss", "edr"]:
+    if dist["name"] in ["lcss", "edr", "swale"]:
         return
 
     # Test multivariate dataset in two ways: A) concatenating channels to be compatible

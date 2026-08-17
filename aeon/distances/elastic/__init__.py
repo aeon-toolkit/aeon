@@ -30,6 +30,10 @@ __all__ = [
     "lcss_pairwise_distance",
     "lcss_alignment_path",
     "lcss_cost_matrix",
+    "swale_distance",
+    "swale_pairwise_distance",
+    "swale_alignment_path",
+    "swale_cost_matrix",
     "erp_distance",
     "erp_pairwise_distance",
     "erp_alignment_path",
@@ -116,6 +120,12 @@ from aeon.distances.elastic._soft_dtw import (
     soft_dtw_cost_matrix,
     soft_dtw_distance,
     soft_dtw_pairwise_distance,
+)
+from aeon.distances.elastic._swale import (
+    swale_alignment_path,
+    swale_cost_matrix,
+    swale_distance,
+    swale_pairwise_distance,
 )
 from aeon.distances.elastic._twe import (
     twe_alignment_path,
