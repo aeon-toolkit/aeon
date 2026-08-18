@@ -411,9 +411,27 @@ class SupervisedIntervals(BaseCollectionTransformer):
         start, end, dim, feature = self.intervals_[idx]
 
         if isinstance(feature, BaseTransformer):
-            return feature.transform(X[:, dim, start:end]).flatten()
+            return self._feature_transform(feature, X[:, dim, start:end]).flatten()
         else:
             return feature(X[:, dim, start:end])
+
+    def _feature_fit_transform(self, feature, X, y=None):
+        """fit_transform a single-channel 2D interval slice.
+
+        ``X`` is a ``(n_cases, n_timepoints)`` slice of a single channel. For aeon
+        collection transformers the top-level input has already been validated, so
+        the slice is expanded to the ``numpy3D`` inner type and passed to the
+        private ``_fit_transform``, skipping the redundant per-slice input checks.
+        """
+        if isinstance(feature, BaseCollectionTransformer):
+            return feature._fit_transform(np.expand_dims(X, axis=1), y)
+        return feature.fit_transform(X)
+
+    def _feature_transform(self, feature, X):
+        """Transform a single-channel 2D interval slice. See _feature_fit_transform."""
+        if isinstance(feature, BaseCollectionTransformer):
+            return feature._transform(np.expand_dims(X, axis=1))
+        return feature.transform(X)
 
     def _supervised_search(
         self,
@@ -445,8 +463,12 @@ class SupervisedIntervals(BaseCollectionTransformer):
             sub_interval_1 = X[:, div_point:]
 
             if feature_is_transformer:
-                interval_feature_0 = feature.fit_transform(sub_interval_0).flatten()
-                interval_feature_1 = feature.fit_transform(sub_interval_1).flatten()
+                interval_feature_0 = self._feature_fit_transform(
+                    feature, sub_interval_0
+                ).flatten()
+                interval_feature_1 = self._feature_fit_transform(
+                    feature, sub_interval_1
+                ).flatten()
             else:
                 interval_feature_0 = feature(sub_interval_0)
                 interval_feature_1 = feature(sub_interval_1)
@@ -463,8 +485,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 if keep_transform:
                     if self.normalise_for_search:
                         if feature_is_transformer:
-                            interval_feature_to_use = feature.transform(
-                                X_ori[:, ini_idx:end]
+                            interval_feature_to_use = self._feature_transform(
+                                feature, X_ori[:, ini_idx:end]
                             ).flatten()
                         else:
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
@@ -490,8 +512,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 if keep_transform:
                     if self.normalise_for_search:
                         if feature_is_transformer:
-                            interval_feature_to_use = feature.transform(
-                                X_ori[:, ini_idx:end]
+                            interval_feature_to_use = self._feature_transform(
+                                feature, X_ori[:, ini_idx:end]
                             ).flatten()
                         else:
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
