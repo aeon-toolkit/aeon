@@ -13,6 +13,9 @@ from aeon.utils.numba.general import (
     normalise_subsequences,
     prime_up_to,
     sliding_mean_std_one_series,
+    slope_derivative,
+    slope_derivative_2d,
+    slope_derivative_3d,
     unique_count,
     z_normalise_series,
     z_normalise_series_2d,
@@ -183,6 +186,29 @@ def test_sliding_mean_std_one_series(dtype):
 
     with pytest.raises(ValueError, match=error_str):
         mean, std = sliding_mean_std_one_series(X, 100, 3)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_float_output_dtype_follows_input_precision(dtype):
+    """Test helpers preserve float precision and promote integer input."""
+    X = np.arange(24, dtype=dtype).reshape(2, 12)
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
+
+    subsequence = get_subsequence(X, 1, 4, 2)
+    subsequence_with_stats = get_subsequence_with_mean_std(X, 1, 4, 2)
+    sliding_stats = sliding_mean_std_one_series(X, 4, 2)
+    outputs = {
+        "get_subsequence": (subsequence,),
+        "get_subsequence_with_mean_std": subsequence_with_stats,
+        "sliding_mean_std_one_series": sliding_stats,
+        "slope_derivative": (slope_derivative(X[0]),),
+        "slope_derivative_2d": (slope_derivative_2d(X),),
+        "slope_derivative_3d": (slope_derivative_3d(X[np.newaxis]),),
+    }
+
+    for function_name, function_outputs in outputs.items():
+        for output in function_outputs:
+            assert output.dtype == expected_dtype, function_name
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
