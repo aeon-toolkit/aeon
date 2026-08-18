@@ -2,16 +2,25 @@
 
 import numpy as np
 import pytest
+from scipy.stats import spearmanr
+from sklearn.ensemble import IsolationForest
 from sklearn.utils import check_random_state
 
 from aeon.anomaly_detection.series.outlier_detection import ExtendedIsolationForest
+from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 
 def test_extended_iforest_default():
-    """Test ExtendedIsolationForest univariate."""
+    """Test ExtendedIsolationForest univariate.
+
+    The injected shift is -3 rather than -2: at -2 the anomaly is close enough to the
+    tail of the normal data that the peak location depends on the random seed (it
+    holds for roughly 31-37 of 40 seeds for either the current or the previous
+    splitting rule), whereas -3 holds for 40/40 for both.
+    """
     rng = check_random_state(0)
     series = rng.normal(size=(80,))
-    series[50:58] -= 2
+    series[50:58] -= 3
 
     eif = ExtendedIsolationForest(window_size=10, stride=1, random_state=0)
     pred = eif.fit_predict(series, axis=0)
@@ -50,10 +59,14 @@ def test_extended_iforest_no_window_univariate():
 
 
 def test_extended_iforest_stride():
-    """Test ExtendedIsolationForest with stride."""
+    """Test ExtendedIsolationForest with stride.
+
+    Uses a -3 shift for the same seed-robustness reason as
+    ``test_extended_iforest_default``.
+    """
     rng = check_random_state(0)
     series = rng.normal(size=(80,))
-    series[50:58] -= 2
+    series[50:58] -= 3
 
     eif = ExtendedIsolationForest(window_size=10, stride=2, random_state=0)
     pred = eif.fit_predict(series, axis=0)
@@ -94,25 +107,56 @@ def test_extended_iforest_deterministic():
     assert np.array_equal(a, b)
 
 
-def test_extended_iforest_extension_level_zero_matches_axis_parallel():
-    """extension_level=0 (axis-parallel) must rank anomalies like the full model.
+def test_extended_iforest_extension_level_zero_matches_sklearn_scores():
+    """``extension_level=0`` must reduce to the axis-parallel Isolation Forest.
 
-    Both settings should place the highest score on the injected anomaly. This guards
-    the reduction of EIF to the standard Isolation Forest at ``extension_level=0``.
+    Reduction to the standard Isolation Forest is a correctness property of EIF, so
+    this compares the anomaly *scores* against scikit-learn's ``IsolationForest`` by
+    rank correlation on identical windows, rather than only checking that both
+    detectors happen to locate the injected anomaly.
     """
     rng = check_random_state(0)
-    series = rng.normal(size=(120,))
-    series[60:68] -= 3
+    series = rng.normal(size=(300,))
+    series[150:158] -= 4
+    window_size = 8
 
-    axis_parallel = ExtendedIsolationForest(
-        window_size=10, extension_level=0, random_state=0
-    ).fit_predict(series, axis=0)
-    extended = ExtendedIsolationForest(window_size=10, random_state=0).fit_predict(
-        series, axis=0
+    windows, padding = sliding_windows(
+        series, window_size=window_size, stride=1, axis=0
+    )
+    iforest = IsolationForest(
+        n_estimators=200, max_samples=min(256, len(windows)), random_state=0
+    ).fit(windows)
+    # scikit-learn returns higher values for more normal points; negate to match
+    # the aeon convention of higher score = more anomalous.
+    sklearn_scores = reverse_windowing(
+        -iforest.score_samples(windows), window_size, np.nanmean, 1, padding
     )
 
-    assert 58 <= np.argmax(axis_parallel) <= 70
-    assert 58 <= np.argmax(extended) <= 70
+    axis_parallel = ExtendedIsolationForest(
+        window_size=window_size, extension_level=0, n_estimators=200, random_state=0
+    ).fit_predict(series, axis=0)
+
+    assert spearmanr(axis_parallel, sklearn_scores).statistic > 0.98
+
+
+def test_extended_iforest_single_subsample_is_not_nan():
+    """A sub-sample of one window must not produce NaN scores.
+
+    ``c(1) == 0``, so the ``mean_path / c`` normalisation is 0/0. Every point is
+    trivially isolated at depth zero and carries no ranking information, so the
+    scores fall back to the neutral value 0.5 (as scikit-learn's IsolationForest
+    does when its denominator is zero).
+    """
+    rng = check_random_state(0)
+    series = rng.normal(size=(80,))
+    series[50:58] -= 2
+
+    pred = ExtendedIsolationForest(
+        window_size=10, max_samples=1, n_estimators=5, random_state=0
+    ).fit_predict(series, axis=0)
+
+    assert not np.isnan(pred).any()
+    assert np.allclose(pred, 0.5)
 
 
 def test_extended_iforest_invalid_extension_level():
@@ -131,5 +175,28 @@ def test_extended_iforest_invalid_max_samples():
     series = rng.normal(size=(80,))
 
     eif = ExtendedIsolationForest(window_size=10, max_samples="all", random_state=0)
+    with pytest.raises(ValueError, match="max_samples"):
+        eif.fit_predict(series, axis=0)
+
+
+def test_extended_iforest_invalid_n_estimators():
+    """n_estimators must be a positive integer."""
+    rng = check_random_state(0)
+    series = rng.normal(size=(80,))
+
+    eif = ExtendedIsolationForest(window_size=10, n_estimators=0, random_state=0)
+    with pytest.raises(ValueError, match="n_estimators must be a positive integer"):
+        eif.fit_predict(series, axis=0)
+
+
+@pytest.mark.parametrize("max_samples", [0, -5, 0.0, 1.5])
+def test_extended_iforest_invalid_max_samples_value(max_samples):
+    """Out-of-range int and float max_samples must raise."""
+    rng = check_random_state(0)
+    series = rng.normal(size=(80,))
+
+    eif = ExtendedIsolationForest(
+        window_size=10, max_samples=max_samples, random_state=0
+    )
     with pytest.raises(ValueError, match="max_samples"):
         eif.fit_predict(series, axis=0)

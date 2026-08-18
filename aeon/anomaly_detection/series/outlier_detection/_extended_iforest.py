@@ -65,12 +65,13 @@ class _ExtendedIsolationTree:
         maxs = X.max(axis=0)
         intercept = self._rng.uniform(mins, maxs)
 
+        # The reference implementation uses a strict ``< 0`` test and does not
+        # special-case a split that leaves every observation on one side: it keeps
+        # recursing, and ``height_limit`` bounds the recursion. Terminating early
+        # there would shorten path lengths and change the anomaly scores, so the
+        # empty side is simply grown into a size-zero leaf.
         projection = (X - intercept) @ normal
-        left_mask = projection <= 0
-        # Degenerate split (all points on one side, e.g. constant window): make a leaf
-        # rather than recursing forever on an unsplittable set.
-        if left_mask.all() or (~left_mask).all():
-            return {"leaf": True, "size": n_samples}
+        left_mask = projection < 0
 
         return {
             "leaf": False,
@@ -97,7 +98,7 @@ class _ExtendedIsolationTree:
             out[indices] = current_length + _c_factor(node["size"])
             return
         projection = (X[indices] - node["intercept"]) @ node["normal"]
-        left = projection <= 0
+        left = projection < 0
         if left.any():
             self._path_length(X, node["left"], current_length + 1.0, indices[left], out)
         if (~left).any():
@@ -234,6 +235,13 @@ class ExtendedIsolationForest(BaseSeriesAnomalyDetector):
         rng = check_random_state(self.random_state)
         n_windows, n_features = X.shape
 
+        if not isinstance(self.n_estimators, (int, np.integer)) or (
+            self.n_estimators <= 0
+        ):
+            raise ValueError(
+                f"n_estimators must be a positive integer, got {self.n_estimators}"
+            )
+
         if isinstance(self.max_samples, str):
             if self.max_samples != "auto":
                 raise ValueError(
@@ -242,9 +250,24 @@ class ExtendedIsolationForest(BaseSeriesAnomalyDetector):
                 )
             subsample_size = min(256, n_windows)
         elif isinstance(self.max_samples, float):
+            if not 0.0 < self.max_samples <= 1.0:
+                raise ValueError(
+                    "max_samples must be in the range (0, 1] when given as a float, "
+                    f"got {self.max_samples}"
+                )
             subsample_size = int(self.max_samples * n_windows)
-        else:
+        elif isinstance(self.max_samples, (int, np.integer)):
+            if self.max_samples <= 0:
+                raise ValueError(
+                    "max_samples must be a positive integer when given as an int, "
+                    f"got {self.max_samples}"
+                )
             subsample_size = int(self.max_samples)
+        else:
+            raise ValueError(
+                "max_samples must be an int, a float or 'auto', got "
+                f"{self.max_samples!r}"
+            )
         subsample_size = max(1, min(subsample_size, n_windows))
 
         if self.extension_level is None:
@@ -275,7 +298,16 @@ class ExtendedIsolationForest(BaseSeriesAnomalyDetector):
         for tree in self.trees_:
             mean_path += tree.path_length(X)
         mean_path /= len(self.trees_)
-        return 2.0 ** (-mean_path / _c_factor(self._subsample_size))
+        c = _c_factor(self._subsample_size)
+        if c == 0.0:
+            # ``c(psi) == 0`` when the effective sub-sample is a single window
+            # (``max_samples=1``, or a series short enough to yield one window).
+            # Every point is then trivially isolated at depth zero and the scores
+            # carry no ranking information, so ``mean_path / c`` would be 0/0.
+            # scikit-learn's IsolationForest guards the same division and defines
+            # the exponent as 1; do the same, giving the neutral score 0.5.
+            return np.full(X.shape[0], 0.5)
+        return 2.0 ** (-mean_path / c)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
