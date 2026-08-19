@@ -13,9 +13,10 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
 fi
 
 excluded=(
-  # Requires esig, which has no macOS wheels and is therefore excluded from our
-  # dependencies on Darwin. This job runs on macOS, so the notebook cannot be
-  # run here. It does run on binder, which is Linux.
+  # Requires esig, which pyproject.toml excludes on Darwin, so it is not
+  # installed on this macOS runner. Since 1.0.0 esig is a pure Python wrapper
+  # over RoughPy, which does publish macOS arm64 wheels, so that exclusion is
+  # worth revisiting. The notebook does run on binder, which is Linux.
   "examples/transformations/signature_method.ipynb"
 )
 if [ "$1" = true ]; then
