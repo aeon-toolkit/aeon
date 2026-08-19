@@ -70,6 +70,9 @@ jobs:
           python_version: "3.12"
           restore_cache: "false"
 
+      # Install only the binder extra so this job matches the environment
+      # notebooks actually run in on binder (see .binder/Dockerfile). Using
+      # all_extras here hides missing binder dependencies.
       - name: Install dependencies
         uses: nick-fields/retry@v4
         with:

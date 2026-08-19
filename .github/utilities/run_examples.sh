@@ -13,7 +13,9 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
 fi
 
 excluded=(
-  # try removing when 3.9 is dropped
+  # Requires esig, which has no macOS wheels and is therefore excluded from our
+  # dependencies on Darwin. This job runs on macOS, so the notebook cannot be
+  # run here. It does run on binder, which is Linux.
   "examples/transformations/signature_method.ipynb"
 )
 if [ "$1" = true ]; then

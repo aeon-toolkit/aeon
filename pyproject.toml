@@ -98,14 +98,22 @@ dev = [
     "pytest-timeout",
     "pytest-xdist[psutil]",
 ]
+# Must cover every soft dependency reached by the notebooks in examples/, as
+# this is the only extra installed by .binder/Dockerfile. The notebook CI jobs
+# install this extra alone so that gaps here fail CI rather than only binder.
 binder = [
     "notebook",
     "jupyterlab",
+    "esig>=1.0.0; platform_system != 'Darwin' and python_version < '3.14'",
+    "keras>=3.6.0; python_version < '3.14'",
     "matplotlib>=3.3.2",
+    "pycatch22>=0.4.5",
+    "pyod>=1.1.3",
     "seaborn>=0.11.0",
     "statsmodels>=0.12.1",
-    "pyod>=1.1.3",
-    "tensorflow>=2.14; python_version < '3.13'",
+    "stumpy>=1.5.1",
+    "tensorflow>=2.14; python_version < '3.14'",
+    "tsfresh>=0.20.0",
 ]
 docs = [
     "sphinx<8.3.0",
