@@ -16,6 +16,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.validation import check_n_jobs
 
 # some constants on input parameters for WEASEL v2
 SWITCH_SMALL_INSTANCES = 250
@@ -39,7 +40,7 @@ class WEASEL_V2(BaseClassifier):
     for different window lengths and learns a logistic regression classifier
     on this bag.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -80,6 +81,17 @@ class WEASEL_V2(BaseClassifier):
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     random_state : int or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
@@ -106,8 +118,8 @@ class WEASEL_V2(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import WEASEL_V2
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = WEASEL_V2()
     >>> clf.fit(X_train, y_train)
     WEASEL_V2(...)
@@ -127,22 +139,21 @@ class WEASEL_V2(BaseClassifier):
         use_first_differences=(True, False),
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
+        class_weight=None,
+        n_jobs=1,
         random_state=None,
-        n_jobs=4,
     ):
         self.norm_options = norm_options
         self.word_lengths = word_lengths
-
-        self.random_state = random_state
-
         self.min_window = min_window
-
         self.max_feature_count = max_feature_count
         self.use_first_differences = use_first_differences
         self.feature_selection = feature_selection
-
         self.clf = None
+
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         super().__init__()
 
@@ -161,9 +172,7 @@ class WEASEL_V2(BaseClassifier):
         self :
             Reference to self.
         """
-        # Window length parameter space dependent on series length
-
-        ...
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.transform = WEASELTransformerV2(
             min_window=self.min_window,
@@ -173,12 +182,15 @@ class WEASEL_V2(BaseClassifier):
             feature_selection=self.feature_selection,
             max_feature_count=self.max_feature_count,
             random_state=self.random_state,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
         )
         words = self.transform.fit_transform(X, y)
+        words = words.astype(np.float32, copy=False)
 
         # use RidgeClassifierCV for classification
-        self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
+        self.clf = RidgeClassifierCV(
+            alphas=np.logspace(-1, 5, 10), class_weight=self.class_weight
+        )
         self.clf.fit(words, y)
 
         if hasattr(self.clf, "best_score_"):
@@ -224,7 +236,7 @@ class WEASEL_V2(BaseClassifier):
             return super()._predict_proba(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -239,7 +251,6 @@ class WEASEL_V2(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {"feature_selection": "none"}
 
@@ -247,7 +258,7 @@ class WEASEL_V2(BaseClassifier):
 class WEASELTransformerV2:
     """The Word Extraction for Time Series Classifier v2.0 Transformation.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -289,6 +300,8 @@ class WEASELTransformerV2:
        "chi2" or "random". Else ignored.
     random_state: int or None, default=None
         Seed for random, integer
+    n_jobs : int, default=1
+        Number of CPU cores to use.
     """
 
     def __init__(
@@ -300,7 +313,7 @@ class WEASELTransformerV2:
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
-        n_jobs=4,
+        n_jobs=1,
     ):
         self.min_window = min_window
         self.norm_options = norm_options
@@ -344,6 +357,7 @@ class WEASELTransformerV2:
         """
         # Window length parameter space dependent on series length
         self.n_cases_, self.n_timepoints_ = X.shape[0], X.shape[-1]
+
         XX = X.squeeze(1)
 
         # avoid overfitting with too many features
@@ -369,14 +383,19 @@ class WEASELTransformerV2:
                 f"all with very short series"
             )
 
+        if (self.feature_selection == "chi2_top_k") and (y is None):
+            raise ValueError(
+                "Class values must be provided for chi2_top_k feature selection."
+            )
+
         # Randomly choose window sizes
         self.window_sizes = np.arange(self.min_window, self.max_window + 1, 1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 i,
                 XX,
-                y.copy(),
+                safe_copy(y),
                 self.window_sizes,
                 self.alphabet_sizes,
                 self.word_lengths,
@@ -408,7 +427,6 @@ class WEASELTransformerV2:
             all_words = np.concatenate(sfa_words, axis=1)
         else:
             all_words = hstack(sfa_words)
-
         self.total_features_count = all_words.shape[1]
 
         return all_words
@@ -431,7 +449,7 @@ class WEASELTransformerV2:
     def _transform_words(self, X):
         XX = X.squeeze(1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(transformer.transform)(XX) for transformer in self.SFA_transformers
         )
 
@@ -511,3 +529,8 @@ def _parallel_fit(
         all_words.append(words)
         all_transformers.append(transformer)
     return all_words, all_transformers
+
+
+@staticmethod
+def safe_copy(y):
+    return y.copy() if y is not None else y

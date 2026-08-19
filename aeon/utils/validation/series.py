@@ -1,551 +1,391 @@
 """Functions for checking input data."""
 
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
-    "check_series",
-    "check_time_index",
-    "check_equal_time_index",
-    "check_consistent_index_type",
-    "is_hierarchical",
-    "is_single_series",
+    "is_series",
+    "get_n_timepoints",
+    "get_n_channels",
+    "has_missing",
+    "is_univariate",
+    "get_type",
+    "check_series_variance",
 ]
-__maintainer__ = ["TonyBagnall"]
-
-from typing import Union
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_integer_dtype, is_numeric_dtype
-
-# We currently support the following types for input data and time index types.
-VALID_DATA_TYPES = (pd.DataFrame, pd.Series, np.ndarray)
-VALID_INDEX_TYPES = (pd.RangeIndex, pd.PeriodIndex, pd.DatetimeIndex, pd.TimedeltaIndex)
-RELATIVE_INDEX_TYPES = (pd.RangeIndex, pd.TimedeltaIndex)
-ABSOLUTE_INDEX_TYPES = (pd.RangeIndex, pd.DatetimeIndex, pd.PeriodIndex)
-assert set(RELATIVE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
-assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 
 
-def is_single_series(y):
-    """Check if input is a single time series.
-
-    Minimal checks that do not check the index characteristics. To check index and
-    throw an error if not correct, use `check_series` instead.
+def is_series(X, include_2d=False):
+    """Check X is a valid series data structure.
 
     Parameters
     ----------
-    y : Any object
+    X : array-like
+        Input data to be checked.
+    include_2d : bool, default=False
+        If True, also accepts 2D structures like pd.DataFrame and 2D np.ndarray.
 
     Returns
     -------
     bool
-        True if y is one of VALID_DATA_TYPES a valid shape with unique columns.
+        True if input is a series, False otherwise.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import is_series
+    >>> is_series(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    True
+    >>> is_series(np.array([1, 2, 3, 4, 5]))
+    True
+    >>> is_series(pd.DataFrame([[1.0, 2.0], [3.0, 4.0]]))
+    False
+    >>> is_series(pd.DataFrame([[1.0, 2.0], [3.0, 4.0]]), include_2d=True)
+    True
     """
-    if isinstance(y, pd.Series):
-        return True
-    if isinstance(y, pd.DataFrame):
-        if "object" in y.dtypes.values:
-            return False
-        if y.index.nlevels > 1:
-            return False
-        return True
-    if isinstance(y, np.ndarray):
-        if y.ndim > 2:
-            return False
-        return True
-    return False
+    valid = ["pd.Series", "np1d"]
+    if include_2d:
+        valid += ["pd.DataFrame", "np2d"]
+    t = get_type(X, raise_error=False)
+    if t == "np.ndarray":
+        t = "np1d" if X.ndim == 1 else "np2d"
+    return t in valid
 
 
-def is_hierarchical(y):
-    """Check to see if y is in a hierarchical dataframe.
-
-     Hierarchical is defined as a pd.DataFrame having 3 or more indices.
+def get_n_timepoints(X, axis=None):
+    """Return the number of timepoints in a series.
 
     Parameters
     ----------
-    y : Any object
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    axis : int or None, default=None
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
 
     Returns
     -------
-    bool
-        True if y is a pd.DataFrame with three or more indices.
-    """
-    if isinstance(y, pd.DataFrame):
-        if y.index.nlevels >= 3:
-            return True
-    return False
-
-
-def _check_pd_dataframe(y):
-    # check that columns are unique
-    if not y.columns.is_unique:
-        raise ValueError(
-            f"Series in a pd.DataFrame must have unique column indices " f"{y.columns}"
-        )
-    # check whether the time index is of valid type
-    if not is_in_valid_index_types(y.index):
-        raise ValueError(
-            f"{type(y.index)} is not supported for series, use "
-            f"one of {VALID_INDEX_TYPES} or integer index instead."
-        )
-    # check that no dtype is object
-    if "object" in y.dtypes.values:
-        raise ValueError("y should not have column of 'object' dtype")
-    # Check time index is ordered in time
-    if not y.index.is_monotonic_increasing:
-        raise ValueError(
-            f"The (time) index of a series must be sorted monotonically increasing, "
-            f"but found: {y.index}"
-        )
-
-
-def is_univariate_series(y):
-    """Check if series is univariate.
-
-    Parameters
-    ----------
-    y : series
-        Time series data.
-
-    Returns
-    -------
-    bool
-        True if series is pd.Series, single column pd.DataFrame or np.ndarray with 1
-        dimension, False otherwise.
-    """
-    if isinstance(y, pd.Series):
-        return True
-    if isinstance(y, pd.DataFrame):
-        nvars = y.shape[1]
-        if nvars > 1:
-            return False
-        return True
-    if isinstance(y, np.ndarray):
-        if y.ndim > 1 and y.shape[1] > 1:
-            return False
-        return True
-    return False
-
-
-def get_index_for_series(obj, cutoff=0):
-    """Get pandas index for a Series object.
-
-    Returns index even for numpy array, in that case a RangeIndex.
-
-    Assumptions on obj are not checked, these should be validated separately.
-    Function may return unexpected results without prior validation.
-
-    Parameters
-    ----------
-    obj : data structure
-        must be of one of pd.Series, pd.DataFrame, np.ndarray
-    cutoff : int, or pd.datetime, optional, default=0
-        current cutoff, used to offset index if obj is np.ndarray
-
-    Returns
-    -------
-    index : pandas.Index, index for obj
-    """
-    if hasattr(obj, "index"):
-        return obj.index
-    # now we know the object must be an np.ndarray
-    return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
-
-
-def is_integer_index(x) -> bool:
-    """Check that the input is an integer pd.Index."""
-    return isinstance(x, pd.Index) and is_integer_dtype(x)
-
-
-def is_in_valid_index_types(x) -> bool:
-    """Check that the input type belongs to the valid index types."""
-    return isinstance(x, VALID_INDEX_TYPES) or is_integer_index(x)
-
-
-def is_in_valid_relative_index_types(x) -> bool:
-    return isinstance(x, RELATIVE_INDEX_TYPES) or is_integer_index(x)
-
-
-def is_in_valid_absolute_index_types(x) -> bool:
-    return isinstance(x, ABSOLUTE_INDEX_TYPES) or is_integer_index(x)
-
-
-def check_is_univariate(y, var_name="input"):
-    """Check if series is univariate."""
-    if isinstance(y, pd.DataFrame):
-        nvars = y.shape[1]
-        if nvars > 1:
-            raise ValueError(
-                f"{var_name} must be univariate, but found {nvars} variables."
-            )
-    if isinstance(y, np.ndarray) and y.ndim > 1 and y.shape[1] > 1:
-        raise ValueError(
-            f"{var_name} must be univariate, but found np.ndarray with more than "
-            "one column"
-        )
-
-
-def _check_is_multivariate(Z, var_name="input"):
-    """Check if series is multivariate.
-
-    Warning: this function assumes ndarrays are in (n_timepoints, n_channels) shape. Do
-    not use with collections of time series.
-    """
-    if isinstance(Z, pd.Series):
-        raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
-    if isinstance(Z, pd.DataFrame):
-        nvars = Z.shape[1]
-        if nvars < 2:
-            raise ValueError(
-                f"{var_name} must have 2 or more variables, but found {nvars}."
-            )
-    if isinstance(Z, np.ndarray):
-        if Z.ndim == 1 or (Z.ndim == 2 and Z.shape[1] == 1):
-            raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
-
-
-def check_series(
-    Z,
-    enforce_univariate=False,
-    enforce_multivariate=False,
-    allow_empty=False,
-    allow_numpy=True,
-    allow_None=True,
-    enforce_index_type=None,
-    allow_index_names=False,
-    var_name="input",
-):
-    """Validate input data to be a valid type for Series.
-
-    Parameters
-    ----------
-    Z : pd.Series, pd.DataFrame, np.ndarray, or None
-        Univariate or multivariate time series.
-    enforce_univariate : bool, default = False
-        If True, multivariate Z will raise an error.
-    enforce_multivariate: bool, default = False
-        If True, univariate Z will raise an error.
-    allow_empty : bool, default = False
-        whether a container with zero samples is allowed
-    allow_numpy : bool, default = True
-        whether no error is raised if Z is in a valid numpy.ndarray format
-    allow_None : bool, default = True
-        whether no error is raised if Z is None
-    enforce_index_type : type, default = None
-        type of time index
-    allow_index_names : bool, default = False
-        If False, names of Z.index will be set to None
-    var_name : str, default = "input" - variable name printed in error messages
-
-    Returns
-    -------
-    Z : pd.Series, pd.DataFrame, np.ndarray, or None
-        Validated time series - a reference to the input Z
-
-    Raises
-    ------
-    TypeError - if Z is not in a valid type for Series
-    if enforce_univariate is True:
-        ValueError if Z has 2 or more columns
-    if enforce_multivariate is True:
-        ValueError if Z has 1 column
-    if allow_numpy is false:
-        TypeError - if Z is of type np.ndarray
-    if allow_empty is false:
-        ValueError - if Z has length 0
-    if allow_None is false:
-        ValueError - if Z is None
-    if enforce_index_type is not None and Z is pandas type:
-        ValueError - if Z has index type other than enforce_index_type
-    """
-    if Z is None:
-        if allow_None:
-            return Z
-        else:
-            raise ValueError(var_name + " cannot be None")
-
-    # Check if pandas series or numpy array
-    if not allow_numpy:
-        valid_data_types = tuple(
-            filter(lambda x: x is not np.ndarray, VALID_DATA_TYPES)
-        )
-    else:
-        valid_data_types = VALID_DATA_TYPES
-
-    if not isinstance(Z, valid_data_types):
-        raise TypeError(
-            f"{var_name} must be a one of {valid_data_types}, but found type: {type(Z)}"
-        )
-
-    if enforce_univariate and enforce_multivariate:
-        raise ValueError(
-            "`enforce_univariate` and `enforce_multivariate` cannot both be set to "
-            "True."
-        )
-
-    if enforce_univariate:
-        check_is_univariate(Z, var_name=var_name)
-
-    if enforce_multivariate:
-        _check_is_multivariate(Z, var_name=var_name)
-
-    # check time index if input data is not an NumPy ndarray
-    if not isinstance(Z, np.ndarray):
-        check_time_index(
-            Z.index,
-            allow_empty=allow_empty,
-            enforce_index_type=enforce_index_type,
-            var_name=var_name,
-        )
-
-    if not allow_index_names and not isinstance(Z, np.ndarray):
-        Z.index.names = [None for name in Z.index.names]
-
-    return Z
-
-
-def check_time_index(
-    index: Union[pd.Index, np.array],
-    allow_empty: bool = False,
-    enforce_index_type: bool = None,
-    var_name: str = "input",
-) -> pd.Index:
-    """Check time index.
-
-    Parameters
-    ----------
-    index : pd.Index or np.array
-        Time index
-    allow_empty : bool, default=False
-        If False, empty `index` raises an error.
-    enforce_index_type : type, default=None
-        type of time index
-    var_name : str, default = "input" - variable name printed in error messages
-
-    Returns
-    -------
-    time_index : pd.Index
-        Validated time index - a reference to the input index
-    """
-    if isinstance(index, np.ndarray):
-        index = pd.Index(index)
-
-    # We here check for type equality because isinstance does not
-    # work reliably because index types inherit from each other.
-    if not is_in_valid_index_types(index):
-        raise NotImplementedError(
-            f"{type(index)} is not supported for {var_name}, use "
-            f"one of {VALID_INDEX_TYPES} instead."
-        )
-
-    if enforce_index_type and type(index) is not enforce_index_type:
-        raise NotImplementedError(
-            f"{type(index)} is not supported for {var_name}, use "
-            f"type: {enforce_index_type} or integer pd.Index instead."
-        )
-
-    # Check time index is ordered in time
-    if not index.is_monotonic_increasing:
-        raise ValueError(
-            f"The (time) index of {var_name} must be sorted monotonically increasing, "
-            f"but found: {index}"
-        )
-
-    # Check that index is not empty
-    if not allow_empty and len(index) < 1:
-        raise ValueError(
-            f"{var_name} must contain at least some values, but found none."
-        )
-
-    return index
-
-
-def check_equal_time_index(*ys, mode="equal"):
-    """Check that time series have the same (time) indices.
-
-    Parameters
-    ----------
-    *ys : tuple of aeon compatible time series data containers
-        must be pd.Series, pd.DataFrame or 1/2D np.ndarray, or None
-        can be Series, Panel, Hierarchical, but must be pandas or numpy
-        note: this assumption is not checked by the function itself
-    mode : str, "equal" or "contained", optional, default = "equal"
-        if "equal" will check for all indices being exactly equal
-        if "contained", will check whether all indices are subset of ys[0].index
+    int
+        Number of time points in the series.
 
     Raises
     ------
     ValueError
-        if mode = "equal", raised if there are at least two non-None entries of ys
-            of which pandas indices are not the same
-        if mode = "contained, raised if there is at least one non-None ys[i]
-            such that ys[i].index is not contained in ys[o].index
-        np.ndarray are considered having (pandas) integer range index on axis 0
+        Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import get_n_timepoints
+    >>> get_n_timepoints(np.array([1, 2, 3, 4, 5]))
+    5
+    >>> get_n_timepoints(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    5
+    >>> get_n_timepoints(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
+    3
+    >>> get_n_timepoints(pd.DataFrame([[1, 2], [3, 4], [5, 6]]), axis=1)
+    2
     """
-    y_not_None = [y for y in ys if y is not None]
+    t = get_type(X)
+    if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
+        0,
+        1,
+    ]:
+        raise ValueError("axis must be 0 or 1 for 2D inputs.")
 
-    # if there is no or just one element, there is nothing to compare
-    if len(y_not_None) < 2:
-        return None
-
-    # only validate indices if data is passed as pd.Series
-    first_index = get_index_for_series(y_not_None[0])
-
-    for i, y in enumerate(y_not_None[1:]):
-        y_index = get_index_for_series(y)
-
-        if mode == "equal":
-            failure_cond = not first_index.equals(y_index)
-            msg = (
-                f"(time) indices are not the same, series 0 and {i} "
-                f"differ in the following: {first_index.symmetric_difference(y_index)}."
-            )
-        elif mode == "contains":
-            failure_cond = not y_index.isin(first_index).all()
-            msg = (
-                f"(time) indices of series {i} are not contained in index of series 0,"
-                f" extra indices are: {y_index.difference(first_index)}"
-            )
+    if t == "pd.DataFrame":
+        return X.shape[axis]
+    elif t == "np.ndarray":
+        if X.ndim == 1:
+            return len(X)
         else:
-            raise ValueError('mode must be "equal" or "contains"')
+            return X.shape[axis]
+    elif t == "pd.Series":
+        return len(X)
 
-        if failure_cond:
-            raise ValueError(msg)
 
-
-def check_consistent_index_type(a, b):
-    """Check that two indices have consistent types.
+def get_n_channels(X, axis=None):
+    """Return the number of channels in a series.
 
     Parameters
     ----------
-    a : pd.Index
-        Index being checked for consistency
-    b : pd.Index
-        Index being checked for consistency
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    axis : int or None, default=None
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
+
+    Returns
+    -------
+    int
+        Number of channels in the series.
 
     Raises
     ------
-    TypeError
-        If index types are inconsistent
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import get_n_channels
+    >>> get_n_channels(np.array([1, 2, 3, 4, 5]))
+    1
+    >>> get_n_channels(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    1
+    >>> get_n_channels(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
+    2
+    >>> get_n_channels(pd.DataFrame([[1, 2], [3, 4], [5, 6]]), axis=1)
+    3
     """
-    msg = (
-        "Found series with inconsistent index types, please make sure all "
-        "series have the same index type."
-    )
+    t = get_type(X)
+    if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
+        0,
+        1,
+    ]:
+        raise ValueError("axis must be 0 or 1 for 2D inputs.")
 
-    if is_integer_index(a):
-        if not is_integer_index(b):
-            raise TypeError(msg)
-
-    else:
-        # check types, note that isinstance() does not work here because index
-        # types inherit from each other, hence we check for type equality
-        if not type(a) is type(b):  # noqa
-            raise TypeError(msg)
-
-
-def _common_checks(y: pd.DataFrame):
-    if not isinstance(y, pd.DataFrame):
-        return False
-    # check that column indices are unique
-    if not len(set(y.columns)) == len(y.columns):
-        return False
-    # check that all cols are numeric
-    if not np.all([is_numeric_dtype(y[c]) for c in y.columns]):
-        return False
-    # Check time index is ordered in time
-    if not y.index.is_monotonic_increasing:
-        return False
-    return True
+    if t == "pd.DataFrame":
+        return X.shape[0] if axis == 1 else X.shape[1]
+    elif t == "np.ndarray":
+        if X.ndim == 1:
+            return 1
+        else:
+            return X.shape[0] if axis == 1 else X.shape[1]
+    elif t == "pd.Series":
+        return 1
 
 
-def is_pred_interval_proba(y):
-    """Check if the input is a dataframe of probas."""
-    # we now know obj is a pd.DataFrame
-    if not _common_checks(y):
-        return False
-    # check column multiindex
-    colidx = y.columns
-    if not isinstance(colidx, pd.MultiIndex) or not colidx.nlevels == 3:
-        return False
-    coverages = colidx.get_level_values(1)
-    if not is_numeric_dtype(coverages):
-        return False
-    if not (coverages <= 1).all() or not (coverages >= 0).all():
-        return False
-    upper_lower = colidx.get_level_values(2)
-    if not upper_lower.isin(["upper", "lower"]).all():
-        return False
-    return True
-
-
-def is_pred_quantiles_proba(y):
-    """Check if the input is a dataframe of quantiles."""
-    # check if the input is a dataframe
-    if not _common_checks(y):
-        return False
-    # check column multiindex
-    colidx = y.columns
-    if not isinstance(colidx, pd.MultiIndex) or not colidx.nlevels == 2:
-        return False
-    alphas = colidx.get_level_values(1)
-    if not is_numeric_dtype(alphas):
-        return False
-    if not (alphas <= 1).all() or not (alphas >= 0).all():
-        return False
-    return True
-
-
-def _is_in_valid_multiindex_types(x) -> bool:
-    """Check that the input type belongs to the valid multiindex types."""
-    return isinstance(x, (pd.RangeIndex, pd.Index)) or is_integer_index(x)
-
-
-def is_pdmultiindex_hierarchical(y):
-    """Check if the input is a pd.DataFrame with MultiIndex.
+def has_missing(X):
+    """Check if X has missing values.
 
     Parameters
     ----------
-    y : pd.DataFrame
-        Input data to be checked.
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+
+    Returns
+    -------
+    boolean
+        True if there are any missing values, False otherwise
+
+    Raises
+    ------
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+
+    Examples
+    --------
+    >>> from aeon.utils.validation.series import has_missing
+    >>> m = has_missing(np.zeros(shape=(10, 20)))
+    """
+    type = get_type(X)
+    if type == "np.ndarray":
+        return np.any(np.isnan(X))
+    elif type in ["pd.DataFrame", "pd.Series"]:
+        return X.isnull().any().any()
+
+
+def is_univariate(X, axis=None):
+    """Check if X is multivariate.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    axis : int or None, default=None
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
 
     Returns
     -------
     bool
-        True if y is pd multindex hierarchical.
+        True if series is univariate, else False.
 
+    Raises
+    ------
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
     """
-    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
-        return False
-    if not y.columns.is_unique:
-        return False
-    # check that there are precisely two index levels
-    if y.index.nlevels < 3:
-        return False
-    # check that no dtype is object
-    if "object" in y.dtypes.values:
-        return False
+    return get_n_channels(X, axis) == 1
 
-    # check whether the time index is of valid type
-    if not is_in_valid_index_types(y.index.get_level_values(-1)):
-        return False
-    time_obj = y.reset_index(-1).drop(y.columns, axis=1)
-    time_grp = time_obj.groupby(level=0, group_keys=True, as_index=True)
-    inst_inds = time_obj.index.unique()
 
-    # check instance index being integer or range index
-    if not _is_in_valid_multiindex_types(inst_inds):
-        return False
+def get_type(X, raise_error=True):
+    """Get the string identifier associated with different series data structures.
 
-    if pd.__version__ < "1.5.0":
-        # Earlier versions of pandas are very slow for this type of operation.
-        montonic_list = [y.loc[i].index.is_monotonic for i in inst_inds]
-        time_is_monotonic = len([i for i in montonic_list if i is False]) == 0
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    raise_error : bool, default=True
+        If True, raise a ValueError if the input is not a valid type.
+        If False, returns None when an error would be raised.
+
+    Returns
+    -------
+    input_type : string
+        One of SERIES_DATA_TYPES.
+
+    Raises
+    ------
+    ValueError
+        X np.ndarray but does not have 1 or 2 dimensions.
+        X is a pd.DataFrame of non-float primitives.
+        X is not a valid type.
+        Only if raise_error is True.
+
+    Examples
+    --------
+    >>> from aeon.utils.validation.series import get_type
+    >>> get_type(np.zeros(shape=(10, 20)))
+    'np.ndarray'
+    """
+    msg = None
+    if isinstance(X, pd.Series):
+        if np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
+            X.dtype, np.integer
+        ):
+            return "pd.Series"
+        else:
+            msg = "ERROR pd.Series must contain numeric values only"
+    elif isinstance(X, pd.DataFrame):
+        if (
+            isinstance(X, pd.DataFrame)
+            and not isinstance(X.index, pd.MultiIndex)
+            and not isinstance(X.columns, pd.MultiIndex)
+        ):
+            for col in X:
+                if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
+                    X[col].dtype, np.integer
+                ):
+                    msg = "ERROR pd.DataFrame must contain numeric values only"
+                    break
+            if msg is None:
+                return "pd.DataFrame"
+        else:
+            msg = "ERROR pd.DataFrame must contain non-multiindex columns and index"
+    elif isinstance(X, np.ndarray):
+        if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
+            X.dtype, np.integer
+        ):
+            msg = "ERROR np.ndarray must contain numeric values only"
+        elif X.ndim > 2:
+            msg = "ERROR np.ndarray must be 1D or 2D"
+        else:
+            return "np.ndarray"
     else:
-        timedelta_by_grp = (
-            time_grp.diff().groupby(level=0, group_keys=True, as_index=True).nunique()
+        msg = (
+            f"ERROR passed input of type {type(X)}, must be of type "
+            f"np.ndarray, pd.Series or pd.DataFrame."
+            f"See aeon.utils.data_types.SERIES_DATA_TYPES"
         )
-        timedelta_unique = timedelta_by_grp.iloc[:, 0].unique()
-        time_is_monotonic = all(timedelta_unique >= 0)
-    if not time_is_monotonic:
+
+    if raise_error and msg is not None:
+        raise TypeError(msg)
+    return None
+
+
+def check_series_variance(X, threshold=1e-7, axis=None, raise_error=True):
+    """Check a series has sufficient variation.
+
+    Checks series is constant or per-channel std is greater than threshold.
+    Some aeon numba utilities treat very low-variance series as effectively constant.
+    This check allows early rejection of extremely small-scale series.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    threshold : float, default=1e-7
+        Minimum allowed standard deviation per channel.
+    axis : int or None, default=None
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
+    raise_error : bool, default=True
+        If True, raise a ValueError when any channel violates the threshold.
+
+        Will always raise an error if the data input type is invalid.
+
+    Returns
+    -------
+    bool
+        True if all channels have std > threshold, else False.
+
+    Raises
+    ------
+    ValueError
+        If any channel has std <= threshold and raise_error=True.
+        threshold is negative.
+        Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
+    """
+    if threshold < 0:
+        raise ValueError("threshold must be non-negative.")
+
+    t = get_type(X)
+    if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
+        0,
+        1,
+    ]:
+        raise ValueError("axis must be 0 or 1 for 2D inputs.")
+
+    if t == "pd.Series":
+        ranges = np.array([X.max(skipna=True) - X.min(skipna=True)], dtype=float)
+        stds = np.array([X.std(skipna=True, ddof=0)], dtype=float)
+    elif t == "np.ndarray":
+        if X.ndim == 1:
+            ranges = np.array([np.nanmax(X) - np.nanmin(X)], dtype=float)
+            stds = np.array([np.nanstd(X, ddof=0)], dtype=float)
+        elif X.ndim == 2:
+            ranges = (np.nanmax(X, axis=axis) - np.nanmin(X, axis=axis)).astype(
+                float, copy=False
+            )
+            stds = np.nanstd(X, ddof=0, axis=axis).astype(float, copy=False)
+    elif t == "pd.DataFrame":
+        ranges = (
+            X.max(axis=axis, skipna=True) - X.min(axis=axis, skipna=True)
+        ).to_numpy(dtype=float)
+        stds = X.std(ddof=0, axis=axis, skipna=True).to_numpy(dtype=float)
+
+    bad = np.where((stds <= threshold) & (ranges != 0))[0]
+    if bad.size > 0:
+        if raise_error:
+            bad_list = ", ".join(map(str, bad[:10]))
+            extra = "" if bad.size <= 10 else f" (and {bad.size - 10} more)"
+            raise ValueError(
+                f"Input series has too little variation: std <= {threshold} "
+                f"for channel(s) {bad_list}{extra}. "
+                "Rescale (e.g., multiply by a constant) or normalise your data."
+            )
         return False
     return True

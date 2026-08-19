@@ -3,30 +3,11 @@
 Regression
 ==========
 
-The :mod:`aeon.regression` module contains algorithms and composition tools for time series regression.
+The :mod:`aeon.regression` module contains algorithms for time series regression.
 
-All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
-using ``estimator_types="regressor"``, optionally filtered by tags.
-Valid tags can be listed using ``aeon.registry.all_tags``.
+All regressors in ``aeon``  can be listed using the ``aeon.utils.discovery.all_estimators`` function using ``type_filter="regressor"``, optionally filtered by
+tags. Valid tags for regressors can be found with ``aeon.utils.tags.all_tags_for_estimator`` function with the argument ``"regressor"``.
 
-Base
-----
-
-.. currentmodule:: aeon.regression.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseRegressor
-
-.. currentmodule:: aeon.regression.deep_learning.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseDeepRegressor
 
 
 Convolution-based
@@ -41,6 +22,8 @@ Convolution-based
     HydraRegressor
     MultiRocketHydraRegressor
     RocketRegressor
+    MiniRocketRegressor
+    MultiRocketRegressor
 
 Deep learning
 -------------
@@ -51,16 +34,17 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
-    CNNRegressor
+    TimeCNNRegressor
     EncoderRegressor
     FCNRegressor
     InceptionTimeRegressor
     IndividualLITERegressor
     IndividualInceptionRegressor
     LITETimeRegressor
-    LITETimeRegressor
     ResNetRegressor
-    TapNetRegressor
+    MLPRegressor
+    DisjointCNNRegressor
+    RecurrentRegressor
 
 Distance-based
 --------------
@@ -72,17 +56,6 @@ Distance-based
     :template: class.rst
 
     KNeighborsTimeSeriesRegressor
-
-Dummy
------
-
-.. currentmodule:: aeon.regression
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DummyRegressor
 
 Feature-based
 --------------
@@ -125,6 +98,7 @@ Interval-based
     RandomIntervalRegressor
     RandomIntervalSpectralEnsembleRegressor
     TimeSeriesForestRegressor
+    QUANTRegressor
 
 Shapelet-based
 --------------
@@ -148,3 +122,46 @@ sklearn
     :template: class.rst
 
     RotationForestRegressor
+    SklearnRegressorWrapper
+
+Compose
+-------
+
+.. currentmodule:: aeon.regression.compose
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RegressorEnsemble
+    RegressorPipeline
+
+Dummy
+-----
+
+.. currentmodule:: aeon.regression
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DummyRegressor
+
+Base
+----
+
+.. currentmodule:: aeon.regression.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseRegressor
+
+.. currentmodule:: aeon.regression.deep_learning.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseDeepRegressor

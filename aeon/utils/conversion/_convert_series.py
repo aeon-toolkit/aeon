@@ -100,7 +100,7 @@ def convert_series(y, output_type):
         return y.to_numpy()
     if output_type == "pd.Series":
         if input_type == "pd.DataFrame":
-            if y.shape == (1, 1):  # special case of single element, cant squeeze
+            if y.shape == (1, 1):  # special case of single element, can't squeeze
                 y = y[y.columns[0]]
             else:
                 y = y.squeeze()

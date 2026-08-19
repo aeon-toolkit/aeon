@@ -12,19 +12,20 @@ from sklearn.ensemble import RandomForestRegressor
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.interval_based import RandomIntervals
+from aeon.utils.validation import check_n_jobs
 
 
 class RandomIntervalRegressor(BaseRegressor):
     """Random Interval Regressor.
 
-    Extracts multiple intervals with random length, position and dimension from series
+    Extracts multiple intervals with random length, position and channel from series
     and concatenates them into a feature vector. Builds an estimator on the
     transformed data.
 
     Parameters
     ----------
     n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
@@ -53,8 +54,8 @@ class RandomIntervalRegressor(BaseRegressor):
         The number of jobs to run in parallel for both `fit` and `transform` functions.
         `-1` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib. If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -63,9 +64,11 @@ class RandomIntervalRegressor(BaseRegressor):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
+    estimator_ : sklearn regressor
+        The fitted sklearn regressor used to predict from the internal-transformed data.
 
     See Also
     --------
@@ -87,8 +90,8 @@ class RandomIntervalRegressor(BaseRegressor):
     >>> reg.fit(X, y)
     RandomIntervalRegressor(...)
     >>> reg.predict(X)
-    array([0.90900147, 1.22266619, 0.99984114, 1.57550709, 0.39709955,
-           0.67621779, 0.76843601, 1.37005789, 1.58521712, 0.31683308])
+    array([0.70148208, 1.22266619, 0.73353397, 1.57550709, 0.46036267,
+           0.67770987, 1.11890876, 1.37005789, 1.35438452, 0.31683308])
     """
 
     _tags = {
@@ -137,6 +140,7 @@ class RandomIntervalRegressor(BaseRegressor):
             Reference to self.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -149,7 +153,7 @@ class RandomIntervalRegressor(BaseRegressor):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RandomForestRegressor(n_estimators=200)
                 if self.estimator is None
@@ -158,12 +162,12 @@ class RandomIntervalRegressor(BaseRegressor):
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -180,10 +184,10 @@ class RandomIntervalRegressor(BaseRegressor):
         y : array-like, shape = [n_cases]
             Predicted target labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -202,7 +206,6 @@ class RandomIntervalRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.utils.numba.stats import row_mean, row_numba_min
 

@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.utils.validation import check_n_jobs
 
 
 class SummaryRegressor(BaseRegressor):
@@ -19,17 +20,17 @@ class SummaryRegressor(BaseRegressor):
     Summary statistic regressor.
 
     This regressor simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    SevenNumberSummary transformer and builds a provided estimator using the
     transformed data.
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+    summary_stats : ["default", "quantiles", "bowley", "tukey"], default="default"
         The summary statistics to compute.
         The options are as follows, with float denoting the percentile value extracted
         from the series:
             - "default": mean, std, min, max, 0.25, 0.5, 0.75
-            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
+            - "quantiles": 0.0215, 0.0887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
     estimator : sklearn regressor, default=None
@@ -55,8 +56,8 @@ class SummaryRegressor(BaseRegressor):
     >>> from aeon.regression.feature_based import SummaryRegressor
     >>> from sklearn.ensemble import RandomForestRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = SummaryRegressor(estimator=RandomForestRegressor(n_estimators=5))
     >>> clf.fit(X_train, y_train)
     SummaryRegressor(...)
@@ -107,7 +108,9 @@ class SummaryRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        self._transformer = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )
 
@@ -145,7 +148,7 @@ class SummaryRegressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -164,7 +167,6 @@ class SummaryRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestRegressor(n_estimators=10)}

@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import IndividualBOSS
 from aeon.classification.dictionary_based._boss import pairwise_distances
+from aeon.utils.validation import check_n_jobs
 
 
 class ContractableBOSS(BaseClassifier):
@@ -27,7 +28,7 @@ class ContractableBOSS(BaseClassifier):
     described in [2]_.
 
     Overview: Input "n" series of length "m" and cBOSS randomly samples
-    `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then
+    `n_parameter_samples` parameter sets, evaluating each with LOOCV. It then
     retains `max_ensemble_size` classifiers with the highest accuracy
     There are three primary parameters:
         - alpha: alphabet size
@@ -68,7 +69,7 @@ class ContractableBOSS(BaseClassifier):
         Sets the feature selections strategy to be used. One of {"chi2", "none",
         "random"}. "chi2" reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
-        applies not feature selectiona and yields large bag of words, e.g. much
+        applies no feature selection and yields large bag of words, e.g. much
         memory may be needed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
@@ -92,6 +93,13 @@ class ContractableBOSS(BaseClassifier):
         The final number of classifiers used. Will be <= `max_ensemble_size`.
     weights_ :
         Weight of each classifier in the ensemble.
+
+    Raises
+    ------
+    ValueError
+        Raised when ``min_window`` is greater than ``max_window + 1``.
+        This ensures that ``min_window`` does not exceed ``max_window``,
+        preventing invalid window size configurations.
 
     See Also
     --------
@@ -120,8 +128,8 @@ class ContractableBOSS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import ContractableBOSS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = ContractableBOSS(n_parameter_samples=10, max_ensemble_size=3)
     >>> clf.fit(X_train, y_train)
     ContractableBOSS(...)
@@ -197,6 +205,7 @@ class ContractableBOSS(BaseClassifier):
         """
         time_limit = self.time_limit_in_minutes * 60
         self.n_cases_, _, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
@@ -243,9 +252,22 @@ class ContractableBOSS(BaseClassifier):
                 rng.randint(0, len(possible_parameters))
             )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            attempts = 0
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
+                else:
+                    if attempts > 100:
+                        raise ValueError(
+                            "Unable to create subsample with more than 1 class after "
+                            "100 attempts. Try using more data."
+                        )
+                    attempts += 1
 
             boss = IndividualBOSS(
                 *parameters,
@@ -305,7 +327,6 @@ class ContractableBOSS(BaseClassifier):
         -------
         1D np.ndarray
             Predicted class labels shape = (n_cases).
-
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -420,7 +441,7 @@ class ContractableBOSS(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -445,7 +466,6 @@ class ContractableBOSS(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_parameter_samples": 10, "max_ensemble_size": 5}

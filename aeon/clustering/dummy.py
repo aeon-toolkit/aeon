@@ -1,6 +1,7 @@
 """Implements DummyClusterer to be used as Baseline."""
 
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 
@@ -17,15 +18,22 @@ class DummyClusterer(BaseClusterer):
 
     Parameters
     ----------
-    strategy : str, default="random"
+    strategy : str, default="uniform"
         The strategy to use for generating cluster labels. Supported strategies are:
         - "random": Assign clusters randomly.
         - "uniform": Distribute clusters uniformly among samples.
         - "single_cluster": Assign all samples to a single cluster.
-
     n_clusters : int, default=3
         The number of clusters to generate. This is relevant for "random"
         and "uniform" strategies.
+    random_state : int, np.random.RandomState instance or None, default=None
+        Determines random number generation for centroid initialization.
+        Only used when `strategy` is "random".
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -38,19 +46,27 @@ class DummyClusterer(BaseClusterer):
     >>> import numpy as np
     >>> X = np.array([[1, 2], [3, 4], [5, 6]])
     >>> clusterer = DummyClusterer(strategy="uniform", n_clusters=2)
-    >>> clusterer._fit(X)
-    DummyClusterer(n_clusters=2, strategy='uniform')
+    >>> clusterer.fit(X)
+    DummyClusterer(n_clusters=2)
     >>> clusterer.labels_
     array([0, 1, 0])
-    >>> clusterer._predict(X)
+    >>> clusterer.predict(X)
     array([0, 1, 0])
     """
 
-    def __init__(self, strategy="random", n_clusters=3):
-        super().__init__()
+    _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
+        "capability:missing_values": True,
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+    }
+
+    def __init__(self, strategy="uniform", n_clusters=3, random_state=None):
         self.strategy = strategy
+        self.random_state = random_state
         self.n_clusters = n_clusters
-        self.labels_ = None
+
+        super().__init__()
 
     def _fit(self, X, y=None):
         """
@@ -69,10 +85,10 @@ class DummyClusterer(BaseClusterer):
         self : object
             Fitted estimator.
         """
-        n_samples = X.shape[0]
-
+        n_samples = len(X)
         if self.strategy == "random":
-            self.labels_ = np.random.randint(0, self.n_clusters, n_samples)
+            rng = check_random_state(self.random_state)
+            self.labels_ = rng.randint(self.n_clusters, size=n_samples)
         elif self.strategy == "uniform":
             self.labels_ = np.tile(
                 np.arange(self.n_clusters), n_samples // self.n_clusters + 1
@@ -101,9 +117,10 @@ class DummyClusterer(BaseClusterer):
         labels : ndarray of shape (n_samples,)
             Index of the cluster each sample belongs to.
         """
-        n_samples = X.shape[0]
+        n_samples = len(X)
         if self.strategy == "random":
-            return np.random.randint(0, self.n_clusters, n_samples)
+            rng = check_random_state(self.random_state)
+            return rng.randint(self.n_clusters, size=n_samples)
         elif self.strategy == "uniform":
             return np.tile(
                 np.arange(self.n_clusters), n_samples // self.n_clusters + 1
@@ -112,19 +129,3 @@ class DummyClusterer(BaseClusterer):
             return np.zeros(n_samples, dtype=int)
         else:
             raise ValueError("Unknown strategy type")
-
-    def _score(self, X, y=None):
-        if self.strategy == "single_cluster":
-            centers = np.mean(X, axis=0).reshape(1, -1)
-        else:
-            centers = np.array(
-                [X[self.labels_ == i].mean(axis=0) for i in range(self.n_clusters)]
-            )
-
-        inertia = np.sum(
-            [
-                np.sum((X[self.labels_ == i] - centers[i]) ** 2)
-                for i in range(len(centers))
-            ]
-        )
-        return inertia

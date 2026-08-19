@@ -4,12 +4,15 @@ __maintainer__ = []
 
 
 import pytest
+from sklearn import svm
 from sklearn.cluster import KMeans
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.feature_based import SummaryClassifier
-from aeon.forecasting.naive import NaiveForecaster
+from aeon.segmentation import RandomSegmenter
 from aeon.utils.sklearn import is_sklearn_estimator, sklearn_estimator_identifier
 
 CORRECT_IDENTIFIERS = {
@@ -20,7 +23,7 @@ CORRECT_IDENTIFIERS = {
 }
 
 sklearn_estimators = list(CORRECT_IDENTIFIERS.keys())
-aeon_estimators = [SummaryClassifier, NaiveForecaster]
+aeon_estimators = [SummaryClassifier, RandomSegmenter]
 
 
 @pytest.mark.parametrize("estimator", sklearn_estimators)
@@ -53,3 +56,17 @@ def test_sklearn_identifiers(estimator):
         f" {expected_identifier}, but {identifier} was returned."
     )
     assert identifier == expected_identifier, msg
+
+
+def test_sklearn_identifiers_inputs():
+    """Test variant inputs for  sklearn_estimator_identifier."""
+    with pytest.raises(TypeError, match="not an sklearn estimator"):
+        sklearn_estimator_identifier("ARSENAL")
+    pipe = Pipeline([("scaler", StandardScaler()), ("kmeans", KMeans())])
+    id = sklearn_estimator_identifier(pipe)
+    assert id == "clusterer"
+    parameters = {"kernel": ("linear", "rbf"), "C": [1, 10]}
+    svc = svm.SVC()
+    cls = GridSearchCV(svc, parameters)
+    id = sklearn_estimator_identifier(cls)
+    assert id == "classifier"

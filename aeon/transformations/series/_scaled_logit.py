@@ -8,10 +8,15 @@ from warnings import warn
 
 import numpy as np
 
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
-class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
+class ScaledLogitSeriesTransformer(
+    SeriesInverseTransformerMixin, BaseSeriesTransformer
+):
     r"""Scaled logit transform or Log transform.
 
     If both lower_bound and upper_bound are not None, a scaled logit transform is
@@ -19,13 +24,6 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     that ensures the resulting values from the inverse transform are bounded
     accordingly. The transform is applied to all scalar elements of the input array
     individually.
-
-    Combined with an aeon.forecasting.compose.TransformedTargetForecaster, it ensures
-    that the forecast stays between the specified bounds (lower_bound, upper_bound).
-
-    Default is lower_bound = upper_bound = None, i.e., the identity transform.
-
-    The logarithm transform is obtained for lower_bound = 0, upper_bound = None.
 
     Parameters
     ----------
@@ -60,29 +58,12 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     .. [2] Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and
         practice, 3rd edition, OTexts: Melbourne, Australia. OTexts.com/fpp3.
         Accessed on January 24th 2022.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.datasets import load_airline
-    >>> import aeon.transformations.series._scaled_logit as sl
-    >>> from aeon.forecasting.trend import PolynomialTrendForecaster
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> y = load_airline()
-    >>> fcaster = TransformedTargetForecaster([
-    ...     ("scaled_logit", sl.ScaledLogitSeriesTransformer(0, 650)),
-    ...     ("poly", PolynomialTrendForecaster(degree=2))
-    ... ])
-    >>> fcaster.fit(y)
-    TransformedTargetForecaster(...)
-    >>> y_pred = fcaster.predict(fh = np.arange(32))
     """
 
     _tags = {
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
         "capability:multivariate": True,
-        "capability:inverse_transform": True,
     }
 
     def __init__(self, lower_bound=None, upper_bound=None):
@@ -120,7 +101,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
                 RuntimeWarning,
             )
 
-        if self.upper_bound and self.lower_bound:
+        if self.upper_bound is not None and self.lower_bound is not None:
             X_transformed = np.log((X - self.lower_bound) / (self.upper_bound - X))
         elif self.upper_bound is not None:
             X_transformed = -np.log(self.upper_bound - X)
@@ -146,7 +127,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         -------
         inverse transformed version of X
         """
-        if self.upper_bound and self.lower_bound:
+        if self.upper_bound is not None and self.lower_bound is not None:
             X_inv_transformed = (self.upper_bound * np.exp(X) + self.lower_bound) / (
                 np.exp(X) + 1
             )
@@ -160,7 +141,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         return X_inv_transformed
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -169,19 +150,11 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
 
-
         Returns
         -------
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        test_params = [
-            {"lower_bound": None, "upper_bound": None},
-            {"lower_bound": -(10**6), "upper_bound": None},
-            {"lower_bound": None, "upper_bound": 10**6},
-            {"lower_bound": -(10**6), "upper_bound": 10**6},
-        ]
-        return test_params
+        return {"lower_bound": -(10**6), "upper_bound": 10**6}

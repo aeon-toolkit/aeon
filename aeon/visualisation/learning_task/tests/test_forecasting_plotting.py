@@ -1,9 +1,9 @@
 """Test the plotting functions for forecasting."""
 
 import pytest
+from sklearn.model_selection import TimeSeriesSplit
 
-from aeon.forecasting.model_selection import SlidingWindowSplitter
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import make_example_pandas_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_series_windows
 
@@ -19,8 +19,8 @@ def test_plot_series_windows():
 
     matplotlib.use("Agg")
 
-    series = make_series()
-    cv = SlidingWindowSplitter(fh=5, window_length=10, step_length=5)
+    series = make_example_pandas_series(n_timepoints=50)
+    cv = TimeSeriesSplit(n_splits=4)
 
     fig, ax = plot_series_windows(series, cv)
     plt.gcf().canvas.draw_idle()

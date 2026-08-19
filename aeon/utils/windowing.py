@@ -1,9 +1,9 @@
 """Utility functions for creating and reversing sliding windows of time series data."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["sliding_windows", "reverse_windowing"]
 
-from typing import Callable, Optional, Tuple
+from collections.abc import Callable
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -11,7 +11,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 def sliding_windows(
     X: np.ndarray, window_size: int, stride: int = 1, axis: int = 1
-) -> Tuple[np.ndarray, int]:
+) -> tuple[np.ndarray, int]:
     """Create sliding windows of a time series.
 
     Extracts sliding windows of a time series with a given window size and stride. The
@@ -120,7 +120,7 @@ def reverse_windowing(
     window_size: int,
     reduction: Callable[..., np.ndarray] = np.nanmean,
     stride: int = 1,
-    padding_length: Optional[int] = None,
+    padding_length: int | None = None,
     force_iterative: bool = False,
 ) -> np.ndarray:
     """Aggregate windowed results for each point of the original time series.
@@ -249,7 +249,7 @@ def _reverse_windowing_strided(
     reduction: Callable[..., np.ndarray],
 ) -> np.ndarray:
     # compute begin and end indices of windows
-    begins = np.array([i * stride for i in range(scores.shape[0])], dtype=np.int_)
+    begins = np.array([i * stride for i in range(scores.shape[0])], dtype=int)
     ends = begins + window_size
 
     # prepare target array
@@ -284,7 +284,7 @@ def _reverse_windowing_vectorized(
 def _reverse_windowing_iterative(
     y: np.ndarray, window_size: int, reduction: Callable[..., np.ndarray]
 ) -> np.ndarray:
-    y = np.array(y, dtype=np.float_)
+    y = np.array(y, dtype=np.float64)
     unwindowed_length = len(y) + window_size - 1
     pad_n = (window_size - 1, window_size - 1)
     y = np.pad(y, pad_n, "constant", constant_values=(np.nan, np.nan))

@@ -1,1 +1,1 @@
-"""Tests for anomaly detection."""
+"""Test anomaly detection."""

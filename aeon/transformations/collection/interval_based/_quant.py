@@ -76,7 +76,6 @@ class QUANTTransformer(BaseCollectionTransformer):
 
     def _fit(self, X, y=None):
         import torch
-        import torch.nn.functional as F
 
         X = torch.tensor(X).float()
 
@@ -85,17 +84,19 @@ class QUANTTransformer(BaseCollectionTransformer):
         if self.interval_depth < 1:
             raise ValueError("interval_depth must be >= 1")
 
-        representation_functions = (
-            lambda X: X,
-            lambda X: F.avg_pool1d(F.pad(X.diff(), (2, 2), "replicate"), 5, 1),
-            lambda X: X.diff(n=2),
-            lambda X: torch.fft.rfft(X).abs(),
-        )
+        in_length = X.shape[-1]
 
+        representation_functions = (
+            in_length,  # lambda X: X
+            in_length
+            - 1,  # lambda X: F.avg_pool1d(F.pad(X.diff(), (2, 2), "replicate"), 5, 1)
+            in_length - 2,  # lambda X: X.diff(n=2)
+            in_length // 2 + 1,  # lambda X: torch.fft.rfft(X).abs()
+        )
         self.intervals_ = []
-        for function in representation_functions:
-            Z = function(X)
-            self.intervals_.append(self._make_intervals(input_length=Z.shape[-1]))
+
+        for length in representation_functions:
+            self.intervals_.append(self._make_intervals(input_length=length))
 
         return self
 

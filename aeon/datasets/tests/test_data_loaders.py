@@ -5,7 +5,9 @@ __maintainer__ = ["TonyBagnall"]
 import os
 import shutil
 import tempfile
+from inspect import signature
 from urllib.error import URLError
+from zipfile import BadZipFile
 
 import numpy as np
 import pandas as pd
@@ -17,19 +19,30 @@ from aeon.datasets import (
     load_classification,
     load_forecasting,
     load_from_arff_file,
-    load_from_tsfile,
+    load_from_ts_file,
     load_from_tsv_file,
     load_regression,
 )
 from aeon.datasets._data_loaders import (
     CONNECTION_ERRORS,
     _alias_datatype_check,
+    _download_and_extract,
     _get_channel_strings,
     _load_data,
     _load_header_info,
     _load_saved_dataset,
+    _load_tsc_dataset,
+    download_dataset,
 )
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
+
+
+def test_collection_loader_defaults():
+    """Test collection loaders default to original archive data."""
+    for loader in [load_classification, load_regression]:
+        parameters = signature(loader).parameters
+        assert parameters["load_equal_length"].default is False
+        assert parameters["load_no_missing"].default is False
 
 
 @pytest.mark.skipif(
@@ -66,21 +79,21 @@ def test_load_classification_from_repo():
     name = "FOO"
     with pytest.raises(ValueError):
         load_classification(name)
-    name = "SonyAIBORobotSurface1"
-    X, y, meta = load_classification(name, return_metadata=True)
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert isinstance(meta, dict)
-    assert len(X) == len(y)
-    assert X.shape == (621, 1, 70)
-    assert meta["problemname"] == "sonyaiborobotsurface1"
-    assert not meta["timestamps"]
-    assert meta["univariate"]
-    assert meta["equallength"]
-    assert meta["classlabel"]
-    assert not meta["targetlabel"]
-    assert meta["class_values"] == ["1", "2"]
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    with tempfile.TemporaryDirectory() as tmp:
+        name = "SonyAIBORobotSurface1"
+        X, y, meta = load_classification(name, return_metadata=True, extract_path=tmp)
+        assert isinstance(X, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(meta, dict)
+        assert len(X) == len(y)
+        assert X.shape == (621, 1, 70)
+        assert meta["problemname"] == "sonyaiborobotsurface1"
+        assert not meta["timestamps"]
+        assert meta["univariate"]
+        assert meta["equallength"]
+        assert meta["classlabel"]
+        assert not meta["targetlabel"]
+        assert meta["class_values"] == ["1", "2"]
 
 
 @pytest.mark.skipif(
@@ -291,24 +304,14 @@ def test__load_data():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.parametrize("return_X_y", [True, False])
-@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D", "numpy2D"])
-def test_load_provided_dataset(return_X_y, return_type):
+@pytest.mark.parametrize("return_type", ["numpy3D", "numpy2D"])
+def test_load_provided_dataset(return_type):
     """Test function to check for proper loading.
 
-    Check all possibilities of return_X_y and return_type.
+    Check all possibilities of  return_type.
     """
-    if return_X_y:
-        X, y = _load_saved_dataset("UnitTest", "TRAIN", return_X_y, return_type)
-        assert isinstance(y, np.ndarray)
-    else:
-        X = _load_saved_dataset("UnitTest", "TRAIN", return_X_y, return_type)
-    if not return_X_y:
-        assert isinstance(X, tuple)
-        X = X[0]
-    if return_type == "nested_univ":
-        assert isinstance(X, pd.DataFrame)
-    elif return_type == "numpy3D":
+    X, y = _load_saved_dataset("UnitTest", "TRAIN", return_type)
+    if return_type == "numpy3D":
         assert isinstance(X, np.ndarray) and X.ndim == 3
     elif return_type == "numpy2D":
         assert isinstance(X, np.ndarray) and X.ndim == 2
@@ -318,13 +321,14 @@ def test_load_provided_dataset(return_X_y, return_type):
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-def test_load_from_tsfile():
+def test_load_from_ts_file():
     """Test function for loading TS formats.
 
     Test
     1. Univariate equal length (UnitTest) returns 3D numpy X, 1D numpy y
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
-    3. Univariate and multivariate unequal length (PLAID) return X as list of numpy
+    3. unequal length Univariate (PickupGestureWiimoteZ) and multivariate (
+    JapaneseVowels) return X as list of numpy
     """
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
@@ -333,50 +337,51 @@ def test_load_from_tsfile():
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
     )
-    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    X, y = load_from_ts_file(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 3
     assert X.shape == (20, 1, 24) and y.shape == (20,)
     assert X[0][0][0] == 573.0
-    X, y = load_from_tsfile(data_path, return_meta_data=False, return_type="numpy2D")
+    X, y = load_from_ts_file(data_path, return_meta_data=False, return_type="numpy2D")
     assert isinstance(X, np.ndarray)
     assert X.ndim == 2
     assert X.shape == (20, 24)
     assert X[0][0] == 573.0
 
-    # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
+    # Test 2: load multivariate equal length (BasicMotions), should return 3D array
+    # and 1D
     # array, test first and last data.
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
     )
-    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    X, y = load_from_ts_file(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6, 100) and y.shape == (40,)
     assert X[1][2][3] == -1.898794
-    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    X, y = load_from_ts_file(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 3
     assert X.shape == (40, 6, 100) and y.shape == (40,)
     assert X[1][2][3] == -1.898794
 
-    # Test 3.1: load univariate unequal length (PLAID), should return a one column
-    # dataframe,
+    # Test 3.1: load univariate unequal length (PickupGestureWiimoteZ), should return
+    # a list up numpy arrays
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
-        "datasets/data/PLAID/PLAID_TRAIN.ts",
+        "datasets/data/PickupGestureWiimoteZ/PickupGestureWiimoteZ_TRAIN.ts",
     )
 
-    X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
+    X, y = load_from_ts_file(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
-    assert len(X) == 537 and y.shape == (537,)
+    assert len(X) == 50 and y.shape == (50,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
     # columns dataframe,
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
     )
-    X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
+    X, y = load_from_ts_file(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 270 and y.shape == (270,)
 
@@ -427,11 +432,11 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
-    # Try load covid, should work
-    X, y, meta = load_classification("Covid3Month", return_metadata=True)
-
+    # Try load discrete version of covid
+    load_classification("Covid3Month_disc", return_metadata=True)
+    # Regression version should not work
     with pytest.raises(ValueError, match="You have tried to load a regression problem"):
-        X, y = load_classification("CardanoSentiment")
+        load_classification("Covid3Month")
 
 
 @pytest.mark.skipif(
@@ -525,3 +530,55 @@ def test__load_saved_dataset():
     assert np.array_equal(X, X3)
     assert np.array_equal(X4, X5)
     assert not np.array_equal(X, X4)
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_download_dataset():
+    """Test the private download_dataset function."""
+    name = "Chinatown"
+    with tempfile.TemporaryDirectory() as tmp:
+        path = download_dataset(name, save_path=tmp)
+        assert path == os.path.join(tmp, name)
+        path = download_dataset(name, save_path=tmp)
+        assert path == os.path.join(tmp, name)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            download_dataset("FOO", save_path=tmp)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            download_dataset("BAR")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_load_tsc_dataset():
+    """Test the private _load_tsc_dataset function."""
+    name = "Chinatown"
+    with tempfile.TemporaryDirectory() as tmp:
+        X, y = _load_tsc_dataset(name, split="TRAIN", extract_path=tmp)
+        assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            _load_tsc_dataset("FOO", split="TEST", extract_path=tmp)
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_download_and_extract():
+    """Test that the function does not delete a directory if already present."""
+    name = "Foo"
+    with tempfile.TemporaryDirectory() as tmp:
+        extract_path = os.path.join(tmp, name)
+        os.makedirs(extract_path)
+        url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
+        try:
+            _download_and_extract(url, extract_path=extract_path)
+        except BadZipFile:
+            assert os.path.exists(extract_path)

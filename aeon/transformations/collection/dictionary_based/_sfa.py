@@ -20,6 +20,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -46,7 +47,7 @@ class SFA(BaseCollectionTransformer):
     Parameters
     ----------
     word_length:         int, default = 8
-        length of word to shorten window to (using PAA)
+        length of word to shorten window to (using DFT)
 
     alphabet_size:       int, default = 4
         number of values to discretise each value to
@@ -110,6 +111,7 @@ class SFA(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
+        "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
 
@@ -207,6 +209,8 @@ class SFA(BaseCollectionTransformer):
         -------
         self: object
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
 
@@ -261,7 +265,6 @@ class SFA(BaseCollectionTransformer):
         self.n_cases, self.n_timepoints = X.shape
         self.breakpoints = self._binning(X, y)
 
-        self._is_fitted = True
         return self
 
     def _transform(self, X, y=None):
@@ -280,7 +283,7 @@ class SFA(BaseCollectionTransformer):
 
         # with warnings.catch_warnings():
         # warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
-        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+        transform = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._transform_case)(
                 X[i, :],
                 supplied_dft=self.binning_dft[i] if self.keep_binning_dft else None,
@@ -292,8 +295,8 @@ class SFA(BaseCollectionTransformer):
         if self.save_words:
             self.words = np.array(list(words))
 
-        # cant pickle typed dict
-        if self._typed_dict and self.n_jobs != 1:
+        # can't pickle typed dict
+        if self._typed_dict and self._n_jobs != 1:
             nl = [None] * len(dim)
             for i, pdict in enumerate(dim):
                 ndict = (
@@ -328,7 +331,7 @@ class SFA(BaseCollectionTransformer):
 
         # with warnings.catch_warnings():
         #    warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
-        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+        transform = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._mft)(X[i, :]) for i in range(X.shape[0])
         )
 
@@ -418,8 +421,8 @@ class SFA(BaseCollectionTransformer):
                                 skip_gram = (skip_gram << self.level_bits) | 0
                         bag[skip_gram] = bag.get(skip_gram, 0) + 1
 
-        # cant pickle typed dict
-        if self._typed_dict and self.n_jobs != 1:
+        # can't pickle typed dict
+        if self._typed_dict and self._n_jobs != 1:
             pdict = dict()
             for key, val in bag.items():
                 pdict[key] = val
@@ -443,7 +446,7 @@ class SFA(BaseCollectionTransformer):
                 self.letter_bits,
             )
 
-        return words
+        return words, dfts
 
     def transform_words(self, X):
         """Return the words generated for each series.
@@ -459,12 +462,12 @@ class SFA(BaseCollectionTransformer):
         if X.ndim == 3:
             X = X.squeeze(1)
 
-        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+        transform = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._transform_words_case)(X[i, :]) for i in range(X.shape[0])
         )
 
-        words = zip(*transform)
-        return np.array(list(words))
+        words = list(zip(*transform))  # words and dfts
+        return np.array(words[0]).squeeze(), np.array(words[1]).squeeze()
 
     def get_words(self):
         """Return the words generated for each series.
@@ -813,12 +816,12 @@ class SFA(BaseCollectionTransformer):
         if self._typed_dict:
             warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
 
-        dim = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+        dim = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._shorten_case)(word_len, i) for i in range(len(self.words))
         )
 
-        # cant pickle typed dict
-        if self._typed_dict and self.n_jobs != 1:
+        # can't pickle typed dict
+        if self._typed_dict and self._n_jobs != 1:
             nl = [None] * len(dim)
             for i, pdict in enumerate(dim):
                 ndict = (
@@ -906,8 +909,8 @@ class SFA(BaseCollectionTransformer):
                                 skip_gram = (skip_gram << self.level_bits) | 0
                         new_bag[skip_gram] = new_bag.get(skip_gram, 0) + 1
 
-        # cant pickle typed dict
-        if self._typed_dict and self.n_jobs != 1:
+        # can't pickle typed dict
+        if self._typed_dict and self._n_jobs != 1:
             pdict = dict()
             for key, val in new_bag.items():
                 pdict[key] = val
@@ -1152,7 +1155,7 @@ class SFA(BaseCollectionTransformer):
         return letters
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -1168,7 +1171,6 @@ class SFA(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         # small window size for testing
         params = {"window_size": 4}

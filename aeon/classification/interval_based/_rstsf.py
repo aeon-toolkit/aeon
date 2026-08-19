@@ -23,7 +23,7 @@ class RSTSF(BaseClassifier):
 
     An ensemble of decision trees built on intervals selected through a supervised
     process as described in _[1].
-    Overview: Input n series of length m with d dimensions
+    Overview: Input n series of length m with d channels
         - sample X using class-balanced bagging
         - sample intervals for all 4 series representations and 9 features using
             supervised method
@@ -36,11 +36,9 @@ class RSTSF(BaseClassifier):
     n_intervals : int, default=50
         The number of times the supervised interval selection process is run.
         Each supervised extraction will output a varying amount of features based on
-        series length, number of dimensions and the number of features.
+        series length, number of channels and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
-    use_pyfftw : bool, default=True
-        Whether to use pyfftw for the periodogram transformation.
     random_state : None, int or instance of RandomState, default=None
         Seed or RandomState object used for random number generation.
         If random_state is None, use the RandomState singleton used by np.random.
@@ -48,6 +46,15 @@ class RSTSF(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict` functions.
         `-1` means using all processors.
+
+    Attributes
+    ----------
+    transformers_ : list of SupervisedIntervals
+        The fitted supervised interval transformers for each representation.
+    series_transformers_ : list of transformers
+        The fitted series transformers (differences, periodogram, AR coefficients).
+    clf_ : ExtraTreesClassifier
+        The fitted ensemble classifier.
 
     See Also
     --------
@@ -84,39 +91,33 @@ class RSTSF(BaseClassifier):
         n_estimators=200,
         n_intervals=50,
         min_interval_length=3,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
     ):
         self.n_estimators = n_estimators
         self.n_intervals = n_intervals
         self.min_interval_length = min_interval_length
-        self.use_pyfftw = use_pyfftw
         self.random_state = random_state
         self.n_jobs = n_jobs
 
         super().__init__()
 
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": ["statsmodels", "pyfftw"]})
-
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         lags = int(12 * (X.shape[2] / 100.0) ** 0.25)
 
-        self._series_transformers = [
+        self.series_transformers_ = [
             FunctionTransformer(func=first_order_differences_3d, validate=False),
-            PeriodogramTransformer(use_pyfftw=self.use_pyfftw),
+            PeriodogramTransformer(),
             ARCoefficientTransformer(order=lags, replace_nan=True),
         ]
 
-        transforms = [X] + [t.fit_transform(X) for t in self._series_transformers]
+        transforms = [X] + [t.fit_transform(X) for t in self.series_transformers_]
 
         Xt = np.empty((X.shape[0], 0))
-        self._transformers = []
+        self.transformers_ = []
         transform_data_lengths = []
         for t in transforms:
             si = SupervisedIntervals(
@@ -128,7 +129,7 @@ class RSTSF(BaseClassifier):
             )
             features = si.fit_transform(t, y)
             Xt = np.hstack((Xt, features))
-            self._transformers.append(si)
+            self.transformers_.append(si)
             transform_data_lengths.append(features.shape[1])
 
         self.clf_ = ExtraTreesClassifier(
@@ -152,7 +153,7 @@ class RSTSF(BaseClassifier):
 
         count = 0
         for r in range(len(transforms)):
-            self._transformers[r].set_features_to_transform(
+            self.transformers_[r].set_features_to_transform(
                 features_to_transform[count : count + transform_data_lengths[r]],
                 raise_error=False,
             )
@@ -169,17 +170,17 @@ class RSTSF(BaseClassifier):
         return self.clf_.predict_proba(Xt)
 
     def _predict_transform(self, X):
-        transforms = [X] + [t.transform(X) for t in self._series_transformers]
+        transforms = [X] + [t.transform(X) for t in self.series_transformers_]
 
         Xt = np.empty((X.shape[0], 0))
         for i, t in enumerate(transforms):
-            si = self._transformers[i]
+            si = self.transformers_[i]
             Xt = np.hstack((Xt, si.transform(t)))
 
         return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -198,7 +199,6 @@ class RSTSF(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "n_estimators": 2,

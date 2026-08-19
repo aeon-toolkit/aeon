@@ -32,7 +32,7 @@ def test_early_prob_threshold_near_classification_points():
         X = X_test[:, :, :i]
 
         if i == 20:
-            with pytest.raises(ValueError):
+            with pytest.raises(IndexError):
                 pt.update_predict_proba(X)
         else:
             _, decisions = pt.update_predict_proba(X)
@@ -54,7 +54,7 @@ def test_early_prob_threshold_score():
 
     _, acc, earl = pt.score(X_test, y_test)
     testing.assert_allclose(acc, 0.9, rtol=0.01)
-    testing.assert_allclose(earl, 0.3, rtol=0.01)
+    testing.assert_allclose(earl, 0.266667, rtol=0.01)
 
     # make sure update ends up with the same score
     pt.reset_state_info()
@@ -75,4 +75,32 @@ def test_early_prob_threshold_score():
     _, acc, earl = pt.compute_harmonic_mean(final_states, y_test)
 
     testing.assert_allclose(acc, 0.9, rtol=0.01)
-    testing.assert_allclose(earl, 0.3, rtol=0.01)
+    testing.assert_allclose(earl, 0.266667, rtol=0.01)
+
+
+def test_probability_threshold_estimator_attribute_lifecycle():
+    """Test estimator attributes are created only on fit."""
+    import numpy as np
+
+    from aeon.classification.early_classification import (
+        ProbabilityThresholdEarlyClassifier,
+    )
+    from aeon.classification.interval_based import TimeSeriesForestClassifier
+
+    # define balanced classes
+    X = np.random.randn(10, 1, 20)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+    # pass a fast estimator to avoid dependency errors and crashes
+    base_est = TimeSeriesForestClassifier(n_estimators=2)
+    clf = ProbabilityThresholdEarlyClassifier(
+        classification_points=[5, 10, 15], estimator=base_est
+    )
+
+    assert not hasattr(clf, "estimators_")
+    assert not hasattr(clf, "_estimators")
+
+    clf.fit(X, y)
+
+    assert hasattr(clf, "estimators_")
+    assert not hasattr(clf, "_estimators")

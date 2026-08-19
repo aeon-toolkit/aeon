@@ -41,6 +41,7 @@ def plot_pairwise_scatter(
     title=None,
     figsize=(8, 8),
     color_palette="tab10",
+    best_on_top=True,
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -59,13 +60,17 @@ def plot_pairwise_scatter(
     lower_better : bool, default = False
         If True, lower values are considered better, i.e. errors.
     statistic_tests : bool, default = True
-        If True, paired ttest and wilcoxon p-values are shown in the bottom of the plot.
+        If True, paired t-test and wilcoxon p-values are shown in the bottom of the
+        plot.
     title : str, default = None
         Title to be shown in the top of the plot.
     figsize : tuple, default = (10, 6)
         Size of the figure.
     color_palette : str, default = "tab10"
         Color palette to be used for the plot.
+    best_on_top : bool, default=True
+        If True, the estimator with better performance is placed on the y-axis (top).
+        If False, the ordering is reversed.
 
     Returns
     -------
@@ -107,8 +112,16 @@ def plot_pairwise_scatter(
         fig, ax = plt.subplots(figsize=figsize)
 
     results_all = np.concatenate((results_a, results_b))
-    min_value = results_all.min() * 0.97
-    max_value = results_all.max() * 1.03
+    min_value = (
+        results_all.min() * 1.05
+        if (results_all.min() < 0)
+        else results_all.min() * 0.95
+    )
+    max_value = (
+        results_all.max() * 1.05
+        if (results_all.max() > 0)
+        else results_all.max() * 0.95
+    )
 
     if any([metric.lower() == i.lower() for i in accuracy_metrics]):
         max_value = min(max_value, 1.001)
@@ -121,7 +134,7 @@ def plot_pairwise_scatter(
     x, y = [min_value, max_value], [min_value, max_value]
     ax.plot(x, y, color="black", alpha=0.5, zorder=1)
 
-    # Choose the appropriate order for the methods. Best method is shown in the y-axis.
+    # better estimator on top (y-axis)
     if (results_a.mean() <= results_b.mean() and not lower_better) or (
         results_a.mean() >= results_b.mean() and lower_better
     ):
@@ -134,6 +147,11 @@ def plot_pairwise_scatter(
         first_method = method_a
         second = results_b
         second_method = method_b
+
+    # if best_on_top is False, swap the ordering
+    if not best_on_top:
+        first, second = second, first
+        first_method, second_method = second_method, first_method
 
     differences = [
         0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)
@@ -212,7 +230,7 @@ def plot_pairwise_scatter(
     plot.get_legend().remove()
 
     # Setting text with W, T and L for each method
-    anc = AnchoredText(
+    anc_text = AnchoredText(
         f"{first_method} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
         loc="upper left" if not lower_better else "lower right",
         frameon=True,
@@ -223,13 +241,13 @@ def plot_pairwise_scatter(
             ha="center",
         ),
     )
-    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-    anc.patch.set_color("wheat")
-    anc.patch.set_edgecolor("black")
-    anc.patch.set_alpha(0.5)
-    ax.add_artist(anc)
+    anc_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc_text.patch.set_color("wheat")
+    anc_text.patch.set_edgecolor("black")
+    anc_text.patch.set_alpha(0.5)
+    ax.add_artist(anc_text)
 
-    anc = AnchoredText(
+    anc_text = AnchoredText(
         f"{second_method} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
         loc="lower right" if not lower_better else "upper left",
         frameon=True,
@@ -240,11 +258,11 @@ def plot_pairwise_scatter(
             ha="center",
         ),
     )
-    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-    anc.patch.set_color("wheat")
-    anc.patch.set_edgecolor("black")
-    anc.patch.set_alpha(0.5)
-    ax.add_artist(anc)
+    anc_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc_text.patch.set_color("wheat")
+    anc_text.patch.set_edgecolor("black")
+    anc_text.patch.set_alpha(0.5)
+    ax.add_artist(anc_text)
 
     # Setting title if provided.
     if title is not None:
@@ -280,12 +298,12 @@ def plot_pairwise_scatter(
             )[1]
 
         ttes = f"Paired t-test for equality of means, p-value={p_value_t:.3f}"
-        wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
+        wilcox = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
 
         plt.figtext(
             0.5,
             0.03 if not lower_better else 0.13,
-            f"{wil}\n{ttes}",
+            f"{wilcox}\n{ttes}",
             fontsize=10,
             wrap=True,
             horizontalalignment="center",

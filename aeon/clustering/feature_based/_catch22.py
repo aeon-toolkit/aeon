@@ -11,7 +11,11 @@ from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    _InternalCatch22,
+    _warn_use_pycatch22_deprecated,
+)
+from aeon.utils.validation import check_n_jobs
 
 
 class Catch22Clusterer(BaseClusterer):
@@ -42,15 +46,22 @@ class Catch22Clusterer(BaseClusterer):
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
-    outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        outlier_norm : bool, optional, default=False
+            If True, each time series is normalized during the computation of the two
+            outlier Catch22 features, which can take a while to process for large values
+            as it depends on the max value in the timseries. Note that this parameter
+            did not exist in the original publication/implementation as they used
+            time series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     estimator : sklearn clusterer, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn KMeans().
@@ -67,6 +78,12 @@ class Catch22Clusterer(BaseClusterer):
         if None a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+
+    Attributes
+    ----------
+    estimator_ : sklearn clusterer
+        The fitted sklearn clusterer used to compute cluster labels from the
+        Catch22-transformed data.
 
     See Also
     --------
@@ -99,13 +116,14 @@ class Catch22Clusterer(BaseClusterer):
         "algorithm_type": "feature",
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -116,6 +134,8 @@ class Catch22Clusterer(BaseClusterer):
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
         self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated(self)
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -143,7 +163,9 @@ class Catch22Clusterer(BaseClusterer):
         self :
             Reference to self.
         """
-        self._transformer = Catch22(
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        self._transformer = _InternalCatch22(
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
@@ -153,17 +175,18 @@ class Catch22Clusterer(BaseClusterer):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (KMeans() if self.estimator is None else self.estimator),
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
+        self.labels_ = self.estimator_.labels_
 
         return self
 
@@ -180,7 +203,7 @@ class Catch22Clusterer(BaseClusterer):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -197,21 +220,14 @@ class Catch22Clusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
-            preds = self._estimator.predict(self._transformer.transform(X))
-            dists = np.zeros((X.shape[0], np.unique(preds).shape[0]))
-            for i in range(0, X.shape[0]):
-                dists[i, preds[i]] = 1
-            return dists
-
-    def _score(self, X, y=None):
-        raise NotImplementedError("Catch22Clusterer does not support scoring.")
+            return super()._predict_proba(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -226,7 +242,6 @@ class Catch22Clusterer(BaseClusterer):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "features": (

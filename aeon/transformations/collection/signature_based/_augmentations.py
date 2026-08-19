@@ -5,32 +5,21 @@ from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _make_augmentation_pipeline(augmentation_list):
-    """Buids an sklearn pipeline of augmentations from a tuple of strings.
+    """Build an sklearn pipeline of augmentations from a tuple of strings.
 
     Parameters
     ----------
-    augmentation_list: list of strings, A list of strings that determine the
-        augmentations to apply, and in which order to apply them (the first
-        string will be applied first). Possible augmentation strings are
-        ['leadlag', 'ir', 'addtime', 'cumsum', 'basepoint']
+    augmentation_list : list of strings
+        A list of strings that determine the augmentations to apply, and in which
+        order to apply them (the first string will be applied first). Possible
+        augmentation strings are
+                ['leadlag', 'ir', 'addtime', 'cumsum', 'basepoint']
 
     Returns
     -------
     sklearn.Pipeline
         The transforms, in order, as an sklearn pipeline.
-
-    Examples
-    --------
-        augementations = ('leadlag', 'ir', 'addtime')
-        _make_augmentation_pipeline(augmentations)
-        # Will return
-        Pipeline([
-            ('leadlag', LeadLag()),
-            ('ir', InvisibilityReset()),
-            ('addtime', AddTime())
-        ])
     """
-    # Dictionary of augmentations
     AUGMENTATIONS = {
         "leadlag": _LeadLag(),
         "ir": _InvisibilityReset(),
@@ -63,15 +52,17 @@ def _make_augmentation_pipeline(augmentation_list):
 class _AddTime(BaseCollectionTransformer):
     """Add time component to each path.
 
-    For a path of shape [B, L, C] this adds a time channel to be placed at the
-    first index. The time channel will be of length L and scaled to exist in
-    [0, 1].
+    This adds a time channel to be placed at the first index. The time channel will
+    be of length n_timepoints and scaled to [0, 1].
     """
 
     _tags = {
         "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         data = np.swapaxes(X, 1, 2)
@@ -89,7 +80,6 @@ class _InvisibilityReset(BaseCollectionTransformer):
     """Add 'invisibility-reset' dimension to the path.
 
     This adds sensitivity to translation.
-
     Introduced by Yang et al.: https://arxiv.org/pdf/1707.03993.pdf
     """
 
@@ -97,6 +87,9 @@ class _InvisibilityReset(BaseCollectionTransformer):
         "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         X = np.swapaxes(X, 1, 2)
@@ -137,6 +130,9 @@ class _LeadLag(BaseCollectionTransformer):
         "capability:multivariate": True,
         "fit_is_empty": True,
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         X = np.swapaxes(X, 1, 2)
@@ -192,6 +188,9 @@ class _BasePoint(BaseCollectionTransformer):
         "fit_is_empty": True,
         "capability:multivariate": True,
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         X = np.swapaxes(X, 1, 2)

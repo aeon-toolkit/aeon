@@ -12,7 +12,7 @@ from aeon.classification import DummyClassifier
 def test_dummy_classifier_strategies(strategy):
     """Test DummyClassifier strategies."""
     X = np.ones(shape=(10, 10))
-    y_train = np.random.choice([0, 1], size=10)
+    y_train = np.array([0, 1] + np.random.choice([0, 1], size=8).tolist())
 
     dummy = DummyClassifier(strategy=strategy, constant=1)
     dummy.fit(X, y_train)

@@ -1,4 +1,4 @@
-"""Unit tests for sklearn classifiers."""
+"""Unit tests for sklearn regressors."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 

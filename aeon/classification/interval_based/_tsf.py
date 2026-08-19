@@ -8,7 +8,7 @@ __all__ = ["TimeSeriesForestClassifier"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base._estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 
@@ -90,8 +90,8 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib. If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -100,7 +100,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     n_classes_ : int
@@ -111,7 +111,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of BaseTransformer
+    intervals_ : list of shape (n_estimators) of BaseCollectionTransformer
         Stores the interval extraction transformer for all estimators.
 
     Notes
@@ -198,7 +198,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         return super()._fit_predict_proba(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -223,7 +223,6 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}

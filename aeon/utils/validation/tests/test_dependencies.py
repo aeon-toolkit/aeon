@@ -5,6 +5,15 @@ import pytest
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+def test_check_soft_dependencies_raises_error():
+    """Test the _check_soft_dependencies() function."""
+    with pytest.raises(ModuleNotFoundError, match=r".* soft dependency .*"):
+        _check_soft_dependencies("unavailable_module")
+
+    with pytest.raises(ModuleNotFoundError, match=r".* soft dependency .*"):
+        _check_soft_dependencies("unavailable_module_1", "unavailable_module_2")
+
+
 # Currently just partial testing of soft dep checks.
 def test__check_soft_dependencies():
     """Test _check_soft_dependencies function."""
@@ -20,7 +29,7 @@ def test__check_soft_dependencies():
         _check_soft_dependencies("FOOBAR")
     with pytest.raises(ModuleNotFoundError, match="No module named 'FOOBAR'"):
         _check_soft_dependencies("FOOBAR", suppress_import_stdout=True)
-    with pytest.raises(ModuleNotFoundError, match="str requires package 'FOOBAR'"):
+    with pytest.raises(ModuleNotFoundError, match="FOOBAR requires package 'FOOBAR'"):
         _check_soft_dependencies("FOOBAR", obj="FOOBAR")
     with pytest.raises(RuntimeError, match="severity argument must be "):
         _check_soft_dependencies("FOOBAR", severity="FOOBAR")

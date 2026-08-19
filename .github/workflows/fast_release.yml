@@ -1,0 +1,47 @@
+# Makes a release without testing. Don't run this unless you have to.
+name: Fast release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-project:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Build project
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Store build files
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/*
+          retention-days: 5
+
+  upload-wheels:
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: release
+      url: https://pypi.org/p/aeon/
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

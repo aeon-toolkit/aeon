@@ -13,10 +13,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.feature_based import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
+from aeon.transformations.collection.feature_based import TSFresh, TSFreshRelevant
+from aeon.utils.validation import check_n_jobs
 
 
 class TSFreshClassifier(BaseClassifier):
@@ -49,6 +47,17 @@ class TSFreshClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
 
     Attributes
     ----------
@@ -56,11 +65,13 @@ class TSFreshClassifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
+    estimator_ : sklearn classifier
+        The fitted estimator.
 
     See Also
     --------
-    TSFreshFeatureExtractor
-    TSFreshRelevantFeatureExtractor
+    TSFresh
+    TSFreshRelevant
     TSFreshRegressor
 
     References
@@ -72,8 +83,10 @@ class TSFreshClassifier(BaseClassifier):
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
@@ -87,6 +100,7 @@ class TSFreshClassifier(BaseClassifier):
         n_jobs=1,
         chunksize=None,
         random_state=None,
+        class_weight=None,
     ):
         self.default_fc_parameters = default_fc_parameters
         self.relevant_feature_extractor = relevant_feature_extractor
@@ -98,9 +112,9 @@ class TSFreshClassifier(BaseClassifier):
         self.random_state = random_state
 
         self._transformer = None
-        self._estimator = None
         self._return_majority_class = False
         self._majority_class = 0
+        self.class_weight = class_weight
 
         super().__init__()
 
@@ -110,6 +124,8 @@ class TSFreshClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The training data.
         y : array-like, shape = [n_cases]
             The class labels.
@@ -124,22 +140,24 @@ class TSFreshClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = (
-            TSFreshRelevantFeatureExtractor(
+            TSFreshRelevant(
                 default_fc_parameters=self.default_fc_parameters,
                 n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
             if self.relevant_feature_extractor
-            else TSFreshFeatureExtractor(
+            else TSFresh(
                 default_fc_parameters=self.default_fc_parameters,
                 n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
         )
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
-                RandomForestClassifier(n_estimators=200)
+                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
                 if self.estimator is None
                 else self.estimator
             ),
@@ -151,9 +169,9 @@ class TSFreshClassifier(BaseClassifier):
             if self.verbose < 1:
                 self._transformer.disable_progressbar = True
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
@@ -169,7 +187,7 @@ class TSFreshClassifier(BaseClassifier):
             self._return_majority_class = True
             self._majority_class = np.argmax(np.unique(y, return_counts=True)[1])
         else:
-            self._estimator.fit(X_t, y)
+            self.estimator_.fit(X_t, y)
 
         return self
 
@@ -179,6 +197,8 @@ class TSFreshClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns
@@ -187,9 +207,9 @@ class TSFreshClassifier(BaseClassifier):
             Predicted class labels.
         """
         if self._return_majority_class:
-            return np.full(X.shape[0], self.classes_[self._majority_class])
+            return np.full(len(X), self.classes_[self._majority_class])
 
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for n instances in X.
@@ -197,6 +217,8 @@ class TSFreshClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predict probabilities for.
 
         Returns
@@ -205,22 +227,22 @@ class TSFreshClassifier(BaseClassifier):
             Predicted probabilities using the ordering in classes_.
         """
         if self._return_majority_class:
-            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists = np.zeros((len(X), self.n_classes_))
             dists[:, self._majority_class] = 1
             return dists
 
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
-            for i in range(0, X.shape[0]):
+            dists = np.zeros((len(X), self.n_classes_))
+            preds = self.estimator_.predict(self._transformer.transform(X))
+            for i in range(0, len(X)):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -239,7 +261,6 @@ class TSFreshClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

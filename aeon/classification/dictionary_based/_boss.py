@@ -10,16 +10,17 @@ __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 from itertools import compress
 
 import numpy as np
-from joblib import Parallel, effective_n_jobs
+from numba import njit, prange
+from scipy.sparse import isspmatrix_csc, isspmatrix_csr
 from sklearn.metrics import pairwise
-from sklearn.utils import check_random_state, gen_even_slices
+from sklearn.utils import check_random_state
 from sklearn.utils.extmath import safe_sparse_dot
-from sklearn.utils.fixes import delayed
 from sklearn.utils.sparsefuncs_fast import csr_row_norms
-from sklearn.utils.validation import _num_samples
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.decorators.numba_threading import numba_thread_handler
+from aeon.utils.validation import check_n_jobs
 
 
 class BOSSEnsemble(BaseClassifier):
@@ -58,7 +59,7 @@ class BOSSEnsemble(BaseClassifier):
     min_window : int, default=10
         Minimum window size.
     feature_selection : str, default: "none"
-        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        Sets the feature selections strategy to be used from {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
@@ -67,7 +68,7 @@ class BOSSEnsemble(BaseClassifier):
         Number of possible letters (values) for each word.
     use_boss_distance : bool, default=True
         The Boss-distance is an asymmetric distance measure. It provides higher
-        accuracy, yet is signifaicantly slower to compute.
+        accuracy, yet is significantly slower to compute.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -111,8 +112,8 @@ class BOSSEnsemble(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import BOSSEnsemble
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = BOSSEnsemble(max_ensemble_size=3)
     >>> clf.fit(X_train, y_train)
     BOSSEnsemble(...)
@@ -182,6 +183,7 @@ class BOSSEnsemble(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, _, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
 
@@ -213,7 +215,7 @@ class BOSSEnsemble(BaseClassifier):
                     save_words=True,
                     use_boss_distance=self.use_boss_distance,
                     feature_selection=self.feature_selection,
-                    n_jobs=self.n_jobs,
+                    n_jobs=self._n_jobs,
                     random_state=self.random_state,
                 )
                 boss.fit(X, y)
@@ -396,7 +398,7 @@ class BOSSEnsemble(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -418,7 +420,6 @@ class BOSSEnsemble(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {
@@ -470,7 +471,7 @@ class IndividualBOSS(BaseClassifier):
         can shorten the time to calculate dictionaries using a shorter
         `word_length` (since the last "n" letters can be removed).
     feature_selection : str, default: "none"
-        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        Sets the feature selections strategy to be used from {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
@@ -479,7 +480,7 @@ class IndividualBOSS(BaseClassifier):
         Number of possible letters (values) for each word.
     use_boss_distance : bool, default=True
          The Boss-distance is an asymmetric distance measure. It provides higher
-         accuracy, yet is signifaicantly slower to compute.
+         accuracy, yet is significantly slower to compute.
     n_jobs : int, default=1
          The number of jobs to run in parallel for both `fit` and `predict`.
          ``-1`` means using all processors.
@@ -514,8 +515,8 @@ class IndividualBOSS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import IndividualBOSS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualBOSS()
     >>> clf.fit(X_train, y_train)
     IndividualBOSS(...)
@@ -578,6 +579,7 @@ class IndividualBOSS(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = SFAFast(
             word_length=self.word_length,
             alphabet_size=self.alphabet_size,
@@ -586,7 +588,7 @@ class IndividualBOSS(BaseClassifier):
             bigrams=False,
             remove_repeat_words=True,
             save_words=self.save_words,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             feature_selection=self.feature_selection,
             random_state=self.random_state,
         )
@@ -658,7 +660,8 @@ class IndividualBOSS(BaseClassifier):
         new_boss.n_classes_ = self.n_classes_
         new_boss.classes_ = self.classes_
         new_boss._class_dictionary = self._class_dictionary
-        new_boss._is_fitted = True
+        new_boss.metadata_ = self.metadata_
+        new_boss.is_fitted = True
 
         return new_boss
 
@@ -677,37 +680,83 @@ class IndividualBOSS(BaseClassifier):
         self._transformed_data = self._transformer.fit_transform(X, y)
 
 
-def _dist_wrapper(dist_matrix, X, Y, s, XX_all=None, XY_all=None):
-    """Write in-place to a slice of a distance matrix."""
-    for i in range(s.start, s.stop):
-        dist_matrix[i] = boss_distance(X, Y, i, XX_all, XY_all)
-
-
+@numba_thread_handler
 def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
-    """Find the euclidean distance between all pairs of bop-models."""
+    """Find the Euclidean distance between all pairs of bop-models."""
     if use_boss_distance:
+        self_distance = Y is None or X is Y
         if Y is None:
             Y = X
+        if X.shape[1] != Y.shape[1]:
+            raise ValueError("X and Y must have the same number of features.")
 
-        XX_row_norms = csr_row_norms(X)
-        XY = safe_sparse_dot(X, Y.T, dense_output=True)
+        # The BOSS distance is asymmetric: only words present in the left
+        # operand X contribute. CSR makes those left-hand rows cheap to scan.
+        X.eliminate_zeros()
+        if not isspmatrix_csr(X):
+            X = X.tocsr(copy=True)
 
-        distance_matrix = np.zeros((X.shape[0], Y.shape[0]))
+        # The kernel then needs all right-hand rows with a matching word.
+        # CSC makes that direct.
+        Y.eliminate_zeros()
+        if not isspmatrix_csc(Y):
+            Y = Y.tocsc(copy=True)
 
-        if effective_n_jobs(n_jobs) > 1:
-            Parallel(n_jobs=n_jobs, prefer="threads")(
-                delayed(_dist_wrapper)(distance_matrix, X, Y, s, XX_row_norms, XY)
-                for s in gen_even_slices(_num_samples(X), effective_n_jobs(n_jobs))
-            )
-        else:
-            for i in range(len(distance_matrix)):
-                distance_matrix[i] = boss_distance(X, Y, i, XX_row_norms, XY)
+        distance_matrix = _boss_pairwise_distances(
+            # Convert int counts to float64
+            X.data.astype(np.float64, copy=False),
+            X.indices,
+            X.indptr,
+            Y.data.astype(np.float64, copy=False),
+            Y.indices,
+            Y.indptr,
+            csr_row_norms(X),
+            X.shape[0],
+            Y.shape[0],
+        )
 
     else:
         distance_matrix = pairwise.pairwise_distances(X, Y, n_jobs=n_jobs)
+        self_distance = Y is None or X is Y
 
-    if X is Y or Y is None:
+    if self_distance:
         np.fill_diagonal(distance_matrix, np.inf)
+
+    return distance_matrix
+
+
+@njit(cache=True, fastmath=True, parallel=True)
+def _boss_pairwise_distances(
+    X_data,
+    X_indices,
+    X_indptr,
+    Y_data,
+    Y_indices,
+    Y_indptr,
+    XX,
+    n_x,
+    n_y,
+):
+    """Compute BOSS pairwise distances from CSR X and CSC Y arrays."""
+    distance_matrix = np.empty((n_x, n_y), dtype=np.float64)
+
+    for i in prange(n_x):
+        for j in range(n_y):
+            distance_matrix[i, j] = XX[i]
+
+        for x_pos in range(X_indptr[i], X_indptr[i + 1]):
+            col = X_indices[x_pos]
+            x_val = X_data[x_pos]
+
+            for y_pos in range(Y_indptr[col], Y_indptr[col + 1]):
+                y_val = Y_data[y_pos]
+                distance_matrix[i, Y_indices[y_pos]] += (
+                    y_val * y_val - 2.0 * x_val * y_val
+                )
+
+        for j in range(n_y):
+            if distance_matrix[i, j] < 0.0:
+                distance_matrix[i, j] = 0.0
 
     return distance_matrix
 
@@ -715,12 +764,12 @@ def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
 def boss_distance(X, Y, i, XX_all=None, XY_all=None):
     """Find the distance between two histograms.
 
-    This returns the distance between first and second dictionaries, using a non-
-    symmetric distance measure. It is used to find the distance between historgrams
+    This returns the distance between first and second dictionaries, using an
+    asymmetric distance measure. It is used to find the distance between histograms
     of words.
 
     This distance function is designed for sparse matrix, represented as either a
-    dictionary or an arrray. It only measures the distance between counts present in
+    dictionary or an array. It only measures the distance between counts present in
     the first dictionary and the second. Hence dist(a,b) does not necessarily equal
     dist(b,a).
 

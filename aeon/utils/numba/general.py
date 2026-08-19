@@ -2,142 +2,44 @@
 
 __maintainer__ = []
 __all__ = [
-    "generate_new_default_njit_func",
     "unique_count",
     "first_order_differences",
     "first_order_differences_2d",
     "first_order_differences_3d",
     "z_normalise_series_with_mean",
     "z_normalise_series",
+    "z_normalise_series_with_mean_std",
     "z_normalise_series_2d",
+    "z_normalise_series_2d_with_mean_std",
     "z_normalise_series_3d",
     "set_numba_random_seed",
     "choice_log",
     "get_subsequence",
     "get_subsequence_with_mean_std",
     "sliding_mean_std_one_series",
-    "sliding_dot_product",
     "combinations_1d",
     "slope_derivative",
     "slope_derivative_2d",
     "slope_derivative_3d",
     "generate_combinations",
+    "get_all_subsequences",
+    "compute_mean_stds_collection_parallel",
+    "prime_up_to",
+    "is_prime",
 ]
 
 
-import inspect
-import types
-from copy import deepcopy
-from typing import Tuple
-
 import numpy as np
 from numba import njit, prange
-from numba.core.registry import CPUDispatcher
+from numpy.random._generator import Generator
 
 import aeon.utils.numba.stats as stats
 
 AEON_NUMBA_STD_THRESHOLD = 1e-8
 
 
-def generate_new_default_njit_func(
-    base_func,
-    new_defaults_args,
-    use_fastmath_for_callable=True,
-    use_cache_for_callable=True,
-):
-    """
-    Return a function with same code, globals, defaults, closure, and name.
-
-    If the function is not a CPUDispatcher (numba) function, it will try to create
-    a numba function if the base function is callable.
-
-    Parameters
-    ----------
-    base_func : function or CPUDispatcher
-        A Python or Numba function to modify.
-    new_defaults_args : dict
-        Dictionnary of new default keyword args. If new_defaults_args is None or empty,
-        directly return base_func.
-    use_fastmath_for_callable : bool
-        If base_func is a callable, add fastmath as numba option when compiling
-        the new function to numba.
-    use_cache_for_callable : bool
-        If base_func is a callable, add cache as numba option when compiling
-        the new function to numba.
-
-    Returns
-    -------
-    new_func_njit : CPUDispatcher
-        Created numba function with new default args.
-
-    """
-    # empty dict evaluate to false
-    if new_defaults_args is None or (
-        isinstance(new_defaults_args, dict) and not new_defaults_args
-    ):
-        if isinstance(base_func, CPUDispatcher):
-            return base_func
-        else:
-            numba_args_for_callable = {}
-            if use_fastmath_for_callable:
-                numba_args_for_callable.update({"fastmath": True})
-            if use_cache_for_callable:
-                numba_args_for_callable.update({"cache": True})
-            return njit(base_func, **numba_args_for_callable)
-
-    elif not isinstance(new_defaults_args, dict):
-        raise TypeError(
-            "Expected new_defaults_args to be a dict but got "
-            f"{type(new_defaults_args)}"
-        )
-    if isinstance(base_func, CPUDispatcher):
-        base_func_py = base_func.py_func
-    elif callable(base_func):
-        base_func_py = base_func
-    else:
-        raise TypeError(
-            "Expected base_func to be of type callable or CPUDispatcher type (numba "
-            f"function), but got {type(base_func)}"
-        )
-    signature = inspect.signature(base_func_py)
-
-    _new_defaults = []
-    for k, v in signature.parameters.items():
-        if v.default is not inspect.Parameter.empty:
-            if k in new_defaults_args.keys():
-                _new_defaults.append(new_defaults_args[k])
-            else:
-                _new_defaults.append(v.default)
-
-    new_func = types.FunctionType(
-        base_func_py.__code__,
-        base_func_py.__globals__,
-        "_tmp_" + base_func_py.__name__,
-        tuple(_new_defaults),
-        base_func_py.__closure__,
-    )
-    # If new_func was given attrs (dict is a shallow copy we shouldn't modify)
-    new_func.__dict__.update(base_func_py.__dict__)
-    if isinstance(base_func, CPUDispatcher):
-        numba_options = deepcopy(base_func.targetoptions)
-        # remove nopython option as we already use njit to avoid a warning
-        numba_options.pop("nopython")
-        new_func_njit = njit(new_func, **numba_options)
-
-    elif callable(base_func):
-        # This should return a Python function when DISABLE_NJIT = True
-        numba_args_for_callable = {}
-        if use_fastmath_for_callable:
-            numba_args_for_callable.update({"fastmath": True})
-        if use_cache_for_callable:
-            numba_args_for_callable.update({"cache": True})
-        new_func_njit = njit(new_func, **numba_args_for_callable)
-
-    return new_func_njit
-
-
 @njit(fastmath=True, cache=True)
-def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def unique_count(X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Numba unique value count function for a 1d numpy array.
 
     np.unique() is supported by numba, but the return_counts parameter is not.
@@ -163,9 +65,9 @@ def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     if X.shape[0] > 0:
         X = np.sort(X)
-        unique = np.zeros(X.shape[0])
+        unique = np.zeros(X.shape[0], dtype=X.dtype)
         unique[0] = X[0]
-        counts = np.zeros(X.shape[0], dtype=np.int32)
+        counts = np.zeros(X.shape[0], dtype=np.intp)
         counts[0] = 1
         uc = 0
 
@@ -177,7 +79,7 @@ def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
             else:
                 counts[uc] += 1
         return unique[: uc + 1], counts[: uc + 1]
-    return np.zeros(0), np.zeros(0, dtype=np.int32)
+    return np.zeros(0, dtype=X.dtype), np.zeros(0, dtype=np.intp)
 
 
 @njit(fastmath=True, cache=True)
@@ -252,6 +154,34 @@ def first_order_differences_3d(X: np.ndarray) -> np.ndarray:
     return X[:, :, 1:] - X[:, :, :-1]
 
 
+@njit(fastmath=True, cache=True, nogil=True)
+def _as_normalised_float(X: np.ndarray) -> np.ndarray:
+    """Return a float copy of ``X``, in the dtype its z-normalisation should output.
+
+    ``np.zeros(X.shape)`` always returns float64, which silently doubles the memory
+    of a float32 input. Dividing by one is the operation the normalisation performs,
+    so numpy's promotion rules give the intended output dtype: float32 stays float32,
+    and every integer or boolean dtype normalises in float64. Numba supports neither
+    ``np.promote_types`` nor ``np.result_type``, so it is also the simplest way to
+    ask numpy for that rule from a jitted function.
+    """
+    return X / 1
+
+
+@njit(fastmath=True, cache=True, nogil=True)
+def _z_normalise_inplace(arr: np.ndarray, series_mean: float, series_std: float):
+    """Z-normalise a 1d float array in place, dividing only above the std threshold.
+
+    ``arr`` keeps its own dtype. An in-place operation writes back into the buffer it
+    already has, so even if ``series_mean`` and ``series_std``are float64, they cannot
+    widen a float32 ``arr`` to float64. In such case, each element is computed in
+    float64, then rounded once when it is stored.
+    """
+    arr -= series_mean
+    if series_std > AEON_NUMBA_STD_THRESHOLD:
+        arr /= series_std
+
+
 @njit(fastmath=True, cache=True)
 def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array with mean.
@@ -276,15 +206,12 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_norm = z_normalise_series_with_mean(X, mean(X))
     """
-    s = stats.std(X)
-    if s > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - series_mean) / s
-    else:
-        arr = X - series_mean
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, series_mean, stats.std(X))
     return arr
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def z_normalise_series(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array.
 
@@ -305,16 +232,13 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_norm = z_normalise_series(X)
     """
-    s = stats.std(X)
-    if s > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - stats.mean(X)) / s
-    else:
-        arr = X - stats.mean(X)
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, stats.mean(X), stats.std(X))
     return arr
 
 
 @njit(fastmath=True, cache=True)
-def z_normalize_series_with_mean_std(
+def z_normalise_series_with_mean_std(
     X: np.ndarray, series_mean: float, series_std: float
 ):
     """
@@ -332,12 +256,10 @@ def z_normalize_series_with_mean_std(
     Returns
     -------
     arr :  1d numpy array
-        The normalized series
+        The normalised series
     """
-    if series_std > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - series_mean) / series_std
-    else:
-        arr = X - series_mean
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, series_mean, series_std)
     return arr
 
 
@@ -362,14 +284,14 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_norm = z_normalise_series_2d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        arr[i] = z_normalise_series(X[i])
+        _z_normalise_inplace(arr[i], stats.mean(X[i]), stats.std(X[i]))
     return arr
 
 
 @njit(fastmath=True, cache=True)
-def z_normalize_series_2d_with_mean_std(
+def z_normalise_series_2d_with_mean_std(
     X: np.ndarray, series_mean: np.ndarray, series_std: np.ndarray
 ) -> np.ndarray:
     """
@@ -377,8 +299,8 @@ def z_normalize_series_2d_with_mean_std(
 
     Parameters
     ----------
-    X : array, shape = (n_channels, n_timestamps)
-        Input array to normalize.
+    X : array, shape = (n_channels, n_timepoints)
+        Input array to normalise.
     mean : array, shape = (n_channels)
         Mean of each channel of X.
     std : array, shape = (n_channels)
@@ -386,12 +308,12 @@ def z_normalize_series_2d_with_mean_std(
 
     Returns
     -------
-    arr : array, shape = (n_channels, n_timestamps)
-        The normalized array
+    arr : array, shape = (n_channels, n_timepoints)
+        The normalised array
     """
-    arr = np.zeros(X.shape)
-    for i in range(X.shape[0]):
-        arr[i] = z_normalize_series_with_mean_std(X[i], series_mean[i], series_std[i])
+    arr = _as_normalised_float(X)
+    for i in range(arr.shape[0]):
+        _z_normalise_inplace(arr[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -419,9 +341,10 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_norm = z_normalise_series_3d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        arr[i] = z_normalise_series_2d(X[i])
+        for j in range(X.shape[1]):
+            _z_normalise_inplace(arr[i, j], stats.mean(X[i, j]), stats.std(X[i, j]))
     return arr
 
 
@@ -439,7 +362,7 @@ def set_numba_random_seed(seed: int) -> None:
 
 
 @njit(fastmath=True, cache=True)
-def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
+def choice_log(n_choice: int, n_sample: int, random_generator: Generator) -> np.ndarray:
     """Random choice function with log probability rather than uniform.
 
     To seed the function the `np.random.seed` must be set in a numba function prior to
@@ -452,6 +375,7 @@ def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
         n_choice-1.
     n_sample : int
         Number of choice to sample.
+    random_generator : random_generator
 
     Returns
     -------
@@ -463,12 +387,12 @@ def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
-        loc = np.zeros(n_sample, dtype=np.int32)
+        loc = np.zeros(n_sample, dtype=np.intp)
         for i in prange(n_sample):
-            loc[i] = np.where(P >= np.random.rand())[0][0]
+            loc[i] = np.where(P >= random_generator.random())[0][0]
         return loc
     else:
-        return np.zeros(n_sample, dtype=np.int32)
+        return np.zeros(n_sample, dtype=np.intp)
 
 
 @njit(fastmath=True, cache=True)
@@ -479,10 +403,10 @@ def get_subsequence(
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_channels, n_timepoints)
         Input time series.
     i_start : int
-        A starting index between [0, n_timestamps - (length-1)*dilation]
+        A starting index between [0, n_timepoints - (length-1)*dilation]
     length : int
         Length parameter of the subsequence.
     dilation : int
@@ -506,15 +430,15 @@ def get_subsequence(
 @njit(fastmath=True, cache=True)
 def get_subsequence_with_mean_std(
     X: np.ndarray, i_start: int, length: int, dilation: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Get a subsequence, its mean and std from a time series given a starting index.
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_channels, n_timepoints)
         Input time series.
     i_start : int
-        A starting index between [0, n_timestamps - (length-1)*dilation]
+        A starting index between [0, n_timepoints - (length-1)*dilation]
     length : int
         Length parameter of the subsequence.
     dilation : int
@@ -554,31 +478,72 @@ def get_subsequence_with_mean_std(
     return values, means, stds
 
 
-@njit(fastmath=True, cache=True)
-def sliding_mean_std_one_series(
-    X: np.ndarray, length: int, dilation: int
-) -> Tuple[np.ndarray, np.ndarray]:
-    """Return the mean and standard deviation for all subsequence (l,d) in X.
+@njit(cache=True, fastmath=True, parallel=True)
+def compute_mean_stds_collection_parallel(X):
+    """
+    Return the mean and standard deviation for each channel of all series in X.
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_cases, n_channels, n_timepoints)
+        A time series collection
+
+    Returns
+    -------
+    means : array, shape (n_cases, n_channels)
+        The mean of each channel of each time series in X.
+    stds : array, shape (n_cases, n_channels)
+        The std of each channel of each time series in X.
+
+    """
+    n_channels = X[0].shape[0]
+    n_cases = len(X)
+    means = np.zeros((n_cases, n_channels))
+    stds = np.zeros((n_cases, n_channels))
+    for i_x in prange(n_cases):
+        n_timepoints = X[i_x].shape[1]
+        _s = np.zeros(n_channels)
+        _s2 = np.zeros(n_channels)
+        for i_t in range(n_timepoints):
+            for i_c in range(n_channels):
+                _s += X[i_x][i_c, i_t]
+                _s2 += X[i_x][i_c, i_t] ** 2
+
+        for i_c in range(n_channels):
+            means[i_x, i_c] = _s / n_timepoints
+            _std = _s2 / n_timepoints - means[i_x, i_c] ** 2
+            if _s > AEON_NUMBA_STD_THRESHOLD:
+                stds[i_x, i_c] = _std**0.5
+
+    return means, stds
+
+
+@njit(fastmath=True, cache=True)
+def sliding_mean_std_one_series(
+    X: np.ndarray, length: int, dilation: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Return the mean and standard deviation for all subsequence (l,d) in X.
+
+    Parameters
+    ----------
+    X : array, shape (n_channels, n_timepoints)
         An input time series
     length : int
         Length of the subsequence
     dilation : int
-        Dilation of the subsequence
+        Dilation of the subsequence. A value of 1 correspond to no dilation.
 
     Returns
     -------
-    mean : array, shape (n_channels, n_timestamps - (length-1) * dilation)
+    mean : array, shape (n_channels, n_timepoints - (length-1) * dilation)
         The mean of each subsequence with parameter length and dilation in X.
-    std : array, shape (n_channels, n_timestamps - (length-1) * dilation)
+    std : array, shape (n_channels, n_timepoints - (length-1) * dilation)
         The standard deviation of each subsequence with parameter length and dilation
         in X.
     """
-    n_channels, n_timestamps = X.shape
-    n_subs = n_timestamps - (length - 1) * dilation
+    n_channels, n_timepoints = X.shape
+    n_subs = n_timepoints - (length - 1) * dilation
     if n_subs <= 0:
         raise ValueError(
             "Invalid input parameter for sliding mean and std computations"
@@ -587,8 +552,8 @@ def sliding_mean_std_one_series(
     std = np.zeros((n_channels, n_subs))
 
     for i_mod_dil in prange(dilation):
-        # Array mainting indexes of a dilated subsequence
-        _idx_sub = np.zeros(length, dtype=np.int32)
+        # Array maintaining indices of a dilated subsequence
+        _idx_sub = np.zeros(length, dtype=np.intp)
         for i_length in prange(length):
             _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
 
@@ -596,7 +561,7 @@ def sliding_mean_std_one_series(
         _sum2 = np.zeros(n_channels)
 
         # Initialize first subsequence if it is valid
-        if np.all(_idx_sub < n_timestamps):
+        if np.all(_idx_sub < n_timepoints):
             for i_length in prange(length):
                 _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
                 for i_channel in prange(n_channels):
@@ -613,7 +578,7 @@ def sliding_mean_std_one_series(
 
         _idx_sub += dilation
         # As long as subsequences further subsequences are valid
-        while np.all(_idx_sub < n_timestamps):
+        while np.all(_idx_sub < n_timepoints):
             # Update sums and mean stds arrays
             for i_channel in prange(n_channels):
                 _v_new = X[i_channel, _idx_sub[-1]]
@@ -631,40 +596,38 @@ def sliding_mean_std_one_series(
 
 
 @njit(fastmath=True, cache=True)
-def sliding_dot_product(
-    X: np.ndarray, values: np.ndarray, length: int, dilation: int
-) -> np.ndarray:
-    """Compute a sliding dot product between a time series and a shapelet.
+def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.ndarray):
+    """
+    Z-normalise subsequences (by length and dilation) of a time series.
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
-        An input time series
-    values : array, shape (n_channels, length)
-        The value array of the shapelet
-    length : int
-        Length of the shapelet
-    dilation : int
-        Dilation of the shapelet
+    X_subs : array, shape (n_timepoints-(length-1)*dilation, n_channels, length)
+        The subsequences of an input time series of size  n_timepoints given the
+        length and dilation parameter.
+    X_means : array, shape (n_channels, n_timepoints-(length-1)*dilation)
+        Mean of the subsequences to normalise.
+    X_stds : array, shape (n_channels, n_timepoints-(length-1)*dilation)
+        Stds of the subsequences to normalise.
 
     Returns
     -------
-    dot_prods : array, shape (n_channels, n_timestamps - (length-1) * dilation)
-        The dot products between each subsequence (l,d) of X and the value of the
-        shapelet.
+    array, shape = (n_timepoints-(length-1)*dilation, n_channels, length)
+        Z-normalised subsequences.
     """
-    n_channels, n_timestamps = X.shape
-    n_subs = n_timestamps - (length - 1) * dilation
-    dot_prods = np.zeros((n_channels, n_subs))
-    for i_sub in prange(n_subs):
-        idx = i_sub
-        for i_l in prange(length):
-            for i_channel in prange(n_channels):
-                dot_prods[i_channel, i_sub] += (
-                    X[i_channel, idx] * values[i_channel, i_l]
+    n_subsequences, n_channels, _ = X_subs.shape
+    X_new = _as_normalised_float(X_subs)
+    for i_sub in prange(n_subsequences):
+        for i_channel in prange(n_channels):
+            if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
+                _z_normalise_inplace(
+                    X_new[i_sub, i_channel],
+                    X_means[i_channel, i_sub],
+                    X_stds[i_channel, i_sub],
                 )
-            idx += dilation
-    return dot_prods
+            else:
+                X_new[i_sub, i_channel] = 0
+    return X_new
 
 
 @njit(cache=True)
@@ -691,7 +654,7 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
     for i in range(x.shape[0]):
         u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = True
-    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int32)
+    combinations = np.zeros((u_mask.sum(), 2), dtype=np.intp)
     i_comb = 0
     for i in range(x.shape[0]):
         if u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]]:
@@ -704,20 +667,37 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 @njit(fastmath=True, cache=True)
 def slope_derivative(X: np.ndarray) -> np.ndarray:
-    """Numba slope derivative transformation for a 1d numpy array.
+    r"""Compute the average of a slope between points.
 
-    Finds the derivative of the series, padding the first and last values so that the
-    length stays the same.
+    a.k.a. slope derivative.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. Proposed in [1] for use in distances i.e. ddtw and wddtw.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
 
     Parameters
     ----------
-    X : 1d numpy array
-        A 1d numpy array of values
+    X : np.ndarray (n_timepoints)
+        Time series to take derivative of.
 
     Returns
     -------
-    arr : 1d numpy array
-        The slope derivative of the series
+    np.ndarray (n_timepoints - 2)
+        Array containing the derivative of X.
+
+    Raises
+    ------
+    ValueError
+        If the time series length has less than 3 points.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -726,31 +706,47 @@ def slope_derivative(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_der = slope_derivative(X)
     """
-    m = len(X)
-    arr = np.zeros(m)
-    for i in range(1, m - 1):
-        arr[i] = ((X[i] - X[i - 1]) + ((X[i + 1] - X[i - 1]) / 2.0)) / 2.0
-    arr[0] = arr[1]
-    arr[m - 1] = arr[m - 2]
-    return arr
+    if X.shape[0] < 3:
+        raise ValueError("Time series must have at least 3 points.")
+    result = np.zeros(X.shape[0] - 2)
+    for i in range(1, X.shape[0] - 1):
+        result[i - 1] = ((X[i] - X[i - 1]) + (X[i + 1] - X[i - 1]) / 2.0) / 2.0
+    return result
 
 
 @njit(fastmath=True, cache=True)
 def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
-    """Numba slope derivative transformation for a 2d numpy array.
+    r"""Compute the average of a slope between points.
 
-    Finds the derivative of the series, padding the first and last values so that the
-    length stays the same.
+    a.k.a. slope derivative.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. Proposed in [1] for use in distances i.e. ddtw and wddtw.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
 
     Parameters
     ----------
-    X : 2d numpy array
-        A 2d numpy array of values
+    X : np.ndarray (n_channels, n_timepoints)
+        Time series to take derivative of.
 
     Returns
     -------
-    arr : 2d numpy array
-        The slope derivative of each series
+    np.ndarray (n_channels, n_timepoints - 2)
+        Array containing the derivative of X.
+
+    Raises
+    ------
+    ValueError
+        If the time series length has less than 3 points.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -759,7 +755,7 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_der = slope_derivative_2d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = np.zeros((X.shape[0], X.shape[1] - 2))
     for i in range(X.shape[0]):
         arr[i] = slope_derivative(X[i])
     return arr
@@ -767,20 +763,37 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
 
 @njit(fastmath=True, cache=True)
 def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
-    """Numba slope derivative transformation for a 3d numpy array.
+    r"""Compute the average of a slope between points.
 
-    Finds the derivative of the series, padding the first and last values so that the
-    length stays the same.
+    a.k.a. slope derivative.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. Proposed in [1] for use in distances i.e. ddtw and wddtw.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
 
     Parameters
     ----------
-    X : 3d numpy array
-        A 3d numpy array of values
+    X : np.ndarray (n_cases, n_channels, n_timepoints)
+        Time series to take derivative of.
 
     Returns
     -------
-    arr : 3d numpy array
-        The slope derivative of each series
+    np.ndarray (n_cases, n_channels, n_timepoints - 2)
+        Array containing the derivative of X.
+
+    Raises
+    ------
+    ValueError
+        If the time series length has less than 3 points.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -792,7 +805,7 @@ def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_der = slope_derivative_3d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
     for i in range(X.shape[0]):
         arr[i] = slope_derivative_2d(X[i])
     return arr
@@ -847,10 +860,88 @@ def generate_combinations(n, k):
     """
     comb_array = np.arange(k)
     num_combinations = _comb(n, k)  # Using our efficient comb function
-    combinations = np.empty((num_combinations, k), dtype=np.int32)
+    combinations = np.empty((num_combinations, k), dtype=np.intp)
 
     for idx in range(num_combinations):
         combinations[idx, :] = comb_array
         _next_combination(comb_array, n, k)
 
     return combinations
+
+
+@njit(fastmath=True, cache=True)
+def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarray:
+    """
+    Generate a view of subsequcnes from a time series given length and dilation values.
+
+    Parameters
+    ----------
+    X : array, shape = (n_channels, n_timepoints)
+        An input time series as (n_channels, n_timepoints).
+    length : int
+        Length of the subsequences to generate.
+    dilation : int
+        Dilation parameter to apply when generating the strides.
+
+    Returns
+    -------
+    array, shape = (n_timepoints-(length-1)*dilation, n_channels, length)
+        The view of the subsequences of the input time series.
+    """
+    n_features, n_timepoints = X.shape
+    s0, s1 = X.strides
+    out_shape = (n_timepoints - (length - 1) * dilation, n_features, np.int64(length))
+    strides = (s1, s0, s1 * dilation)
+    return np.lib.stride_tricks.as_strided(X, shape=out_shape, strides=strides)
+
+
+@njit(fastmath=True, cache=True)
+def prime_up_to(n: int) -> np.ndarray:
+    """Check if any number from 1 to n is a prime number and return the ones which are.
+
+    Parameters
+    ----------
+    n : int
+        Number up to which the search for prime number will go
+
+    Returns
+    -------
+    array
+        Prime numbers up to n
+
+    Examples
+    --------
+    >>> from aeon.utils.numba.general import prime_up_to
+    >>> p = prime_up_to(50)
+    """
+    is_p = np.zeros(n + 1, dtype=np.bool_)
+    for i in range(n + 1):
+        is_p[i] = is_prime(i)
+    return np.where(is_p)[0]
+
+
+@njit(fastmath=True, cache=True)
+def is_prime(n: int) -> bool:
+    """Check if the input number is a prime number.
+
+    Parameters
+    ----------
+    n : int
+        The number to test
+
+    Returns
+    -------
+    bool
+        Whether n is a prime number
+
+    Examples
+    --------
+    >>> from aeon.utils.numba.general import is_prime
+    >>> p = is_prime(7)
+    """
+    if (n % 2 == 0 and n > 2) or n == 0 or n == 1:
+        return False
+    for i in range(3, int(n**0.5) + 1, 2):
+        if not n % i:
+            return False
+    return True

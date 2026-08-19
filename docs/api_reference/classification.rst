@@ -3,11 +3,13 @@
 Classification
 ==============
 
-The :mod:`aeon.classification` module contains algorithms and composition tools for time series classification.
+The :mod:`aeon.classification` module contains algorithms for time series classification.
 
-All classifiers in `aeon`  can be listed using the `aeon.registry.all_estimators` utility,
-using ``estimator_types="classifier"``, optionally filtered by tags.
-Valid tags can be listed by calling the function `aeon.registry.all_tags`.
+All classifiers in ``aeon``  can be listed using the ``aeon.utils.discovery
+.all_estimators`` function using ``type_filter="classifier"``, optionally filtered by
+tags. Valid tags for classifiers can be found with ``aeon.utils.tags.all_tags_for_estimator``
+function with the argument ``"classifier"``.
+
 
 Convolution-based
 -----------------
@@ -22,6 +24,8 @@ Convolution-based
     HydraClassifier
     MultiRocketHydraClassifier
     RocketClassifier
+    MiniRocketClassifier
+    MultiRocketClassifier
 
 Deep learning
 -------------
@@ -32,7 +36,7 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
-    CNNClassifier
+    TimeCNNClassifier
     EncoderClassifier
     FCNClassifier
     InceptionTimeClassifier
@@ -41,7 +45,7 @@ Deep learning
     LITETimeClassifier
     MLPClassifier
     ResNetClassifier
-    TapNetClassifier
+    DisjointCNNClassifier
 
 Dictionary-based
 ----------------
@@ -56,6 +60,8 @@ Dictionary-based
     ContractableBOSS
     IndividualBOSS
     IndividualTDE
+    MrSEQLClassifier
+    MrSQMClassifier
     MUSE
     REDCOMETS
     TemporalDictionaryEnsemble
@@ -73,6 +79,8 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
+    ProximityForest
+    ProximityTree
 
 Feature-based
 -------------
@@ -87,6 +95,7 @@ Feature-based
     FreshPRINCEClassifier
     SignatureClassifier
     SummaryClassifier
+    TDMVDCClassifier
     TSFreshClassifier
 
 Hybrid
@@ -131,10 +140,9 @@ Shapelet-based
     :toctree: auto_generated/
     :template: class.rst
 
-    LearningShapeletClassifier
-    MrSQMClassifier
     RDSTClassifier
     SASTClassifier
+    RSASTClassifier
     ShapeletTransformClassifier
 
 sklearn
@@ -148,6 +156,7 @@ sklearn
 
     ContinuousIntervalTree
     RotationForestClassifier
+    SklearnClassifierWrapper
 
 Early classification
 --------------------
@@ -174,13 +183,6 @@ Ordinal classification
     IndividualOrdinalTDE
     OrdinalTDE
 
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    histogram_intersection
-
 Composition
 -----------
 
@@ -190,10 +192,20 @@ Composition
     :toctree: auto_generated/
     :template: class.rst
 
+    ClassifierChannelEnsemble
+    ClassifierEnsemble
     ClassifierPipeline
-    ChannelEnsembleClassifier
-    WeightedEnsembleClassifier
 
+Dummy
+-----
+
+.. currentmodule:: aeon.classification
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DummyClassifier
 
 Base
 ----
@@ -205,7 +217,6 @@ Base
     :template: class.rst
 
     BaseClassifier
-    DummyClassifier
 
 .. currentmodule:: aeon.classification.deep_learning.base
 

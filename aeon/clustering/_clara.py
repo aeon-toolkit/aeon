@@ -1,8 +1,9 @@
 """Time series kmedoids."""
 
 __maintainer__ = []
+__all__ = ["TimeSeriesCLARA"]
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -10,6 +11,7 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.clustering.base import BaseClusterer
+from aeon.distances import pairwise_distance
 
 
 class TimeSeriesCLARA(BaseClusterer):
@@ -27,8 +29,8 @@ class TimeSeriesCLARA(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str or np.ndarray, default='random'
-        Method for initializing cluster centers. Any of the following are valid:
+    init : str, default='random'
+        Method for initialising cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
@@ -36,20 +38,18 @@ class TimeSeriesCLARA(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
-        If a np.ndarray provided it must be of shape (n_clusters,) and contain
-        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
+        Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_cases, 40 + 2 * n_clusters) is used.
-    n_sampling_iters : int, default=5,
+    n_sampling_iters : int, default=10
         Number of different subsets of samples to try. The best subset cluster centers
         are used.
-    n_init : int, default=5
+    n_init : int, default=1
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
@@ -70,14 +70,14 @@ class TimeSeriesCLARA(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     distance_params : dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance method being used.
 
     Attributes
     ----------
     cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_case,))
-        Labels that is the index each time series belongs to.
+    labels_ : np.ndarray (1d array of shape (n_cases,))
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
@@ -115,19 +115,19 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
-        n_samples: int = None,
+        init: str = "random",
+        distance: str | Callable = "msm",
+        n_samples: int | None = None,
         n_sampling_iters: int = 10,
         n_init: int = 1,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: int | RandomState | None = None,
+        distance_params: dict | None = None,
     ):
-        self.init_algorithm = init_algorithm
         self.distance = distance
+        self.init = init
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
@@ -136,6 +136,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self.distance_params = distance_params
         self.n_samples = n_samples
         self.n_sampling_iters = n_sampling_iters
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -145,12 +146,19 @@ class TimeSeriesCLARA(BaseClusterer):
         self._random_state = None
         self._kmedoids_instance = None
 
-        super().__init__(n_clusters)
+        super().__init__()
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         return self._kmedoids_instance.predict(X)
 
     def _fit(self, X: np.ndarray, y=None):
+        if not isinstance(self.init, str):
+            raise ValueError(
+                "Non-string initialisation is not supported for TimeSeriesCLARA "
+                "because CLARA fits PAM on sampled subsets. Use a string "
+                "initialisation method instead."
+            )
+
         self._random_state = check_random_state(self.random_state)
         n_cases = X.shape[0]
         if self.n_samples is None:
@@ -158,19 +166,24 @@ class TimeSeriesCLARA(BaseClusterer):
         else:
             n_samples = self.n_samples
 
-        best_score = np.inf
+        best_inertia = np.inf
         best_pam = None
+        best_labels = None
         for _ in range(self.n_sampling_iters):
-            sample_idxs = np.arange(n_samples)
+
             if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
-                    sample_idxs,
+                    np.arange(n_cases),
                     size=n_samples,
                     replace=False,
                 )
+
+            else:
+                sample_idxs = np.arange(n_cases)
+
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
-                init_algorithm=self.init_algorithm,
+                init=self.init,
                 distance=self.distance,
                 n_init=self.n_init,
                 max_iter=self.max_iter,
@@ -181,20 +194,30 @@ class TimeSeriesCLARA(BaseClusterer):
                 method="pam",
             )
             pam.fit(X[sample_idxs])
-            if pam.inertia_ < best_score:
-                best_pam = pam
+            curr_centers = pam.cluster_centers_
+            if isinstance(pam.distance, str):
+                pairwise_matrix = pairwise_distance(
+                    X, curr_centers, method=self.distance, **pam._distance_params
+                )
+            else:
+                pairwise_matrix = pairwise_distance(
+                    X, curr_centers, pam._distance_callable, **pam._distance_params
+                )
+            curr_td = pairwise_matrix.min(axis=1).sum()
 
-        self.labels_ = best_pam.labels_
-        self.inertia_ = best_pam.inertia_
+            if curr_td < best_inertia:
+                best_pam = pam
+                best_inertia = curr_td
+                best_labels = pairwise_matrix.argmin(axis=1)
+
+        self.labels_ = best_labels
+        self.inertia_ = best_inertia
         self.cluster_centers_ = best_pam.cluster_centers_
         self.n_iter_ = best_pam.n_iter_
         self._kmedoids_instance = best_pam
 
-    def _score(self, X, y=None):
-        return -self.inertia_
-
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -210,11 +233,10 @@ class TimeSeriesCLARA(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,
-            "init_algorithm": "random",
+            "init": "random",
             "distance": "euclidean",
             "n_init": 1,
             "max_iter": 1,

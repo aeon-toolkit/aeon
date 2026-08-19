@@ -13,12 +13,23 @@ Deep learning networks
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseDeepNetwork
-    CNNNetwork
+    BaseDeepLearningNetwork
+    TimeCNNNetwork
     EncoderNetwork
     FCNNetwork
     InceptionNetwork
     MLPNetwork
     ResNetNetwork
-    TapNetNetwork
     AEFCNNetwork
+    AEResNetNetwork
+    LITENetwork
+    AEBiGRUNetwork
+    DisjointCNNNetwork
+    DCNNNetwork
+    AEDCNNNetwork
+    AEAttentionBiGRUNetwork
+    AEDRNNNetwork
+    RecurrentNetwork
+    NBeatsNetwork
+    TCNNetwork
+    DeepARNetwork

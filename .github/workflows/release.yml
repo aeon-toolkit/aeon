@@ -8,14 +8,15 @@ on:
 
 jobs:
   check-manifest:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - uses: pre-commit/action@v3.0.1
         with:
@@ -23,14 +24,15 @@ jobs:
 
   build-project:
     needs: check-manifest
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Build project
         run: |
@@ -38,7 +40,7 @@ jobs:
           python -m build
 
       - name: Store build files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/*
@@ -51,17 +53,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        os: [ ubuntu-24.04, macOS-14, windows-2022 ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/download-artifact@v4
+      - name: Clear disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          dotnet: false
+          large-packages: false
+          swap-storage: false
+
+      - name: Set swap space
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 12
+
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist
@@ -73,35 +90,50 @@ jobs:
         name: Unix wheel filename
         run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $GITHUB_ENV
 
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+            cache_name: "release"
+            runner_os: ${{ runner.os }}
+            python_version: ${{ matrix.python-version }}
+            restore_cache: "false"
+
       - if: runner.os == 'Windows'
         name: Windows install
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
           command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
       - if: runner.os != 'Windows'
         name: Unix install
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
           command: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
+
+      - name: Show dependencies
+        run: python -m pip list
 
       - name: Tests
         run: python -m pytest -n logical
 
   upload-wheels:
     needs: test-wheels
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: release
+      url: https://pypi.org/p/aeon/
+    permissions:
+      id-token: write
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_TOKEN }}

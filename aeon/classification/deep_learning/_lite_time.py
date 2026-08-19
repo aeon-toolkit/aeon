@@ -1,6 +1,8 @@
-"""LITETime classifier."""
+"""LITETime and LITE classifiers."""
 
-__maintainer__ = []
+from __future__ import annotations
+
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["LITETimeClassifier"]
 
 import gc
@@ -17,22 +19,28 @@ from aeon.networks import LITENetwork
 
 
 class LITETimeClassifier(BaseClassifier):
-    """LITETime ensemble classifier.
+    """LITETime or LITEMVTime ensemble classifier.
 
-    Ensemble of IndividualLITETimeClassifier objects, as described in [1]_.
+    Ensemble of IndividualLITETimeClassifier objects, as described in [1]_
+    and [2]_. For using LITEMV, simply set the `use_litemv`
+    bool parameter to True.
 
     Parameters
     ----------
     n_classifiers : int, default = 5,
-        the number of LITE models used for the
+        the number of LITE or LITEMV models used for the
         Ensemble in order to create
-        LITETime.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite module.
+        LITETime or LITEMVTime.
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -46,8 +54,10 @@ class LITETimeClassifier(BaseClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -60,6 +70,8 @@ class LITETimeClassifier(BaseClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -68,6 +80,9 @@ class LITETimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -77,17 +92,29 @@ class LITETimeClassifier(BaseClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
 
+    Notes
+    -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
 
@@ -105,34 +132,39 @@ class LITETimeClassifier(BaseClassifier):
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "algorithm_type": "deeplearning",
     }
 
     def __init__(
         self,
-        n_classifiers=5,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_classifiers: int = 5,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
+
+        self.use_litemv = use_litemv
 
         self.strides = strides
         self.activation = activation
@@ -146,8 +178,10 @@ class LITETimeClassifier(BaseClassifier):
 
         self.save_last_model = save_last_model
         self.save_best_model = save_best_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -157,11 +191,11 @@ class LITETimeClassifier(BaseClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.classifers_ = []
+        self.classifiers_ = []
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> LITETimeClassifier:
         """Fit the ensemble of IndividualLITEClassifier models.
 
         Parameters
@@ -175,18 +209,22 @@ class LITETimeClassifier(BaseClassifier):
         -------
         self : object
         """
-        self.classifers_ = []
+        self.classifiers_ = []
         rng = check_random_state(self.random_state)
 
         for n in range(0, self.n_classifiers):
             cls = IndividualLITEClassifier(
+                use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
+                save_init_model=self.save_init_model,
                 best_file_name=self.best_file_name + str(n),
                 last_file_name=self.last_file_name + str(n),
+                init_file_name=self.init_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -198,12 +236,12 @@ class LITETimeClassifier(BaseClassifier):
                 verbose=self.verbose,
             )
             cls.fit(X, y)
-            self.classifers_.append(cls)
+            self.classifiers_.append(cls)
             gc.collect()
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the labels of the test set using LITETime.
 
         Parameters
@@ -224,7 +262,7 @@ class LITETimeClassifier(BaseClassifier):
             ]
         )
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict the proba of labels of the test set using LITETime.
 
         Parameters
@@ -239,7 +277,7 @@ class LITETimeClassifier(BaseClassifier):
         """
         probs = np.zeros((X.shape[0], self.n_classes_))
 
-        for cls in self.classifers_:
+        for cls in self.classifiers_:
             probs += cls._predict_proba(X)
 
         probs = probs / self.n_classifiers
@@ -247,7 +285,53 @@ class LITETimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def load_model(
+        self, model_path: list[str], classes: np.ndarray
+    ) -> LITETimeClassifier:
+        """Load pre-trained keras models from disk instead of fitting.
+
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" boolean parameter.
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : list of str (list of paths including the model names and extension)
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+         classes : np.ndarray
+            The set of unique classes the pre-trained loaded model is trained
+            to predict during the classification task.
+        Example: model_path="path/to/file/best_model.keras"
+
+        Returns
+        -------
+        LITETimeClassifier
+        """
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
+
+        classifier = self()
+        classifier.classifiers_ = []
+
+        for i in range(len(model_path)):
+            clf = IndividualLITEClassifier()
+            clf.load_model(model_path=model_path[i], classes=classes)
+            classifier.classifiers_.append(clf)
+
+        classifier.n_classifiers = len(classifier.classifiers_)
+
+        classifier.classes_ = classes
+        classifier.n_classes_ = len(classes)
+        classifier.is_fitted = True
+
+        return classifier
+
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -266,31 +350,46 @@ class LITETimeClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_classifiers": 1,
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param2 = {
+            "n_classifiers": 1,
+            "use_litemv": True,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": ["accuracy"],
+            "verbose": True,
+            "use_mini_batch_size": True,
+        }
 
-        return [param1]
+        return [param1, param2]
 
 
 class IndividualLITEClassifier(BaseDeepClassifier):
-    """Single LITETime classifier.
+    """Single LITE or LITEMV classifier.
 
-    One LITE deep model, as described in [1]_.
+    One LITE or LITEMV deep model, as described in [1]_
+    and [2]_. For using LITEMV, simply set the `use_litemv`
+    bool parameter to True.
 
     Parameters
     ----------
-        n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -304,8 +403,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -318,6 +419,8 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name      : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -326,6 +429,9 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -335,17 +441,29 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
+
+    References
+    ----------
+    ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
+    tEchniques for Time Series Classification, IEEE International
+    Conference on Data Science and Advanced Analytics, 2023.
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
 
     Notes
     -----
-    ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
-    Conference on Data Science and Advanced Analytics, 2023.
-
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
 
@@ -353,8 +471,8 @@ class IndividualLITEClassifier(BaseDeepClassifier):
     --------
     >>> from aeon.classification.deep_learning import IndividualLITEClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> lite = IndividualLITEClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> lite.fit(X_train, y_train)  # doctest: +SKIP
     IndividualLITEClassifier(...)
@@ -362,26 +480,29 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
-        # predefined
+        self.use_litemv = use_litemv
         self.n_filters = n_filters
         self.strides = strides
         self.activation = activation
@@ -393,7 +514,9 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.verbose = verbose
@@ -409,13 +532,14 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         )
 
         self._network = LITENetwork(
+            use_litemv=self.use_litemv,
             n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             strides=self.strides,
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -434,6 +558,11 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -445,11 +574,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
@@ -457,7 +581,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -495,6 +619,9 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             mini_batch_size = self.batch_size
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -502,8 +629,8 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -513,9 +640,12 @@ class IndividualLITEClassifier(BaseDeepClassifier):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,
@@ -542,7 +672,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -561,12 +691,20 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param2 = {
+            "use_litemv": True,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": ["accuracy"],
+            "verbose": True,
+            "use_mini_batch_size": True,
+        }
 
-        return [param1]
+        return [param1, param2]

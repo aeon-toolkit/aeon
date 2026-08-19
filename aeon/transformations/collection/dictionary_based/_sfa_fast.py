@@ -12,7 +12,7 @@ import sys
 from warnings import simplefilter
 
 import numpy as np
-import pandas as pd
+import scipy.fft
 from numba import (
     NumbaPendingDeprecationWarning,
     NumbaTypeSafetyWarning,
@@ -23,12 +23,15 @@ from numba import (
 from numba.core import types
 from numba.typed import Dict
 from scipy.sparse import csr_matrix
+from sklearn.decomposition import PCA
 from sklearn.feature_selection import chi2, f_classif
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
+from aeon.utils.validation import check_n_jobs
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -38,6 +41,14 @@ binning_methods = {
     "information-gain-mae",
     "kmeans",
     "quantile",
+}
+
+feature_selection_strategies = {"anova", "variance", "pca"}
+
+alphabet_allocation_methods = {
+    "linear_scale",
+    "log_scale",
+    "sqrt_scale",
 }
 
 simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
@@ -59,24 +70,37 @@ class SFAFast(BaseCollectionTransformer):
     Parameters
     ----------
     word_length : int, default = 8
-        Length of word to shorten window to (using PAA).
+        Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
         Number of values to discretise each value to.
     window_size : int, default = 12
         Size of window for sliding. Input series length for whole series transform.
+    alphabet_allocation_method : str, default = None
+        The method used to learn the dynamic alphabet sizes. One of
+        {"linear_scale", "log_scale", "sqrt_scale"}.
     norm : boolean, default = False
         Mean normalise words by dropping first fourier coefficient.
     binning_method : str, default="equi-depth"
         The binning method used to derive the breakpoints. One of {"equi-depth",
         "equi-width", "information-gain", "information-gain-mae", "kmeans"},
+    feature_selection_strategy : {"variance", "pca", "anova"}, default = "variance"
+        Sets the Fourier coefficient selection strategy to be used.
+        Use "variance" to select the Fourier coefficients with the largest variance,
+        "pca" to reduce the Fourier coefficients using PCA, or "anova" to select
+        the Fourier coefficients with the largest F-score. Anova is only applicable
+        if labels are given.
+    pca : boolean, default = False
+        If True, the Fourier coefficients are reduced using PCA.
+        If False, the first Fourier coefficients are selected.
+        It is an unsupervised feature selection strategy.
     anova : boolean, default = False
         If True, the Fourier coefficient selection is done via a one-way ANOVA test.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
+        If False, the first Fourier coefficients are selected.
+        It is a supervised feature selection strategy. Only applicable if labels given.
     variance : boolean, default = False
         If True, the Fourier coefficient selection is done via the largest variance.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
+        If False, the first Fourier coefficients are selected.
+        It is an unsupervised feature selection strategy.
     dilation : int, default = 0
         When set to dilation > 1, adds dilation to the sliding window operation.
     save_words : boolean, default = False
@@ -107,6 +131,8 @@ class SFAFast(BaseCollectionTransformer):
        Whether to use numerosity reduction.
     lower_bounding_distances : boolean, default = None
        If set to True, the FFT is normed to allow for ED lower bounding.
+    sampling_factor : float, default = None
+       If set to a value <1.0, this percentage of samples are used to learn MCB bins.
     return_sparse :  boolean, default=True
         If set to true, a scipy sparse matrix will be returned as BOP model.
         If set to false a dense array will be returned as BOP model. Sparse
@@ -114,10 +140,6 @@ class SFAFast(BaseCollectionTransformer):
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `transform`.
         ``-1`` means using all processors.
-    return_pandas_data_series : boolean, default = False
-        set to true to return Pandas Series as a result of transform.
-        setting to true reduces speed significantly but is required for
-        automatic test.
 
     Attributes
     ----------
@@ -135,6 +157,7 @@ class SFAFast(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
+        "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
 
@@ -145,8 +168,10 @@ class SFAFast(BaseCollectionTransformer):
         window_size=12,
         norm=False,
         binning_method="equi-depth",
-        anova=False,
-        variance=False,
+        feature_selection_strategy=None,
+        alphabet_allocation_method=None,
+        anova=False,  # Must be deprecated at some point
+        variance=False,  # Must be deprecated at some point
         bigrams=False,
         skip_grams=False,
         remove_repeat_words=False,
@@ -158,9 +183,9 @@ class SFAFast(BaseCollectionTransformer):
         feature_selection="none",
         max_feature_count=256,
         p_threshold=0.05,
+        sampling_factor=None,
         random_state=None,
         return_sparse=True,
-        return_pandas_data_series=False,
         n_jobs=1,
     ):
         self.words = []
@@ -170,25 +195,39 @@ class SFAFast(BaseCollectionTransformer):
         self.word_length = word_length
 
         self.alphabet_size = alphabet_size
+        self.alphabet_sizes = None
         self.window_size = window_size
 
         self.norm = norm
         self.lower_bounding = lower_bounding
         self.lower_bounding_distances = lower_bounding_distances
 
-        self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size)
-            if (not lower_bounding or lower_bounding_distances)
-            else 1.0
-        )
+        self.inverse_sqrt_win_size = self.initialize_inverse_sqrt_win_size()
 
         self.remove_repeat_words = remove_repeat_words
 
         self.save_words = save_words
 
         self.binning_method = binning_method
-        self.anova = anova
+        self.feature_selection_strategy = feature_selection_strategy
+        self.pca = False
         self.variance = variance
+        self.anova = anova
+        self.pca_transform = None
+        self.pca_mean = np.empty(0, dtype=np.float64)
+        self.pca_components = np.empty((0, 0), dtype=np.float64)
+
+        if anova:
+            self.feature_selection_strategy = "anova"
+        elif variance:
+            self.feature_selection_strategy = "variance"
+
+        if self.feature_selection_strategy == "variance":
+            self.variance = True
+        elif self.feature_selection_strategy == "anova":
+            self.anova = True
+        elif self.feature_selection_strategy == "pca":
+            self.pca = True
 
         self.bigrams = bigrams
         self.skip_grams = skip_grams
@@ -196,10 +235,14 @@ class SFAFast(BaseCollectionTransformer):
 
         self.n_cases = 0
         self.n_timepoints = 0
-        self.letter_bits = 0
+        self.letter_bits = None
 
         self.dilation = dilation
         self.first_difference = first_difference
+        self.sampling_factor = sampling_factor
+
+        self.alphabet_allocation_method = alphabet_allocation_method
+        self.learn_alphabet_sizes = self.alphabet_allocation_method is not None
 
         # Feature selection part
         self.feature_selection = feature_selection
@@ -211,16 +254,14 @@ class SFAFast(BaseCollectionTransformer):
         self.p_threshold = p_threshold
 
         self.return_sparse = return_sparse
-        self.return_pandas_data_series = return_pandas_data_series
 
         self.random_state = random_state
         super().__init__()
 
-        if not return_pandas_data_series:
-            self._output_convert = "off"
-
-    def _fit_transform(self, X, y=None):
+    def _fit_transform(self, X, y=None, return_bag_of_words=True):
         """Fit to data, then transform it."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
 
@@ -237,8 +278,20 @@ class SFAFast(BaseCollectionTransformer):
                 "Please set either variance or anova Fourier coefficient selection"
             )
 
+        if self.learn_alphabet_sizes and (
+            self.alphabet_allocation_method not in alphabet_allocation_methods
+        ):
+            raise ValueError(
+                "alphabet_allocation_method must be one of: ",
+                alphabet_allocation_methods,
+            )
+
         if self.binning_method not in binning_methods:
             raise TypeError("binning_method must be one of: ", binning_methods)
+
+        # If window_size was not set, assume whole series matching
+        if self.window_size is None:
+            self.window_size = X.shape[-1]
 
         offset = 2 if self.norm else 0
         self.word_length_actual = min(self.window_size - offset, self.word_length)
@@ -249,19 +302,40 @@ class SFAFast(BaseCollectionTransformer):
                 "the time series length and window-length."
             )
 
+        if self.sampling_factor and self.sampling_factor > 1.0:
+            raise ValueError(
+                "Please set the sampling_factor to a value smaller than or equal to "
+                "1 (equals 100%)."
+            )
+
+        self.inverse_sqrt_win_size = self.initialize_inverse_sqrt_win_size()
+
         self.dft_length = (
             self.window_size - offset
-            if (self.anova or self.variance) is True
+            if (self.feature_selection_strategy is not None)
             else self.word_length_actual
         )
+
         # make dft_length an even number (same number of reals and imags)
         self.dft_length = self.dft_length + self.dft_length % 2
         self.word_length_actual = self.word_length_actual + self.word_length_actual % 2
 
         self.support = np.arange(self.word_length_actual)
-        self.letter_bits = np.uint32(math.ceil(math.log2(self.alphabet_size)))
-        # self.word_bits = self.word_length_actual * self.letter_bits
+
+        self.letter_bits = np.zeros(self.word_length_actual, dtype=np.uint32)
+        self.letter_bits[:] = np.uint32(math.ceil(math.log2(self.alphabet_size)))
+
         X = X.squeeze(1)
+
+        # subsample the samples
+        if self.sampling_factor:
+            rng = check_random_state(self.random_state)
+            sampled_indices = rng.choice(
+                X.shape[0],
+                size=min(np.int32(X.shape[0] * self.sampling_factor), X.shape[0]),
+                replace=False,
+            )
+            X = X[sampled_indices]
 
         if self.dilation >= 1 or self.first_difference:
             X2, self.X_index = _dilation(X, self.dilation, self.first_difference)
@@ -270,34 +344,38 @@ class SFAFast(BaseCollectionTransformer):
 
         self.n_cases, self.n_timepoints = X2.shape
         self.breakpoints = self._binning(X2, y)
-        self._is_fitted = True
-
-        words, dfts = _transform_case(
-            X2,
-            self.window_size,
-            self.dft_length,
-            self.word_length_actual,
-            self.norm,
-            self.remove_repeat_words,
-            self.support,
-            self.anova,
-            self.variance,
-            self.breakpoints,
-            self.letter_bits,
-            self.bigrams,
-            self.skip_grams,
-            self.inverse_sqrt_win_size,
-            self.lower_bounding or self.lower_bounding_distances,
-        )
-
-        if self.remove_repeat_words:
-            words = remove_repeating_words(words)
-
-        if self.save_words:
-            self.words = words
 
         # fitting: learns the feature selection strategy, too
-        return self.transform_to_bag(words, self.word_length_actual, y)
+        if return_bag_of_words:
+            words, _ = _transform_case(
+                X2,
+                self.window_size,
+                self.dft_length,
+                self.word_length_actual,
+                self.norm,
+                self.remove_repeat_words,
+                self.support,
+                self.anova,
+                self.variance,
+                self.pca_mean,
+                self.pca_components,
+                self.breakpoints,
+                self.letter_bits,
+                self.bigrams,
+                self.skip_grams,
+                self.inverse_sqrt_win_size,
+                self.lower_bounding or self.lower_bounding_distances,
+            )
+
+            if self.remove_repeat_words:
+                words = remove_repeating_words(words)
+
+            if self.save_words:
+                self.words = words
+
+            return self.transform_to_bag(words, self.word_length_actual, y)
+        else:
+            return None
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
@@ -312,7 +390,7 @@ class SFAFast(BaseCollectionTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self._fit_transform(X, y)
+        self._fit_transform(X, y, return_bag_of_words=self.return_sparse)
         return self
 
     def _transform(self, X, y=None):
@@ -333,7 +411,7 @@ class SFAFast(BaseCollectionTransformer):
         else:
             X2, self.X_index = X, np.arange(X.shape[-1])
 
-        words, dfts = _transform_case(
+        words, _ = _transform_case(
             X2,
             self.window_size,
             self.dft_length,
@@ -343,6 +421,8 @@ class SFAFast(BaseCollectionTransformer):
             self.support,
             self.anova,
             self.variance,
+            self.pca_mean,
+            self.pca_components,
             self.breakpoints,
             self.letter_bits,
             self.bigrams,
@@ -371,13 +451,19 @@ class SFAFast(BaseCollectionTransformer):
             self.remove_repeat_words,
         )[0]
 
-        if self.return_pandas_data_series:
-            bb = pd.DataFrame()
-            bb[0] = [pd.Series(bag) for bag in bags]
-            return bb
-        elif self.return_sparse:
+        if self.return_sparse:
             bags = csr_matrix(bags, dtype=np.uint32)
         return bags
+
+    def initialize_inverse_sqrt_win_size(self):
+        """Initialize the inverse square root constant."""
+        if self.window_size:
+            return (
+                1.0 / math.sqrt(self.window_size)
+                if (not self.lower_bounding or self.lower_bounding_distances)
+                else 1.0
+            )
+        return 1
 
     def transform_mft(self, X):
         """Transform data using the Fourier transform.
@@ -495,12 +581,7 @@ class SFAFast(BaseCollectionTransformer):
                 bag_of_words = bag_of_words[:, relevant_features_idx]
 
         self.feature_count = bag_of_words.shape[1]
-
-        if self.return_pandas_data_series:
-            bb = pd.DataFrame()
-            bb[0] = [pd.Series(bag) for bag in bag_of_words]
-            return bb
-        elif self.return_sparse:
+        if self.return_sparse:
             bag_of_words = csr_matrix(bag_of_words, dtype=np.uint32)
         return bag_of_words
 
@@ -520,10 +601,10 @@ class SFAFast(BaseCollectionTransformer):
 
         if self.variance:
             # determine variance
-            dft_variance = np.var(dft, axis=0)
+            self.dft_variance = np.var(dft, axis=0)
 
             # select word-length-many indices with the largest variance
-            self.support = np.argsort(-dft_variance)[: self.word_length_actual]
+            self.support = np.argsort(-self.dft_variance)[: self.word_length_actual]
 
             # sort remaining indices
             self.support = np.sort(self.support)
@@ -533,7 +614,19 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length = np.max(self.support) + 1
             self.dft_length = self.dft_length + self.dft_length % 2  # even
 
-        if self.anova and y is not None:
+        elif self.pca:
+            self.pca_transform = PCA(
+                n_components=self.word_length_actual,
+                svd_solver="auto",  # FIXME needed???
+            )
+
+            # extract explained variance
+            dft = self.pca_transform.fit_transform(dft)
+            self.pca_mean = self.pca_transform.mean_
+            self.pca_components = self.pca_transform.components_
+            self.dft_variance = self.pca_transform.explained_variance_ratio_
+
+        elif self.anova and y is not None:
             non_constant = np.where(
                 ~np.isclose(dft.var(axis=0), np.zeros_like(dft.shape[1]))
             )[0]
@@ -550,6 +643,40 @@ class SFAFast(BaseCollectionTransformer):
             dft = dft[:, self.support]
             self.dft_length = np.max(self.support) + 1
             self.dft_length = self.dft_length + self.dft_length % 2  # even
+
+        # learn alphabet sizes
+        if self.learn_alphabet_sizes and self.alphabet_allocation_method:
+            if not hasattr(self, "dft_variance"):
+                self.dft_variance = np.var(dft, axis=0)
+
+            symbols = np.log2(self.alphabet_size)
+            self.bit_budget = int(symbols * self.word_length)
+
+            if self.alphabet_allocation_method == "linear_scale":
+                variance = self.dft_variance[self.support]
+            elif self.alphabet_allocation_method == "sqrt_scale":
+                variance = np.sqrt(self.dft_variance[self.support])
+            elif self.alphabet_allocation_method == "log_scale":
+                variance = np.log2((self.dft_variance[self.support]) + 1)
+
+            # Treat zero-mean-variance
+            variance_mean = variance.mean()
+            if variance_mean <= 0 or not np.isfinite(variance_mean):
+                normed_scale = np.ones_like(variance)
+            else:
+                normed_scale = variance / variance_mean
+
+            self.letter_bits = assign_bits_dynamically(normed_scale, self.bit_budget)
+            self.alphabet_sizes = [
+                int(2 ** self.letter_bits[i]) for i in range(len(self.letter_bits))
+            ]
+        else:
+            # use the same alphabet size for all positions
+            self.alphabet_sizes = [
+                self.alphabet_size for _ in range(self.word_length_actual)
+            ]
+
+        self.alphabet_sizes = np.array(self.alphabet_sizes)
 
         if self.binning_method == "information-gain":
             return self._igb(dft, y)
@@ -579,30 +706,9 @@ class SFAFast(BaseCollectionTransformer):
         return breakpoints
 
     def _mcb(self, dft):
-        breakpoints = np.zeros((self.word_length_actual, self.alphabet_size))
-
-        dft = np.round(dft, 2)
-        for letter in range(self.word_length_actual):
-            column = np.sort(dft[:, letter])
-            bin_index = 0
-
-            # use equi-depth binning
-            if self.binning_method == "equi-depth":
-                target_bin_depth = len(dft) / self.alphabet_size
-
-                for bp in range(self.alphabet_size - 1):
-                    bin_index += target_bin_depth
-                    breakpoints[letter, bp] = column[int(bin_index)]
-
-            # use equi-width binning aka equi-frequency binning
-            elif self.binning_method == "equi-width":
-                target_bin_width = (column[-1] - column[0]) / self.alphabet_size
-
-                for bp in range(self.alphabet_size - 1):
-                    breakpoints[letter, bp] = (bp + 1) * target_bin_width + column[0]
-
-        breakpoints[:, self.alphabet_size - 1] = sys.float_info.max
-        return breakpoints
+        return mcb(
+            dft, self.alphabet_sizes, self.word_length_actual, self.binning_method
+        )
 
     def _igb(self, dft, y):
         breakpoints = np.zeros((self.word_length_actual, self.alphabet_size))
@@ -677,11 +783,11 @@ class SFAFast(BaseCollectionTransformer):
         """
         words = np.squeeze(self.words)
         return np.array(
-            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+            [_get_chars(word, self.word_length, self.letter_bits) for word in words]
         )
 
     def transform_words(self, X):
-        """Return the words generated for each series.
+        """Return the words and dft coefficients generated for each series.
 
         Parameters
         ----------
@@ -694,7 +800,7 @@ class SFAFast(BaseCollectionTransformer):
         if X.ndim == 3:
             X = X.squeeze(1)
 
-        return _transform_words_case(
+        words, dfts = _transform_words_case(
             X,
             self.window_size,
             self.dft_length,
@@ -702,15 +808,18 @@ class SFAFast(BaseCollectionTransformer):
             self.support,
             self.anova,
             self.variance,
+            self.pca_mean,
+            self.pca_components,
             self.inverse_sqrt_win_size,
             self.lower_bounding or self.lower_bounding_distances,
             self.word_length,
-            self.alphabet_size,
             self.breakpoints,
         )
 
+        return words.squeeze(1), dfts.squeeze(1)
+
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -725,22 +834,25 @@ class SFAFast(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         # small window size for testing
-        params = {
-            "word_length": 4,
-            "window_size": 4,
-            "return_sparse": True,
-            "return_pandas_data_series": True,
-            "feature_selection": "chi2",
-            "alphabet_size": 2,
-        }
+        params = [
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": False,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": True,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+        ]
         return params
-
-    def set_fitted(self):
-        """Whether `fit` has been called."""
-        self._is_fitted = True
 
     def __getstate__(self):
         """Return state as dictionary for pickling, required for typed Dict objects."""
@@ -761,22 +873,21 @@ class SFAFast(BaseCollectionTransformer):
 
 
 @njit(cache=True, fastmath=True)
-def _get_chars(word, word_length, alphabet_size):
+def _get_chars(word, word_length, letter_bits):
     chars = np.zeros(word_length, dtype=np.uint32)
-    letter_bits = int(np.log2(alphabet_size))
-    mask = (1 << letter_bits) - 1
     for i in range(word_length):
         # Extract the last bits
+        mask = (1 << letter_bits[i]) - 1
         char = word & mask
         chars[-i - 1] = char
 
         # Right shift by to move to the next group of bits
-        word >>= letter_bits
+        word >>= letter_bits[i]
 
     return chars
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def _binning_dft(
     X,
     window_size,
@@ -788,30 +899,41 @@ def _binning_dft(
 ):
     num_windows_per_inst = math.ceil(n_timepoints / window_size)
 
-    # Splits individual time series into windows and returns the DFT for each
-    data = np.zeros((len(X), num_windows_per_inst, window_size))
-    for i in prange(len(X)):
-        for j in range(num_windows_per_inst - 1):
-            data[i, j] = X[i, window_size * j : window_size * (j + 1)]
+    # Windowing
+    if num_windows_per_inst > 1:
+        # Splits individual time series into windows and returns the DFT for each
+        data = np.zeros((len(X), num_windows_per_inst, window_size))
+        for i in prange(len(X)):
+            for j in range(num_windows_per_inst - 1):
+                data[i, j] = X[i, window_size * j : window_size * (j + 1)]
 
-        start = n_timepoints - window_size
-        data[i, -1] = X[i, start:n_timepoints]
+            start = n_timepoints - window_size
+            data[i, -1] = X[i, start:n_timepoints]
 
-    dft = np.zeros((len(X), num_windows_per_inst, dft_length))
-    for i in prange(len(X)):
-        return_val = _fast_fourier_transform(
-            data[i], norm, dft_length, inverse_sqrt_win_size
-        )
-        dft[i] = return_val
+        dft = np.zeros((len(X), num_windows_per_inst, dft_length))
+        for i in prange(len(X)):
+            return_val = _fast_fourier_transform(
+                data[i], norm, dft_length, inverse_sqrt_win_size, True
+            )
+            dft[i] = return_val
 
-    if lower_bounding:
-        dft[:, :, 1::2] = dft[:, :, 1::2] * -1  # lower bounding
+        if lower_bounding:
+            dft[:, :, 1::2] = dft[:, :, 1::2] * -1  # lower bounding
 
-    return dft.reshape(dft.shape[0] * dft.shape[1], dft_length)
+        return dft.reshape(dft.shape[0] * dft.shape[1], dft_length)
+
+    # No Windowing (Whole Series)
+    else:
+        dft = _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, False)
+
+        if lower_bounding:
+            dft[:, 1::2] = dft[:, 1::2] * -1  # lower bounding
+
+        return dft
 
 
 @njit(fastmath=True, cache=True)
-def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size):
+def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std=True):
     """Perform a discrete fourier transform using the fast fourier transform.
 
     if self.norm is True, then the first term of the DFT is ignored
@@ -832,22 +954,34 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size):
     length = start + dft_length
     dft = np.zeros((len(X), length))  # , dtype=np.float64
 
-    stds = np.zeros(len(X))
-    for i in range(len(stds)):
-        stds[i] = np.std(X[i])
-    # stds = np.std(X, axis=1)  # not available in numba
-    stds = np.where(stds < 1e-8, 1, stds)
-
     with objmode(X_ffts="complex128[:,:]"):
-        X_ffts = np.fft.rfft(X, axis=1)  # complex128
+        X_ffts = scipy.fft.rfft(X, axis=1, workers=-1).astype(np.complex128)
+
     reals = np.real(X_ffts)  # float64[]
     imags = np.imag(X_ffts)  # float64[]
     dft[:, 0::2] = reals[:, 0 : length // 2]
     dft[:, 1::2] = imags[:, 0 : length // 2]
-    dft /= stds.reshape(-1, 1)
     dft *= inverse_sqrt_win_size
 
+    # apply z-normalization
+    if norm_std:
+        stds = np.zeros(len(X))
+        for i in range(len(stds)):
+            stds[i] = np.std(X[i])
+        # stds = np.std(X, axis=1)  # not available in numba
+        stds = np.where(stds < AEON_NUMBA_STD_THRESHOLD, 1, stds)
+        dft /= stds.reshape(-1, 1)
+
     return dft[:, start:]
+
+
+@njit(fastmath=True, cache=True, nogil=True)
+def _apply_pca_transform(dfts, pca_mean, pca_components):
+    n_cases = dfts.shape[0]
+    n_windows = dfts.shape[1]
+    dfts = np.ascontiguousarray(dfts).reshape(n_cases * n_windows, dfts.shape[2])
+    transformed = np.dot(dfts - pca_mean, pca_components.T)
+    return transformed.reshape(n_cases, n_windows, pca_components.shape[0])
 
 
 @njit(fastmath=True, cache=True)
@@ -861,6 +995,8 @@ def _transform_case(
     support,
     anova,
     variance,
+    pca_mean,
+    pca_components,
     breakpoints,
     letter_bits,
     bigrams,
@@ -879,6 +1015,9 @@ def _transform_case(
         inverse_sqrt_win_size,
         lower_bounding,
     )
+
+    if pca_components.shape[0] > 0:
+        dfts = _apply_pca_transform(dfts, pca_mean, pca_components)
 
     words = generate_words(
         dfts,
@@ -920,7 +1059,7 @@ def _calc_incremental_mean_std(series, end, window_size):
     r_window_length = 1.0 / window_size
     mean = series_sum * r_window_length
     buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-    stds[0] = buf if buf > 1e-8 else 1
+    stds[0] = buf if buf > AEON_NUMBA_STD_THRESHOLD else 1
 
     for w in range(1, end):
         series_sum += series[w + window_size - 1] - series[w - 1]
@@ -930,7 +1069,7 @@ def _calc_incremental_mean_std(series, end, window_size):
             - series[w - 1] * series[w - 1]
         )
         buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-        stds[w] = buf if buf > 1e-8 else 1
+        stds[w] = buf if buf > AEON_NUMBA_STD_THRESHOLD else 1
 
     return stds
 
@@ -945,7 +1084,7 @@ def _get_phis(window_size, length):
     return phis
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def generate_words(
     dfts, bigrams, skip_grams, window_size, breakpoints, word_length, letter_bits
 ):
@@ -958,16 +1097,13 @@ def generate_words(
         needed_size += max(0, 2 * dfts.shape[1] - 5 * window_size)
 
     words = np.zeros((dfts.shape[0], needed_size), dtype=np.uint32)
-
-    letter_bits = np.uint32(letter_bits)
-    word_bits = word_length * letter_bits  # dfts.shape[2] * letter_bits
+    word_bits = np.uint32(np.sum(letter_bits))
 
     # special case: binary breakpoints
-    if breakpoints.shape[1] == 2:
+    if (breakpoints.shape[1] == 2) and (letter_bits == 1).all():
         vector = np.zeros((breakpoints.shape[0]), dtype=np.float32)
         for i in range(breakpoints.shape[0]):
             vector[i] = breakpoints.shape[1] ** i
-
         for a in prange(dfts.shape[0]):
             match = (dfts[a] <= breakpoints[:, 0]).astype(np.float32)
             words[a, : dfts.shape[1]] = np.dot(match, vector).astype(np.uint32)
@@ -975,10 +1111,11 @@ def generate_words(
     # general case: alphabet-size many breakpoints
     else:
         for a in prange(dfts.shape[0]):
-            for i in range(word_length):  # range(dfts.shape[2]):
-                words[a, : dfts.shape[1]] = (
-                    words[a, : dfts.shape[1]] << letter_bits
-                ) | np.digitize(dfts[a, :, i], breakpoints[i], right=True)
+            for i in range(word_length):
+                if letter_bits[i] > 0:
+                    words[a, : dfts.shape[1]] = (
+                        words[a, : dfts.shape[1]] << letter_bits[i]
+                    ) | np.digitize(dfts[a, :, i], breakpoints[i], right=True)
 
     # add bigrams
     if bigrams:
@@ -1034,8 +1171,11 @@ def _mft(
     transformed = np.zeros((X.shape[0], end, length))
 
     # 1. First run using DFT
-    with objmode(X_ffts="complex128[:,:]"):
-        X_ffts = np.fft.rfft(X[:, :window_size], axis=1)  # complex128
+    with objmode(X_ffts="complex128[:, :]"):
+        X_ffts = scipy.fft.rfft(X[:, :window_size], axis=1, workers=-1).astype(
+            np.complex128
+        )
+
     reals = np.real(X_ffts)  # float64[]
     imags = np.imag(X_ffts)  # float64[]
     transformed[:, 0, 0::2] = reals[:, 0 : length // 2]
@@ -1060,22 +1200,33 @@ def _mft(
         )
 
     transformed2 = transformed2 * inverse_sqrt_win_size
-
     if lower_bounding:
         transformed2[:, :, 1::2] = transformed2[:, :, 1::2] * -1
 
-    # compute STDs
-    stds = np.zeros((X.shape[0], end))
-    for a in range(X.shape[0]):
-        stds[a] = _calc_incremental_mean_std(X[a], end, window_size)
+    # STD-normalization only applied for subsequences
+    if end > 1:
+        # compute STDs
+        stds = np.zeros((X.shape[0], end))
+        for a in range(X.shape[0]):
+            stds[a] = _calc_incremental_mean_std(X[a], end, window_size)
 
-    # divide all by stds and use only the best indices
-    if anova or variance:
-        return transformed2[:, :, mask] / stds.reshape(stds.shape[0], stds.shape[1], 1)
+        # divide all by stds and use only the best indices
+        if anova or variance:
+            return transformed2[:, :, mask] / stds.reshape(
+                stds.shape[0], stds.shape[1], 1
+            )
+        else:
+            return (transformed2 / stds.reshape(stds.shape[0], stds.shape[1], 1))[
+                :, :, start_offset:
+            ]
+
+    # Whole-Series
     else:
-        return (transformed2 / stds.reshape(stds.shape[0], stds.shape[1], 1))[
-            :, :, start_offset:
-        ]
+        # Do not norm
+        if anova or variance:
+            return transformed2[:, :, mask]
+        else:
+            return transformed2[:, :, start_offset:]
 
 
 def _dilation(X, d, first_difference):
@@ -1089,7 +1240,7 @@ def _dilation(X, d, first_difference):
     # adding dilation
     X_dilated = _dilation2(X, d)
     X_index = _dilation2(
-        np.arange(X_dilated.shape[-1], dtype=np.float_).reshape(1, -1), d
+        np.arange(X_dilated.shape[-1], dtype=np.float64).reshape(1, -1), d
     )[0]
 
     return (
@@ -1103,7 +1254,7 @@ def _dilation2(X, d):
     # dilation on actual data
     if d > 1:
         start = 0
-        data = np.zeros(X.shape, dtype=np.float_)
+        data = np.zeros(X.shape, dtype=np.float64)
         for i in range(0, d):
             curr = X[:, i::d]
             end = curr.shape[1]
@@ -1111,7 +1262,7 @@ def _dilation2(X, d):
             start += end
         return data
     else:
-        return X.astype(np.float_)
+        return X.astype(np.float64)
 
 
 @njit(cache=True, fastmath=True)
@@ -1123,7 +1274,7 @@ def create_feature_names(sfa_words):
     return feature_names
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)  # does not work with parallel=True ??
 def create_bag_none(
     X_index, breakpoints, n_cases, sfa_words, word_length, remove_repeat_words
 ):
@@ -1171,7 +1322,7 @@ def create_bag_feature_selection(
     return all_win_words, relevant_features
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def create_bag_transform(
     X_index,
     feature_count,
@@ -1216,12 +1367,48 @@ def create_dict(feature_names, features_idx):
     return relevant_features
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath={"contract"}, cache=True, parallel=True)
+def mcb(dft, alphabet_sizes, word_length_actual, binning_method):
+    max_alphabet_size = np.max(alphabet_sizes)
+
+    breakpoints = np.full(
+        (word_length_actual, max_alphabet_size),
+        np.finfo(np.float32).max,
+        dtype=np.float32,
+    )
+    dft = np.round(dft, 2)
+
+    for letter in prange(word_length_actual):
+        curr_alphabet_size = alphabet_sizes[letter]
+        column = np.sort(dft[:, letter])
+        bin_index = 0
+
+        # use equi-depth binning
+        if binning_method == "equi-depth":
+            target_bin_depth = len(dft) / curr_alphabet_size
+
+            for bp in range(curr_alphabet_size - 1):
+                bin_index += target_bin_depth
+                breakpoints[letter, bp] = column[int(bin_index)]
+
+        # use equi-width binning aka equi-frequency binning
+        elif binning_method == "equi-width":
+            target_bin_width = (column[-1] - column[0]) / curr_alphabet_size
+
+            for bp in range(curr_alphabet_size - 1):
+                breakpoints[letter, bp] = (bp + 1) * target_bin_width + column[0]
+
+    return breakpoints
+
+
+@njit(fastmath=True, cache=True, parallel=True)
 def shorten_words(words, amount, letter_bits):
     new_words = np.zeros((words.shape[0], words.shape[1]), dtype=np.uint32)
 
     # Unigrams
-    shift_len = amount * letter_bits
+    shift_len = np.sum(
+        letter_bits[:amount]
+    )  # this does not work for variable-alphabet size
     for j in prange(words.shape[1]):
         # shorten a word by set amount of letters
         new_words[:, j] = words[:, j] >> shift_len
@@ -1236,7 +1423,7 @@ def shorten_words(words, amount, letter_bits):
     return new_words
 
 
-@njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath=True, cache=True, parallel=True, nogil=True)
 def _transform_words_case(
     X,
     window_size,
@@ -1245,10 +1432,11 @@ def _transform_words_case(
     support,
     anova,
     variance,
+    pca_mean,
+    pca_components,
     inverse_sqrt_win_size,
     lower_bounding,
     word_length,
-    alphabet_size,
     breakpoints,
 ):
     dfts = _mft(
@@ -1263,14 +1451,57 @@ def _transform_words_case(
         lower_bounding,
     )
 
-    words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
+    if pca_components.shape[0] > 0:
+        dfts = _apply_pca_transform(dfts, pca_mean, pca_components)
 
+    words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
     for x in prange(dfts.shape[0]):
         for window in prange(dfts.shape[1]):
             for i in prange(word_length):
-                for bp in range(alphabet_size):
+                for bp in range(breakpoints.shape[1]):
                     if dfts[x, window, i] <= breakpoints[i][bp]:
                         words[x, window, i] = bp
                         break
 
-    return words
+    return words, dfts
+
+
+@njit(fastmath={"contract"}, cache=True)
+def assign_bits_dynamically(variance, budget, max_bit_val=9):
+    """Assign bits dynamically based on variance and budget.
+
+    The goal is to maximize the variance covered by each symbol.
+
+    Parameters
+    ----------
+    variance : 1d numpy array
+        the variance for each position.
+    budget :   float
+        the maximal number of bits to assign.
+    max_bit_val : int, optional, default=9
+        the maximum number of bits that can be assigned to a single position.
+
+    Returns
+    -------
+    bit_array : 1d numpy array
+        the number of bits assigned to each position.
+    """
+    bit_array = np.zeros(len(variance), dtype=np.uint32)
+    bit_array[:] = 0
+
+    improve = variance.copy() / 2.0
+
+    # assign bits to positions
+    current_sum = bit_array.sum()
+    while current_sum < budget:
+        best_pos = np.argmax(improve)
+        bit_array[best_pos] += 1
+        current_sum += 1
+
+        # recalculate the improvement
+        improve[best_pos] = variance[best_pos] / (2 ** (bit_array[best_pos] + 1))
+
+        if bit_array[best_pos] == max_bit_val:
+            improve[best_pos] = 0
+
+    return bit_array

@@ -4,68 +4,6 @@ This webpage contains the notebook examples for the `aeon` library. The examples
 organised into categories based on module and functionality. The examples are designed
 to provide a comprehensive overview of a module, functionality or a specific algorithm.
 
-## Forecasting
-
-::::{grid} 2 3 4 4
-:gutter: 1
-
-:::{grid-item-card}
-:img-top: /examples/forecasting/img/forecasting.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting.ipynb
-:link-type: ref
-:text-align: center
-
-Overview of forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/proba.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting_proba.ipynb
-:link-type: ref
-:text-align: center
-
-Probabilistic forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/hierarchytree_grouped.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting_hierarchical_global.ipynb
-:link-type: ref
-:text-align: center
-
-Hierarchical, global, and panel forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting_sklearn.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting with aeon and scikit-learn
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/splitter.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/window_splitters.ipynb
-:link-type: ref
-:text-align: center
-
-Window splitters for forecasting
-
-:::
-
-::::
-
 ## Classification
 
 ::::{grid} 2 3 4 4
@@ -159,6 +97,17 @@ Interval based TSC
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/interval.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/interval_based/drcif.ipynb
+:link-type: ref
+:text-align: center
+
+DrCIF
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/classification/img/shapelet.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/shapelet_based.ipynb
@@ -170,13 +119,26 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/classification/img/early_classification.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
 :text-align: center
 
 Early TSC
+
+:::
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/classification/img/rotation_forest.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/rotation_forest.ipynb
+:link-type: ref
+:text-align: center
+
+Rotation Forest Classifier
 
 :::
 
@@ -188,7 +150,7 @@ Early TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: /examples/regression/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image-m
 :link: /examples/regression/regression.ipynb
 :link-type: ref
@@ -217,7 +179,7 @@ Overview of Time Series Clustering (TSCL)
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/clustering/img/partitional.png
 :class-img-top: aeon-card-image-m
 :link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
@@ -246,9 +208,20 @@ Overview of Transformations
 :::
 
 :::{grid-item-card}
+:img-top: examples/transformations/img/preprocessing.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/preprocessing.ipynb
+:link-type: ref
+:text-align: center
+
+Preprocessing time series
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/transformations/img/tsfresh.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
+:link: /examples/transformations/tsfresh.ipynb
 :link-type: ref
 :text-align: center
 
@@ -257,7 +230,7 @@ TSFresh transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/catch22.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/catch22.ipynb
 :link-type: ref
@@ -279,7 +252,7 @@ Rocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/mini_rocket.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/minirocket.ipynb
 :link-type: ref
@@ -290,24 +263,13 @@ MiniRocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/sast.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/sast.ipynb
 :link-type: ref
 :text-align: center
 
 SAST transform
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/interpolation.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Interpolation
 
 :::
 
@@ -323,13 +285,13 @@ Signature method
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/theta.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/theta_transform.ipynb
+:link: /examples/transformations/channel_selection.ipynb
 :link-type: ref
 :text-align: center
 
-Theta transform
+Channel selection
 
 :::
 
@@ -363,7 +325,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/segmentation/img/hidalgo.png
 :class-img-top: aeon-card-image-m
 :link: /examples/segmentation/hidalgo_segmentation.ipynb
 :link-type: ref
@@ -373,9 +335,7 @@ Hidalgo segmentation
 
 :::
 
-
 ::::
-
 
 ## Distances
 
@@ -393,7 +353,6 @@ Distance functions
 
 :::
 
-
 :::{grid-item-card}
 :img-top: examples/distances/img/svm.png
 :class-img-top: aeon-card-image-m
@@ -405,14 +364,13 @@ Using aeon distances with scikit-learn
 
 ::::
 
-## Similarity search
+## Similarity Search
 
 ::::{grid} 2 3 4 4
 :gutter: 1
 
-
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/sim_search.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/similarity_search.ipynb
 :link-type: ref
@@ -423,7 +381,7 @@ Intro to similarity search
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/distance_profile.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/distance_profiles.ipynb
 :link-type: ref
@@ -434,7 +392,7 @@ Deep dive into distance profiles
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/code_speed.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/code_speed.ipynb
 :link-type: ref
@@ -444,9 +402,36 @@ Benchmarking of similarity search speed-ups
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/simhash_index.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/simhash_index.ipynb
+:link-type: ref
+:text-align: center
+
+Deep dive into SimHash and the LSH index
+
+:::
 
 ::::
 
+## Forecasting
+
+::::{grid} 2 3 4 4
+:gutter: 1
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting.ipynb
+:link-type: ref
+:text-align: center
+
+Forecasting
+
+:::
+
+::::
 
 ## Data Formatting and Loading
 
@@ -461,28 +446,6 @@ Benchmarking of similarity search speed-ups
 :text-align: center
 
 Data in aeon
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/datasets/data_structures.ipynb
-:link-type: ref
-:text-align: center
-
-Data structures and containers used in aeon
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/datasets/data_conversions.ipynb
-:link-type: ref
-:text-align: center
-
-Conversions between data structures
 
 :::
 
@@ -532,7 +495,6 @@ Unequal length series
 
 :::
 
-
 ::::
 
 ## Benchmarking
@@ -554,33 +516,11 @@ Benchmarking algorithms
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/forecasting.ipynb
+:link: /examples/benchmarking/published_results.ipynb
 :link-type: ref
 :text-align: center
 
-Benchmarking forecasting algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression.ipynb
-:link-type: ref
-:text-align: center
-
-Benchmarking extrinsic regression algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression_results_per_dataset.ipynb
-:link-type: ref
-:text-align: center
-
-Compare regression algorithms on a single dataset
+Loading published results
 
 :::
 
@@ -598,11 +538,11 @@ Getting estimator reference results
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/bakeoff_results.ipynb
+:link: /examples/benchmarking/regression.ipynb
 :link-type: ref
 :text-align: center
 
-Getting published bakeoff results
+Benchmarking extrinsic regression algorithms
 
 :::
 
@@ -637,19 +577,63 @@ Series base classes
 
 ::::
 
-## Utils
+## Visualisation
 
 ::::{grid} 2 3 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/visualisation/img/series.jpg
 :class-img-top: aeon-card-image-m
-:link: /examples/utils/preprocessing.ipynb
+:link: /examples/visualisation/plotting_series.ipynb
 :link-type: ref
 :text-align: center
 
-Preprocessing collections of time series
+Plotting time series
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/visualisation/img/results.jpg
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_results.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting results
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/visualisation/img/learning.jpg
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_for_learning_tasks.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting for specific learning tasks
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/visualisation/img/distances.jpg
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_distances.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting Distances
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/visualisation/img/estimators.jpg
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_estimators.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting Estimators
 
 :::
 

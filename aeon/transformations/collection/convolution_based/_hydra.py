@@ -1,4 +1,11 @@
+"""Hydra Transformer."""
+
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["HydraTransformer"]
+
 import numpy as np
+import pandas as pd
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -33,6 +40,12 @@ class HydraTransformer(BaseCollectionTransformer):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    output_type : str, default='tensor'
+        The output type of the transformer.
+        Can be either 'tensor' or 'numpy' or 'dataframe'.
+        If 'tensor', the output will be a PyTorch tensor. If 'numpy', the output
+        will be a NumPy array. If 'dataframe', the output will be a pandas DataFrame.
+
 
     See Also
     --------
@@ -68,37 +81,57 @@ class HydraTransformer(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
         "python_dependencies": "torch",
-        "fit_is_empty": True,
     }
 
     def __init__(
-        self, n_kernels=8, n_groups=64, max_num_channels=8, n_jobs=1, random_state=None
+        self,
+        n_kernels=8,
+        n_groups=64,
+        max_num_channels=8,
+        n_jobs=1,
+        random_state=None,
+        output_type="tensor",
     ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
         self.max_num_channels = max_num_channels
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.output_type = output_type
 
         super().__init__()
 
-    def _transform(self, X, y=None):
+    def _fit(self, X, y=None):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         import torch
 
-        if isinstance(self.random_state, int):
-            torch.manual_seed(self.random_state)
+        rng = check_random_state(self.random_state)
+        seed = (
+            rng.randint(np.iinfo(np.int32).max)
+            if isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
+        )
+        if seed is not None:
+            torch.manual_seed(seed)
 
-        n_jobs = check_n_jobs(self.n_jobs)
-        torch.set_num_threads(n_jobs)
+        torch.set_num_threads(self._n_jobs)
 
-        self.hydra = _HydraInternal(
+        self._hydra = _HydraInternal(
             X.shape[2],
             X.shape[1],
             k=self.n_kernels,
             g=self.n_groups,
             max_num_channels=self.max_num_channels,
         )
-        return self.hydra(torch.tensor(X).float())
+
+    def _transform(self, X, y=None):
+        transformed = self._hydra(torch.tensor(X).float())
+        if (self.output_type == "numpy") or (self.output_type == "dataframe"):
+            transformed = transformed.detach().numpy()
+        if self.output_type == "dataframe":
+            transformed = pd.DataFrame(transformed)
+        return transformed
 
 
 if _check_soft_dependencies("torch", severity="none"):

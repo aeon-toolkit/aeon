@@ -36,11 +36,30 @@ class QUANTClassifier(BaseClassifier):
     estimator : sklearn estimator, default=None
         The estimator to use for classification. If None, an ExtraTreesClassifier
         with 200 estimators is used.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        Only applies if estimator is None, and the default ExtraTreesClassifier is used.
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+
+    Attributes
+    ----------
+    estimator_ : BaseEstimator
+        The fitted estimator for the classifier.
+    transformer_ : QUANTTransformer
+        The fitted transformer for the classifier.
 
     See Also
     --------
@@ -75,13 +94,18 @@ class QUANTClassifier(BaseClassifier):
     }
 
     def __init__(
-        self, interval_depth=6, quantile_divisor=4, estimator=None, random_state=None
+        self,
+        interval_depth=6,
+        quantile_divisor=4,
+        estimator=None,
+        class_weight=None,
+        random_state=None,
     ):
         self.interval_depth = interval_depth
         self.quantile_divisor = quantile_divisor
         self.estimator = estimator
+        self.class_weight = class_weight
         self.random_state = random_state
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -99,15 +123,19 @@ class QUANTClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self._transformer = QUANTTransformer(
+        self.transformer_ = QUANTTransformer(
             interval_depth=self.interval_depth,
             quantile_divisor=self.quantile_divisor,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 ExtraTreesClassifier(
-                    n_estimators=200, max_features=0.1, criterion="entropy"
+                    n_estimators=200,
+                    max_features=0.1,
+                    criterion="entropy",
+                    class_weight=self.class_weight,
+                    random_state=self.random_state,
                 )
                 if self.estimator is None
                 else self.estimator
@@ -115,8 +143,8 @@ class QUANTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -133,7 +161,7 @@ class QUANTClassifier(BaseClassifier):
         y : array-like of shape (n_cases)
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X):
         """Predicts labels probabilities for sequences in X.
@@ -148,12 +176,12 @@ class QUANTClassifier(BaseClassifier):
         y : array-like of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
-                dists[i, self.class_dictionary_[preds[i]]] = 1
+                dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

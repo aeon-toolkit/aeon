@@ -11,7 +11,11 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    _InternalCatch22,
+    _warn_use_pycatch22_deprecated,
+)
+from aeon.utils.validation import check_n_jobs
 
 
 class Catch22Regressor(BaseRegressor):
@@ -43,14 +47,21 @@ class Catch22Regressor(BaseRegressor):
         True. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, optional, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     estimator : sklearn regressor, optional, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn RandomForestRegressor(n_estimators=200)
@@ -94,8 +105,8 @@ class Catch22Regressor(BaseRegressor):
     >>> reg.fit(X, y)
     Catch22Regressor(...)
     >>> reg.predict(X)
-    array([0.66497445, 1.52167747, 0.73353397, 1.57550709, 0.46036267,
-           0.6494623 , 1.08156127, 1.09927538, 1.46025772, 0.37711294])
+    array([0.63821896, 1.0906666 , 0.58323551, 1.57550709, 0.48413489,
+           0.70976176, 1.33206165, 1.09927538, 1.51673405, 0.31683308])
     """
 
     _tags = {
@@ -106,13 +117,14 @@ class Catch22Regressor(BaseRegressor):
         "algorithm_type": "feature",
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -123,6 +135,8 @@ class Catch22Regressor(BaseRegressor):
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
         self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated(self)
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -148,7 +162,9 @@ class Catch22Regressor(BaseRegressor):
         self :
             Reference to self.
         """
-        self._transformer = Catch22(
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        self._transformer = _InternalCatch22(
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
@@ -195,7 +211,7 @@ class Catch22Regressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -214,7 +230,6 @@ class Catch22Regressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

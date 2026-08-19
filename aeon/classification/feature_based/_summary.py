@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.utils.validation import check_n_jobs
 
 
 class SummaryClassifier(BaseClassifier):
@@ -19,17 +20,17 @@ class SummaryClassifier(BaseClassifier):
     Summary statistic classifier.
 
     This classifier simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    SevenNumberSummary transformer and builds a provided estimator using the
     transformed data.
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+    summary_stats : ["default", "quantiles", "bowley", "tukey"], default="default"
         The summary statistics to compute.
         The options are as follows, with float denoting the percentile value extracted
         from the series:
             - "default": mean, std, min, max, 0.25, 0.5, 0.75
-            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
+            - "quantiles": 0.0215, 0.0887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
     estimator : sklearn classifier, default=None
@@ -43,6 +44,17 @@ class SummaryClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
 
     Attributes
     ----------
@@ -50,6 +62,10 @@ class SummaryClassifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes)
         Holds the label for each class.
+    estimator_ : sklearn classifier
+        The fitted estimator.
+    transformer_ : SevenNumberSummary
+        The fitted transformer.
 
     See Also
     --------
@@ -61,8 +77,8 @@ class SummaryClassifier(BaseClassifier):
     >>> from aeon.classification.feature_based import SummaryClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = SummaryClassifier(estimator=RandomForestClassifier(n_estimators=5))
     >>> clf.fit(X_train, y_train)
     SummaryClassifier(...)
@@ -81,6 +97,7 @@ class SummaryClassifier(BaseClassifier):
         estimator=None,
         n_jobs=1,
         random_state=None,
+        class_weight=None,
     ):
         self.summary_stats = summary_stats
         self.estimator = estimator
@@ -88,8 +105,7 @@ class SummaryClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._transformer = None
-        self._estimator = None
+        self.class_weight = class_weight
 
         super().__init__()
 
@@ -113,25 +129,27 @@ class SummaryClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        self.transformer_ = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
-                RandomForestClassifier(n_estimators=200)
+                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
                 if self.estimator is None
                 else self.estimator
             ),
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -148,7 +166,7 @@ class SummaryClassifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for n instances in X.
@@ -163,18 +181,18 @@ class SummaryClassifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -193,7 +211,6 @@ class SummaryClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestClassifier(n_estimators=10)}

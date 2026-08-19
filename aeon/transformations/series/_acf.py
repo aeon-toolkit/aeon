@@ -1,16 +1,13 @@
-"""Auto-correlation transformations.
-
-Module :mod:`aeon.transformations` implements auto-correlation
-transformers.
-"""
+"""Auto-correlation transformations."""
 
 __maintainer__ = ["TonyBagnall"]
+__all__ = ["AutoCorrelationSeriesTransformer", "StatsModelsACF", "StatsModelsPACF"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numba import njit
 
 from aeon.transformations.series.base import BaseSeriesTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
@@ -71,18 +68,18 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         """
         # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
         if self.n_lags is None:
-            self._n_lags = int(max(1, X.shape[1] / 4))
+            n_lags = int(max(1, X.shape[1] / 4))
         else:
-            self._n_lags = int(self.n_lags)
-        if self._n_lags < 1:
-            self._n_lags = 1
-        if X.shape[1] - self._n_lags < 3:
+            n_lags = int(self.n_lags)
+        if n_lags < 1:
+            n_lags = 1
+        if X.shape[1] - n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
-                f"series, autocorrelation would be calculated with just"
-                f"{X.shape[1]-self._n_lags} observations."
+                f"series, autocorrelation would be calculated with just "
+                f"{X.shape[1] - n_lags} observations."
             )
-        return self._acf(X, max_lag=self._n_lags)
+        return self._acf(X, max_lag=n_lags)
 
     @staticmethod
     @njit(cache=True, fastmath=True)
@@ -115,7 +112,7 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         return X_t
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -131,13 +128,26 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{}, {"n_lags": 1}]
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason=(
+        "StatsModelsACF is deprecated and will be removed in v1.7.0. "
+        "Use AutoCorrelationSeriesTransformer or statsmodels.tsa.stattools.acf "
+        "directly instead."
+    ),
+    category=FutureWarning,
+)
 class StatsModelsACF(BaseSeriesTransformer):
     """Auto-correlation wrapper for statsmodels.
+
+    Deprecated and will be removed in v1.7.0. Use
+    :class:`AutoCorrelationSeriesTransformer` or
+    :func:`statsmodels.tsa.stattools.acf` directly instead.
 
     The autocorrelation function measures how correlated a timeseries is
     with itself at different lags. The StatsModelsACF returns
@@ -222,7 +232,6 @@ class StatsModelsACF(BaseSeriesTransformer):
         -------
         transformed version of X
         """
-        _check_soft_dependencies("statsmodels", severity="error")
         X = X.squeeze()
         from statsmodels.tsa.stattools import acf
 
@@ -240,7 +249,7 @@ class StatsModelsACF(BaseSeriesTransformer):
         return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -256,13 +265,24 @@ class StatsModelsACF(BaseSeriesTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{}, {"n_lags": 1}]
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason=(
+        "StatsModelsPACF is deprecated and will be removed in v1.7.0. "
+        "Use statsmodels.tsa.stattools.pacf directly instead."
+    ),
+    category=FutureWarning,
+)
 class StatsModelsPACF(BaseSeriesTransformer):
     """Partial auto-correlation wrapper for statsmodels.
+
+    Deprecated and will be removed in v1.7.0. Use
+    :func:`statsmodels.tsa.stattools.pacf` directly instead.
 
     The partial autocorrelation function measures the conditional correlation
     between a timeseries and its self at different lags. In particular,
@@ -345,7 +365,6 @@ class StatsModelsPACF(BaseSeriesTransformer):
         -------
         transformed version of X
         """
-        _check_soft_dependencies("statsmodels", severity="error")
         X = X.squeeze()
 
         from statsmodels.tsa.stattools import pacf
@@ -356,7 +375,7 @@ class StatsModelsPACF(BaseSeriesTransformer):
         return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -372,6 +391,5 @@ class StatsModelsPACF(BaseSeriesTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{}, {"n_lags": 1}]

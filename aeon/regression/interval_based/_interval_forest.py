@@ -5,7 +5,7 @@ __all__ = ["IntervalForestRegressor"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base._estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression.base import BaseRegressor
 
 
@@ -25,7 +25,11 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e.
+        ``DecisionTreeRegressor(criterion="squared_error")``. Versions prior to and
+        including 1.5.0 used ``DecisionTreeRegressor(criterion="absolute_error")``
+        by default, which scales poorly with the number of cases. Pass such an
+        estimator explicitly to restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     interval_selection_method : "random", default="random"
@@ -111,8 +115,8 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib. If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -200,8 +204,17 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             parallel_backend=parallel_backend,
         )
 
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -223,7 +236,6 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2}

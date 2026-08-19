@@ -8,16 +8,18 @@ __all__ = [
     "make_example_dataframe_series",
 ]
 
-from typing import Union
 
 import numpy as np
 import pandas as pd
 
+from aeon.testing.data_generation import make_anomaly_detection_labels
+
 
 def make_example_1d_numpy(
     n_timepoints: int = 12,
-    random_state: Union[int, None] = None,
-) -> np.ndarray:
+    random_state: int | None = None,
+    return_y: str | None = None,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """Randomly generate 1D numpy X.
 
     Generates data in 1D 'np.ndarray' format.
@@ -28,11 +30,21 @@ def make_example_1d_numpy(
         The number of features/series length to generate.
     random_state : int or None, default=None
         Seed for random number generation.
+    return_y : str or None, default=None
+        If not None, returns an array of relevant labels alongside the generated data.
+        Valid options are None and "anomaly".
 
     Returns
     -------
     X : np.ndarray
         Randomly generated 1D data.
+    y : np.ndarray, optional
+        If `return_y` is not None, returns an array of relevant labels.
+
+    Raises
+    ------
+    ValueError
+        If `return_y` is not None and not one of the valid options.
 
     Examples
     --------
@@ -46,15 +58,30 @@ def make_example_1d_numpy(
      0.43758721 0.891773  ]
     """
     rng = np.random.RandomState(random_state)
-    return rng.uniform(size=(n_timepoints,))
+    X = rng.uniform(size=(n_timepoints,))
+
+    if return_y is not None:
+        if return_y == "anomaly" or return_y == "anomaly_detection":
+            y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
+            X[anomaly] = -X[anomaly]
+        else:
+            raise ValueError(
+                f"{return_y} value for return_y is not supported, see the docstring "
+                f"for valid options."
+            )
+
+        return X, y
+    return X
 
 
 def make_example_2d_numpy_series(
     n_timepoints: int = 12,
     n_channels: int = 1,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     axis: int = 1,
-) -> np.ndarray:
+    return_y: str | None = None,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """Randomly generate 2D numpy X.
 
     Generates data in 2D 'np.ndarray' format.
@@ -70,11 +97,21 @@ def make_example_2d_numpy_series(
     axis : int, default=1
         The axis to for the series timepoints. If 1, returns the shape
         (n_channels, n_timepoints). If 0, returns the shape (n_timepoints, n_channels).
+    return_y : str or None, default=None
+        If not None, returns an array of relevant labels alongside the generated data.
+        Valid options are None and "anomaly".
 
     Returns
     -------
     X : np.ndarray
         Randomly generated 2D data.
+    y : np.ndarray, optional
+        If `return_y` is not None, returns an array of relevant labels.
+
+    Raises
+    ------
+    ValueError
+        If `return_y` is not None and not one of the valid options.
 
     Examples
     --------
@@ -95,18 +132,36 @@ def make_example_2d_numpy_series(
     """
     rng = np.random.RandomState(random_state)
     if axis == 1:
-        return rng.uniform(size=(n_channels, n_timepoints))
+        X = rng.uniform(size=(n_channels, n_timepoints))
     elif axis == 0:
-        return rng.uniform(size=(n_timepoints, n_channels))
+        X = rng.uniform(size=(n_timepoints, n_channels))
     else:
         raise ValueError(f"axis: {axis} is not supported, please use 0 or 1.")
+
+    if return_y is not None:
+        if return_y == "anomaly" or return_y == "anomaly_detection":
+            y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
+            if axis == 1:
+                X[:, anomaly] = -X[:, anomaly]
+            else:
+                X[anomaly, :] = -X[anomaly, :]
+        else:
+            raise ValueError(
+                f"{return_y} value for return_y is not supported, see the docstring "
+                f"for valid options."
+            )
+
+        return X, y
+    return X
 
 
 def make_example_pandas_series(
     n_timepoints: int = 12,
     index_type=None,
-    random_state: Union[int, None] = None,
-) -> pd.Series:
+    random_state: int | None = None,
+    return_y: str | None = None,
+) -> pd.Series | tuple[pd.Series, np.ndarray]:
     """Randomly generate pandas Series X.
 
     Generates data in 'pd.Series' format.
@@ -120,11 +175,21 @@ def make_example_pandas_series(
         If None, uses default integer index.
     random_state : int or None, default=None
         Seed for random number generation.
+    return_y : str or None, default=None
+        If not None, returns an array of relevant labels alongside the generated data.
+        Valid options are None and "anomaly".
+
+    Raises
+    ------
+    ValueError
+        If `return_y` is not None and not one of the valid options.
 
     Returns
     -------
     X : pd.Series
         Randomly generated 1D data.
+    y : np.ndarray, optional
+        If `return_y` is not None, returns an array of relevant labels.
 
     Examples
     --------
@@ -144,16 +209,31 @@ def make_example_pandas_series(
     """
     rng = np.random.RandomState(random_state)
     index = _make_index(n_timepoints, index_type)
-    return pd.Series(rng.uniform(size=(n_timepoints,)), index=index)
+    X = pd.Series(rng.uniform(size=(n_timepoints,)), index=index)
+
+    if return_y is not None:
+        if return_y == "anomaly" or return_y == "anomaly_detection":
+            y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
+            X[anomaly] = -X[anomaly]
+        else:
+            raise ValueError(
+                f"{return_y} value for return_y is not supported, see the docstring "
+                f"for valid options."
+            )
+
+        return X, y
+    return X
 
 
 def make_example_dataframe_series(
     n_timepoints: int = 12,
     n_channels: int = 1,
     index_type=None,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     axis: int = 1,
-) -> pd.DataFrame:
+    return_y: str | None = None,
+) -> pd.DataFrame | tuple[pd.DataFrame, np.ndarray]:
     """Randomly generate pandas DataFrame X.
 
     Generates data in 'pd.DataFrame' format.
@@ -172,11 +252,21 @@ def make_example_dataframe_series(
     axis : int, default=1
         The axis to for the series timepoints. If 1, returns the shape
         (n_channels, n_timepoints). If 0, returns the shape (n_timepoints, n_channels).
+    return_y : str or None, default=None
+        If not None, returns an array of relevant labels alongside the generated data.
+        Valid options are None and "anomaly".
 
     Returns
     -------
     X : pd.DataFrame
         Randomly generated 2D data.
+    y : np.ndarray, optional
+        If `return_y` is not None, returns an array of relevant labels.
+
+    Raises
+    ------
+    ValueError
+        If `return_y` is not None and not one of the valid options.
 
     Examples
     --------
@@ -199,19 +289,36 @@ def make_example_dataframe_series(
     rng = np.random.RandomState(random_state)
     index = _make_index(n_timepoints, index_type)
     if axis == 1:
-        return pd.DataFrame(
+        X = pd.DataFrame(
             rng.uniform(size=(n_channels, n_timepoints)),
             index=np.arange(n_channels),
             columns=index,
         )
     elif axis == 0:
-        return pd.DataFrame(
+        X = pd.DataFrame(
             rng.uniform(size=(n_timepoints, n_channels)),
             columns=np.arange(n_channels),
             index=index,
         )
     else:
         raise ValueError(f"axis: {axis} is not supported, please use 0 or 1.")
+
+    if return_y is not None:
+        if return_y == "anomaly" or return_y == "anomaly_detection":
+            y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
+            if axis == 1:
+                X.iloc[:, anomaly] = -X.iloc[:, anomaly]
+            else:
+                X.iloc[anomaly, :] = -X.iloc[anomaly, :]
+        else:
+            raise ValueError(
+                f"{return_y} value for return_y is not supported, see the docstring "
+                f"for valid options."
+            )
+
+        return X, y
+    return X
 
 
 def _make_index(n_timepoints, index_type=None):

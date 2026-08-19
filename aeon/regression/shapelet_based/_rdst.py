@@ -17,6 +17,7 @@ from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class RDSTRegressor(BaseRegressor):
@@ -24,7 +25,7 @@ class RDSTRegressor(BaseRegressor):
     A random dilated shapelet transform (RDST) regressor.
 
     Implementation of the random dilated shapelet transform regressor pipeline
-    along the lines of [1]_[2]_. Transforms the data using the
+    along the lines of [1]_, [2]_. Transforms the data using the
     `RandomDilatedShapeletTransform` and then builds a `RidgeCV` regressor
     with standard scalling.
 
@@ -48,8 +49,8 @@ class RDSTRegressor(BaseRegressor):
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strenght of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
+        The strength of the alpha similarity pruning. The higher the value, the lower
+        the allowed number of common indices with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
         the whole search space has been covered. The default is 0.5, and the maximum is
@@ -74,11 +75,12 @@ class RDSTRegressor(BaseRegressor):
 
     Attributes
     ----------
-    fit_time_  : int
-        The time (in milliseconds) for ``fit`` to run.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.
+    estimator_ : sklearn estimator or Pipeline
+        The fitted regressor (or scaling+regressor pipeline) used to predict from the
+        shapelet-transformed data.
 
     See Also
     --------
@@ -98,8 +100,8 @@ class RDSTRegressor(BaseRegressor):
     --------
     >>> from aeon.regression.shapelet_based import RDSTRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = RDSTRegressor(
     ...     max_shapelets=10
     ... )
@@ -113,7 +115,6 @@ class RDSTRegressor(BaseRegressor):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non-deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 
@@ -144,7 +145,6 @@ class RDSTRegressor(BaseRegressor):
         self.transformed_data_ = []
 
         self._transformer = None
-        self._estimator = None
 
         super().__init__()
 
@@ -168,6 +168,7 @@ class RDSTRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
             shapelet_lengths=self.shapelet_lengths,
@@ -175,28 +176,28 @@ class RDSTRegressor(BaseRegressor):
             threshold_percentiles=self.threshold_percentiles,
             alpha_similarity=self.alpha_similarity,
             use_prime_dilations=self.use_prime_dilations,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         if self.estimator is None:
-            self._estimator = make_pipeline(
+            self.estimator_ = make_pipeline(
                 StandardScaler(with_mean=True),
                 RidgeCV(
                     alphas=np.logspace(-4, 4, 20),
                 ),
             )
         else:
-            self._estimator = _clone_estimator(self.estimator, self.random_state)
-            m = getattr(self._estimator, "n_jobs", None)
+            self.estimator_ = _clone_estimator(self.estimator, self.random_state)
+            m = getattr(self.estimator_, "n_jobs", None)
             if m is not None:
-                self._estimator.n_jobs = self.n_jobs
+                self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
 
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -215,10 +216,10 @@ class RDSTRegressor(BaseRegressor):
         """
         X_t = self._transformer.transform(X)
 
-        return self._estimator.predict(X_t)
+        return self.estimator_.predict(X_t)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -237,6 +238,5 @@ class RDSTRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {"max_shapelets": 20}

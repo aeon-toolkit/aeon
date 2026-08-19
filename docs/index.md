@@ -2,42 +2,40 @@
 hide-toc: true
 ---
 
-<h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
+# Welcome to __aeon__
 
-`aeon` is a scikit-learn compatible toolkit for time series tasks such as
-forecasting, classification, regression, clustering and anomaly detection.</p>
+`aeon` is a `scikit-learn` compatible toolkit for time series machine learning tasks
+such as classification, regression, clustering, anomaly detection,
+segmentation and similarity search.
 
-- Provides a broad library of time series algorithms, including the latest advances.
-- Efficient implementation of time series algorithms using numba.
-- Interfaces with other time series packages to provide a single framework for algorithm
-comparison.
+- We provide a broad library of time series algorithms, including the latest
+  advances and state-of-the-art for many tasks.
+- Our algorithms are implemented as efficiently as possible by, for example,
+  using `numba`.
+- `aeon` is built on top of `scikit-learn`, allowing for easy integration with other
+  machine learning libraries and other time series packages.
+- We provide a range of tools for reproducing benchmarking results and evaluating time
+  series algorithms implemented in `aeon` and other `scikit-learn` compatible packages.
 
-Please visit our [GitHub repository](https://github.com/aeon-toolkit/aeon).
+## Community Channels
+
+**GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
+
+**Discord**: [aeon discord](https://discord.gg/D6rzqHGKRJ)
+
+**LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
+
+**Medium Blog**: [medium/aeon.toolkit](https://medium.com/@aeon.toolkit)
+
+**Email**: [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)
+
+## Modules
 
 ::::{grid} 1 2 2 2
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Get started with time series forecasting.
-
-+++
-
-```{button-ref} /examples/forecasting/forecasting.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Forecasting
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/img/tsc.png
+:img-top: examples/classification/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -56,7 +54,7 @@ Classification
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -75,7 +73,7 @@ Regression
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tscl.png
+:img-top: examples/clustering/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -89,6 +87,63 @@ Get started with time series clustering.
 :expand:
 
 Clustering
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/anomaly_detection/img/anomaly_detection.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with anomaly detection.
+
++++
+
+```{button-ref} /examples/anomaly_detection/anomaly_detection.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Anomaly Detection
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with forecasting
+
++++
+
+```{button-ref} /examples/forecasting/forecasting.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Forecasting
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/segmentation/img/segmentation.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with segmentation
+
++++
+
+```{button-ref} /examples/segmentation/segmentation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Segmentation
 ```
 
 :::
@@ -132,30 +187,11 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: examples/segmentation/img/segmentation.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Segmentation
-
-+++
-
-```{button-ref} /examples/segmentation/segmentation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Segmentation
-```
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/similarity_search/img/sim_search.png
 :class-img-top: aeon-card-image
 :text-align: center
 
-Similarity Search
+Get started with time series similarity search
 
 +++
 
@@ -228,15 +264,20 @@ Networks
 
 ::::
 
-## Community Channels
+## Experimental Modules
 
-**GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
+Some modules of `aeon` are still experimental and may have changing interfaces.
+To support development on these modules, the [deprecation policy](developer_guide/deprecation.md)
+is relaxed, so it is suggested that you integrate these modules with care. The current
+experimental modules are:
 
-**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
-
-**Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
-
-**LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
+- `anomaly_detection`
+- `forecasting`
+- `segmentation`
+- `similarity_search`
+- `visualisation`
+- `transformations.collection.self_supervised`
+- `transformations.collection.imbalance`
 
 ```{toctree}
 :caption: Using aeon
@@ -254,7 +295,7 @@ examples.md
 
 contributing.md
 developer_guide.md
-mentoring.md
+projects.md
 ```
 
 ```{toctree}
@@ -271,7 +312,6 @@ code_of_conduct.md
 :caption: Other
 :hidden:
 
-glossary.md
 estimator_overview.md
 changelog.md
 papers_using_aeon.md

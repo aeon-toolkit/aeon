@@ -1,6 +1,6 @@
-"""Fully Convolutional Network (FCN) for classification."""
+"""Fully Convolutional Network (FCN) classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
 import gc
@@ -23,10 +23,12 @@ class FCNClassifier(BaseDeepClassifier):
     ----------
     n_layers : int, default = 3
         Number of convolution layers.
-    n_filters : int or list of int, default = [128,256,128]
+    n_filters : int or list of int, default = None
         Number of filters used in convolution layers.
-    kernel_size : int or list of int, default = [8,5,3]
-        Size of convolution kernel.
+        If set to None, defaults to [128, 256, 128].
+    kernel_size : int or list of int, default = None
+        Size of convolution kernel. If set to None,
+        defaults to [8,5,3].
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution.
     strides : int or list of int, default = 1
@@ -36,7 +38,7 @@ class FCNClassifier(BaseDeepClassifier):
     activation : str or list of str, default = "relu"
         Activation used after the convolution.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution.
+        Whether or not to use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -52,11 +54,15 @@ class FCNClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         Whether to output extra information.
-    loss : string, default = "mean_squared_error"
-        Fit parameter for the keras model.
-    metrics : list of strings, default = ["accuracy"]
-    optimizer : keras.optimizers object, default = Adam(lr=0.01)
-        Specify the optimizer and the learning rate to be used.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
     file_path : str, default = "./"
         File path to save best model.
     save_best_model : bool, default = False
@@ -69,6 +75,8 @@ class FCNClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -77,7 +85,14 @@ class FCNClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
-    callbacks : keras.callbacks, default = None
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if
+        save_init_model is set to False,
+        this parameter is discarded.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
 
     Notes
     -----
@@ -86,15 +101,16 @@ class FCNClassifier(BaseDeepClassifier):
 
     References
     ----------
-    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
-    Journal of Systems Engineering and Electronics, 28(1):2017.
+    .. [1] Z. Wang, W. Yan and T. Oates, "Time series classification from scratch
+    with deep neural networks: A strong baseline," 2017 International Joint Conference
+    on Neural Networks (IJCNN), Anchorage, AK, USA, 2017, pp. 1578-1585.
 
     Examples
     --------
     >>> from aeon.classification.deep_learning import FCNClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> fcn = FCNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
     FCNClassifier(...)
@@ -102,27 +118,29 @@ class FCNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=3,
-        n_filters=None,
-        kernel_size=None,
-        dilation_rate=1,
-        strides=1,
-        padding="same",
-        activation="relu",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 3,
+        n_filters: int | list[int] = None,
+        kernel_size: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias=True,
+        use_bias: bool | list[bool] = True,
         optimizer=None,
     ):
         self.n_layers = n_layers
@@ -145,7 +163,9 @@ class FCNClassifier(BaseDeepClassifier):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.history = None
 
@@ -166,11 +186,11 @@ class FCNClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
+        is the number of channels, m is the series length. Keras/tensorflow assume
         data is in shape (m,d). This method also assumes (m,d). Transpose should
         happen in fit.
 
@@ -188,19 +208,19 @@ class FCNClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
         else:
-            metrics = self.metrics
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation="softmax", use_bias=self.use_bias
-        )(output_layer)
+        output_layer = tf.keras.layers.Dense(units=n_classes, activation="softmax")(
+            output_layer
+        )
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
@@ -210,7 +230,7 @@ class FCNClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -238,6 +258,9 @@ class FCNClassifier(BaseDeepClassifier):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -250,8 +273,8 @@ class FCNClassifier(BaseDeepClassifier):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -261,9 +284,12 @@ class FCNClassifier(BaseDeepClassifier):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,
@@ -290,7 +316,7 @@ class FCNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -309,7 +335,6 @@ class FCNClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

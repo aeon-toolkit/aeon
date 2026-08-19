@@ -18,25 +18,24 @@ State:
 """
 
 __maintainer__ = []
-__all__ = [
-    "BaseRegressor",
-]
+__all__ = ["BaseRegressor"]
 
-import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
 import pandas as pd
+from sklearn.base import RegressorMixin
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
-from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
+from aeon.utils.decorators.method_timer import method_timer
+from aeon.utils.validation.labels import check_regression_y
 
 
-class BaseRegressor(BaseCollectionEstimator, ABC):
+class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
     """Abstract base class for time series regressors.
 
     The base regressor specifies the methods and method signatures that all
@@ -45,36 +44,22 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
     Attributes
     ----------
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
-    _n_jobs : int
-        Number of threads to use in fit as determined by n_jobs.
-
-    fit_time_ : int
-        Time (in milliseconds) for ``fit`` to run.
-    _n_jobs : int
-        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
-        Determined by the ``n_jobs`` parameter if present.
     _estimator_type : string
         The type of estimator. Required by some ``sklearn`` tools, set to "regressor".
     """
 
     _tags = {
+        "fit_is_empty": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
     }
 
+    @abstractmethod
     def __init__(self):
-        # reserved attributes written to in fit
-        self.fit_time_ = -1
-        self._n_jobs = 1
-
-        # required for compatibility with some sklearn interfaces
-        self._estimator_type = "regressor"
-
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series regressor to training data.
 
@@ -91,7 +76,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -112,14 +97,12 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
         X, y = self._fit_setup(X, y)
 
         self._fit(X, y)
 
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -139,7 +122,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -153,8 +136,9 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
-        self.check_is_fitted()
-        X = self._preprocess_collection(X)
+        self._check_is_fitted()
+        X = self._preprocess_collection(X, store_metadata=False)
+        self._check_shape(X)
         return self._predict(X)
 
     @final
@@ -185,7 +169,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -207,7 +191,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y_pred = self._fit_predict(X, y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_pred
 
     def score(self, X, y, metric="r2", metric_params=None) -> float:
@@ -226,7 +210,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -238,7 +222,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             (ground truth) for fitting indices corresponding to instance indices in X.
         metric : Union[str, callable], default="r2",
             Defines the scoring metric to test the fit of the model. For supported
-            strings arguments, check `sklearn.metrics.get_scorer_names`.
+            strings arguments, check ``sklearn.metrics.get_scorer_names``.
         metric_params : dict, default=None,
             Contains parameters to be passed to the scoring function. If None, no
             parameters are passed.
@@ -248,7 +232,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         score : float
             MSE score of predict(X) vs y
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         y = self._check_y(y, len(X))
         _metric_params = metric_params
         if metric_params is None:
@@ -351,13 +335,17 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         random_state = getattr(self, "random_state", None)
         estimator = _clone_estimator(self, random_state)
 
+        n_jobs = getattr(self, "_n_jobs", None)
+        if n_jobs is None:
+            n_jobs = getattr(self, "n_jobs", None)
+
         return cross_val_predict(
             estimator,
             X=X,
             y=y,
             cv=10,
             method="predict",
-            n_jobs=self._n_jobs,
+            n_jobs=n_jobs,
         )
 
     def _fit_setup(self, X, y):
@@ -371,36 +359,28 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         return X, y
 
     def _check_y(self, y, n_cases):
-        # Check y valid input for regression
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+        """Check y input is valid.
+
+        Must be 1-dimensional and contain continuous values.
+        """
+        if isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
+            if y.shape[1] > 1:
+                raise TypeError(
+                    "Error in input type for y: y input as pd.DataFrame should have a "
+                    "single column series."
+                )
+            y = y.squeeze().values
+
+        check_regression_y(y)
 
         # Check matching number of labels
-        n_labels = len(y)
+        n_labels = y.shape[0]
         if n_cases != n_labels:
             raise ValueError(
                 f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
             )
 
-        y_type = type_of_target(y)
-        if y_type != "continuous" and y_type != "binary" and y_type != "multiclass":
-            raise ValueError(
-                f"y type is {y_type} which is not valid for regression. "
-                f"Should be continuous, binary or multiclass according to "
-                f"sklearn.utils.multiclass.type_of_target"
-            )
-
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)
-
-        if any([isinstance(label, str) for label in y]):
-            raise ValueError(
-                "y contains strings, cannot fit a regressor. If suitable, convert "
-                "to floats or consider classification."
-            )
-
         return y.astype(float)

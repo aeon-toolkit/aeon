@@ -5,5 +5,5 @@ __all__ = [
     "DummyRegressor",
 ]
 
+from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
-from aeon.regression.dummy import DummyRegressor

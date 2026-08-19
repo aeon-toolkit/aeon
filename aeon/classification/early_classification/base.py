@@ -21,73 +21,62 @@ State:
     streaming decision info - state_info attribute
 """
 
-__all__ = [
-    "BaseEarlyClassifier",
-]
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["BaseEarlyClassifier"]
 
-import time
-from abc import ABC, abstractmethod
-from typing import Tuple
+from abc import abstractmethod
 
 import numpy as np
+from sklearn.base import ClassifierMixin
 
 from aeon.base import BaseCollectionEstimator
 from aeon.classification import BaseClassifier
+from aeon.utils.decorators.method_timer import method_timer
 
 
-class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
+class BaseEarlyClassifier(ClassifierMixin, BaseCollectionEstimator):
     """
     Abstract base class for early time series classifiers.
 
-    The base classifier specifies the methods and method signatures that all
+    The base early classifier specifies the methods and method signatures that all
     early classifiers have to implement. Attributes with an underscore suffix are set in
     the method fit.
 
     Parameters
     ----------
     classes_ : np.ndarray
-        Class labels, possibly strings.
+        Class labels, either integers or strings.
     n_classes_ : int
-        Number of classes (length of classes_).
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
+        Number of classes (length of ``classes_``).
     _class_dictionary : dict
-        dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _n_jobs : int, default=1
-        Number of threads to use in fit as determined by n_jobs.
+        Mapping of classes_ onto integers ``0 ... n_classes_-1``.
     state_info : array-like, default=None
-        An array containing the state info for each decision in X.
+        An array containing the state info for each decision in X when updating
+        predictions.
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
+        "fit_is_empty": False,
     }
 
+    @abstractmethod
     def __init__(self):
-        self.classes_ = []
-        self.n_classes_ = 0
-        self.fit_time_ = 0
+        self.classes_ = []  # classes seen in y, unique labels
+        self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
-        self._n_jobs = 1
 
-        """
-        An array containing the state info for each decision in X from update and
-        predict methods. Contains classifier dependant information for future decisions
-        on the data and information on when a cases decision has been made. Each row
-        contains information for a case from the latest decision on its safety made in
-        update/predict. Successive updates are likely to remove rows from the
-        state_info, as it will only store as many rows as there are input instances to
-        update/predict.
-        """
+        # An array containing the state info for each decision in X from update and
+        # predict methods. Contains classifier dependent information for future
+        # decisions on the data and information on when a cases decision has been made.
+        # Each row contains information for a case from the latest decision on its
+        # safety made in update/predict. Successive updates are likely to remove rows
+        # from the state_info, as it will only store as many rows as there are input
+        # instances to update/predict.
         self.state_info = None
 
         super().__init__()
 
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y):
         """Fit time series classifier to training data.
 
@@ -119,16 +108,14 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         self.reset()
 
         # All of this can move up to BaseCollection
-        start = int(round(time.time() * 1000))
         X = self._preprocess_collection(X)
         y = BaseClassifier._check_y(self, y, self.metadata_["n_cases"])
         self._fit(X, y)
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
-    def predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels for sequences in X.
 
         Early classifiers can predict at series lengths shorter than the train data
@@ -158,11 +145,11 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
         return self._predict(X)
 
-    def update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def update_predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label prediction for sequences in X at a larger series length.
 
         Uses information stored in the classifiers state from previous predictions and
@@ -197,7 +184,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # boilerplate input checks for predict-like methods
         X = self._preprocess_collection(X)
@@ -207,7 +194,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         else:
             return self._update_predict(X)
 
-    def predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels probabilities for sequences in X.
 
         Early classifiers can predict at series lengths shorter than the train data
@@ -240,12 +227,12 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
 
         return self._predict_proba(X)
 
-    def update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def update_predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label probabilities for sequences in X at a larger series length.
 
         Uses information stored in the classifiers state from previous predictions and
@@ -282,14 +269,14 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
         if self.state_info is None:
             return self._predict_proba(X)
         else:
             return self._update_predict_proba(X)
 
-    def score(self, X, y) -> Tuple[float, float, float]:
+    def score(self, X, y) -> tuple[float, float, float]:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -310,7 +297,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         -------
         Tuple of floats, harmonic mean, accuracy and earliness scores of predict(X) vs y
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
 
         return self._score(X, y)
@@ -321,7 +308,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         Returns
         -------
         An array containing the state info for each decision in X from update and
-        predict methods. Contains classifier dependant information for future decisions
+        predict methods. Contains classifier dependent information for future decisions
         on the data and information on when a cases decision has been made. Each row
         contains information for a case from the latest decision on its safety made in
         update/predict. Successive updates are likely to remove rows from the
@@ -391,7 +378,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         ...
 
     @abstractmethod
-    def _predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels for sequences in X.
 
         Abstract method, must be implemented.
@@ -425,7 +412,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         ...
 
     @abstractmethod
-    def _update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label prediction for sequences in X at a larger series length.
 
         Abstract method, must be implemented.
@@ -459,7 +446,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         """
         ...
 
-    def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels probabilities for sequences in X.
 
         This method should update state_info with any values necessary to make future
@@ -504,7 +491,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
 
         return dists, decisions
 
-    def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label probabilities for sequences in X at a larger series length.
 
         Uses information from previous decisions stored in state_info. This method
@@ -551,7 +538,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         return dists, decisions
 
     @abstractmethod
-    def _score(self, X, y) -> Tuple[float, float, float]:
+    def _score(self, X, y) -> tuple[float, float, float]:
         """Scores predicted labels against ground truth labels on X.
 
         Abstract method, must be implemented.

@@ -23,6 +23,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFA
+from aeon.utils.validation import check_n_jobs
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
@@ -32,7 +33,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series length 'm' with 'd' dimensions
+    Overview: Input 'n' series length 'm' with 'd' channels
     TDE searches 'k' parameter values selected using a Gaussian processes
     regressor, evaluating each with a LOOCV. It then retains 's'
     ensemble members.
@@ -50,7 +51,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     into alpha possible values, to form a word length l using breakpoints
     found using b. A histogram of words for each series is formed and stored,
     using a spatial pyramid of h levels. For multivariate series, accuracy
-    from a reduced histogram is used to select dimensions.
+    from a reduced histogram is used to select channels.
 
     fit involves finding n histograms.
     predict uses 1 nearest neighbour with the histogram intersection
@@ -73,9 +74,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
     dim_threshold : float, default=0.85
-        Dimension accuracy threshold for multivariate data, must be between 0 and 1.
+        Channel accuracy threshold for multivariate data, must be between 0 and 1.
     max_dims : int, default=20
-        Max number of dimensions per classifier for multivariate data.
+        Max number of channels per classifier for multivariate data.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
@@ -109,7 +110,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     estimators_ : list of shape (n_estimators) of IndividualTDE
@@ -247,6 +248,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             )
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
@@ -257,7 +259,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         max_window_searches = self.n_timepoints_ / 4
         max_window = int(self.n_timepoints_ * self.max_win_len_prop)
 
-        if self.min_window >= max_window:
+        if self.min_window > max_window:
             self._min_window = max_window
             warnings.warn(
                 f"TemporalDictionaryEnsemble warning: min_window = "
@@ -320,9 +322,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     rng.choice(np.flatnonzero(preds == preds.max()))
                 )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
 
             tde = IndividualTDE(
                 *parameters,
@@ -410,13 +417,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             n_cases, n_classes_).
 
         """
-        _, _, n_timepoints = X.shape
-        if n_timepoints != self.n_timepoints_:
-            raise TypeError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data"
-            )
-
         sums = np.zeros((X.shape[0], self.n_classes_))
 
         for n, clf in enumerate(self.estimators_):
@@ -537,7 +537,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -562,7 +562,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {
@@ -619,10 +618,10 @@ class IndividualTDE(BaseClassifier):
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
     dim_threshold : float, default=0.85
-        Accuracy threshold as a propotion of the highest accuracy dimension for words
-        extracted from each dimensions. Only applicable for multivariate data.
+        Accuracy threshold as a proportion of the highest accuracy channel for words
+        extracted from each channel. Only applicable for multivariate data.
     max_dims : int, default=20
-        Maximum number of dimensions words are extracted from. Only applicable for
+        Maximum number of channels words are extracted from. Only applicable for
         multivariate data.
     typed_dict : bool, default=True
         Use a numba TypedDict to store word counts. May increase memory usage, but will
@@ -642,7 +641,7 @@ class IndividualTDE(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
 
@@ -668,8 +667,8 @@ class IndividualTDE(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import IndividualTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualTDE()
     >>> clf.fit(X_train, y_train)
     IndividualTDE(...)
@@ -783,9 +782,10 @@ class IndividualTDE(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
-        # select dimensions using accuracy estimate if multivariate
+        # select channels using accuracy estimate if multivariate
         if self.n_channels_ > 1:
             self._dims, self._transformers = self._select_dims(X, y)
 
@@ -922,7 +922,7 @@ class IndividualTDE(BaseClassifier):
         accs = []
         transformers = []
 
-        # select dimensions based on reduced bag size accuracy
+        # select channels based on reduced bag size accuracy
         for i in range(self.n_channels_):
             self._dims.append(i)
             transformers.append(
@@ -1003,14 +1003,14 @@ def histogram_intersection(first, second):
     """Find the distance between two histograms using the histogram intersection.
 
     This distance function is designed for sparse matrix, represented as a
-    dictionary or numba Dict, but can accept arrays.
+    dictionary or numba Dict, but can accept arrays in dense format.
 
     Parameters
     ----------
-    first : dict, numba.Dict or array
-        First dictionary used in distance measurement.
-    second : dict, numba.Dict or array
-        Second dictionary that will be used to measure distance from `first`.
+    first : dict, numba.Dict or 1 D array of integers
+        First histogram used in distance measurement.
+    second : dict, numba.Dict or 1 D array of integers
+        Second histogram that will be used to measure distance from `first`.
 
     Returns
     -------
@@ -1028,7 +1028,7 @@ def histogram_intersection(first, second):
     else:
         return np.sum(
             [
-                0 if first[n] == 0 else np.min(first[n], second[n])
+                0 if first[n] == 0 else np.minimum(first[n], second[n])
                 for n in range(len(first))
             ]
         )

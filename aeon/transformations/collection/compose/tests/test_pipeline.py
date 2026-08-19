@@ -1,8 +1,7 @@
-"""Unit tests for clustering pipeline."""
-
-__maintainer__ = ["MatthewMiddlehurst"]
+"""Unit tests for collection transform pipeline."""
 
 import pytest
+from numpy.testing import assert_array_almost_equal
 from sklearn.preprocessing import StandardScaler
 
 from aeon.testing.data_generation import (
@@ -10,32 +9,28 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
-    PaddingTransformer,
+    Normalizer,
     Tabularizer,
-    TimeSeriesScaler,
 )
 from aeon.transformations.collection.compose import CollectionTransformerPipeline
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.transformations.collection.unequal_length import Padder
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
-        PaddingTransformer(pad_length=15),
-        SevenNumberSummaryTransformer(),
-        [TabularToSeriesAdaptor(StandardScaler())],
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
-        [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
+        Padder(padded_length=15),
+        SevenNumberSummary(),
+        [Padder(padded_length=15), Tabularizer(), StandardScaler()],
+        [Padder(padded_length=15), SevenNumberSummary()],
+        [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
-            TabularToSeriesAdaptor(StandardScaler()),
-            PaddingTransformer(pad_length=15),
-            SevenNumberSummaryTransformer(),
+            Padder(padded_length=15),
+            SevenNumberSummary(),
         ],
     ],
 )
@@ -47,13 +42,16 @@ def test_collection_transform_pipeline(transformers):
     pipeline.fit(X, y)
     Xt = pipeline.transform(X)
 
+    pipeline2 = CollectionTransformerPipeline(transformers=transformers)
+    Xt2 = pipeline2.fit_transform(X, y)
+
     if not isinstance(transformers, list):
         transformers = [transformers]
-
     for t in transformers:
         X = t.fit_transform(X, y)
 
-    _assert_array_almost_equal(Xt, X)
+    assert_array_almost_equal(Xt, X)
+    assert_array_almost_equal(Xt2, X)
 
 
 def test_unequal_tag_inference():
@@ -62,9 +60,9 @@ def test_unequal_tag_inference():
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12
     )
 
-    t1 = SevenNumberSummaryTransformer()
-    t2 = PaddingTransformer()
-    t3 = TimeSeriesScaler()
+    t1 = SevenNumberSummary()
+    t2 = Padder()
+    t3 = Normalizer()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
     t5 = StandardScaler()
     t6 = Tabularizer()
@@ -72,10 +70,10 @@ def test_unequal_tag_inference():
     assert t1.get_tag("capability:unequal_length")
     assert t1.get_tag("output_data_type") == "Tabular"
     assert t2.get_tag("capability:unequal_length")
-    assert t2.get_tag("capability:unequal_length:removes")
+    assert t2.get_tag("removes_unequal_length")
     assert not t2.get_tag("output_data_type") == "Tabular"
     assert t3.get_tag("capability:unequal_length")
-    assert not t3.get_tag("capability:unequal_length:removes")
+    assert not t3.get_tag("removes_unequal_length")
     assert not t3.get_tag("output_data_type") == "Tabular"
     assert not t4.get_tag("capability:unequal_length")
 
@@ -118,15 +116,13 @@ def test_missing_tag_inference():
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
     t1 = MockCollectionTransformer()
-    t1.set_tags(
-        **{"capability:missing_values": True, "capability:missing_values:removes": True}
-    )
-    t2 = TimeSeriesScaler()
+    t1.set_tags(**{"capability:missing_values": True, "removes_missing_values": True})
+    t2 = Normalizer()
     t3 = StandardScaler()
     t4 = Tabularizer()
 
     assert t1.get_tag("capability:missing_values")
-    assert t1.get_tag("capability:missing_values:removes")
+    assert t1.get_tag("removes_missing_values")
     assert not t2.get_tag("capability:missing_values")
 
     # transformer chain removes missing values
@@ -157,8 +153,8 @@ def test_multivariate_tag_inference():
     """Test that CollectionTransformerPipeline infers multivariate tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=12)
 
-    t1 = SevenNumberSummaryTransformer()
-    t2 = TimeSeriesScaler()
+    t1 = SevenNumberSummary()
+    t2 = Normalizer()
     t3 = HOG1DTransformer()
     t4 = StandardScaler()
 

@@ -1,4 +1,10 @@
-"""Mock segmenters for testing."""
+"""Mock segmenters useful for testing and debugging."""
+
+__maintainer__ = []
+__all__ = [
+    "MockSegmenter",
+    "MockSegmenterRequiresY",
+]
 
 import numpy as np
 
@@ -26,7 +32,7 @@ class MockSegmenter(BaseSegmenter):
         return np.array([1])
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """
         Return testing parameter settings for the estimator.
 
@@ -42,7 +48,7 @@ class MockSegmenter(BaseSegmenter):
         return {}
 
 
-class SupervisedMockSegmenter(MockSegmenter):
+class MockSegmenterRequiresY(MockSegmenter):
     """Mock segmenter for testing."""
 
     _tags = {

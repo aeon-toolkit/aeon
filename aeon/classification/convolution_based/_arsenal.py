@@ -3,7 +3,7 @@
 kernel based ensemble of ROCKET classifiers.
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["Arsenal"]
 
 import time
@@ -20,9 +20,9 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class Arsenal(BaseClassifier):
@@ -36,7 +36,7 @@ class Arsenal(BaseClassifier):
 
     Parameters
     ----------
-    num_kernels : int, default=2,000
+    n_kernels : int, default=2,000
         Number of kernels for each ROCKET transform.
     n_estimators : int, default=25
         Number of estimators to build for the ensemble.
@@ -52,6 +52,17 @@ class Arsenal(BaseClassifier):
         Default of 0 means n_estimators is used.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -68,7 +79,7 @@ class Arsenal(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     classes_ : list
@@ -93,9 +104,10 @@ class Arsenal(BaseClassifier):
 
     References
     ----------
-    .. [1] Middlehurst, Matthew, James Large, Michael Flynn, Jason Lines, Aaron Bostrom,
-       and Anthony Bagnall. "HIVE-COTE 2.0: a new meta ensemble for time series
-       classification." arXiv preprint arXiv:2104.07551 (2021).
+    .. [1] Middlehurst, M., Large, J., Flynn, M. et al.
+       HIVE-COTE 2.0: a new meta ensemble for time series classification.
+       Mach Learn 110, 3211–3243 (2021).
+       https://doi.org/10.1007/s10994-021-06057-9
 
     Examples
     --------
@@ -103,7 +115,7 @@ class Arsenal(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test =load_unit_test(split="test")
-    >>> clf = Arsenal(num_kernels=100, n_estimators=5)
+    >>> clf = Arsenal(n_kernels=100, n_estimators=5)
     >>> clf.fit(X_train, y_train)
     Arsenal(...)
     >>> y_pred = clf.predict(X_test)
@@ -119,17 +131,18 @@ class Arsenal(BaseClassifier):
 
     def __init__(
         self,
-        num_kernels=2000,
-        n_estimators=25,
-        rocket_transform="rocket",
-        max_dilations_per_kernel=32,
-        n_features_per_kernel=4,
-        time_limit_in_minutes=0.0,
-        contract_max_n_estimators=100,
-        n_jobs=1,
+        n_kernels: int = 2000,
+        n_estimators: int = 25,
+        rocket_transform: str = "rocket",
+        max_dilations_per_kernel: int = 32,
+        n_features_per_kernel: int = 4,
+        time_limit_in_minutes: float = 0.0,
+        contract_max_n_estimators: int = 100,
+        class_weight=None,
+        n_jobs: int = 1,
         random_state=None,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.n_estimators = n_estimators
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
@@ -137,8 +150,9 @@ class Arsenal(BaseClassifier):
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
 
-        self.random_state = random_state
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -263,32 +277,29 @@ class Arsenal(BaseClassifier):
 
     def _fit_arsenal(self, X, y, keep_transformed_data=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
         train_time = 0
 
         if self.rocket_transform == "rocket":
-            base_rocket = Rocket(num_kernels=self.num_kernels)
+            base_rocket = Rocket(n_kernels=self.n_kernels)
         elif self.rocket_transform == "minirocket":
             base_rocket = MiniRocket(
-                num_kernels=self.num_kernels,
+                n_kernels=self.n_kernels,
                 max_dilations_per_kernel=self.max_dilations_per_kernel,
             )
         elif self.rocket_transform == "multirocket":
-            if self.n_channels_ > 1:
-                base_rocket = MultiRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
-            else:
-                base_rocket = MultiRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
+            base_rocket = MultiRocket(
+                n_kernels=self.n_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_features_per_kernel=self.n_features_per_kernel,
+            )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
+
+        rng = check_random_state(self.random_state)
 
         if time_limit > 0:
             self.n_estimators_ = 0
@@ -302,16 +313,7 @@ class Arsenal(BaseClassifier):
                 fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_ensemble_estimator)(
                         _clone_estimator(
-                            base_rocket,
-                            (
-                                None
-                                if self.random_state is None
-                                else (
-                                    255 if self.random_state == 0 else self.random_state
-                                )
-                                * 37
-                                * (i + 1)
-                            ),
+                            base_rocket, rng.randint(np.iinfo(np.int32).max)
                         ),
                         X,
                         y,
@@ -330,16 +332,7 @@ class Arsenal(BaseClassifier):
         else:
             fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(self._fit_ensemble_estimator)(
-                    _clone_estimator(
-                        base_rocket,
-                        (
-                            None
-                            if self.random_state is None
-                            else (255 if self.random_state == 0 else self.random_state)
-                            * 37
-                            * (i + 1)
-                        ),
-                    ),
+                    _clone_estimator(base_rocket, rng.randint(np.iinfo(np.int32).max)),
                     X,
                     y,
                     keep_transformed_data=keep_transformed_data,
@@ -363,7 +356,9 @@ class Arsenal(BaseClassifier):
         transformed_x = rocket.fit_transform(X)
         scaler = StandardScaler(with_mean=False)
         scaler.fit(transformed_x, y)
-        ridge = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        ridge = RidgeClassifierCV(
+            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+        )
         ridge.fit(scaler.transform(transformed_x), y)
         return [
             make_pipeline(rocket, scaler, ridge),
@@ -388,7 +383,9 @@ class Arsenal(BaseClassifier):
 
         clf = make_pipeline(
             StandardScaler(with_mean=False),
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
+            RidgeClassifierCV(
+                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            ),
         )
         clf.fit(Xt[idx][subsample], y[subsample])
         preds = clf.predict(Xt[idx][oob])
@@ -401,7 +398,7 @@ class Arsenal(BaseClassifier):
         return results, weight, oob
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -423,15 +420,14 @@ class Arsenal(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
-            return {"num_kernels": 20, "n_estimators": 5}
+            return {"n_kernels": 20, "n_estimators": 5}
         elif parameter_set == "contracting":
             return {
                 "time_limit_in_minutes": 5,
-                "num_kernels": 10,
+                "n_kernels": 10,
                 "contract_max_n_estimators": 2,
             }
         else:
-            return {"num_kernels": 10, "n_estimators": 2}
+            return {"n_kernels": 10, "n_estimators": 2}

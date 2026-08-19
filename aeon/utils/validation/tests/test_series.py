@@ -1,210 +1,169 @@
-"""Test series module."""
-
-__maintainer__ = ["TonyBagnall"]
+"""Test series validation module."""
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.data_generation import make_example_nested_dataframe
+from aeon.testing.testing_data import (
+    EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    MISSING_VALUES_SERIES,
+    MULTIVARIATE_SERIES,
+    UNIVARIATE_SERIES,
+)
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 from aeon.utils.validation.series import (
-    _check_is_multivariate,
-    _check_pd_dataframe,
-    _common_checks,
-    check_consistent_index_type,
-    check_equal_time_index,
-    check_is_univariate,
-    check_series,
-    check_time_index,
-    get_index_for_series,
-    is_pdmultiindex_hierarchical,
-    is_pred_interval_proba,
-    is_pred_quantiles_proba,
-    is_univariate_series,
+    check_series_variance,
+    get_n_channels,
+    get_n_timepoints,
+    get_type,
+    has_missing,
+    is_series,
+    is_univariate,
 )
 
 
-def test_is_univariate_series():
-    """Test Univariate Series."""
-    assert not is_univariate_series(None)
-    assert is_univariate_series(pd.Series([1, 2, 3, 4, 5]))
-    assert is_univariate_series(np.array([1, 2, 3, 4, 5]))
-    assert is_univariate_series(pd.DataFrame({"A": [1, 2, 3, 4, 5]}))
-    assert not is_univariate_series(
-        pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [6, 7, 8, 9, 10]})
+def test_is_series():
+    """Test is_series function."""
+    np_1d = np.random.random(size=(10))
+    series = pd.Series(np_1d)
+    np_2d = np.random.random(size=(10, 10))
+    assert is_series(np_1d)
+    assert is_series(series)
+    assert not is_series(np_2d)
+    assert is_series(np_2d, include_2d=True)
+    assert not is_series(None)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_is_series_collection(data):
+    """Test is_series function for collection data types."""
+    assert not is_series(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_get_n_timepoints(data):
+    """Test getting the number of timepoints."""
+    assert get_n_timepoints(UNIVARIATE_SERIES[data]["train"][0], axis=1) == 20
+    if data in MULTIVARIATE_SERIES.keys():
+        assert get_n_timepoints(MULTIVARIATE_SERIES[data]["train"][0], axis=1) == 20
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_get_n_channels(data):
+    """Test getting the number of channels."""
+    assert get_n_channels(UNIVARIATE_SERIES[data]["train"][0], axis=1) == 1
+    if data in MULTIVARIATE_SERIES.keys():
+        assert get_n_channels(MULTIVARIATE_SERIES[data]["train"][0], axis=1) == 2
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_has_missing(data):
+    """Test if missing values are correctly identified."""
+    assert not has_missing(UNIVARIATE_SERIES[data]["train"][0])
+    if data in MISSING_VALUES_SERIES.keys():
+        assert has_missing(MISSING_VALUES_SERIES[data]["train"][0])
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_is_univariate(data):
+    """Test if univariate series are correctly identified."""
+    assert is_univariate(UNIVARIATE_SERIES[data]["train"][0], axis=1)
+    if data in MULTIVARIATE_SERIES.keys():
+        assert not is_univariate(MULTIVARIATE_SERIES[data]["train"][0], axis=1)
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_get_type(data):
+    """Test getting the collection data type."""
+    assert get_type(UNIVARIATE_SERIES[data]["train"][0]) == data
+
+    if data in MISSING_VALUES_SERIES.keys():
+        assert get_type(MISSING_VALUES_SERIES[data]["train"][0]) == data
+    if data in MULTIVARIATE_SERIES.keys():
+        assert get_type(MULTIVARIATE_SERIES[data]["train"][0]) == data
+
+
+def test_get_type_errors():
+    """Test error catching in the get_type function."""
+    with pytest.raises(TypeError, match="must be of type"):
+        get_type(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0])
+
+    assert (
+        get_type(
+            EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0],
+            raise_error=False,
+        )
+        is None
     )
-    assert not is_univariate_series(np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]))
 
-
-def test_check_equal_time_index():
-    """Test check equal time index."""
-    assert check_equal_time_index(None) is None
-    x = (pd.Series([1, 2, 3, 4, 5]), pd.Series([2, 3, 4, 5, 6]))
-    with pytest.raises(ValueError, match="mode must be "):
-        check_equal_time_index(*x, mode="FOO")
-    index1 = pd.date_range(start="2023-01-01", end="2023-01-05")
-    index2 = pd.date_range(start="2023-01-06", end="2023-01-10")
-    ys = (
-        pd.Series([1, 2, 3, 4, 5], index=index1),
-        pd.Series([6, 7, 8, 9, 10], index=index2),
-    )
-    with pytest.raises(ValueError):
-        check_equal_time_index(*ys, mode="contains")
-    with pytest.raises(ValueError):
-        check_equal_time_index(*ys, mode="equal")
-
-
-def test__check_is_univariate():
-    """Test check_is_univariate."""
-    X = np.random.random(size=(10, 1, 20))
-    check_is_univariate(X)
-    X = np.random.random(size=(10, 3, 20))
-    with pytest.raises(ValueError, match="must be univariate"):
-        check_is_univariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    check_is_univariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    with pytest.raises(ValueError, match="must be univariate"):
-        check_is_univariate(X)
-
-
-def test__check_is_multivariate():
-    """Test _check_is_multivariate.
-
-    This function assumes ndarrays are in (n_timepoints, n_channels) shape.
-    """
-    X = pd.Series([1, 2, 3, 4, 5])
-    with pytest.raises(ValueError, match=" must have 2 or more variables, but found 1"):
-        _check_is_multivariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    _check_is_multivariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    with pytest.raises(ValueError, match="must have 2 or more variables"):
-        _check_is_multivariate(X)
-    X = np.random.random(size=(10, 1))
-
-
-def test_check_series():
-    """Test check_series."""
-    check_series(None)
-    with pytest.raises(ValueError, match="cannot be None"):
-        check_series(None, allow_None=False)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    with pytest.raises(ValueError, match="cannot both be set to True"):
-        check_series(Z=X, enforce_univariate=True, enforce_multivariate=True)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    check_series(Z=X, enforce_multivariate=True)
-
-
-def test_check_time_index():
-    """Test check_time_index."""
-    x = np.array([1, 2, 3, 4, 5])
-    with pytest.raises(NotImplementedError, match="is not supported"):
-        check_time_index("HELLO")
-    with pytest.raises(NotImplementedError, match="is not supported"):
-        check_time_index(x, enforce_index_type=pd.Series)
-    x = np.array([1, 2, 3, 5, 4])
-    with pytest.raises(ValueError, match="must be sorted monotonically increasing"):
-        check_time_index(x)
-    x = pd.RangeIndex(0)
-    with pytest.raises(ValueError, match="must contain at least some values"):
-        check_time_index(x)
-
-
-def test_check_consistent_index_type():
-    """Test check_consistent_index_type."""
-    index1 = pd.RangeIndex(start=0, stop=5)
-    index2 = pd.Index(["A", "B", "C", "D", "E"])
-
-    # An exception should be raised because index types are inconsistent
-    with pytest.raises(TypeError):
-        check_consistent_index_type(index1, index2)
-
-
-def test_df_checks():
-    """Test check_pd_dataframe function."""
-    data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    df = pd.DataFrame(data)
-    n1 = np.random.random(size=(10, 10))
-    _check_pd_dataframe(df)
-    assert _common_checks(df)
-    assert not _common_checks(n1)
-    assert not is_pred_interval_proba(n1)
-    assert not is_pred_quantiles_proba(n1)
-    assert not is_pdmultiindex_hierarchical(n1)
-    assert isinstance(get_index_for_series(n1), pd.RangeIndex)
-    assert isinstance(get_index_for_series(df), pd.RangeIndex)
-
-    columns = ["A", "B", "B"]  # Notice the duplicate column name 'B'
-    df = pd.DataFrame(data, columns=columns)
-    assert not _common_checks(df)
-    with pytest.raises(ValueError, match="must have unique column indices"):
-        _check_pd_dataframe(df)
-
-    index_strings = ["a", "b", "c"]
-    # Creating the DataFrame
-    df = pd.DataFrame(data, index=index_strings)
-    with pytest.raises(ValueError, match="is not supported for series"):
-        _check_pd_dataframe(df)
     data = {
-        "Column1": [1, 2, {"a": 1, "b": 2}],
-        # The third entry is a dictionary, which is an object
-        "Column2": ["A", "B", "C"],
+        "Double_Column": [1.5, 2.3, 3.6, 4.8, 5.2],
+        "String_Column": ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
     }
-    # Creating the DataFrame
     df = pd.DataFrame(data)
-    with pytest.raises(ValueError, match="should not have column of 'object' dtype"):
-        _check_pd_dataframe(df)
-    assert not _common_checks(df)
-    index_non_monotonic = [1, 3, 2, 5, 4]  # This index is not monotonic increasing
-    data = {"Column1": [10, 20, 30, 40, 50], "Column2": ["A", "B", "C", "D", "E"]}
-
-    # Creating the DataFrame
-    df = pd.DataFrame(data, index=index_non_monotonic)
-    assert not _common_checks(df)
+    with pytest.raises(TypeError, match="contain numeric values only"):
+        get_type(df)
 
 
-def test_is_pred_interval_proba():
-    """Test is_pred_interval_proba."""
-    # Create a correct MultiIndex DataFrame
-    idx = pd.MultiIndex.from_tuples(
-        [(1, 0.9, "upper"), (1, 0.9, "lower")], names=["level_0", "coverage", "bound"]
-    )
-    df_correct = pd.DataFrame([[0.1, 0.2]], columns=idx)
+def _make_flat_series(x):
+    if isinstance(x, pd.Series):
+        y = x.copy()
+        y.iloc[:] = 0.0
+    elif isinstance(x, pd.DataFrame):
+        y = x.copy()
+        y.iloc[:, :] = 0.0
+    else:
+        y = np.array(x, copy=True)
+        y[...] = 0.0
+    return y
 
-    # Create a DataFrame with incorrect MultiIndex levels
-    idx_wrong_levels = pd.MultiIndex.from_tuples(
-        [(1, "upper"), (1, "lower")], names=["level_0", "bound"]
-    )
-    df_wrong_levels = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_levels)
 
-    # Create a DataFrame with incorrect data type in coverage level
-    idx_wrong_dtype = pd.MultiIndex.from_tuples(
-        [(1, "0.9", "upper"), (1, "0.9", "lower")],
-        names=["level_0", "coverage", "bound"],
-    )
-    df_wrong_dtype = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_dtype)
+def _make_tiny_series(x, eps=1e-9):
+    y = _make_flat_series(x)
+    if isinstance(y, pd.Series):
+        y.iloc[0] = eps
+    elif isinstance(y, pd.DataFrame):
+        y.iat[0, 0] = eps
+    else:
+        y.flat[0] = eps
+    return y
 
-    # Create a DataFrame with incorrect coverage values
-    idx_wrong_values = pd.MultiIndex.from_tuples(
-        [(1, 1.5, "upper"), (1, -0.1, "lower")], names=["level_0", "coverage", "bound"]
-    )
-    df_wrong_values = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_values)
 
-    # Assertions
-    assert is_pred_interval_proba(df_correct)
-    assert not is_pred_interval_proba(df_wrong_levels)
-    assert not is_pred_interval_proba(df_wrong_dtype)
-    assert not is_pred_interval_proba(df_wrong_values)
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_check_series_variance(data):
+    """Test check_series_variance."""
+    assert check_series_variance(UNIVARIATE_SERIES[data]["train"][0], axis=1)
+    if data in MULTIVARIATE_SERIES.keys():
+        assert check_series_variance(MULTIVARIATE_SERIES[data]["train"][0], axis=1)
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_check_series_variance_allows_flat_series(data):
+    """Test that check_series_variance allows flat series."""
+    X = _make_flat_series(UNIVARIATE_SERIES[data]["train"][0])
+    assert check_series_variance(X, axis=1)
+    if data in MULTIVARIATE_SERIES.keys():
+        X = _make_flat_series(MULTIVARIATE_SERIES[data]["train"][0])
+        assert check_series_variance(X, axis=1)
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_check_series_variance_rejects_tiny_series(data):
+    """Test that check_series_variance rejects tiny non-flat series."""
+    X = _make_tiny_series(UNIVARIATE_SERIES[data]["train"][0])
+    with pytest.raises(ValueError, match="too little variation"):
+        check_series_variance(X, axis=1)
+
+    assert not check_series_variance(X, raise_error=False, axis=1)
+
+    if data in MULTIVARIATE_SERIES.keys():
+        X = _make_tiny_series(MULTIVARIATE_SERIES[data]["train"][0])
+        with pytest.raises(ValueError, match="too little variation"):
+            check_series_variance(X, axis=1)
+
+
+def test_check_series_variance_errors():
+    """Test error catching in check_series_variance."""
+    X = np.zeros(10)
+    with pytest.raises(ValueError, match="non-negative"):
+        check_series_variance(X, threshold=-1e-7)

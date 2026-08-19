@@ -5,7 +5,7 @@ __all__ = ["RandomIntervalSpectralEnsembleRegressor"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base._estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
@@ -27,7 +27,11 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e.
+        ``DecisionTreeRegressor(criterion="squared_error")``. Versions prior to and
+        including 1.5.0 used ``DecisionTreeRegressor(criterion="absolute_error")``
+        by default, which scales poorly with the number of cases. Pass such an
+        estimator explicitly to restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     min_interval_length : int, float, list, or tuple, default=3
@@ -56,9 +60,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -68,8 +69,8 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib. If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -78,7 +79,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     total_intervals_ : int
@@ -133,17 +134,15 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         acf_min_values=4,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-        self.use_pyfftw = use_pyfftw
 
         interval_features = [
-            PeriodogramTransformer(use_pyfftw=use_pyfftw, pad_with="mean"),
+            PeriodogramTransformer(pad_with="mean"),
             AutocorrelationFunctionTransformer(
                 n_lags=acf_lag, min_values=acf_min_values
             ),
@@ -166,11 +165,17 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             parallel_backend=parallel_backend,
         )
 
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -193,7 +198,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}

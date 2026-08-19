@@ -43,7 +43,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     feature for the transform.
 
     Multivariate capability is added by running the supervised interval extraction
-    process on each dimension of the input data.
+    process on each channel of the input data.
 
     As the interval features are already extracted for the supervised
     evaluation in fit, the fit_transform method is recommended if the transformed fit
@@ -54,7 +54,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     n_intervals : int, default=50
         The number of times the supervised interval selection process is run.
         Each supervised extraction will output a varying amount of features based on
-        series length, number of dimensions and the number of features.
+        series length, number of channels and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
     features : callable, list of callables, default=None
@@ -93,12 +93,12 @@ class SupervisedIntervals(BaseCollectionTransformer):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     intervals_ : list of tuples
         Contains information for each feature extracted in fit. Each tuple contains the
-        interval start, interval end, interval dimension and the feature extracted.
+        interval start, interval end, interval channel and the feature extracted.
         Length will be the same as the amount of transformed features.
 
     See Also
@@ -136,6 +136,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "requires_y": True,
         "algorithm_type": "interval",
     }
@@ -260,6 +261,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         self.intervals_ = []
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self.n_cases_ <= 1:
             raise ValueError(
@@ -347,8 +349,6 @@ class SupervisedIntervals(BaseCollectionTransformer):
             self._metric = fisher_score
         else:
             raise ValueError("metric must be callable or 'fisher'")
-
-        self._n_jobs = check_n_jobs(self.n_jobs)
 
         le = preprocessing.LabelEncoder()
         return X, le.fit_transform(y), rng
@@ -545,7 +545,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         return True
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -560,7 +560,6 @@ class SupervisedIntervals(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "results_comparison":
             return {

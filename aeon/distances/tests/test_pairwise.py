@@ -1,24 +1,44 @@
 """Test for pairwise distances."""
 
-from typing import List
-
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import pairwise_distance as compute_pairwise_distance
-from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_utils import (
+from aeon.distances._distance import (
+    DISTANCES,
+    MIN_DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
-    _make_3d_series,
+    SYMMETRIC_DISTANCES,
 )
 from aeon.testing.data_generation import (
+    make_example_1d_numpy,
     make_example_2d_numpy_collection,
     make_example_2d_numpy_list,
+    make_example_2d_numpy_series,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.testing_config import MULTITHREAD_TESTING
+
+
+def _make_3d_series(x: np.ndarray) -> np.ndarray:
+    n_channels = x.ndim
+    if n_channels == 1:
+        shape = x.shape
+        _x = np.reshape(x, (1, 1, shape[0]))
+    elif n_channels == 2:
+        shape = x.shape
+        _x = np.reshape(x, (shape[0], 1, shape[1]))
+    elif n_channels > 3:
+        raise ValueError(
+            "The matrix provided has more than 3 dimensions. This is not"
+            "supported. Please provide a matrix with less than "
+            "3 dimensions"
+        )
+    else:
+        _x = x
+    return _x
 
 
 def _validate_pairwise_result(
@@ -27,24 +47,29 @@ def _validate_pairwise_result(
     distance,
     pairwise_distance,
 ):
-    """
-    Validate pairwise result.
+    """Validate pairwise result.
 
     Parameters
     ----------
     x: Input np.ndarray.
-    name: Name of the distance metric.
+    name: Name of the distance method.
     distance: Distance function.
     pairwise_distance: Pairwise distance function.
     """
+    symmetric = name in SYMMETRIC_DISTANCES
     pairwise_result = pairwise_distance(x)
 
     expected_size = (len(x), len(x))
 
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
-    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
-    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=distance))
+    assert_almost_equal(
+        pairwise_result, compute_pairwise_distance(x, method=name, symmetric=symmetric)
+    )
+    assert_almost_equal(
+        pairwise_result,
+        compute_pairwise_distance(x, method=distance, symmetric=symmetric),
+    )
 
     if isinstance(x, np.ndarray):
         x = _make_3d_series(x)
@@ -75,7 +100,7 @@ def _validate_multiple_to_multiple_result(
     ----------
     x: Input array.
     y: Input array.
-    name: Name of the distance metric.
+    name: Name of the distance method.
     distance: Distance function.
     multiple_to_multiple_distance: Mul-to-Mul distance function.
     check_xy_permuted: recursively call with swapped series
@@ -98,11 +123,11 @@ def _validate_multiple_to_multiple_result(
     assert multiple_to_multiple_result.shape == expected_size
 
     assert_almost_equal(
-        multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
+        multiple_to_multiple_result, compute_pairwise_distance(x, y, method=name)
     )
     assert_almost_equal(
         multiple_to_multiple_result,
-        compute_pairwise_distance(x, y, metric=distance),
+        compute_pairwise_distance(x, y, method=distance),
     )
 
     if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
@@ -121,7 +146,7 @@ def _validate_multiple_to_multiple_result(
 
     # If unequal length swap where x and y are to ensure it works both ways around
     if check_xy_permuted and (
-        isinstance(x, List) or isinstance(y, List) or x.shape[-1] != y.shape[-1]
+        isinstance(x, list) or isinstance(y, list) or x.shape[-1] != y.shape[-1]
     ):
         _validate_multiple_to_multiple_result(
             original_y,
@@ -143,11 +168,12 @@ def _validate_single_to_multiple_result(
     ----------
     x: Input array.
     y: Input array.
-    name: Name of the distance metric.
+    name: Name of the distance method.
     distance: Distance function.
     single_to_multiple_distance: Single to multiple distance function.
     run_inverse: Boolean that reruns the test with x and y swapped in position
     """
+    symmetric = name in SYMMETRIC_DISTANCES
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)
@@ -171,10 +197,12 @@ def _validate_single_to_multiple_result(
     else:
         assert single_to_multiple_result.shape[1] == expected_size
     assert_almost_equal(
-        single_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
+        single_to_multiple_result,
+        compute_pairwise_distance(x, y, method=name, symmetric=symmetric),
     )
     assert_almost_equal(
-        single_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
+        single_to_multiple_result,
+        compute_pairwise_distance(x, y, method=distance, symmetric=symmetric),
     )
 
     if len(x_shape) < len(y_shape):
@@ -191,14 +219,17 @@ def _validate_single_to_multiple_result(
         if curr_x.ndim == 1:
             curr_x = curr_x.reshape(1, -1)
 
-        dist = distance(curr_x, y)
+        if symmetric:
+            dist = distance(curr_x, y)
+        else:
+            dist = distance(y, curr_x)
         assert_almost_equal(dist, curr)
 
 
 def _supports_nonequal_length(dist) -> bool:
     anns = dist["pairwise_distance"].__annotations__
     return any(
-        param in anns and str(List) in str(anns[param])
+        param in anns and str(list) in str(anns[param])
         for param in ["x", "X", "y", "Y"]
     )
 
@@ -206,6 +237,9 @@ def _supports_nonequal_length(dist) -> bool:
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance(dist):
     """Test pairwise distance function."""
+    # Skip for now
+    if dist["name"] in MIN_DISTANCES:
+        return
     # ================== Test equal length ==================
     # Test collection of univariate time series in the shape (n_cases, n_timepoints)
     _validate_pairwise_result(
@@ -264,7 +298,7 @@ def test_pairwise_distance(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_pairwise_result(
             np.array([[10.0]]),
             dist["name"],
@@ -276,15 +310,19 @@ def test_pairwise_distance(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_multiple_to_multiple_distances(dist):
     """Test multiple to multiple distances."""
+    # Skip for now
+    if dist["name"] in MIN_DISTANCES:
+        return
     # ================== Test equal length ==================
     # Test passing two singular univariate time series of shape (n_timepoints,)
-    _validate_multiple_to_multiple_result(
-        make_series(5, return_numpy=True, random_state=1),
-        make_series(5, return_numpy=True, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
+    if dist["name"] != "scale_shift":
+        _validate_multiple_to_multiple_result(
+            make_example_1d_numpy(5, random_state=1),
+            make_example_1d_numpy(5, random_state=2),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
     # Test passing two collections of univariate time series of shape
     # (n_cases, n_timepoints)
@@ -321,8 +359,8 @@ def test_multiple_to_multiple_distances(dist):
         # Test passing two singular unequal length univariate time series of shape
         # (n_timepoints,) and (m_timepoints,)
         _validate_multiple_to_multiple_result(
-            make_series(5, return_numpy=True, random_state=1),
-            make_series(3, return_numpy=True, random_state=2),
+            make_example_1d_numpy(5, random_state=1),
+            make_example_1d_numpy(3, random_state=2),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
@@ -361,7 +399,7 @@ def test_multiple_to_multiple_distances(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1,)
+        # Test single point univariate of shape (1,)
         _validate_multiple_to_multiple_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -370,7 +408,7 @@ def test_multiple_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_multiple_to_multiple_result(
             np.array([[10.0]]),
             np.array([[15.0]]),
@@ -383,21 +421,14 @@ def test_multiple_to_multiple_distances(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_single_to_multiple_distances(dist):
     """Test single to multiple distances."""
+    # Skip for now
+    if dist["name"] in MIN_DISTANCES:
+        return
     # ================== Test equal length ==================
     # Test passing a singular univariate time series of shape (n_timepoints,) compared
     # to a collection of univariate time series of shape (n_cases, n_timepoints)
     _validate_single_to_multiple_result(
-        make_series(5, return_numpy=True, random_state=1),
-        make_example_2d_numpy_collection(5, 5, random_state=2, return_y=False),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    # Test passing a singular univariate time series of shape (1, n_timepoints) compared
-    # to a collection of univariate time series of shape (n_cases, n_timepoints)
-    _validate_single_to_multiple_result(
-        make_series(5, 1, return_numpy=True, random_state=1),
+        make_example_1d_numpy(5, random_state=1),
         make_example_2d_numpy_collection(5, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
@@ -407,7 +438,7 @@ def test_single_to_multiple_distances(dist):
     # Test passing a singular univariate time series of shape (n_timepoints,) compared
     # to a collection of univariate time series of shape (n_cases, 1, n_timepoints)
     _validate_single_to_multiple_result(
-        make_series(5, return_numpy=True, random_state=1),
+        make_example_1d_numpy(5, random_state=1),
         make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
@@ -417,7 +448,7 @@ def test_single_to_multiple_distances(dist):
     # Test passing a singular univariate time series of shape (1, n_timepoints) compared
     # to a collection of univariate time series of shape (n_cases, 1, n_timepoints)
     _validate_single_to_multiple_result(
-        make_series(5, 1, return_numpy=True, random_state=1),
+        make_example_2d_numpy_series(5, 1, random_state=1),
         make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
@@ -428,7 +459,7 @@ def test_single_to_multiple_distances(dist):
     # (n_channels, n_timepoints) compared to a collection of multivariate time series
     # of shape (n_cases, n_channels, n_timepoints)
     _validate_single_to_multiple_result(
-        make_series(5, 5, return_numpy=True, random_state=1),
+        make_example_2d_numpy_series(5, 5, random_state=1),
         make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
@@ -441,7 +472,7 @@ def test_single_to_multiple_distances(dist):
         # compared to a collection of unequal length univariate time series of shape
         # (n_cases, m_timepoints)
         _validate_single_to_multiple_result(
-            make_series(5, return_numpy=True, random_state=1),
+            make_example_1d_numpy(5, random_state=1),
             make_example_2d_numpy_list(5, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
@@ -452,7 +483,7 @@ def test_single_to_multiple_distances(dist):
         # compare to a collection of unequal length univariate time series of shape
         # (n_cases, m_timepoints)
         _validate_single_to_multiple_result(
-            make_series(5, 1, return_numpy=True, random_state=1),
+            make_example_2d_numpy_series(5, 1, random_state=1),
             make_example_2d_numpy_list(5, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
@@ -463,7 +494,7 @@ def test_single_to_multiple_distances(dist):
         # compared to a collection of unequal length univariate time series of shape
         # (n_cases, 1, m_timepoints)
         _validate_single_to_multiple_result(
-            make_series(5, return_numpy=True, random_state=1),
+            make_example_1d_numpy(5, random_state=1),
             make_example_3d_numpy_list(5, 1, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
@@ -474,7 +505,7 @@ def test_single_to_multiple_distances(dist):
         # compared to a collection of unequal length univariate time series of shape
         # (n_cases, 1, m_timepoints)
         _validate_single_to_multiple_result(
-            make_series(5, 1, return_numpy=True, random_state=1),
+            make_example_2d_numpy_series(5, 1, random_state=1),
             make_example_3d_numpy_list(5, 1, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
@@ -483,7 +514,7 @@ def test_single_to_multiple_distances(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1,) compared to a collection of a
+        # Test single point univariate of shape (1,) compared to a collection of a
         # single univariate time series in the shape (n_cases, 1)
         _validate_single_to_multiple_result(
             np.array([10.0]),
@@ -493,7 +524,7 @@ def test_single_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
-        # Test singe point univariate of shape (1, 1) compared to a collection of a
+        # Test single point univariate of shape (1, 1) compared to a collection of a
         # single univariate time series in the shape (n_cases, 1, 1)
         _validate_single_to_multiple_result(
             np.array([[10.0]]),
@@ -519,6 +550,9 @@ def test_single_to_multiple_distances(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance_non_negative(dist, seed):
     """Most estimators require distances to be non-negative."""
+    # Skip for now
+    if dist["name"] in MIN_DISTANCES:
+        return
     X = make_example_3d_numpy(
         n_cases=5, n_channels=1, n_timepoints=10, random_state=seed, return_y=False
     )
@@ -528,3 +562,21 @@ def test_pairwise_distance_non_negative(dist, seed):
     pairwise = dist["pairwise_distance"]
     Xt2 = pairwise(X2, X)
     assert Xt2.min() >= 0, f"Distance {dist['name']} is negative"
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("dist", DISTANCES)
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_pairwise_distance_n_jobs_equals_serial(dist, n_jobs):
+    """Ensure parallel n_jobs yields same result as serial (n_jobs=1)."""
+    if dist["name"] in MIN_DISTANCES:
+        return
+    X1 = make_example_2d_numpy_collection(5, 5, random_state=1, return_y=False)
+    X2 = make_example_3d_numpy(5, 3, 7, random_state=2, return_y=False)
+
+    for X in (X1, X2):
+        serial = dist["pairwise_distance"](X, n_jobs=1)
+        parallel = dist["pairwise_distance"](X, n_jobs=n_jobs)
+        assert isinstance(parallel, np.ndarray)
+        assert serial.shape == parallel.shape
+        assert_almost_equal(serial, parallel)

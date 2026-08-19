@@ -1,5 +1,3 @@
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """Random EnhanceD Co-eye for Multivariate Time Series (RED CoMETS).
 
 Ensemble of symbolically represented time series using random forests as the base
@@ -15,13 +13,13 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
-from sklearn.neighbors import NearestNeighbors
-from sklearn.preprocessing import scale
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.dictionary_based import SAX, SFA
-from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.transformations.collection import Normalizer
+from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.transformations.collection.imbalance import SMOTE, RandomOverSampler
+from aeon.utils.validation import check_n_jobs
 
 
 class REDCOMETS(BaseClassifier):
@@ -37,20 +35,20 @@ class REDCOMETS(BaseClassifier):
         RED CoMETS variant to use from {1, 2, 3, 4, 5, 6, 7, 8, 9} to use as per [1]_.
         Defaults to RED CoMETS-3. Variants 4-9 only support multivariate problems.
     perc_length : int or float, default=5
-        Percentage of time series length used to determinne number of lenses during
+        Percentage of time series length used to determine number of lenses during
         pair selection.
     n_trees : int, default=100
         Number of trees used by each random forest sub-classifier.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib for Catch22,
+        Specify the parallelisation backend implementation in joblib,
         if ``None`` a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
@@ -64,11 +62,12 @@ class REDCOMETS(BaseClassifier):
 
     See Also
     --------
-    SAX, SFA
+    SAX, SFA, SFAFast
 
     Notes
     -----
-    Adapted from the implementation at https://github.com/zy18811/RED-CoMETS
+    Adapted from the implementation at https://github.com/zy18811/RED-CoMETS by
+    the code owner.
 
     References
     ----------
@@ -83,8 +82,8 @@ class REDCOMETS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import REDCOMETS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = REDCOMETS()  # doctest: +SKIP
     >>> clf.fit(X_train, y_train)  # doctest: +SKIP
     REDCOMETS(...)
@@ -92,7 +91,6 @@ class REDCOMETS(BaseClassifier):
     """
 
     _tags = {
-        "python_dependencies": "imblearn",
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -119,13 +117,7 @@ class REDCOMETS(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        self._n_channels = 1
-
-        self.sfa_clfs = []
-        self.sfa_transforms = []
-
-        self.sax_clfs = []
-        self.sax_transforms = []
+        self._n_channels = None
 
         super().__init__()
 
@@ -146,16 +138,18 @@ class REDCOMETS(BaseClassifier):
         self :
             Reference to self.
         """
-        if (n_channels := X.shape[1]) == 1:  # Univariate
+        self._n_channels = X.shape[1]
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        if self._n_channels == 1:  # Univariate
             assert self.variant in [1, 2, 3]
             (
                 self.sfa_transforms,
                 self.sfa_clfs,
                 self.sax_transforms,
                 self.sax_clfs,
-            ) = self._build_univariate_ensemble(np.squeeze(X), y)
+            ) = self._build_univariate_ensemble(np.squeeze(X, 1), y)
         else:  # Multivariate
-            self._n_channels = n_channels
 
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
@@ -189,26 +183,17 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms :
-            List of ``SFA()`` instances with random word length and alpabet size
+            List of ``SFAFast()`` instances with random word length and alphabet size
         sfa_clfs :
-            List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFA`
+            List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFAFast`
             transformed training data
         sax_transforms :
-            List of ``SAX()`` instances with random word length and alpabet size
+            List of ``SAX()`` instances with random word length and alphabet size
         sax_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
-        _check_soft_dependencies(
-            "imbalanced-learn",
-            package_import_alias={"imbalanced-learn": "imblearn"},
-            severity="error",
-            obj=self,
-        )
-
-        from imblearn.over_sampling import SMOTE, RandomOverSampler
-
-        X = scale(X, axis=1)  # Z-normalise
+        X = Normalizer().fit_transform(X).squeeze(1)
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -225,36 +210,46 @@ class REDCOMETS(BaseClassifier):
             y_smote = y
 
         else:
+            # Cap the minority count used for neighbour selection, matching the
+            # previous imblearn path: NearestNeighbors(n_neighbors=min_c-1)
+            # with self-exclusion leaves (min_c-2) synthesis neighbours.
             if min_neighbours > 5:
                 min_neighbours = 6
+            n_neighbors = min_neighbours - 2
+            X_3d = X[:, np.newaxis, :]
             try:
+                if n_neighbors < 1:
+                    raise ValueError(
+                        "Not enough minority samples for SMOTE neighbour search"
+                    )
                 X_smote, y_smote = SMOTE(
-                    sampling_strategy="all",
-                    k_neighbors=NearestNeighbors(
-                        n_neighbors=min_neighbours - 1, n_jobs=self.n_jobs
-                    ),
+                    n_neighbors=n_neighbors,
                     random_state=self.random_state,
-                ).fit_resample(X, y)
-
+                    distance="euclidean",
+                    n_jobs=self._n_jobs,
+                ).fit_transform(X_3d, y)
             except ValueError:
+                # aeon SMOTE raises ValueError when n_neighbors exceeds the
+                # minority class size; do not catch broader exceptions that
+                # could hide real bugs by silently falling back to ROS.
                 X_smote, y_smote = RandomOverSampler(
-                    sampling_strategy="all", random_state=self.random_state
-                ).fit_resample(X, y)
+                    random_state=self.random_state
+                ).fit_transform(X_3d, y)
+            X_smote = np.squeeze(X_smote, 1)
 
         lenses = self._get_random_lenses(X_smote, n_lenses)
-        sax_lenses = lenses[: n_lenses // 2]
-        sfa_lenses = lenses[n_lenses // 2 :]
+        sfa_lenses = lenses[: n_lenses // 2]
+        sax_lenses = lenses[n_lenses // 2 :]
 
         cv = np.min([5, len(y_smote) // len(list(set(y_smote)))])
 
         sfa_transforms = [
-            SFA(
+            SFAFast(
                 word_length=w,
                 alphabet_size=a,
                 window_size=X_smote.shape[1],
                 binning_method="equi-width",
-                save_words=True,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 random_state=self.random_state,
             )
             for w, a in sfa_lenses
@@ -262,15 +257,13 @@ class REDCOMETS(BaseClassifier):
 
         sfa_clfs = []
         for sfa in sfa_transforms:
-            sfa.fit_transform(X_smote, y_smote)
-            X_sfa = np.array(
-                [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
-            )
+            sfa.fit(X_smote, y_smote)
+            X_sfa = sfa.transform_words(X_smote)[0]
 
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             rf.fit(X_sfa, y_smote)
 
@@ -278,8 +271,9 @@ class REDCOMETS(BaseClassifier):
                 weight = 1
             elif self.variant == 3:
                 weight = cross_val_score(
-                    rf, X_sfa, y_smote, cv=cv, n_jobs=self.n_jobs
+                    rf, X_sfa, y_smote, cv=cv, n_jobs=self._n_jobs
                 ).mean()
+
             else:
                 weight = None
 
@@ -294,7 +288,7 @@ class REDCOMETS(BaseClassifier):
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             rf.fit(X_sax, y_smote)
 
@@ -302,7 +296,7 @@ class REDCOMETS(BaseClassifier):
                 weight = 1
             elif self.variant == 3:
                 weight = cross_val_score(
-                    rf, X_sax, y_smote, cv=cv, n_jobs=self.n_jobs
+                    rf, X_sax, y_smote, cv=cv, n_jobs=self._n_jobs
                 ).mean()
             else:
                 weight = None
@@ -312,7 +306,7 @@ class REDCOMETS(BaseClassifier):
         return sfa_transforms, sfa_clfs, sax_transforms, sax_clfs
 
     def _build_dimension_ensemble(self, X, y):
-        """Build an ensemble of univariate RED CoMETS ensembles over dimensions.
+        """Build an ensemble of univariate RED CoMETS ensembles over channels.
 
         Parameters
         ----------
@@ -327,13 +321,13 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms : list
-            List of lists of ``SFA()`` instances with random word length and alpabet
-            size
+            List of lists of ``SFAFast()`` instances with random word length and
+            alphabet size
         sfa_clfs : list
             List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
-            `SFA` transformed training data
+            `SFAFast` transformed training data
         sax_transforms : list
-            List of lists of ``SAX()`` instances with random word length and alpabet
+            List of lists of ``SAX()`` instances with random word length and alphabet
             size
         sax_clfs : list
             List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
@@ -397,7 +391,7 @@ class REDCOMETS(BaseClassifier):
             Predicted probabilities using the ordering in ``classes_``.
         """
         if X.shape[1] == 1:  # Univariate
-            return self._predict_proba_unvivariate(np.squeeze(X))
+            return self._predict_proba_unvivariate(np.squeeze(X, 1))
         else:  # Multivariate
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
@@ -420,15 +414,12 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = scale(X, axis=1)  # Z-normalise
+        X = Normalizer().fit_transform(X).squeeze(1)
+
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
-        placeholder_y = np.zeros(X.shape[0])
         for sfa, (rf, weight) in zip(self.sfa_transforms, self.sfa_clfs):
-            sfa.fit_transform(X, placeholder_y)
-            X_sfa = np.array(
-                [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
-            )
+            X_sfa = sfa.transform_words(X)[0]
 
             rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -451,7 +442,7 @@ class REDCOMETS(BaseClassifier):
         return pred_mat
 
     def _predict_proba_dimension_ensemble(self, X) -> np.ndarray:
-        """Predicts labels probabilities using ensemble over the dimensions.
+        """Predicts labels probabilities using ensemble over the channels.
 
         Parameters
         ----------
@@ -466,8 +457,9 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
+        X = Normalizer().fit_transform(X)
+
         ensemble_pred_mats = None
-        placeholder_y = np.zeros(X.shape[0])
 
         for d in range(self._n_channels):
             sfa_transforms = self.sfa_transforms[d]
@@ -477,15 +469,12 @@ class REDCOMETS(BaseClassifier):
             sax_clfs = self.sax_clfs[d]
 
             X_d = X[:, d, :]
-            X_d = scale(X_d, axis=1)  # Z-normalise
 
             if self.variant in [6, 7, 8, 9]:
                 dimension_pred_mats = None
             for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
-                sfa.fit_transform(X_d, placeholder_y)
-                X_sfa = np.array(
-                    [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
-                )
+                sfa_dics = sfa.transform_words(X_d)
+                X_sfa = sfa_dics[:, 0, :]
 
                 rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -571,26 +560,19 @@ class REDCOMETS(BaseClassifier):
             Randomly selected lenses.
         """
         maxCoof = 130
-
         if X.shape[1] < maxCoof:
             maxCoof = X.shape[1] - 1
-        if X.shape[1] < 100:
-            n_segments = range(5, maxCoof, 5)
-        else:
-            n_segments = range(10, maxCoof, 10)
+
+        n_segments = range(3, maxCoof)
 
         maxBin = 26
-        if X.shape[1] < maxBin:
-            maxBin = X.shape[1] - 2
-        if X.shape[0] < maxBin:
-            maxBin = X.shape[0] - 2
-
         alphas = range(3, maxBin)
 
         rng = check_random_state(self.random_state)
         lenses = np.transpose(
             [rng.choice(n_segments, size=n_lenses), rng.choice(alphas, size=n_lenses)]
         ).tolist()
+
         return lenses
 
     def _parallel_sax(self, sax_transforms, X):
@@ -606,15 +588,15 @@ class REDCOMETS(BaseClassifier):
         """
 
         def _sax_wrapper(sax):
-            return np.squeeze(sax.fit_transform(X))
+            return np.squeeze(sax.fit_transform(X), 1)
 
-        sax_parallel_res = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
+        sax_parallel_res = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_sax_wrapper)(sax) for sax in sax_transforms
         )
         return sax_parallel_res
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -628,11 +610,9 @@ class REDCOMETS(BaseClassifier):
         dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
-            instance.``create_test_instance`` uses the first (or only) dictionary in
-            `params``.
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
-            "variant": 1,
-            "n_trees": 1,
+            "variant": 3,
+            "n_trees": 3,
         }

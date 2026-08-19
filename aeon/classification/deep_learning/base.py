@@ -1,14 +1,33 @@
 """
 Abstract base class for the Keras neural network classifiers.
 
+    class name: BaseDeepClassifier
+
+Defining methods:
+    fitting         - fit(self, X, y)
+    predicting      - predict(self, X)
+                    - predict_proba(self, X)
+    model building - build_model(self, input_shape, n_classes) (abstract method)
+
+Inherited inspection methods:
+    hyper-parameter inspection  - get_params()
+    fitted parameter inspection - get_fitted_params()
+
+State:
+    fitted model/strategy   - by convention, any attributes ending in "_"
+    fitted state flag       - is_fitted (property)
+    fitted state inspection - check_is_fitted()
+
 The reason for this class between BaseClassifier and deep_learning classifiers is
 because we can generalise tags, _predict and _predict_proba
 """
 
-__maintainer__ = []
+from __future__ import annotations
+
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseDeepClassifier"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -17,7 +36,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 
 
-class BaseDeepClassifier(BaseClassifier, ABC):
+class BaseDeepClassifier(BaseClassifier):
     """Abstract base class for deep learning time series classifiers.
 
     The base classifier provides a deep learning default method for
@@ -32,22 +51,21 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
-    Arguments
-    ---------
+    Attributes
+    ----------
     self.model = None
-
     """
 
     _tags = {
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
-        "python_version": "<3.12",
     }
 
+    @abstractmethod
     def __init__(
         self,
         batch_size=40,
@@ -162,17 +180,20 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
 
-    def load_model(self, model_path, classes):
+    def load_model(self, model_path: str, classes: np.ndarray) -> None:
         """Load a pre-trained keras model instead of fitting.
 
+        Pretrained model should be saved using "save_last_model" or
+        "save_best_model" boolean parameter.
         When calling this function, all functionalities can be used
         such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : str (path including model name and extension)
-            The directory where the model will be saved including the model
-            name with a ".keras" extension.
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
             Example: model_path="path/to/file/best_model.keras"
         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained
@@ -185,7 +206,21 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         import tensorflow as tf
 
         self.model_ = tf.keras.models.load_model(model_path)
-        self._is_fitted = True
+        self.is_fitted = True
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)
+
+    def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
+        import tensorflow as tf
+
+        model_checkpoint_ = tf.keras.callbacks.ModelCheckpoint(
+            filepath=file_path + file_name + ".keras",
+            monitor="loss",
+            save_best_only=True,
+        )
+
+        if isinstance(callbacks, list):
+            return callbacks + [model_checkpoint_]
+        else:
+            return [callbacks] + [model_checkpoint_]

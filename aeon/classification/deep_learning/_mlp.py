@@ -1,6 +1,6 @@
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Multi Layer Perceptron Network (MLP) classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["MLPClassifier"]
 
 import gc
@@ -21,13 +21,30 @@ class MLPClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
+    n_layers : int, optional (default=3)
+        The number of dense layers in the MLP.
+    n_units : Union[int, List[int]], optional (default=500)
+        Number of units in each dense layer.
+    activation : Union[str, List[str]], optional (default='relu')
+        Activation function(s) for each dense layer.
+    dropout_rate : Union[float, List[Union[int, float]]], optional (default=None)
+        Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used
+        except the first element, being 0.1. Dropout rate(s) are typically a number
+        in the interval [0, 1].
+    dropout_last : float, default = None
+        The dropout rate of the last layer. If set to None, defaults to 0.3.
+    use_bias : bool, default = True
+        Condition on whether or not to use bias values for dense layers.
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
     use_mini_batch_size : boolean, default = False
         Condition on using the mini batch size formula
-    callbacks : callable or None, default
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -37,8 +54,8 @@ class MLPClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    loss : string, default="mean_squared_error"
-        fit parameter for the keras model
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -51,6 +68,8 @@ class MLPClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -59,14 +78,16 @@ class MLPClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
-    metrics : list of strings, default=["accuracy"],
-    activation : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias : boolean, default = True
-        whether the layer uses a bias vector.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
     Notes
     -----
@@ -91,35 +112,47 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 3,
+        n_units: int | list[int] = 500,
+        activation: str | list[str] = "relu",
+        dropout_rate: float | list[int | float] = None,
+        dropout_last: float = None,
+        use_bias: bool = True,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         random_state=None,
-        activation="sigmoid",
-        use_bias=True,
         optimizer=None,
     ):
+        self.n_layers = n_layers
+        self.n_units = n_units
+        self.activation = activation
+        self.dropout_rate = dropout_rate
+        self.dropout_last = dropout_last
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.use_mini_batch_size = use_mini_batch_size
-        self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.optimizer = optimizer
 
         self.history = None
@@ -130,13 +163,20 @@ class MLPClassifier(BaseDeepClassifier):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork()
+        self._network = MLPNetwork(
+            n_layers=self.n_layers,
+            n_units=self.n_units,
+            activation=self.activation,
+            dropout_rate=self.dropout_rate,
+            dropout_last=self.dropout_last,
+            use_bias=self.use_bias,
+        )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
+        is the number of channels, m is the series length. Keras/tensorflow assume
         data is in shape (m,d). This method also assumes (m,d). Transpose should
         happen in fit.
 
@@ -155,19 +195,19 @@ class MLPClassifier(BaseDeepClassifier):
         import tensorflow as tf
         from tensorflow import keras
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
         else:
-            metrics = self.metrics
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=n_classes, activation="softmax", use_bias=self.use_bias
-        )(output_layer)
+        output_layer = keras.layers.Dense(units=n_classes, activation="softmax")(
+            output_layer
+        )
 
         self.optimizer_ = (
             keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
@@ -177,7 +217,7 @@ class MLPClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
         return model
 
@@ -204,6 +244,9 @@ class MLPClassifier(BaseDeepClassifier):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -211,8 +254,8 @@ class MLPClassifier(BaseDeepClassifier):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=200, min_lr=0.1
                 ),
@@ -222,9 +265,12 @@ class MLPClassifier(BaseDeepClassifier):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         if self.use_mini_batch_size:
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
@@ -256,7 +302,7 @@ class MLPClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -275,7 +321,6 @@ class MLPClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

@@ -8,7 +8,6 @@ __maintainer__ = []
 __all__ = ["ProbabilityThresholdEarlyClassifier"]
 
 import copy
-from typing import Tuple
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -18,6 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.early_classification.base import BaseEarlyClassifier
 from aeon.classification.interval_based import DrCIFClassifier
+from aeon.utils.validation import check_n_jobs
 
 
 class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
@@ -31,7 +31,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         Build n classifiers, where n is the number of classification_points.
         While a prediction is still deemed unsafe:
             Make a prediction using the series length at classification point i.
-            Decide whether the predcition is safe or not using decide_prediction_safety.
+            Decide whether the prediction is safe or not using decide_prediction_safety.
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         List of integer time series time stamps to build classifiers and allow
         predictions at. Early predictions must have a series length that matches a value
         in the _classification_points List. Duplicate values will be removed, and the
-        full series length will be appeneded if not present.
+        full series length will be appended if not present.
         If None, will use 20 thresholds linearly spaces from 0 to the series length.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
@@ -65,7 +65,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The full length of each series.
     classes_ : list
@@ -73,9 +73,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     state_info : 2d np.ndarray (4 columns)
         Information stored about input instances after the decision-making process in
         update/predict methods. Used in update methods to make decisions based on
-        the resutls of previous method calls.
+        the results of previous method calls.
         Records in order: the time stamp index, the number of consecutive decisions
         made, the predicted class and the series length.
+    estimators_ : list of BaseEstimator
+        The fitted estimators for each time stamp.
 
     Examples
     --------
@@ -84,8 +86,8 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     ... )
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = ProbabilityThresholdEarlyClassifier(
     ...     classification_points=[6, 16, 24],
     ...     estimator=TimeSeriesForestClassifier(n_estimators=5),
@@ -117,7 +119,6 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._estimators = []
         self._classification_points = []
 
         self.n_cases_ = 0
@@ -128,6 +129,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._estimator = (
             DrCIFClassifier() if self.estimator is None else self.estimator
@@ -161,7 +163,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         rng = check_random_state(self.random_state)
 
-        self._estimators = Parallel(n_jobs=threads, prefer="threads")(
+        self.estimators_ = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
@@ -173,15 +175,15 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return self
 
-    def _predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         out = self._predict_proba(X)
         return self._proba_output_to_preds(out)
 
-    def _update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         out = self._update_predict_proba(X)
         return self._proba_output_to_preds(out)
 
-    def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
@@ -223,7 +225,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return probas, accept_decision
 
-    def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         n_timepoints = X.shape[2]
 
         # maybe use the largest index that is smaller than the series length
@@ -308,7 +310,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return probas, accept_decision, state_info
 
-    def _score(self, X, y) -> Tuple[float, float, float]:
+    def _score(self, X, y) -> tuple[float, float, float]:
         self._predict(X)
         hm, acc, earl = self.compute_harmonic_mean(self.state_info, y)
 
@@ -366,7 +368,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return estimator
 
     def _predict_proba_for_estimator(self, X, i, rng):
-        probas = self._estimators[i].predict_proba(
+        probas = self.estimators_[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )
         preds = np.array(
@@ -417,8 +419,8 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         )
         return preds, out[1]
 
-    def compute_harmonic_mean(self, state_info, y) -> Tuple[float, float, float]:
-        """Calculate harmonic mean from a state info matrix and array of class labeles.
+    def compute_harmonic_mean(self, state_info, y) -> tuple[float, float, float]:
+        """Calculate harmonic mean from a state info matrix and array of class labels.
 
         Parameters
         ----------
@@ -461,7 +463,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -480,7 +482,6 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.feature_based import SummaryClassifier
         from aeon.classification.interval_based import TimeSeriesForestClassifier

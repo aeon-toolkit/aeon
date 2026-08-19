@@ -12,8 +12,4 @@
 <a href='https://github.com/ltsaprounis'><img src='https://avatars.githubusercontent.com/u/64217214?v=4' class='avatar' /></a> <br />
 <p><a href='https://github.com/ltsaprounis'>Leonidas Tsaprounis</a></p>
 </div>
-<div>
-<a href='https://github.com/aiwalter'><img src='https://avatars.githubusercontent.com/u/29627036?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/aiwalter'>Martin Walter</a></p>
-</div>
 </div>

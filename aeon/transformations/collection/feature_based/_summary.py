@@ -1,7 +1,7 @@
 """Summary feature transformer."""
 
-__maintainer__ = []
-__all__ = ["SevenNumberSummaryTransformer"]
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["SevenNumberSummary"]
 
 import numpy as np
 
@@ -15,31 +15,33 @@ from aeon.utils.numba.stats import (
 )
 
 
-class SevenNumberSummaryTransformer(BaseCollectionTransformer):
+class SevenNumberSummary(BaseCollectionTransformer):
     """Seven-number summary transformer.
 
     Transforms a time series into seven basic summary statistics.
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+    summary_stats : ["default", "quantiles", "bowley", "tukey"], default="default"
         The summary statistics to compute.
         The options are as follows, with float denoting the percentile value extracted
         from the series:
             - "default": mean, std, min, max, 0.25, 0.5, 0.75
-            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
+            - "quantiles": 0.0215, 0.0887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
 
     Examples
     --------
-    >>> from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer  # noqa
+    >>> from aeon.transformations.collection.feature_based import (
+    ...     SevenNumberSummary,
+    ... )
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
     ...                           random_state=0, return_y=False)
-    >>> tnf = SevenNumberSummaryTransformer()
+    >>> tnf = SevenNumberSummary()
     >>> tnf.fit(X)
-    SevenNumberSummaryTransformer(...)
+    SevenNumberSummary(...)
     >>> print(tnf.transform(X)[0])
     [1.12176987 0.52340259 0.         1.92732552 0.8542758  1.14764656
      1.39573111]
@@ -89,10 +91,10 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
                 0.5,
                 0.75,
             ]
-        elif self.summary_stats == "percentiles":
+        elif self.summary_stats == "quantiles":
             return [
-                0.215,
-                0.887,
+                0.0215,
+                0.0887,
                 0.25,
                 0.5,
                 0.75,

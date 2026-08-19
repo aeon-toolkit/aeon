@@ -13,7 +13,7 @@ example can be found [here](https://gist.github.com/nateGeorge/5455d2c57fb33c1ae
 - Documentation formatting using the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html)
 style
 
-### Code formatting and linting
+## Code formatting and linting
 
 Our coding standards are enforced through our CI/CD workflows via [pre-commit](https://pre-commit.com/).
 We adhere to the code formatting standards using the following `pre-commit` hooks:
@@ -35,19 +35,17 @@ quality
 The full `pre-commit` configuration can be found in [.pre-commit-config.yaml](https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml).
 Additional configurations for some hooks can be found in the [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml).
 
-### `aeon` specific code formatting conventions
+## `aeon` specific code formatting conventions
 
-- Check out our [glossary](glossary.md) for
-preferred terminology
 - Use underscores to separate words in non-class names i.e.`n_cases` rather than
-`n_cases`.
-- Exceptionally, capital letters `X`, `Y`, `Z`, are permissible as variable names or
+`ncases`,  `nCases` or similar.
+- Exceptionally, capital letters i.e. `X` are permissible as variable names or
 part of variable names such as `X_train` if referring to data sets.
 - Use absolute imports for references inside `aeon`.
 - Don’t use `import *` in the source code. It is considered harmful by the official
 Python recommendations.
 
-### Using `pre-commit`
+## Using `pre-commit`
 
 To set up pre-commit, follow these steps in a Python environment with the `aeon`
 `dev` dependencies installed.
@@ -59,7 +57,7 @@ clone:
 includes `pre-commit`:
 
 ```{code-block} powershell
-pip install -e .[dev]
+pip install --editable .[dev]
 ```
 
 2. Set up pre-commit:

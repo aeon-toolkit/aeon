@@ -1,6 +1,6 @@
 """Channel Selection techniques for Multivariate Time Series Classification.
 
-A transformer that selects a subset of channels/dimensions for time series
+A transformer that selects a subset of channels for time series
 classification using a scoring system with an elbow point method.
 """
 
@@ -9,7 +9,6 @@ __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
 import itertools
-from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -20,7 +19,7 @@ from aeon.distances import distance as aeon_distance
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 
-def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
+def _detect_knee_point(values: list[float], indices: list[int]) -> list[int]:
     """Find elbow point."""
     n_points = len(values)
     all_coords = np.vstack((range(n_points), values)).T
@@ -36,13 +35,13 @@ def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
     knee = values[knee_idx]
     best_dims = [idx for (elem, idx) in zip(values, indices) if elem > knee]
     if len(best_dims) == 0:
-        # return all dimensions if no elbow point is found
+        # return all channels if no elbow point is found
         return indices
     return best_dims
 
 
 def _create_distance_matrix(
-    prototype: Union[pd.DataFrame, np.ndarray],
+    prototype: pd.DataFrame | np.ndarray,
     class_vals: np.array,
     distance: str = "euclidean",
 ) -> pd.DataFrame:
@@ -65,13 +64,11 @@ def _create_distance_matrix(
 
     """
     if prototype.shape[0] != len(class_vals):
-        raise ValueError(
-            f"Prototype {prototype.shape[0]} and \
-            class values {len(class_vals)} must be of same length."
-        )
+        raise ValueError(f"Prototype {prototype.shape[0]} and \
+            class values {len(class_vals)} must be of same length.")
 
     distance_pair = list(itertools.combinations(range(0, class_vals.shape[0]), 2))
-    # create a dictionary of class values and their indexes
+    # create a dictionary of class values and their indices
     idx_class = {i: class_vals[i] for i in range(0, len(class_vals))}
 
     distance_frame = pd.DataFrame()
@@ -90,7 +87,7 @@ def _create_distance_matrix(
                     lambda row: aeon_distance(
                         row[: row.shape[0] // 2],
                         row[row.shape[0] // 2 :],
-                        metric="dtw",
+                        method=distance,
                     ),
                     axis=1,
                     arr=np.concatenate((cls1_ch, cls2_ch), axis=1),
@@ -114,8 +111,10 @@ class _ClassPrototype:
 
     Attributes
     ----------
-    prototype : str
+    prototype_type : str
         Class prototype to be used for class prototype creation.
+    mean_centering : bool
+        If True, mean centering is applied to the class prototype.
 
     Notes
     -----
@@ -159,14 +158,14 @@ class _ClassPrototype:
         return np.mean(class_X, axis=0)
 
     def _create_mad_prototype(self, X: np.ndarray, y: np.array) -> np.array:
-        """Create mad class prototype for each class."""
+        """Create MAD class prototype for each class."""
         classes_ = np.unique(y)
 
         channel_median = []
         for class_ in classes_:
             class_idx = np.where(
                 y == class_
-            )  # find the indexes of data point where particular class is located
+            )  # find the indices of data point where particular class is located
 
             class_median = np.median(X[class_idx], axis=0)
             class_median = self._mad_median(X[class_idx], class_median)
@@ -181,14 +180,14 @@ class _ClassPrototype:
         return np.vstack(channel_mean)
 
     def _create_median_prototype(self, X: np.ndarray, y: np.array):
-        """Create mean class prototype for each class."""
+        """Create median class prototype for each class."""
         classes_ = np.unique(y)
         channel_median = [np.median(X[y == class_], axis=0) for class_ in classes_]
         return np.vstack(channel_median)
 
     def _create_prototype(
         self, X: np.ndarray, y: np.array
-    ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
+    ) -> tuple[pd.DataFrame, np.array] | tuple[np.ndarray, np.array]:
         """Create the class prototype for each class."""
         le = LabelEncoder()
         y_ind = le.fit_transform(y)
@@ -221,20 +220,18 @@ class ElbowClassSum(BaseChannelSelector):
     distance between the class centroids by aggregating the distance for every
     class pair across each channel.
 
-    Note: Channels, variables, dimensions, features are used interchangeably in
+    Note: Channels, variables and features are used interchangeably in
     literature. E.g., channel selection = variable selection.
 
     Parameters
     ----------
-    distance : str
-        Distance metric to use for creating the class prototype.
-        Default: 'euclidean'
-    prototype_type : str
+    distance : str, default = "euclidean"
+        Distance metric to use for the pairwise distance matrix between
+        class prototypes.
+    prototype_type : str, default = "mean"
         Type of class prototype to use for representing a class.
-        Default: 'mean'
-    mean_center : bool
+    mean_center : bool, default = False
         If True, mean centering is applied to the class prototype.
-        Default: False
 
     Attributes
     ----------
@@ -288,7 +285,6 @@ class ElbowClassSum(BaseChannelSelector):
         self.distance = distance
         self.mean_center = mean_center
         self.prototype_type = prototype_type
-        self._is_fitted = False
 
         super().__init__()
 
@@ -321,7 +317,6 @@ class ElbowClassSum(BaseChannelSelector):
 
         self.channels_selected_.extend(_detect_knee_point(distance, indices))
         self.rank = self.channels_selected_
-        self._is_fitted = True
 
         return self
 
@@ -332,15 +327,16 @@ class ElbowClassPairwise(BaseChannelSelector):
     Overview: From the input of multivariate time series data, create a distance
     matrix [1] by calculating the distance between each class centroid. The ECP
     selects the subset of channels using the elbow method that maximizes the
-    distance between each class centroids pair across all channels.
+    distance between each pair of class centroids across all channels.
 
-    Note: Channels, variables, dimensions, features are used interchangeably in
+    Note: Channels, variables and features are used interchangeably in
     literature.
 
     Parameters
     ----------
-    distance : str, default  = "euclidean"
-        Distance metric to use for creating the class prototype.
+    distance : str, default = "euclidean"
+        Distance metric to use for the pairwise distance matrix between
+        class prototypes.
     prototype_type : str, default = "mad"
         Type of class prototype to use for representing a class.
         Options: ['mean', 'median', 'mad'].
@@ -400,7 +396,6 @@ class ElbowClassPairwise(BaseChannelSelector):
         self.distance = distance
         self.prototype_type = prototype_type
         self.mean_center = mean_center
-        self._is_fitted = False
 
         super().__init__()
 
@@ -438,10 +433,10 @@ class ElbowClassPairwise(BaseChannelSelector):
 
         self.rank = self._rank()
         self.channels_selected_ = list(set(self.channels_selected_))
-        self._is_fitted = True
+
         return self
 
-    def _rank(self) -> List[int]:
+    def _rank(self) -> list[int]:
         """Return the rank of channels for ECP."""
         all_index = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
         series = self.distance_frame.sum(axis=1)

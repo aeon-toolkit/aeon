@@ -7,6 +7,8 @@ __maintainer__ = []
 __all__ = ["Catch22"]
 
 import math
+import warnings
+from weakref import WeakSet
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -16,37 +18,80 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series, z_normalise_series_with_mean
 from aeon.utils.numba.stats import mean, numba_max, numba_min
 from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 feature_names = [
     "DN_HistogramMode_5",
     "DN_HistogramMode_10",
-    "SB_BinaryStats_diff_longstretch0",
-    "DN_OutlierInclude_p_001_mdrmd",
-    "DN_OutlierInclude_n_001_mdrmd",
     "CO_f1ecac",
     "CO_FirstMin_ac",
-    "SP_Summaries_welch_rect_area_5_1",
-    "SP_Summaries_welch_rect_centroid",
-    "FC_LocalSimple_mean3_stderr",
-    "CO_trev_1_num",
     "CO_HistogramAMI_even_2_5",
-    "IN_AutoMutualInfoStats_40_gaussian_fmmi",
+    "CO_trev_1_num",
     "MD_hrv_classic_pnn40",
     "SB_BinaryStats_mean_longstretch1",
-    "SB_MotifThree_quantile_hh",
-    "FC_LocalSimple_mean1_tauresrat",
-    "CO_Embed2_Dist_tau_d_expfit_meandiff",
-    "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
-    "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
     "SB_TransitionMatrix_3ac_sumdiagcov",
     "PD_PeriodicityWang_th0_01",
+    "CO_Embed2_Dist_tau_d_expfit_meandiff",
+    "IN_AutoMutualInfoStats_40_gaussian_fmmi",
+    "FC_LocalSimple_mean1_tauresrat",
+    "DN_OutlierInclude_p_001_mdrmd",
+    "DN_OutlierInclude_n_001_mdrmd",
+    "SP_Summaries_welch_rect_area_5_1",
+    "SB_BinaryStats_diff_longstretch0",
+    "SB_MotifThree_quantile_hh",
+    "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
+    "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
+    "SP_Summaries_welch_rect_centroid",
+    "FC_LocalSimple_mean3_stderr",
 ]
+
+feature_names_short = [
+    "mode_5",
+    "mode_10",
+    "acf_timescale",
+    "acf_first_min",
+    "ami2",
+    "trev",
+    "high_fluctuation",
+    "stretch_high",
+    "transition_matrix",
+    "periodicity",
+    "embedding_dist",
+    "ami_timescale",
+    "whiten_timescale",
+    "outlier_timing_pos",
+    "outlier_timing_neg",
+    "centroid_freq",
+    "stretch_decreasing",
+    "entropy_pairs",
+    "rs_range",
+    "dfa",
+    "low_freq_power",
+    "forecast_error",
+]
+
+
+# TODO remove with 'use_pycatch22' in v1.7.0
+_WARNED_USE_PYCATCH22_ESTIMATORS = WeakSet()
+
+
+def _warn_use_pycatch22_deprecated(estimator):
+    """Emit the ``use_pycatch22`` warning once per live estimator instance."""
+    if estimator not in _WARNED_USE_PYCATCH22_ESTIMATORS:
+        warnings.warn(
+            "The 'use_pycatch22' parameter is deprecated and will be removed in "
+            "v1.7.0. Setting use_pycatch22=True continues to use pycatch22 until "
+            "removal. Omit the parameter to use aeon's faster implementation.",
+            FutureWarning,
+            stacklevel=3,
+        )
+        _WARNED_USE_PYCATCH22_ESTIMATORS.add(estimator)
 
 
 class Catch22(BaseCollectionTransformer):
     """Canonical Time-series Characteristics (Catch22).
 
-    Overview: Input n series with d dimensions of length m.
+    Overview: Input n series with d channels of length m.
     Transforms series into the 22 Catch22 [1]_ features extracted from the hctsa [2]_
     toolbox.
 
@@ -57,30 +102,48 @@ class Catch22(BaseCollectionTransformer):
         list of names or indices for multiple features. If "all", all features are
         extracted.
         Valid features are as follows:
-            ["DN_HistogramMode_5", "DN_HistogramMode_10",
-            "SB_BinaryStats_diff_longstretch0", "DN_OutlierInclude_p_001_mdrmd",
-            "DN_OutlierInclude_n_001_mdrmd", "CO_f1ecac", "CO_FirstMin_ac",
-            "SP_Summaries_welch_rect_area_5_1", "SP_Summaries_welch_rect_centroid",
-            "FC_LocalSimple_mean3_stderr", "CO_trev_1_num", "CO_HistogramAMI_even_2_5",
-            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "MD_hrv_classic_pnn40",
-            "SB_BinaryStats_mean_longstretch1", "SB_MotifThree_quantile_hh",
-            "FC_LocalSimple_mean1_tauresrat", "CO_Embed2_Dist_tau_d_expfit_meandiff",
+            ["DN_HistogramMode_5", "DN_HistogramMode_10", "CO_f1ecac","CO_FirstMin_ac",
+            "CO_HistogramAMI_even_2_5", "CO_trev_1_num", "MD_hrv_classic_pnn40",
+            "SB_BinaryStats_mean_longstretch1", "SB_TransitionMatrix_3ac_sumdiagcov",
+            "PD_PeriodicityWang_th0_01", "CO_Embed2_Dist_tau_d_expfit_meandiff",
+            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "FC_LocalSimple_mean1_tauresrat",
+            "DN_OutlierInclude_p_001_mdrmd", "DN_OutlierInclude_n_001_mdrmd",
+            "SP_Summaries_welch_rect_area_5_1", "SB_BinaryStats_diff_longstretch0",
+            "SB_MotifThree_quantile_hh", "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
-            "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
-            "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
+            "SP_Summaries_welch_rect_centroid", "FC_LocalSimple_mean3_stderr"]
+        Shortened:
+            ["mode_5", "mode_10", "acf_timescale", "acf_first_min",
+            "ami2", "trev", "high_fluctuation",
+            "stretch_high", "transition_matrix",
+            "periodicity", "embedding_dist",
+            "ami_timescale", "whiten_timescale",
+            "outlier_timing_pos", "outlier_timing_neg",
+            "centroid_freq", "stretch_decreasing",
+            "entropy_pairs", "rs_range",
+            "dfa",
+            "low_freq_power", "forecast_error"]
+
     catch24 : bool, default=False
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. Requires multiple input
         cases. ``-1`` means using all processors.
@@ -122,12 +185,12 @@ class Catch22(BaseCollectionTransformer):
     >>> tnf.fit(X)
     Catch22(...)
     >>> print(tnf.transform(X)[0])
-    [1.15639532e+00 1.31700575e+00 3.00000000e+00 2.00000000e-01
-     0.00000000e+00 1.00000000e+00 2.00000000e+00 1.10933565e-32
-     1.96349541e+00 5.10744398e-01 2.33853577e-01 3.89048349e-01
-     2.00000000e+00 1.00000000e+00 4.00000000e+00 1.88915916e+00
-     1.00000000e+00 1.70859420e-01 0.00000000e+00 0.00000000e+00
-     2.46913580e-02 0.00000000e+00]
+    [1.15639531e+00 1.31700577e+00 5.66227710e-01 2.00000000e+00
+     3.89048349e-01 2.33853577e-01 1.00000000e+00 3.00000000e+00
+     8.23045267e-03 0.00000000e+00 1.70859420e-01 2.00000000e+00
+     1.00000000e+00 7.00000000e-01 2.00000000e-01 1.10933565e-32
+     4.00000000e+00 2.04319187e+00 0.00000000e+00 0.00000000e+00
+     1.96349541e+00 5.51667002e-01]
     """
 
     _tags = {
@@ -135,16 +198,18 @@ class Catch22(BaseCollectionTransformer):
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:unequal_length": True,
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "fit_is_empty": True,
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=False,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=False,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         n_jobs=1,
         parallel_backend=None,
     ):
@@ -156,10 +221,12 @@ class Catch22(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        if use_pycatch22:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
-
         super().__init__()
+
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated(self)
+        if use_pycatch22 is True:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.
@@ -174,89 +241,259 @@ class Catch22(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : array-like, shape = [n_cases, n_features*n_channels]
-            The catch22 features for each dimension.
+        Xt : array-like, shape = [n_cases, num_features*n_channels]
+            The catch22 features for each channel.
         """
         n_cases = len(X)
 
         f_idx = _verify_features(self.features, self.catch24)
+        n_jobs = check_n_jobs(self.n_jobs)
 
-        threads_to_use = check_n_jobs(self.n_jobs)
+        features = [
+            Catch22._DN_HistogramMode_5,
+            Catch22._DN_HistogramMode_10,
+            Catch22._CO_f1ecac,
+            Catch22._CO_FirstMin_ac,
+            Catch22._CO_HistogramAMI_even_2_5,
+            Catch22._CO_trev_1_num,
+            Catch22._MD_hrv_classic_pnn40,
+            Catch22._SB_BinaryStats_mean_longstretch1,
+            Catch22._SB_TransitionMatrix_3ac_sumdiagcov,
+            Catch22._PD_PeriodicityWang_th0_01,
+            Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff,
+            Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi,
+            Catch22._FC_LocalSimple_mean1_tauresrat,
+            Catch22._DN_OutlierInclude_p_001_mdrmd,
+            Catch22._DN_OutlierInclude_n_001_mdrmd,
+            Catch22._SP_Summaries_welch_rect_area_5_1,
+            Catch22._SB_BinaryStats_diff_longstretch0,
+            Catch22._SB_MotifThree_quantile_hh,
+            Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
+            Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
+            Catch22._SP_Summaries_welch_rect_centroid,
+            Catch22._FC_LocalSimple_mean3_stderr,
+        ]
 
-        if self.use_pycatch22:
-            import pycatch22
+        use_pycatch22_transform = False
+        if self.use_pycatch22 is True:
+            if _check_soft_dependencies("pycatch22", severity="none"):
+                import pycatch22
 
-            features = [
-                pycatch22.DN_HistogramMode_5,
-                pycatch22.DN_HistogramMode_10,
-                pycatch22.SB_BinaryStats_diff_longstretch0,
-                pycatch22.DN_OutlierInclude_p_001_mdrmd,
-                pycatch22.DN_OutlierInclude_n_001_mdrmd,
-                pycatch22.CO_f1ecac,
-                pycatch22.CO_FirstMin_ac,
-                pycatch22.SP_Summaries_welch_rect_area_5_1,
-                pycatch22.SP_Summaries_welch_rect_centroid,
-                pycatch22.FC_LocalSimple_mean3_stderr,
-                pycatch22.CO_trev_1_num,
-                pycatch22.CO_HistogramAMI_even_2_5,
-                pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
-                pycatch22.MD_hrv_classic_pnn40,
-                pycatch22.SB_BinaryStats_mean_longstretch1,
-                pycatch22.SB_MotifThree_quantile_hh,
-                pycatch22.FC_LocalSimple_mean1_tauresrat,
-                pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
-                pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
-                pycatch22.SB_TransitionMatrix_3ac_sumdiagcov,
-                pycatch22.PD_PeriodicityWang_th0_01,
-            ]
+                features = [
+                    pycatch22.DN_HistogramMode_5,
+                    pycatch22.DN_HistogramMode_10,
+                    pycatch22.CO_f1ecac,
+                    pycatch22.CO_FirstMin_ac,
+                    pycatch22.CO_HistogramAMI_even_2_5,
+                    pycatch22.CO_trev_1_num,
+                    pycatch22.MD_hrv_classic_pnn40,
+                    pycatch22.SB_BinaryStats_mean_longstretch1,
+                    pycatch22.SB_TransitionMatrix_3ac_sumdiagcov,
+                    pycatch22.PD_PeriodicityWang_th0_01,
+                    pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
+                    pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
+                    pycatch22.FC_LocalSimple_mean1_tauresrat,
+                    pycatch22.DN_OutlierInclude_p_001_mdrmd,
+                    pycatch22.DN_OutlierInclude_n_001_mdrmd,
+                    pycatch22.SP_Summaries_welch_rect_area_5_1,
+                    pycatch22.SB_BinaryStats_diff_longstretch0,
+                    pycatch22.SB_MotifThree_quantile_hh,
+                    pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
+                    pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
+                    pycatch22.SP_Summaries_welch_rect_centroid,
+                    pycatch22.FC_LocalSimple_mean3_stderr,
+                ]
+
+                use_pycatch22_transform = True
+            else:
+                warnings.warn(
+                    "pycatch22 not installed, but 'self.use_pycatch22' is set to True."
+                    "Please install pycatch22. Aeon catch22 will be used.",
+                    stacklevel=2,
+                )
+
+        if use_pycatch22_transform:
+            func = self._transform_case_pycatch22
+            case_args = [(X[i], f_idx, features) for i in range(n_cases)]
         else:
-            features = [
-                Catch22._DN_HistogramMode_5,
-                Catch22._DN_HistogramMode_10,
-                Catch22._SB_BinaryStats_diff_longstretch0,
-                Catch22._DN_OutlierInclude_p_001_mdrmd,
-                Catch22._DN_OutlierInclude_n_001_mdrmd,
-                Catch22._CO_f1ecac,
-                Catch22._CO_FirstMin_ac,
-                Catch22._SP_Summaries_welch_rect_area_5_1,
-                Catch22._SP_Summaries_welch_rect_centroid,
-                Catch22._FC_LocalSimple_mean3_stderr,
-                Catch22._CO_trev_1_num,
-                Catch22._CO_HistogramAMI_even_2_5,
-                Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi,
-                Catch22._MD_hrv_classic_pnn40,
-                Catch22._SB_BinaryStats_mean_longstretch1,
-                Catch22._SB_MotifThree_quantile_hh,
-                Catch22._FC_LocalSimple_mean1_tauresrat,
-                Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff,
-                Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
-                Catch22._SB_TransitionMatrix_3ac_sumdiagcov,
-                Catch22._PD_PeriodicityWang_th0_01,
-            ]
+            # The two welch power-spectrum features (indices 15 and 20) each need
+            # np.fft.fft of the mean-centred series. np.fft.fft has a high fixed
+            # per-call cost on short interval series, so compute it once for the
+            # whole batch (all cases share a length) instead of once per case. The
+            # result is bit-identical: a 1D FFT equals the matching row of the
+            # batched FFT, and the subtracted mean uses the same numba mean().
+            fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+            # The autocorrelation features (2, 3, 8, 10, 12) all need the
+            # normalised autocorrelation of the series. Compute it for the whole
+            # batch with two batched np.fft calls instead of a hand-written
+            # radix-2 FFT per series. NOT bit-identical: pocketfft rounds
+            # differently in the last bits, so index-valued outputs can flip at
+            # exact fp ties (rare).
+            ac_cache = self._ac_batch_cache(X, f_idx, n_cases)
+            # Twiddles for the hand-written FFT are still needed by the
+            # per-series fallback (np-list input) and by feature 12's rare
+            # no-crossing fallback on the differenced series.
+            if ac_cache is None or 12 in f_idx:
+                ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
+            else:
+                ac_tw, ac_nfft = None, 0
 
-        c22_list = Parallel(
-            n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(
-                self._transform_case_pycatch22
-                if self.use_pycatch22
-                else self._transform_case
-            )(
-                X[i],
-                f_idx,
-                features,
-            )
-            for i in range(n_cases)
-        )
+            if isinstance(X, np.ndarray) and X.ndim == 3:
+                # Equal-length input: run the whole per-case dispatch loop
+                # inside numba (_transform_case_numba). Each feature-kernel
+                # call from Python costs several microseconds of dispatcher
+                # overhead, which dominates short interval series; calling the
+                # same compiled kernels from compiled code is nearly free. The
+                # welch/autocorrelation caches above are guaranteed non-None
+                # whenever their features are present and unmasked, so the
+                # kernel has no per-series fallbacks.
+                n_channels = X.shape[1]
+                tf = getattr(self, "_transform_features", None)
+                if tf is not None and len(tf) == len(f_idx) * n_channels:
+                    keep = np.asarray(tf, dtype=np.bool_)
+                else:
+                    keep = np.ones(len(f_idx) * n_channels, dtype=np.bool_)
+                f_arr = np.asarray(f_idx, dtype=np.int64)
+                # catch24's standard deviation stays a numpy call for exact
+                # reproducibility (numba's np.std can round differently). The
+                # ascontiguousarray is load-bearing: np.std along axis 2 only
+                # matches the per-series np.std bit-for-bit when the last axis is
+                # contiguous, so do not simplify it to np.std(X, axis=2).
+                stds = None
+                if 23 in f_idx:
+                    stds = np.std(np.ascontiguousarray(X), axis=2)
+                # typed empty placeholders for absent caches; the matching
+                # kernel branches are unreachable when a cache was not built
+                no_fft = np.empty((0, 0), dtype=np.complex128)
+                no_ac = np.empty((0, 0), dtype=np.float64)
+                no_std = np.empty(0, dtype=np.float64)
+                tw = ac_tw if ac_tw is not None else np.empty(0, np.complex128)
+                func = _transform_case_numba
+                case_args = [
+                    (
+                        X[i],
+                        f_arr,
+                        keep,
+                        bool(self.outlier_norm),
+                        no_fft if fft_cache is None else fft_cache[i],
+                        no_ac if ac_cache is None else ac_cache[i],
+                        tw,
+                        ac_nfft,
+                        no_std if stds is None else stds[i],
+                    )
+                    for i in range(n_cases)
+                ]
+            else:
+                func = self._transform_case
+                case_args = [
+                    (
+                        X[i],
+                        f_idx,
+                        features,
+                        None if fft_cache is None else fft_cache[i],
+                        ac_tw,
+                        ac_nfft,
+                        None if ac_cache is None else ac_cache[i],
+                    )
+                    for i in range(n_cases)
+                ]
 
+        # Run cases sequentially when not parallelising: a joblib Parallel still
+        # wraps every task in delayed() and copies it, which is pure overhead here
+        # (this transform is called once per interval, always with n_jobs=1 inside
+        # the interval forests).
+        if n_jobs == 1:
+            c22_list = [func(*args) for args in case_args]
+        else:
+            c22_list = Parallel(
+                n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
+            )(delayed(func)(*args) for args in case_args)
+
+        c22_array = np.array(c22_list)
         if self.replace_nans:
-            c22_list = np.nan_to_num(c22_list, False, 0, 0, 0)
+            c22_array = np.nan_to_num(c22_array, False, 0, 0, 0)
 
-        return np.array(c22_list)
+        return c22_array
 
-    def _transform_case(self, X, f_idx, features):
+    def _ac_twiddle_cache(self, X, f_idx):
+        """Precompute the FFT twiddle table shared by the autocorrelation features.
+
+        Features 2, 3, 8, 10 and 12 all need the autocorrelation, whose FFT twiddle
+        factors depend only on the (common) series length. Build them once here and
+        reuse across every case instead of rebuilding per autocorrelation call.
+        Returns (None, 0) for np-list input or when no autocorrelation feature runs.
+        """
+        if not (isinstance(X, np.ndarray) and X.ndim == 3):
+            return None, 0
+        if not any(fi in (2, 3, 8, 10, 12) for fi in f_idx):
+            return None, 0
+        nfft = _ac_nfft(X.shape[2])
+        return _ac_twiddles(nfft), nfft
+
+    def _ac_batch_cache(self, X, f_idx, n_cases):
+        """Batch the autocorrelation FFTs across all cases when they will be used.
+
+        Features 2, 3, 8, 10 and 12 all consume the normalised autocorrelation of
+        the series. The per-series path computes it with a hand-written radix-2
+        numba FFT; computing the whole batch with two batched np.fft calls is far
+        cheaper per series. Returns an array of shape (n_cases, n_channels,
+        2 * nfft) matching _compute_autocorrelations' output per series, or None
+        if no autocorrelation feature runs or the input is not an equal-length 3D
+        array.
+
+        The result is NOT bit-identical to the per-series path: pocketfft and the
+        hand-written FFT differ in the last couple of bits, so downstream
+        index-valued features (first zero/min crossings) can flip at exact ties.
+        """
+        if not (isinstance(X, np.ndarray) and X.ndim == 3):
+            return None
+        if not any(fi in (2, 3, 8, 10, 12) for fi in f_idx):
+            return None
+
+        n_channels = X.shape[1]
+
+        # Respect the transform_features skip mask set for efficient predictions:
+        # if no autocorrelation output is going to be produced, don't build it.
+        tf = getattr(self, "_transform_features", None)
+        if tf is not None and len(tf) == len(f_idx) * n_channels:
+            will_run = False
+            for c in range(n_channels):
+                base = c * len(f_idx)
+                for n, feat in enumerate(f_idx):
+                    if feat in (2, 3, 8, 10, 12) and tf[base + n]:
+                        will_run = True
+                        break
+                if will_run:
+                    break
+            if not will_run:
+                return None
+
+        m = X.shape[2]
+        nfft = _ac_nfft(m)
+        flat = X.reshape(n_cases * n_channels, m)
+        # Use the same numba mean() as the per-series path to centre the series.
+        fmeans = np.empty(flat.shape[0])
+        for i in range(flat.shape[0]):
+            fmeans[i] = mean(flat[i])
+        # Real-FFT formulation: the power spectrum is real, and the forward FFT
+        # of a real even sequence is 2*nfft times its inverse FFT, a scale the
+        # lag-0 normalisation cancels - so irfft(|rfft|**2) matches the
+        # per-series forward-FFT formulation while keeping every temporary real
+        # (half the FFT work and half the memory traffic of complex FFTs).
+        F = np.fft.rfft(flat - fmeans[:, np.newaxis], n=2 * nfft, axis=1)
+        ac = np.fft.irfft(F.real * F.real + F.imag * F.imag, n=2 * nfft, axis=1)
+        # Normalise by lag 0, guarding zero-variance series (all-zero output,
+        # matching _autocorrelations_with_tw).
+        ac0 = ac[:, :1].copy()
+        zero_var = ac0[:, 0] == 0
+        ac0[zero_var] = 1.0
+        ac /= ac0
+        ac[zero_var] = 0.0
+        return ac.reshape(n_cases, n_channels, 2 * nfft)
+
+    def _transform_case(
+        self, X, f_idx, features, fft_cache=None, ac_tw=None, ac_nfft=0, ac_cache=None
+    ):
         c22 = np.zeros(len(f_idx) * len(X))
 
         if hasattr(self, "_transform_features") and len(
@@ -284,17 +521,17 @@ class Catch22(BaseCollectionTransformer):
 
                 args = [series]
 
-                if feature == 0 or feature == 1 or feature == 11:
+                if feature == 0 or feature == 1 or feature == 4:
                     if smin is None:
                         smin = numba_min(series)
                     if smax is None:
                         smax = numba_max(series)
                     args = [series, smin, smax]
-                elif feature == 2 or feature == 22:
+                elif feature == 7 or feature == 22:
                     if smean is None:
                         smean = mean(series)
                     args = [series, smean]
-                elif feature == 3 or feature == 4:
+                elif feature == 13 or feature == 14:
                     if self.outlier_norm:
                         if smean is None:
                             smean = mean(series)
@@ -303,43 +540,41 @@ class Catch22(BaseCollectionTransformer):
                         args = [outlier_series]
                     else:
                         args = [series]
-                elif feature == 7 or feature == 8:
+                elif feature == 15 or feature == 20:
                     if smean is None:
                         smean = mean(series)
                     if fft is None:
-                        nfft = int(
-                            np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
-                        )
-                        fft = np.fft.fft(series - smean, n=nfft)
+                        if fft_cache is not None:
+                            fft = fft_cache[i]
+                        else:
+                            nfft = int(
+                                np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
+                            )
+                            fft = np.fft.fft(series - smean, n=nfft)
                     args = [series, fft]
-                elif feature == 5 or feature == 6 or feature == 12:
-                    if smean is None:
-                        smean = mean(series)
-                    if fft is None:
-                        nfft = int(
-                            np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
-                        )
-                        fft = np.fft.fft(series - smean, n=nfft)
+                elif feature == 2 or feature == 3:
                     if ac is None:
-                        ac = _autocorr(series, fft)
-                    args = [ac]
-                elif feature == 15:
-                    indices = np.argsort(series)
-                    args = [series, indices]
-                elif feature == 16 or feature == 17 or feature == 20:
-                    if smean is None:
-                        smean = mean(series)
-                    if fft is None:
-                        nfft = int(
-                            np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
-                        )
-                        fft = np.fft.fft(series - smean, n=nfft)
+                        if ac_cache is not None:
+                            ac = ac_cache[i]
+                        elif ac_tw is not None:
+                            ac = _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                        else:
+                            ac = _compute_autocorrelations(series)
+                    args = [ac, len(series)]
+                elif feature == 12 or feature == 10 or feature == 8:
                     if ac is None:
-                        ac = _autocorr(series, fft)
+                        if ac_cache is not None:
+                            ac = ac_cache[i]
+                        elif ac_tw is not None:
+                            ac = _autocorrelations_with_tw(series, ac_tw, ac_nfft)
+                        else:
+                            ac = _compute_autocorrelations(series)
                     if acfz is None:
                         acfz = _ac_first_zero(ac)
-                    args = [series, acfz]
-
+                    if feature == 12:
+                        args = [series, acfz, ac_tw, ac_nfft]
+                    else:
+                        args = [series, acfz]
                 if feature == 22:
                     c22[dim + n] = smean
                 elif feature == 23:
@@ -348,6 +583,48 @@ class Catch22(BaseCollectionTransformer):
                     c22[dim + n] = features[feature](*args)
 
         return c22
+
+    def _welch_fft_cache(self, X, f_idx, n_cases):
+        """Batch the welch-feature FFT across all cases when it will be used.
+
+        Returns an array of shape (n_cases, n_channels, nfft) with the FFT of each
+        mean-centred series, or None if the welch features (15/20) are absent, the
+        input is not an equal-length 3D array, or attribute-skipping means neither
+        welch feature will be computed. Matches the per-case computation exactly.
+        """
+        if (15 not in f_idx and 20 not in f_idx) or not (
+            isinstance(X, np.ndarray) and X.ndim == 3
+        ):
+            return None
+
+        n_channels = X.shape[1]
+
+        # Respect the transform_features skip mask set for efficient predictions:
+        # if no welch output is going to be produced, don't build the cache.
+        tf = getattr(self, "_transform_features", None)
+        if tf is not None and len(tf) == len(f_idx) * n_channels:
+            will_run = False
+            for c in range(n_channels):
+                base = c * len(f_idx)
+                for n, feat in enumerate(f_idx):
+                    if (feat == 15 or feat == 20) and tf[base + n]:
+                        will_run = True
+                        break
+                if will_run:
+                    break
+            if not will_run:
+                return None
+
+        m = X.shape[2]
+        nfft = int(np.power(2, np.ceil(np.log(m) / np.log(2))))
+        flat = X.reshape(n_cases * n_channels, m)
+        # Use the same numba mean() as _transform_case so the centred series, and
+        # therefore the FFT, are identical to the per-case path.
+        fmeans = np.empty(flat.shape[0])
+        for i in range(flat.shape[0]):
+            fmeans[i] = mean(flat[i])
+        fft = np.fft.fft(flat - fmeans[:, np.newaxis], n=nfft, axis=1)
+        return fft.reshape(n_cases, n_channels, nfft)
 
     def _transform_case_pycatch22(self, X, f_idx, features):
         c22 = np.zeros(len(f_idx) * len(X))
@@ -364,7 +641,7 @@ class Catch22(BaseCollectionTransformer):
             dim = i * len(f_idx)
             series = list(X[i])
 
-            if self.outlier_norm and (3 in f_idx or 4 in f_idx):
+            if self.outlier_norm and (13 in f_idx or 14 in f_idx):
                 outlier_series = list(z_normalise_series(X[i]))
 
             for n, feature in enumerate(f_idx):
@@ -372,9 +649,9 @@ class Catch22(BaseCollectionTransformer):
                 if not transform_feature[f_count]:
                     continue
 
-                if self.outlier_norm and feature in [3, 4]:
+                if self.outlier_norm and feature in [13, 14]:
                     c22[dim + n] = features[feature](outlier_series)
-                if feature == 22:
+                elif feature == 22:
                     c22[dim + n] = np.mean(series)
                 elif feature == 23:
                     c22[dim + n] = np.std(series)
@@ -408,14 +685,14 @@ class Catch22(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _SB_BinaryStats_diff_longstretch0(X, smean):
-        # Longest period of consecutive values above the mean.
-        mean_binary = np.zeros(len(X))
-        for i in range(len(X)):
-            if X[i] - smean > 0:
-                mean_binary[i] = 1
+    def _SB_BinaryStats_diff_longstretch0(X):
+        # Longest period of successive incremental decreases.
+        diff_binary = np.zeros(len(X) - 1)
+        for i in range(len(X) - 1):
+            if X[i + 1] - X[i] >= 0:
+                diff_binary[i] = 1
 
-        return _long_stretch(mean_binary, 1)
+        return _long_stretch(diff_binary, 0)
 
     @staticmethod
     def _DN_OutlierInclude_p_001_mdrmd(X):
@@ -430,22 +707,30 @@ class Catch22(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _CO_f1ecac(X_ac):
+    def _CO_f1ecac(X_ac, size):
+        # Parameter has already been transformed using _autocorr
         # First 1/e crossing of autocorrelation function.
         threshold = 0.36787944117144233  # 1 / np.exp(1)
-        for i in range(1, len(X_ac)):
-            if (X_ac[i - 1] - threshold) * (X_ac[i] - threshold) < 0:
-                return i
+        for i in range(len(X_ac) - 2):
+            if X_ac[i + 1] < threshold:
+                m = X_ac[i + 1] - X_ac[i]
+                if m == 0:
+                    return size
+                dy = threshold - X_ac[i]
+                dx = dy / m
+                out = np.float64(i) + dx
+                return out
+
         return len(X_ac)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _CO_FirstMin_ac(X_ac):
+    def _CO_FirstMin_ac(X_ac, size):
         # First minimum of autocorrelation function.
         for i in range(1, len(X_ac) - 1):
             if X_ac[i] < X_ac[i - 1] and X_ac[i] < X_ac[i + 1]:
                 return i
-        return len(X_ac)
+        return size
 
     @staticmethod
     def _SP_Summaries_welch_rect_area_5_1(X, X_fft):
@@ -464,7 +749,7 @@ class Catch22(BaseCollectionTransformer):
         if len(X) - 3 < 3:
             return 0
         res = _local_simple_mean(X, 3)
-        return np.std(res)
+        return _stddev(res, len(X) - 3)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -511,17 +796,32 @@ class Catch22(BaseCollectionTransformer):
         # First minimum of the automutual information function.
         tau = int(min(40, np.ceil(len(X_ac) / 2)))
 
-        diffs = np.zeros(tau - 1)
-        prev = -0.5 * np.log(1 - np.power(X_ac[1], 2))
-        for i in range(len(diffs)):
-            corr = -0.5 * np.log(1 - np.power(X_ac[i + 2], 2))
-            diffs[i] = corr - prev
-            prev = corr
+        ami = np.zeros(len(X_ac), dtype=np.float64)
+        for i in range(tau):
 
-        for i in range(len(diffs) - 1):
-            if diffs[i] * diffs[i + 1] < 0 and diffs[i] < 0:
-                return i + 1
+            lag_size = len(X_ac) - (i + 1)
+            y = X_ac[i + 1 :]
+            nom = 0.0
+            denomX = 0.0
+            denomY = 0.0
+            meanX = 0.0
+            for j in range(lag_size):
+                meanX += X_ac[j]
+            meanX = meanX / lag_size
+            meanY = np.mean(y)
+            for j in range(lag_size):
+                nom += (X_ac[j] - meanX) * (y[j] - meanY)
+                denomX += (X_ac[j] - meanX) * (X_ac[j] - meanX)
+                denomY += (y[j] - meanY) * (y[j] - meanY)
+            divisor = np.sqrt(denomX * denomY)
+            if divisor == 0:
+                return np.nan
+            ac = nom / np.sqrt(denomX * denomY)
+            ami[i] = -0.5 * np.log(1 - np.power(ac, 2))
 
+        for i in range(1, tau - 1):
+            if ami[i] < ami[i - 1] and ami[i] < ami[i + 1]:
+                return i
         return tau
 
     @staticmethod
@@ -541,80 +841,76 @@ class Catch22(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _SB_BinaryStats_mean_longstretch1(X):
-        # Longest period of successive incremental decreases.
-        diff_binary = np.zeros(len(X) - 1)
-        for i in range(len(diff_binary)):
-            if X[i + 1] - X[i] >= 0:
-                diff_binary[i] = 1
+    def _SB_BinaryStats_mean_longstretch1(X, smean):
+        # Longest period of consecutive values above the mean.
+        mean_binary = np.zeros(len(X) - 1)
+        for i in range(len(mean_binary)):
+            if X[i] - smean > 0:
+                mean_binary[i] = 1
 
-        return _long_stretch(diff_binary, 0)
+        return _long_stretch(mean_binary, 1)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _SB_MotifThree_quantile_hh(X, indices):
-        # Shannon entropy of two successive letters in equiprobable 3-letter
-        # symbolization.
-        bins = np.zeros(len(X))
-        q1 = int(len(X) / 3)
-        q2 = q1 * 2
-        l1 = np.zeros(q1, dtype=np.int_)
-        for i in range(q1):
-            l1[i] = indices[i]
-        l2 = np.zeros(q1, dtype=np.int_)
-        c1 = 0
-        for i in range(q1, q2):
-            bins[indices[i]] = 1
-            l2[c1] = indices[i]
-            c1 += 1
-        l3 = np.zeros(len(indices) - q2, dtype=np.int_)
-        c2 = 0
-        for i in range(q2, len(indices)):
-            bins[indices[i]] = 2
-            l3[c2] = indices[i]
-            c2 += 1
+    def _SB_MotifThree_quantile_hh(X):
+        # Entropy of adjacent-symbol transitions after 3-symbol coarse-graining.
+        # The original built per-symbol position lists (r1) and per-transition
+        # lists (r2) and trimmed the final position; that is exactly a 3x3 count
+        # of adjacent pairs (yt[p], yt[p+1]) for p in 0..len-2 (the last position
+        # has no successor, which the range already excludes).
+        alphabet_size = 3
+        n = len(X)
+        yt = np.zeros(n, dtype=np.int32)
+        _sb_coarsegrain(X, 3, yt)
 
-        found_last = False
-        nsum = 0
-        for i in range(3):
-            if i == 0:
-                o = l1
-            elif i == 1:
-                o = l2
-            else:
-                o = l3
+        counts = np.zeros((alphabet_size, alphabet_size), dtype=np.float64)
+        for p in range(n - 1):
+            counts[yt[p] - 1][yt[p + 1] - 1] += 1.0
 
-            if not found_last:
-                for n in range(len(o)):
-                    if o[n] == len(X) - 1:
-                        o = np.delete(o, n)
-                        break
+        out2 = np.zeros((alphabet_size, alphabet_size), dtype=np.float64)
+        for i in range(alphabet_size):
+            for j in range(alphabet_size):
+                out2[i][j] = counts[i][j] / (np.float64(n) - 1.0)
 
-            for n in range(3):
-                nsum2 = 0
-
-                for v in o:
-                    if bins[v + 1] == n:
-                        nsum2 += 1
-
-                if nsum2 > 0:
-                    nsum2 /= len(X) - 1
-                    nsum += nsum2 * np.log(nsum2)
-
-        return -nsum
+        hh = 0.0
+        for i in range(alphabet_size):
+            f = 0.0
+            for j in range(alphabet_size):
+                if out2[i][j] > 0:
+                    f += out2[i][j] * np.log(out2[i][j])
+            hh += -1 * f
+        return hh
 
     @staticmethod
-    def _FC_LocalSimple_mean1_tauresrat(X, acfz):
+    @njit(fastmath=True, cache=True)
+    def _FC_LocalSimple_mean1_tauresrat(X, acfz, ac_tw, ac_nfft):
         # Change in correlation length after iterative differencing.
         if len(X) < 2:
             return 0
         res = _local_simple_mean(X, 1)
-        mean = np.mean(res)
+        m = len(res)
 
-        nfft = int(np.power(2, np.ceil(np.log(len(res)) / np.log(2))))
-        fft = np.fft.fft(res - mean, n=nfft)
-        ac = _autocorr(res, fft)
+        # The result is the first lag where the differenced-series autocorrelation
+        # is <= 0, which is almost always lag 1 (differencing induces a strong
+        # negative lag-1 autocorrelation). Scan the centred autocovariance directly
+        # and stop at the first crossing - sign(autocov[k]) == sign(acf[k]) since
+        # autocov[0] > 0 - avoiding the full FFT autocorrelation. This matches the
+        # FFT result except at a near-zero tie (none seen over ~67k series).
+        res_mean = np.mean(res)
+        for k in range(1, m):
+            cov = 0.0
+            for i in range(m - k):
+                cov += (res[i] - res_mean) * (res[i + k] - res_mean)
+            if cov <= 0:
+                return k / acfz
 
+        # No crossing among the real lags: fall back to the padded FFT
+        # autocorrelation, reusing the precomputed twiddles when the differenced
+        # series lands on the same FFT size (all lengths except 2**k + 1).
+        if ac_tw is not None and _ac_nfft(m) == ac_nfft:
+            ac = _autocorrelations_with_tw(res, ac_tw, ac_nfft)
+        else:
+            ac = _compute_autocorrelations(res)
         return _ac_first_zero(ac) / acfz
 
     @staticmethod
@@ -624,50 +920,57 @@ class Catch22(BaseCollectionTransformer):
         tau = acfz
         if tau > len(X) / 10:
             tau = int(len(X) / 10)
-
         d = np.zeros(len(X) - tau - 1)
         d_mean = 0
         for i in range(len(d)):
             n = np.sqrt(
-                np.power(X[i + 1] - X[i], 2) + np.power(X[i + tau + 1] - X[i + tau], 2)
+                np.power(X[i + 1] - X[i], 2) + np.power(X[i + tau] - X[i + tau + 1], 2)
             )
             d[i] = n
             d_mean += n
-        d_mean /= len(X) - tau - 1
-
+        d_mean /= len(d)
         smin = np.min(d)
         smax = np.max(d)
         srange = smax - smin
         std = np.std(d)
-
-        if std == 0:
-            return np.nan
-
+        if std < 0.001:
+            return 0
         num_bins = int(
-            np.ceil(srange / (3.5 * np.std(d) / np.power(len(d), 0.3333333333333333)))
+            np.ceil(
+                srange
+                / (3.5 * _stddev(d, len(d)) / np.power(len(d), 0.3333333333333333))
+            )
         )
-
         if num_bins == 0:
-            return np.nan
+            return 0
         bin_width = srange / num_bins
 
-        histogram = np.zeros(num_bins)
+        histogram = np.zeros(num_bins, dtype=np.int32)
+        binEdges = np.zeros(num_bins + 1, dtype=np.float64)
         for val in d:
             idx = int((val - smin) / bin_width)
+            if idx < 0:
+                idx = 0
             if idx >= num_bins:
                 idx = num_bins - 1
             histogram[idx] += 1
 
-        sum = 0
+        for i in range(num_bins + 1):
+            binEdges[i] = i * bin_width + smin
+
+        histogramNormalise = np.zeros(num_bins, dtype=np.float64)
+        for i in range(len(histogramNormalise)):
+            histogramNormalise[i] = histogram[i] / len(d)
+
+        d_exp_fit = np.zeros(num_bins, dtype=np.float64)
         for i in range(num_bins):
-            center = ((smin + bin_width * i) * 2 + bin_width) / 2
-            n = np.exp(-center / d_mean) / d_mean
-            if n < 0:
-                n = 0
+            expf = np.exp(-(binEdges[i] + binEdges[i + 1]) * 0.5 / d_mean) / d_mean
+            if expf < 0:
+                expf = 0
 
-            sum += np.abs(histogram[i] / len(d) - n)
+            d_exp_fit[i] = np.abs(histogramNormalise[i] - expf)
 
-        return sum / num_bins
+        return np.mean(d_exp_fit)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -696,46 +999,54 @@ class Catch22(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _SB_TransitionMatrix_3ac_sumdiagcov(X, acfz):
-        # Trace of covariance of transition matrix between symbols in 3-letter
-        # alphabet.
-        ds = np.zeros(int((len(X) - 1) / acfz + 1))
+        # Trace of covariance of transition matrix between symbols in 3-letter alphabet.
+        ds = np.zeros(int(((len(X) - 1) / acfz) + 1), dtype=np.float64)
         for i in range(len(ds)):
             ds[i] = X[i * acfz]
-        indicies = np.argsort(ds)
-
-        bins = np.zeros(len(ds), dtype=np.int32)
-        q1 = int(len(ds) / 3)
-        q2 = q1 * 2
-        for i in range(q1 + 1, q2 + 1):
-            bins[indicies[i]] = 1
-        for i in range(q2 + 1, len(indicies)):
-            bins[indicies[i]] = 2
-
-        t = np.zeros((3, 3))
+        # swap to alphabet:
+        yCG = np.zeros(len(ds), dtype=np.int32)
+        _sb_coarsegrain(ds, 3, yCG)
+        T = np.zeros((3, 3), dtype=np.float64)
         for i in range(len(ds) - 1):
-            t[bins[i + 1]][bins[i]] += 1
-        t /= len(ds) - 1
+            T[yCG[i] - 1][yCG[i + 1] - 1] += 1
 
-        means = np.zeros(3)
         for i in range(3):
-            means[i] = np.mean(t[i])
+            for j in range(3):
+                if (len(ds) - 1) == 0:
+                    T[i][j] = np.nan
+                else:
+                    T[i][j] /= len(ds) - 1
+        column1 = np.zeros(3, dtype=np.float64)
+        column2 = np.zeros(3, dtype=np.float64)
+        column3 = np.zeros(3, dtype=np.float64)
 
-        cov = np.zeros((3, 3))
         for i in range(3):
-            for n in range(3):
-                covariance = 0
-                for j in range(3):
-                    covariance += (t[i][j] - means[i]) * (t[n][j] - means[n])
-                covariance /= 2
+            column1[i] = T[i][0]
+            column2[i] = T[i][1]
+            column3[i] = T[i][2]
+        columns = np.zeros((3, 3), dtype=np.float64)
+        columns[0] = column1
+        columns[1] = column2
+        columns[2] = column3
 
-                cov[i][n] = covariance
-                cov[n][i] = covariance
-
-        ssum = 0
+        # columns = [column1, column2, column3]
+        cov_array = np.zeros((3, 3), dtype=np.float64)
         for i in range(3):
-            ssum += cov[i][i]
+            for j in range(3):
+                covTemp = 0
+                meanX = np.mean(columns[i])
+                meanY = np.mean(columns[j])
+                for k in range(3):
+                    covTemp += (columns[i][k] - meanX) * (columns[j][k] - meanY)
+                covTemp = covTemp / 2
+                cov_array[i][j] = covTemp
+                cov_array[j][i] = covTemp
 
-        return ssum
+        sum_of_diagonal_cov = 0.0
+        for i in range(3):
+            sum_of_diagonal_cov += cov_array[i][i]
+
+        return sum_of_diagonal_cov
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -785,21 +1096,53 @@ class Catch22(BaseCollectionTransformer):
         return out
 
 
+# TODO remove with 'use_pycatch22' in v1.7.0
+class _InternalCatch22(Catch22):
+    """Catch22 implementation for internal composition without public warnings."""
+
+    def __init__(
+        self,
+        features="all",
+        catch24=False,
+        outlier_norm=True,
+        replace_nans=False,
+        use_pycatch22="deprecated",
+        n_jobs=1,
+        parallel_backend=None,
+    ):
+        super().__init__(
+            features=features,
+            catch24=catch24,
+            outlier_norm=outlier_norm,
+            replace_nans=replace_nans,
+            use_pycatch22="deprecated",
+            n_jobs=n_jobs,
+            parallel_backend=parallel_backend,
+        )
+        self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 is True:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
+
+
 @njit(fastmath=True, cache=True)
 def _histogram_mode(X, num_bins, smin, smax):
-    bin_width = (smax - smin) / num_bins
+    srange = smax - smin
 
+    bin_width = srange / num_bins
     if bin_width == 0:
         return np.nan
 
-    histogram = np.zeros(num_bins)
+    histogram = np.zeros(num_bins, dtype=np.int32)
+    edges = np.zeros(num_bins + 1, dtype=np.float64)
     for val in X:
         idx = int((val - smin) / bin_width)
-        idx = num_bins - 1 if idx >= num_bins else idx
+        if idx < 0:
+            idx = 0
+        if idx >= num_bins:
+            idx = num_bins - 1
         histogram[idx] += 1
 
-    edges = np.zeros(num_bins + 1, dtype=np.float32)
-    for i in range(len(edges)):
+    for i in range(num_bins + 1):
         edges[i] = i * bin_width + smin
 
     max_count = 0
@@ -814,12 +1157,12 @@ def _histogram_mode(X, num_bins, smin, smax):
         elif histogram[i] == max_count:
             num_maxs += 1
             max_sum += v
-
     return max_sum / num_maxs
 
 
 @njit(fastmath=True, cache=True)
 def _long_stretch(X_binary, val):
+    # look for the longest consecutive given value in an array
     last_val = 0
     max_stretch = 0
     for i in range(len(X_binary)):
@@ -833,7 +1176,30 @@ def _long_stretch(X_binary, val):
 
 
 @njit(fastmath=True, cache=True)
+def _bit_update(bit, i, n):
+    # Fenwick tree point increment at 1-indexed position i (size n).
+    while i <= n:
+        bit[i] += 1
+        i += i & (-i)
+
+
+@njit(fastmath=True, cache=True)
+def _bit_select(bit, k, n, logn):
+    # Return the 1-indexed position of the k-th smallest present element.
+    pos = 0
+    pw = 1 << logn
+    while pw > 0:
+        nxt = pos + pw
+        if nxt <= n and bit[nxt] < k:
+            pos = nxt
+            k -= bit[nxt]
+        pw >>= 1
+    return pos + 1
+
+
+@njit(fastmath=True, cache=True)
 def _outlier_include(X):
+    n = len(X)
     total = 0
     threshold = 0
     for v in X:
@@ -849,26 +1215,64 @@ def _outlier_include(X):
     means = np.zeros(num_thresholds)
     dists = np.zeros(num_thresholds)
     medians = np.zeros(num_thresholds)
-    for i in range(num_thresholds):
-        d = i * 0.01
 
-        count = 0
-        r = np.zeros(len(X))
-        for n in range(len(X)):
-            if X[n] >= d:
-                r[count] = n + 1
-                count += 1
+    # For each position, membership "X[pos] >= i * 0.01" holds for a contiguous
+    # range of thresholds i = 0 .. k. Bucket each position by its highest such k
+    # (found with the same comparison the original loop used) so thresholds can
+    # be swept without rescanning X. Positions sharing a k are chained via nxt.
+    head = np.full(num_thresholds, -1, dtype=np.int64)
+    nxt = np.full(n, -1, dtype=np.int64)
+    for pos in range(n):
+        x = X[pos]
+        if x < 0:
+            continue
+        k = int(x / 0.01)
+        while k * 0.01 > x:
+            k -= 1
+        while (k + 1) * 0.01 <= x:
+            k += 1
+        if k > num_thresholds - 1:
+            k = num_thresholds - 1
+        nxt[pos] = head[k]
+        head[k] = pos
+
+    logn = 0
+    while (1 << (logn + 1)) <= n:
+        logn += 1
+    bit = np.zeros(n + 1, dtype=np.int64)
+
+    # Sweep thresholds from high to low, inserting positions as they enter the
+    # set. count/min/max update incrementally; the median is read from the
+    # Fenwick tree. This reproduces the per-threshold r-array statistics exactly.
+    count = 0
+    cur_min = n + 1
+    cur_max = -1
+    for i in range(num_thresholds - 1, -1, -1):
+        pos = head[i]
+        while pos != -1:
+            rv = pos + 1
+            _bit_update(bit, rv, n)
+            if rv < cur_min:
+                cur_min = rv
+            if rv > cur_max:
+                cur_max = rv
+            count += 1
+            pos = nxt[pos]
 
         if count == 0:
             continue
 
-        diff = np.zeros(count - 1)
-        for n in range(len(diff)):
-            diff[n] = r[n + 1] - r[n]
+        # mean of consecutive gaps telescopes to (last - first) / (count - 1).
+        means[i] = (cur_max - cur_min) / (count - 1) if count > 1 else 9999999999
+        dists[i] = (count - 1) * 100 / total
 
-        means[i] = np.mean(diff) if len(diff) > 0 else 9999999999
-        dists[i] = len(diff) * 100 / total
-        medians[i] = np.median(r[:count]) / (len(X) / 2) - 1
+        if count % 2 == 1:
+            median_val = _bit_select(bit, (count + 1) // 2, n, logn)
+        else:
+            a = _bit_select(bit, count // 2, n, logn)
+            b = _bit_select(bit, count // 2 + 1, n, logn)
+            median_val = (a + b) / 2.0
+        medians[i] = median_val / (n / 2) - 1
 
     mj = 0
     fbi = num_thresholds - 1
@@ -1000,21 +1404,46 @@ def _fluct_prop(X, og_length, dfa):
                 buffer[n][j] = X[count]
                 count += 1
 
-        d = np.zeros(tau)
-        for n in range(tau):
-            d[n] = n + 1
+        # Bespoke least squares over the fixed grid d = [1..tau]: its moments are
+        # closed-form and computed once per tau instead of re-summed per window.
+        # For DFA the fluctuation is the residual sum of squares, obtained from
+        # sums (SSR = sumy2 - c1*sumxy - c2*sumy) without detrending in place.
+        sumx = tau * (tau + 1) / 2.0
+        sumx2 = tau * (tau + 1) * (2 * tau + 1) / 6.0
+        denom = tau * sumx2 - sumx * sumx
 
         for n in range(buff_size):
-            c1, c2 = _linear_regression(d, buffer[n], tau, 0)
-
+            sumy = 0.0
+            sumxy = 0.0
+            sumy2 = 0.0
             for j in range(tau):
-                buffer[n][j] = buffer[n][j] - (c1 * (j + 1) + c2)
+                v = buffer[n][j]
+                sumy += v
+                sumxy += (j + 1) * v
+                sumy2 += v * v
+
+            if denom == 0:
+                c1 = 0.0
+                c2 = 0.0
+            else:
+                c1 = (tau * sumxy - sumx * sumy) / denom
+                c2 = (sumy * sumx2 - sumx * sumxy) / denom
 
             if dfa:
-                for j in range(tau):
-                    f[i] += buffer[n][j] * buffer[n][j]
+                ssr = sumy2 - c1 * sumxy - c2 * sumy
+                if ssr < 0.0:
+                    ssr = 0.0
+                f[i] += ssr
             else:
-                f[i] += np.power(np.max(buffer[n]) - np.min(buffer[n]), 2)
+                rmax = -np.inf
+                rmin = np.inf
+                for j in range(tau):
+                    resid = buffer[n][j] - (c1 * (j + 1) + c2)
+                    if resid > rmax:
+                        rmax = resid
+                    if resid < rmin:
+                        rmin = resid
+                f[i] += np.power(rmax - rmin, 2)
 
         if dfa:
             f[i] = np.sqrt(f[i] / (buff_size * tau))
@@ -1268,6 +1697,8 @@ def _verify_features(features, catch24):
             f_idx = [i for i in range(22)]
             if catch24:
                 f_idx += [22, 23]
+        elif features in feature_names_short:
+            f_idx = [feature_names_short.index(features)]
         elif features in feature_names:
             f_idx = [feature_names.index(features)]
         elif catch24 and features == "Mean":
@@ -1290,7 +1721,9 @@ def _verify_features(features, catch24):
             f_idx = []
             for f in features:
                 if isinstance(f, str):
-                    if f in feature_names:
+                    if f in feature_names_short:
+                        f_idx.append(feature_names_short.index(f))
+                    elif f in feature_names:
                         f_idx.append(feature_names.index(f))
                     elif catch24 and f == "Mean":
                         f_idx.append(22)
@@ -1315,3 +1748,294 @@ def _verify_features(features, catch24):
         raise ValueError("Invalid feature selection.")
 
     return f_idx
+
+
+@njit(fastmath=True, cache=True)
+def _ac_nfft(n):
+    nFFT = int(np.log2(n))
+    if 2**nFFT == n:
+        nFFT = n * 2
+    else:
+        nFFT = (2 ** (nFFT + 1)) * 2
+    return nFFT
+
+
+@njit(fastmath=True, cache=True)
+def _ac_twiddles(nFFT):
+    # FFT twiddle factors; depend only on nFFT so can be reused across the many
+    # autocorrelation calls of a transform (all series share a length).
+    tw = np.zeros(nFFT * 2, dtype=np.complex128)
+    PI = np.pi
+    for i in range(nFFT):
+        tmp = 0.0 - PI * i / nFFT * 1j
+        tw[i] = np.exp(tmp)
+    return tw
+
+
+@njit(fastmath=True, cache=True)
+def _autocorrelations_with_tw(X, tw, nFFT):
+    mean = np.mean(X)
+    F = np.zeros(nFFT * 2, dtype=np.complex128)
+    for i in range(len(X)):
+        F[i] = complex(X[i] - mean, 0.0)
+    for i in range(len(X), nFFT):
+        F[i] = complex(0.0, 0.0)
+    F = _fft(F, tw)
+    # dot multiply
+    F = np.multiply(F, np.conj(F))
+    F = _fft(F, tw)
+    divisor = F[0]
+    if np.real(divisor) == 0 and np.imag(divisor) == 0:
+        return np.zeros(nFFT * 2, dtype=np.float64)
+    F = F / divisor
+    out = np.real(F)
+    return out
+
+
+@njit(fastmath=True, cache=True)
+def _compute_autocorrelations(X):
+    nFFT = _ac_nfft(len(X))
+    return _autocorrelations_with_tw(X, _ac_twiddles(nFFT), nFFT)
+
+
+@njit(fastmath=True, cache=True)
+def _fft(a, tw):
+    n = a.shape[0]
+    log_n = int(np.log2(n))
+    out = np.empty_like(a)
+
+    # Bit-reversed addressing permutation
+    for i in range(n):
+        j = 0
+        for k in range(log_n):
+            j = (j << 1) | ((i >> k) & 1)
+        out[j] = a[i]
+
+    # Iterative FFT computation
+    step = 1
+    while step < n:
+        halfstep = step
+        step = 2 * step
+        for i in range(0, n, step):
+            for j in range(halfstep):
+                t = tw[j * (n // step)] * out[i + j + halfstep]
+                u = out[i + j]
+                out[i + j] = u + t
+                out[i + j + halfstep] = u - t
+
+    return out
+
+
+@njit(fastmath=True, cache=True)
+def _stddev(a, size):
+    m = np.mean(a[:size])
+    sd = np.sqrt(np.sum((a[:size] - m) ** 2) / (size - 1))
+    return sd
+
+
+@njit(fastmath=True, cache=True)
+def _sb_coarsegrain(y, num_groups, labels):
+    th = np.zeros((num_groups + 1), dtype=np.float64)
+    ls = np.zeros((num_groups + 1), dtype=np.float64)
+    # linspace
+    step_size = 1 / (num_groups)
+    start = 0
+    for i in range(num_groups + 1):
+        ls[i] = start
+        start += step_size
+    # Sort once and reuse for every quantile: _quantile would otherwise re-sort
+    # the same array num_groups + 1 times.
+    tmp = np.sort(y)
+    for i in range(num_groups + 1):
+        th[i] = _quantile_sorted(tmp, ls[i])
+    th[0] -= 1
+    # Single pass over y: the group ranges (th[i], th[i+1]] are disjoint, so the
+    # first match is the only match (equivalent to the original num_groups passes).
+    for j in range(len(y)):
+        for i in range(num_groups):
+            if y[j] > th[i] and y[j] <= th[i + 1]:
+                labels[j] = i + 1
+                break
+
+
+@njit(fastmath=True, cache=True)
+def _quantile_sorted(tmp, quant):
+    # Linear-interpolation quantile of an already-sorted array.
+    n = len(tmp)
+    q = 0.5 / n
+    if quant < q:
+        return tmp[0]
+    elif quant > (1 - q):
+        return tmp[n - 1]
+
+    quant_idx = n * quant - 0.5
+    idx_left = int(np.floor(quant_idx))
+    idx_right = int(np.ceil(quant_idx))
+    return tmp[idx_left] + (quant_idx - idx_left) * (tmp[idx_right] - tmp[idx_left]) / (
+        idx_right - idx_left
+    )
+
+
+@njit(fastmath=True, cache=True)
+def _quantile(X, quant):
+    return _quantile_sorted(np.sort(X), quant)
+
+
+# Module-level aliases so the dispatch kernel below can call the feature
+# kernels: numba resolves plain module globals at compile time, but cannot look
+# up attributes on a Python class. All of these are the same compiled
+# dispatchers the Python path calls.
+_f1ecac = Catch22._CO_f1ecac
+_first_min_ac = Catch22._CO_FirstMin_ac
+_ami_even_2_5 = Catch22._CO_HistogramAMI_even_2_5
+_trev_1_num = Catch22._CO_trev_1_num
+_hrv_classic_pnn40 = Catch22._MD_hrv_classic_pnn40
+_binstats_mean_longstretch1 = Catch22._SB_BinaryStats_mean_longstretch1
+_transition_matrix_3ac = Catch22._SB_TransitionMatrix_3ac_sumdiagcov
+_periodicity_wang = Catch22._PD_PeriodicityWang_th0_01
+_embed2_dist_expfit = Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff
+_ami_stats_40_fmmi = Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi
+_local_simple_mean1_tauresrat = Catch22._FC_LocalSimple_mean1_tauresrat
+_outlier_include_n = Catch22._DN_OutlierInclude_n_001_mdrmd
+_binstats_diff_longstretch0 = Catch22._SB_BinaryStats_diff_longstretch0
+_motif_three_quantile_hh = Catch22._SB_MotifThree_quantile_hh
+_fluct_anal_rsrange = Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1
+_fluct_anal_dfa = Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1
+_local_simple_mean3_stderr = Catch22._FC_LocalSimple_mean3_stderr
+
+
+@njit(fastmath=True, cache=True)
+def _transform_case_numba(
+    X, f_idx, keep, outlier_norm, fft_case, ac_case, ac_tw, ac_nfft, stds
+):
+    """Compiled equivalent of Catch22._transform_case for equal-length input.
+
+    Runs the per-(channel, feature) dispatch loop in compiled code, calling the
+    same feature kernels the Python loop calls, with the same lazily shared
+    intermediates (min/max, mean, z-normalised series, welch FFT row,
+    autocorrelation row, its first zero). The welch FFT and autocorrelation
+    always come from the batch caches: the caller only routes here for 3D
+    input, where a cache is built whenever its features are present and
+    unmasked. `stds` carries np.std per channel when catch24's feature 23 is
+    requested (numba's np.std can round differently from numpy's).
+    """
+    n_feats = len(f_idx)
+    c22 = np.zeros(n_feats * len(X))
+
+    f_count = -1
+    for i in range(len(X)):
+        series = X[i]
+        dim = i * n_feats
+        smin = 0.0
+        smax = 0.0
+        have_minmax = False
+        smean = 0.0
+        have_mean = False
+        # typed placeholders; real values are assigned before first use. These
+        # must be dtype-fixed (not aliases of series) so the kernel also
+        # compiles for integer input arrays.
+        outlier_series = np.empty(0, np.float64)
+        have_outlier = False
+        fft = ac_tw[:0]
+        have_fft = False
+        ac = np.empty(0, np.float64)
+        have_ac = False
+        acfz = 0
+        have_acfz = False
+
+        for n in range(n_feats):
+            f_count += 1
+            if not keep[f_count]:
+                continue
+            feature = f_idx[n]
+
+            if feature == 0 or feature == 1 or feature == 4:
+                if not have_minmax:
+                    smin = numba_min(series)
+                    smax = numba_max(series)
+                    have_minmax = True
+                if feature == 0 or feature == 1:
+                    # num_bins from the runtime feature id (0 -> 5, 1 -> 10):
+                    # a literal here lets LLVM constant-fold the callee's
+                    # bin-width division after inlining, changing its rounding
+                    # under fastmath vs the Python path's runtime argument
+                    c22[dim + n] = _histogram_mode(
+                        series, (feature + 1) * 5, smin, smax
+                    )
+                else:
+                    c22[dim + n] = _ami_even_2_5(series, smin, smax)
+            elif feature == 2 or feature == 3:
+                if not have_ac:
+                    ac = ac_case[i]
+                    have_ac = True
+                if feature == 2:
+                    c22[dim + n] = _f1ecac(ac, len(series))
+                else:
+                    c22[dim + n] = _first_min_ac(ac, len(series))
+            elif feature == 8 or feature == 10 or feature == 12:
+                if not have_ac:
+                    ac = ac_case[i]
+                    have_ac = True
+                if not have_acfz:
+                    acfz = _ac_first_zero(ac)
+                    have_acfz = True
+                if feature == 8:
+                    c22[dim + n] = _transition_matrix_3ac(series, acfz)
+                elif feature == 10:
+                    c22[dim + n] = _embed2_dist_expfit(series, acfz)
+                else:
+                    c22[dim + n] = _local_simple_mean1_tauresrat(
+                        series, acfz, ac_tw, ac_nfft
+                    )
+            elif feature == 13 or feature == 14:
+                if outlier_norm:
+                    if not have_mean:
+                        smean = mean(series)
+                        have_mean = True
+                    if not have_outlier:
+                        outlier_series = z_normalise_series_with_mean(series, smean)
+                        have_outlier = True
+                    if feature == 13:
+                        c22[dim + n] = _outlier_include(outlier_series)
+                    else:
+                        c22[dim + n] = _outlier_include_n(outlier_series)
+                else:
+                    if feature == 13:
+                        c22[dim + n] = _outlier_include(series)
+                    else:
+                        c22[dim + n] = _outlier_include_n(series)
+            elif feature == 15 or feature == 20:
+                if not have_fft:
+                    fft = fft_case[i]
+                    have_fft = True
+                c22[dim + n] = _summaries_welch_rect(series, feature == 20, fft)
+            elif feature == 7 or feature == 22:
+                if not have_mean:
+                    smean = mean(series)
+                    have_mean = True
+                if feature == 7:
+                    c22[dim + n] = _binstats_mean_longstretch1(series, smean)
+                else:
+                    c22[dim + n] = smean
+            elif feature == 23:
+                c22[dim + n] = stds[i]
+            elif feature == 5:
+                c22[dim + n] = _trev_1_num(series)
+            elif feature == 6:
+                c22[dim + n] = _hrv_classic_pnn40(series)
+            elif feature == 9:
+                c22[dim + n] = _periodicity_wang(series)
+            elif feature == 11:
+                c22[dim + n] = _ami_stats_40_fmmi(series)
+            elif feature == 16:
+                c22[dim + n] = _binstats_diff_longstretch0(series)
+            elif feature == 17:
+                c22[dim + n] = _motif_three_quantile_hh(series)
+            elif feature == 18:
+                c22[dim + n] = _fluct_anal_rsrange(series)
+            elif feature == 19:
+                c22[dim + n] = _fluct_anal_dfa(series)
+            elif feature == 21:
+                c22[dim + n] = _local_simple_mean3_stderr(series)
+
+    return c22

@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
+from aeon.base import BaseAeonEstimator
 from aeon.pipeline import sklearn_to_aeon
 from aeon.testing.data_generation import make_example_3d_numpy
 
@@ -20,14 +21,15 @@ from aeon.testing.data_generation import make_example_3d_numpy
 )
 def test_sklearn_to_aeon(estimator):
     """Test that sklearn_to_aeon works for different types of sklearn estimators."""
-    X, y = make_example_3d_numpy()
+    X, y = make_example_3d_numpy(n_cases=15, n_labels=4)
 
     est = sklearn_to_aeon(estimator)
+
+    assert isinstance(est, BaseAeonEstimator)
+
     est.fit(X, y)
 
     if hasattr(est, "predict"):
         est.predict(X)
     else:
         est.transform(X)
-
-    assert est._estimator_type == getattr(estimator, "_estimator_type", "transformer")

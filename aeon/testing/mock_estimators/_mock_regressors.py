@@ -1,3 +1,11 @@
+"""Mock regressors useful for testing and debugging."""
+
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "MockRegressor",
+    "MockRegressorFullTags",
+]
+
 from sklearn.utils import check_random_state
 
 from aeon.regression.base import BaseRegressor
@@ -20,7 +28,7 @@ class MockRegressor(BaseRegressor):
         return rng.random(size=(len(X)))
 
 
-class MockHandlesAllInput(BaseRegressor):
+class MockRegressorFullTags(BaseRegressor):
     """Dummy regressor for testing base class fit/predict/predict_proba."""
 
     _tags = {
