@@ -1,6 +1,6 @@
 """Torsk anomaly detector."""
 
-__maintainer__ = []
+__maintainer__ = ["lazizbekravshanov"]
 __all__ = ["Torsk"]
 
 import numpy as np
@@ -116,7 +116,7 @@ class Torsk(BaseSeriesAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection.series._torsk import Torsk
+    >>> from aeon.anomaly_detection.series.deep_learning import Torsk
     >>> rng = np.random.RandomState(0)
     >>> series = np.sin(np.linspace(0, 20 * np.pi, 400)) + rng.normal(0, 0.05, 400)
     >>> series[300:320] += 3.0

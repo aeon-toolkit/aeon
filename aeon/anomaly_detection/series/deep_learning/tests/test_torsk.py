@@ -1,12 +1,12 @@
 """Tests for the Torsk class."""
 
-__maintainer__ = []
+__maintainer__ = ["lazizbekravshanov"]
 
 import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection.series._torsk import Torsk
+from aeon.anomaly_detection.series.deep_learning import Torsk
 
 
 def _series_with_anomaly(n=400, lo=300, hi=320, seed=0):
