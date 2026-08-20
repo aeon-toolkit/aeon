@@ -51,7 +51,7 @@ class RDSTClassifier(BaseClassifier):
         will be used.
     alpha_similarity : float, default=0.5
         The strength of the alpha similarity pruning. The higher the value, the fewer
-        common indexes with previously sampled shapelets are allowed when sampling a
+        common indices with previously sampled shapelets are allowed when sampling a
         new candidate with the same dilation parameter. It can cause the number of
         sampled shapelets to be lower than max_shapelets if the whole search space has
         been covered. The default is 0.5, and the maximum is 1. Values above it have
