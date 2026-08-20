@@ -264,15 +264,14 @@ class MUSE(BaseClassifier):
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
+            all_words = all_words.astype(np.float32, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
                 solver="liblinear",
                 dual=True,
                 class_weight=self.class_weight,
-                penalty="l2",
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
             )
             if self.n_classes_ > 2:
                 self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)
