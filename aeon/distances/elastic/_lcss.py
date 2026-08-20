@@ -55,7 +55,7 @@ def lcss_distance(
 
     LCSS attempts to find the longest common sequence between two time series and
     returns a value that is the percentage that longest common sequence assumes.
-    Originally present in [1]_, LCSS is computed by matching indexes that are
+    Originally present in [1]_, LCSS is computed by matching indices that are
     similar up until a defined threshold (epsilon).
 
     The value returned will be between 0.0 and 1.0, where 0.0 means the two time series

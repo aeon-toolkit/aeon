@@ -9,7 +9,7 @@ import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.base import BaseEstimator, is_classifier, is_regressor
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier, DecisionTreeRegressor
@@ -22,6 +22,7 @@ from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
 )
+from aeon.utils._parallel import _run_jobs
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 
@@ -36,7 +37,13 @@ class BaseIntervalForest(ABC):
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e. ``DecisionTreeClassifier(criterion="entropy")`` for
+        classification and ``DecisionTreeRegressor(criterion="squared_error")`` for
+        regression. Versions prior to and including 1.5.0 used
+        ``DecisionTreeRegressor(criterion="absolute_error")`` for regression by
+        default, which scales poorly with the number of cases and can be orders of
+        magnitude slower for larger datasets. Pass such an estimator explicitly to
+        restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     interval_selection_method : "random", "supervised" or "random-supervised",
@@ -225,25 +232,11 @@ class BaseIntervalForest(ABC):
 
         return self
 
-    def _eval_estimators(self, tasks):
-        """Run a list of joblib ``delayed`` tasks over the estimators.
-
-        Runs sequentially when ``n_jobs == 1`` to avoid the joblib dispatch
-        overhead (a ``Parallel`` object plus per-task wrapping) for what is the
-        default and dominant case, otherwise runs them in parallel. The tasks
-        must be built as a list so that any random draws in their arguments
-        happen in the same order joblib would consume a generator, keeping the
-        result identical to the parallel path.
-        """
-        if self._n_jobs == 1:
-            return [func(*args, **kwargs) for func, args, kwargs in tasks]
-        return Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(tasks)
-
     def _predict(self, X):
         if is_regressor(self):
             Xt = self._predict_setup(X)
 
-            y_preds = self._eval_estimators(
+            y_preds = _run_jobs(
                 [
                     delayed(self._predict_for_estimator)(
                         Xt,
@@ -252,7 +245,9 @@ class BaseIntervalForest(ABC):
                         predict_proba=False,
                     )
                     for i in range(self._n_estimators)
-                ]
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
             )
 
             return np.mean(y_preds, axis=0)
@@ -264,7 +259,7 @@ class BaseIntervalForest(ABC):
     def _predict_proba(self, X):
         Xt = self._predict_setup(X)
 
-        y_probas = self._eval_estimators(
+        y_probas = _run_jobs(
             [
                 delayed(self._predict_for_estimator)(
                     Xt,
@@ -273,7 +268,9 @@ class BaseIntervalForest(ABC):
                     predict_proba=True,
                 )
                 for i in range(self._n_estimators)
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
         )
 
         output = np.sum(y_probas, axis=0) / (
@@ -287,7 +284,7 @@ class BaseIntervalForest(ABC):
         if is_regressor(self):
             Xt = self._fit_forest(X, y, save_transformed_data=True)
 
-            p = self._eval_estimators(
+            p = _run_jobs(
                 [
                     delayed(self._train_estimate_for_estimator)(
                         Xt,
@@ -296,7 +293,9 @@ class BaseIntervalForest(ABC):
                         check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(self._n_estimators)
-                ]
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
             )
             y_preds, oobs = zip(*p)
 
@@ -331,7 +330,7 @@ class BaseIntervalForest(ABC):
 
         rng = check_random_state(self.random_state)
 
-        p = self._eval_estimators(
+        p = _run_jobs(
             [
                 delayed(self._train_estimate_for_estimator)(
                     Xt,
@@ -341,7 +340,9 @@ class BaseIntervalForest(ABC):
                     probas=True,
                 )
                 for i in range(self._n_estimators)
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
         )
         y_probas, oobs = zip(*p)
 
@@ -371,7 +372,7 @@ class BaseIntervalForest(ABC):
             if is_classifier(self):
                 self._base_estimator = DecisionTreeClassifier(criterion="entropy")
             elif is_regressor(self):
-                self._base_estimator = DecisionTreeRegressor(criterion="absolute_error")
+                self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
             else:
                 raise ValueError(
                     f"{self} must be a scikit-learn compatible classifier or "
@@ -823,7 +824,7 @@ class BaseIntervalForest(ABC):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = self._eval_estimators(
+                fit = _run_jobs(
                     [
                         delayed(self._fit_estimator)(
                             Xt,
@@ -832,7 +833,9 @@ class BaseIntervalForest(ABC):
                             save_transformed_data=save_transformed_data,
                         )
                         for _ in range(self._n_jobs)
-                    ]
+                    ],
+                    self._n_jobs,
+                    backend=self.parallel_backend,
                 )
 
                 (
@@ -850,7 +853,7 @@ class BaseIntervalForest(ABC):
         else:
             self._n_estimators = self.n_estimators
 
-            fit = self._eval_estimators(
+            fit = _run_jobs(
                 [
                     delayed(self._fit_estimator)(
                         Xt,
@@ -859,7 +862,9 @@ class BaseIntervalForest(ABC):
                         save_transformed_data=save_transformed_data,
                     )
                     for _ in range(self._n_estimators)
-                ]
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
             )
 
             (
@@ -1304,6 +1309,9 @@ class BaseIntervalForest(ABC):
                 rep = f"{key[0]}_" if key[0] != "" else ""
                 names.append(f"{rep}{key[2]}{dim}")
                 values.append(value)
+
+            if not names:
+                return [], []
 
             names, values = zip(*sorted(zip(names, values)))
 

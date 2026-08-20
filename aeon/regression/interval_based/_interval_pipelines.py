@@ -67,6 +67,8 @@ class RandomIntervalRegressor(BaseRegressor):
         The number of channels per case.
     n_timepoints_ : int
         The length of each series.
+    estimator_ : sklearn regressor
+        The fitted sklearn regressor used to predict from the internal-transformed data.
 
     See Also
     --------
@@ -151,7 +153,7 @@ class RandomIntervalRegressor(BaseRegressor):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RandomForestRegressor(n_estimators=200)
                 if self.estimator is None
@@ -160,12 +162,12 @@ class RandomIntervalRegressor(BaseRegressor):
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -182,7 +184,7 @@ class RandomIntervalRegressor(BaseRegressor):
         y : array-like, shape = [n_cases]
             Predicted target labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

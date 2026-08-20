@@ -8,6 +8,7 @@ __all__ = ["Catch22"]
 
 import math
 import warnings
+from weakref import WeakSet
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -70,6 +71,23 @@ feature_names_short = [
 ]
 
 
+# TODO remove with 'use_pycatch22' in v1.7.0
+_WARNED_USE_PYCATCH22_ESTIMATORS = WeakSet()
+
+
+def _warn_use_pycatch22_deprecated(estimator):
+    """Emit the ``use_pycatch22`` warning once per live estimator instance."""
+    if estimator not in _WARNED_USE_PYCATCH22_ESTIMATORS:
+        warnings.warn(
+            "The 'use_pycatch22' parameter is deprecated and will be removed in "
+            "v1.7.0. Setting use_pycatch22=True continues to use pycatch22 until "
+            "removal. Omit the parameter to use aeon's faster implementation.",
+            FutureWarning,
+            stacklevel=3,
+        )
+        _WARNED_USE_PYCATCH22_ESTIMATORS.add(estimator)
+
+
 class Catch22(BaseCollectionTransformer):
     """Canonical Time-series Characteristics (Catch22).
 
@@ -118,10 +136,14 @@ class Catch22(BaseCollectionTransformer):
         series that were already normalized.
     replace_nans : bool, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. Requires multiple input
         cases. ``-1`` means using all processors.
@@ -180,13 +202,14 @@ class Catch22(BaseCollectionTransformer):
         "fit_is_empty": True,
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=False,
         outlier_norm=True,
         replace_nans=False,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         n_jobs=1,
         parallel_backend=None,
     ):
@@ -200,7 +223,9 @@ class Catch22(BaseCollectionTransformer):
 
         super().__init__()
 
-        if use_pycatch22:
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated(self)
+        if use_pycatch22 is True:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _transform(self, X, y=None):
@@ -250,7 +275,7 @@ class Catch22(BaseCollectionTransformer):
         ]
 
         use_pycatch22_transform = False
-        if self.use_pycatch22:
+        if self.use_pycatch22 is True:
             if _check_soft_dependencies("pycatch22", severity="none"):
                 import pycatch22
 
@@ -1069,6 +1094,34 @@ class Catch22(BaseCollectionTransformer):
             break
 
         return out
+
+
+# TODO remove with 'use_pycatch22' in v1.7.0
+class _InternalCatch22(Catch22):
+    """Catch22 implementation for internal composition without public warnings."""
+
+    def __init__(
+        self,
+        features="all",
+        catch24=False,
+        outlier_norm=True,
+        replace_nans=False,
+        use_pycatch22="deprecated",
+        n_jobs=1,
+        parallel_backend=None,
+    ):
+        super().__init__(
+            features=features,
+            catch24=catch24,
+            outlier_norm=outlier_norm,
+            replace_nans=replace_nans,
+            use_pycatch22="deprecated",
+            n_jobs=n_jobs,
+            parallel_backend=parallel_backend,
+        )
+        self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 is True:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
 
 
 @njit(fastmath=True, cache=True)

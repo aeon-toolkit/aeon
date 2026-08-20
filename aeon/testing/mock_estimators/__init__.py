@@ -13,6 +13,7 @@ __all__ = [
     "MockClassifierComposite",
     # clustering
     "MockCluster",
+    "MockTransductiveCluster",
     "MockDeepClusterer",
     # collection transformation
     "MockCollectionTransformer",
@@ -47,7 +48,11 @@ from aeon.testing.mock_estimators._mock_classifiers import (
     MockClassifierParams,
     MockClassifierPredictProba,
 )
-from aeon.testing.mock_estimators._mock_clusterers import MockCluster, MockDeepClusterer
+from aeon.testing.mock_estimators._mock_clusterers import (
+    MockCluster,
+    MockDeepClusterer,
+    MockTransductiveCluster,
+)
 from aeon.testing.mock_estimators._mock_collection_transformers import (
     MockCollectionTransformer,
 )
