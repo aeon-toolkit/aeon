@@ -573,12 +573,18 @@ def check_non_state_changing_method(estimator, datatype):
                 y, FULL_TEST_DATA_DICT[datatype]["test"][1]
             ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
-            changed = _changed_state(state_before, vars(estimator))
-
-            assert not changed, (
+            changed = _changed_state(state_before, estimator)
+            reference_only = sorted(
+                n for n in changed if state_before.get(n, (None,))[0] == "identity"
+            )
+            msg = (
                 f"Estimator: {type(estimator).__name__} changes __dict__ "
                 f"during {method}; changed attributes: {sorted(changed)}"
             )
+            if reference_only:
+                msg += f". Compared by reference only: {reference_only}"
+
+            assert not changed, msg
 
 
 def check_fit_updates_state_and_cloning(estimator, datatype):

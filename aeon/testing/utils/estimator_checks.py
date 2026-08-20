@@ -110,12 +110,49 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
     assert np.allclose(np.sum(y_proba, axis=1), 1)
 
 
+# whether a value is, or holds within a container or object, a keras object
+def _holds_deep_learning_state(value, depth=0):
+    if type(value).__module__.split(".")[0] == "keras":
+        return True
+    if depth >= 2:
+        return False
+
+    if isinstance(value, (list, tuple, set)):
+        items = value
+    elif isinstance(value, dict):
+        items = value.values()
+    elif hasattr(value, "__dict__"):
+        items = vars(value).values()
+    else:
+        return False
+
+    return any(_holds_deep_learning_state(item, depth + 1) for item in items)
+
+
 def _snapshot_state(estimator):
+    """Snapshot the attributes of an estimator for later comparison.
+
+    Parameters
+    ----------
+    estimator : BaseAeonEstimator
+        Estimator to record the current attributes of.
+
+    Returns
+    -------
+    state : dict
+        Maps each attribute name to ``("hash", digest)`` if the value could be
+        hashed, and ``("identity", value)`` if it could not. ``"identity"``
+        entries are compared by reference, so changes made in-place to them
+        cannot be detected.
+    """
     state = {}
-    use_hash = not _get_tag(estimator, "cant_pickle", default=False)
+    deep_learning = (
+        _get_tag(estimator, "algorithm_type", default=None) == "deeplearning"
+    )
 
     for name, value in vars(estimator).items():
-        if use_hash:
+        # keras changes its own state during predict, so is compared by reference
+        if not (deep_learning and _holds_deep_learning_state(value)):
             try:
                 state[name] = ("hash", joblib.hash(value))
                 continue
@@ -127,7 +164,22 @@ def _snapshot_state(estimator):
     return state
 
 
-def _changed_state(before, after):
+def _changed_state(before, estimator):
+    """Find the attributes of an estimator which changed since a snapshot.
+
+    Parameters
+    ----------
+    before : dict
+        Snapshot of the estimator attributes from ``_snapshot_state``.
+    estimator : BaseAeonEstimator
+        The estimator the snapshot was taken from.
+
+    Returns
+    -------
+    changed : set
+        Names of attributes which have been added, removed or changed in value.
+    """
+    after = vars(estimator)
     changed = set(before) ^ set(after)
 
     for name in before.keys() & after.keys():
