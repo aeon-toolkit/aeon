@@ -41,9 +41,6 @@ jobs:
           runner_os: ${{ runner.os }}
           python_version: "3.12"
 
-      # Install only the binder extra so this job matches the environment
-      # notebooks actually run in on binder (see .binder/Dockerfile). Using
-      # all_extras here hides missing binder dependencies.
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v4
         with:
