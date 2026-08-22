@@ -59,7 +59,7 @@ def _run_estimator_method(estimator, method_name, datatype, split):
     # soft dependencies
     except ModuleNotFoundError as e:
         raise RuntimeError(
-            f"Estimator {estimator.__name__} raises a ModuleNotFoundError "
+            f"Estimator {type(estimator).__name__} raises a ModuleNotFoundError "
             f"on {method.__name__}. Any required soft dependencies should "
             f'be added to the "python_dependencies" tag, and python version bounds '
             f'should be added to the "python_version" tag.'
@@ -111,7 +111,7 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
 
 
 def _holds_deep_learning_state(value, depth=0):
-    """whether a value is, or holds within a container or object, a keras object."""
+    """Whether a value is, or holds within a container or object, a keras object."""
     if type(value).__module__.split(".")[0] == "keras":
         return True
     if depth >= 2:
@@ -145,7 +145,7 @@ def _snapshot_state(estimator):
         entries are compared by reference, so changes made in-place to them
         cannot be detected.
 
-        ``keras`` changes its own state during predict, so its objects are 
+        ``keras`` changes its own state during predict, so its objects are
         compared by reference.
     """
     state = {}
