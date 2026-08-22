@@ -63,3 +63,17 @@ def test_window_error():
     )
     with pytest.raises(ValueError):
         method.fit_transform(X)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("roughpy", severity="none"),
+    reason="skip test if required soft dependency roughpy not available",
+)
+def test_depth_error():
+    """Test that a non-positive signature depth raises an error."""
+    X = np.random.randn(5, 2, 10)
+
+    for depth in (0, -1):
+        method = SignatureTransformer(depth=depth, window_name="global")
+        with pytest.raises(ValueError, match="Depth must be at least 1"):
+            method.fit_transform(X)

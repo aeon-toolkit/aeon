@@ -175,6 +175,8 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
 
     def _transform(self, X, y=None):
         depth = self.sig_depth
+        if depth < 1:
+            raise ValueError(f"Depth must be at least 1. Depth given is: {depth}.")
         data = np.swapaxes(X, 1, 2)
 
         # Path rescaling
