@@ -724,9 +724,24 @@ def test_alphabet_length_must_match_alphabet_size():
         )
 
 
-def test_sax_default_znormalized_is_true():
-    """Test that SAX treats input as pre-normalized by default."""
-    assert SAX().znormalized is True
+def test_sax_default_znormalize_is_true():
+    """Test that SAX normalizes the input by default."""
+    sax = SAX()
+    assert sax.znormalize is True
+    assert sax.znormalized == "deprecated"
+    assert sax._znormalize is True
+
+
+def test_sax_znormalized_deprecation_warning():
+    """Test that passing the deprecated znormalized parameter warns and maps
+    onto the equivalent znormalize value (inverted meaning)."""
+    with pytest.warns(FutureWarning, match="znormalized"):
+        sax_true = SAX(znormalized=True)
+    assert sax_true._znormalize is False
+
+    with pytest.warns(FutureWarning, match="znormalized"):
+        sax_false = SAX(znormalized=False)
+    assert sax_false._znormalize is True
 
 
 def test_sax_get_test_params():
