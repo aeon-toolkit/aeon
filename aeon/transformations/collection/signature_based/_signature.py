@@ -462,7 +462,13 @@ def _sigdim(channels, depth):
 
 
 def _build_stream(path, depth):
-    """Build a RoughPy Lie increment stream from a ``(length, channels)`` path."""
+    """Build a RoughPy Lie increment stream from a ``(length, channels)`` path.
+
+    Adapted from the ``RoughPyBackend.prepare_stream`` method in esig 1.0.0
+    backends.py, correcting the index computation which is off by one for some
+    series lengths. https://github.com/datasig-ac-uk/esig/
+    Copyright (c) 2024 DataSig project, BSD-3
+    """
     import roughpy as rp
 
     length, channels = path.shape
@@ -475,7 +481,13 @@ def _build_stream(path, depth):
 
 
 def _stream2sig(path, depth):
-    """Compute the signature of a ``(length, channels)`` path."""
+    """Compute the signature of a ``(length, channels)`` path.
+
+    Adapted from the ``RoughPyBackend.compute_signature`` and
+    ``RoughPyBackend.empty_signature`` methods in esig 1.0.0 backends.py.
+    https://github.com/datasig-ac-uk/esig/
+    Copyright (c) 2024 DataSig project, BSD-3
+    """
     import roughpy as rp
 
     length, channels = path.shape
@@ -488,7 +500,13 @@ def _stream2sig(path, depth):
 
 
 def _stream2logsig(path, depth):
-    """Compute the log signature of a ``(length, channels)`` path."""
+    """Compute the log signature of a ``(length, channels)`` path.
+
+    Adapted from the ``RoughPyBackend.compute_log_signature`` and
+    ``RoughPyBackend.empty_log_signature`` methods in esig 1.0.0 backends.py.
+    https://github.com/datasig-ac-uk/esig/
+    Copyright (c) 2024 DataSig project, BSD-3
+    """
     import roughpy as rp
 
     length, channels = path.shape
