@@ -199,10 +199,10 @@ class RocketClassifier(BaseClassifier):
 
         m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self.estimator_.predict_proba(X)
+            return self.estimator_.predict_proba(X_t)
         else:
             dists = np.zeros((len(X), self.n_classes_))
-            preds = self.estimator_.predict(X)
+            preds = self.estimator_.predict(X_t)
             for i in range(0, len(X)):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
