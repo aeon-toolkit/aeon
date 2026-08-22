@@ -87,8 +87,8 @@ def test_torsk_incorrect_input():
         Torsk(spectral_radius=0.0).fit_predict(series)
     with pytest.raises(ValueError, match="transient_window_size must be smaller"):
         Torsk(transient_window_size=50, train_window_size=50).fit_predict(series)
-    with pytest.raises(ValueError, match="tikhonov_beta must be non-negative"):
-        Torsk(tikhonov_beta=-1.0).fit_predict(series)
+    with pytest.raises(ValueError, match="rcond must be in"):
+        Torsk(rcond=-1.0).fit_predict(series)
     with pytest.raises(ValueError, match="requires at least"):
         Torsk().fit_predict(series)
 

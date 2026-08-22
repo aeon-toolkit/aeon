@@ -4,7 +4,6 @@ __maintainer__ = ["lazizbekravshanov"]
 __all__ = ["Torsk"]
 
 import numpy as np
-from scipy.linalg import solve
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs
 from scipy.special import erf
@@ -19,7 +18,7 @@ class Torsk(BaseSeriesAnomalyDetector):
     Torsk [1]_ is a prediction-based anomaly detector built on an echo state
     network (ESN). The series is cut into consecutive frames of ``window_size``
     time points. A fixed random sparse reservoir is driven by the frames, and at
-    every sliding position a linear readout is fitted by ridge regression to
+    every sliding position a linear readout is fitted by least squares to
     predict the next frame. The readout then runs freely for
     ``prediction_window_size`` frames, and the mean absolute error between the
     free-running prediction and the observed frames gives one error per
@@ -63,10 +62,11 @@ class Torsk(BaseSeriesAnomalyDetector):
         Number of leading errors whose mean is tested against the baseline.
     normality_large_window : int, default=100
         Number of trailing errors forming the baseline distribution.
-    tikhonov_beta : float, default=1e-4
-        Ridge regularisation strength for the readout fit. The readout system is
-        underdetermined at the default window sizes, so this is load bearing
-        rather than cosmetic.
+    rcond : float, default=1e-4
+        Relative singular value cutoff for the truncated SVD readout solve.
+        Singular values below ``rcond`` times the largest are discarded. The
+        readout system is underdetermined at the default window sizes, so this
+        truncation is load bearing rather than cosmetic.
     random_state : int, np.random.RandomState instance or None, default=None
         Seed for the reservoir and input map draw.
 
@@ -91,9 +91,13 @@ class Torsk(BaseSeriesAnomalyDetector):
     - Equation 3 of the paper writes the normality score with the difference
       reversed, which would flag drops in prediction error instead of spikes.
       We follow both reference implementations, which use the opposite sign.
-    - Both reference implementations add the scalar regularisation constant to
-      every element of the Gram matrix rather than to its diagonal. We use a
-      standard ridge solution instead.
+    - The reference implementations offer a Tikhonov solver but implement it
+      incorrectly, adding the scalar regularisation constant to every element
+      of the Gram matrix rather than to its diagonal. We solve the readout by
+      truncated SVD of the design matrix, matching the reference's default
+      ``pinv_svd`` path. Solving the normal equations instead squares the
+      condition number of an already ill conditioned system, which measurably
+      degrades both accuracy and runtime for series with many channels.
     - The paper whitens readout targets with the inverse metric of the IMED at
       fit time only. We omit IMED entirely.
     - Like TimeEval, the series is min max scaled to the range minus one to one
@@ -151,7 +155,7 @@ class Torsk(BaseSeriesAnomalyDetector):
         transient_window_size: int = 10,
         normality_small_window: int = 10,
         normality_large_window: int = 100,
-        tikhonov_beta: float = 1e-4,
+        rcond: float = 1e-4,
         random_state: int | None = None,
     ):
         self.window_size = window_size
@@ -164,7 +168,7 @@ class Torsk(BaseSeriesAnomalyDetector):
         self.transient_window_size = transient_window_size
         self.normality_small_window = normality_small_window
         self.normality_large_window = normality_large_window
-        self.tikhonov_beta = tikhonov_beta
+        self.rcond = rcond
         self.random_state = random_state
 
         super().__init__(axis=0)
@@ -224,8 +228,8 @@ class Torsk(BaseSeriesAnomalyDetector):
             )
         if self.normality_small_window < 1 or self.normality_large_window < 1:
             raise ValueError("normality window sizes must be at least 1")
-        if self.tikhonov_beta < 0.0:
-            raise ValueError("tikhonov_beta must be non-negative")
+        if not 0.0 <= self.rcond < 1.0:
+            raise ValueError("rcond must be in [0, 1)")
 
     def _make_reservoir(self, rng) -> csr_matrix:
         h = self.reservoir_size
@@ -283,9 +287,12 @@ class Torsk(BaseSeriesAnomalyDetector):
             [np.ones((states[tr:-1].shape[0], 1)), train[tr:-1], states[tr:-1]]
         )
         targets = train[tr + 1 :]
-        gram = design.T @ design
-        gram[np.diag_indices_from(gram)] += self.tikhonov_beta**2
-        readout = solve(gram, design.T @ targets, assume_a="pos")
+        # Truncated SVD of the design matrix. Solving the normal equations
+        # instead squares the condition number, which visibly degrades accuracy
+        # and runtime once window_size * n_channels grows large.
+        u_svd, s_svd, vt_svd = np.linalg.svd(design, full_matrices=False)
+        keep = s_svd > self.rcond * s_svd[0]
+        readout = (vt_svd[keep].T * (1.0 / s_svd[keep])) @ (u_svd[:, keep].T @ targets)
 
         u, x = train[-1].copy(), states[-1].copy()
         pred_start = i + self.train_window_size
