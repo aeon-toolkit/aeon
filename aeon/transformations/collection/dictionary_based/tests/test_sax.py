@@ -733,8 +733,10 @@ def test_sax_default_znormalize_is_true():
 
 
 def test_sax_znormalized_deprecation_warning():
-    """Test that passing the deprecated znormalized parameter warns and maps
-    onto the equivalent znormalize value (inverted meaning)."""
+    """Test that passing the deprecated znormalized parameter warns and maps.
+
+    Maps onto the equivalent znormalize value (inverted meaning).
+    """
     with pytest.warns(FutureWarning, match="znormalized"):
         sax_true = SAX(znormalized=True)
     assert sax_true._znormalize is False
