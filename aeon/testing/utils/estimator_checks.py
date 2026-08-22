@@ -110,8 +110,8 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
     assert np.allclose(np.sum(y_proba, axis=1), 1)
 
 
-# whether a value is, or holds within a container or object, a keras object
 def _holds_deep_learning_state(value, depth=0):
+    """whether a value is, or holds within a container or object, a keras object."""
     if type(value).__module__.split(".")[0] == "keras":
         return True
     if depth >= 2:
@@ -144,6 +144,9 @@ def _snapshot_state(estimator):
         hashed, and ``("identity", value)`` if it could not. ``"identity"``
         entries are compared by reference, so changes made in-place to them
         cannot be detected.
+
+        ``keras`` changes its own state during predict, so its objects are 
+        compared by reference.
     """
     state = {}
     deep_learning = (
@@ -151,7 +154,6 @@ def _snapshot_state(estimator):
     )
 
     for name, value in vars(estimator).items():
-        # keras changes its own state during predict, so is compared by reference
         if not (deep_learning and _holds_deep_learning_state(value)):
             try:
                 state[name] = ("hash", joblib.hash(value))
