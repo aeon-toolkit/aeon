@@ -2,12 +2,18 @@
 
 from unittest.mock import patch
 
+import pytest
 from sklearn.linear_model import RidgeClassifier
 
 from aeon.classification.convolution_based import MultiRocketHydraClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_mrhydra_calls_lapack_check_with_default_estimator():
     """Check LAPACK safety when using the default estimator.
 
@@ -26,6 +32,10 @@ def test_mrhydra_calls_lapack_check_with_default_estimator():
     assert args[2] == "MultiRocketHydraClassifier"
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_mrhydra_skips_lapack_check_with_custom_estimator():
     """Skip the LAPACK safety check with a custom estimator.
 
