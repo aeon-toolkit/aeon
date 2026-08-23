@@ -231,6 +231,7 @@ def test_predict_proba_default():
 
     p = cls._predict_proba(X)
     assert p.shape == (5, 2)
+    np.testing.assert_array_equal(p, np.tile([1.0, 0.0], (5, 1)))
 
 
 def test_fit_predict():
