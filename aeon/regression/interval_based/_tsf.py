@@ -32,7 +32,11 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e.
+        ``DecisionTreeRegressor(criterion="squared_error")``. Versions prior to and
+        including 1.5.0 used ``DecisionTreeRegressor(criterion="absolute_error")``
+        by default, which scales poorly with the number of cases. Pass such an
+        estimator explicitly to restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     n_intervals : int, str, list or tuple, default="sqrt"
