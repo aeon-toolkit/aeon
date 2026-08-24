@@ -99,10 +99,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         multivariate data.
     channel_threshold : float, default=0.85
         Channel accuracy threshold for multivariate data, must be between 0 and 1.
-    dim_threshold : float, default="deprecated"
-        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
     max_channels : int, default=20
         Max number of channels per classifier for multivariate data.
+    dim_threshold : float, default="deprecated"
+        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
     max_dims : int, default="deprecated"
         Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
@@ -692,14 +692,8 @@ class IndividualTDE(BaseClassifier):
         Deprecated and will be removed in v1.7.0.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
-    channel_threshold : float, default=0.85
-        Accuracy threshold as a proportion of the highest accuracy channel for words
-        extracted from each channel. Only applicable for multivariate data.
     dim_threshold : float, default="deprecated"
         Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
-    max_channels : int, default=20
-        Maximum number of channels words are extracted from. Only applicable for
-        multivariate data.
     max_dims : int, default="deprecated"
         Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     typed_dict : bool, default="deprecated"
@@ -711,6 +705,12 @@ class IndividualTDE(BaseClassifier):
         single threaded. ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for the random number generator.
+    max_channels : int, default=20
+        Maximum number of channels words are extracted from. Only applicable for
+        multivariate data.
+    channel_threshold : float, default=0.85
+        Accuracy threshold as a proportion of the highest accuracy channel for words
+        extracted from each channel. Only applicable for multivariate data.
 
     Attributes
     ----------
