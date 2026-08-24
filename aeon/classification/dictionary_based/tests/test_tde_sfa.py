@@ -331,6 +331,19 @@ def test_direct_binning_dft_uses_unit_std_for_constant_windows():
     assert np.all(np.isfinite(out))
 
 
+def test_direct_binning_dft_stable_for_large_offset_series():
+    """Test direct DFT variance against SFA for a large-offset window."""
+    series = 1e9 + np.arange(8, dtype=np.float64)
+    inverse_sqrt = 1.0 / math.sqrt(series.size)
+
+    actual = _binning_dft_all(series[None, :], series.size, 4, False, inverse_sqrt, 1)[
+        0, 0
+    ]
+    expected = OldSFA._discrete_fourier_transform(series, 4, False, inverse_sqrt, False)
+
+    np.testing.assert_allclose(actual, expected)
+
+
 def test_bags_from_dft_pack_flat_unigrams_and_bigrams():
     """Test flat bag encoding for unigrams and bigrams.
 

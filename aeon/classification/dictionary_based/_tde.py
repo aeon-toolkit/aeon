@@ -1469,14 +1469,16 @@ def _binning_dft_all(
                 offset = window * window_size
 
             series_sum = 0.0
-            square_sum = 0.0
             for n in range(window_size):
-                value = series[offset + n]
-                series_sum += value
-                square_sum += value * value
+                series_sum += series[offset + n]
 
             mean = series_sum / window_size
-            std = math.sqrt(square_sum / window_size - mean * mean)
+            squared_deviation_sum = 0.0
+            for n in range(window_size):
+                deviation = series[offset + n] - mean
+                squared_deviation_sum += deviation * deviation
+
+            std = math.sqrt(squared_deviation_sum / window_size)
             if std == 0.0:
                 std = 1.0
             factor = inverse_sqrt_win_size / std
