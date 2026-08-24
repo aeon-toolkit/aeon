@@ -85,8 +85,14 @@ def test_torsk_incorrect_input():
         Torsk(density=0.0).fit_predict(series)
     with pytest.raises(ValueError, match="spectral_radius must be positive"):
         Torsk(spectral_radius=0.0).fit_predict(series)
-    with pytest.raises(ValueError, match="transient_window_size must be smaller"):
-        Torsk(transient_window_size=50, train_window_size=50).fit_predict(series)
+    with pytest.raises(ValueError, match="train_window_size must be at least 2"):
+        Torsk(train_window_size=1).fit_predict(series)
+    with pytest.raises(ValueError, match="prediction_window_size must be at least 1"):
+        Torsk(prediction_window_size=0).fit_predict(series)
+    with pytest.raises(ValueError, match="transient_window_size must be in"):
+        Torsk(transient_window_size=49, train_window_size=50).fit_predict(series)
+    with pytest.raises(ValueError, match="transient_window_size must be in"):
+        Torsk(transient_window_size=-3).fit_predict(series)
     with pytest.raises(ValueError, match="rcond must be in"):
         Torsk(rcond=-1.0).fit_predict(series)
     with pytest.raises(ValueError, match="requires at least"):

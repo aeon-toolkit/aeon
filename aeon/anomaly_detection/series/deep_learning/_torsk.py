@@ -156,7 +156,7 @@ class Torsk(BaseSeriesAnomalyDetector):
         normality_small_window: int = 10,
         normality_large_window: int = 100,
         rcond: float = 1e-4,
-        random_state: int | None = None,
+        random_state: int | np.random.RandomState | None = None,
     ):
         self.window_size = window_size
         self.reservoir_size = reservoir_size
@@ -222,9 +222,14 @@ class Torsk(BaseSeriesAnomalyDetector):
             raise ValueError("density must be in (0, 1]")
         if self.spectral_radius <= 0.0:
             raise ValueError("spectral_radius must be positive")
-        if self.transient_window_size >= self.train_window_size:
+        if self.train_window_size < 2:
+            raise ValueError("train_window_size must be at least 2")
+        if self.prediction_window_size < 1:
+            raise ValueError("prediction_window_size must be at least 1")
+        if not 0 <= self.transient_window_size <= self.train_window_size - 2:
             raise ValueError(
-                "transient_window_size must be smaller than train_window_size"
+                "transient_window_size must be in [0, train_window_size - 2] so "
+                "that at least one row remains for the readout fit"
             )
         if self.normality_small_window < 1 or self.normality_large_window < 1:
             raise ValueError("normality window sizes must be at least 1")
