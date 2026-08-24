@@ -56,11 +56,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     in [1]_.
 
     Overview: Input 'n' series of length 'm' with 'd' channels.
-    TDE searches 'k' parameter values, using kernel ridge regression over
-    previously evaluated parameter combinations to predict the accuracy of
-    candidate parameter sets, and evaluates each selected set with a LOOCV.
-    (The reference paper [1] describes this step as a Gaussian process
-    regressor.) It then retains 's' ensemble members.
+    TDE searches 'k' parameter values using a guided parameter search,
+    evaluates each selected set with a LOOCV, then retains 's' ensemble members.
     There are six primary parameters for individual classifiers:
             - alpha: alphabet size
             - w: window length
@@ -92,8 +89,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     min_window : int, default=10
         Minimum window length.
     randomly_selected_params : int, default=50
-        Number of parameters randomly selected before the kernel ridge regression
-        guided parameter selection is used.
+        Number of parameters randomly selected before guided parameter selection
+        is used.
     bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.

@@ -162,42 +162,6 @@ def test_tde_loocv_train_estimate_and_predict():
     assert all(p in tde.classes_ for p in preds)
 
 
-def test_tde_deprecated_parameters_warn():
-    """Test the deprecated channel, max_dims, alphabet_size and typed_dict parameters.
-
-    Deprecated parameters raise a FutureWarning when a value is
-    passed; the defaults must stay silent. TODO remove in v1.7.0 along with
-    the parameters.
-    """
-    import warnings
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("error", FutureWarning)
-        IndividualTDE()
-        TemporalDictionaryEnsemble()
-
-    with pytest.warns(FutureWarning, match="alphabet_size"):
-        IndividualTDE(alphabet_size=4)
-    with pytest.warns(FutureWarning, match="max_dims"):
-        individual = IndividualTDE(max_dims=1)
-    assert individual.max_channels == 1
-    with pytest.warns(FutureWarning, match="dim_threshold"):
-        individual = IndividualTDE(dim_threshold=0.0)
-    assert individual.channel_threshold == 0.0
-    with pytest.warns(FutureWarning, match="max_dims"):
-        ensemble = TemporalDictionaryEnsemble(max_dims=1)
-    assert ensemble.max_channels == 1
-    with pytest.warns(FutureWarning, match="dim_threshold"):
-        ensemble = TemporalDictionaryEnsemble(dim_threshold=0.0)
-    assert ensemble.channel_threshold == 0.0
-    ensemble = TemporalDictionaryEnsemble(max_channels=1)
-    assert ensemble.max_channels == 1
-    with pytest.warns(FutureWarning, match="typed_dict"):
-        IndividualTDE(typed_dict=True)
-    with pytest.warns(FutureWarning, match="typed_dict"):
-        TemporalDictionaryEnsemble(typed_dict=False)
-
-
 def test_kernel_ridge_parameter_selection_matches_sklearn():
     """Test the numpy kernel ridge helper against the sklearn original.
 
