@@ -10,7 +10,7 @@ import math
 import numpy as np
 import pytest
 
-from aeon.classification.dictionary_based._tde_sfa import (
+from aeon.classification.dictionary_based._tde import (
     _DBL_MAX,
     _TDE_SFA,
     _bags_from_dft,
@@ -474,7 +474,7 @@ def test_nn_first_max_and_tie_break_replicate_the_sequential_scan():
     draw per tie event from the start of the pool, switching to the tied
     index when the draw is below 0.5, exactly like a per-row seeded scan.
     """
-    from aeon.classification.dictionary_based._tde_sfa import (
+    from aeon.classification.dictionary_based._tde import (
         nn_first_max,
         nn_tie_break,
     )
