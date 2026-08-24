@@ -198,6 +198,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         min_window=10,
         randomly_selected_params=50,
         bigrams=None,
+        channel_threshold=0.85,
+        max_channels=20,
         dim_threshold="deprecated",
         max_dims="deprecated",
         time_limit_in_minutes=0.0,
@@ -206,8 +208,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
-        max_channels=20,
-        channel_threshold=0.85,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
