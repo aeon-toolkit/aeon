@@ -7,6 +7,7 @@ import pytest
 from numpy import testing
 
 from aeon.datasets import load_basic_motions
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -1531,7 +1532,9 @@ def test_catch22_float32_output_dtype():
     float32 z-normalised series produced for features 13/14 (outlier_include /
     outlier_include_n), raising a TypingError for float32 input.
     """
-    X = np.random.default_rng(0).standard_normal((6, 1, 40)).astype(np.float32)
+    X = make_example_3d_numpy(
+        n_cases=6, n_channels=1, n_timepoints=40, random_state=0, return_y=False
+    ).astype(np.float32)
 
     # outlier_norm=True exercises the fixed code path (features 13/14)
     c22 = Catch22(outlier_norm=True, replace_nans=True)
