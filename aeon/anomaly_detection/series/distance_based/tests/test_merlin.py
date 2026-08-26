@@ -3,6 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
+import pytest
 
 from aeon.anomaly_detection.series.distance_based import MERLIN
 
@@ -70,3 +71,45 @@ def test_merlin():
     assert pred.shape == (50,)
     assert pred.dtype == bool
     assert (pred[15:22] == [False, True, True, True, True, True, False]).all()
+
+
+def test_merlin_constant_region_warning():
+    """Test MERLIN warns on constant regions."""
+    ad = MERLIN(min_length=5, max_length=10)
+    # Series with a flat region
+    X = np.array(
+        [
+            1,
+            2,
+            3,
+            4,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+        ]
+    )
+
+    with pytest.warns(
+        UserWarning,
+        match="There is region close to constant that will cause the results "
+        "to be unstable.",
+    ):
+        ad.predict(X)

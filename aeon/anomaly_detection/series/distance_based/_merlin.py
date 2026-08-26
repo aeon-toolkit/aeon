@@ -85,13 +85,14 @@ class MERLIN(BaseSeriesAnomalyDetector):
             )
 
         for i in range(X.shape[0] - self.min_length + 1):
-            if std(X[i : i + self.min_length]) > AEON_NUMBA_STD_THRESHOLD:
+            if std(X[i : i + self.min_length]) <= AEON_NUMBA_STD_THRESHOLD:
                 warnings.warn(
                     "There is region close to constant that will cause the results "
                     "to be unstable. It is suggested to delete the constant region "
                     "or try again with a longer min_length.",
                     stacklevel=2,
                 )
+                break
 
         lengths = np.linspace(
             self.min_length,
