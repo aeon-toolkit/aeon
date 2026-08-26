@@ -3,8 +3,10 @@ r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove WDTW bounding parameters in v1.7.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for WDTW "
+        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "standard WDTW algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -45,8 +58,9 @@ def wdtw_distance(
     for larger warpings. The greater :math:`g` is, the greater the penalty for warping.
     Once :math:`M` is found, standard dynamic time warping is applied.
 
-    WDTW is set up so you can use it with a bounding box in addition to the weight
-    function is so desired. This is for consistency with the other distance functions.
+    WDTW has historically supported a bounding constraint in addition to the weight
+    function for consistency with other distance functions. This non-standard option
+    is deprecated and will be removed in v1.7.0.
 
     Parameters
     ----------
@@ -61,12 +75,18 @@ def wdtw_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
     g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
 
     Returns
     -------
@@ -94,14 +114,22 @@ def wdtw_distance(
     >>> round(wdtw_distance(x, y),1)
     356.5
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _wdtw_distance_unbounded(_x, _y, g)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _wdtw_distance(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _wdtw_distance_unbounded(x, y, g)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -130,12 +158,18 @@ def wdtw_cost_matrix(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
     g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
 
     Returns
     -------
@@ -185,6 +219,10 @@ def wdtw_cost_matrix(
              26.87567559,  14.37567559,   6.57563393,   2.30044662,
               0.450166  ,   0.        ]])
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -250,6 +288,37 @@ def _wdtw_distance(
 
 
 @njit(cache=True, fastmath=True)
+def _wdtw_distance_unbounded(x: np.ndarray, y: np.ndarray, g: float) -> float:
+    """Compute unbounded WDTW with two rolling rows and no bounding matrix."""
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    max_size = max(x_size, y_size)
+    weight_vector = np.array(
+        [1 / (1 + np.exp(-g * (i - max_size / 2))) for i in range(0, max_size)]
+    )
+
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.empty(y_size + 1)
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        curr[0] = np.inf
+        for j in range(y_size):
+            cost = (
+                _univariate_squared_distance(x[:, i], y[:, j])
+                * weight_vector[abs(i - j)]
+            )
+            curr[j + 1] = cost + min(prev[j + 1], curr[j], prev[j])
+        prev, curr = curr, prev
+
+    return prev[y_size]
+
+
+@njit(cache=True, fastmath=True)
 def _wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> np.ndarray:
@@ -301,12 +370,18 @@ def wdtw_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
     g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -356,6 +431,9 @@ def wdtw_pairwise_distance(
            [ 20.25043711,   0.        ,  39.64543037],
            [139.70656066,  39.64543037,   0.        ]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -382,6 +460,13 @@ def _wdtw_pairwise_distance(
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _wdtw_distance_unbounded(X[i], X[j], g)
+                distances[j, i] = distances[i, j]
+        return distances
 
     if not unequal_length:
         n_timepoints = X[0].shape[1]
@@ -413,6 +498,12 @@ def _wdtw_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _wdtw_distance_unbounded(x[i], y[j], g)
+        return distances
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
@@ -448,12 +539,18 @@ def wdtw_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
     g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard WDTW algorithm.
 
     Returns
     -------
