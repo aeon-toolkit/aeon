@@ -67,7 +67,7 @@ def generate_segments(X: npt.ArrayLike, change_points: list[int]) -> npt.ArrayLi
         and value series in columns.
 
     change_points: list of int
-        Locations of change points as integer indexes. By convention change points
+        Locations of change points as integer indices. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
 
     Yields
@@ -89,7 +89,7 @@ def generate_segments_pandas(X: npt.ArrayLike, change_points: list) -> npt.Array
         and value series in columns.
 
     change_points: list of int
-        Locations of change points as integer indexes. By convention change points
+        Locations of change points as integer indices. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
 
     Yields
@@ -122,7 +122,7 @@ class _IGTS:
 
        GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
-       dimensions. A technique proposed in the paper [1]_ us to subtract the
+       channel. A technique proposed in the paper [1]_ is to subtract the
        series from it's largest element and append to the series.
 
     Parameters
@@ -157,7 +157,7 @@ class _IGTS:
     intermediate_results_: list = field(init=False, default_factory=list)
 
     def identity(self, X: npt.ArrayLike) -> list[int]:
-        """Return identity segmentation, i.e. terminal indexes of the data."""
+        """Return identity segmentation, i.e. terminal indices of the data."""
         return sorted([0, X.shape[0]])
 
     def get_candidates(self, n_samples: int, change_points: list[int]) -> list[int]:
@@ -193,7 +193,7 @@ class _IGTS:
             and value series in columns.
 
         change_points: list of ints
-            Locations of change points as integer indexes. By convention change points
+            Locations of change points as integer indices. By convention change points
             include the identity segmentation, i.e. first and last index + 1 values.
 
         Returns
@@ -223,7 +223,7 @@ class _IGTS:
         Returns
         -------
         change_points: list of ints
-            Locations of change points as integer indexes. By convention change points
+            Locations of change points as integer indices. By convention change points
             include the identity segmentation, i.e. first and last index + 1 values.
         """
         n_samples, n_series = X.shape
@@ -280,7 +280,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
        GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
-       dimensions. A technique proposed in the paper [1]_ us to subtract the
+       channel. A technique proposed in the paper [1]_ is to subtract the
        series from it's largest element and append to the series.
 
     Parameters
@@ -296,7 +296,7 @@ class InformationGainSegmenter(BaseSegmenter):
     Attributes
     ----------
     change_points_: list of int
-        Locations of change points as integer indexes. By convention change points
+        Locations of change points as integer indices. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
 
     intermediate_results_: list of ``ChangePointResult``

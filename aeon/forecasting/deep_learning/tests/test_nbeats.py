@@ -208,3 +208,48 @@ def test_nbeats_backcast_loss_weight(backcast_loss_weight):
 
     assert predictions is not None
     assert len(predictions) == 3
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+def test_nbeats_save_options_and_forecast_paths():
+    """Save flags, input validation, and series-to-series input variants."""
+    import os
+    import tempfile
+
+    import numpy as np
+
+    y = np.sin(np.arange(40.0) / 4.0)
+
+    with pytest.raises(ValueError, match="only supports univariate"):
+        NBeatsForecaster(window=6, n_epochs=1)._fit(np.ones((20, 2)))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = os.path.join(tmp, "")
+        f = NBeatsForecaster(
+            window=6,
+            horizon=2,
+            n_epochs=1,
+            batch_size=8,
+            save_init_model=True,
+            save_last_model=True,
+            file_path=tmp_dir,
+            random_state=0,
+        )
+        f.fit(y)
+        assert os.path.exists(tmp_dir + f.init_file_name + ".keras")
+        assert os.path.exists(tmp_dir + f.last_file_name + ".keras")
+        assert not os.path.exists(tmp_dir + f.file_name_ + ".keras")
+
+        # 2D univariate context, 2D multivariate rejection, too-short input
+        out = f._series_to_series_forecast(y.reshape(-1, 1), 2)
+        assert out.shape == (2,)
+        with pytest.raises(ValueError, match="only supports univariate"):
+            f._series_to_series_forecast(np.ones((20, 2)), 2)
+        with pytest.raises(ValueError, match="< window"):
+            f._series_to_series_forecast(np.ones(3), 2)
+
+    with pytest.raises(ValueError, match="No fitted data available"):
+        NBeatsForecaster(window=4)._series_to_series_forecast(None, 2)

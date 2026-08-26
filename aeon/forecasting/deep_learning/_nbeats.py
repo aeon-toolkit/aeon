@@ -170,7 +170,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         Parameters
         ----------
         input_shape : tuple
-            ``(window, 1)`` — channel dim satisfies NBeatsNetwork's guard.
+            ``(window, 1)`` — the channel axis satisfies NBeatsNetwork's guard.
 
         Returns
         -------
@@ -354,7 +354,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         predictions : np.ndarray of shape (prediction_horizon,)
         """
         if y is None:
-            if not hasattr(self, "last_window_"):
+            if self.last_window_ is None:
                 raise ValueError("No fitted data available for prediction.")
             window_data = self.last_window_.copy()
         else:
