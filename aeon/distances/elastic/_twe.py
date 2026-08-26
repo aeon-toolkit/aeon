@@ -120,11 +120,15 @@ def twe_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _twe_distance_unbounded(_pad_arrs(_x), _pad_arrs(_y), nu, lmbda)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _twe_distance(_pad_arrs(_x), _pad_arrs(_y), bounding_matrix, nu, lmbda)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _twe_distance_unbounded(_pad_arrs(x), _pad_arrs(y), nu, lmbda)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -273,6 +277,45 @@ def _twe_distance(
                 curr[j] = np.inf
         # Ping-pong the buffers: the row just written (curr) becomes prev, and
         # the stale buffer is recycled (its column 0 is reset at the loop top).
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _twe_distance_unbounded(
+    x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
+) -> float:
+    """Compute unbounded TWE with two rolling rows and no bounding matrix."""
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    del_add = nu + lmbda
+
+    prev = np.full(y_size, np.inf)
+    curr = np.empty(y_size)
+    prev[0] = 0.0
+
+    for i in range(1, x_size):
+        curr[0] = np.inf
+        for j in range(1, y_size):
+            del_x = (
+                prev[j] + _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
+            )
+            del_y = (
+                curr[j - 1]
+                + _univariate_euclidean_distance(y[:, j - 1], y[:, j])
+                + del_add
+            )
+            match = (
+                prev[j - 1]
+                + _univariate_euclidean_distance(x[:, i], y[:, j])
+                + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
+                + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+            )
+            curr[j] = min(del_x, del_y, match)
         prev, curr = curr, prev
 
     return prev[y_size - 1]
@@ -449,16 +492,25 @@ def _twe_pairwise_distance(
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
+    # Pad the arrays before so that we don't have to redo every iteration
+    padded_X = NumbaList()
+    for i in range(n_cases):
+        padded_X.append(_pad_arrs(X[i]))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _twe_distance_unbounded(
+                    padded_X[i], padded_X[j], nu, lmbda
+                )
+                distances[j, i] = distances[i, j]
+        return distances
+
     if not unequal_length:
         n_timepoints = X[0].shape[1]
         bounding_matrix = create_bounding_matrix(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
-
-    # Pad the arrays before so that we don't have to redo every iteration
-    padded_X = NumbaList()
-    for i in range(n_cases):
-        padded_X.append(_pad_arrs(X[i]))
 
     for i in prange(n_cases):
         for j in range(i + 1, n_cases):
@@ -486,10 +538,6 @@ def _twe_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
-    if not unequal_length:
-        bounding_matrix = create_bounding_matrix(
-            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
-        )
 
     # Pad the arrays before so that we dont have to redo every iteration
     padded_x = NumbaList()
@@ -499,6 +547,19 @@ def _twe_from_multiple_to_multiple_distance(
     padded_y = NumbaList()
     for i in range(m_cases):
         padded_y.append(_pad_arrs(y[i]))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _twe_distance_unbounded(
+                    padded_x[i], padded_y[j], nu, lmbda
+                )
+        return distances
+
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+        )
 
     for i in prange(n_cases):
         for j in range(m_cases):
