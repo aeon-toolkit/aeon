@@ -3,8 +3,10 @@ r"""Amercing dynamic time warping (ADTW) between two time series."""
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove ADTW bounding parameters in v1.7.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for ADTW "
+        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "standard ADTW algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -43,9 +56,15 @@ def adtw_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1`` then
         10% of the series length is the max warping allowed.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0.0 and 1.0
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     warp_penalty: float, default=1.0
         Penalty for warping. A high value will mean less warping.
 
@@ -77,14 +96,22 @@ def adtw_distance(
     >>> adtw_distance(x, y) # 2D series with 3 channels, unequal length
     565.0
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _adtw_distance_unbounded(_x, _y, warp_penalty)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _adtw_distance(_x, _y, bounding_matrix, warp_penalty)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _adtw_distance_unbounded(x, y, warp_penalty)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -115,9 +142,15 @@ def adtw_cost_matrix(
         is used. window is a percentage deviation, so if ``window = 0.1``,
         10% of the series length is the max warping allowed.
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     warp_penalty: float, default=1.0
         Penalty for warping. A high value will mean less warping.
 
@@ -150,6 +183,10 @@ def adtw_cost_matrix(
            [294., 212., 147.,  97.,  60.,  34.,  17.,   7.,   2.,   0.]])
 
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -213,6 +250,35 @@ def _adtw_distance(
 
 
 @njit(cache=True, fastmath=True)
+def _adtw_distance_unbounded(
+    x: np.ndarray, y: np.ndarray, warp_penalty: float
+) -> float:
+    """Compute unbounded ADTW with two rolling rows and no bounding matrix."""
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.empty(y_size + 1)
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        curr[0] = np.inf
+        for j in range(y_size):
+            cost = _univariate_squared_distance(x[:, i], y[:, j])
+            curr[j + 1] = cost + min(
+                prev[j + 1] + warp_penalty,
+                curr[j] + warp_penalty,
+                prev[j],
+            )
+        prev, curr = curr, prev
+
+    return prev[y_size]
+
+
+@njit(cache=True, fastmath=True)
 def _adtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, warp_penalty: float
 ) -> np.ndarray:
@@ -259,9 +325,15 @@ def adtw_pairwise_distance(
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     warp_penalty: float, default=1.0
         Penalty for warping. A high value will mean less warping.
         warp less and if value is low then will encourage algorithm to warp
@@ -316,6 +388,9 @@ def adtw_pairwise_distance(
            [ 44.,   0.,  87.],
            [294.,  87.,   0.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -344,6 +419,13 @@ def _adtw_pairwise_distance(
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _adtw_distance_unbounded(X[i], X[j], warp_penalty)
+                distances[j, i] = distances[i, j]
+        return distances
 
     if not unequal_length:
         n_timepoints = X[0].shape[1]
@@ -375,6 +457,12 @@ def _adtw_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _adtw_distance_unbounded(x[i], y[j], warp_penalty)
+        return distances
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
@@ -410,9 +498,15 @@ def adtw_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard ADTW algorithm.
     warp_penalty: float, default=1.0
         Penalty for warping. A high value will mean less warping.
 
