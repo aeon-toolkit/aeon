@@ -7,12 +7,13 @@ __maintainer__ = []
 __all__ = ["RandomIntervals"]
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.utils._parallel import _run_jobs
 from aeon.utils.numba.stats import (
     row_mean,
     row_median,
@@ -28,7 +29,7 @@ from aeon.utils.validation import check_n_jobs
 class RandomIntervals(BaseCollectionTransformer):
     """Random interval feature transformer.
 
-    Extracts intervals with random length, position and dimension from series in fit.
+    Extracts intervals with random length, position and channel from series in fit.
     Transforms each interval subseries using the given transformer(s)/features and
     concatenates them into a feature vector in transform.
 
@@ -41,7 +42,7 @@ class RandomIntervals(BaseCollectionTransformer):
     Parameters
     ----------
     n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
@@ -77,14 +78,14 @@ class RandomIntervals(BaseCollectionTransformer):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_intervals_ : int
         The number of intervals extracted after pruning identical intervals.
     intervals_ : list of tuples
         Contains information for each feature extracted in fit. Each tuple contains the
-        interval start, interval end, interval dimension, the feature(s) extracted and
+        interval start, interval end, interval channel, the feature(s) extracted and
         the dilation.
         Length will be n_intervals*len(features).
 
@@ -142,16 +143,22 @@ class RandomIntervals(BaseCollectionTransformer):
     def _fit_transform(self, X, y=None):
         X, rng = self._fit_setup(X)
 
-        fit = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._generate_interval)(
-                X,
-                y,
-                rng.randint(np.iinfo(np.int32).max),
-                True,
-            )
-            for _ in range(self.n_intervals)
+        # this transform is invoked once per representation per tree inside the
+        # interval forests, always with n_jobs=1, so the sequential shortcut in
+        # _run_jobs matters here
+        fit = _run_jobs(
+            [
+                delayed(self._generate_interval)(
+                    X,
+                    y,
+                    rng.randint(np.iinfo(np.int32).max),
+                    True,
+                )
+                for _ in range(self.n_intervals)
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
         )
 
         (
@@ -160,7 +167,7 @@ class RandomIntervals(BaseCollectionTransformer):
         ) = zip(*fit)
 
         current = []
-        removed_idx = []
+        kept_parts = []
         self.n_intervals_ = 0
         for i, interval in enumerate(intervals):
             new_interval = (
@@ -173,29 +180,27 @@ class RandomIntervals(BaseCollectionTransformer):
                 current.append(new_interval)
                 self.intervals_.extend(interval)
                 self.n_intervals_ += 1
-            else:
-                removed_idx.append(i)
+                kept_parts.append(transformed_intervals[i])
 
-        Xt = transformed_intervals[0]
-        for i in range(1, self.n_intervals):
-            if i not in removed_idx:
-                Xt = np.hstack((Xt, transformed_intervals[i]))
-
-        return Xt
+        # Concatenate once rather than growing Xt with a fresh copy per interval.
+        return np.hstack(kept_parts)
 
     def _fit(self, X, y=None):
         X, rng = self._fit_setup(X)
 
-        fit = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._generate_interval)(
-                X,
-                y,
-                rng.randint(np.iinfo(np.int32).max),
-                False,
-            )
-            for _ in range(self.n_intervals)
+        fit = _run_jobs(
+            [
+                delayed(self._generate_interval)(
+                    X,
+                    y,
+                    rng.randint(np.iinfo(np.int32).max),
+                    False,
+                )
+                for _ in range(self.n_intervals)
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
         )
 
         (
@@ -232,22 +237,22 @@ class RandomIntervals(BaseCollectionTransformer):
                         transform_features.append(self._transform_features[count])
                         count += 1
 
-        transform = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._transform_interval)(
-                X,
-                i,
-                transform_features[i],
-            )
-            for i in range(len(self.intervals_))
+        transform = _run_jobs(
+            [
+                delayed(self._transform_interval)(
+                    X,
+                    i,
+                    transform_features[i],
+                )
+                for i in range(len(self.intervals_))
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
         )
 
-        Xt = transform[0]
-        for i in range(1, len(self.intervals_)):
-            Xt = np.hstack((Xt, transform[i]))
-
-        return Xt
+        # Concatenate once rather than growing Xt with a fresh copy per interval.
+        return np.hstack(transform)
 
     def _fit_setup(self, X):
         self.intervals_ = []
@@ -351,7 +356,7 @@ class RandomIntervals(BaseCollectionTransformer):
         while interval_length / dilation < self._min_interval_length:
             dilation -= 1
 
-        Xt = np.empty((self.n_cases_, 0)) if transform else None
+        Xt_parts = [] if transform else None
         intervals = []
 
         for feature in self._features:
@@ -372,7 +377,7 @@ class RandomIntervals(BaseCollectionTransformer):
                     if t.ndim == 3 and t.shape[1] == 1:
                         t = t.reshape((t.shape[0], t.shape[2]))
 
-                    Xt = np.hstack((Xt, t))
+                    Xt_parts.append(t)
                 else:
                     feature.fit(
                         np.expand_dims(
@@ -381,13 +386,17 @@ class RandomIntervals(BaseCollectionTransformer):
                         y,
                     )
             elif transform:
-                t = [
-                    [f]
-                    for f in feature(X[:, dim, interval_start:interval_end:dilation])
-                ]
-                Xt = np.hstack((Xt, t))
+                t = np.asarray(
+                    feature(X[:, dim, interval_start:interval_end:dilation])
+                ).reshape(-1, 1)
+                Xt_parts.append(t)
 
             intervals.append((interval_start, interval_end, dim, feature, dilation))
+
+        # concatenate once rather than growing Xt with a fresh copy per feature
+        Xt = None
+        if transform:
+            Xt = np.hstack(Xt_parts) if Xt_parts else np.empty((self.n_cases_, 0))
 
         return intervals, Xt
 
@@ -401,7 +410,7 @@ class RandomIntervals(BaseCollectionTransformer):
                         setattr(feature, n, keep_transform)
                         break
             elif not keep_transform:
-                return [[0] for _ in range(X.shape[0])]
+                return np.zeros((X.shape[0], 1))
 
         if isinstance(feature, BaseTransformer):
             Xt = feature.transform(
@@ -411,7 +420,9 @@ class RandomIntervals(BaseCollectionTransformer):
             if Xt.ndim == 3:
                 Xt = Xt.reshape((Xt.shape[0], Xt.shape[2]))
         else:
-            Xt = [[f] for f in feature(X[:, dim, interval_start:interval_end:dilation])]
+            Xt = np.asarray(
+                feature(X[:, dim, interval_start:interval_end:dilation])
+            ).reshape(-1, 1)
 
         return Xt
 
