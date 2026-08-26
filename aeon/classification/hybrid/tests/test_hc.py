@@ -130,3 +130,24 @@ def test_weight_property_returns_zero_before_fit():
     assert hc1.tsf_weight_ == 0.0
     assert hc1.rise_weight_ == 0.0
     assert hc1.cboss_weight_ == 0.0
+
+
+def test_hivecote_estimator_attribute_lifecycle():
+    """Test estimator attributes are created only on fit."""
+    from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
+    from aeon.testing.data_generation import make_example_3d_numpy
+
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20)
+
+    for hc_class in [HIVECOTEV1, HIVECOTEV2]:
+        params = hc_class._get_test_params()
+        if isinstance(params, list):
+            params = params[0]
+
+        clf = hc_class(**params)
+
+        assert not hasattr(clf, "fitted_estimators_")
+
+        clf.fit(X, y)
+
+        assert hasattr(clf, "fitted_estimators_")

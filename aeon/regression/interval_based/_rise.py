@@ -27,7 +27,11 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e.
+        ``DecisionTreeRegressor(criterion="squared_error")``. Versions prior to and
+        including 1.5.0 used ``DecisionTreeRegressor(criterion="absolute_error")``
+        by default, which scales poorly with the number of cases. Pass such an
+        estimator explicitly to restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     min_interval_length : int, float, list, or tuple, default=3
@@ -75,7 +79,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     total_intervals_ : int

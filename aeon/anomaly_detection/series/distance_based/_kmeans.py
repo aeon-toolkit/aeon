@@ -22,7 +22,7 @@ class KMeansAD(BaseSeriesAnomalyDetector):
 
     ``k-MeansAD`` supports univariate and multivariate time series. It can also be
     fitted on a clean reference time series and used to detect anomalies in a different
-    target time series with the same number of dimensions.
+    target time series with the same number of channels.
 
     Parameters
     ----------

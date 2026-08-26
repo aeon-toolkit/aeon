@@ -22,14 +22,14 @@ class RandomIntervalClassifier(BaseClassifier):
     """
     Random Interval Classifier.
 
-    Extracts multiple intervals with random length, position and dimension from series
+    Extracts multiple intervals with random length, position and channel from series
     and concatenates them into a feature vector. Builds an estimator on the
     transformed data.
 
     Parameters
     ----------
     n_intervals : int, default=100,
-        The number of intervals of random length, position and dimension to be
+        The number of intervals of random length, position and channel to be
         extracted.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
@@ -68,13 +68,17 @@ class RandomIntervalClassifier(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_classes_ : int
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes)
         Holds the label for each class.
+    estimator_ : BaseEstimator
+        The fitted estimator for the classifier.
+    transformer_ : RandomIntervals
+        The fitted transformer for the classifier.
 
     See Also
     --------
@@ -146,7 +150,7 @@ class RandomIntervalClassifier(BaseClassifier):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self._transformer = RandomIntervals(
+        self.transformer_ = RandomIntervals(
             n_intervals=self.n_intervals,
             min_interval_length=self.min_interval_length,
             max_interval_length=self.max_interval_length,
@@ -157,7 +161,7 @@ class RandomIntervalClassifier(BaseClassifier):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RandomForestClassifier(n_estimators=200)
                 if self.estimator is None
@@ -166,11 +170,11 @@ class RandomIntervalClassifier(BaseClassifier):
             self.random_state,
         )
 
-        if hasattr(self._estimator, "n_jobs"):
-            self._estimator.n_jobs = self._n_jobs
+        if hasattr(self.estimator_, "n_jobs"):
+            self.estimator_.n_jobs = self._n_jobs
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -187,7 +191,7 @@ class RandomIntervalClassifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -202,12 +206,12 @@ class RandomIntervalClassifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
@@ -262,7 +266,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         The number of times the supervised interval selection process is run. This
         process will extract more then one interval per run.
         Each supervised extraction will output a varying amount of features based on
-        series length, number of dimensions and the number of features.
+        series length, number of channels and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
     features : callable, list of callables, default=None
@@ -304,13 +308,17 @@ class SupervisedIntervalClassifier(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_classes_ : int
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes)
         Holds the label for each class.
+    estimator_ : BaseEstimator
+        The fitted estimator for the classifier.
+    transformer_ : SupervisedIntervals
+        The fitted transformer for the classifier.
 
     See Also
     --------
@@ -384,7 +392,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self._transformer = SupervisedIntervals(
+        self.transformer_ = SupervisedIntervals(
             n_intervals=self.n_intervals,
             min_interval_length=self.min_interval_length,
             features=self.features,
@@ -396,7 +404,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RandomForestClassifier(n_estimators=200)
                 if self.estimator is None
@@ -405,11 +413,11 @@ class SupervisedIntervalClassifier(BaseClassifier):
             self.random_state,
         )
 
-        if hasattr(self._estimator, "n_jobs"):
-            self._estimator.n_jobs = self._n_jobs
+        if hasattr(self.estimator_, "n_jobs"):
+            self.estimator_.n_jobs = self._n_jobs
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -426,7 +434,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -441,12 +449,12 @@ class SupervisedIntervalClassifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

@@ -57,7 +57,7 @@ class MUSE(BaseClassifier):
     alphabet_size : default = 4
         Number of possible letters (values) for each word.
     use_first_order_differences : bool, default = True
-        If set to True will add the first order differences of each dimension
+        If set to True will add the first order differences of each channel
         to the data.
     feature_selection : str, default = "chi2"
         Sets the feature selections strategy to be used, one of
@@ -133,7 +133,9 @@ class MUSE(BaseClassifier):
     """
 
     _tags = {
-        "capability:univariate": False,
+        # MUSE warns on univariate input and carries on, and its own example
+        # runs on a univariate dataset, so the capability is there
+        "capability:univariate": True,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -200,12 +202,12 @@ class MUSE(BaseClassifier):
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        # add first order differences in each dimension to TS
+        # add first order differences in each channel to TS
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
         self.n_channels = X.shape[1]
 
-        self.highest_dim_bit = (math.ceil(math.log2(self.n_channels))) + 1
+        self.highest_channel_bit = (math.ceil(math.log2(self.n_channels))) + 1
 
         if self.n_channels == 1:
             warnings.warn(
@@ -386,12 +388,12 @@ def _compute_window_inc(n_timepoints, window_inc):
 
 
 def _parallel_transform_words(X, window_sizes, SFA_transformers, ind):
-    # On each dimension, perform SFA
-    X_dim = X[:, ind]
+    # On each channel, perform SFA
+    X_channel = X[:, ind]
 
     bag_all_words = []
     for i in range(len(window_sizes[ind])):
-        words = SFA_transformers[ind][i].transform(X_dim)
+        words = SFA_transformers[ind][i].transform(X_channel)
         bag_all_words.append(words)
 
     return bag_all_words
@@ -423,9 +425,9 @@ def _parallel_fit(
 
     all_words = []
 
-    # On each dimension, perform SFA
-    X_dim = X[:, ind]
-    n_timepoints = X_dim.shape[-1]
+    # On each channel, perform SFA
+    X_channel = X[:, ind]
+    n_timepoints = X_channel.shape[-1]
 
     # increment window size in steps of 'win_inc'
     win_inc = _compute_window_inc(n_timepoints, window_inc)
@@ -464,7 +466,7 @@ def _parallel_fit(
             return_sparse=True,
         )
 
-        all_words.append(transformer.fit_transform(X_dim, y))
+        all_words.append(transformer.fit_transform(X_channel, y))
         SFA_transformers.append(transformer)
         relevant_features_count = transformer.feature_count
 
