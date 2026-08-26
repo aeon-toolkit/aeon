@@ -443,9 +443,9 @@ def test_autoces_matches_statsforecast_auto_reference():
 
 
 def test_autoces_constant_series_prefers_non_seasonal():
-    """On a flat series ``AutoCES`` should pick ``"N"`` over seasonal models."""
-    y = np.full(30, 4.0)
-    auto = AutoCES(season_length=4).fit(y)
+    """On a flat series ``AutoCES`` should pick ``"N"`` over a seasonal model."""
+    y = np.full(8, 4.0)
+    auto = AutoCES(season_length=4, models=("N", "F")).fit(y)
     assert auto.best_model_name_ == "N"
 
 
@@ -529,3 +529,116 @@ def test_autoces_rejects_exog_and_future_exog():
         AutoCES(season_length=4).iterative_forecast(
             y, prediction_horizon=3, future_exog=np.arange(3.0)
         )
+
+
+def test_normalise_model_rejects_non_string():
+    """Model codes must be strings."""
+    from aeon.forecasting.stats._ces import _normalise_model
+
+    with pytest.raises(ValueError, match="model must be a string"):
+        _normalise_model(3)
+
+
+def test_ces_fit_predict_reject_exog():
+    """CES _fit and _predict reject exogenous variables."""
+    exog = np.arange(Y_EXAMPLE.shape[0], dtype=np.float64)
+    with pytest.raises(NotImplementedError, match="does not support exogenous"):
+        CES()._fit(Y_EXAMPLE, exog=exog)
+    f = CES().fit(Y_EXAMPLE)
+    with pytest.raises(NotImplementedError, match="does not support exogenous"):
+        f._predict(Y_EXAMPLE, exog=exog)
+
+
+def test_ces_initial_state_seeds_and_validation():
+    """User-provided initial states are applied and validated."""
+    y = Y_EXAMPLE
+    # imaginary level seed
+    f = CES(model="N", initial_level=2.0, initial_level_imag=1.5).fit(y)
+    assert np.isfinite(f.forecast_)
+
+    with pytest.raises(ValueError, match="initial_seasonal_real must have length"):
+        CES(model="P", season_length=4, initial_seasonal_real=np.ones(3)).fit(y)
+    f = CES(model="P", season_length=4, initial_seasonal_real=np.zeros(4)).fit(y)
+    assert np.isfinite(f.forecast_)
+
+    with pytest.raises(ValueError, match="initial_seasonal_imag must have length"):
+        CES(model="F", season_length=4, initial_seasonal_imag=np.ones(2)).fit(y)
+    f = CES(model="F", season_length=4, initial_seasonal_imag=np.zeros(4)).fit(y)
+    assert np.isfinite(f.forecast_)
+
+    seed = np.array([np.inf, 0.0, 0.0, 0.0])
+    with pytest.raises(ValueError, match="non-finite values"):
+        CES(model="P", season_length=4, initial_seasonal_real=seed).fit(y)
+
+
+def test_ces_fixed_alpha_real_optimises_remaining():
+    """Fixing one smoothing parameter still optimises the rest."""
+    f = CES(model="N", alpha_real=1.2).fit(Y_EXAMPLE)
+    assert f.alpha_real_ == 1.2
+    assert np.isfinite(f.forecast_)
+
+
+def test_autoces_validation_and_skips():
+    """AutoCES validates inputs and skips infeasible seasonal candidates."""
+    y = Y_EXAMPLE[:10]
+    exog = np.arange(10.0)
+    with pytest.raises(NotImplementedError, match="does not support exogenous"):
+        AutoCES()._fit(y, exog=exog)
+    with pytest.raises(ValueError, match="sequence of strings"):
+        AutoCES(models=3).fit(y)
+    with pytest.raises(ValueError, match="at least one candidate"):
+        AutoCES(models=()).fit(y)
+
+    # season_length too large for n -> seasonal candidate skipped
+    f = AutoCES(season_length=6, models=("N", "S")).fit(y)
+    assert f.model_results_["S"]["status"] == "skipped"
+    assert f.best_model_name_ == "N"
+
+    with pytest.raises(NotImplementedError, match="does not support exogenous"):
+        f._predict(y, exog=exog)
+    with pytest.raises(ValueError, match="greater than or equal to 1"):
+        AutoCES().iterative_forecast(y, 0)
+
+
+def test_ces_module_helpers():
+    """Cover small pure-python helpers directly."""
+    from aeon.forecasting.stats._ces import (
+        _expand_params,
+        _information_criteria,
+        _prepare_ces_y,
+        _seasonal_decompose_additive,
+    )
+
+    with pytest.raises(ValueError, match="finite values"):
+        _prepare_ces_y(np.array([1.0, np.inf]))
+
+    full = _expand_params(
+        np.array([0.3]),
+        np.array([True, False]),
+        np.array([0.7, np.nan]),
+    )
+    assert np.allclose(full, [0.7, 0.3])
+
+    _, aicc, _ = _information_criteria(3, 1.0, 5)
+    assert np.isinf(aicc)
+
+    # period < 2 -> zeros; odd period uses the uniform filter
+    assert np.allclose(_seasonal_decompose_additive(np.arange(6.0), 1), 0.0)
+    seas = _seasonal_decompose_additive(np.sin(np.arange(12.0)), 3)
+    assert seas.shape == (12,)
+
+
+def test_ces_numba_objective_guards():
+    """Divergent and degenerate parameter values hit the inf guards."""
+    from aeon.forecasting.stats._ces import (
+        _ces_n_fit_objective_numba,
+        _ces_n_pass_sse_future,
+    )
+
+    zeros = np.zeros(300)
+    # all-zero series and states -> sse == 0 -> -inf objective
+    assert _ces_n_fit_objective_numba(zeros, 0.5, 0.5, 0.0, 0.0) == -np.inf
+    # explosive parameters overflow to inf
+    sse, _, _ = _ces_n_pass_sse_future(zeros, False, 100.0, 100.0, 1.0, 1.0)
+    assert np.isinf(sse)
+    assert np.isinf(_ces_n_fit_objective_numba(zeros, 100.0, 100.0, 1.0, 1.0))

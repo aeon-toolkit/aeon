@@ -45,6 +45,12 @@ class SummaryClusterer(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
+    Attributes
+    ----------
+    estimator_ : sklearn clusterer
+        The fitted sklearn clusterer used to compute cluster labels from the
+        summary-statistic-transformed data.
+
     See Also
     --------
     SummaryTransformer
@@ -82,7 +88,6 @@ class SummaryClusterer(BaseClusterer):
         self.random_state = random_state
 
         self._transformer = None
-        self._estimator = None
 
         super().__init__()
 
@@ -112,19 +117,19 @@ class SummaryClusterer(BaseClusterer):
             summary_stats=self.summary_stats,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (KMeans() if self.estimator is None else self.estimator),
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
-        self.labels_ = self._estimator.labels_
+        self.labels_ = self.estimator_.labels_
 
         return self
 
@@ -141,7 +146,7 @@ class SummaryClusterer(BaseClusterer):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -158,8 +163,8 @@ class SummaryClusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
             return super()._predict_proba(X)
