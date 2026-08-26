@@ -3,8 +3,10 @@
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove MSM bounding parameters in v1.7.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for MSM "
+        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "standard MSM algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -77,6 +90,9 @@ def msm_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -85,6 +101,9 @@ def msm_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
 
     Returns
     -------
@@ -112,6 +131,10 @@ def msm_distance(
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = msm_distance(x, y)
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -166,6 +189,9 @@ def msm_cost_matrix(
     window : float, default=None
         The window size to use for the bounding matrix. If None, the
         bounding matrix is not used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -174,6 +200,9 @@ def msm_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
 
     Returns
     -------
@@ -203,6 +232,10 @@ def msm_cost_matrix(
            [16., 14., 12., 10.,  8.,  6.,  4.,  2.,  0.,  2.],
            [18., 16., 14., 12., 10.,  8.,  6.,  4.,  2.,  0.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -470,6 +503,9 @@ def msm_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -478,6 +514,9 @@ def msm_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -527,6 +566,9 @@ def msm_pairwise_distance(
            [10.,  0., 14.],
            [17., 14.,  0.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -625,6 +667,9 @@ def msm_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -633,6 +678,9 @@ def msm_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
 
     Returns
     -------
