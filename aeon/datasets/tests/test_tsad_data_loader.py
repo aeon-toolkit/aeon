@@ -164,24 +164,30 @@ def test_load_kdd_tsad_135():
     assert y_train.shape == (1200,)
 
 
+# TODO: remove in v1.7.0
 def test_load_daphnet_s06r02e0():
-    """Test load Daphnet S06R02E0 dataset."""
-    X, y = load_daphnet_s06r02e0()
+    """Deprecated Daphnet loader warns on use but still loads until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        X, y = load_daphnet_s06r02e0()
     assert isinstance(X, np.ndarray)
     assert X.shape == (7040, 9)
     assert isinstance(y, np.ndarray)
     assert y.shape == (7040,)
 
 
+# TODO: remove in v1.7.0
 @pytest.mark.parametrize(
     "learning_type", ["unsupervised", "semi-supervised", "supervised"]
 )
 def test_load_ecg_diff_count_3(learning_type):
-    """Test load ecg-diff-count-3 dataset."""
+    """Deprecated ecg-diff-count-3 loader warns but still loads until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        loaded = load_ecg_diff_count_3(learning_type)
+
     if learning_type == "unsupervised":
-        X, y = load_ecg_diff_count_3(learning_type)
+        X, y = loaded
     else:
-        X, y, X_train, y_train = load_ecg_diff_count_3(learning_type)
+        X, y, X_train, y_train = loaded
         assert isinstance(X_train, np.ndarray)
         assert X_train.shape == (10000,)
         assert isinstance(y_train, np.ndarray)

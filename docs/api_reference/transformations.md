@@ -226,6 +226,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     StatsModelsPACF
     BKFilter
     BoxCoxTransformer
+    YeoJohnsonTransformer
     ScaledLogitSeriesTransformer
     PCASeriesTransformer
     WarpingSeriesTransformer
