@@ -40,6 +40,10 @@ excluded_estimators = [
     "FreshPRINCEClassifier",
     "DrCIFRegressor",
     "FreshPRINCERegressor",
+    # squared_error tree splits land on catch22 autocorrelation index features
+    # that flip with newer numpy FFT rounding, so predictions are not reproducible
+    # to 2dp across numpy/numba versions (as with DrCIFRegressor above).
+    "CanonicalIntervalForestRegressor",
 ]
 
 rng = check_random_state(42)

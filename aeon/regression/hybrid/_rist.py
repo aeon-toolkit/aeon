@@ -71,6 +71,12 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
+    estimator_ : sklearn estimator
+        The fitted base estimator.
+    transformers_ : list
+        The list of fitted transformenrs used in the RIST pipeline.
+    series_transformers_ : list
+        The list of fitted series transformers used in the RIST pipeline.
 
     See Also
     --------
