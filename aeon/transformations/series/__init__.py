@@ -17,6 +17,7 @@ __all__ = [
     "StatsModelsPACF",
     "BKFilter",
     "BoxCoxTransformer",
+    "YeoJohnsonTransformer",
     "ScaledLogitSeriesTransformer",
     "PCASeriesTransformer",
     "STLSeriesTransformer",
@@ -43,6 +44,7 @@ from aeon.transformations.series._pla import PLASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 from aeon.transformations.series._stl import STLSeriesTransformer
 from aeon.transformations.series._warping import WarpingSeriesTransformer
+from aeon.transformations.series._yeojohnson import YeoJohnsonTransformer
 from aeon.transformations.series.base import (
     BaseSeriesTransformer,
     SeriesInverseTransformerMixin,
