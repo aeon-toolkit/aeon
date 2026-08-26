@@ -26,8 +26,8 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search._base import BaseSimilaritySearch
-from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
-from aeon.similarity_search.series import BaseSeriesSimilaritySearch
+from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
+from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -43,7 +43,8 @@ BASE_CLASS_REGISTER = {
     "similarity-search": BaseSimilaritySearch,
     # estimator types
     "collection-anomaly-detector": BaseCollectionAnomalyDetector,
-    "collection-similarity-search": BaseCollectionSimilaritySearch,
+    "subsequence-search": BaseSubsequenceSearch,
+    "whole-series-search": BaseWholeSeriesSearch,
     "collection-transformer": BaseCollectionTransformer,
     "classifier": BaseClassifier,
     "clusterer": BaseClusterer,
@@ -52,7 +53,6 @@ BASE_CLASS_REGISTER = {
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
     "series-anomaly-detector": BaseSeriesAnomalyDetector,
-    "series-similarity-search": BaseSeriesSimilaritySearch,
     "series-transformer": BaseSeriesTransformer,
 }
 

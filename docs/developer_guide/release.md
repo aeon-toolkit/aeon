@@ -14,7 +14,7 @@ The release process is as follows, on high-level:
 1. **Ensure deprecation actions are carried out.**
   Deprecation actions for a version should be marked by "version number" annotated
   comments in the code. E.g., for the release `0.10.0`, search for the string `0.10.0`
-  in the code and carry out described deprecation actions. PRs performign deprecation
+  in the code and carry out described deprecation actions. PRs performing deprecation
   actions should start with [DEP] and use the `deprecation` label. So they are put
   under the "Deprecations" section in the release notes.
 
@@ -22,7 +22,7 @@ The release process is as follows, on high-level:
   Create a branch from main and PR named after the release version. This should make
   changes to the version numbers (root `__init__.py`, `README.md` and `pyproject.toml`)
   and have complete release notes in the [changelog](https://www.aeon-toolkit.org/en/latest/changelog.html)
-  webpage. See the [release notes](#release-notes) section for more details.
+  webpage (add the changelog and update changelog.md in docs). See the [release notes](#release-notes) section for more details.
 
 3. **Merge the "release" pull request.**
   This PR should ideally be the final PR made before the release with the exception of

@@ -78,7 +78,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         will be used.
     alpha_similarity : float, default=0.5
         The strength of the alpha similarity pruning. The higher the value, the fewer
-        common indexes with previously sampled shapelets are allowed when sampling a
+        common indices with previously sampled shapelets are allowed when sampling a
         new candidate with the same dilation parameter. It can cause the number of
         sampled shapelets to be lower than max_shapelets if the whole search space
         has been covered. The default is 0.5, and the maximum is 1. Values above it
@@ -683,7 +683,7 @@ def random_dilated_shapelet_extraction(
         Occurrence feature.
     alpha_similarity : float
         The strength of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
+        the allowed number of common indices with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
         the whole search space has been covered. The default is 0.5.
