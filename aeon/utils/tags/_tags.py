@@ -139,6 +139,15 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Can the transformer carrying out an inverse transform?",
     },
+    "capability:predict": {
+        "class": "clusterer",
+        "type": "bool",
+        "description": "Can the clusterer assign previously unseen cases to clusters "
+        "after fitting, i.e. does it support out-of-sample prediction? If True, "
+        "``fit(X_train)`` followed by ``predict(X_new)`` is supported. If False, the "
+        "clusterer is transductive: only ``fit(X)``/``labels_`` and "
+        "``fit_predict(X)`` are supported, and ``predict`` raises an error.",
+    },
     # other
     "returns_dense": {
         "class": "segmenter",
