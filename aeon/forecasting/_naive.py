@@ -23,18 +23,21 @@ class NaiveForecaster(
     ----------
     strategy : str, default="last"
         The forecasting strategy to use.
-        Options: "last", "mean", "seasonal_last".
+        Options: "last", "mean", "seasonal_last", "drift".
             - "last" predicts the last value of the input series for all horizon steps.
             - "mean": predicts the mean of the input series for all horizon steps.
             - "seasonal_last": predicts the last season value in the training series.
-              Returns np.nan if the effective seasonal data is empty.
+            - "drift": extrapolates the straight line drawn through the first and last
+              observations, predicting ``y[-1] + horizon * (y[-1] - y[0]) / (n - 1)``
+              where ``n`` is the series length.
     seasonal_period : int, default=1
         The seasonal period to use for the "seasonal_last" strategy.
         E.g., 12 for monthly data with annual seasonality.
     horizon : int, default =1
         The number of time steps ahead to forecast. If horizon is one, the forecaster
         will learn to predict one point ahead.
-        Only relevant for "seasonal_last".
+        Only affects the "seasonal_last" and "drift" strategies; "last" and "mean"
+        ignore it.
     """
 
     _tags = {
@@ -55,11 +58,35 @@ class NaiveForecaster(
         elif self.strategy == "mean":
             return np.mean(y_squeezed)
         elif self.strategy == "seasonal_last":
+            if (
+                isinstance(self.seasonal_period, (bool, np.bool_))
+                or not isinstance(self.seasonal_period, (int, np.integer))
+                or self.seasonal_period < 1
+            ):
+                raise ValueError(
+                    "seasonal_period must be a positive integer for "
+                    f"strategy='seasonal_last', got {self.seasonal_period!r}."
+                )
+            if self.seasonal_period > len(y_squeezed):
+                raise ValueError(
+                    f"seasonal_period ({self.seasonal_period}) cannot exceed the "
+                    f"number of observations ({len(y_squeezed)})."
+                )
             period = y_squeezed[-self.seasonal_period :]
             idx = (self.horizon - 1) % self.seasonal_period
             return period[idx]
+        elif self.strategy == "drift":
+            values = np.atleast_1d(y_squeezed)
+            n = len(values)
+            if n < 2:
+                raise ValueError(
+                    "strategy='drift' requires at least two observations to "
+                    f"estimate a trend, got {n}."
+                )
+            slope = (values[-1] - values[0]) / (n - 1)
+            return float(values[-1] + self.horizon * slope)
         else:
             raise ValueError(
                 f"Unknown strategy: {self.strategy}. "
-                "Valid strategies are 'last', 'mean', 'seasonal_last'."
+                "Valid strategies are 'last', 'mean', 'seasonal_last', 'drift'."
             )

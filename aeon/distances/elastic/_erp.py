@@ -27,7 +27,7 @@ def erp_distance(
     r"""Compute the ERP distance between two time series.
 
     Edit Distance with Real Penalty, ERP, first proposed in [1]_, attempts to align
-    time series by better considering how indexes are carried forward through the
+    time series by better considering how indices are carried forward through the
     cost matrix. Usually in the dtw cost matrix, if an alignment cannot be found the
     previous value is carried forward in  the move off the diagonal. ERP instead
     proposes the idea of gaps or sequences of points that have no matches. These

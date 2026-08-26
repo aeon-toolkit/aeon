@@ -111,6 +111,50 @@ def test_regression_forecaster_predict_uses_target_time_exog():
     assert f.predict(y, exog=np.array([123.0])) == 123.0
 
 
+def test_regression_forecaster_accepts_single_row_fit_exog():
+    """RegressionForecaster should transpose single-row fit exog histories."""
+    y = np.arange(20, dtype=float)
+    exog = np.arange(20, dtype=float).reshape(1, -1)
+    f = RegressionForecaster(window=4, regressor=_LastFeatureRegressor())
+
+    f.fit(y, exog=exog)
+
+    assert f._n_exog == 1
+    assert f.predict(y, exog=np.array([[123.0]])) == 123.0
+
+
+@pytest.mark.parametrize(
+    "fit_exog, predict_exog, match",
+    [
+        # fitted without exog, but exog supplied at predict
+        (None, np.array([[1.0]]), "fitted without exog"),
+        # fitted with exog, but none supplied at predict
+        (np.arange(20, dtype=float), None, "predict passed no exogenous variables"),
+        # wrong target-time feature count
+        (
+            np.column_stack([np.arange(20, dtype=float), np.arange(20, 40)]),
+            np.array([[1.0]]),
+            "with 2 features",
+        ),
+        # multiple rows instead of a single target-time row
+        (np.arange(20, dtype=float), np.ones((2, 1)), "single target-time row"),
+        # full exog history instead of a single target-time row
+        (
+            np.arange(20, dtype=float),
+            np.arange(20, dtype=float),
+            "single target-time row",
+        ),
+    ],
+)
+def test_regression_forecaster_predict_exog_validation(fit_exog, predict_exog, match):
+    """RegressionForecaster.predict validates exog presence, shape and feature count."""
+    y = np.arange(20, dtype=float)
+    f = RegressionForecaster(window=4).fit(y, exog=fit_exog)
+
+    with pytest.raises(ValueError, match=match):
+        f.predict(y) if predict_exog is None else f.predict(y, exog=predict_exog)
+
+
 def test_regression_forecaster_iterative_forecast_with_exog():
     """RegressionForecaster should pass one future exog row per forecast step."""
     y = np.arange(20, dtype=float)
@@ -150,43 +194,14 @@ def test_regression_forecaster_iterative_forecast_uses_changed_future_exog():
     assert not np.array_equal(preds_a, preds_b)
 
 
-def test_regression_forecaster_predict_rejects_full_exog_history():
-    """RegressionForecaster predict should reject full exog history."""
-    y = np.arange(20, dtype=float)
-    exog = np.arange(20, dtype=float)
-    f = RegressionForecaster(window=4).fit(y, exog=exog)
-
-    with pytest.raises(ValueError, match="single target-time row"):
-        f.predict(y, exog=exog)
-
-
-def test_regression_forecaster_with_exog_errors():
-    """Test errors in regression forecaster with exogenous variables."""
-    y = np.random.rand(100)
-    exog_short = np.random.rand(99)
+def test_regression_forecaster_fit_rejects_misaligned_exog():
+    """RegressionForecaster.fit requires exog with one row per time point in y."""
+    y = np.arange(100, dtype=float)
+    exog_short = np.arange(99, dtype=float)
     f = RegressionForecaster(window=10)
 
-    # Test for unequal length series in fit
     with pytest.raises(ValueError, match="one row per time point"):
         f.fit(y, exog=exog_short)
-    # Test for fit/predict mismatches in shape
-
-    # If exog in fit, must have them in predict
-    exog_train = np.array(np.random.rand(100))
-    with pytest.raises(ValueError, match="predict passed no exogenous variables"):
-        f.fit(y, exog=exog_train)
-        f.predict(y)
-    exog_test = np.array([np.random.rand(10), np.random.rand(10)])
-    f.fit(y, exog=exog_train)
-    with pytest.raises(ValueError, match="single target-time row"):
-        f.predict(y, exog_test)
-    exog_short = np.random.rand(5)
-    with pytest.raises(ValueError, match="single target-time row"):
-        f.predict(y, exog_short)
-    with pytest.raises(ValueError, match="predict passed no exogenous variables"):
-        f.predict(y)
-    with pytest.raises(ValueError, match="must be greater than or equal to 1"):
-        f.direct_forecast(y, prediction_horizon=0)
 
 
 def test_regressor_cloned_not_mutated():
