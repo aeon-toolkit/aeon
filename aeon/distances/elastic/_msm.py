@@ -138,11 +138,15 @@ def msm_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _msm_distance_unbounded(_x, _y, independent, c)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _msm_distance(_x, _y, bounding_matrix, independent, c)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _msm_distance_unbounded(x, y, independent, c)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -266,6 +270,87 @@ def _msm_distance(
     if independent:
         return _msm_independent_distance(x, y, bounding_matrix, c)
     return _msm_dependent_distance(x, y, bounding_matrix, c)
+
+
+@njit(cache=True, fastmath=True)
+def _msm_distance_unbounded(
+    x: np.ndarray,
+    y: np.ndarray,
+    independent: bool,
+    c: float,
+) -> float:
+    """Compute unbounded MSM without allocating or checking a bounding matrix."""
+    if independent:
+        return _msm_independent_distance_unbounded(x, y, c)
+    return _msm_dependent_distance_unbounded(x, y, c)
+
+
+@njit(cache=True, fastmath=True)
+def _msm_independent_distance_unbounded(
+    x: np.ndarray, y: np.ndarray, c: float
+) -> float:
+    """Compute independent unbounded MSM with linear auxiliary memory."""
+    min_instances = min(x.shape[0], y.shape[0])
+    distance = 0.0
+    for i in range(min_instances):
+        distance += _univariate_msm_distance_unbounded(x[i], y[i], c)
+    return distance
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_msm_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -> float:
+    """Compute univariate unbounded MSM with two rolling rows."""
+    if x.shape[0] < y.shape[0]:
+        x, y = y, x
+
+    x_size = x.shape[0]
+    y_size = y.shape[0]
+
+    prev = np.empty(y_size)
+    curr = np.empty(y_size)
+
+    prev[0] = np.abs(x[0] - y[0])
+    for j in range(1, y_size):
+        prev[j] = prev[j - 1] + _cost_independent(y[j], x[0], y[j - 1], c)
+
+    for i in range(1, x_size):
+        curr[0] = prev[0] + _cost_independent(x[i], x[i - 1], y[0], c)
+        for j in range(1, y_size):
+            d1 = prev[j - 1] + np.abs(x[i] - y[j])
+            d2 = prev[j] + _cost_independent(x[i], x[i - 1], y[j], c)
+            d3 = curr[j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
+            curr[j] = min(d1, d2, d3)
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _msm_dependent_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -> float:
+    """Compute dependent unbounded MSM with two rolling rows."""
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    prev = np.empty(y_size)
+    curr = np.empty(y_size)
+
+    prev[0] = _univariate_squared_distance(x[:, 0], y[:, 0])
+    for j in range(1, y_size):
+        prev[j] = prev[j - 1] + _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
+
+    for i in range(1, x_size):
+        curr[0] = prev[0] + _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
+        for j in range(1, y_size):
+            d1 = prev[j - 1] + _univariate_squared_distance(x[:, i], y[:, j])
+            d2 = prev[j] + _cost_dependent(x[:, i], x[:, i - 1], y[:, j], c)
+            d3 = curr[j - 1] + _cost_dependent(y[:, j], x[:, i], y[:, j - 1], c)
+            curr[j] = min(d1, d2, d3)
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
 
 
 @njit(cache=True, fastmath=True)
@@ -600,6 +685,13 @@ def _msm_pairwise_distance(
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _msm_distance_unbounded(X[i], X[j], independent, c)
+                distances[j, i] = distances[i, j]
+        return distances
+
     if not unequal_length:
         n_timepoints = X[0].shape[1]
         bounding_matrix = create_bounding_matrix(
@@ -631,6 +723,12 @@ def _msm_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _msm_distance_unbounded(x[i], y[j], independent, c)
+        return distances
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
