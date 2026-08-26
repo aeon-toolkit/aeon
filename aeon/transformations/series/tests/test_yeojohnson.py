@@ -8,7 +8,7 @@ import pytest
 from scipy.stats import yeojohnson
 
 from aeon.datasets import load_airline
-from aeon.transformations.series._yeojohnson import YeoJohnsonTransformer
+from aeon.transformations.series import YeoJohnsonTransformer
 
 
 def test_yeojohnson_against_scipy():

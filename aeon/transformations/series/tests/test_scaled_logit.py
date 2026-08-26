@@ -9,10 +9,20 @@ from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransform
 TEST_SERIES = np.array([30, 40, 60])
 
 
+def test_scaled_logit_zero_upper_bound():
+    """Test a zero upper bound uses both bounds, not the upper bound alone."""
+    series = np.array([-8, -5, -2])
+    expected = np.log((series + 10) / (0 - series))
+
+    transformer = ScaledLogitSeriesTransformer(lower_bound=-10, upper_bound=0)
+    assert_array_equal(transformer.fit_transform(series).squeeze(), expected)
+
+
 @pytest.mark.parametrize(
     "lower, upper, output",
     [
         (10, 70, np.log((TEST_SERIES - 10) / (70 - TEST_SERIES))),
+        (0, 70, np.log((TEST_SERIES - 0) / (70 - TEST_SERIES))),
         (None, 70, -np.log(70 - TEST_SERIES)),
         (10, None, np.log(TEST_SERIES - 10)),
         (None, None, TEST_SERIES),
