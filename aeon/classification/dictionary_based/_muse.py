@@ -133,7 +133,9 @@ class MUSE(BaseClassifier):
     """
 
     _tags = {
-        "capability:univariate": False,
+        # MUSE warns on univariate input and carries on, and its own example
+        # runs on a univariate dataset, so the capability is there
+        "capability:univariate": True,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",

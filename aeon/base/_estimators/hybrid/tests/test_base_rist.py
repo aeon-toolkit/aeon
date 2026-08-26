@@ -55,11 +55,11 @@ def test_rist_estimator_input():
 
     rist = RISTClassifier(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
-    assert isinstance(rist._estimator, ExtraTreesClassifier)
+    assert isinstance(rist.estimator_, ExtraTreesClassifier)
 
     rist = RISTRegressor(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
-    assert isinstance(rist._estimator, ExtraTreesRegressor)
+    assert isinstance(rist.estimator_, ExtraTreesRegressor)
 
     with pytest.raises(
         ValueError, match="base_estimator must be a scikit-learn BaseEstimator"
@@ -93,11 +93,11 @@ def test_rist_series_transform_input():
     )
     rist.fit(X, y)
 
-    assert len(rist._series_transformers) == 4
-    assert rist._series_transformers[0] is None
-    assert isinstance(rist._series_transformers[1], FunctionTransformer)
-    assert isinstance(rist._series_transformers[2], PeriodogramTransformer)
-    assert isinstance(rist._series_transformers[3], ARCoefficientTransformer)
+    assert len(rist.series_transformers_) == 4
+    assert rist.series_transformers_[0] is None
+    assert isinstance(rist.series_transformers_[1], FunctionTransformer)
+    assert isinstance(rist.series_transformers_[2], PeriodogramTransformer)
+    assert isinstance(rist.series_transformers_[3], ARCoefficientTransformer)
 
     rist = RISTClassifier(
         series_transformers=[
@@ -110,9 +110,9 @@ def test_rist_series_transform_input():
     )
     rist.fit(X, y)
 
-    assert len(rist._series_transformers) == 2
-    assert rist._series_transformers[0] is None
-    assert isinstance(rist._series_transformers[1], FunctionTransformer)
+    assert len(rist.series_transformers_) == 2
+    assert rist.series_transformers_[0] is None
+    assert isinstance(rist.series_transformers_[1], FunctionTransformer)
 
     rist = RISTClassifier(
         series_transformers=None,
@@ -122,7 +122,7 @@ def test_rist_series_transform_input():
     )
     rist.fit(X, y)
 
-    assert rist._series_transformers == [None]
+    assert rist.series_transformers_ == [None]
 
 
 @pytest.mark.skipif(
