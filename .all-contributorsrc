@@ -3003,6 +3003,15 @@
         "maintenance",
         "bug"
       ]
+    },
+    {
+      "login": "VedantMadane",
+      "name": "Vedant Madane",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6527493?v=4",
+      "profile": "https://vedantmadane.github.io",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
