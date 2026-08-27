@@ -100,7 +100,7 @@ class SignatureClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "feature",
-        "python_dependencies": "esig",
+        "python_dependencies": "roughpy",
     }
 
     def __init__(
