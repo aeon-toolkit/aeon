@@ -16,13 +16,21 @@ def test_all_estimators_in_api_reference():
         pytest.skip(f"API reference directory not found at {docs_dir}.")
 
     doc_files = list(docs_dir.glob("*.rst")) + list(docs_dir.glob("*.md"))
-    doc_contents = " ".join([f.read_text(encoding="utf-8") for f in doc_files])
+
+    # Collect all stripped lines across all API reference documentation files.
+    # This ensures estimator names must match a line exactly (e.g. inside an
+    # autosummary table or code block) rather than passing on substring matches
+    # or mentions in prose.
+    doc_lines = set()
+    for f in doc_files:
+        for line in f.read_text(encoding="utf-8").splitlines():
+            doc_lines.add(line.strip())
 
     estimators = all_estimators(include_sklearn=False)
     missing = []
 
     for name, klass in estimators:
-        if name not in doc_contents:
+        if name not in doc_lines:
             missing.append(f"{name} ({klass.__module__})")
 
     assert not missing, (
