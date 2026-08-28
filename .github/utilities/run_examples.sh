@@ -12,10 +12,7 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     MULTITHREADED=false
 fi
 
-excluded=(
-  # try removing when 3.9 is dropped
-  "examples/transformations/signature_method.ipynb"
-)
+excluded=()
 if [ "$1" = true ]; then
   excluded+=(
     "examples/datasets/load_data_from_web.ipynb"
@@ -42,8 +39,8 @@ notebooks=()
 # Loop over all notebooks in the examples directory.
 find "examples" -name "*.ipynb" -print0 |
   while IFS= read -r -d "" notebook; do
-    # Skip notebooks in the excluded list.
-    if printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then
+    # Skip notebooks in the excluded list, which is empty for a full run.
+    if [ ${#excluded[@]} -gt 0 ] && printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then
       echo "Skipping: $notebook"
     # Add valid notebooks to the array
     else
