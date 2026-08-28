@@ -117,6 +117,7 @@ class SAX(BaseCollectionTransformer):
         self.distribution = distribution
         self.n_jobs = n_jobs
         self.distribution_params = distribution_params
+        self.znormalized = znormalized
         # TODO: remove znormalized in v1.6.0
         if znormalized != "deprecated":
             warnings.warn(
@@ -129,8 +130,6 @@ class SAX(BaseCollectionTransformer):
             )
             znormalize = not znormalized
         self.znormalize = znormalize
-        # TODO: remove znormalized in v1.6.0
-        self.znormalized = not znormalize
 
         self.window_size = window_size
         self.stride = stride

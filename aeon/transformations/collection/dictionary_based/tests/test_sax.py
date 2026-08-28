@@ -734,10 +734,12 @@ def test_sax_znormalized_deprecated_warns():
     with pytest.warns(FutureWarning, match="znormalized"):
         sax = SAX(znormalized=True)
     assert sax.znormalize is False
+    assert sax.znormalized is True
 
     with pytest.warns(FutureWarning, match="znormalized"):
         sax = SAX(znormalized=False)
     assert sax.znormalize is True
+    assert sax.znormalized is False
 
 
 def test_sax_get_test_params():
