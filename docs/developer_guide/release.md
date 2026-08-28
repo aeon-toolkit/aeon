@@ -39,19 +39,29 @@ The release process is as follows, on high-level:
 
 ## `pypi` release and release validation
 
-Creation of the GitHub release trigger the `pypi` release workflow.
+Publishing the GitHub release triggers the `pypi` release workflow. The workflow builds
+from the released tag, checks that the tag matches the version of the built
+distribution, and runs the test suite against the built wheel rather than the source
+tree.
 
 5. **Approve the release workflow.**
    The release workflow will be automatically created in the GitHub Actions tab. This
    must be approved by a member of the release management workgroup before it will run.
 
 6. **Wait for the ``pypi`` release CI/CD to finish.**
-  If tests fail due to sporadic unrelated failure, restart. If tests fail genuinely,
-  something went wrong in the above steps, investigate, fix, and repeat. If the bug
-  is known and sporadic (i.e. failure to read data from an external source), the release
-  workflow can be restarted. It is not necessary to create a new GitHub release, and
-  the workflow can be manually run from the GitHub Actions tab if more PRs are
-  required.
+  If tests fail due to a sporadic unrelated failure (i.e. failure to read data from an
+  external source), re-run the failed jobs. It is not necessary to create a new GitHub
+  release, and the workflow can also be run manually from the GitHub Actions tab by
+  selecting the release tag.
+
+  If tests fail genuinely, something went wrong in the above steps. Nothing has been
+  uploaded to `pypi` at this point, so the version number is still free to use: delete
+  the GitHub release and its tag, merge the necessary fixes, then create the release
+  and tag again with the same version number.
+
+  Once the `pypi` upload has succeeded the version is fixed, as `pypi` does not allow a
+  version to be re-uploaded. Any problem found after that point requires a new patch
+  version and a new release.
 
 7. **Release workflow completion tasks.**
   Once the release workflow has passed, check `aeon` version on `pypi`, this should be
