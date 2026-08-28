@@ -28,6 +28,10 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
+      # graphviz binaries, required by pydot
+      - name: Install graphviz
+        run: brew install graphviz
+
       - name: Setup Python 3.12
         uses: actions/setup-python@v7
         with:
@@ -42,9 +46,11 @@ jobs:
           python_version: "3.12"
 
       - name: Install aeon and dependencies
-        uses: ./.github/actions/cpu_all_extras
+        uses: nick-fields/retry@v4
         with:
-          additional_extras: "dev,binder"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[binder,dev]
 
       - name: Show dependencies
         run: python -m pip list
