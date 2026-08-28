@@ -57,6 +57,11 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
+      # plot_network needs the graphviz binaries as well as the pydot package,
+      # they are not on the runner image. The binder image installs them too
+      - name: Install graphviz
+        run: brew install graphviz
+
       - name: Setup Python 3.12
         uses: actions/setup-python@v7
         with:
