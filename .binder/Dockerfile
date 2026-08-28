@@ -16,8 +16,7 @@ COPY . ${HOME}
 USER root
 RUN chown -R ${NB_UID} ${HOME}
 
-# graphviz is not in the base image. plot_network needs the graphviz binaries as
-# well as the pydot package, as keras shells out to them to render the plot
+# graphviz binaries, required by pydot and not in the base image
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends graphviz && \
     apt-get clean && rm -rf /var/lib/apt/lists/*

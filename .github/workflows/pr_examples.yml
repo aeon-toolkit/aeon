@@ -28,8 +28,7 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
-      # plot_network needs the graphviz binaries as well as the pydot package,
-      # they are not on the runner image. The binder image installs them too
+      # graphviz binaries, required by pydot and not on the runner image
       - name: Install graphviz
         run: brew install graphviz
 
