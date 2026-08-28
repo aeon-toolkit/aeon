@@ -39,7 +39,7 @@ notebooks=()
 # Loop over all notebooks in the examples directory.
 find "examples" -name "*.ipynb" -print0 |
   while IFS= read -r -d "" notebook; do
-    # Skip notebooks in the excluded list, which is empty for a full run.
+    # Skip notebooks in the excluded list.
     if [ ${#excluded[@]} -gt 0 ] && printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then
       echo "Skipping: $notebook"
     # Add valid notebooks to the array
