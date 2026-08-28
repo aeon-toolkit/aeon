@@ -16,7 +16,7 @@ COPY . ${HOME}
 USER root
 RUN chown -R ${NB_UID} ${HOME}
 
-# graphviz binaries, required by pydot and not in the base image
+# graphviz binaries, required by pydot
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends graphviz && \
     apt-get clean && rm -rf /var/lib/apt/lists/*

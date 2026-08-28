@@ -57,7 +57,7 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
-      # graphviz binaries, required by pydot and not on the runner image
+      # graphviz binaries, required by pydot
       - name: Install graphviz
         run: brew install graphviz
 
