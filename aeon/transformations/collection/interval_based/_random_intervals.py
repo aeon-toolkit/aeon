@@ -7,12 +7,13 @@ __maintainer__ = []
 __all__ = ["RandomIntervals"]
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.utils._parallel import _run_jobs
 from aeon.utils.numba.stats import (
     row_mean,
     row_median,
@@ -139,25 +140,13 @@ class RandomIntervals(BaseCollectionTransformer):
 
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
-    def _eval_intervals(self, tasks):
-        """Run a list of joblib ``delayed`` interval tasks.
-
-        Runs sequentially when ``n_jobs == 1`` to skip the joblib dispatch
-        overhead (this transform is invoked once per representation per tree
-        inside the interval forests, always with n_jobs=1), otherwise in
-        parallel. Tasks are pre-built as a list so any random draws in their
-        arguments occur in the same order joblib would consume a generator.
-        """
-        if self._n_jobs == 1:
-            return [func(*args, **kwargs) for func, args, kwargs in tasks]
-        return Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(tasks)
-
     def _fit_transform(self, X, y=None):
         X, rng = self._fit_setup(X)
 
-        fit = self._eval_intervals(
+        # this transform is invoked once per representation per tree inside the
+        # interval forests, always with n_jobs=1, so the sequential shortcut in
+        # _run_jobs matters here
+        fit = _run_jobs(
             [
                 delayed(self._generate_interval)(
                     X,
@@ -166,7 +155,10 @@ class RandomIntervals(BaseCollectionTransformer):
                     True,
                 )
                 for _ in range(self.n_intervals)
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
         )
 
         (
@@ -196,7 +188,7 @@ class RandomIntervals(BaseCollectionTransformer):
     def _fit(self, X, y=None):
         X, rng = self._fit_setup(X)
 
-        fit = self._eval_intervals(
+        fit = _run_jobs(
             [
                 delayed(self._generate_interval)(
                     X,
@@ -205,7 +197,10 @@ class RandomIntervals(BaseCollectionTransformer):
                     False,
                 )
                 for _ in range(self.n_intervals)
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
         )
 
         (
@@ -242,7 +237,7 @@ class RandomIntervals(BaseCollectionTransformer):
                         transform_features.append(self._transform_features[count])
                         count += 1
 
-        transform = self._eval_intervals(
+        transform = _run_jobs(
             [
                 delayed(self._transform_interval)(
                     X,
@@ -250,7 +245,10 @@ class RandomIntervals(BaseCollectionTransformer):
                     transform_features[i],
                 )
                 for i in range(len(self.intervals_))
-            ]
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
         )
 
         # Concatenate once rather than growing Xt with a fresh copy per interval.

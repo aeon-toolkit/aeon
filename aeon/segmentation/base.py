@@ -145,7 +145,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         Returns
         -------
         List
-            Either a list of indexes of X indicating where each segment begins or a
+            Either a list of indices of X indicating where each segment begins or a
             list of integers of ``len(X)`` indicating which segment each time point
             belongs to.
         """

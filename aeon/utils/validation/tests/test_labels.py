@@ -1,5 +1,7 @@
 """Tests for target label validation functions."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -185,16 +187,35 @@ def test_check_regression_y_rejects_nan(y):
 @pytest.mark.parametrize(
     "y",
     [
-        np.array([0, 1, 0, 1]),
-        pd.Series([0, 1, 0, 1]),
+        np.array([0, 1, 2, 1, 0]),
+        pd.Series([0, 1, 2, 1, 0]),
     ],
 )
-def test_check_regression_y_rejects_non_continuous_targets(y):
-    """Reject non-continuous (or multiclass non string) targets for regression."""
-    with pytest.raises(
-        ValueError,
-        match=r"y type is .* which is not valid for regression\..*continuous",
-    ):
+def test_check_regression_y_allows_multiclass_integer_targets(y):
+    """Accept multiclass integer targets for regression without warning."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        check_regression_y(y)
+
+
+@pytest.mark.parametrize(
+    "y",
+    [
+        np.array([0, 1, 0, 1]),
+        pd.Series([0, 1, 0, 1]),
+        np.array([5, 5, 5, 5]),
+        pd.Series([5, 5, 5, 5]),
+    ],
+)
+def test_check_regression_y_warns_on_binary_targets(y):
+    """Accept numeric binary/constant targets for regression, but warn.
+
+    A short or first-differenced series can produce windowed targets that take only
+    one or two unique integer values; these are reported by ``type_of_target`` as
+    ``"binary"`` but are still valid regression targets, so a warning is issued
+    rather than an error.
+    """
+    with pytest.warns(UserWarning, match=r"reports as 'binary'"):
         check_regression_y(y)
 
 
@@ -203,6 +224,8 @@ def test_check_regression_y_rejects_non_continuous_targets(y):
     [
         np.array(["a", "b", "a", "c"]),
         pd.Series(["a", "b", "a", "c"]),
+        np.array(["a", "b", "a", "b"]),
+        pd.Series(["a", "b", "a", "b"]),
     ],
 )
 def test_check_regression_y_rejects_string_targets(y):

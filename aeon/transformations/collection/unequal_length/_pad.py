@@ -23,7 +23,7 @@ class Padder(BaseCollectionTransformer):
 
     Parameters
     ----------
-    padded_length  : int, "min" or "max", default="max"
+    padded_length : int, "min" or "max", default="max"
         Length to pad the series to. If "min", will pad the transformed series to the
         shortest series seen in ``fit``. If "max", will pad to the longest series seen
         in ``fit``. If an integer, will pad to that length.
@@ -37,10 +37,12 @@ class Padder(BaseCollectionTransformer):
         float.
         Adds no noise if None.
     error_on_long : bool, default=True
-        If True, raise an error if a series is longer than padded_length.
-        If False, will ignore series longer than padded_length. As the series
-        collection could remain unequal length, a list of numpy arrays will be returned
-        instead of a 3D numpy array.
+        If True, raise an error if a series is longer than ``padded_length``.
+        If False, series longer than ``padded_length`` are returned unchanged rather
+        than raising. The collection could therefore remain unequal length, so a list
+        of numpy arrays is returned instead of a 3D numpy array. This is the case for
+        ``padded_length="min"`` whenever the collection is unequal length, as every
+        series longer than the shortest one is left as it is.
     random_state : int, RandomState instance or None, default=None
         Only used if add_noise is not None.
 
@@ -96,7 +98,8 @@ class Padder(BaseCollectionTransformer):
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.
 
-        Calculates the max length in X unless padding length passed as an argument.
+        Calculates the max/min length in X unless the pad length was passed as an
+        integer.
 
         Parameters
         ----------

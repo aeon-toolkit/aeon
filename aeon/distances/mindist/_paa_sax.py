@@ -133,7 +133,7 @@ def mindist_paa_sax_pairwise_distance(
         X, "X", multivariate_conversion
     )
     if y is None:
-        return _paa_sax_from_multiple_to_multiple_distance(_X, breakpoints, n)
+        return _paa_sax_from_multiple_to_multiple_distance(_X, None, breakpoints, n)
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
