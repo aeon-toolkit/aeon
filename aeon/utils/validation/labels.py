@@ -1,5 +1,7 @@
 """Validation functions for target labels."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 from sklearn.utils.multiclass import type_of_target
@@ -54,12 +56,21 @@ def check_regression_y(y):
     y : pd.Series or np.ndarray
         Target variable array.
 
+    Warns
+    -----
+    UserWarning
+        If y is a numeric target with only one or two unique values, which
+        ``type_of_target`` reports as ``"binary"``. This is still fitted as a
+        regression target, but the warning flags that it may instead be a
+        classification target passed by mistake.
+
     Raises
     ------
     TypeError
         If y is not a 1D pd.Series or np.ndarray.
     ValueError
-        If y is not a continuous target.
+        If y is not a numeric (continuous, multiclass or binary) target, e.g. it
+        contains strings.
         if y is empty.
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
@@ -71,8 +82,13 @@ def check_regression_y(y):
     if len(y) == 0:
         raise ValueError("y must not be empty.")
 
+    # A numeric target with only one or two unique values is reported by
+    # type_of_target as "binary", but is still a valid regression target: e.g. a
+    # short or first-differenced series whose windowed targets happen to take only
+    # a couple of integer values. "multiclass" (3+ unique integer values) is
+    # already accepted, so accept "binary" too. String targets are rejected below.
     y_type = type_of_target(y, input_name="y")
-    if y_type != "continuous" and y_type != "multiclass":
+    if y_type not in ("continuous", "multiclass", "binary"):
         raise ValueError(
             f"y type is {y_type} which is not valid for regression. "
             f"Should be continuous according to sklearn.utils.multiclass.type_of_target"
@@ -82,6 +98,16 @@ def check_regression_y(y):
         raise ValueError(
             "y contains strings, cannot fit a regressor. If suitable, convert "
             "to floats or consider classification."
+        )
+
+    if y_type == "binary":
+        warnings.warn(
+            "y has only one or two unique numeric values, which "
+            "sklearn.utils.multiclass.type_of_target reports as 'binary'. It is "
+            "being fitted as a regression target; if this is actually a "
+            "classification target, use a classifier instead.",
+            UserWarning,
+            stacklevel=2,
         )
 
 
