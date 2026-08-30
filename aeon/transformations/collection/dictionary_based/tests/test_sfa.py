@@ -7,6 +7,7 @@ import pytest
 
 from aeon.datasets import load_unit_test
 from aeon.transformations.collection.dictionary_based import SFA, SFAFast, SFAWhole
+from aeon.transformations.collection.dictionary_based._sfa import get_chars
 
 
 @pytest.mark.parametrize(
@@ -286,3 +287,46 @@ def test_sfa_dynamic(alphabet_allocation_method):
 
     # Check if the budget is correctly allocated
     assert np.mean(np.log2(p.alphabet_sizes)) <= np.log2(alphabet_size)
+
+
+def test_sfa_get_words_from_sliding_window():
+    """Test get_words with sliding window (multiple windows per case)."""
+    X = np.random.rand(3, 1, 20)
+    y = np.array([0, 1, 0])
+
+    # Sliding window: window_size < n_timepoints
+    word_length = 4
+    window_size = 10
+    alphabet_size = 8
+
+    p = SFA(
+        word_length=word_length,
+        alphabet_size=alphabet_size,
+        window_size=window_size,
+        save_words=True,
+    )
+    p.fit_transform(X, y)
+
+    words = p.get_words()
+
+    # Should return array of shape (n_cases, n_windows, word_length)
+    assert len(words) == X.shape[0]  # n_cases
+    assert len(words[0]) == X.shape[-1] - window_size + 1  # sliding windows
+    assert len(words[0][0]) == word_length
+
+
+def test_get_chars_does_not_modify_input():
+    """Test that get_chars does not modify the input words array."""
+    words = np.array(
+        [
+            np.uint32(0b110101),
+            np.uint32(0b101011),
+            np.uint32(0b011110),
+        ],
+        dtype=np.uint32,
+    )
+    words_original = words.copy()
+
+    _ = get_chars(words, word_length=3, alphabet_size=4)
+
+    np.testing.assert_array_equal(words, words_original)
