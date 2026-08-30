@@ -90,14 +90,10 @@ def test_incorrect_arguments():
 
 
 @pytest.mark.parametrize(
-    "dtype, expected_dtype",
-    [
-        (np.float32, np.float32),
-        (np.float64, np.float64),
-        (np.int64, np.float64),
-    ],
+    "dtype",
+    ["int32", "int64", "float32", "float64"],
 )
-def test_resizer_preserves_float_precision(dtype, expected_dtype):
+def test_resizer_preserves_float_precision(dtype):
     """Test Resizer preserved float32 and promotes proper dtype output."""
     X = [
         np.array([[0, 1, 2, 3]], dtype=dtype),
@@ -106,4 +102,5 @@ def test_resizer_preserves_float_precision(dtype, expected_dtype):
 
     Xt = Resizer(resized_length=6).fit_transform(X)
 
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
     assert Xt.dtype == expected_dtype

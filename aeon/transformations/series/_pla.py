@@ -87,8 +87,8 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             raise ValueError("Invalid max_error: it has to be a number.")
         if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
             raise ValueError("Invalid buffer_size: use a number only or keep empty.")
-        out_dtype = np.float32 if X.dtype == np.float32 else np.float64
         results = None
+        X = X / 1
         X = np.concatenate(X)
         if isinstance(self.transformer, (str)):
             if self.transformer.lower() == "sliding window":
@@ -106,7 +106,7 @@ class PLASeriesTransformer(BaseSeriesTransformer):
         else:
             raise ValueError("Invalid transformer: it has to be a string.")
 
-        return np.concatenate(results).astype(out_dtype, copy=False)
+        return np.concatenate(results)
 
     def _sliding_window(self, X):
         """Transform a time series using the sliding window algorithm (Online).
@@ -277,7 +277,7 @@ class PLASeriesTransformer(BaseSeriesTransformer):
                 current_data_point = current_data_point + len(seg)
                 buffer = np.append(buffer, seg)
             else:
-                buffer = np.array([])
+                buffer = np.empty(0, dtype=X.dtype)
                 t = t[1:]
                 for i in range(len(t)):
                     seg_ts.append(t[i])
@@ -339,11 +339,14 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             List of transformed segmented time series
         """
         n = len(time_series)
-        Y = np.array(time_series)
-        X = np.arange(n).reshape(-1, 1)
+        Y = np.asarray(time_series)
+        X = np.arange(
+            n,
+            dtype=Y.dtype,
+        ).reshape(-1, 1)
         linearRegression = LinearRegression()
         linearRegression.fit(X, Y)
-        regression_line = np.array(linearRegression.predict(X))
+        regression_line = linearRegression.predict(X)
         return regression_line
 
     def _calculate_error(self, X):

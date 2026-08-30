@@ -62,14 +62,10 @@ def test_supervised_transformers():
 
 
 @pytest.mark.parametrize(
-    "dtype, expected_dtype",
-    [
-        (np.float32, np.float32),
-        (np.float64, np.float64),
-        (np.int64, np.float64),
-    ],
+    "dtype",
+    ["int32", "int64", "float32", "float64"],
 )
-def test_supervised_intervals_preserves_float_precision(dtype, expected_dtype):
+def test_supervised_intervals_preserves_float_precision(dtype):
     """Test SupervisedIntervals preserves float32 and promotes integer input."""
     X, y = make_example_3d_numpy(
         random_state=0,
@@ -77,6 +73,8 @@ def test_supervised_intervals_preserves_float_precision(dtype, expected_dtype):
         n_timepoints=20,
     )
     X = X.astype(dtype)
+
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
 
     sit = SupervisedIntervals(
         features=[row_mean],

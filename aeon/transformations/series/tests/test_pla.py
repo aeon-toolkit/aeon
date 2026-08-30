@@ -250,18 +250,26 @@ def test_piecewise_linear_approximation_one_segment(X):
     "transformer", ["sliding window", "top down", "bottom up", "swab"]
 )
 @pytest.mark.parametrize(
-    "dtype, expected_dtype",
-    [
-        (np.float32, np.float32),
-        (np.float64, np.float64),
-        (np.int64, np.float64),
-    ],
+    "dtype",
+    ["int32", "int64", "float32", "float64"],
 )
-def test_pla_preserves_float_precision(X, transformer, dtype, expected_dtype):
+def test_pla_preserves_float_precision(X, transformer, dtype):
     """Test PLA float precision transformer."""
     Xt = PLASeriesTransformer(
         max_error=100_000,
         transformer=transformer,
     ).fit_transform(X.astype(dtype))
 
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
     assert Xt.dtype == expected_dtype
+
+
+@pytest.mark.parametrize("dtype", ["float32", "float64"])
+def test_pla_linear_regression_preserves_float_precision(dtype):
+    """Test that PLA linear regression computes using the input precision."""
+    X = np.arange(8, dtype=dtype)
+
+    pla = PLASeriesTransformer()
+    Xt = pla._linear_regression(X)
+
+    assert Xt.dtype == np.dtype(dtype)

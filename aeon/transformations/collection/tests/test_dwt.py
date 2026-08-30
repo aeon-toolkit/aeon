@@ -5,6 +5,7 @@ import math
 import numpy as np
 import pytest
 
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import DWTTransformer
 
 
@@ -114,17 +115,20 @@ def test_dwt_performs_correcly_along_each_dim():
 
 
 @pytest.mark.parametrize(
-    "dtype, expected_dtype",
-    [
-        (np.float32, np.float32),
-        (np.float64, np.float64),
-        (np.int64, np.float64),
-    ],
+    "dtype",
+    ["int32", "int64", "float32", "float64"],
 )
-def test_dwt_preserves_float_precision(dtype, expected_dtype):
+def test_dwt_preserves_float_precision(dtype):
     """Check dwt preserves float32 and promotes proper dtype output."""
-    X = np.arange(16, dtype=dtype).reshape(2, 1, 8)
+    X = make_example_3d_numpy(
+        n_cases=2,
+        n_channels=1,
+        n_timepoints=8,
+        return_y=False,
+        random_state=0,
+    ).astype(dtype)
 
     Xt = DWTTransformer(n_levels=2).fit_transform(X)
 
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
     assert Xt.dtype == expected_dtype
