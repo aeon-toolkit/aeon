@@ -1,6 +1,6 @@
 """Tests for the Temporal Dictionary Ensemble classifiers.
 
-Covers the ensemble train estimates, input validation, multivariate dimension
+Covers the ensemble train estimates, input validation, multivariate channel
 selection, pickling, the deprecated parameters, the numpy parameter-selection
 helper and the public histogram intersection function. The TDE-specific SFA
 transform has its own tests in test_tde_sfa.py.
@@ -8,6 +8,7 @@ transform has its own tests in test_tde_sfa.py.
 
 import pickle
 import re
+import warnings
 
 import numpy as np
 import pytest
@@ -81,15 +82,15 @@ def test_tde_incorrect_input():
 
 
 def test_tde_multivariate():
-    """Test multivariate dimension selection respects max_dims.
+    """Test multivariate channel selection respects max_channels.
 
-    dim_threshold=0 keeps every channel eligible, so the random truncation
-    down to max_dims dimensions must run.
+    channel_threshold=0 keeps every channel eligible, so the random truncation
+    down to max_channels channels must run.
     """
     X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
-    tde = IndividualTDE(max_dims=1, dim_threshold=0.0, random_state=0)
+    tde = IndividualTDE(max_channels=1, channel_threshold=0.0, random_state=0)
     tde._fit(X, y)
-    assert len(tde._dims) == 1
+    assert len(tde._channels) == 1
 
 
 def test_tde_pickle():
@@ -161,6 +162,83 @@ def test_tde_loocv_train_estimate_and_predict():
     assert proba.shape == (len(X_train), 2)
     np.testing.assert_almost_equal(proba.sum(axis=1), 1, decimal=4)
     assert all(p in tde.classes_ for p in preds)
+
+
+def test_kernel_ridge_parameter_selection_matches_sklearn():
+    """Test the numpy kernel ridge helper against the sklearn original.
+
+    The ensemble's guided parameter selection replaced StandardScaler +
+    KernelRidge(kernel="poly", degree=1) with a direct numpy computation;
+    the predictions must match sklearn's to numerical precision.
+    """
+    from sklearn.kernel_ridge import KernelRidge
+    from sklearn.preprocessing import StandardScaler
+
+    from aeon.classification.dictionary_based._tde import _kernel_ridge_preds
+
+    rng = np.random.RandomState(0)
+    x_hist = rng.randint(0, 20, size=(30, 5)).astype(np.float64)
+    x_hist[:, 3] = 1.0  # constant column, exercises the zero-std guard
+    y_hist = rng.rand(30)
+    candidates = rng.randint(0, 20, size=(40, 5)).astype(np.float64)
+
+    scaler = StandardScaler().fit(x_hist)
+    gp = KernelRidge(kernel="poly", degree=1)
+    gp.fit(scaler.transform(x_hist), y_hist)
+    expected = gp.predict(scaler.transform(candidates))
+
+    actual = _kernel_ridge_preds(x_hist, y_hist, candidates)
+
+    np.testing.assert_allclose(actual, expected, rtol=1e-8, atol=1e-10)
+
+
+def test_individual_train_acc_fallback_matches_symmetric_kernel(monkeypatch):
+    """Test the per-case LOOCV fallback agrees with the symmetric kernel.
+
+    Above _SYMMETRIC_LOOCV_MAX_N cases the ensemble falls back to per-case
+    nearest neighbour searches instead of materialising the n x n similarity
+    matrix. Forcing the threshold to zero must not change the accuracy
+    estimate or the resulting ensemble behaviour.
+    """
+    from aeon.classification.dictionary_based import _tde
+
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
+
+    def fit_ensemble():
+        tde = TemporalDictionaryEnsemble(
+            n_parameter_samples=4,
+            max_ensemble_size=2,
+            randomly_selected_params=2,
+            random_state=0,
+        )
+        tde.fit(X, y)
+        return tde
+
+    fast = fit_ensemble()
+    monkeypatch.setattr(_tde, "_SYMMETRIC_LOOCV_MAX_N", 0)
+    slow = fit_ensemble()
+
+    assert [e._accuracy for e in fast.estimators_] == [
+        e._accuracy for e in slow.estimators_
+    ]
+    np.testing.assert_array_equal(fast.predict(X), slow.predict(X))
+
+
+def test_subsampling_in_highly_imbalanced_datasets():
+    """Test the subsampling during fit for highly imbalanced datasets.
+
+    Member subsamples are redrawn until they contain at least two classes,
+    so fitting a dataset with a single minority case must succeed rather
+    than producing single-class members. Regression test for bug #1726:
+    https://github.com/aeon-toolkit/aeon/issues/1726
+    """
+    X = np.random.rand(10, 1, 20)
+    y_sc = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+
+    tde = TemporalDictionaryEnsemble(random_state=42)
+    tde.fit(X, y_sc)
+
+    assert tde.is_fitted
 
 
 def test_tde_predict_multithreading_equivalence():
@@ -296,8 +374,6 @@ def test_tde_deprecated_parameters_warn():
     passed; the defaults must stay silent. TODO remove in v1.7.0 along with
     the parameters.
     """
-    import warnings
-
     with warnings.catch_warnings():
         warnings.simplefilter("error", FutureWarning)
         IndividualTDE()
@@ -309,80 +385,11 @@ def test_tde_deprecated_parameters_warn():
         IndividualTDE(typed_dict=True)
     with pytest.warns(FutureWarning, match="typed_dict"):
         TemporalDictionaryEnsemble(typed_dict=False)
-
-
-def test_kernel_ridge_parameter_selection_matches_sklearn():
-    """Test the numpy kernel ridge helper against the sklearn original.
-
-    The ensemble's guided parameter selection replaced StandardScaler +
-    KernelRidge(kernel="poly", degree=1) with a direct numpy computation;
-    the predictions must match sklearn's to numerical precision.
-    """
-    from sklearn.kernel_ridge import KernelRidge
-    from sklearn.preprocessing import StandardScaler
-
-    from aeon.classification.dictionary_based._tde import _kernel_ridge_preds
-
-    rng = np.random.RandomState(0)
-    x_hist = rng.randint(0, 20, size=(30, 5)).astype(np.float64)
-    x_hist[:, 3] = 1.0  # constant column, exercises the zero-std guard
-    y_hist = rng.rand(30)
-    candidates = rng.randint(0, 20, size=(40, 5)).astype(np.float64)
-
-    scaler = StandardScaler().fit(x_hist)
-    gp = KernelRidge(kernel="poly", degree=1)
-    gp.fit(scaler.transform(x_hist), y_hist)
-    expected = gp.predict(scaler.transform(candidates))
-
-    actual = _kernel_ridge_preds(x_hist, y_hist, candidates)
-
-    np.testing.assert_allclose(actual, expected, rtol=1e-8, atol=1e-10)
-
-
-def test_individual_train_acc_fallback_matches_symmetric_kernel(monkeypatch):
-    """Test the per-case LOOCV fallback agrees with the symmetric kernel.
-
-    Above _SYMMETRIC_LOOCV_MAX_N cases the ensemble falls back to per-case
-    nearest neighbour searches instead of materialising the n x n similarity
-    matrix. Forcing the threshold to zero must not change the accuracy
-    estimate or the resulting ensemble behaviour.
-    """
-    from aeon.classification.dictionary_based import _tde
-
-    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
-
-    def fit_ensemble():
-        tde = TemporalDictionaryEnsemble(
-            n_parameter_samples=4,
-            max_ensemble_size=2,
-            randomly_selected_params=2,
-            random_state=0,
-        )
-        tde.fit(X, y)
-        return tde
-
-    fast = fit_ensemble()
-    monkeypatch.setattr(_tde, "_SYMMETRIC_LOOCV_MAX_N", 0)
-    slow = fit_ensemble()
-
-    assert [e._accuracy for e in fast.estimators_] == [
-        e._accuracy for e in slow.estimators_
-    ]
-    np.testing.assert_array_equal(fast.predict(X), slow.predict(X))
-
-
-def test_subsampling_in_highly_imbalanced_datasets():
-    """Test the subsampling during fit for highly imbalanced datasets.
-
-    Member subsamples are redrawn until they contain at least two classes,
-    so fitting a dataset with a single minority case must succeed rather
-    than producing single-class members. Regression test for bug #1726:
-    https://github.com/aeon-toolkit/aeon/issues/1726
-    """
-    X = np.random.rand(10, 1, 20)
-    y_sc = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-
-    tde = TemporalDictionaryEnsemble(random_state=42)
-    tde.fit(X, y_sc)
-
-    assert tde.is_fitted
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        TemporalDictionaryEnsemble(dim_threshold=0.5)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        TemporalDictionaryEnsemble(max_dims=5)
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        IndividualTDE(dim_threshold=0.5)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        IndividualTDE(max_dims=5)

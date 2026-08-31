@@ -10,7 +10,7 @@ import math
 import numpy as np
 import pytest
 
-from aeon.classification.dictionary_based._tde_sfa import (
+from aeon.classification.dictionary_based._tde import (
     _DBL_MAX,
     _TDE_SFA,
     _bags_from_dft,
@@ -21,7 +21,7 @@ from aeon.classification.dictionary_based._tde_sfa import (
     _igb_all,
     _incremental_stds,
     _mft_all,
-    combine_dim_bags,
+    combine_channel_bags,
     loocv_train_acc,
     nn_predict_loocv,
     nn_similarities_all,
@@ -201,7 +201,7 @@ def test_transform_handles_fit_array_and_new_array_paths():
 
 
 def test_binning_bags_use_retained_direct_dft():
-    """Test reduced binning bags used by multivariate dimension selection.
+    """Test reduced binning bags used by multivariate channel selection.
 
     When ``keep_binning_dft=True``, ``binning_bags`` should build bags from
     the retained direct DFT rows, matching generic SFA's supplied-DFT path.
@@ -329,6 +329,19 @@ def test_direct_binning_dft_uses_unit_std_for_constant_windows():
     out = _binning_dft_all(X, 4, 4, False, 1.0 / math.sqrt(4), 2)
 
     assert np.all(np.isfinite(out))
+
+
+def test_direct_binning_dft_stable_for_large_offset_series():
+    """Test direct DFT variance against SFA for a large-offset window."""
+    series = 1e9 + np.arange(8, dtype=np.float64)
+    inverse_sqrt = 1.0 / math.sqrt(series.size)
+
+    actual = _binning_dft_all(series[None, :], series.size, 4, False, inverse_sqrt, 1)[
+        0, 0
+    ]
+    expected = OldSFA._discrete_fourier_transform(series, 4, False, inverse_sqrt, False)
+
+    np.testing.assert_allclose(actual, expected)
 
 
 def test_bags_from_dft_pack_flat_unigrams_and_bigrams():
@@ -474,7 +487,7 @@ def test_nn_first_max_and_tie_break_replicate_the_sequential_scan():
     draw per tie event from the start of the pool, switching to the tied
     index when the draw is below 0.5, exactly like a per-row seeded scan.
     """
-    from aeon.classification.dictionary_based._tde_sfa import (
+    from aeon.classification.dictionary_based._tde import (
         nn_first_max,
         nn_tie_break,
     )
@@ -565,25 +578,32 @@ def test_loocv_train_acc_predictions_and_early_abandon():
     assert n_done == 1
 
 
-def test_combine_dim_bags_merges_sorted_per_dimension_streams():
+def test_combine_channel_bags_merges_sorted_per_channel_streams():
     """Test the k-way merge that builds multivariate bags.
 
-    Two single-case dimension bags are merged for levels > 1: unigram key2
-    values are shifted and tagged with their dimension, the bigram key2 of -1
+    Two single-case channel bags are merged for levels > 1: unigram key2
+    values are shifted and tagged with their channel, the bigram key2 of -1
     keeps its negative tag, and the output must be sorted with all counts
-    preserved (no keys from different dimensions may combine).
+    preserved (no keys from different channels may combine).
     """
-    # dim 3: keys (5, -1) bigram and (5, 0) unigram; dim 6: key (5, 1)
+    # channel 3: keys (5, -1) bigram and (5, 0) unigram; channel 6: key (5, 1)
     all_k1 = np.array([5, 5, 5], dtype=np.int64)
     all_k2 = np.array([-1, 0, 1], dtype=np.int64)
     all_v = np.array([2, 3, 4], dtype=np.uint32)
-    dim_case_offsets = np.array([[0, 2], [0, 1]], dtype=np.int64)
-    dim_starts = np.array([0, 2], dtype=np.int64)
-    dims = np.array([3, 6], dtype=np.int64)
-    highest_dim_bit = 3
+    channel_case_offsets = np.array([[0, 2], [0, 1]], dtype=np.int64)
+    channel_starts = np.array([0, 2], dtype=np.int64)
+    channels = np.array([3, 6], dtype=np.int64)
+    highest_channel_bit = 3
 
-    keys1, keys2, counts, offsets = combine_dim_bags(
-        all_k1, all_k2, all_v, dim_case_offsets, dim_starts, dims, 2, highest_dim_bit
+    keys1, keys2, counts, offsets = combine_channel_bags(
+        all_k1,
+        all_k2,
+        all_v,
+        channel_case_offsets,
+        channel_starts,
+        channels,
+        2,
+        highest_channel_bit,
     )
 
     np.testing.assert_array_equal(offsets, np.array([0, 3]))
@@ -594,22 +614,29 @@ def test_combine_dim_bags_merges_sorted_per_dimension_streams():
     np.testing.assert_array_equal(counts, np.array([2, 3, 4]))
 
 
-def test_combine_dim_bags_uses_dimension_as_key2_for_flat_bags():
+def test_combine_channel_bags_uses_channel_as_key2_for_flat_bags():
     """Test the k-way merge key encoding when levels == 1.
 
-    Flat bags store the dimension itself in key2, so equal words from
-    different dimensions must stay separate rows, interleaved in sorted
+    Flat bags store the channel itself in key2, so equal words from
+    different channels must stay separate rows, interleaved in sorted
     (key1, key2) order.
     """
     all_k1 = np.array([5, 7, 5], dtype=np.int64)
     all_k2 = np.zeros(3, dtype=np.int64)
     all_v = np.array([1, 2, 3], dtype=np.uint32)
-    dim_case_offsets = np.array([[0, 2], [0, 1]], dtype=np.int64)
-    dim_starts = np.array([0, 2], dtype=np.int64)
-    dims = np.array([0, 4], dtype=np.int64)
+    channel_case_offsets = np.array([[0, 2], [0, 1]], dtype=np.int64)
+    channel_starts = np.array([0, 2], dtype=np.int64)
+    channels = np.array([0, 4], dtype=np.int64)
 
-    keys1, keys2, counts, offsets = combine_dim_bags(
-        all_k1, all_k2, all_v, dim_case_offsets, dim_starts, dims, 1, 3
+    keys1, keys2, counts, offsets = combine_channel_bags(
+        all_k1,
+        all_k2,
+        all_v,
+        channel_case_offsets,
+        channel_starts,
+        channels,
+        1,
+        3,
     )
 
     np.testing.assert_array_equal(keys1, np.array([5, 5, 7]))

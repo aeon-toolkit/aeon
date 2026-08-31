@@ -65,8 +65,8 @@ def test_stc_verbosity_levels(verbose, capsys):
     stc.fit(X, y)
     fit_output = capsys.readouterr().out
 
-    assert stc._transformer.verbose == verbose
-    assert stc._estimator.verbose == verbose
+    assert stc.transformer_.verbose == verbose
+    assert stc.estimator_.verbose == verbose
     if verbose == 0:
         assert fit_output == ""
     else:
@@ -151,7 +151,29 @@ def test_stc_contract_verbosity_is_propagated(capsys):
     output = capsys.readouterr().out
 
     assert stc._transform_limit_in_minutes == pytest.approx(0.016)
-    assert stc._estimator.time_limit_in_minutes == pytest.approx(0.01)
+    assert stc.estimator_.time_limit_in_minutes == pytest.approx(0.01)
     assert "[RST] Starting fit: mode=contract" in output
     assert "[RST] Batch 1:" in output
     assert "[RotF] Estimator 1:" in output
+
+
+def test_stc_attribute_lifecycle():
+    """Test estimator_, transformer_ attributes are created only on fit."""
+    import numpy as np
+
+    from aeon.classification.shapelet_based import ShapeletTransformClassifier
+
+    X = np.random.randn(10, 1, 20)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+    clf = ShapeletTransformClassifier(n_shapelet_samples=5, max_shapelets=2)
+    assert not hasattr(clf, "estimator_")
+    assert not hasattr(clf, "transformer_")
+    assert not hasattr(clf, "_estimator_")
+    assert not hasattr(clf, "_transformer")
+
+    clf.fit(X, y)
+    assert hasattr(clf, "estimator_")
+    assert hasattr(clf, "transformer_")
+    assert not hasattr(clf, "_estimator")
+    assert not hasattr(clf, "_transformer")

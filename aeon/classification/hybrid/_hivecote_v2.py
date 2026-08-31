@@ -219,7 +219,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
             self._arsenal_params["time_limit_in_minutes"] = ct
             self._tde_params["time_limit_in_minutes"] = ct
 
-        # Build component estimators (stored in _estimators to avoid mutating
+        # Build component estimators (stored in estimators_ to avoid mutating
         # the self.estimators init parameter, for scikit-learn compatibility)
         drcif_build_params = self._drcif_params.copy()
         drcif_build_params.setdefault("parallel_backend", self.parallel_backend)

@@ -75,7 +75,7 @@ class RandomIntervals(BaseCollectionTransformer):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     n_intervals_ : int

@@ -84,7 +84,11 @@ class ShapeletTransformClassifier(BaseClassifier):
     n_instances_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
+    estimator_ : BaseEstimator
+        The fitted base classifier.
+    transformer_ : RandomShapeletTransform
+        The fitted shapelet transformer.
 
     See Also
     --------
@@ -188,9 +192,9 @@ class ShapeletTransformClassifier(BaseClassifier):
         if self.verbose > 0:
             self._log(
                 f"[STC] Starting estimator fit "
-                f"({type(self._estimator).__name__})..."
+                f"({type(self.estimator_).__name__})..."
             )
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
         if self.verbose > 0:
             self._log(
                 f"[STC] Finished estimator fit in "
@@ -214,7 +218,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         transform_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log("[STC] Starting transform for predict...")
-        X_t = self._transformer.transform(X)
+        X_t = self.transformer_.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
         if self.verbose > 0:
             self._log(
@@ -225,7 +229,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         predict_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log("[STC] Starting prediction...")
-        pred = self._estimator.predict(X_t)
+        pred = self.estimator_.predict(X_t)
         if self.verbose > 0:
             self._log(
                 f"[STC] Finished prediction in "
@@ -250,7 +254,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         transform_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log("[STC] Starting transform for predict_proba...")
-        X_t = self._transformer.transform(X)
+        X_t = self.transformer_.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
         if self.verbose > 0:
             self._log(
@@ -261,12 +265,12 @@ class ShapeletTransformClassifier(BaseClassifier):
         predict_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log("[STC] Starting probability prediction...")
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            proba = self._estimator.predict_proba(X_t)
+            proba = self.estimator_.predict_proba(X_t)
         else:
             proba = np.zeros((len(X), self.n_classes_))
-            preds = self._estimator.predict(X_t)
+            preds = self.estimator_.predict(X_t)
             for i in range(0, len(X)):
                 proba[i, np.where(self.classes_ == preds[i])] = 1
 
@@ -301,7 +305,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                     "(RotationForest OOB)..."
                 )
 
-            proba = self._estimator.fit_predict_proba(X_t, y)
+            proba = self.estimator_.fit_predict_proba(X_t, y)
         else:
             if self.verbose > 0:
                 self._log(
@@ -309,9 +313,9 @@ class ShapeletTransformClassifier(BaseClassifier):
                     "(cross-validation)..."
                 )
 
-            self._estimator.fit(X_t, y)
+            self.estimator_.fit(X_t, y)
 
-            m = getattr(self._estimator, "predict_proba", None)
+            m = getattr(self.estimator_, "predict_proba", None)
             if not callable(m):
                 raise ValueError("Estimator must have a predict_proba method.")
 
@@ -364,7 +368,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         elif self.transform_limit_in_minutes > 0:
             self._transform_limit_in_minutes = self.transform_limit_in_minutes
 
-        self._transformer = RandomShapeletTransform(
+        self.transformer_ = RandomShapeletTransform(
             n_shapelet_samples=self.n_shapelet_samples,
             max_shapelets=self.max_shapelets,
             max_shapelet_length=self.max_shapelet_length,
@@ -376,21 +380,21 @@ class ShapeletTransformClassifier(BaseClassifier):
             random_state=self.random_state,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             RotationForestClassifier() if self.estimator is None else self.estimator,
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
-        m = getattr(self._estimator, "time_limit_in_minutes", None)
+        m = getattr(self.estimator_, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
-            self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
+            self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        if hasattr(self._estimator, "verbose"):
-            self._estimator.verbose = self.verbose
+        if hasattr(self.estimator_, "verbose"):
+            self.estimator_.verbose = self.verbose
 
         transform_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
@@ -404,13 +408,13 @@ class ShapeletTransformClassifier(BaseClassifier):
                 f"n_jobs={self._n_jobs}"
             )
             self._log("[STC] Starting shapelet transform...")
-        X_t = self._transformer.fit_transform(X, y)
+        X_t = self.transformer_.fit_transform(X, y)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
         if self.verbose > 0:
             self._log(
                 f"[STC] Finished shapelet transform in "
                 f"{perf_counter() - transform_start:.2f}s, "
-                f"retained={len(self._transformer.shapelets_)}"
+                f"retained={len(self.transformer_.shapelets_)}"
             )
 
         return X_t
