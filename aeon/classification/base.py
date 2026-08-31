@@ -549,10 +549,9 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             estimated probability that i-th instance is of class j
         """
         preds = self._predict(X)
-        n_pred = len(preds)
-        dists = np.zeros((n_pred, self.n_classes_))
-        for i in range(n_pred):
-            dists[i, self._class_dictionary[preds[i]]] = 1
+        class_indices = np.searchsorted(self.classes_, preds)
+        dists = np.zeros((len(preds), self.n_classes_))
+        dists[np.arange(len(preds)), class_indices] = 1
 
         return dists
 

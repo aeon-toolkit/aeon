@@ -368,7 +368,7 @@ class Arsenal(BaseClassifier):
             )
 
         if self.rocket_transform == "rocket":
-            base_rocket = Rocket(n_kernels=self.n_kernels)
+            base_rocket = Rocket(n_kernels=self.n_kernels, normalise=False)
             X = Normalizer().fit_transform(X)
         elif self.rocket_transform == "minirocket":
             base_rocket = MiniRocket(
@@ -580,10 +580,7 @@ class Arsenal(BaseClassifier):
         return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_ensemble_estimator(self, rocket, X, y, train_rng=None):
-        # X is already normalised at ensemble level where the transformer
-        # needs it, so kernels are applied without further preprocessing
-        rocket.fit(X)
-        transformed_x = rocket._transform_kernels(X)
+        transformed_x = rocket.fit_transform(X)
         scaler = StandardScaler(with_mean=False)
         # scoring="accuracy" makes best_score_ the LOO CV accuracy used to
         # weight this member; with the default scorer it is the negative LOO
@@ -601,9 +598,7 @@ class Arsenal(BaseClassifier):
         return pipeline, ridge.best_score_, train_estimate
 
     def _predict_for_estimator(self, X, classifier):
-        rocket, scaler, ridge = (step[1] for step in classifier.steps)
-        transformed_x = rocket._transform_kernels(X)
-        preds = ridge.predict(scaler.transform(transformed_x))
+        preds = classifier.predict(X)
         return np.searchsorted(self.classes_, preds)
 
     def _train_probas_for_estimator(self, Xt, y, rng):
