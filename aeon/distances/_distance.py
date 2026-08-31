@@ -54,6 +54,10 @@ from aeon.distances.elastic import (
     soft_dtw_cost_matrix,
     soft_dtw_distance,
     soft_dtw_pairwise_distance,
+    swale_alignment_path,
+    swale_cost_matrix,
+    swale_distance,
+    swale_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
@@ -500,6 +504,7 @@ def get_distance_function(method: str | DistanceFunction) -> DistanceFunction:
     'msm'           distances.msm_distance
     'twe'           distances.twe_distance
     'lcss'          distances.lcss_distance
+    'swale'         distances.swale_distance
     'euclidean'     distances.euclidean_distance
     'squared'       distances.squared_distance
     'manhattan'     distances.manhattan_distance
@@ -559,6 +564,7 @@ def get_pairwise_distance_function(
     'msm'           distances.msm_pairiwse_distance
     'twe'           distances.twe_pairwise_distance
     'lcss'          distances.lcss_pairwise_distance
+    'swale'         distances.swale_pairwise_distance
     'euclidean'     distances.euclidean_pairwise_distance
     'squared'       distances.squared_pairwise_distance
     'manhattan'     distances.manhattan_pairwise_distance
@@ -619,6 +625,7 @@ def get_alignment_path_function(method: str) -> AlignmentPathFunction:
     'msm'           distances.msm_alignment_path
     'twe'           distances.twe_alignment_path
     'lcss'          distances.lcss_alignment_path
+    'swale'         distances.swale_alignment_path
     'soft_dtw'      distances.soft_dtw_alignment_path
     =============== ========================================
 
@@ -668,6 +675,7 @@ def get_cost_matrix_function(method: str) -> CostMatrixFunction:
     'msm'           distances.msm_cost_matrix
     'twe'           distances.twe_cost_matrix
     'lcss'          distances.lcss_cost_matrix
+    'swale'         distances.swale_cost_matrix
     'soft_dtw'      distances.soft_dtw_cost_matrix
     =============== ========================================
 
@@ -814,6 +822,16 @@ DISTANCES = [
         "pairwise_distance": lcss_pairwise_distance,
         "cost_matrix": lcss_cost_matrix,
         "alignment_path": lcss_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "swale",
+        "distance": swale_distance,
+        "pairwise_distance": swale_pairwise_distance,
+        "cost_matrix": swale_cost_matrix,
+        "alignment_path": swale_alignment_path,
         "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,
