@@ -17,6 +17,10 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.collection.interval_based._interval_features import (
+    _fit_transform_feature,
+    _transform_feature,
+)
 from aeon.utils.numba.general import z_normalise_series_3d
 from aeon.utils.numba.stats import (
     fisher_score,
@@ -411,27 +415,11 @@ class SupervisedIntervals(BaseCollectionTransformer):
         start, end, dim, feature = self.intervals_[idx]
 
         if isinstance(feature, BaseTransformer):
-            return self._feature_transform(feature, X[:, dim, start:end]).flatten()
+            return _transform_feature(
+                feature, X[:, dim, start:end], expand_fallback=False
+            ).flatten()
         else:
             return feature(X[:, dim, start:end])
-
-    def _feature_fit_transform(self, feature, X, y=None):
-        """fit_transform a single-channel 2D interval slice.
-
-        ``X`` is a ``(n_cases, n_timepoints)`` slice of a single channel. For aeon
-        collection transformers the top-level input has already been validated, so
-        the slice is expanded to the ``numpy3D`` inner type and passed to the
-        private ``_fit_transform``, skipping the redundant per-slice input checks.
-        """
-        if isinstance(feature, BaseCollectionTransformer):
-            return feature._fit_transform(np.expand_dims(X, axis=1), y)
-        return feature.fit_transform(X)
-
-    def _feature_transform(self, feature, X):
-        """Transform a single-channel 2D interval slice. See _feature_fit_transform."""
-        if isinstance(feature, BaseCollectionTransformer):
-            return feature._transform(np.expand_dims(X, axis=1))
-        return feature.transform(X)
 
     def _supervised_search(
         self,
@@ -463,11 +451,11 @@ class SupervisedIntervals(BaseCollectionTransformer):
             sub_interval_1 = X[:, div_point:]
 
             if feature_is_transformer:
-                interval_feature_0 = self._feature_fit_transform(
-                    feature, sub_interval_0
+                interval_feature_0 = _fit_transform_feature(
+                    feature, sub_interval_0, expand_fallback=False
                 ).flatten()
-                interval_feature_1 = self._feature_fit_transform(
-                    feature, sub_interval_1
+                interval_feature_1 = _fit_transform_feature(
+                    feature, sub_interval_1, expand_fallback=False
                 ).flatten()
             else:
                 interval_feature_0 = feature(sub_interval_0)
@@ -485,8 +473,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 if keep_transform:
                     if self.normalise_for_search:
                         if feature_is_transformer:
-                            interval_feature_to_use = self._feature_transform(
-                                feature, X_ori[:, ini_idx:end]
+                            interval_feature_to_use = _transform_feature(
+                                feature, X_ori[:, ini_idx:end], expand_fallback=False
                             ).flatten()
                         else:
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
@@ -512,8 +500,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 if keep_transform:
                     if self.normalise_for_search:
                         if feature_is_transformer:
-                            interval_feature_to_use = self._feature_transform(
-                                feature, X_ori[:, ini_idx:end]
+                            interval_feature_to_use = _transform_feature(
+                                feature, X_ori[:, ini_idx:end], expand_fallback=False
                             ).flatten()
                         else:
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])

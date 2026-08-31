@@ -13,6 +13,11 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.collection.interval_based._interval_features import (
+    _fit_feature,
+    _fit_transform_feature,
+    _transform_feature,
+)
 from aeon.utils._parallel import _run_jobs
 from aeon.utils.numba.stats import (
     row_mean,
@@ -361,33 +366,25 @@ class RandomIntervals(BaseCollectionTransformer):
 
         for feature in self._features:
             if isinstance(feature, BaseTransformer):
-                # The interval slice is already validated (at the top-level fit)
-                # and in the numpy3D inner type, so collection transformers use
-                # the private path to skip redundant per-slice input checks.
-                interval = np.expand_dims(
-                    X[:, dim, interval_start:interval_end:dilation], axis=1
-                )
-                is_collection = isinstance(feature, BaseCollectionTransformer)
+                # X was validated by the top-level fit, so a slice of it is
+                # already in the numpy3D inner type once expanded; the helpers
+                # skip the redundant per-slice checks for collection
+                # transformers.
+                interval = X[:, dim, interval_start:interval_end:dilation]
                 if transform:
                     feature = _clone_estimator(
                         feature,
                         seed,
                     )
 
-                    t = (
-                        feature._fit_transform(interval, y)
-                        if is_collection
-                        else feature.fit_transform(interval, y)
-                    )
+                    t = _fit_transform_feature(feature, interval, y)
 
                     if t.ndim == 3 and t.shape[1] == 1:
                         t = t.reshape((t.shape[0], t.shape[2]))
 
                     Xt_parts.append(t)
-                elif is_collection:
-                    feature._fit(interval, y)
                 else:
-                    feature.fit(interval, y)
+                    _fit_feature(feature, interval, y)
             elif transform:
                 t = np.asarray(
                     feature(X[:, dim, interval_start:interval_end:dilation])
@@ -416,14 +413,9 @@ class RandomIntervals(BaseCollectionTransformer):
                 return np.zeros((X.shape[0], 1))
 
         if isinstance(feature, BaseTransformer):
-            interval = np.expand_dims(
-                X[:, dim, interval_start:interval_end:dilation], axis=1
-            )
             # See _generate_interval: private path skips redundant per-slice checks.
-            Xt = (
-                feature._transform(interval)
-                if isinstance(feature, BaseCollectionTransformer)
-                else feature.transform(interval)
+            Xt = _transform_feature(
+                feature, X[:, dim, interval_start:interval_end:dilation]
             )
 
             if Xt.ndim == 3:
