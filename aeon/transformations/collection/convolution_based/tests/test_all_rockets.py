@@ -235,3 +235,26 @@ def test_ppv():
     b = np.float32(-5.0)
     assert _PPV(a, b) == 1
     assert _PPV(b, a) == 0
+
+
+@pytest.mark.parametrize(
+    "transformer",
+    [
+        Rocket(n_kernels=100, normalise=False, random_state=0),
+        MiniRocket(n_kernels=100, random_state=0),
+        MultiRocket(n_kernels=100, random_state=0),
+    ],
+)
+def test_transform_kernels_matches_transform(transformer):
+    """_transform_kernels equals transform when no normalisation is configured.
+
+    The method is the kernels-only entry point used by ensembles that
+    normalise input once; without any normalisation configured it must be
+    exactly the public transform.
+    """
+    rng = check_random_state(0)
+    X = rng.standard_normal((10, 1, 30))
+
+    Xt = transformer.fit_transform(X)
+
+    np.testing.assert_array_equal(transformer._transform_kernels(X), Xt)

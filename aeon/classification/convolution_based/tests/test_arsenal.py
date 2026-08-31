@@ -63,8 +63,6 @@ def test_arsenal_rocket_variants(rocket_transform, expected_transformer, n_chann
     assert len(clf.estimators_) == n_estimators
     for pipeline in clf.estimators_:
         assert isinstance(pipeline[0], expected_transformer)
-        if rocket_transform == "rocket":
-            assert not pipeline[0].normalise
 
 
 def test_arsenal_invalid_rocket_transform():
@@ -100,32 +98,25 @@ def test_arsenal_normalises_rocket_input_once(monkeypatch):
     assert call_count == 2
 
 
-def test_arsenal_multirocket_uses_public_transform(monkeypatch):
-    """MultiRocket retains its normalisation during fit and predict."""
+def test_arsenal_rocket_pipeline_accepts_raw_input():
+    """Stored pipelines predict on raw input as Arsenal does on normalised input."""
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=3, n_timepoints=30, random_state=0
     )
-    original_transform = MultiRocket._transform
-    call_count = 0
-
-    def counting_transform(self, X, y=None):
-        nonlocal call_count
-        call_count += 1
-        return original_transform(self, X, y)
-
-    monkeypatch.setattr(MultiRocket, "_transform", counting_transform)
-
     arsenal = Arsenal(
-        n_kernels=100,
+        n_kernels=20,
         n_estimators=2,
-        rocket_transform="multirocket",
-        max_dilations_per_kernel=2,
         random_state=0,
     ).fit(X, y)
-    arsenal.predict_proba(X)
+    pipeline = arsenal.estimators_[0]
+    rocket, scaler, ridge = (step[1] for step in pipeline.steps)
 
-    assert call_count == 2 * arsenal.n_estimators_
-    assert all(pipeline[0].normalise for pipeline in arsenal.estimators_)
+    expected = pipeline.predict(X)
+    X_normalised = Normalizer().fit_transform(X)
+    transformed = rocket._transform_kernels(X_normalised)
+    actual = ridge.predict(scaler.transform(transformed))
+
+    np.testing.assert_array_equal(actual, expected)
 
 
 def test_arsenal_oob_indices_with_duplicates():
