@@ -7,24 +7,15 @@ conventions.
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
-import time
-
 import numpy as np
-import pandas as pd
-from joblib import Parallel, delayed
-from scipy.sparse import issparse
+from joblib import delayed
 from sklearn.base import BaseEstimator, RegressorMixin
-from sklearn.decomposition import PCA
-from sklearn.exceptions import NotFittedError
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.utils import check_random_state
-from sklearn.utils.validation import validate_data
 
-from aeon.base._base import _clone_estimator
-from aeon.utils.validation import check_n_jobs
+from aeon.base._estimators.sklearn import BaseRotationForest
+from aeon.utils._parallel import _run_jobs
 
 
-class RotationForestRegressor(RegressorMixin, BaseEstimator):
+class RotationForestRegressor(RegressorMixin, BaseRotationForest):
     """
     A Rotation Forest (RotF) vector regressor.
 
@@ -46,12 +37,18 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         The maximum size of an attribute subsample group.
     remove_proportion : float, default=0.5
         The proportion of cases to be removed per group.
-    base_estimator : BaseEstimator or None, default="None"
+    base_estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeRegressor` using MSE as a splitting measure.
-    pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
-        implementation for options.
+        `DecisionTreeRegressor` using MSE as a splitting measure. Pass a
+        configured estimator to change tree parameters such as the criterion
+        or depth.
+    pca_solver : str, default="deprecated"
+        Has no effect. The group PCA is always computed with an exact
+        eigendecomposition of the covariance matrix, equivalent to the
+        scikit-learn PCA "full" solver.
+
+        .. deprecated:: 1.6.0
+            ``pca_solver`` has no effect and will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -74,6 +71,10 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         The number of attributes in the training set.
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
+
+    See Also
+    --------
+    RotationForestClassifier
 
     Notes
     -----
@@ -112,24 +113,24 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         max_group: int = 3,
         remove_proportion: float = 0.5,
         base_estimator: BaseEstimator | None = None,
-        pca_solver: str = "full",
+        pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
     ):
-        self.n_estimators = n_estimators
-        self.min_group = min_group
-        self.max_group = max_group
-        self.remove_proportion = remove_proportion
-        self.base_estimator = base_estimator
-        self.pca_solver = pca_solver
-        self.time_limit_in_minutes = time_limit_in_minutes
-        self.contract_max_n_estimators = contract_max_n_estimators
-        self.n_jobs = n_jobs
-        self.random_state = random_state
-
-        super().__init__()
+        super().__init__(
+            n_estimators=n_estimators,
+            min_group=min_group,
+            max_group=max_group,
+            remove_proportion=remove_proportion,
+            base_estimator=base_estimator,
+            pca_solver=pca_solver,
+            time_limit_in_minutes=time_limit_in_minutes,
+            contract_max_n_estimators=contract_max_n_estimators,
+            n_jobs=n_jobs,
+            random_state=random_state,
+        )
 
     def fit(self, X, y):
         """Fit a forest of trees on cases (X,y), where y is the target variable.
@@ -167,30 +168,22 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         y : array-like, shape = [n_cases]
             Predicted output values.
         """
-        if not hasattr(self, "_is_fitted") or not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
+        self._check_is_fitted()
 
-        # data processing
-        X = self._check_X(X)
-        X = validate_data(self, X=X, reset=False, accept_sparse=False)
+        X = self._prepare_predict_X(X)
 
-        # replace missing values with 0 and remove useless attributes
-        X = X[:, self._useful_atts]
-
-        # normalise the data.
-        X = (X - self._min) / self._ptp
-
-        y_preds = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._predict_for_estimator)(
-                X,
-                self.estimators_[i],
-                self._pcas[i],
-                self._groups[i],
-            )
-            for i in range(self._n_estimators)
+        y_preds = _run_jobs(
+            (
+                delayed(self._predict_for_estimator)(
+                    X,
+                    self.estimators_[i],
+                    self._pcas[i],
+                    self._groups[i],
+                )
+                for i in range(self._n_estimators)
+            ),
+            self._n_jobs,
+            prefer="threads",
         )
 
         output = np.sum(y_preds, axis=0) / self._n_estimators
@@ -198,253 +191,26 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         return output
 
     def fit_predict(self, X, y) -> np.ndarray:
-        X_t = self._fit_rotf(X, y, save_transformed_data=True)
+        """Fit a forest of trees and estimate predictions of the input.
 
-        rng = check_random_state(self.random_state)
+        fit_predict produces prediction estimates using just the train data. The
+        output is found using out-of-bag (OOB) estimates from the forest.
 
-        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._train_preds_for_estimator)(
-                X_t,
-                y,
-                i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-            )
-            for i in range(self._n_estimators)
-        )
-        y_preds, oobs = zip(*p)
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            The training data.
+        y : array-like, shape = [n_cases]
+            The output values.
 
-        results = np.sum(y_preds, axis=0)
-        oob_arrays = [np.asarray(o, dtype=np.intp) for o in oobs if len(o) > 0]
-        if oob_arrays:
-            divisors = np.bincount(
-                np.concatenate(oob_arrays), minlength=self.n_cases_
-            ).astype(float)
-        else:
-            divisors = np.zeros(self.n_cases_, dtype=float)
+        Returns
+        -------
+        y : array-like, shape = [n_cases]
+            Predicted output values.
 
-        nonzero = divisors > 0
-        results[nonzero] = results[nonzero] / divisors[nonzero]
-        results[~nonzero] = self._label_average
-
-        return results
-
-    def _fit_rotf(self, X, y, save_transformed_data: bool = False):
-        # data processing
-        X = self._check_X(X)
-        X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
-
-        self._label_average = np.mean(y)
-
-        self.n_cases_, self.n_atts_ = X.shape
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
-        time_limit = self.time_limit_in_minutes * 60
-        start_time = time.time()
-        train_time = 0
-
-        self._base_estimator = self.base_estimator
-        if self.base_estimator is None:
-            self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
-
-        # remove useless attributes
-        self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
-        X = X[:, self._useful_atts]
-        if sum(self._useful_atts) == 0:
-            raise ValueError(
-                "All attributes in X contain the same value.",
-            )
-
-        self._n_atts = X.shape[1]
-
-        # normalise attributes
-        self._min = X.min(axis=0)
-        self._ptp = X.max(axis=0) - self._min
-        X = (X - self._min) / self._ptp
-
-        rng = check_random_state(self.random_state)
-
-        if time_limit > 0:
-            self._n_estimators = 0
-            self.estimators_ = []
-            self._pcas = []
-            self._groups = []
-            X_t = []
-
-            while (
-                train_time < time_limit
-                and self._n_estimators < self.contract_max_n_estimators
-            ):
-                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                    delayed(self._fit_estimator)(
-                        X,
-                        y,
-                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                        save_transformed_data,
-                    )
-                    for _ in range(self._n_jobs)
-                )
-
-                estimators, pcas, groups, transformed_data = zip(*fit)
-
-                self.estimators_ += estimators
-                self._pcas += pcas
-                self._groups += groups
-                X_t += transformed_data
-
-                self._n_estimators += self._n_jobs
-                train_time = time.time() - start_time
-        else:
-            self._n_estimators = self.n_estimators
-
-            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(self._fit_estimator)(
-                    X,
-                    y,
-                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                    save_transformed_data,
-                )
-                for _ in range(self._n_estimators)
-            )
-
-            self.estimators_, self._pcas, self._groups, X_t = zip(*fit)
-
-        self._is_fitted = True
-        return X_t
-
-    def _fit_estimator(
-        self,
-        X,
-        y,
-        rng: np.random.RandomState,
-        save_transformed_data: bool,
-    ):
-        groups = self._generate_groups(rng)
-        pcas = []
-
-        # construct the slices to fit the PCAs too.
-        for group in groups:
-            sample_ind = rng.choice(
-                X.shape[0],
-                max(1, int(X.shape[0] * self.remove_proportion)),
-                replace=False,
-            )
-
-            X_t = X[sample_ind, :]
-            X_t = X_t[:, group]
-
-            # try to fit the PCA if it fails, remake it, and add 10 random data
-            # instances.
-            while True:
-                # ignore err state on PCA because we account if it fails.
-                with np.errstate(divide="ignore", invalid="ignore"):
-                    # differences between os occasionally. seems to happen when there
-                    # are low amounts of cases in the fit
-                    pca = PCA(random_state=rng, svd_solver="full").fit(X_t)
-
-                if not np.isnan(pca.explained_variance_ratio_).all():
-                    break
-                X_t = np.concatenate(
-                    (X_t, rng.random_sample((10, X_t.shape[1]))), axis=0
-                )
-
-            pcas.append(pca)
-
-        # merge all the pca_transformed data into one instance and build a regressor
-        # on it.
-        X_t = np.concatenate(
-            [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
-        )
-        X_t = X_t.astype(np.float32)
-        X_t = np.nan_to_num(
-            X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
-        )
-
-        tree = _clone_estimator(self._base_estimator, random_state=rng)
-        tree.fit(X_t, y)
-
-        return tree, pcas, groups, X_t if save_transformed_data else None
-
-    def _predict_for_estimator(self, X, clf: int, pcas: PCA, groups):
-        X_t = np.concatenate(
-            [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
-        )
-        X_t = X_t.astype(np.float32)
-        X_t = np.nan_to_num(
-            X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
-        )
-
-        return clf.predict(X_t)
-
-    def _train_preds_for_estimator(self, X_t, y, idx, rng):
-        indices = range(self.n_cases_)
-        subsample = rng.choice(self.n_cases_, size=self.n_cases_)
-        oob = [n for n in indices if n not in subsample]
-
-        results = np.zeros(self.n_cases_)
-        if len(oob) == 0:
-            return [results, oob]
-
-        clf = _clone_estimator(self._base_estimator, rng)
-        clf.fit(X_t[idx][subsample], y[subsample])
-        preds = clf.predict(X_t[idx][oob])
-
-        for n, pred in enumerate(preds):
-            results[oob[n]] += pred
-
-        return [results, oob]
-
-    def _generate_groups(self, rng: np.random.RandomState):
-        permutation = rng.permutation(np.arange(0, self._n_atts))
-
-        # select the size of each group.
-        group_size_count = np.zeros(self.max_group - self.min_group + 1)
-        n_attributes = 0
-        n_groups = 0
-        while n_attributes < self._n_atts:
-            n = rng.randint(group_size_count.shape[0])
-            group_size_count[n] += 1
-            n_attributes += self.min_group + n
-            n_groups += 1
-
-        groups = []
-        current_attribute = 0
-        current_size = 0
-        for i in range(0, n_groups):
-            while group_size_count[current_size] == 0:
-                current_size += 1
-            group_size_count[current_size] -= 1
-
-            n = self.min_group + current_size
-            groups.append(np.zeros(n, dtype=int))
-            for k in range(0, n):
-                if current_attribute < permutation.shape[0]:
-                    groups[i][k] = permutation[current_attribute]
-                else:
-                    groups[i][k] = permutation[rng.randint(permutation.shape[0])]
-                current_attribute += 1
-
-        return groups
-
-    def _check_X(self, X):
-        if issparse(X):
-            return X
-
-        msg = (
-            "RotationForestRegressor is not a time series regressor. "
-            "A valid sklearn input such as a 2d numpy array is required."
-            "Sparse input formats are currently not supported."
-        )
-        if isinstance(X, pd.DataFrame):
-            X = X.to_numpy()
-        else:
-            try:
-                X = np.array(X)
-            except Exception:
-                raise ValueError(msg)
-
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(msg)
-
-        return X
+        Notes
+        -----
+        Changes state by creating a fitted model that updates attributes
+        ending in "_".
+        """
+        return self._fit_predict_rotf(X, y)

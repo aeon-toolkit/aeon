@@ -70,6 +70,7 @@ Outlier-Detection
     :toctree: auto_generated/
     :template: class.rst
 
+    ExtendedIsolationForest
     IsolationForest
     OneClassSVM
     STRAY

@@ -607,7 +607,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             [s[_CHANNEL] for s in self.shapelets], dtype=np.int32
         )
         # A shapelet's values and its sorted indices share the same length, so
-        # one offsets array indexes both flat buffers.
+        # one offsets array is used to index into both flat buffers.
         self._transform_offsets = np.zeros(len(self.shapelets) + 1, dtype=np.int64)
         self._transform_offsets[1:] = np.cumsum(self._transform_lengths)
         if len(self.shapelets) == 0:

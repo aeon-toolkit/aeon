@@ -84,6 +84,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
     component_probas : dict
         Only used if save_component_probas is true. Saved probability predictions for
         each HIVE-COTEV2 component.
+    fitted_estimators_ : list of BaseClassifier
+        The fitted estimators for the ensemble.
 
     See Also
     --------
@@ -202,7 +204,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
             self._arsenal_params["time_limit_in_minutes"] = ct
             self._tde_params["time_limit_in_minutes"] = ct
 
-        # Build component estimators (stored in _estimators to avoid mutating
+        # Build component estimators (stored in estimators_ to avoid mutating
         # the self.estimators init parameter, for scikit-learn compatibility)
         self._estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
