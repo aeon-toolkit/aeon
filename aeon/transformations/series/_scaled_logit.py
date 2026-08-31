@@ -101,7 +101,7 @@ class ScaledLogitSeriesTransformer(
                 RuntimeWarning,
             )
 
-        if self.upper_bound and self.lower_bound:
+        if self.upper_bound is not None and self.lower_bound is not None:
             X_transformed = np.log((X - self.lower_bound) / (self.upper_bound - X))
         elif self.upper_bound is not None:
             X_transformed = -np.log(self.upper_bound - X)
@@ -127,7 +127,7 @@ class ScaledLogitSeriesTransformer(
         -------
         inverse transformed version of X
         """
-        if self.upper_bound and self.lower_bound:
+        if self.upper_bound is not None and self.lower_bound is not None:
             X_inv_transformed = (self.upper_bound * np.exp(X) + self.lower_bound) / (
                 np.exp(X) + 1
             )
