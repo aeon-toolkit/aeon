@@ -588,7 +588,7 @@ class REDCOMETS(BaseClassifier):
         """
 
         def _sax_wrapper(sax):
-            return np.squeeze(sax.fit_transform(X), 1)
+            return np.squeeze(sax.transform(X), 1)
 
         sax_parallel_res = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_sax_wrapper)(sax) for sax in sax_transforms
