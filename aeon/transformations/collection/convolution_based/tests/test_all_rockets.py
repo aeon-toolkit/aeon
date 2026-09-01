@@ -237,21 +237,17 @@ def test_ppv():
     assert _PPV(b, a) == 0
 
 
-@pytest.mark.parametrize(
-    "transformer",
-    [
-        Rocket(n_kernels=100, normalise=False, random_state=0),
-        MiniRocket(n_kernels=100, random_state=0),
-        MultiRocket(n_kernels=100, random_state=0),
-    ],
-)
-def test_transform_kernels_matches_transform(transformer):
-    """_transform_kernels equals transform when no normalisation is configured.
+def test_transform_kernels_matches_transform():
+    """Rocket._transform_kernels equals transform when normalise is False.
 
-    The method is the kernels-only entry point used by ensembles that
-    normalise input once; without any normalisation configured it must be
-    exactly the public transform.
+    ``_transform_kernels`` is the kernels-only entry point used by ensembles
+    that normalise input once. Only Rocket needs it, as it is the only rocket
+    transform that normalises by default; with normalisation off it must be
+    exactly the public transform. MiniRocket never normalises and MultiRocket
+    defaults to ``normalise=False``, so their ``_transform`` is already
+    kernels-only.
     """
+    transformer = Rocket(n_kernels=100, normalise=False, random_state=0)
     rng = check_random_state(0)
     X = rng.standard_normal((10, 1, 30))
 
