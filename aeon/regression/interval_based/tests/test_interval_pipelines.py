@@ -21,5 +21,5 @@ def test_interval_pipeline_classifiers(cls):
 
     reg = cls(**params)
     reg.fit(X_train, y_train)
-    prob = reg.predict(X_test)
-    _assert_predict_labels(prob, X_test)
+    pred = reg.predict(X_test)
+    _assert_predict_labels(pred, X_test)
