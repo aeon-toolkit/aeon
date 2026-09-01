@@ -34,6 +34,21 @@ def _get_oob_indices(subsample, n_cases):
     return np.flatnonzero(~in_bag)
 
 
+def _transform_with(rocket, X, pre_normalised):
+    """Apply a fitted rocket transform to already-validated input.
+
+    ``X`` has been validated by the ensemble, so the private transform is used
+    either way. When the ensemble has already normalised ``X`` (``Rocket``
+    only, whose ``normalise`` defaults to True), the kernels-only
+    ``_transform_kernels`` is called so the series are not normalised once per
+    ensemble member. MiniRocket never normalises and MultiRocket defaults to
+    ``normalise=False``, so for those ``_transform`` is already kernels-only.
+    """
+    if pre_normalised:
+        return rocket._transform_kernels(X)
+    return rocket._transform(X)
+
+
 def _normalise_oob_probabilities(probabilities, weights, oobs, n_classes):
     """Normalize summed OOB probabilities by each case's available weight."""
     divisors = np.zeros(probabilities.shape[0])
@@ -411,7 +426,7 @@ class Arsenal(BaseClassifier):
         # X is already normalised at ensemble level where the transformer
         # needs it, so kernels are applied without further preprocessing
         rocket.fit(X)
-        transformed_x = rocket._transform_kernels(X)
+        transformed_x = _transform_with(rocket, X, self.rocket_transform == "rocket")
         scaler = StandardScaler(with_mean=False)
         # scoring="accuracy" makes best_score_ the LOO CV accuracy used to
         # weight this member; with the default scorer it is the negative LOO
@@ -433,7 +448,7 @@ class Arsenal(BaseClassifier):
 
     def _predict_for_estimator(self, X, classifier):
         rocket, scaler, ridge = (step[1] for step in classifier.steps)
-        transformed_x = rocket._transform_kernels(X)
+        transformed_x = _transform_with(rocket, X, self.rocket_transform == "rocket")
         preds = ridge.predict(scaler.transform(transformed_x))
         return np.searchsorted(self.classes_, preds)
 
