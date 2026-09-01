@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 from inspect import isclass, signature
 
+import joblib
 import numpy as np
 
 from aeon.similarity_search import BaseSimilaritySearch
@@ -58,7 +59,7 @@ def _run_estimator_method(estimator, method_name, datatype, split):
     # soft dependencies
     except ModuleNotFoundError as e:
         raise RuntimeError(
-            f"Estimator {estimator.__name__} raises a ModuleNotFoundError "
+            f"Estimator {type(estimator).__name__} raises a ModuleNotFoundError "
             f"on {method.__name__}. Any required soft dependencies should "
             f'be added to the "python_dependencies" tag, and python version bounds '
             f'should be added to the "python_version" tag.'
@@ -107,3 +108,95 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
     assert np.all(y_proba >= 0)
     assert np.all(y_proba <= 1)
     assert np.allclose(np.sum(y_proba, axis=1), 1)
+
+
+def _holds_deep_learning_state(value, depth=0):
+    """Whether a value is, or holds within a container or object, a keras object."""
+    if type(value).__module__.split(".")[0] == "keras":
+        return True
+    if depth >= 2:
+        return False
+
+    if isinstance(value, (list, tuple, set)):
+        items = value
+    elif isinstance(value, dict):
+        items = value.values()
+    elif hasattr(value, "__dict__"):
+        items = vars(value).values()
+    else:
+        return False
+
+    return any(_holds_deep_learning_state(item, depth + 1) for item in items)
+
+
+def _snapshot_state(estimator):
+    """Snapshot the attributes of an estimator for later comparison.
+
+    Parameters
+    ----------
+    estimator : BaseAeonEstimator
+        Estimator to record the current attributes of.
+
+    Returns
+    -------
+    state : dict
+        Maps each attribute name to ``("hash", digest)`` if the value could be
+        hashed, and ``("identity", value)`` if it could not. ``"identity"``
+        entries are compared by reference, so changes made in-place to them
+        cannot be detected.
+
+        ``keras`` changes its own state during predict, so its objects are
+        compared by reference.
+    """
+    state = {}
+    deep_learning = (
+        _get_tag(estimator, "algorithm_type", default=None) == "deeplearning"
+    )
+
+    for name, value in vars(estimator).items():
+        if not (deep_learning and _holds_deep_learning_state(value)):
+            try:
+                state[name] = ("hash", joblib.hash(value))
+                continue
+            except Exception:
+                pass
+
+        state[name] = ("identity", value)
+
+    return state
+
+
+def _changed_state(before, estimator):
+    """Find the attributes of an estimator which changed since a snapshot.
+
+    Parameters
+    ----------
+    before : dict
+        Snapshot of the estimator attributes from ``_snapshot_state``.
+    estimator : BaseAeonEstimator
+        The estimator the snapshot was taken from.
+
+    Returns
+    -------
+    changed : set
+        Names of attributes which have been added, removed or changed in value.
+    """
+    after = vars(estimator)
+    changed = set(before) ^ set(after)
+
+    for name in before.keys() & after.keys():
+        mode, old = before[name]
+        value = after[name]
+
+        if mode == "hash":
+            try:
+                equal = old == joblib.hash(value)
+            except Exception:
+                equal = False
+        else:
+            equal = old is value
+
+        if not equal:
+            changed.add(name)
+
+    return changed

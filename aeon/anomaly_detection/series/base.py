@@ -79,7 +79,7 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
         super().__init__(axis=axis)
 
     @final
-    @method_timer("fit_time_millis_")
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y=None, axis=1):
         """Fit time series anomaly detector to X.
 

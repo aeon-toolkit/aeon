@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -57,8 +57,15 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
+      - name: Install graphviz
+        # keras plot_model needs the graphviz "dot" binary, not just pydot;
+        # plotting_estimators.ipynb calls it through plot_network
+        run: |
+          brew install graphviz
+          dot -V
+
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -99,7 +106,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -124,7 +131,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -164,7 +171,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -193,7 +200,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -246,7 +253,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -286,7 +293,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -326,7 +333,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
