@@ -5,29 +5,17 @@ import numpy as np
 from aeon.transformations.collection.imbalance import OHIT
 
 
-def test_ohit():
-    """Test the OHIT class.
+def test_ohit_balances_classes():
+    """OHIT oversamples the minority class up to the majority count."""
+    majority, minority = 90, 10
+    X = np.random.RandomState(0).rand(majority + minority, 1, 10)
+    y = np.array([0] * majority + [1] * minority)
 
-    This function creates a 3D numpy array, applies
-    OHIT using the OHIT class, and asserts that the
-    transformed data has a balanced number of samples.
-    """
-    n_samples = 100  # Total number of labels
-    majority_num = 90  # number of majority class
-    minority_num = n_samples - majority_num  # number of minority class
+    res_X, res_y = OHIT(random_state=0).fit_transform(X, y)
+    _, counts = np.unique(res_y, return_counts=True)
 
-    X = np.random.rand(n_samples, 1, 10)
-    y = np.array([0] * majority_num + [1] * minority_num)
-
-    transformer = OHIT()
-    transformer.fit(X, y)
-    res_X, res_y = transformer.transform(X, y)
-    _, res_count = np.unique(res_y, return_counts=True)
-
-    assert len(res_X) == 2 * majority_num
-    assert len(res_y) == 2 * majority_num
-    assert res_count[0] == majority_num
-    assert res_count[1] == majority_num
+    assert res_X.shape == (2 * majority, 1, 10)
+    assert set(counts) == {majority}
 
 
 def test_ohit_random_state_reproducible():
@@ -51,3 +39,50 @@ def test_ohit_does_not_mutate_params():
 
     assert transformer.get_params()["k"] is None
     assert transformer.get_params()["kapa"] is None
+
+
+def test_ohit_single_sample_minority_class():
+    """A minority class with a single sample is oversampled by replication.
+
+    DRSNN clustering needs more than one point, so OHIT falls back to tiling the
+    lone minority series up to the required count.
+    """
+    y = np.array([0] * 1 + [1] * 10 + [2] * 6)
+    X = np.random.RandomState(5).rand(len(y), 1, 8)
+    lone = X[0]
+
+    res_X, res_y = OHIT(random_state=0).fit_transform(X, y)
+    _, counts = np.unique(res_y, return_counts=True)
+
+    assert set(counts) == {10}
+    # every class-0 sample is a copy of the single original minority series
+    class0 = res_X[res_y == 0]
+    assert np.all(class0 == lone)
+
+
+def test_ohit_no_cluster_fallback():
+    """When DRSNN finds no core points, all minority samples form one cluster.
+
+    Forcing the density-ratio threshold above any achievable value leaves no core
+    points, so OHIT must fall back to treating the whole minority class as a single
+    cluster and still return a balanced set.
+    """
+    majority, minority = 20, 6
+    X = np.random.RandomState(4).rand(majority + minority, 1, 8)
+    y = np.array([0] * majority + [1] * minority)
+
+    _, res_y = OHIT(drT=1e9, random_state=0).fit_transform(X, y)
+    _, counts = np.unique(res_y, return_counts=True)
+
+    assert set(counts) == {majority}
+
+
+def test_ohit_skips_already_balanced_class():
+    """A non-majority class already at the majority count gets no synthetic samples."""
+    y = np.array([0] * 20 + [1] * 20 + [2] * 10)
+    X = np.random.RandomState(6).rand(len(y), 1, 8)
+
+    _, res_y = OHIT(random_state=0).fit_transform(X, y)
+    _, counts = np.unique(res_y, return_counts=True)
+
+    assert set(counts) == {20}
