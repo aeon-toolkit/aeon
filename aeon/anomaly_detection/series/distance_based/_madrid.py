@@ -11,7 +11,6 @@ from numba import njit
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import std
-from aeon.utils.windowing import reverse_windowing
 
 
 class MADRID(BaseSeriesAnomalyDetector):
@@ -29,14 +28,15 @@ class MADRID(BaseSeriesAnomalyDetector):
     matrix profile with DAMP (the distance from each subsequence to its nearest
     neighbour that starts strictly to its left), normalises it by ``sqrt(m)`` so
     that profiles of different lengths are comparable, and stores it as a row of a
-    multi-length discord table ``M``. Row scores of ``M`` describe subsequences
-    *starting* at each position; :meth:`predict` converts them to pointwise
-    scores, as the aeon contract requires: within each length, every point
-    covered by a subsequence inherits that subsequence's score (reverse
-    windowing with a max reduction), and the final score of a point is the
-    maximum over lengths, i.e. the score of the most anomalous subsequence of
-    any candidate length that covers it. Higher scores indicate more anomalous
-    points.
+    multi-length discord table. Because DAMP prunes aggressively, only the
+    per-length *best* discords carry an exactness guarantee, so :meth:`predict`
+    builds its pointwise scores from exactly those: each length's top discord
+    paints its length-normalised score onto the points that subsequence covers,
+    combined across lengths with the maximum, and points covered by no top
+    discord score zero. Every emitted value is one the algorithm actually
+    evaluated. The complete multi-length output, including the approximate
+    discord table, is available via :meth:`predict_discords`. Higher scores
+    indicate more anomalous points.
 
     Points before ``train_test_split`` form a warm-up (training) region that is
     only used as reference history and is always scored zero, mirroring DAMP's
@@ -87,6 +87,7 @@ class MADRID(BaseSeriesAnomalyDetector):
         "capability:missing_values": False,
         "anomaly_output_type": "anomaly_scores",
         "learning_type:unsupervised": True,
+        "fit_is_empty": True,
     }
 
     def __init__(
@@ -104,6 +105,10 @@ class MADRID(BaseSeriesAnomalyDetector):
         super().__init__(axis=1)
 
     def _predict(self, X):
+        discord_table, bsf, bsf_loc, m_set = self._run_madrid(X)
+        return self._to_pointwise_scores(bsf, bsf_loc, m_set, X.squeeze().shape[0])
+
+    def _run_madrid(self, X):
         X = X.squeeze()
         n = X.shape[0]
 
@@ -148,24 +153,62 @@ class MADRID(BaseSeriesAnomalyDetector):
             self.min_length, self.max_length + 1, self.step_size, dtype=np.int64
         )
 
-        discord_table, _, _ = _madrid(
+        discord_table, bsf, bsf_loc = _madrid(
             np.ascontiguousarray(X, dtype=np.float64), split, m_set
         )
+        return discord_table, bsf, bsf_loc, m_set
 
-        # Convert subsequence scores to pointwise scores. Each row of the discord
-        # table scores subsequences *starting* at each position; a point's
-        # anomalousness is that of the subsequences covering it. Within a length,
-        # every covered point inherits the window score via reverse windowing with
-        # a max reduction (a discord score is a property of the whole subsequence,
-        # and a mean would dilute a single-window discord with its normal
-        # neighbours); across lengths the maximum is taken, so a point is as
-        # anomalous as the most anomalous subsequence of any length covering it.
+    @staticmethod
+    def _to_pointwise_scores(bsf, bsf_loc, m_set, n):
+        """Pointwise scores built only from the discords MADRID actually identified.
+
+        DAMP's pruning leaves unrefined estimates at most table positions, so the
+        full discord table is not a calibrated per-point profile. The per-length
+        best-so-far discords are the values the algorithm guarantees; each one
+        paints its (length-normalised) score onto exactly the points its
+        subsequence covers, combined across lengths with the maximum. Points
+        covered by no top discord score zero.
+        """
         point_scores = np.zeros(n)
-        for i, m in enumerate(m_set):
-            windowed = discord_table[i, : n - int(m) + 1]
-            pointwise = reverse_windowing(windowed, int(m), np.nanmax)
-            point_scores = np.maximum(point_scores, pointwise)
+        for i in range(len(m_set)):
+            loc = int(bsf_loc[i])
+            m = int(m_set[i])
+            if loc < 0 or bsf[i] <= 0:
+                continue
+            end = min(loc + m, n)
+            point_scores[loc:end] = np.maximum(point_scores[loc:end], bsf[i])
         return point_scores
+
+    def predict_discords(self, X):
+        """Run MADRID and return the complete multi-length discord information.
+
+        Unlike :meth:`predict`, which reduces to one guaranteed score per time
+        point, this exposes everything the algorithm computes, mirroring the
+        reference implementation's output.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            One-dimensional time series.
+
+        Returns
+        -------
+        dict
+            ``lengths``: the candidate subsequence lengths ``m``;
+            ``scores``: the best (length-normalised) discord score per length;
+            ``locations``: each best discord's start position;
+            ``discord_table``: the raw (n_lengths, n) table. Positions pruned by
+            DAMP hold unrefined estimates, so treat the table as approximate
+            everywhere except the returned discord locations.
+        """
+        X = np.asarray(X)
+        discord_table, bsf, bsf_loc, m_set = self._run_madrid(X.squeeze())
+        return {
+            "lengths": m_set,
+            "scores": bsf,
+            "locations": bsf_loc.astype(np.int64),
+            "discord_table": discord_table,
+        }
 
     def _resolve_split(self, n):
         split = self.train_test_split
@@ -242,7 +285,7 @@ def _sliding_dot_product(query, ts):
     return qt
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _mass(ts, query):
     """Mueen's Algorithm for Similarity Search (z-normalised distance profile)."""
     m = len(query)

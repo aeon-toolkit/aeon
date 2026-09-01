@@ -94,3 +94,46 @@ def test_madrid_incorrect_input():
         MADRID(min_length=8, max_length=150).fit_predict(series)
     with pytest.raises(ValueError, match="train_test_split"):
         MADRID(min_length=8, max_length=20, train_test_split=5).fit_predict(series)
+
+
+def test_predict_discords_exposes_full_output():
+    """Check predict_discords mirrors the reference implementation's output.
+
+    predict() must be exactly the pointwise reduction of it.
+    """
+    series = _make_series_with_anomaly()
+    ad = MADRID(min_length=8, max_length=20, train_test_split=40)
+    pred = ad.fit_predict(series)
+
+    out = ad.predict_discords(series)
+    assert set(out) == {"lengths", "scores", "locations", "discord_table"}
+    n_lengths = len(out["lengths"])
+    assert out["scores"].shape == (n_lengths,)
+    assert out["locations"].shape == (n_lengths,)
+    assert out["discord_table"].shape == (n_lengths, 200)
+    assert ((out["locations"] >= 40) & (out["locations"] < 200)).all()
+
+    rebuilt = MADRID._to_pointwise_scores(
+        out["scores"], out["locations"], out["lengths"], 200
+    )
+    assert np.array_equal(pred, rebuilt)
+
+
+def test_pointwise_scores_only_from_identified_discords():
+    """Check every nonzero score comes from an identified discord.
+
+    Each nonzero point lies inside some per-length top discord's cover, and its
+    value equals one of the identified discord scores.
+    """
+    series = _make_series_with_anomaly()
+    ad = MADRID(min_length=8, max_length=20, train_test_split=40)
+    pred = ad.fit_predict(series)
+    out = ad.predict_discords(series)
+
+    nonzero = np.flatnonzero(pred)
+    assert len(nonzero) > 0
+    covered = np.zeros(200, dtype=bool)
+    for loc, m in zip(out["locations"], out["lengths"]):
+        covered[loc : loc + m] = True
+    assert covered[nonzero].all()
+    assert np.isin(pred[nonzero], out["scores"]).all()
