@@ -687,7 +687,7 @@ class ShapeletClassifierVisualizer:
                 f"but the estimator was fitted with {n_channels} channels."
             )
         self.transformer_vis = ShapeletTransformerVisualizer(
-            self.estimator._transformer
+            self.estimator.transformer_
         )
 
     @staticmethod
@@ -727,9 +727,9 @@ class ShapeletClassifierVisualizer:
 
         """
         if isinstance(self.estimator, (RDSTClassifier, ShapeletTransformClassifier)):
-            classifier = self.estimator._estimator
+            classifier = self.estimator.estimator_
         elif isinstance(self.estimator, (RSASTClassifier, SASTClassifier)):
-            classifier = self.estimator._classifier
+            classifier = self.estimator.classifier_
         else:
             raise NotImplementedError(
                 f"The provided estimator of type {type(self.estimator)} is not"
@@ -976,7 +976,7 @@ class ShapeletClassifierVisualizer:
                 shp_ids = shp_ids + [idx[i]]
             i += 1
 
-        X_new = self.estimator._transformer.transform(X)
+        X_new = self.estimator.transformer_.transform(X)
         mask_class_id = np.where(y == class_id)[0]
         mask_other_class_id = np.where(y != class_id)[0]
         if id_example_class is None:

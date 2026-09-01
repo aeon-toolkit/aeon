@@ -96,7 +96,7 @@ def _transform_subsequences(
     sliding_window = reach * 2 + 1
     sliding_window = int(sliding_window)
 
-    # get the output dimension of the subsequence transformation
+    # get the output feature dimension of the subsequence transformation
     dim_desc = descriptor_function(x[0, 0 : 0 + sliding_window]).shape[0]
     # dim_desc = 7
 
@@ -110,7 +110,7 @@ def _transform_subsequences(
 
     # loop through each data point
     for i in range(n_timepoints):
-        # loop through each dimension of the MTS
+        # loop through each channel of the MTS
         for j in range(n_channels):
             val = descriptor_function(x[j, i : i + sliding_window])
             out_mts[j * dim_desc : (j + 1) * dim_desc, i] = val
