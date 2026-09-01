@@ -1,11 +1,9 @@
 """Tests for RandomOverSampler."""
 
 import numpy as np
-import pytest
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection.imbalance import RandomOverSampler
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_random_over_sampler_balances_classes():
@@ -45,34 +43,13 @@ def test_random_over_sampler_multivariate():
     assert np.array_equal(y_res[:9], y)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(
-        "imbalanced-learn",
-        package_import_alias={"imbalanced-learn": "imblearn"},
-        severity="none",
-    ),
-    reason="skip test if required soft dependency imbalanced-learn not available",
-)
-def test_random_over_sampler_matches_imblearn():
-    """Match imblearn RandomOverSampler with sampling_strategy='all'."""
-    from imblearn.over_sampling import RandomOverSampler as ImbROS
-
+def test_random_over_sampler_multiclass_balances_to_majority():
+    """Every minority class is raised to the majority count in a multi-class panel."""
     rng = check_random_state(0)
-    X2 = rng.randn(20, 15)
+    X = rng.randn(20, 1, 15)
     y = np.array([0] * 12 + [1] * 5 + [2] * 3)
-    X_imb, y_imb = ImbROS(sampling_strategy="all", random_state=0).fit_resample(X2, y)
-    X_aeon, y_aeon = RandomOverSampler(random_state=0).fit_transform(
-        X2[:, np.newaxis, :], y
-    )
-    X_aeon = X_aeon.squeeze(1)
 
-    def sort_xy(X, y):
-        y = np.asarray(y)
-        idx = np.lexsort((X[:, 0], y.astype(str)))
-        return X[idx], y[idx]
+    _, y_res = RandomOverSampler(random_state=0).fit_transform(X, y)
+    _, counts = np.unique(y_res, return_counts=True)
 
-    Xi, yi = sort_xy(X_imb, y_imb)
-    Xa, ya = sort_xy(X_aeon, y_aeon)
-    assert Xi.shape == Xa.shape
-    assert np.array_equal(yi.astype(str), ya.astype(str))
-    assert np.allclose(Xi, Xa)
+    assert counts.tolist() == [12, 12, 12]

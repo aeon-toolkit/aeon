@@ -58,7 +58,6 @@ dependencies = [
 [project.optional-dependencies]
 all_extras = [
     "huggingface-hub>=0.20.0",
-    "imbalanced-learn",
     "matplotlib>=3.3.2",
     "pycatch22>=0.4.5",
     "pyod>=1.1.3",
