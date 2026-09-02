@@ -3,8 +3,6 @@
 __all__ = ["SlopeTransformer"]
 __maintainer__ = []
 
-import math
-
 import numpy as np
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
@@ -62,17 +60,20 @@ class SlopeTransformer(BaseCollectionTransformer):
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape
         self._check_parameters(n_timepoints)
-        full_data = []
+
+        X = X / 1
+
+        Xt = np.empty(
+            (n_cases, n_channels, self.n_intervals),
+            dtype=X.dtype,
+        )
+
         for i in range(n_cases):
-            case_data = []
             for j in range(n_channels):
                 splits = split_series(X[i][j], self.n_intervals)
-                # Calculate gradients
-                res = [self._get_gradient(x) for x in splits]
-                case_data.append(res)
-            full_data.append(np.asarray(case_data))
+                Xt[i, j] = [self._get_gradient(split) for split in splits]
 
-        return np.array(full_data)
+        return Xt
 
     def _get_gradient(self, Y):
         """Get gradient of lines.
@@ -92,7 +93,11 @@ class SlopeTransformer(BaseCollectionTransformer):
         m : an int corresponding to the gradient of the best fit line.
         """
         # Create an array that contains 1,2,3,...,len(Y) for the x coordinates.
-        X = np.arange(1, len(Y) + 1)
+        X = np.arange(
+            1,
+            len(Y) + 1,
+            dtype=Y.dtype,
+        )
 
         # Calculate the mean of both arrays
         meanX = np.mean(X)
@@ -115,7 +120,7 @@ class SlopeTransformer(BaseCollectionTransformer):
             m = 0
         else:
             # Gradient is defined as (w+sqrt(w^2+r^2))/r
-            m = (w + math.sqrt(w**2 + r**2)) / r
+            m = (w + np.sqrt(w**2 + r**2)) / r
 
         return m
 
