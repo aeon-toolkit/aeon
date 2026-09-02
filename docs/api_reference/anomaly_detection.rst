@@ -61,6 +61,17 @@ Distribution-based
     COPOD
     DWT_MLEAD
 
+Deep-learning
+~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.anomaly_detection.series.deep_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    Torsk
+
 Outlier-Detection
 ~~~~~~~~~~~~~~~~~
 
