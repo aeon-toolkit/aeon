@@ -3,8 +3,10 @@
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove MSM bounding parameters in v1.7.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for MSM "
+        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "standard MSM algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -77,6 +90,9 @@ def msm_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -85,6 +101,9 @@ def msm_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
 
     Returns
     -------
@@ -112,14 +131,22 @@ def msm_distance(
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = msm_distance(x, y)
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _msm_distance_unbounded(_x, _y, independent, c)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _msm_distance(_x, _y, bounding_matrix, independent, c)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _msm_distance_unbounded(x, y, independent, c)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -166,6 +193,9 @@ def msm_cost_matrix(
     window : float, default=None
         The window size to use for the bounding matrix. If None, the
         bounding matrix is not used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -174,6 +204,9 @@ def msm_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
 
     Returns
     -------
@@ -203,6 +236,10 @@ def msm_cost_matrix(
            [16., 14., 12., 10.,  8.,  6.,  4.,  2.,  0.,  2.],
            [18., 16., 14., 12., 10.,  8.,  6.,  4.,  2.,  0.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -231,12 +268,193 @@ def _msm_distance(
     c: float,
 ) -> float:
     if independent:
-        return _msm_independent_cost_matrix(x, y, bounding_matrix, c)[
-            x.shape[1] - 1, y.shape[1] - 1
-        ]
-    return _msm_dependent_cost_matrix(x, y, bounding_matrix, c)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
+        return _msm_independent_distance(x, y, bounding_matrix, c)
+    return _msm_dependent_distance(x, y, bounding_matrix, c)
+
+
+@njit(cache=True, fastmath=True)
+def _msm_distance_unbounded(
+    x: np.ndarray,
+    y: np.ndarray,
+    independent: bool,
+    c: float,
+) -> float:
+    """Compute unbounded MSM without allocating or checking a bounding matrix."""
+    if independent:
+        return _msm_independent_distance_unbounded(x, y, c)
+    return _msm_dependent_distance_unbounded(x, y, c)
+
+
+@njit(cache=True, fastmath=True)
+def _msm_independent_distance_unbounded(
+    x: np.ndarray, y: np.ndarray, c: float
+) -> float:
+    """Compute independent unbounded MSM with linear auxiliary memory."""
+    min_instances = min(x.shape[0], y.shape[0])
+    distance = 0.0
+    for i in range(min_instances):
+        distance += _univariate_msm_distance_unbounded(x[i], y[i], c)
+    return distance
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_msm_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -> float:
+    """Compute univariate unbounded MSM with two rolling rows."""
+    if x.shape[0] < y.shape[0]:
+        x, y = y, x
+
+    x_size = x.shape[0]
+    y_size = y.shape[0]
+
+    prev = np.empty(y_size)
+    curr = np.empty(y_size)
+
+    prev[0] = np.abs(x[0] - y[0])
+    for j in range(1, y_size):
+        prev[j] = prev[j - 1] + _cost_independent(y[j], x[0], y[j - 1], c)
+
+    for i in range(1, x_size):
+        curr[0] = prev[0] + _cost_independent(x[i], x[i - 1], y[0], c)
+        for j in range(1, y_size):
+            d1 = prev[j - 1] + np.abs(x[i] - y[j])
+            d2 = prev[j] + _cost_independent(x[i], x[i - 1], y[j], c)
+            d3 = curr[j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
+            curr[j] = min(d1, d2, d3)
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _msm_dependent_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -> float:
+    """Compute dependent unbounded MSM with two rolling rows."""
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    prev = np.empty(y_size)
+    curr = np.empty(y_size)
+
+    prev[0] = _univariate_squared_distance(x[:, 0], y[:, 0])
+    for j in range(1, y_size):
+        prev[j] = prev[j - 1] + _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
+
+    for i in range(1, x_size):
+        curr[0] = prev[0] + _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
+        for j in range(1, y_size):
+            d1 = prev[j - 1] + _univariate_squared_distance(x[:, i], y[:, j])
+            d2 = prev[j] + _cost_dependent(x[:, i], x[:, i - 1], y[:, j], c)
+            d3 = curr[j - 1] + _cost_dependent(y[:, j], x[:, i], y[:, j - 1], c)
+            curr[j] = min(d1, d2, d3)
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _msm_independent_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
+    """Compute the independent MSM distance between two time series.
+
+    This is optimized for memory usage by computing each channel with a two-row
+    buffer (O(min(N, M)) space) and summing the per-channel distances, instead of
+    allocating the full O(NM) cost matrix. The result is identical to taking the
+    bottom-right cell of the summed per-channel cost matrices.
+    """
+    min_instances = min(x.shape[0], y.shape[0])
+    distance = 0.0
+    for i in range(min_instances):
+        distance += _univariate_msm_distance(x[i], y[i], bounding_matrix, c)
+    return distance
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_msm_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # MSM is symmetric (its cost function is symmetric in its last two arguments),
+    # so swapping x and y and transposing the bounding matrix leaves the distance
+    # unchanged.
+    if x.shape[0] < y.shape[0]:
+        x, y = y, x
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[0]
+    y_size = y.shape[0]
+
+    prev = np.full(y_size, np.inf)
+    curr = np.full(y_size, np.inf)
+
+    # First row (i == 0)
+    prev[0] = np.abs(x[0] - y[0])
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            prev[j] = prev[j - 1] + _cost_independent(y[j], x[0], y[j - 1], c)
+
+    for i in range(1, x_size):
+        curr[:] = np.inf
+        if bounding_matrix[i, 0]:
+            curr[0] = prev[0] + _cost_independent(x[i], x[i - 1], y[0], c)
+        for j in range(1, y_size):
+            if bounding_matrix[i, j]:
+                d1 = prev[j - 1] + np.abs(x[i] - y[j])
+                d2 = prev[j] + _cost_independent(x[i], x[i - 1], y[j], c)
+                d3 = curr[j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
+                curr[j] = min(d1, d2, d3)
+        # Ping-pong the buffers instead of copying: the row just written (curr)
+        # becomes prev, and the stale buffer is recycled (re-init at loop top).
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _msm_dependent_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
+    """Compute the dependent MSM distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
+    """
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # MSM is symmetric, so swapping x and y and transposing the bounding matrix
+    # leaves the distance unchanged.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    prev = np.full(y_size, np.inf)
+    curr = np.full(y_size, np.inf)
+
+    # First row (i == 0)
+    prev[0] = _univariate_squared_distance(x[:, 0], y[:, 0])
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            prev[j] = prev[j - 1] + _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
+
+    for i in range(1, x_size):
+        curr[:] = np.inf
+        if bounding_matrix[i, 0]:
+            curr[0] = prev[0] + _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
+        for j in range(1, y_size):
+            if bounding_matrix[i, j]:
+                d1 = prev[j - 1] + _univariate_squared_distance(x[:, i], y[:, j])
+                d2 = prev[j] + _cost_dependent(x[:, i], x[:, i - 1], y[:, j], c)
+                d3 = curr[j - 1] + _cost_dependent(y[:, j], x[:, i], y[:, j - 1], c)
+                curr[j] = min(d1, d2, d3)
+        # Ping-pong the buffers instead of copying: the row just written (curr)
+        # becomes prev, and the stale buffer is recycled (re-init at loop top).
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
 
 
 @njit(cache=True, fastmath=True)
@@ -370,6 +588,9 @@ def msm_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -378,6 +599,9 @@ def msm_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -427,6 +651,9 @@ def msm_pairwise_distance(
            [10.,  0., 14.],
            [17., 14.,  0.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -457,6 +684,13 @@ def _msm_pairwise_distance(
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _msm_distance_unbounded(X[i], X[j], independent, c)
+                distances[j, i] = distances[i, j]
+        return distances
 
     if not unequal_length:
         n_timepoints = X[0].shape[1]
@@ -489,6 +723,12 @@ def _msm_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _msm_distance_unbounded(x[i], y[j], independent, c)
+        return distances
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
@@ -525,6 +765,9 @@ def msm_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
@@ -533,6 +776,9 @@ def msm_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard MSM algorithm.
 
     Returns
     -------
