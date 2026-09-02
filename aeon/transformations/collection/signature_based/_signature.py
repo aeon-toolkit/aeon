@@ -51,7 +51,7 @@ class SignatureTransformer(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
-        "python_dependencies": "esig",
+        "python_dependencies": "roughpy",
     }
 
     def __init__(
@@ -147,7 +147,7 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
         "fit_is_empty": True,
         "output_data_type": "Tabular",
         "capability:multivariate": True,
-        "python_dependencies": "esig",
+        "python_dependencies": "roughpy",
     }
 
     def __init__(
@@ -174,26 +174,9 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
         )
 
     def _transform(self, X, y=None):
-        import esig
-
-        # monkey patch due to bug in esig which causes some data shapes to crash.
-        # Remove if it is fixed upstream I guess.
-        def prepare_stream(self, stream_data, depth):
-            import numpy as np
-            import roughpy as rp
-
-            no_samples, width = stream_data.shape
-            increments = np.diff(stream_data, axis=0)
-            indices = np.arange(no_samples - 1) / (no_samples - 1)
-            context = rp.get_context(width, depth, rp.DPReal)
-            stream = rp.LieIncrementStream.from_increments(
-                increments, indices=indices, ctx=context
-            )
-            return stream
-
-        esig.backends.RoughPyBackend.prepare_stream = prepare_stream
-
         depth = self.sig_depth
+        if depth < 1:
+            raise ValueError(f"Depth must be at least 1. Depth given is: {depth}.")
         data = np.swapaxes(X, 1, 2)
 
         # Path rescaling
@@ -204,12 +187,12 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
         if self.sig_tfm == "signature":
 
             def transform(x):
-                return esig.stream2sig(x, depth)[1:].reshape(-1, 1)
+                return _stream2sig(x, depth)[1:].reshape(-1, 1)
 
         else:
 
             def transform(x):
-                return esig.stream2logsig(x, depth).reshape(1, -1)
+                return _stream2logsig(x, depth).reshape(1, -1)
 
         length = data.shape[1]
 
@@ -446,15 +429,7 @@ def _rescale_path(path, depth):
 
 def _rescale_signature(signature, channels, depth):
     """Rescales the output signature by multiplying the depth-d term by d!."""
-    import esig
-
-    # Needed for weird esig fails
-    if depth == 1:
-        sigdim = channels
-    elif channels == 1:
-        sigdim = depth
-    else:
-        sigdim = esig.sigdim(channels, depth) - 1
+    sigdim = _sigdim(channels, depth) - 1
     # Verify shape
     if sigdim != signature.shape[-1]:
         raise ValueError(
@@ -479,3 +454,66 @@ def _rescale_signature(signature, channels, depth):
         terms.append(signature[..., start:end] * val)
 
     return np.concatenate(terms, axis=-1)
+
+
+def _sigdim(channels, depth):
+    """Return the number of terms in a signature truncated at ``depth``."""
+    if channels == 1:
+        return depth + 1
+    return (channels ** (depth + 1) - 1) // (channels - 1)
+
+
+def _build_stream(path, depth):
+    """Build a RoughPy Lie increment stream from a ``(length, channels)`` path.
+
+    Adapted from the ``RoughPyBackend.prepare_stream`` method in esig 1.0.0
+    backends.py, correcting the index computation which is off by one for some
+    series lengths. https://github.com/datasig-ac-uk/esig/
+    Copyright (c) 2024 DataSig project, BSD-3
+    """
+    import roughpy as rp
+
+    length, channels = path.shape
+    context = rp.get_context(channels, depth, rp.DPReal)
+    return rp.LieIncrementStream.from_increments(
+        np.diff(path, axis=0),
+        indices=np.arange(length - 1) / (length - 1),
+        ctx=context,
+    )
+
+
+def _stream2sig(path, depth):
+    """Compute the signature of a ``(length, channels)`` path.
+
+    Adapted from the ``RoughPyBackend.compute_signature`` and
+    ``RoughPyBackend.empty_signature`` methods in esig 1.0.0 backends.py.
+    https://github.com/datasig-ac-uk/esig/
+    Copyright (c) 2024 DataSig project, BSD-3
+    """
+    import roughpy as rp
+
+    length, channels = path.shape
+    if length == 1:
+        signature = np.zeros(_sigdim(channels, depth))
+        signature[0] = 1.0
+        return signature
+    stream = _build_stream(path, depth)
+    return np.array(stream.signature(rp.RealInterval(0.0, 1.0)), copy=True)
+
+
+def _stream2logsig(path, depth):
+    """Compute the log signature of a ``(length, channels)`` path.
+
+    Adapted from the ``RoughPyBackend.compute_log_signature`` and
+    ``RoughPyBackend.empty_log_signature`` methods in esig 1.0.0 backends.py.
+    https://github.com/datasig-ac-uk/esig/
+    Copyright (c) 2024 DataSig project, BSD-3
+    """
+    import roughpy as rp
+
+    length, channels = path.shape
+    if length == 1:
+        context = rp.get_context(channels, depth, rp.DPReal)
+        return np.zeros(context.lie_size(depth))
+    stream = _build_stream(path, depth)
+    return np.array(stream.log_signature(rp.RealInterval(0.0, 1.0)), copy=True)
