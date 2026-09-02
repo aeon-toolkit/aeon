@@ -191,7 +191,7 @@ def test_sliding_mean_std_one_series(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_float_output_dtype_follows_input_precision(dtype):
     """Test helpers preserve float precision and promote integer input."""
-    X = np.arange(24, dtype=dtype).reshape(2, 12)
+    X = make_example_2d_numpy_series(n_channels=2, random_state=0).astype(dtype)
     expected_dtype = np.float32 if dtype == "float32" else np.float64
 
     subsequence = get_subsequence(X, 1, 4, 2)
