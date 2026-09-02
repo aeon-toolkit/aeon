@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.utils.numba.general import (
     combinations_1d,
     get_all_subsequences,
