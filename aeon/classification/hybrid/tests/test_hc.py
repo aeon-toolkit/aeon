@@ -137,7 +137,13 @@ def test_hivecote_estimator_attribute_lifecycle():
     from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
     from aeon.testing.data_generation import make_example_3d_numpy
 
-    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20)
+    X, y = make_example_3d_numpy(
+        n_cases=10,
+        n_channels=1,
+        n_timepoints=20,
+        min_cases_per_label=3,
+        random_state=0,
+    )
 
     for hc_class in [HIVECOTEV1, HIVECOTEV2]:
         params = hc_class._get_test_params()
