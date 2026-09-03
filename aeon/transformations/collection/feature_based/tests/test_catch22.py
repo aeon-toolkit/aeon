@@ -7,6 +7,7 @@ import pytest
 from numpy import testing
 
 from aeon.datasets import load_basic_motions
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -1521,3 +1522,26 @@ def test_catch22_pycatch22_outlier_norm():
     assert abs(np.std(passed_series["p"]) - 1.0) < 1e-10
     assert abs(np.mean(passed_series["n"])) < 1e-10
     assert abs(np.std(passed_series["n"]) - 1.0) < 1e-10
+
+
+def test_catch22_float32_output_dtype():
+    """Test Catch22 does not raise on float32 input with outlier features.
+
+    Regression test: the outlier_series placeholder in _transform_case_numba was
+    hardcoded to float64, which numba's nopython mode could not unify with a
+    float32 z-normalised series produced for features 13/14 (outlier_include /
+    outlier_include_n), raising a TypingError for float32 input.
+    """
+    X = make_example_3d_numpy(
+        n_cases=6, n_channels=1, n_timepoints=40, random_state=0, return_y=False
+    ).astype(np.float32)
+
+    # outlier_norm=True exercises the fixed code path (features 13/14)
+    c22 = Catch22(outlier_norm=True, replace_nans=True)
+    result = c22.fit_transform(X)
+    assert result.shape == (6, 22)
+
+    # outlier_norm=False takes the other branch -- should still work
+    c22_no_norm = Catch22(outlier_norm=False, replace_nans=True)
+    result_no_norm = c22_no_norm.fit_transform(X)
+    assert result_no_norm.shape == (6, 22)
