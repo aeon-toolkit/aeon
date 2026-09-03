@@ -28,7 +28,13 @@ class MockAnomalyDetector(BaseSeriesAnomalyDetector):
         super().__init__(axis=1)
 
     def _predict(self, X):
-        return np.zeros(X.shape[self.axis])
+        # A minimal anomaly score which still depends on the input, the distance of
+        # each time point from the mean of its channel, averaged over channels. The
+        # previous constant score meant this mock did not discriminate at all, so it
+        # could not stand in for a detector in the general estimator checks.
+        # Missing time points score zero, this mock is capable of missing values.
+        deviation = np.abs(X - np.nanmean(X, axis=self.axis, keepdims=True))
+        return np.nan_to_num(deviation).mean(axis=1 - self.axis)
 
 
 class MockAnomalyDetectorRequiresFit(MockAnomalyDetector):
