@@ -66,7 +66,7 @@ def test_global_z_norm():
         normaliser.transform(X)
     except Exception as e:
         target = (
-            "This instance of GlobalNormalizer has not"
+            "This instance of GlobalNormalizer has not "
             "been fitted yet; please call ``fit`` first."
         )
         assert str(e) == target
@@ -90,7 +90,7 @@ def test_global_centering():
         centerer.transform(X)
     except Exception as e:
         target = (
-            "This instance of GlobalCenterer has not"
+            "This instance of GlobalCenterer has not "
             "been fitted yet; please call ``fit`` first."
         )
         assert str(e) == target
@@ -112,7 +112,7 @@ def test_global_min_max():
         minmax.transform(X)
     except Exception as e:
         target = (
-            "This instance of GlobalMinMaxScaler has not"
+            "This instance of GlobalMinMaxScaler has not "
             "been fitted yet; please call ``fit`` first."
         )
         assert str(e) == target
