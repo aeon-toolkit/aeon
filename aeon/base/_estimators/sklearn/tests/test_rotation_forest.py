@@ -77,7 +77,7 @@ def test_rotf_pca_solver_is_deprecated():
         ),
         (
             RotationForestRegressor,
-            DecisionTreeRegressor(criterion="squared_error", max_depth=3),
+            DecisionTreeRegressor(criterion="absolute_error", max_depth=3),
             "squared_error",
         ),
     ],

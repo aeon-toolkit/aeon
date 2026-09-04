@@ -28,10 +28,8 @@ def test_summary_classifier_with_class_weight(class_weight):
     X, y = make_example_3d_numpy(
         n_cases=10, n_channels=1, n_timepoints=12, return_y=True, random_state=0
     )
-    # string labels that parse as integers are mishandled by scikit-learn when
-    # given as class_weight="balanced", see _resolve_balanced_class_weight
-    y = np.array([str(label + 1) for label in y])
     clf = SummaryClassifier(
+        estimator=RandomForestClassifier(n_estimators=5),
         random_state=0,
         class_weight=class_weight,
     )
