@@ -176,6 +176,9 @@ def _resolve_balanced_class_weight(class_weight, y):
     used by many of the UCR/UEA datasets. Computing the equivalent sample
     weights up front bypasses the faulty lookup.
 
+    Reported upstream as
+    https://github.com/scikit-learn/scikit-learn/issues/34883
+
     Only ``"balanced"`` is translated. ``"balanced_subsample"`` reweights within
     each bootstrap sample and has no ``sample_weight`` equivalent, so it is
     passed through unchanged.
