@@ -1,5 +1,6 @@
 """Tests for the QUANTClassifier class."""
 
+import numpy as np
 import pytest
 from sklearn.svm import SVC
 
@@ -38,3 +39,27 @@ def test_invalid_inputs():
     with pytest.raises(ValueError, match="interval_depth must be >= 1"):
         quant = QUANTClassifier(interval_depth=0)
         quant.fit(X, y)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="skip test if required soft dependency torch not available",
+)
+def test_quant_classifier_with_class_weight():
+    """Test QUANTClassifier with class weight.
+
+    Only "balanced" is covered. "balanced_subsample" is passed through to the
+    ExtraTreesClassifier unchanged, and scikit-learn still mishandles it for
+    these labels when bootstrap is False, see _resolve_balanced_class_weight.
+    """
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+    # string labels that parse as integers are mishandled by scikit-learn when
+    # given as class_weight="balanced", see _resolve_balanced_class_weight
+    y = np.asarray(y, dtype=str)
+
+    clf = QUANTClassifier(random_state=0, class_weight="balanced")
+    clf.fit(X, y)
+
+    predictions = clf.predict(X)
+    assert len(predictions) == len(y)
+    assert set(predictions).issubset(set(y))
