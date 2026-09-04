@@ -106,7 +106,8 @@ def test_predict_discords_exposes_full_output():
     pred = ad.fit_predict(series)
 
     out = ad.predict_discords(series)
-    assert set(out) == {"lengths", "scores", "locations", "discord_table"}
+    expected_keys = {"lengths", "scores", "locations", "discord_table", "best_interval"}
+    assert set(out) == expected_keys
     n_lengths = len(out["lengths"])
     assert out["scores"].shape == (n_lengths,)
     assert out["locations"].shape == (n_lengths,)
@@ -137,3 +138,38 @@ def test_pointwise_scores_only_from_identified_discords():
         covered[loc : loc + m] = True
     assert covered[nonzero].all()
     assert np.isin(pred[nonzero], out["scores"]).all()
+
+
+def test_automatic_length_selection():
+    """Check max_length=None reproduces the reference's automatic mode.
+
+    The maximum length derives from the split (split // 20) and about 50
+    candidate lengths are sampled rather than sweeping every integer.
+    """
+    rng = check_random_state(1)
+    n = 4000
+    series = np.sin(np.linspace(0, 200 * np.pi, n)) + rng.normal(0, 0.05, n)
+    series[3000:3050] += 3.0
+    ad = MADRID(train_test_split=2000)
+    pred = ad.fit_predict(series)
+    assert pred.shape == (n,)
+
+    out = ad.predict_discords(series)
+    assert out["lengths"].max() <= 2000 // 20 + 1
+    assert len(out["lengths"]) <= 50
+    assert len(np.unique(out["lengths"])) == len(out["lengths"])
+    start, end = out["best_interval"]
+    assert 2995 <= start <= 3055
+    assert end - start == out["lengths"][np.argmax(out["scores"])]
+
+
+def test_best_interval_consistent_with_scores():
+    """Check best_interval equals the argmax discord's location and extent."""
+    series = _make_series_with_anomaly()
+    ad = MADRID(min_length=8, max_length=20, train_test_split=40)
+    ad.fit_predict(series)
+    out = ad.predict_discords(series)
+    best = int(np.argmax(out["scores"]))
+    start, end = out["best_interval"]
+    assert start == out["locations"][best]
+    assert end == start + out["lengths"][best]

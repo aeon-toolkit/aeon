@@ -46,12 +46,17 @@ class MADRID(BaseSeriesAnomalyDetector):
     ----------
     min_length : int, default=8
         Minimum subsequence length in the candidate set. Must be at least 4.
-    max_length : int, default=50
+    max_length : int or None, default=None
         Maximum subsequence length in the candidate set. Must be at most half the
-        length of the series.
+        length of the series. If ``None``, the reference implementation's automatic
+        mode is used: the maximum length is derived from the warm-up region as
+        ``split // 20`` and about 50 candidate lengths are sampled from the range
+        instead of sweeping every integer, following the algorithm's
+        parameter-free motivation.
     step_size : int, default=1
-        Step between consecutive candidate subsequence lengths. The candidate set
-        is ``range(min_length, max_length + 1, step_size)``.
+        Step between consecutive candidate subsequence lengths when ``max_length``
+        is given: the candidate set is ``range(min_length, max_length + 1,
+        step_size)``. Ignored in automatic mode.
     train_test_split : int, float or None, default=None
         Location of the split point between the warm-up (training) region and the
         region searched for anomalies. An ``int`` is used directly as the split
@@ -93,7 +98,7 @@ class MADRID(BaseSeriesAnomalyDetector):
     def __init__(
         self,
         min_length=8,
-        max_length=50,
+        max_length=None,
         step_size=1,
         train_test_split=None,
     ):
@@ -116,27 +121,35 @@ class MADRID(BaseSeriesAnomalyDetector):
             raise ValueError(f"step_size {self.step_size} must be at least 1")
         elif self.min_length < 4:
             raise ValueError("min_length must be at least 4")
-        elif self.min_length > self.max_length:
-            raise ValueError(
-                f"min_length {self.min_length} must be less than or equal to "
-                f"max_length {self.max_length}"
-            )
         elif n < self.min_length:
             raise ValueError(
                 f"Series length of X {n} is less than min_length {self.min_length}"
             )
-        elif int(n / 2) < self.max_length:
-            raise ValueError(
-                f"Series length of X {n} must be at least double max_length "
-                f"{self.max_length}"
-            )
 
         split = self._resolve_split(n)
-        if split < self.max_length or split > n - self.max_length:
+        if self.max_length is None:
+            # The reference implementation's automatic mode: the largest length is
+            # tied to the training prefix, and ~50 candidate lengths are sampled
+            # from the range rather than sweeping every integer.
+            max_length = max(split // 20, self.min_length)
+        else:
+            max_length = self.max_length
+
+        if self.min_length > max_length:
+            raise ValueError(
+                f"min_length {self.min_length} must be less than or equal to "
+                f"max_length {max_length}"
+            )
+        elif int(n / 2) < max_length:
+            raise ValueError(
+                f"Series length of X {n} must be at least double max_length "
+                f"{max_length}"
+            )
+        if split < max_length or split > n - max_length:
             raise ValueError(
                 f"train_test_split resolved to {split}, but it must lie in "
-                f"[max_length, len(X) - max_length] = [{self.max_length}, "
-                f"{n - self.max_length}]"
+                f"[max_length, len(X) - max_length] = [{max_length}, "
+                f"{n - max_length}]"
             )
 
         for i in range(n - self.min_length + 1):
@@ -149,9 +162,14 @@ class MADRID(BaseSeriesAnomalyDetector):
                 )
                 break
 
-        m_set = np.arange(
-            self.min_length, self.max_length + 1, self.step_size, dtype=np.int64
-        )
+        if self.max_length is None:
+            m_set = np.unique(
+                np.linspace(self.min_length, max_length + 1, 50).astype(np.int64)
+            )
+        else:
+            m_set = np.arange(
+                self.min_length, max_length + 1, self.step_size, dtype=np.int64
+            )
 
         discord_table, bsf, bsf_loc = _madrid(
             np.ascontiguousarray(X, dtype=np.float64), split, m_set
@@ -199,21 +217,27 @@ class MADRID(BaseSeriesAnomalyDetector):
             ``locations``: each best discord's start position;
             ``discord_table``: the raw (n_lengths, n) table. Positions pruned by
             DAMP hold unrefined estimates, so treat the table as approximate
-            everywhere except the returned discord locations.
+            everywhere except the returned discord locations;
+            ``best_interval``: ``(start, end)`` of the overall best discord,
+            i.e. the location and extent of ``argmax(scores)``, matching the
+            reference implementation's ``best_discord_loc``.
         """
         X = np.asarray(X)
         discord_table, bsf, bsf_loc, m_set = self._run_madrid(X.squeeze())
+        best = int(np.argmax(bsf))
+        start = int(bsf_loc[best])
         return {
             "lengths": m_set,
             "scores": bsf,
             "locations": bsf_loc.astype(np.int64),
             "discord_table": discord_table,
+            "best_interval": (start, start + int(m_set[best])),
         }
 
     def _resolve_split(self, n):
         split = self.train_test_split
         if split is None:
-            return max(self.max_length, n // 5)
+            return max(self.max_length or self.min_length, n // 5)
         if isinstance(split, float) and 0.0 < split < 1.0:
             return int(round(n * split))
         return int(split)
