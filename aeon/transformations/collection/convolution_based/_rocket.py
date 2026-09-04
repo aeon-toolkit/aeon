@@ -8,6 +8,7 @@ from numba import get_num_threads, njit, prange, set_num_threads
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer, Normalizer
+from aeon.utils._parallel import _NUMBA_PARALLEL_LOCK
 from aeon.utils.validation import check_n_jobs
 
 
@@ -42,6 +43,12 @@ class Rocket(BaseCollectionTransformer):
     See Also
     --------
     MiniRocket, MultiRocket
+
+    Notes
+    -----
+    The convolutions are computed in single precision, matching the original
+    ROCKET implementation: input series are cast to float32 before the
+    kernels are applied.
 
     References
     ----------
@@ -113,9 +120,9 @@ class Rocket(BaseCollectionTransformer):
         n_channels = X[0].shape[0]
 
         # The only use of n_timepoints is to set the maximum dilation
-        self.fit_min_length_ = X[0].shape[1]
+        n_timepoints = X[0].shape[1]
         self.kernels = _generate_kernels(
-            self.fit_min_length_, self.n_kernels, n_channels, self._random_state
+            n_timepoints, self.n_kernels, n_channels, self._random_state
         )
         return self
 
@@ -136,12 +143,37 @@ class Rocket(BaseCollectionTransformer):
             norm = Normalizer()
             X = norm.fit_transform(X)
 
-        prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
+        return self._transform_kernels(X)
 
-        X_ = _apply_kernels(X, self.kernels)
+    def _transform_kernels(self, X):
+        """Apply fitted kernels to input that needs no further normalisation.
 
-        set_num_threads(prev_threads)
+        The kernels-only part of ``_transform``: callers that normalise input
+        themselves (or use ``normalise=False``) can call this directly, so
+        ensembles that normalise once can treat every rocket transformer
+        uniformly.
+        """
+        # convolve in single precision: the kernel weights are float32 and
+        # the output features are float32, so float64 input only adds
+        # per-element promotion in the hot loop. asarray avoids a copy if X
+        # is already float32.
+        X = np.asarray(X, dtype=np.float32)
+
+        if self._n_jobs == 1:
+            # the serial nogil kernels never enter numba's threading layer,
+            # so ensemble members can transform concurrently in joblib
+            # threads (concurrent entry aborts the default workqueue layer)
+            return _apply_kernels_serial(X, self.kernels)
+
+        # the lock serialises parallel launches and the global thread-count
+        # swap across Python threads
+        with _NUMBA_PARALLEL_LOCK:
+            prev_threads = get_num_threads()
+            try:
+                set_num_threads(self._n_jobs)
+                X_ = _apply_kernels(X, self.kernels)
+            finally:
+                set_num_threads(prev_threads)
         return X_
 
 
@@ -220,12 +252,7 @@ def _generate_kernels(n_timepoints, n_kernels, n_channels, seed):
     )
 
 
-@njit(
-    parallel=True,
-    fastmath=True,
-    cache=True,
-)
-def _apply_kernels(X, kernels):
+def _apply_kernels_impl(X, kernels):
     (
         weights,
         lengths,
@@ -249,10 +276,9 @@ def _apply_kernels(X, kernels):
         for j in range(n_kernels):
             b1 = a1 + n_channel_indices[j] * lengths[j]
             b2 = a2 + n_channel_indices[j]
-            b3 = a3 + 2
 
             if n_channel_indices[j] == 1:
-                _X[i][a3:b3] = _apply_kernel_univariate(
+                _ppv, _max = _apply_kernel_univariate(
                     X[i][channel_indices[a2]],
                     weights[a1:b1],
                     lengths[j],
@@ -264,7 +290,7 @@ def _apply_kernels(X, kernels):
             else:
                 _weights = weights[a1:b1].reshape((n_channel_indices[j], lengths[j]))
 
-                _X[i][a3:b3] = _apply_kernel_multivariate(
+                _ppv, _max = _apply_kernel_multivariate(
                     X[i],
                     _weights,
                     lengths[j],
@@ -275,11 +301,26 @@ def _apply_kernels(X, kernels):
                     channel_indices[a2:b2],
                 )
 
+            _X[i, a3] = _ppv
+            _X[i, a3 + 1] = _max
+
             a1 = b1
             a2 = b2
-            a3 = b3
+            a3 = a3 + 2
 
-    return _X.astype(np.float32)
+    # _X is already float32; astype would copy the whole feature matrix
+    return _X
+
+
+# one kernel body, two compilations: a parallel dispatcher for standalone
+# n_jobs > 1 use, and a serial nogil dispatcher (prange degrades to range
+# without parallel=True) that never enters numba's threading layer, so
+# ensemble members can transform concurrently from joblib threads. The
+# transform kernels are compiled without fastmath so both compilations
+# produce identical results (measured as free here); fastmath would let
+# them reassociate differently and break n_jobs invariance.
+_apply_kernels = njit(parallel=True, cache=True)(_apply_kernels_impl)
+_apply_kernels_serial = njit(nogil=True, cache=True)(_apply_kernels_impl)
 
 
 @njit(fastmath=True, cache=True)
