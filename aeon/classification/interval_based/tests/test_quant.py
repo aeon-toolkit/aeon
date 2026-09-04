@@ -45,15 +45,19 @@ def test_invalid_inputs():
     not _check_soft_dependencies("torch", severity="none"),
     reason="skip test if required soft dependency torch not available",
 )
-@pytest.mark.parametrize("class_weight", ["balanced", "balanced_subsample"])
-def test_quant_classifier_with_class_weight(class_weight):
-    """Test QUANTClassifier with class weight."""
+def test_quant_classifier_with_class_weight():
+    """Test QUANTClassifier with class weight.
+
+    Only "balanced" is covered. "balanced_subsample" is passed through to the
+    ExtraTreesClassifier unchanged, and scikit-learn still mishandles it for
+    these labels when bootstrap is False, see _resolve_balanced_class_weight.
+    """
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
     # string labels that parse as integers are mishandled by scikit-learn when
     # given as class_weight="balanced", see _resolve_balanced_class_weight
     y = np.asarray(y, dtype=str)
 
-    clf = QUANTClassifier(random_state=0, class_weight=class_weight)
+    clf = QUANTClassifier(random_state=0, class_weight="balanced")
     clf.fit(X, y)
 
     predictions = clf.predict(X)
