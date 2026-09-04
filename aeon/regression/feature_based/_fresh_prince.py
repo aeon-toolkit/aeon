@@ -87,6 +87,7 @@ class FreshPRINCERegressor(BaseRegressor):
         "capability:multithreading": True,
         "capability:train_estimate": True,
         "algorithm_type": "feature",
+        "non_deterministic": True,
         "python_dependencies": "tsfresh",
     }
 
