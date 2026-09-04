@@ -352,7 +352,7 @@ class BaseIntervalForest(ABC):
         log_each_estimator = verbose >= 2
         log_progress = verbose == 1
         if verbose > 0:
-            fit_start_time = time.time()
+            fit_start_time = time.perf_counter()
             if (
                 self.time_limit_in_minutes is not None
                 and self.time_limit_in_minutes > 0
@@ -815,7 +815,7 @@ class BaseIntervalForest(ABC):
 
         if self.time_limit_in_minutes is not None and self.time_limit_in_minutes > 0:
             time_limit = self.time_limit_in_minutes * 60
-            start_time = time.time()
+            start_time = time.perf_counter()
             train_time = 0
             if log_progress:
                 progress_interval = time_limit / 10
@@ -855,13 +855,13 @@ class BaseIntervalForest(ABC):
                 transformed_intervals += td
 
                 self._n_estimators += self._n_jobs
-                train_time = time.time() - start_time
+                train_time = time.perf_counter() - start_time
 
                 if log_each_estimator:
                     contract_remaining = self._format_duration(
                         max(0.0, time_limit - train_time)
                     )
-                    elapsed = time.time() - fit_start_time
+                    elapsed = time.perf_counter() - fit_start_time
                     first_estimator = self._n_estimators - len(fit) + 1
                     for estimator_idx in range(first_estimator, self._n_estimators + 1):
                         self._log_forest(
@@ -872,13 +872,13 @@ class BaseIntervalForest(ABC):
                 elif log_progress and train_time >= next_progress:
                     self._log_forest(
                         f"[{verbose_name}] Progress: built={self._n_estimators}, "
-                        f"elapsed={time.time() - fit_start_time:.2f}s"
+                        f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
                     )
                     next_progress = train_time + progress_interval
         else:
             self._n_estimators = self.n_estimators
             if verbose > 0:
-                estimator_start_time = time.time()
+                estimator_start_time = time.perf_counter()
                 if log_each_estimator:
                     batch_size = self._n_jobs
                 else:
@@ -905,7 +905,7 @@ class BaseIntervalForest(ABC):
                     fit.extend(batch_fit)
 
                     built = len(fit)
-                    estimator_elapsed = time.time() - estimator_start_time
+                    estimator_elapsed = time.perf_counter() - estimator_start_time
                     if log_each_estimator:
                         if built == 1:
                             time_estimate = "estimated_remaining=estimating"
@@ -917,7 +917,7 @@ class BaseIntervalForest(ABC):
                                 "estimated_remaining="
                                 f"{self._format_duration(estimated_remaining)}"
                             )
-                        elapsed = time.time() - fit_start_time
+                        elapsed = time.perf_counter() - fit_start_time
                         for estimator_idx in range(
                             batch_start + 1, batch_start + current_batch_size + 1
                         ):
@@ -931,7 +931,7 @@ class BaseIntervalForest(ABC):
                         self._log_forest(
                             f"[{verbose_name}] Progress: "
                             f"built={built}/{self._n_estimators}, "
-                            f"elapsed={time.time() - fit_start_time:.2f}s"
+                            f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
                         )
             else:
                 fit = _run_jobs(
@@ -957,7 +957,7 @@ class BaseIntervalForest(ABC):
         if verbose > 0:
             self._log_forest(
                 f"[{verbose_name}] Finished fit: built={len(self.estimators_)}, "
-                f"elapsed={time.time() - fit_start_time:.2f}s"
+                f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
             )
 
         return transformed_intervals

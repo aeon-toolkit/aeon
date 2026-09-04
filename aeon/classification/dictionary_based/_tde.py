@@ -339,7 +339,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         lowest_acc_idx = 0
 
         time_limit = self.time_limit_in_minutes * 60
-        start_time = time.time()
+        start_time = time.perf_counter()
         train_time = 0
         if time_limit > 0:
             n_parameter_samples = 0
@@ -469,7 +469,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             self._prev_parameters_y.append(tde._accuracy)
 
             num_classifiers += 1
-            train_time = time.time() - start_time
+            train_time = time.perf_counter() - start_time
 
             if log_each_candidate:
                 candidate_duration = train_time - previous_train_time
