@@ -10,7 +10,7 @@ class FCNNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a FCN.
 
-    Adapted from the implementation used in [1]_
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
