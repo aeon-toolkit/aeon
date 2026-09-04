@@ -1,5 +1,7 @@
 """Base class for Hierarchical Vote Collective of Transformation-based Ensembles."""
 
+from time import perf_counter
+
 import numpy as np
 from sklearn.base import clone
 from sklearn.metrics import accuracy_score
@@ -10,28 +12,27 @@ from aeon.utils.validation import check_n_jobs
 
 
 class _BaseHIVECOTE(BaseClassifier):
-    """
-    Modular base class for HIVE-COTE ensembles.
+    """Modular base class for HIVE-COTE ensembles.
 
-    This class handles the core logic of the CAWPE (Cross-validation Accuracy
-    Weighted Probabilistic Ensemble) structure. It accepts a list of base
-    estimators, trains them using fit_predict to get out-of-bag estimates,
-    calculates their weights based on training accuracy, and combines their
-    probabilities during prediction.
+    This class implements the CAWPE (Cross-validation Accuracy Weighted Probabilistic
+    Ensemble) structure. It obtains training predictions from each component with
+    ``fit_predict``, derives component weights from training accuracy, and combines
+    weighted probabilities during prediction.
 
     Parameters
     ----------
-    estimators : list of tuples
-        List of (name, estimator) tuples representing the ensemble components.
-        Each estimator must be an instance of BaseClassifier.
+    estimators : list of tuple or None
+        ``(name, estimator)`` pairs for the ensemble components. Each estimator must be
+        a ``BaseClassifier``. Subclasses that construct components during fit may pass
+        None and populate ``_estimators`` before calling ``_fit``.
     alpha : int or float, default=4
-        The power parameter for the CAWPE weight calculation.
+        Exponent applied to component training accuracy when calculating CAWPE weights.
     random_state : int, RandomState instance or None, default=None
-        Seed for random number generation.
+        Seed or random number generator propagated to the components.
     n_jobs : int, default=1
-        The number of jobs to run in parallel.
+        The number of jobs propagated to the components.
     verbose : int, default=0
-        Level of output printed to the console.
+        Level of output printed during fit.
     """
 
     _tags = {
@@ -60,6 +61,17 @@ class _BaseHIVECOTE(BaseClassifier):
     def _fit(self, X, y):
         """Fit the ensemble to training data and calculate CAWPE weights."""
         self._n_jobs = check_n_jobs(self.n_jobs)
+        verbose_name = getattr(self, "_verbose_name", None)
+        logging_enabled = verbose_name is not None and self.verbose > 0
+        total_start = perf_counter() if logging_enabled else None
+
+        if logging_enabled:
+            self._log(
+                f"[{verbose_name}] Starting fit: n_cases={X.shape[0]}, "
+                f"n_channels={X.shape[1]}, n_timepoints={X.shape[2]}, "
+                f"n_jobs={self._n_jobs}"
+            )
+            self._log_fit_configuration()
 
         # Subclasses may construct their estimator list during fit and store it
         # in self._estimators to avoid mutating the init parameter self.estimators
@@ -83,6 +95,7 @@ class _BaseHIVECOTE(BaseClassifier):
         self.fitted_estimators_ = []
         self.weights_ = []
         self.component_names_ = []
+        component_summaries = []
 
         # Dynamically traverse and train all the underlying components
         for name, estimator in estimators:
@@ -94,17 +107,57 @@ class _BaseHIVECOTE(BaseClassifier):
             if hasattr(est, "n_jobs"):
                 est.n_jobs = self._n_jobs
             if hasattr(est, "verbose"):
-                est.verbose = self.verbose
+                est.verbose = (
+                    max(0, self.verbose - 2)
+                    if verbose_name is not None
+                    else self.verbose
+                )
+
+            if logging_enabled:
+                self._log(f"[{verbose_name}] Starting {name}...")
+                if self.verbose >= 2:
+                    self._log(
+                        f"[{verbose_name}] {name} params: "
+                        f"{est.get_params(deep=False)}",
+                        level=2,
+                    )
 
             # Get OOB/CV predictions and calculate CAWPE weight
+            component_start = perf_counter() if logging_enabled else None
             train_preds = est.fit_predict(X, y)
-            weight = accuracy_score(y, train_preds) ** self.alpha
+            train_acc = accuracy_score(y, train_preds)
+            weight = train_acc**self.alpha
+
+            if logging_enabled:
+                component_elapsed = perf_counter() - component_start
+                self._log(
+                    f"[{verbose_name}] Finished {name} in {component_elapsed:.2f}s, "
+                    f"train_acc={train_acc:.4f}, weight={weight:.4f}"
+                )
+                component_summaries.append(
+                    f"{name}(train_acc={train_acc:.4f}, weight={weight:.4f})"
+                )
 
             self.fitted_estimators_.append(est)
             self.weights_.append(weight)
             self.component_names_.append(name)
 
+        if logging_enabled:
+            total_elapsed = perf_counter() - total_start
+            self._log(f"[{verbose_name}] Finished fit in {total_elapsed:.2f}s")
+            self._log(
+                f"[{verbose_name}] Component summary: " + ", ".join(component_summaries)
+            )
+
         return self
+
+    def _log(self, message, level=1):
+        """Print a message when the configured verbosity reaches ``level``."""
+        if self.verbose >= level:
+            print(message, flush=True)  # noqa: T201
+
+    def _log_fit_configuration(self):
+        """Log subclass-specific fit configuration when verbosity is enabled."""
 
     def _predict(self, X) -> np.ndarray:
         """Predict class labels for X."""
@@ -126,8 +179,15 @@ class _BaseHIVECOTE(BaseClassifier):
             probas = est.predict_proba(X)
             dists = np.add(dists, probas * weight)
 
+        return self._normalise_probabilities(dists)
+
+    @staticmethod
+    def _normalise_probabilities(dists):
+        """Normalise weighted probabilities, using uniform rows for zero totals."""
         sums = dists.sum(axis=1, keepdims=True)
-        sums[sums == 0] = 1.0
+        zero_sum = sums[:, 0] == 0
+        sums[zero_sum] = 1.0
+        dists[zero_sum] = 1.0 / dists.shape[1]
         return dists / sums
 
     def get_component_weights(self):

@@ -61,6 +61,10 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
@@ -113,6 +117,7 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
+        verbose: int = 0,
     ):
         super().__init__(
             n_estimators=n_estimators,
@@ -125,6 +130,7 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
             contract_max_n_estimators=contract_max_n_estimators,
             n_jobs=n_jobs,
             random_state=random_state,
+            verbose=verbose,
         )
 
     def fit(self, X, y):
