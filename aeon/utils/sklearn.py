@@ -21,6 +21,7 @@ from sklearn.base import (
 )
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.utils.class_weight import compute_sample_weight
 
 from aeon.base import BaseAeonEstimator
 
@@ -163,3 +164,36 @@ def is_sklearn_clusterer(obj):
     return (
         is_sklearn_estimator(obj) and sklearn_estimator_identifier(obj) == "clusterer"
     )
+
+
+def _resolve_balanced_class_weight(class_weight, y):
+    """Translate ``class_weight="balanced"`` into equivalent sample weights.
+
+    scikit-learn 1.9 coerces string class labels that parse as integers when it
+    builds the ``"balanced"`` weight dictionary, so the dictionary no longer
+    matches the actual classes and ``fit`` raises ``ValueError: The classes,
+    [1, 2], are not in class_weight``. This affects the ``"1"``/``"2"`` labels
+    used by many of the UCR/UEA datasets. Computing the equivalent sample
+    weights up front bypasses the faulty lookup.
+
+    Only ``"balanced"`` is translated. ``"balanced_subsample"`` reweights within
+    each bootstrap sample and has no ``sample_weight`` equivalent, so it is
+    passed through unchanged.
+
+    Parameters
+    ----------
+    class_weight : str, dict, list of dict or None
+        The ``class_weight`` value requested by the user.
+    y : 1D np.ndarray of shape (n_cases)
+        The class labels being fitted.
+
+    Returns
+    -------
+    class_weight : str, dict, list of dict or None
+        The value to pass to the estimator constructor.
+    fit_kwargs : dict
+        Extra keyword arguments to pass to the estimator's ``fit`` method.
+    """
+    if isinstance(class_weight, str) and class_weight == "balanced":
+        return None, {"sample_weight": compute_sample_weight("balanced", y)}
+    return class_weight, {}
