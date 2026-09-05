@@ -164,7 +164,9 @@ def reverse_windowing(
     force_iterative : bool, optional, default=False
         Force iterative reverse windowing function to limit memory usage. If False, the
         function will choose the most efficient reverse windowing function based on the
-        available memory trading off between memory usage and speed.
+        available memory trading off between memory usage and speed. Reading the
+        available memory requires ``psutil``; without it the iterative function is
+        used.
 
     Returns
     -------
@@ -213,7 +215,12 @@ def _has_enough_memory_for_vectorized_entire(window_size: int, n: int) -> bool:
     import sys
     from pathlib import Path
 
-    import psutil
+    try:
+        import psutil
+    except ImportError:
+        # the available memory cannot be determined without psutil, so the
+        # memory bounded iterative implementation is used
+        return False
 
     memory_limit = psutil.virtual_memory().available
     # 128 MB (for other objs) + size of scores array
