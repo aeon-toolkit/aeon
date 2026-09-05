@@ -18,7 +18,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
 )
-from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation import check_lapack_svd_safe, check_n_jobs
 
 
 class RDSTClassifier(BaseClassifier):
@@ -201,7 +201,9 @@ class RDSTClassifier(BaseClassifier):
             random_state=self.random_state,
         )
 
-        if self.estimator is None:
+        _using_default_estimator = self.estimator is None
+
+        if _using_default_estimator:
             self.estimator_ = make_pipeline(
                 StandardScaler(with_mean=True),
                 RidgeClassifierCV(
@@ -220,6 +222,10 @@ class RDSTClassifier(BaseClassifier):
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
+
+        if _using_default_estimator:
+            n_samples, n_features = X_t.shape
+            check_lapack_svd_safe(n_samples, n_features, "RDSTClassifier")
 
         self.estimator_.fit(X_t, y)
 
