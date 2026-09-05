@@ -35,3 +35,18 @@ def test_shift_scale_invariant_distance():
     assert univariate_shift[1].shape == (10,)
     assert isinstance(multivariate_shift[1], np.ndarray)
     assert multivariate_shift[1].shape == (3, 10)
+
+
+def test_shift_scale_invariant_distance_float32():
+    """Test that float32 input does not raise a numba TypingError (#3722).
+
+    The zero-padding in the shift branches used to default to float64, which could
+    not unify with the float32 input inside the numba-compiled distance.
+    """
+    x = make_example_2d_numpy_series(n_channels=1, n_timepoints=10, random_state=1)
+    y = make_example_2d_numpy_series(n_channels=1, n_timepoints=10, random_state=2)
+
+    dist64 = shift_scale_invariant_distance(x.astype(np.float64), y.astype(np.float64))
+    dist32 = shift_scale_invariant_distance(x.astype(np.float32), y.astype(np.float32))
+
+    assert_almost_equal(dist32, dist64, decimal=4)

@@ -141,10 +141,10 @@ def _univariate_shift_scale_invariant_distance(
             shifted_y = y
         elif sh < 0:
             # Shift left
-            shifted_y = np.append(y[-sh:], np.zeros(-sh))
+            shifted_y = np.append(y[-sh:], np.zeros(-sh, dtype=y.dtype))
         else:
             # Shift right
-            shifted_y = np.append(np.zeros(sh), y[:-sh])
+            shifted_y = np.append(np.zeros(sh, dtype=y.dtype), y[:-sh])
 
         dist = _scale_d(x, shifted_y)
 
