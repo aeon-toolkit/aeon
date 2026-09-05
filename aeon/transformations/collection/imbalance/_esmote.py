@@ -106,6 +106,11 @@ class ESMOTE(BaseCollectionTransformer):
         return self
 
     def _transform(self, X, y=None):
+        if y is None:
+            raise ValueError(
+                f"{self.__class__.__name__} resamples X and y together, so transform "
+                "needs the labels: pass y, or call fit_transform."
+            )
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
