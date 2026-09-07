@@ -61,113 +61,41 @@ class FCNNetwork(BaseDeepLearningNetwork):
         self.n_layers = n_layers
         self.n_filters = n_filters
         self.kernel_size = kernel_size
-        self.activation = activation
-        self.padding = padding
-        self.strides = strides
         self.dilation_rate = dilation_rate
+        self.strides = strides
+        self.padding = padding
+        self.activation = activation
         self.use_bias = use_bias
 
         super().__init__()
 
-    def build_network(self, input_shape, **kwargs):
-        """Construct a network and return its input and output layers.
+    def _check_params(self):
+        self._n_filters = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "filters", self.n_filters, default=[128, 256, 128]
+        )
+        self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "kernels", self.kernel_size, default=[8, 5, 3]
+        )
+        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "dilations", self.dilation_rate
+        )
+        self._strides = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "strides", self.strides
+        )
+        self._padding = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "paddings", self.padding
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "activations", self.activation, accept_none=True
+        )
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "biases", self.use_bias
+        )
 
-        Parameters
-        ----------
-        input_shape : tuple
-          shape = (n_timepoints (m), n_channels (d)), the shape of the data fed
-          into the input layer.
-
-        Returns
-        -------
-        input_layer : a keras layer
-        output_layer : a keras layer
-        """
+    def build_base_graph(self, x):
         import tensorflow as tf
 
-        self._n_filters_ = [128, 256, 128] if self.n_filters is None else self.n_filters
-        self._kernel_size_ = [8, 5, 3] if self.kernel_size is None else self.kernel_size
-
-        if isinstance(self._n_filters_, list):
-            if len(self._n_filters_) != self.n_layers:
-                raise ValueError(
-                    f"Number of filters {len(self._n_filters_)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._n_filters = self._n_filters_
-        else:
-            self._n_filters = [self._n_filters_] * self.n_layers
-
-        if isinstance(self._kernel_size_, list):
-            if len(self._kernel_size_) != self.n_layers:
-                raise ValueError(
-                    f"Number of kernels {len(self._kernel_size_)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._kernel_size = self._kernel_size_
-        else:
-            self._kernel_size = [self._kernel_size_] * self.n_layers
-
-        if isinstance(self.dilation_rate, list):
-            if len(self.dilation_rate) != self.n_layers:
-                raise ValueError(
-                    f"Number of dilations {len(self.dilation_rate)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._dilation_rate = self.dilation_rate
-        else:
-            self._dilation_rate = [self.dilation_rate] * self.n_layers
-
-        if isinstance(self.strides, list):
-            if len(self.strides) != self.n_layers:
-                raise ValueError(
-                    f"Number of strides {len(self.strides)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._strides = self.strides
-        else:
-            self._strides = [self.strides] * self.n_layers
-
-        if isinstance(self.padding, list):
-            if len(self.padding) != self.n_layers:
-                raise ValueError(
-                    f"Number of paddings {len(self.padding)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._padding = self.padding
-        else:
-            self._padding = [self.padding] * self.n_layers
-
-        if isinstance(self.activation, list):
-            if len(self.activation) != self.n_layers:
-                raise ValueError(
-                    f"Number of activations {len(self.activation)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._activation = self.activation
-        else:
-            self._activation = [self.activation] * self.n_layers
-
-        if isinstance(self.use_bias, list):
-            if len(self.use_bias) != self.n_layers:
-                raise ValueError(
-                    f"Number of biases {len(self.use_bias)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._use_bias = self.use_bias
-        else:
-            self._use_bias = [self.use_bias] * self.n_layers
-
-        input_layer = tf.keras.layers.Input(input_shape)
-
-        x = input_layer
+        self._check_params()
 
         for i in range(self.n_layers):
             conv = tf.keras.layers.Conv1D(
@@ -183,7 +111,4 @@ class FCNNetwork(BaseDeepLearningNetwork):
             conv = tf.keras.layers.Activation(activation=self._activation[i])(conv)
 
             x = conv
-
-        gap_layer = tf.keras.layers.GlobalAveragePooling1D()(conv)
-
-        return input_layer, gap_layer
+        return x

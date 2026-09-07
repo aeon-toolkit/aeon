@@ -68,7 +68,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         n_layers_encoder=3,
         n_layers_decoder=1,
         dilation_rate_encoder=None,
-        dilation_rate_decoder=None,
+        dilation_rate_decoder=1,
         activation_encoder="relu",
         activation_decoder=None,
         n_units_encoder=None,
@@ -77,15 +77,57 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
         self.latent_space_dim = latent_space_dim
-        self.n_units_encoder = n_units_encoder
-        self.n_units_decoder = n_units_decoder
-        self.activation_encoder = activation_encoder
-        self.activation_decoder = activation_decoder
+        self.temporal_latent_space = temporal_latent_space
         self.n_layers_encoder = n_layers_encoder
         self.n_layers_decoder = n_layers_decoder
         self.dilation_rate_encoder = dilation_rate_encoder
         self.dilation_rate_decoder = dilation_rate_decoder
-        self.temporal_latent_space = temporal_latent_space
+        self.activation_encoder = activation_encoder
+        self.activation_decoder = activation_decoder
+        self.n_units_encoder = n_units_encoder
+        self.n_units_decoder = n_units_decoder
+
+    def _check_params(self):
+        self._dilation_rate_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers_encoder,
+            "dilation rate for encoder",
+            self.dilation_rate_encoder,
+            default=[2**layer_num for layer_num in range(1, self.n_layers_encoder + 1)],
+        )
+        self._dilation_rate_decoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers_decoder,
+            "dilation rate for decoder",
+            self.dilation_rate_decoder,
+        )
+        self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers_encoder,
+            "activation for encoder",
+            self.activation_encoder,
+        )
+        self._activation_decoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers_decoder,
+            "activation for decoder",
+            self.activation_decoder,
+            default=["relu" for _ in range(self.n_layers_decoder)],
+        )
+        self._n_units_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers_encoder,
+            "number of units for encoder",
+            self.n_units_encoder,
+            default=[100] + [50 for _ in range(self.n_layers_encoder - 1)],
+        )
+        self._n_units_decoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers_decoder,
+            "number of units for decoder",
+            self.n_units_decoder,
+            default=[
+                sum(self._n_units_encoder) * 2 for _ in range(self.n_layers_decoder)
+            ],
+        )
+
+    def build_base_graph(self, x):
+        self._check_params()
+        return x
 
     def build_network(self, input_shape, **kwargs):
         """Build the encoder and decoder networks.
@@ -106,105 +148,9 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if self.activation_decoder is None:
-            self._decoder_activation = ["relu" for _ in range(self.n_layers_decoder)]
-        elif isinstance(self.activation_decoder, str):
-            self._decoder_activation = [
-                self.activation_decoder for _ in range(self.n_layers_decoder)
-            ]
-        elif isinstance(self.activation_decoder, list):
-            self._decoder_activation = self.activation_decoder
-            if len(self.activation_decoder) != self.n_layers_decoder:
-                raise ValueError(
-                    f"Number of decoder activations {len(self.activation_decoder)}"
-                    f" should be same as number of decoder layers but is"
-                    f" not: {self.n_layers_decoder}"
-                )
-
-        if self.dilation_rate_encoder is None:
-            self._dilation_rate_encoder = [2**i for i in range(self.n_layers_encoder)]
-        elif isinstance(self.dilation_rate_encoder, int):
-            self._dilation_rate_encoder = [
-                self.dilation_rate_encoder for _ in range(self.n_layers_encoder)
-            ]
-        else:
-            if not isinstance(self.dilation_rate_encoder, list):
-                raise ValueError("Dilation rates should be None, int or list")
-            if len(self.dilation_rate_encoder) != self.n_layers_encoder:
-                raise ValueError(
-                    f"Number of dilation rates per encoder"
-                    f" {len(self.dilation_rate_encoder)} should be the same as"
-                    f" number of encoder layers but is not: {self.n_layers_encoder}"
-                )
-            self._dilation_rate_encoder = self.dilation_rate_encoder
-        if self.n_units_encoder is None:
-            if self.n_layers_encoder == 3:
-                self._n_units_encoder = [100, 50, 50]
-            else:
-                self._n_units_encoder = [100] + [
-                    50 for _ in range(self.n_layers_encoder - 1)
-                ]
-        else:
-            self._n_units_encoder = self.n_units_encoder
-            if not isinstance(self.n_units_encoder, list):
-                raise ValueError(
-                    "Number of units in encoder layer should be None or list"
-                )
-            if not len(self.n_units_encoder) == self.n_layers_encoder:
-                raise ValueError(
-                    f"Number of units in encoder layer {len(self.n_units_encoder)} "
-                    f" should be the same as number of encoder layers but is"
-                    f" not: {self.n_layers_encoder}"
-                )
-
-        if self.n_units_decoder is None:
-            self._n_units_decoder_ = sum(self._n_units_encoder) * 2
-            self._n_units_decoder = [
-                self._n_units_decoder_ for _ in range(self.n_layers_decoder)
-            ]
-        else:
-            self._n_units_decoder = self.n_units_decoder
-            if not isinstance(self.n_units_decoder, list):
-                raise ValueError(
-                    "Number of units in decoder layer should be None or list"
-                )
-            if len(self.n_units_decoder) != self.n_layers_decoder:
-                raise ValueError(
-                    f"Number of units in decoder layer {len(self.n_units_decoder)}"
-                    f" should be the same as number of decoder layers but is"
-                    f" not: {self.n_layers_decoder}"
-                )
-
-        if isinstance(self.activation_encoder, str):
-            self._activation_encoder = [
-                self.activation_encoder for _ in range(self.n_layers_encoder)
-            ]
-        elif isinstance(self.activation_encoder, list):
-            self._activation_encoder = self.activation_encoder
-            if len(self.activation_encoder) != self.n_layers_encoder:
-                raise ValueError(
-                    f"Number of encoder activations {len(self.activation_encoder)} "
-                    f" should be same as number of encoder layers but is"
-                    f" not: {self.n_layers_encoder}"
-                )
-
-        if self.dilation_rate_decoder is None:
-            self._dilation_rate_decoder = [1 for _ in range(self.n_layers_decoder)]
-        elif isinstance(self.dilation_rate_decoder, int):
-            self._dilation_rate_decoder = [
-                self.dilation_rate_decoder for _ in range(self.n_layers_decoder)
-            ]
-        elif isinstance(self.dilation_rate_decoder, list):
-            self._dilation_rate_decoder = self.dilation_rate_decoder
-            if len(self.dilation_rate_decoder) != self.n_layers_decoder:
-                raise ValueError(
-                    f"Number of dilation rates per decoder"
-                    f" {len(self.dilation_rate_decoder)} should be the same as "
-                    f" number of decoder layers but is not: {self.n_layers_decoder}"
-                )
-
         encoder_input_layer = tf.keras.layers.Input(input_shape)
         x = encoder_input_layer
+        x = self.build_base_graph(x)
 
         _finals = []
 
@@ -265,7 +211,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
             decoder_gru = tf.keras.layers.GRU(
                 self._n_units_decoder[i],
                 return_sequences=True,
-                activation=self._decoder_activation[i],
+                activation=self._activation_decoder[i],
             )(decoder_gru)
             if i < self.n_layers_decoder - 1:
                 decoder_gru = _TensorDilation(self._dilation_rate_decoder[i])(

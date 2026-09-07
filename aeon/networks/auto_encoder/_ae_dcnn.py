@@ -72,14 +72,48 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
         self.latent_space_dim = latent_space_dim
-        self.kernel_size = kernel_size
-        self.n_filters = n_filters
-        self.n_layers = n_layers
-        self.dilation_rate = dilation_rate
-        self.activation = activation
         self.temporal_latent_space = temporal_latent_space
+        self.n_layers = n_layers
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.n_filters = n_filters
+        self.dilation_rate = dilation_rate
         self.padding_encoder = padding_encoder
         self.padding_decoder = padding_decoder
+
+    def _check_params(self):
+        self._kernel_size_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "kernel size", self.kernel_size
+        )
+        self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "activations", self.activation, accept_none=True
+        )
+        self._n_filters_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers,
+            "number of filters",
+            self.n_filters,
+            default=[32 * i for i in range(1, self.n_layers + 1)],
+        )
+        self._dilation_rate_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers,
+            "dilation rate",
+            self.dilation_rate,
+            default=[2**layer_num for layer_num in range(1, self.n_layers + 1)],
+        )
+        self._padding_encoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers,
+            "padding for encoder",
+            self.padding_encoder,
+        )
+        self._padding_decoder = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers,
+            "padding for decoder",
+            self.padding_decoder,
+        )
+
+    def build_base_graph(self, x):
+        self._check_params()
+        return x
 
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
@@ -95,58 +129,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if self.n_filters is None:
-            self._n_filters_encoder = [32 * i for i in range(1, self.n_layers + 1)]
-        elif isinstance(self.n_filters, int):
-            self._n_filters_encoder = [self.n_filters for _ in range(self.n_layers)]
-        elif isinstance(self.n_filters, list):
-            self._n_filters_encoder = self.n_filters
-            assert len(self.n_filters) == self.n_layers
-
-        if self.dilation_rate is None:
-            self._dilation_rate_encoder = [
-                2**layer_num for layer_num in range(1, self.n_layers + 1)
-            ]
-        elif isinstance(self.dilation_rate, int):
-            self._dilation_rate_encoder = [
-                self.dilation_rate for _ in range(self.n_layers)
-            ]
-        else:
-            self._dilation_rate_encoder = self.dilation_rate
-            assert isinstance(self.dilation_rate, list)
-            assert len(self.dilation_rate) == self.n_layers
-
-        if self.kernel_size is None:
-            self._kernel_size_encoder = [3 for _ in range(self.n_layers)]
-        elif isinstance(self.kernel_size, int):
-            self._kernel_size_encoder = [self.kernel_size for _ in range(self.n_layers)]
-        elif isinstance(self.kernel_size, list):
-            self._kernel_size_encoder = self.kernel_size
-            assert len(self.kernel_size) == self.n_layers
-
-        if self.activation is None:
-            self._activation_encoder = ["relu" for _ in range(self.n_layers)]
-        elif isinstance(self.activation, str):
-            self._activation_encoder = [self.activation for _ in range(self.n_layers)]
-        elif isinstance(self.activation, list):
-            self._activation_encoder = self.activation
-            assert len(self._activation_encoder) == self.n_layers
-
-        if self.padding_encoder is None:
-            self._padding_encoder = ["same" for _ in range(self.n_layers)]
-        elif isinstance(self.padding_encoder, str):
-            self._padding_encoder = [self.padding_encoder for _ in range(self.n_layers)]
-        elif isinstance(self.padding_encoder, list):
-            self._padding_encoder = self.padding_encoder
-            assert len(self._padding_encoder) == self.n_layers
-
-        if self.padding_decoder is None:
-            self._padding_decoder = ["same" for _ in range(self.n_layers)]
-        elif isinstance(self.padding_decoder, str):
-            self._padding_decoder = [self.padding_decoder for _ in range(self.n_layers)]
-        elif isinstance(self.padding_decoder, list):
-            self._padding_decoder = self.padding_decoder
-            assert len(self._padding_decoder) == self.n_layers
+        input_layer = tf.keras.layers.Input(input_shape)
+        x = input_layer
+        x = self.build_base_graph(x)
 
         if self.dilation_rate == 1 or np.all(
             np.array(self._dilation_rate_encoder) == 1
@@ -172,9 +157,6 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 stacklevel=2,
             )
 
-        input_layer = tf.keras.layers.Input(input_shape)
-
-        x = input_layer
         for i in range(0, self.n_layers):
             x = self._dcnn_layer(
                 x,

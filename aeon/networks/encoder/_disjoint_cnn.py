@@ -123,119 +123,43 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
 
         super().__init__()
 
-    def build_network(self, input_shape, **kwargs):
-        """Construct a network and return its input and output layers.
-
-        Parameters
-        ----------
-        input_shape : tuple
-          shape = (n_timepoints (m), n_channels (d)), the shape of the data fed
-          into the input layer.
-
-        Returns
-        -------
-        input_layer : a keras layer
-        output_layer : a keras layer
-        """
-        import tensorflow as tf
-
-        self._kernel_size_ = (
-            [8, 5, 5, 3] if self.kernel_size is None else self.kernel_size
+    def _check_params(self):
+        self._n_filters = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "filters", self.n_filters
+        )
+        self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "kernels", self.kernel_size, default=[8, 5, 5, 3]
+        )
+        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "dilations", self.dilation_rate
+        )
+        self._strides = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "strides", self.strides
+        )
+        self._padding = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "paddings", self.padding
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "activations", self.activation, accept_none=True
+        )
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "biases", self.use_bias
+        )
+        self._kernel_initializer = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "kernel initializers", self.kernel_initializer
+        )
+        self._pool_size = BaseDeepLearningNetwork._check_layer_param(
+            1, "pool size", self.pool_size
         )
 
-        if isinstance(self._kernel_size_, list):
-            if len(self._kernel_size_) != self.n_layers:
-                raise ValueError(
-                    f"Kernel sizes {len(self._kernel_size_)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._kernel_size = self._kernel_size_
-        else:
-            self._kernel_size = [self._kernel_size_] * self.n_layers
+    def build_base_graph(self, x):
+        import tensorflow as tf
 
-        if isinstance(self.n_filters, list):
-            if len(self.n_filters) != self.n_layers:
-                raise ValueError(
-                    f"Number of filters {len(self.n_filters)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._n_filters = self.n_filters
-        else:
-            self._n_filters = [self.n_filters] * self.n_layers
+        self._check_params()
 
-        if isinstance(self.dilation_rate, list):
-            if len(self.dilation_rate) != self.n_layers:
-                raise ValueError(
-                    f"Number of dilations {len(self.dilation_rate)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._dilation_rate = self.dilation_rate
-        else:
-            self._dilation_rate = [self.dilation_rate] * self.n_layers
-
-        if isinstance(self.strides, list):
-            if len(self.strides) != self.n_layers:
-                raise ValueError(
-                    f"Number of strides {len(self.strides)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._strides = self.strides
-        else:
-            self._strides = [self.strides] * self.n_layers
-
-        if isinstance(self.padding, list):
-            if len(self.padding) != self.n_layers:
-                raise ValueError(
-                    f"Number of paddings {len(self.padding)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._padding = self.padding
-        else:
-            self._padding = [self.padding] * self.n_layers
-
-        if isinstance(self.activation, list):
-            if len(self.activation) != self.n_layers:
-                raise ValueError(
-                    f"Number of activations {len(self.activation)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._activation = self.activation
-        else:
-            self._activation = [self.activation] * self.n_layers
-
-        if isinstance(self.use_bias, list):
-            if len(self.use_bias) != self.n_layers:
-                raise ValueError(
-                    f"Number of biases {len(self.use_bias)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._use_bias = self.use_bias
-        else:
-            self._use_bias = [self.use_bias] * self.n_layers
-
-        if isinstance(self.kernel_initializer, list):
-            if len(self.kernel_initializer) != self.n_layers:
-                raise ValueError(
-                    f"Number of Kernel initializers {len(self.kernel_initializer)}"
-                    f" should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._kernel_initializer = self.kernel_initializer
-        else:
-            self._kernel_initializer = [self.kernel_initializer] * self.n_layers
-
-        input_layer = tf.keras.layers.Input(input_shape)
         reshape_layer = tf.keras.layers.Reshape(
-            target_shape=(input_shape[0], input_shape[1], 1)
-        )(input_layer)
+            target_shape=(x.shape[1], x.shape[2], 1)
+        )(x)
 
         x = reshape_layer
 
@@ -258,8 +182,27 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
             padding=self.pool_padding,
         )(x)
 
-        gap = tf.keras.layers.GlobalAveragePooling2D()(max_pool_layer)
+        return max_pool_layer
 
+    def build_network(self, input_shape, **kwargs):
+        """Construct a network and return its input and output layers.
+
+        Parameters
+        ----------
+        input_shape : tuple
+          shape = (n_timepoints (m), n_channels (d)), the shape of the data fed
+          into the input layer.
+
+        Returns
+        -------
+        input_layer : a keras layer
+        output_layer : a keras layer
+        """
+        import tensorflow as tf
+
+        input_layer = tf.keras.layers.Input(input_shape)
+        max_pool_layer = self.build_base_graph(input_layer)
+        gap = tf.keras.layers.GlobalAveragePooling2D()(max_pool_layer)
         projection_head = tf.keras.layers.Dense(
             self.hidden_fc_units, activation=self.activation_fc
         )(gap)

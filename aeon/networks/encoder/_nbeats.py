@@ -70,7 +70,6 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
         share_coefficients=True,
     ):
         """Initialize the N-BEATS network."""
-        super().__init__()
         self.horizon = horizon
         self.stacks = stacks
         self.num_blocks_per_stack = num_blocks_per_stack
@@ -80,6 +79,106 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
         self.num_generic_coefficients = num_generic_coefficients
         self.share_weights = share_weights
         self.share_coefficients = share_coefficients
+
+        super().__init__()
+
+    def _check_params(self):
+        """Check and validate the parameters of the N-BEATS network."""
+        if self.stacks is None:
+            self.stacks = ["trend", "seasonality"]
+
+    def build_base_graph(self, x):
+        import tensorflow as tf
+
+        self._check_params()
+
+        self.lookback_period = x.shape[1]
+
+        t_ = tf.cast(
+            tf.range(0, self.lookback_period + self.horizon), dtype=tf.float32
+        ) / (self.lookback_period + self.horizon)
+        t_b = t_[: self.lookback_period]
+        t_f = t_[self.lookback_period :]
+
+        for s_idx, stack_type in enumerate(self.stacks):
+            if self.share_weights:
+                d1 = tf.keras.layers.Dense(self.units, activation="relu")
+                d2 = tf.keras.layers.Dense(self.units, activation="relu")
+                d3 = tf.keras.layers.Dense(self.units, activation="relu")
+                d4 = tf.keras.layers.Dense(self.units, activation="relu")
+            for b_idx in range(self.num_blocks_per_stack):
+                if s_idx == 0 and b_idx == 0:
+                    if self.share_weights:
+                        h = d1(x)
+                        h = d2(h)
+                        h = d3(h)
+                        h = d4(h)
+                    else:
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(x)
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
+                    backcast_block, forecast_block = self._get_block_output(
+                        stack_type,
+                        h,
+                        t_b,
+                        t_f,
+                    )
+                    backcast_residual = tf.keras.layers.Subtract()([x, backcast_block])
+                    forecast = forecast_block
+                else:
+                    if self.share_weights:
+                        h = d1(backcast_residual)
+                        h = d2(h)
+                        h = d3(h)
+                        h = d4(h)
+                    else:
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(
+                            backcast_residual
+                        )
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
+                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
+                    backcast_block, forecast_block = self._get_block_output(
+                        stack_type,
+                        h,
+                        t_b,
+                        t_f,
+                    )
+                    backcast_residual = tf.keras.layers.Subtract()(
+                        [backcast_residual, backcast_block]
+                    )
+                    forecast = tf.keras.layers.Add()([forecast, forecast_block])
+        return [backcast_residual, forecast]
+
+    def build_network(
+        self,
+        input_shape,
+        **kwargs,
+    ):
+        """
+        Build the N-BEATS network.
+
+        Parameters
+        ----------
+        input_shape : tuple
+            Shape of the input data (n_timepoints, n_channels).
+        **kwargs : dict
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        tuple
+            (input_layer, output_layer) representing the network.
+        """
+        import tensorflow as tf
+
+        if input_shape[-1] > 1:
+            raise ValueError("NBeats only supports univariate series .")
+
+        input_layer = tf.keras.layers.Input(shape=(input_shape[0],))
+        output_layer = self.build_base_graph(input_layer)
+        return input_layer, output_layer
 
     def _get_trend_matrix(self, p, t_):
         """
@@ -327,90 +426,3 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
             return self._seasonality_block(h, self.num_seasonal_coefficients, t_b, t_f)
         else:
             return self._generic_block(h, self.num_generic_coefficients, t_b, t_f)
-
-    def build_network(
-        self,
-        input_shape,
-        **kwargs,
-    ):
-        """
-        Build the N-BEATS network.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            Shape of the input data (n_timepoints, n_channels).
-        **kwargs : dict
-            Additional keyword arguments (unused).
-
-        Returns
-        -------
-        tuple
-            (input_layer, output_layer) representing the network.
-        """
-        import tensorflow as tf
-
-        if input_shape[-1] > 1:
-            raise ValueError("NBeats only supports univariate series .")
-
-        if self.stacks is None:
-            self.stacks = ["trend", "seasonality"]
-        self.lookback_period = input_shape[0]
-        t_ = tf.cast(
-            tf.range(0, self.lookback_period + self.horizon), dtype=tf.float32
-        ) / (self.lookback_period + self.horizon)
-        t_b = t_[: self.lookback_period]
-        t_f = t_[self.lookback_period :]
-        input_layer = tf.keras.layers.Input(shape=(self.lookback_period,))
-        x = input_layer
-        for s_idx, stack_type in enumerate(self.stacks):
-            if self.share_weights:
-                d1 = tf.keras.layers.Dense(self.units, activation="relu")
-                d2 = tf.keras.layers.Dense(self.units, activation="relu")
-                d3 = tf.keras.layers.Dense(self.units, activation="relu")
-                d4 = tf.keras.layers.Dense(self.units, activation="relu")
-            for b_idx in range(self.num_blocks_per_stack):
-                if s_idx == 0 and b_idx == 0:
-                    if self.share_weights:
-                        h = d1(x)
-                        h = d2(h)
-                        h = d3(h)
-                        h = d4(h)
-                    else:
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(x)
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
-                    backcast_block, forecast_block = self._get_block_output(
-                        stack_type,
-                        h,
-                        t_b,
-                        t_f,
-                    )
-                    backcast_residual = tf.keras.layers.Subtract()([x, backcast_block])
-                    forecast = forecast_block
-                else:
-                    if self.share_weights:
-                        h = d1(backcast_residual)
-                        h = d2(h)
-                        h = d3(h)
-                        h = d4(h)
-                    else:
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(
-                            backcast_residual
-                        )
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
-                        h = tf.keras.layers.Dense(self.units, activation="relu")(h)
-                    backcast_block, forecast_block = self._get_block_output(
-                        stack_type,
-                        h,
-                        t_b,
-                        t_f,
-                    )
-                    backcast_residual = tf.keras.layers.Subtract()(
-                        [backcast_residual, backcast_block]
-                    )
-                    forecast = tf.keras.layers.Add()([forecast, forecast_block])
-        output_layer = [backcast_residual, forecast]
-        return input_layer, output_layer

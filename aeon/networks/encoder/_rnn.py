@@ -76,52 +76,24 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
         super().__init__()
 
-    def build_network(self, input_shape, **kwargs):
-        """Construct a network and return its input and output layers.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer (n_timepoints, n_features)
-        kwargs : dict
-            Additional keyword arguments to be passed to the network
-
-        Returns
-        -------
-        input_layer : a keras layer
-        output_layer : a keras layer
-        """
-        import tensorflow as tf
-
+    def _check_params(self):
         # Validate parameters
         if self.rnn_type not in ["lstm", "gru", "simple"]:
             raise ValueError(
                 f"Unknown RNN type: {self.rnn_type}. Should be 'lstm', 'gru' 'simple'"
             )
 
-        # Process n_units to a list
-        if isinstance(self.n_units, list):
-            if len(self.n_units) != self.n_layers:
-                raise ValueError(
-                    f"Number of units {len(self.n_units)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._n_units = self.n_units
-        else:
-            self._n_units = [self.n_units] * self.n_layers
+        self._n_units = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "units", self.n_units
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, "activations", self.activation
+        )
 
-        # Process activation to a list
-        if isinstance(self.activation, list):
-            if len(self.activation) != self.n_layers:
-                raise ValueError(
-                    f"Number of activations {len(self.activation)} should be"
-                    f" the same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-            self._activation = self.activation
-        else:
-            self._activation = [self.activation] * self.n_layers
+    def build_base_graph(self, x):
+        import tensorflow as tf
+
+        self._check_params()
 
         # Select RNN cell type
         if self.rnn_type == "lstm":
@@ -130,10 +102,6 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             self._rnn_cell = tf.keras.layers.GRU
         else:  # simple
             self._rnn_cell = tf.keras.layers.SimpleRNN
-
-        # Create input layer
-        input_layer = tf.keras.layers.Input(shape=input_shape)
-        x = input_layer
 
         # Build RNN layers
         for i in range(self.n_layers):
@@ -175,5 +143,26 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                         self.dropout_intermediate, name=f"dropout_intermediate_{i+1}"
                     )(x)
 
-        # Return input and output layers
+        return x
+
+    def build_network(self, input_shape, **kwargs):
+        """Construct a network and return its input and output layers.
+
+        Parameters
+        ----------
+        input_shape : tuple
+            The shape of the data fed into the input layer (n_timepoints, n_features)
+        kwargs : dict
+            Additional keyword arguments to be passed to the network
+
+        Returns
+        -------
+        input_layer : a keras layer
+        output_layer : a keras layer
+        """
+        import tensorflow as tf
+
+        input_layer = tf.keras.layers.Input(shape=input_shape)
+        x = self.build_base_graph(input_layer)
+
         return input_layer, x
