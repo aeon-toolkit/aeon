@@ -270,8 +270,6 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             )
             self.x_stds = np.std([np.std(x, axis=-1, keepdims=True) for x in X], axis=0)
 
-
-
     def _f(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
@@ -294,8 +292,6 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         """
         return self._f(X)
 
-
-
     def _fi(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
@@ -316,7 +312,6 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         y : Ignored.
         """
         return self._fi(X)
-
 
 
 class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
@@ -362,9 +357,6 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             self.x_mins = np.min([np.min(x, axis=-1, keepdims=True) for x in X], axis=0)
             self.x_maxs = np.max([np.max(x, axis=-1, keepdims=True) for x in X], axis=0)
 
-
-
-
     def _f(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
@@ -389,9 +381,6 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         """
         return self._f(X)
 
-
-
-
     def _fi(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
@@ -414,7 +403,6 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             Ignored.
         """
         return self._fi(X)
-
 
 
 class GlobalCenterer(BaseGlobalCollectionTransformer):
@@ -460,7 +448,6 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
                 [np.mean(x, axis=-1, keepdims=True) for x in X], axis=0
             )
 
-
     def _f(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
@@ -482,8 +469,6 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
             Ignored.
         """
         return self._f(X)
-
-
 
     def _fi(self, x):
         unequal_length = isinstance(x, list)

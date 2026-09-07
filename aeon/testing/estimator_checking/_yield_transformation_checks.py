@@ -11,6 +11,7 @@ from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
 from aeon.transformations.collection import CollectionInverseTransformerMixin
+from aeon.transformations.collection.base import BaseGlobalCollectionTransformer
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import (
     BaseSeriesTransformer,
@@ -89,7 +90,10 @@ def check_transformer_overrides_and_tags(estimator_class):
     inherits_inverse = (
         issubclass(estimator_class, SeriesInverseTransformerMixin)
         if issubclass(estimator_class, BaseSeriesTransformer)
-        else issubclass(estimator_class, CollectionInverseTransformerMixin)
+        else (
+            issubclass(estimator_class, CollectionInverseTransformerMixin)
+            or issubclass(estimator_class, BaseGlobalCollectionTransformer)
+        )
     )
     if estimator_class.get_class_tag("capability:inverse_transform"):
         assert inherits_inverse
