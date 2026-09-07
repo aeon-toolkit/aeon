@@ -244,8 +244,6 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         self.std = std
         self.x_means = None
         self.x_stds = None
-        self.y_means = None
-        self.y_stds = None
         super().__init__()
 
     def _fit(self, X, y=None):
@@ -258,10 +256,8 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             Collection to fit. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to fit. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+        y : None
+            Ignored.
         """
         unequal_length = isinstance(X, list)
         if not unequal_length:
@@ -273,25 +269,14 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             )
             self.x_stds = np.std([np.std(x, axis=-1, keepdims=True) for x in X], axis=0)
 
-        if y is not None:
-            unequal_length = isinstance(y, list)
-            if not unequal_length:
-                self.y_means = np.mean(y, axis=(0, 2), keepdims=True)
-                self.y_stds = np.std(y, axis=(0, 2), keepdims=True)
-            else:
-                self.y_means = np.mean(
-                    [np.mean(y_i, axis=-1, keepdims=True) for y_i in y], axis=0
-                )
-                self.y_stds = np.std(
-                    [np.std(y_i, axis=-1, keepdims=True) for y_i in y], axis=0
-                )
 
-    def _f(self, x, means, stds):
+
+    def _f(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
-            return [self._f(x_i, means, stds) for x_i in x]
+            return [self._f(x_i) for x_i in x]
         else:
-            return (x - means) / stds * self.std + self.mean
+            return (x - self.x_means) / self.x_stds * self.std + self.mean
 
     def _transform(self, X, y=None):
         """
@@ -303,24 +288,19 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             Collection to transform. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+        y : None
+            Ignored.
         """
-        if y is None:
-            return self._f(X, self.x_means, self.x_stds)
-        else:
-            return self._f(X, self.x_means, self.x_stds), self._f(
-                y, self.y_means, self.y_stds
-            )
+        return self._f(X)
 
-    def _fi(self, x, means, stds):
+
+
+    def _fi(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
-            return [self._fi(x_i, means, stds) for x_i in x]
+            return [self._fi(x_i) for x_i in x]
         else:
-            return (x - self.mean) / self.std * stds + means
+            return (x - self.mean) / self.std * self.x_stds + self.x_means
 
     def _inverse_transform(self, X, y=None):
         """
@@ -332,17 +312,10 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             Collection to inverse transform. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to inverse transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+        y : Ignored.
         """
-        if y is None:
-            return self._fi(X, self.x_means, self.x_stds)
-        else:
-            return self._fi(X, self.x_means, self.x_stds), self._fi(
-                y, self.y_means, self.y_stds
-            )
+        return self._fi(X)
+
 
 
 class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
@@ -363,8 +336,6 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         self.max = max
         self.x_mins = None
         self.x_maxs = None
-        self.y_mins = None
-        self.y_maxs = None
         super().__init__()
 
     def _fit(self, X, y=None):
@@ -377,10 +348,9 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             Collection to fit. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to fit. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+
+        y :  None
+            Ignored.
         """
         unequal_length = isinstance(X, list)
         if not unequal_length:
@@ -390,25 +360,15 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             self.x_mins = np.min([np.min(x, axis=-1, keepdims=True) for x in X], axis=0)
             self.x_maxs = np.max([np.max(x, axis=-1, keepdims=True) for x in X], axis=0)
 
-        if y is not None:
-            unequal_length = isinstance(y, list)
-            if not unequal_length:
-                self.y_mins = np.min(y, axis=(0, 2), keepdims=True)
-                self.y_maxs = np.max(y, axis=(0, 2), keepdims=True)
-            else:
-                self.y_mins = np.min(
-                    [np.min(y_i, axis=-1, keepdims=True) for y_i in y], axis=0
-                )
-                self.y_maxs = np.max(
-                    [np.max(y_i, axis=-1, keepdims=True) for y_i in y], axis=0
-                )
 
-    def _f(self, x, mins, maxs):
+
+
+    def _f(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
-            return [self._f(x_i, mins, maxs) for x_i in x]
+            return [self._f(x_i) for x_i in x]
         else:
-            x = (x - mins) / (maxs - mins)
+            x = (x - self.x_mins) / (self.x_maxs - self.x_mins)
             return x * (self.max - self.min) + self.min
 
     def _transform(self, X, y=None):
@@ -422,25 +382,21 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
 
-        y : np.ndarray or list (optional)
-                    Collection to fit. Either a list of 2D arrays with shape
-                    ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-                    ``(n_cases, n_channels, n_timepoints)``.
+        y :  None
+            Ignored.
         """
-        if y is None:
-            return self._f(X, self.x_mins, self.x_maxs)
-        else:
-            return self._f(X, self.x_mins, self.x_maxs), self._f(
-                y, self.y_mins, self.y_maxs
-            )
+        return self._f(X)
 
-    def _fi(self, x, mins, maxs):
+
+
+
+    def _fi(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
-            return [self._fi(x_i, mins, maxs) for x_i in x]
+            return [self._fi(x_i) for x_i in x]
         else:
             x = (x - self.min) / (self.max - self.min)
-            return x * (maxs - mins) + mins
+            return x * (self.x_maxs - self.x_mins) + self.x_mins
 
     def _inverse_transform(self, X, y=None):
         """
@@ -452,17 +408,11 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             Collection to inverse transform. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-                    Collection to fit. Either a list of 2D arrays with shape
-                    ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-                    ``(n_cases, n_channels, n_timepoints)``.
+        y :  None
+            Ignored.
         """
-        if y is None:
-            return self._fi(X, self.x_mins, self.x_maxs)
-        else:
-            return self._fi(X, self.x_mins, self.x_maxs), self._fi(
-                y, self.y_mins, self.y_maxs
-            )
+        return self._fi(X)
+
 
 
 class GlobalCenterer(BaseGlobalCollectionTransformer):
@@ -483,7 +433,6 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
     def __init__(self, mean=0.0):
         self.mean = mean
         self.x_means = None
-        self.y_means = None
         super().__init__()
 
     def _fit(self, X, y=None):
@@ -496,10 +445,9 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
             Collection to fit. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to fit. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+
+        y :  None
+            Ignored.
         """
         unequal_length = isinstance(X, list)
         if not unequal_length:
@@ -509,21 +457,13 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
                 [np.mean(x, axis=-1, keepdims=True) for x in X], axis=0
             )
 
-        if y is not None:
-            unequal_length = isinstance(y, list)
-            if not unequal_length:
-                self.y_means = np.mean(y, axis=(0, 2), keepdims=True)
-            else:
-                self.y_means = np.mean(
-                    [np.mean(y_i, axis=-1, keepdims=True) for y_i in y], axis=0
-                )
 
-    def _f(self, x, means):
+    def _f(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
-            return [self._f(x_i, means) for x_i in x]
+            return [self._f(x_i) for x_i in x]
         else:
-            return x - means + self.mean
+            return x - self.x_means + self.mean
 
     def _transform(self, X, y=None):
         """
@@ -535,22 +475,19 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
             Collection to transform. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+        y :  None
+            Ignored.
         """
-        if y is None:
-            return self._f(X, self.x_means)
-        else:
-            return self._f(X, self.x_means), self._f(y, self.y_means)
+        return self._f(X)
 
-    def _fi(self, x, means):
+
+
+    def _fi(self, x):
         unequal_length = isinstance(x, list)
         if unequal_length:
-            return [self._fi(x_i, means) for x_i in x]
+            return [self._fi(x_i) for x_i in x]
         else:
-            return x - self.mean + means
+            return x - self.mean + self.x_means
 
     def _inverse_transform(self, X, y=None):
         """
@@ -562,12 +499,7 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
             Collection to inverse transform. Either a list of 2D arrays with shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
-        y : np.ndarray or list (optional)
-            Collection to inverse transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+        y :  None
+            Ignored.
         """
-        if y is None:
-            return self._fi(X, self.x_means)
-        else:
-            return self._fi(X, self.x_means), self._fi(y, self.y_means)
+        return self._fi(X)
