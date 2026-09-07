@@ -237,6 +237,7 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:inverse_transform": True,
     }
 
     def __init__(self, mean=0.0, std=1.0):
@@ -329,6 +330,7 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:inverse_transform": True,
     }
 
     def __init__(self, min: float = 0.0, max: float = 1.0):
@@ -428,6 +430,7 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:inverse_transform": True,
     }
 
     def __init__(self, mean=0.0):
