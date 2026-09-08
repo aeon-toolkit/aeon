@@ -66,26 +66,22 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        default_n_filters = [32 * (i + 1) for i in range(self.n_layers)]
+        default_dilation_rate = [2**i for i in range(self.n_layers)]
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "kernels", self.kernel_size
+            self.n_layers, self.kernel_size, "kernels", default=3
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation, accept_none=True
+            self.n_layers, self.activation, "activations", allow_none=True
         )
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "filters",
-            self.n_filters,
-            default=[32 * i for i in range(1, self.n_layers + 1)],
+            self.n_layers, self.n_filters, "filters", default_n_filters
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "dilation rates",
-            self.dilation_rate,
-            default=[2**layer_num for layer_num in range(1, self.n_layers + 1)],
+            self.n_layers, self.dilation_rate, "dilation rates", default_dilation_rate
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "paddings", self.padding
+            self.n_layers, self.padding, "paddings", default="causal"
         )
 
     def build_base_graph(self, x):

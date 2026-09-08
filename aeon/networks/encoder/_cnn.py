@@ -85,41 +85,43 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        n = self.n_layers
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "kernels", self.kernel_size
+            n, self.kernel_size, "kernels", default=7
         )
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "filters", self.n_filters, default=[6, 12]
+            n, self.n_filters, "filters", default=[6, 12]
         )
         self._avg_pool_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "average pool sizes", self.avg_pool_size
+            n, self.avg_pool_size, "average pool sizes", default=3
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation, accept_none=True
+            n, self.activation, "activations", allow_none=True
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "paddings", self.padding
+            n, self.padding, "paddings", default="valid"
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "strides", self.strides
+            n, self.strides, "strides", default=1
         )
         self._strides_pooling = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "strides for pooling",
-            self.strides_pooling,
-            default=self.avg_pool_size,
+            n, self.strides_pooling, "strides for pooling", self.avg_pool_size
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "dilations", self.dilation_rate
+            n, self.dilation_rate, "dilations", default=1
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "biases", self.use_bias
+            n, self.use_bias, "biases", default=True
         )
 
     def build_base_graph(self, x):
         import tensorflow as tf
 
         self._check_params()
+
+        # TODO : explain why we need to force padding to "same" for short time series
+        if x.shape[1] < 60:
+            self._padding = ["same"] * self.n_layers
 
         for i in range(self.n_layers):
             conv = tf.keras.layers.Conv1D(
@@ -153,10 +155,6 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
         model : a keras Model.
         """
         import tensorflow as tf
-
-        # TODO : explain why we need to force padding to "same" for short time series
-        if input_shape[0] < 60:
-            self._padding = ["same"] * self.n_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
         x = self.build_base_graph(input_layer)

@@ -124,32 +124,30 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        n = self.n_layers
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "filters", self.n_filters
+            n, self.n_filters, "filters", default=64
         )
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "kernels", self.kernel_size, default=[8, 5, 5, 3]
+            n, self.kernel_size, "kernels", default=[8, 5, 5, 3]
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "dilations", self.dilation_rate
+            n, self.dilation_rate, "dilations", default=1
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "strides", self.strides
+            n, self.strides, "strides", default=1
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "paddings", self.padding
+            n, self.padding, "paddings", default="same"
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation, accept_none=True
+            n, self.activation, "activations", allow_none=True
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "biases", self.use_bias
+            n, self.use_bias, "biases", default=True
         )
         self._kernel_initializer = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "kernel initializers", self.kernel_initializer
-        )
-        self._pool_size = BaseDeepLearningNetwork._check_layer_param(
-            1, "pool size", self.pool_size
+            n, self.kernel_initializer, "kernel initializers", default="he_uniform"
         )
 
     def build_base_graph(self, x):

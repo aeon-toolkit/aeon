@@ -45,9 +45,8 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         If None, default to a list of ones.
     activation_encoder : Union[str, List[str]], default="relu"
         Activation function to use in the GRU layers.
-    activation_decoder : Union[str, List[str]], default=None
+    activation_decoder : Union[str, List[str]], default="relu"
         Activation function of the single GRU layer in the decoder.
-        If None, defaults to relu.
     n_units_encoder : List[int], default="None"
         Number of units in each GRU layer of the encoder, by default None.
         If None, default to [100, 50, 50].
@@ -70,7 +69,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         dilation_rate_encoder=None,
         dilation_rate_decoder=1,
         activation_encoder="relu",
-        activation_decoder=None,
+        activation_decoder="relu",
         n_units_encoder=None,
         n_units_decoder=None,
     ):
@@ -89,37 +88,39 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
 
     def _check_params(self):
         self._dilation_rate_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_encoder,
-            "dilation rate for encoder",
-            self.dilation_rate_encoder,
-            default=[2**layer_num for layer_num in range(1, self.n_layers_encoder + 1)],
+            depth=self.n_layers_encoder,
+            param=self.dilation_rate_encoder,
+            param_name="dilation rate for encoder",
+            default=[2**l for l in range(1, self.n_layers_encoder + 1)],
         )
         self._dilation_rate_decoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_decoder,
-            "dilation rate for decoder",
-            self.dilation_rate_decoder,
+            depth=self.n_layers_decoder,
+            param=self.dilation_rate_decoder,
+            param_name="dilation rate for decoder",
+            default=1,
         )
         self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_encoder,
-            "activation for encoder",
-            self.activation_encoder,
+            depth=self.n_layers_encoder,
+            param=self.activation_encoder,
+            param_name="activation for encoder",
+            allow_none=True,
         )
         self._activation_decoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_decoder,
-            "activation for decoder",
-            self.activation_decoder,
-            default=["relu" for _ in range(self.n_layers_decoder)],
+            depth=self.n_layers_decoder,
+            param=self.activation_decoder,
+            param_name="activation for decoder",
+            allow_none=True,
         )
         self._n_units_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_encoder,
-            "number of units for encoder",
-            self.n_units_encoder,
+            depth=self.n_layers_encoder,
+            param=self.n_units_encoder,
+            param_name="units for encoder",
             default=[100] + [50 for _ in range(self.n_layers_encoder - 1)],
         )
         self._n_units_decoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_decoder,
-            "number of units for decoder",
-            self.n_units_decoder,
+            depth=self.n_layers_decoder,
+            param=self.n_units_decoder,
+            param_name="units for decoder",
             default=[
                 sum(self._n_units_encoder) * 2 for _ in range(self.n_layers_decoder)
             ],

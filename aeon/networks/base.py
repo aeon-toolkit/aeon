@@ -32,37 +32,42 @@ class BaseDeepLearningNetwork(ABC):
 
     @staticmethod
     def _check_layer_param(
-        n_layer: int,
-        param_name: str,
+        depth: int,
         param: list | int | float | str,
+        param_name: str,
         default=None,
-        accept_none: bool = False,
-        depth_label: str = None,
+        allow_none: bool = False,
+        same_as: str = None,
     ):
         """
         Check and convert a network parameter to a list of length n_layers.
 
         Parameters
         ----------
-        n_layer : int
-            The number of layers in the network (generally self.n_layers).
+        depth : int
+            The depth of the network (generally self.n_layers).
         param_name : str
             The name of the parameter to check (used for error messages).
         param : list | int | float | str
             The parameter to check. Can be a list or a single value of any type.
         default : list | int | float | str,
             The default value to use if the parameter is None.
-        accept_none: bool = False
+        allow_none: bool = False
             Whether to accept None as a valid value.
-        depth_label: str = None
+        same_as: str = None
             The label to use to indicate "the depth" in error messages.
             eg. "number of layers" or "number of blocks".
         """
-        depth_label = "number of layers" if depth_label is None else depth_label
+        same_as = "number of layers" if same_as is None else same_as
+
+        if (default is None) and (not allow_none):
+            raise ValueError(
+                f"Add default value for parameter {param_name} or set allow_none=True."
+            )
 
         if param is None:
-            if accept_none:
-                return [None] * n_layer
+            if allow_none:
+                return [None] * depth
             if default is None:
                 raise ValueError(
                     f"Parameter {param_name} is None, but no default value is provided."
@@ -70,15 +75,15 @@ class BaseDeepLearningNetwork(ABC):
             param = default
 
         if isinstance(param, list):
-            if len(param) != n_layer:
+            if len(param) != depth:
                 raise ValueError(
                     f"Number of {param_name} {len(param)} should be"
-                    f" the same as {depth_label} but is"
-                    f" not: {n_layer}"
+                    f" the same as {same_as} but is"
+                    f" not: {depth}"
                 )
             return param
         else:
-            return [param] * n_layer
+            return [param] * depth
 
     @abstractmethod
     def _check_params(self):

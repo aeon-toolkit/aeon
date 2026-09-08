@@ -77,17 +77,16 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
-        # Validate parameters
         if self.rnn_type not in ["lstm", "gru", "simple"]:
             raise ValueError(
                 f"Unknown RNN type: {self.rnn_type}. Should be 'lstm', 'gru' 'simple'"
             )
 
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "units", self.n_units
+            self.n_layers, self.n_units, "units", default=64
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation
+            self.n_layers, self.activation, "activations", allow_none=True
         )
 
     def build_base_graph(self, x):

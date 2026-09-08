@@ -138,42 +138,38 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        n = self.depth
+        n_conv = self.n_conv_per_layer
+        use_max_pool = self.use_max_pooling
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "filters", self.n_filters, depth_label="depth"
+            n, self.n_filters, "filters", default=32, same_as="depth"
         )
         self._n_conv_per_layer = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "convolution layers", self.n_conv_per_layer, depth_label="depth"
+            n, n_conv, "conv per layers", default=3, same_as="depth"
         )
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "kernels", self.kernel_size, depth_label="depth"
+            n, self.kernel_size, "kernels", default=40, same_as="depth"
         )
         self._use_max_pooling = BaseDeepLearningNetwork._check_layer_param(
-            self.depth,
-            "max pooling conditions",
-            self.use_max_pooling,
-            depth_label="depth",
+            n, use_max_pool, "use max pooling", default=True, same_as="depth"
         )
         self._max_pool_size = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "max pooling sizes", self.max_pool_size, depth_label="depth"
+            n, self.max_pool_size, "max pooling", default=3, same_as="depth"
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "strides", self.strides, depth_label="depth"
+            n, self.strides, "strides", default=1, same_as="depth"
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "dilations", self.dilation_rate, depth_label="depth"
+            n, self.dilation_rate, "dilations", default=1, same_as="depth"
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "paddings", self.padding, depth_label="depth"
+            n, self.padding, "paddings", default="same", same_as="depth"
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.depth,
-            "activations",
-            self.activation,
-            depth_label="depth",
-            accept_none=True,
+            n, self.activation, "activations", allow_none=True, same_as="depth"
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.depth, "biases", self.use_bias, depth_label="depth"
+            n, self.use_bias, "biases", default=False, same_as="depth"
         )
 
     def build_base_graph(self, x):

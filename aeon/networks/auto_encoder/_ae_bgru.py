@@ -46,17 +46,19 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
         self.temporal_latent_space = temporal_latent_space
 
     def _check_params(self):
-        if self.n_layers is None:
+        self._n_layers = self.n_layers
+        if self._n_layers is None:
             self._n_layers = 2
 
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
-            self._n_layers, "number of units", self.n_units
+            self._n_layers, self.n_units, "units", 50
         )
-        self._n_units[-1] = self.latent_space_dim // 2
-
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self._n_layers, "activations", self.activation, accept_none=True
+            self._n_layers, self.activation, "activations", allow_none=True
         )
+
+        # last layer unit always equals to half of the latent space dimension
+        self._n_units[-1] = self.latent_space_dim // 2
 
     def build_base_graph(self, x):
         self._check_params()

@@ -71,25 +71,25 @@ class FCNNetwork(BaseDeepLearningNetwork):
 
     def _check_params(self):
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "filters", self.n_filters, default=[128, 256, 128]
+            self.n_layers, self.n_filters, "filters", default=[128, 256, 128]
         )
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "kernels", self.kernel_size, default=[8, 5, 3]
+            self.n_layers, self.kernel_size, "kernels", default=[8, 5, 3]
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "dilations", self.dilation_rate
+            self.n_layers, self.dilation_rate, "dilations", default=1
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "strides", self.strides
+            self.n_layers, self.strides, "strides", default=1
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "paddings", self.padding
+            self.n_layers, self.padding, "paddings", default="same"
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation, accept_none=True
+            self.n_layers, self.activation, "activations", allow_none=True
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "biases", self.use_bias
+            self.n_layers, self.use_bias, "biases", default=True
         )
 
     def build_base_graph(self, x):

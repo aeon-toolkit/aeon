@@ -88,32 +88,27 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        n = self.n_layers
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "number of filters",
-            self.n_filters,
-            default=[128, 256, 128],
+            n, self.n_filters, "filters", default=[128, 256, 128]
         )
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "kernel size",
-            self.kernel_size,
-            default=[8, 5, 3],
+            n, self.kernel_size, "kernel size", default=[8, 5, 3]
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "dilation rate", self.dilation_rate
+            n, self.dilation_rate, "dilation rate", default=1
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "strides", self.strides
+            n, self.strides, "strides", default=1
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "padding", self.padding
+            n, self.padding, "padding", default="same"
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation, accept_none=True
+            n, self.activation, "activations", allow_none=True
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "use bias", self.use_bias
+            n, self.use_bias, "use bias", default=True
         )
 
     def build_base_graph(self, x):

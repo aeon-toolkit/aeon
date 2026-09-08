@@ -102,49 +102,30 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        n_conv = self.n_conv_per_residual_block
+        n_res = self.n_residual_blocks
+        res = "number of residual blocks"
+        conv = "number of convolution layers per residual block"
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
-            self.n_residual_blocks,
-            "number of filters",
-            self.n_filters,
-            default=[64, 128, 128],
-            depth_label="number of residual blocks",
+            n_res, self.n_filters, "filters", default=[64, 128, 128], same_as=res
         )
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            self.n_conv_per_residual_block,
-            "kernels",
-            self.kernel_size,
-            default=[8, 5, 3],
-            depth_label="number of convolution layers per residual block",
+            n_conv, self.kernel_size, "kernels", default=[8, 5, 3], same_as=conv
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
-            self.n_conv_per_residual_block,
-            "strides",
-            self.strides,
-            depth_label="number of convolution layers per residual block",
+            n_conv, self.strides, "strides", default=1, same_as=conv
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_conv_per_residual_block,
-            "dilations",
-            self.dilation_rate,
-            depth_label="number of convolution layers per residual block",
+            n_conv, self.dilation_rate, "dilations", default=1, same_as=conv
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            self.n_conv_per_residual_block,
-            "paddings",
-            self.padding,
-            depth_label="number of convolution layers per residual block",
+            n_conv, self.padding, "paddings", default="same", same_as=conv
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_conv_per_residual_block,
-            "activations",
-            self.activation,
-            depth_label="number of convolution layers per residual block",
+            n_conv, self.activation, "activations", allow_none=True, same_as=conv
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.n_conv_per_residual_block,
-            "biases",
-            self.use_bias,
-            depth_label="number of convolution layers per residual block",
+            n_conv, self.use_bias, "biases", default=True, same_as=conv
         )
 
     def build_base_graph(self, x):

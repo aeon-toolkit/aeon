@@ -82,33 +82,26 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         self.padding_decoder = padding_decoder
 
     def _check_params(self):
+        default_n_filters = [32 * i for i in range(1, self.n_layers + 1)]
+        default_dilation_rate = [2**l for l in range(1, self.n_layers + 1)]
+
         self._kernel_size_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "kernel size", self.kernel_size
+            self.n_layers, self.kernel_size, "kernel size", default=3
         )
         self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activations", self.activation, accept_none=True
+            self.n_layers, self.activation, "activations", allow_none=True
         )
         self._n_filters_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "number of filters",
-            self.n_filters,
-            default=[32 * i for i in range(1, self.n_layers + 1)],
+            self.n_layers, self.n_filters, "filters", default_n_filters
         )
         self._dilation_rate_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "dilation rate",
-            self.dilation_rate,
-            default=[2**layer_num for layer_num in range(1, self.n_layers + 1)],
+            self.n_layers, self.dilation_rate, "dilation rate", default_dilation_rate
         )
         self._padding_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "padding for encoder",
-            self.padding_encoder,
+            self.n_layers, self.padding_encoder, "padding for encoder", default="same"
         )
         self._padding_decoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "padding for decoder",
-            self.padding_decoder,
+            self.n_layers, self.padding_decoder, "padding for decoder", default="same"
         )
 
     def build_base_graph(self, x):

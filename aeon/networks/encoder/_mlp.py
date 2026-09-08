@@ -66,22 +66,20 @@ class MLPNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        default_dropout = [0.1] + [0.2] * (self.n_layers - 1)
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "units", self.n_units
+            self.n_layers, self.n_units, "units", default=500
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "activation", self.activation
+            self.n_layers, self.activation, "activation", allow_none=True
         )
         self._dropout_rate = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers,
-            "dropout rate",
-            self.dropout_rate,
-            default=[0.1] + [0.2] * (self.n_layers - 1),
+            self.n_layers, self.dropout_rate, "dropout rate", default_dropout
         )
         self._use_bias = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, "use bias", self.use_bias
+            self.n_layers, self.use_bias, "use bias", default=True
         )
-        self._dropout_last = self.dropout_last
+        self._dropout_last = self.dropout_last if self.dropout_last is not None else 0.3
 
     def build_base_graph(self, x):
         import tensorflow as tf

@@ -61,15 +61,13 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
+        nb_e = self.n_layers_encoder
+        nb_d = self.n_layers_decoder
         self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_encoder,
-            "encoder activations",
-            self.activation_encoder,
+            nb_e, self.activation_encoder, "activation_encoder", allow_none=True
         )
         self._activation_decoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers_decoder,
-            "decoder activations",
-            self.activation_decoder,
+            nb_d, self.activation_decoder, "activation_decoder", allow_none=True
         )
 
     def build_base_graph(self, x):
