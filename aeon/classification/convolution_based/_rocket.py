@@ -8,13 +8,12 @@ __all__ = ["RocketClassifier"]
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
-from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based import Rocket
-from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation import check_lapack_svd_safe, check_n_jobs
 
 
 class RocketClassifier(BaseClassifier):
@@ -139,23 +138,28 @@ class RocketClassifier(BaseClassifier):
             random_state=self.random_state,
         )
         self._scaler = StandardScaler(with_mean=False)
+
+        _using_default_estimator = self.estimator is None
+
         self.estimator_ = _clone_estimator(
             (
                 RidgeClassifierCV(
                     alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
                 )
-                if self.estimator is None
+                if _using_default_estimator
                 else self.estimator
             ),
             self.random_state,
         )
 
-        self.pipeline_ = make_pipeline(
-            self._transformer,
-            self._scaler,
-            self.estimator_,
-        )
-        self.pipeline_.fit(X, y)
+        X_t = self._transformer.fit_transform(X)
+        X_t = self._scaler.fit_transform(X_t)
+
+        if _using_default_estimator:
+            n_samples, n_features = X_t.shape
+            check_lapack_svd_safe(n_samples, n_features, "RocketClassifier")
+
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -172,7 +176,10 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases,)
             Predicted class labels.
         """
-        return self.pipeline_.predict(X)
+        X_t = self._transformer.transform(X)
+        X_t = self._scaler.transform(X_t)
+
+        return self.estimator_.predict(X_t)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -187,12 +194,15 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
+        X_t = self._transformer.transform(X)
+        X_t = self._scaler.transform(X_t)
+
         m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self.pipeline_.predict_proba(X)
+            return self.estimator_.predict_proba(X_t)
         else:
             dists = np.zeros((len(X), self.n_classes_))
-            preds = self.pipeline_.predict(X)
+            preds = self.estimator_.predict(X_t)
             for i in range(0, len(X)):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
