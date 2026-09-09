@@ -90,13 +90,13 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         self._dilation_rate_encoder = BaseDeepLearningNetwork._check_layer_param(
             depth=self.n_layers_encoder,
             param=self.dilation_rate_encoder,
-            param_name="dilation rate for encoder",
+            param_name="dilation rates for encoder",
             default=[2**l for l in range(1, self.n_layers_encoder + 1)],
         )
         self._dilation_rate_decoder = BaseDeepLearningNetwork._check_layer_param(
             depth=self.n_layers_decoder,
             param=self.dilation_rate_decoder,
-            param_name="dilation rate for decoder",
+            param_name="dilation rates for decoder",
             default=1,
         )
         self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(

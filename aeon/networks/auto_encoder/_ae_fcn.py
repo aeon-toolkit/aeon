@@ -93,16 +93,16 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
             n, self.n_filters, "filters", default=[128, 256, 128]
         )
         self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
-            n, self.kernel_size, "kernel size", default=[8, 5, 3]
+            n, self.kernel_size, "kernels", default=[8, 5, 3]
         )
         self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
-            n, self.dilation_rate, "dilation rate", default=1
+            n, self.dilation_rate, "dilation rates", default=1
         )
         self._strides = BaseDeepLearningNetwork._check_layer_param(
             n, self.strides, "strides", default=1
         )
         self._padding = BaseDeepLearningNetwork._check_layer_param(
-            n, self.padding, "padding", default="same"
+            n, self.padding, "paddings", default="same"
         )
         self._activation = BaseDeepLearningNetwork._check_layer_param(
             n, self.activation, "activations", allow_none=True

@@ -77,9 +77,8 @@ class BaseDeepLearningNetwork(ABC):
         if isinstance(param, list):
             if len(param) != depth:
                 raise ValueError(
-                    f"Number of {param_name} {len(param)} should be"
-                    f" the same as {same_as} but is"
-                    f" not: {depth}"
+                    f"Number of {param_name} ({len(param)}) should be"
+                    f" the same as {same_as} ({depth})."
                 )
             return param
         else:

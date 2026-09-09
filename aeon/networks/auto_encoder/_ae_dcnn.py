@@ -94,8 +94,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         self._n_filters_encoder = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.n_filters, "filters", default_n_filters
         )
-        self._dilation_rate_encoder = BaseDeepLearningNetwork._check_layer_param(
-            self.n_layers, self.dilation_rate, "dilation rate", default_dilation_rate
+        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.dilation_rate, "dilation rates", default_dilation_rate
         )
         self._padding_encoder = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.padding_encoder, "padding for encoder", default="same"
@@ -126,9 +126,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         x = input_layer
         x = self.build_base_graph(x)
 
-        if self.dilation_rate == 1 or np.all(
-            np.array(self._dilation_rate_encoder) == 1
-        ):
+        if self.dilation_rate == 1 or np.all(np.array(self._dilation_rate) == 1):
             warnings.warn(
                 """Currently, the dilation rate has been set to `1` which is
             different from the original paper of the `AEDCNNNetwork` due to CPU
@@ -140,7 +138,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 stacklevel=2,
             )
 
-        if np.any(np.array(self._dilation_rate_encoder) > 1):
+        if np.any(np.array(self._dilation_rate) > 1):
             warnings.warn(
                 """Current network configuration contains `dilation_rate`
                 more than 1, which is not supported by
@@ -154,7 +152,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             x = self._dcnn_layer(
                 x,
                 self._n_filters_encoder[i],
-                self._dilation_rate_encoder[i],
+                self._dilation_rate[i],
                 _activation=self._activation_encoder[i],
                 _kernel_size=self._kernel_size_encoder[i],
                 _padding_encoder=self._padding_encoder[i],
@@ -197,7 +195,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             y = self._dcnn_layer_decoder(
                 y,
                 self._n_filters_encoder[::-1][i],
-                self._dilation_rate_encoder[::-1][i],
+                self._dilation_rate[::-1][i],
                 _activation=self._activation_encoder[::-1][i],
                 _kernel_size=self._kernel_size_encoder[::-1][i],
                 _padding_decoder=self._padding_decoder[i],
