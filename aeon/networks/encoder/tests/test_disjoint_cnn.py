@@ -20,3 +20,17 @@ def test_disjoint_cnn_netowkr_kernel_initializer():
 
     assert len(output_layer.shape) == 2
     assert len(input_layer.shape) == 3
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+def test_disjoint_cnn_final_projection_receives_final_filter_count():
+    """Final block is not permuted before pooling."""
+    import tensorflow as tf
+
+    network = DisjointCNNNetwork(n_layers=2, n_filters=[4, 8], kernel_size=[3, 3])
+    inputs, outputs = network.build_network((12, 3))
+    model = tf.keras.Model(inputs, outputs)
+    assert model.layers[-1].input.shape[-1] == 8
