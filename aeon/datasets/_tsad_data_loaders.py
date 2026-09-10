@@ -18,6 +18,7 @@ from urllib.request import urlopen
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 import aeon
 from aeon.datasets.tsad_datasets import _load_indexfile, tsad_datasets
@@ -312,15 +313,31 @@ def load_kdd_tsad_135(
     return X, y
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_daphnet_s06r02e0 and the Daphnet_S06R02E0 dataset are deprecated and "
+    "will be removed in v1.7.0. The shipped S06R02E0 excerpt contains no labelled "
+    "freeze-of-gait episodes, so it cannot be used to evaluate an anomaly detector, "
+    "and it is unused elsewhere in aeon. Use load_anomaly_detection to download a "
+    "labelled TimeEval collection instead.",
+    category=FutureWarning,
+)
 def load_daphnet_s06r02e0() -> tuple[np.ndarray, np.ndarray]:
     """Load the Daphnet S06R02E0 multivariate time series dataset.
+
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. The shipped excerpt contains no
+        labelled anomalies; use ``load_anomaly_detection`` to download a labelled
+        TimeEval collection instead.
 
     Returns
     -------
     X : np.ndarray
-        Multivariate time series with shape (28800,9).
+        Multivariate time series with shape (7040,9).
     y : np.ndarray
-        Binary anomaly labels with shape (28800,).
+        Binary anomaly labels with shape (7040,). All labels are 0 in this excerpt,
+        as it contains no freeze-of-gait episodes.
 
     Examples
     --------
@@ -357,6 +374,15 @@ def load_daphnet_s06r02e0() -> tuple[np.ndarray, np.ndarray]:
     return X, y
 
 
+# TODO: remove in v1.7.0
+@deprecated(
+    version="1.6.0",
+    reason="load_ecg_diff_count_3 and the ecg-diff-count-3 dataset are deprecated and "
+    "will be removed in v1.7.0. They are unused elsewhere in aeon, and the three "
+    "shipped CSV files account for almost all of the datasets/data/UnitTest "
+    "directory. Use load_anomaly_detection to download a TimeEval collection instead.",
+    category=FutureWarning,
+)
 def load_ecg_diff_count_3(
     learning_type: Literal[
         "unsupervised", "semi-supervised", "supervised"
@@ -370,6 +396,10 @@ def load_ecg_diff_count_3(
     The dataset contains three different kind of anomalies. The dataset was generated
     using `GutenTAG <https://github.com/TimeEval/gutentag>`_ [1]
 
+    .. deprecated:: 1.6.0
+        Deprecated and will be removed in v1.7.0. Use ``load_anomaly_detection`` to
+        download a TimeEval collection instead.
+
     Parameters
     ----------
     learning_type : str, default = "unsupervised"
@@ -382,11 +412,11 @@ def load_ecg_diff_count_3(
     Returns
     -------
     X_test : np.ndarray
-        Multivariate test time series with shape (10000,2).
+        Univariate test time series with shape (10000,).
     y_test : np.ndarray
         Binary anomaly labels for the test time series with shape (10000,).
     X_train : np.ndarray, optional
-        Multivariate train time series with shape (10000,2). Omitted if
+        Univariate train time series with shape (10000,). Omitted if
         ``learning_type`` is "unsupervised".
     y_train : np.ndarray, optional
         Binary anomaly labels for the train time series with shape (10000,). Omitted if

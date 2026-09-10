@@ -41,6 +41,11 @@ class QUANTRegressor(BaseRegressor):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
+    Attributes
+    ----------
+    estimator_ : sklearn estimator
+        The fitted sklearn regressor used to predict from the QUANT-transformed data.
+
     See Also
     --------
     QUANTTransformer
@@ -92,7 +97,7 @@ class QUANTRegressor(BaseRegressor):
             quantile_divisor=self.quantile_divisor,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 ExtraTreesRegressor(
                     n_estimators=200,
@@ -106,9 +111,9 @@ class QUANTRegressor(BaseRegressor):
         )
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
     def _predict(self, X):
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))

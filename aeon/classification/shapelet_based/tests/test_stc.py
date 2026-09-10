@@ -41,3 +41,25 @@ def test_predict_proba_unequal_length_list():
     clf.fit(X, y)
     proba = clf.predict_proba(X[:2])
     assert proba.shape == (2, clf.n_classes_)
+
+
+def test_stc_attribute_lifecycle():
+    """Test estimator_, transformer_ attributes are created only on fit."""
+    import numpy as np
+
+    from aeon.classification.shapelet_based import ShapeletTransformClassifier
+
+    X = np.random.randn(10, 1, 20)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+
+    clf = ShapeletTransformClassifier(n_shapelet_samples=5, max_shapelets=2)
+    assert not hasattr(clf, "estimator_")
+    assert not hasattr(clf, "transformer_")
+    assert not hasattr(clf, "_estimator_")
+    assert not hasattr(clf, "_transformer")
+
+    clf.fit(X, y)
+    assert hasattr(clf, "estimator_")
+    assert hasattr(clf, "transformer_")
+    assert not hasattr(clf, "_estimator")
+    assert not hasattr(clf, "_transformer")

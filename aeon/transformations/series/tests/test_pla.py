@@ -234,6 +234,8 @@ def test_piecewise_linear_approximation_wrong_parameters(X):
         PLASeriesTransformer("max_error").fit_transform(X)
     with pytest.raises(ValueError):
         PLASeriesTransformer(100, "swab", "buffer_size").fit_transform(X)
+    with pytest.raises(ValueError, match="string"):
+        PLASeriesTransformer(100, 12345).fit_transform(X)
 
 
 def test_piecewise_linear_approximation_one_segment(X):

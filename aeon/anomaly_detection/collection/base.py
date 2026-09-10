@@ -59,7 +59,7 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         super().__init__()
 
     @final
-    @method_timer("fit_time_millis_")
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y=None):
         """Fit collection anomaly detector to training data.
 

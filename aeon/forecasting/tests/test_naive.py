@@ -61,6 +61,48 @@ def test_naive_forecaster_seasonal_last_strategy():
     np.testing.assert_array_equal(pred, expected)
 
 
+def test_naive_forecaster_drift_strategy():
+    """Test 'drift' extrapolates the first-to-last trend line.
+
+    For a perfectly linear series the drift forecast lies exactly on the line, so
+    the h-step-ahead value is the last observation plus h times the constant slope.
+    """
+    slope = 2.0
+    y = np.arange(2, 12, 2, dtype=float)  # [2, 4, 6, 8, 10], slope 2 per step
+    last = y[-1]
+
+    for horizon in (1, 3, 5):
+        f = NaiveForecaster(strategy="drift", horizon=horizon)
+        np.testing.assert_allclose(f.forecast(y), last + horizon * slope)
+
+
+def test_naive_forecaster_drift_direct_matches_iterative():
+    """Drift gives the same next-N line via direct and iterative forecasting.
+
+    Appending an on-line prediction leaves the first-to-last slope unchanged, so
+    the recursive (iterative) forecast must reproduce the direct straight-line
+    extrapolation. Uses the default horizon=1 required by iterative forecasting.
+    """
+    slope = 3.0
+    y = np.arange(0, 15, 3, dtype=float)  # [0, 3, 6, 9, 12], slope 3 per step
+    n_ahead = 4
+    f = NaiveForecaster(strategy="drift")
+
+    direct = f.direct_forecast(y, n_ahead)
+    iterative = f.iterative_forecast(y, n_ahead)
+
+    np.testing.assert_allclose(direct, iterative)
+    expected = y[-1] + slope * np.arange(1, n_ahead + 1)
+    np.testing.assert_allclose(iterative, expected)
+
+
+def test_naive_forecaster_drift_requires_two_observations():
+    """Drift cannot estimate a trend from a single point and must raise."""
+    f = NaiveForecaster(strategy="drift")
+    with pytest.raises(ValueError, match="at least two observations"):
+        f.forecast(np.array([5.0]))
+
+
 def test_predict():
     """Test different input for private predict."""
     forecaster = NaiveForecaster(strategy="mean")

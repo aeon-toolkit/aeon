@@ -62,7 +62,7 @@ def test_output_dimensions(num_intervals, corr_n_timepoints):
 
 
 def test_slope_performs_correcly_along_each_dim():
-    """Check that Slope produces the same result along each dimension."""
+    """Check that Slope produces the same result along each channel."""
     X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5], [4, 6, 10, 12, 8, 6, 5, 5]]])
     s = SlopeTransformer(n_intervals=2).fit(X)
     res = s.transform(X)

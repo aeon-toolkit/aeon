@@ -22,12 +22,12 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout main
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           sparse-checkout: .github/utilities
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -43,7 +43,7 @@ jobs:
 
       - if: ${{ steps.label_out.outputs.expected_results == 'true' || steps.label_out.outputs.empty_commit == 'true' }}
         name: Checkout head
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ steps.label_out.outputs.repo }}
           ref: ${{ steps.label_out.outputs.branch }}

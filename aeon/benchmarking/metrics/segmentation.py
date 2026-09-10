@@ -23,9 +23,9 @@ def count_error(
     Parameters
     ----------
     true_change_points: array_like
-        Integer indexes (positions) of true change points
+        Integer indices (positions) of true change points
     pred_change_points: array_like
-        Integer indexes (positions) of predicted change points
+        Integer indices (positions) of predicted change points
 
     Returns
     -------
@@ -52,9 +52,9 @@ def hausdorff_error(
     Parameters
     ----------
     true_change_points: array_like
-        Integer indexes (positions) of true change points
+        Integer indices (positions) of true change points
     pred_change_points: array_like
-        Integer indexes (positions) of predicted change points
+        Integer indices (positions) of predicted change points
     symmetric: bool
         If ``True`` symmetric Hausdorff distance will be used
     seed: int, default=0
@@ -85,9 +85,9 @@ def prediction_ratio(
     Parameters
     ----------
     true_change_points: array_like
-        Integer indexes (positions) of true change points
+        Integer indices (positions) of true change points
     pred_change_points: array_like
-        Integer indexes (positions) of predicted change points
+        Integer indices (positions) of predicted change points
 
     Returns
     -------

@@ -18,3 +18,16 @@ def test_predict_proba():
     assert p.shape == (10, 2)
     p = clf._predict(X)
     assert p.shape == (10,)
+
+
+def test_rdst_estimator_attribute_lifecycle():
+    """Test that estimator_ is only set after fitting, not before."""
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20)
+    model = RDSTClassifier(max_shapelets=5)
+
+    assert not hasattr(model, "estimator_")
+
+    model.fit(X, y)
+
+    assert hasattr(model, "estimator_")
+    assert not hasattr(model, "_estimator")

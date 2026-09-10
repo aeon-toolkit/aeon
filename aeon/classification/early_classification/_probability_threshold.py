@@ -65,7 +65,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The full length of each series.
     classes_ : list
@@ -76,6 +76,8 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         the results of previous method calls.
         Records in order: the time stamp index, the number of consecutive decisions
         made, the predicted class and the series length.
+    estimators_ : list of BaseEstimator
+        The fitted estimators for each time stamp.
 
     Examples
     --------
@@ -117,7 +119,6 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._estimators = []
         self._classification_points = []
 
         self.n_cases_ = 0
@@ -162,7 +163,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         rng = check_random_state(self.random_state)
 
-        self._estimators = Parallel(n_jobs=threads, prefer="threads")(
+        self.estimators_ = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
@@ -367,7 +368,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return estimator
 
     def _predict_proba_for_estimator(self, X, i, rng):
-        probas = self._estimators[i].predict_proba(
+        probas = self.estimators_[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )
         preds = np.array(

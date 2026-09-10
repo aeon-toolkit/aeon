@@ -72,6 +72,8 @@ class HIVECOTEV1(_BaseHIVECOTE):
         The weight for RISE probabilities.
     cboss_weight_ : float
         The weight for cBOSS probabilities.
+    fitted_estimators_ : list of BaseClassifier
+        The fitted estimators for the ensemble.
 
     See Also
     --------

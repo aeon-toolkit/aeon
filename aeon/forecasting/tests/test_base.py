@@ -245,6 +245,44 @@ def test_iterative_forecast_rejects_scalar_y():
         f.iterative_forecast(np.array(1.0), prediction_horizon=1)
 
 
+@pytest.mark.parametrize(
+    "forecaster",
+    [
+        RegressionForecaster(window=4, horizon=3),
+        NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=2),
+    ],
+)
+def test_iterative_forecast_requires_unit_horizon(forecaster):
+    """iterative_forecast rejects a forecaster configured with horizon > 1.
+
+    Iterative forecasting recursively feeds each prediction back as the next
+    observation, which is only defined when the base forecaster predicts one step
+    ahead. A horizon greater than 1 must raise rather than silently produce an
+    ill-defined multi-step sequence.
+    """
+    y = np.arange(1, 31, dtype=float)
+    with pytest.raises(ValueError, match="iterative_forecast requires"):
+        forecaster.iterative_forecast(y, prediction_horizon=5)
+
+
+def test_iterative_matches_direct_for_seasonal_naive():
+    """Seasonal-naive gives the same next-N forecast via direct and iterative.
+
+    Both strategies must reproduce the model's repeated last season. This pins the
+    recursion phase: iterative feeds one-step predictions back and must walk the
+    season forward in step with direct, which refits per horizon.
+    """
+    seasonal_period = 3
+    y = np.arange(1, 13, dtype=float)  # last season is [10, 11, 12]
+    f = NaiveForecaster(strategy="seasonal_last", seasonal_period=seasonal_period)
+    horizon_steps = 2 * seasonal_period
+    direct = f.direct_forecast(y, horizon_steps)
+    iterative = f.iterative_forecast(y, horizon_steps)
+    np.testing.assert_array_equal(direct, iterative)
+    expected = np.tile(y[-seasonal_period:], horizon_steps // seasonal_period)
+    np.testing.assert_array_equal(iterative, expected)
+
+
 def test_output_equivalence():
     """Test output same for one ahead forecast."""
     y = np.random.rand(50)

@@ -54,6 +54,13 @@ class QUANTClassifier(BaseClassifier):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
+    Attributes
+    ----------
+    estimator_ : BaseEstimator
+        The fitted estimator for the classifier.
+    transformer_ : QUANTTransformer
+        The fitted transformer for the classifier.
+
     See Also
     --------
     QUANTTransformer
@@ -116,12 +123,12 @@ class QUANTClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self._transformer = QUANTTransformer(
+        self.transformer_ = QUANTTransformer(
             interval_depth=self.interval_depth,
             quantile_divisor=self.quantile_divisor,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 ExtraTreesClassifier(
                     n_estimators=200,
@@ -136,8 +143,8 @@ class QUANTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -154,7 +161,7 @@ class QUANTClassifier(BaseClassifier):
         y : array-like of shape (n_cases)
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X):
         """Predicts labels probabilities for sequences in X.
@@ -169,12 +176,12 @@ class QUANTClassifier(BaseClassifier):
         y : array-like of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

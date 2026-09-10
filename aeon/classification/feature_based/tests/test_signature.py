@@ -9,8 +9,8 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("esig", severity="none"),
-    reason="skip test if required soft dependency esig not available",
+    not _check_soft_dependencies("roughpy", severity="none"),
+    reason="skip test if required soft dependency roughpy not available",
 )
 def test_signature_classifier():
     """Test the SignatureClassifier."""
@@ -21,8 +21,8 @@ def test_signature_classifier():
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("esig", severity="none"),
-    reason="skip test if required soft dependency esig not available",
+    not _check_soft_dependencies("roughpy", severity="none"),
+    reason="skip test if required soft dependency roughpy not available",
 )
 @pytest.mark.parametrize("class_weight", ["balanced", "balanced_subsample"])
 def test_signature_classifier_with_class_weight(class_weight):

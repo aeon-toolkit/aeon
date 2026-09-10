@@ -120,7 +120,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
         return X
 
-    @method_timer("fit_time_millis_")
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(
         self,
         X: np.ndarray,

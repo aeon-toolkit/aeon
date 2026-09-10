@@ -91,7 +91,7 @@ class _GGS:
     Attributes
     ----------
     change_points_: array_like, default=[]
-        Locations of change points as integer indexes. By convention change points
+        Locations of change points as integer indices. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
     _intermediate_change_points: List[List[int]], default=[]
         Intermediate values of change points for each value of k = 1...k_max
@@ -166,7 +166,7 @@ class _GGS:
             2D `array_like` representing time series with sequence index along
             the first dimension and value series as columns.
         change_points: list of ints
-            Locations of change points as integer indexes. By convention change points
+            Locations of change points as integer indices. By convention change points
             include the identity segmentation, i.e. first and last index + 1 values.
 
         Returns
@@ -259,7 +259,7 @@ class _GGS:
             2D `array_like` representing time series with sequence index along
             the first dimension and value series as columns.
         change_points: list of ints
-            Locations of change points as integer indexes. By convention change points
+            Locations of change points as integer indices. By convention change points
             include the identity segmentation, i.e. first and last index + 1 values.
         new_index: list of ints
             New change points
@@ -267,7 +267,7 @@ class _GGS:
         Returns
         -------
         change_points: list of ints
-            Locations of change points as integer indexes. By convention change points
+            Locations of change points as integer indices. By convention change points
             include the identity segmentation, i.e. first and last index + 1 values.
         """
         rng = check_random_state(self.random_state)
@@ -412,7 +412,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     Attributes
     ----------
     change_points_: array_like, default=[]
-        Locations of change points as integer indexes. By convention change points
+        Locations of change points as integer indices. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
     _intermediate_change_points: List[List[int]], default=[]
         Intermediate values of change points for each value of k = 1...k_max

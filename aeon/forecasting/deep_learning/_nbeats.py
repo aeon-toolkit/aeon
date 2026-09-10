@@ -170,7 +170,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         Parameters
         ----------
         input_shape : tuple
-            ``(window, 1)`` — channel dim satisfies NBeatsNetwork's guard.
+            ``(window, 1)`` — the channel axis satisfies NBeatsNetwork's guard.
 
         Returns
         -------

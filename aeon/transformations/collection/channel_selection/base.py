@@ -1,7 +1,7 @@
 """Base channel selection transformer.
 
 Extends BaseCollectionTransformer and implements _transform to return
-selected indexes.
+selected indices.
 """
 
 __maintainer__ = ["TonyBagnall"]

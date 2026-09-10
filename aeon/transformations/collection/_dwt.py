@@ -56,7 +56,7 @@ class DWTTransformer(BaseCollectionTransformer):
         _X = np.swapaxes(_X, 0, 1)
         self._check_parameters()
 
-        # On each dimension, perform PAA
+        # On each channel, perform PAA
         channels = []
         for i in range(n_channels):
             channels.append(self._extract_wavelet_coefficients(_X[i]))

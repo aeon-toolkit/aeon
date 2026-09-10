@@ -99,6 +99,12 @@ class AEDCNNClusterer(BaseDeepClusterer):
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
+    Attributes
+    ----------
+    estimator_ : BaseClusterer
+        The fitted clustering estimator used to assign cluster labels
+        from the model's latent space representation.
+
     References
     ----------
     .. [1] Franceschi et. al, Unsupervised scalable representation
@@ -351,7 +357,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self.is_fitted = True
 
         # use deep copy to preserve fit state
-        self._estimator = deepcopy(estimator)
+        self.estimator_ = deepcopy(estimator)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

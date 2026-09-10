@@ -1,6 +1,6 @@
 """Channel Selection techniques for Multivariate Time Series Classification.
 
-A transformer that selects a subset of channels/dimensions for time series
+A transformer that selects a subset of channels for time series
 classification using a scoring system with an elbow point method.
 """
 
@@ -35,7 +35,7 @@ def _detect_knee_point(values: list[float], indices: list[int]) -> list[int]:
     knee = values[knee_idx]
     best_dims = [idx for (elem, idx) in zip(values, indices) if elem > knee]
     if len(best_dims) == 0:
-        # return all dimensions if no elbow point is found
+        # return all channels if no elbow point is found
         return indices
     return best_dims
 
@@ -220,7 +220,7 @@ class ElbowClassSum(BaseChannelSelector):
     distance between the class centroids by aggregating the distance for every
     class pair across each channel.
 
-    Note: Channels, variables, dimensions, features are used interchangeably in
+    Note: Channels, variables and features are used interchangeably in
     literature. E.g., channel selection = variable selection.
 
     Parameters
@@ -329,7 +329,7 @@ class ElbowClassPairwise(BaseChannelSelector):
     selects the subset of channels using the elbow method that maximizes the
     distance between each pair of class centroids across all channels.
 
-    Note: Channels, variables, dimensions, features are used interchangeably in
+    Note: Channels, variables and features are used interchangeably in
     literature.
 
     Parameters

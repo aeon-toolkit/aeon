@@ -44,7 +44,7 @@ def test_deep_clusterer_load_model(cls):
         params["file_path"] = tmp + "/"
         model = cls(**params)
         model.fit(X)
-        trained_estimator = model._estimator
+        trained_estimator = model.estimator_
         saved = list(Path(tmp).glob("*.keras"))
         assert saved, f"No .keras file saved for {cls.__name__}"
         model_path = str(saved[0])

@@ -266,7 +266,7 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases (n), n_dimensions (d), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (d), n_timepoints (m))
             The training input samples.
 
         Returns

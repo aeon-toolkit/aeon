@@ -96,7 +96,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        # Apply padding in sequence dimension
+        # Apply padding in the sequence axis
         padded_x = tf.keras.layers.ZeroPadding1D(padding=padding_value)(input_tensor)
 
         # Create and apply convolution layer
@@ -150,7 +150,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         Each temporal block consists of:
         1. Two dilated causal convolutions
         2. ReLU activations and dropout for regularization
-        3. Residual connection with optional 1x1 convolution for dimension
+        3. Residual connection with optional 1x1 convolution for channel
            matching
 
         Parameters
@@ -197,7 +197,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         out = tf.keras.layers.ReLU()(out)
         out = tf.keras.layers.Dropout(dropout)(out, training=training)
 
-        # Residual connection with optional dimension matching
+        # Residual connection with optional channel matching
         if n_inputs != n_filters:
             res = self._conv1d_with_variable_padding(
                 input_tensor=input_tensor,

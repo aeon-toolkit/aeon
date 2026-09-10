@@ -20,6 +20,8 @@ DEEPEQUALS_ITEMS = [
     3.5,
     4.2,
     np.nan,
+    "foo",
+    "bar",
     pd.Series([1, 2], ["a", "b"]),
     pd.DataFrame({"a": [4, 2]}),
     pd.DataFrame({"a": [4, 3]}),
