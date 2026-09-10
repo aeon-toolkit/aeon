@@ -3021,6 +3021,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "johannfaouzi",
+      "name": "Johann Faouzi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17053934?v=4",
+      "profile": "https://github.com/johannfaouzi",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "natsu0529",
+      "name": "Natsuhiro Suzuki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/145430110?v=4",
+      "profile": "https://suzukioff.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
