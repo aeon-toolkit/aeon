@@ -267,6 +267,82 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         return self._transform(X, y)
 
 
+class BaseGlobalCollectionTransformer(BaseCollectionTransformer):
+    """Base class for scalers that operate on collections of time series."""
+
+    @final
+    def inverse_transform(self, X, y=None):
+        """Inverse transform X and return an inverse transformed version.
+
+        State required:
+            Requires state to be "fitted".
+
+        Accesses in self:
+        _is_fitted : must be True
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Data to fit inverse transform to, of valid collection type. Input data,
+            any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array ``(
+            n_channels, n_timepoints_i)``, where ``n_timepoints_i``is length of series
+            ``i``. Other types are allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If ``self.get_tag("capability:multivariate")`` is
+            False, they cannot handle multivariate series. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability to handle.
+
+        y : np.ndarray, default=None
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
+            (ground truth) for fitting indices corresponding to instance indices in X.
+            If None, no labels are used in fitting.
+
+        Returns
+        -------
+        inverse transformed version of X
+        """
+        fit_empty = self.get_tag("fit_is_empty")
+        if not fit_empty:
+            self._check_is_fitted()
+
+        # input checks and datatype conversion
+        X = self._preprocess_collection(X, store_metadata=False)
+        if y is not None:
+            self._check_y(y, n_cases=get_n_cases(X))
+
+        if not fit_empty:
+            self._check_shape(X)
+
+        Xt = self._inverse_transform(X, y)
+        return Xt
+
+    @abstractmethod
+    def _inverse_transform(self, X, y=None):
+        """
+        Inverse transform X and return an inverse transformed version.
+
+        private _inverse_transform containing the core logic,
+        called from inverse_transform
+
+        Parameters
+        ----------
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
+
+        Returns
+        -------
+        inverse transformed version of X
+        """
+        ...
+
+
 class CollectionInverseTransformerMixin(InverseTransformerMixin):
     """Mixin for transformers that support inverse transformation."""
 
