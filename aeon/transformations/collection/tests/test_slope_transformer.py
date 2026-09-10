@@ -5,6 +5,7 @@ import math
 import numpy as np
 import pytest
 
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import SlopeTransformer
 
 
@@ -75,3 +76,23 @@ def test_slope_performs_correcly_along_each_dim():
         ]
     )
     np.testing.assert_array_almost_equal(res, orig, decimal=5)
+
+
+@pytest.mark.parametrize(
+    "dtype",
+    ["int32", "int64", "float32", "float64"],
+)
+def test_slope_preserves_float_precision(dtype):
+    """Check that Slope preserved float32 and promotes proper dtype output."""
+    X = make_example_3d_numpy(
+        n_cases=2,
+        n_channels=1,
+        n_timepoints=8,
+        return_y=False,
+        random_state=0,
+    ).astype(dtype)
+
+    Xt = SlopeTransformer(n_intervals=2).fit_transform(X)
+
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
+    assert Xt.dtype == expected_dtype

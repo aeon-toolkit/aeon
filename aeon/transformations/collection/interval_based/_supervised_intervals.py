@@ -241,6 +241,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
         return self
 
     def _transform(self, X, y=None):
+        X = X / 1
+
         transform = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
@@ -251,13 +253,18 @@ class SupervisedIntervals(BaseCollectionTransformer):
             for i in range(len(self.intervals_))
         )
 
-        Xt = np.zeros((X.shape[0], len(transform)))
+        Xt = np.zeros(
+            (X.shape[0], len(transform)),
+            dtype=X.dtype,
+        )
         for i, t in enumerate(transform):
             Xt[:, i] = t
 
         return Xt
 
     def _fit_setup(self, X, y):
+        X = X / 1
+
         self.intervals_ = []
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
@@ -356,7 +363,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     def _generate_intervals(self, X, X_norm, y, seed, keep_transform):
         rng = check_random_state(seed)
 
-        Xt = np.empty((self.n_cases_, 0)) if keep_transform else None
+        Xt = np.empty((self.n_cases_, 0), dtype=X.dtype) if keep_transform else None
         intervals = []
 
         for i in range(self.n_channels_):
@@ -406,14 +413,16 @@ class SupervisedIntervals(BaseCollectionTransformer):
 
     def _transform_intervals(self, X, idx):
         if not self._transform_features[idx]:
-            return np.zeros(X.shape[0])
+            return np.zeros(X.shape[0], dtype=X.dtype)
 
         start, end, dim, feature = self.intervals_[idx]
 
         if isinstance(feature, BaseTransformer):
-            return feature.transform(X[:, dim, start:end]).flatten()
+            Xt = feature.transform(X[:, dim, start:end]).flatten()
         else:
-            return feature(X[:, dim, start:end])
+            Xt = feature(X[:, dim, start:end])
+
+        return np.asarray(Xt, dtype=X.dtype)
 
     def _supervised_search(
         self,
@@ -428,7 +437,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         feature_is_transformer,
     ):
         intervals = []
-        Xt = np.empty((X.shape[0], 0)) if keep_transform else None
+        Xt = np.empty((X.shape[0], 0), dtype=X.dtype) if keep_transform else None
 
         while X.shape[1] >= self._min_interval_length * 2:
             if (
@@ -451,6 +460,9 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 interval_feature_0 = feature(sub_interval_0)
                 interval_feature_1 = feature(sub_interval_1)
 
+            interval_feature_0 = np.asarray(interval_feature_0, dtype=X.dtype)
+            interval_feature_1 = np.asarray(interval_feature_1, dtype=X.dtype)
+
             score_0 = self._metric(interval_feature_0, y)
             score_1 = self._metric(interval_feature_1, y)
 
@@ -470,6 +482,11 @@ class SupervisedIntervals(BaseCollectionTransformer):
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
                     else:
                         interval_feature_to_use = interval_feature_0
+
+                    interval_feature_to_use = np.asarray(
+                        interval_feature_to_use,
+                        dtype=X.dtype,
+                    )
 
                     Xt = np.hstack(
                         (
@@ -497,6 +514,11 @@ class SupervisedIntervals(BaseCollectionTransformer):
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
                     else:
                         interval_feature_to_use = interval_feature_1
+
+                    interval_feature_to_use = np.asarray(
+                        interval_feature_to_use,
+                        dtype=X.dtype,
+                    )
 
                     Xt = np.hstack(
                         (
