@@ -57,6 +57,27 @@ def test_k_spectral_centroid_multivariate():
     assert np.array_equal(preds, expected_labels)
 
 
+def test_k_spectral_centroid_float32_fit_and_predict():
+    """The public float32 clusterer path remains compatible with shift-scale code."""
+    data = make_example_3d_numpy(8, 1, 12, return_y=False, random_state=42).astype(
+        np.float32
+    )
+    clusterer = KSpectralCentroid(
+        n_clusters=2,
+        init="first",
+        n_init=1,
+        max_iter=3,
+        random_state=42,
+    )
+
+    labels = clusterer.fit_predict(data)
+    predictions = clusterer.predict(data)
+
+    assert labels.shape == (data.shape[0],)
+    assert predictions.shape == (data.shape[0],)
+    assert np.array_equal(labels, predictions)
+
+
 def test_k_spectral_centroid_with_max_shift():
     """Test KSpectralCentroid with different max_shift."""
     data, y_train = load_gunpoint(split="train")

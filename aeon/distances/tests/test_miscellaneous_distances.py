@@ -1,6 +1,7 @@
 """Test the miscellaneous distance functions."""
 
 import numpy as np
+import pytest
 from numpy.ma.testutils import assert_almost_equal
 
 from aeon.distances import (
@@ -35,3 +36,14 @@ def test_shift_scale_invariant_distance():
     assert univariate_shift[1].shape == (10,)
     assert isinstance(multivariate_shift[1], np.ndarray)
     assert multivariate_shift[1].shape == (3, 10)
+
+
+def test_shift_scale_invariant_distance_preserves_float_dtype_padding():
+    """Float32 and float64 shifts remain aligned."""
+    x32 = np.array([1, 2, 3], dtype=np.float32)
+    y32 = np.array([2, 3, 0], dtype=np.float32)
+    assert shift_scale_invariant_distance(x32, y32, max_shift=1) == pytest.approx(
+        shift_scale_invariant_distance(
+            x32.astype(np.float64), y32.astype(np.float64), max_shift=1
+        )
+    )
