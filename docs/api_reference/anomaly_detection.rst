@@ -45,6 +45,7 @@ Distance-based
     KMeansAD
     LeftSTAMPi
     LOF
+    MADRID
     MERLIN
     STOMP
     ROCKAD
