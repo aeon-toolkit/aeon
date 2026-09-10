@@ -87,6 +87,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
         _check_estimator_deps(self)
 
+    # Attributes that are not aeon hyperparameters or fitted state, but are
+    # temporarily attached to the estimator by *external* libraries (e.g.
+    # scikit-learn's callback context introduced in scikit-learn 1.9) while
+    # it is being fitted as part of a larger meta-estimator. These must
+    # survive ``reset()`` calls that happen during fitting, otherwise the
+    # external library fails when it later tries to clean up its own state.
+    _externally_owned_attrs = ("_parent_callback_ctx",)
+
     def reset(self, keep=None):
         """
         Reset the object to a clean post-init state.
@@ -99,6 +107,8 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             removes any object attributes, except:
                 hyper-parameters (arguments of ``__init__``)
                 object attributes containing double-underscores, i.e., the string "__"
+                attributes temporarily owned by external libraries (e.g.
+                scikit-learn's callback context)
             runs ``__init__`` with current values of hyperparameters (result of
             ``get_params``)
 
@@ -106,6 +116,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             object attributes containing double-underscores
             class and object methods, class attributes
             any attributes specified in the ``keep`` argument
+            attributes temporarily owned by external libraries
 
         Parameters
         ----------
@@ -131,6 +142,9 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         attrs = [attr for attr in dir(self) if "__" not in attr]
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs)
+
+        # never remove attributes temporarily owned by external libraries
+        self_attrs.difference_update(self._externally_owned_attrs)
 
         # keep specific attributes if set
         if keep is not None:
