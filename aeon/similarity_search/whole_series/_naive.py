@@ -33,7 +33,9 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
     normalize : bool, default=False
         Whether the series should be z-normalized before distance computation.
         This results in scale-independent matching, useful when you want to find
-        similar shapes regardless of their amplitude.
+        similar shapes regardless of their amplitude. Read at fit time: ``X_`` is
+        stored on the scale it selects, so setting it on a fitted estimator has no
+        effect until that estimator is refitted.
     distance : str or callable, default="squared"
         Distance measure between series. A list of valid strings can be found
         in the documentation for :func:`aeon.distances.get_distance_function` or
@@ -130,12 +132,8 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         self
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-        if self.normalize:
-            # Replace the raw collection (``self.X_``, set by the base ``fit``) with
-            # its z-normalized version, which is what search reads: this avoids
-            # holding both copies. ``z_normalise_series_3d`` is serial numba, so no
-            # thread management is needed here (parallelism is handled by
-            # ``pairwise_distance`` in ``compute_distance_profile``).
+        self._normalize = self.normalize
+        if self._normalize:
             self.X_ = z_normalise_series_3d(X)
         # normalize=False: keep the raw collection stored by the base ``fit`` as-is.
         return self
@@ -186,8 +184,7 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         if X_index is not None:
             if X_index < 0 or X_index >= self.n_cases_:
                 raise ValueError(
-                    f"X_index must be between 0 and {self.n_cases_ - 1}, "
-                    f"got {X_index}"
+                    f"X_index must be between 0 and {self.n_cases_ - 1}, got {X_index}"
                 )
             dist_profile[X_index] = np.inf
 
@@ -222,7 +219,7 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
             Distance from X to each series in the fitted collection, according to
             the ``distance`` parameter.
         """
-        if self.normalize:
+        if self._normalize:
             X = z_normalise_series_2d(X)
 
         # The query is passed as a (1, n_channels, n_timepoints) collection: a 2D

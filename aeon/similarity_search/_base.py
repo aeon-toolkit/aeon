@@ -33,6 +33,28 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
     Attributes
     ----------
+    X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        The collection the estimator searches. ``fit`` sets it to the preprocessed
+        input; an estimator that searches a *transformed* view of that collection
+        replaces it in ``_fit`` with the transformed version, so that ``X_`` is
+        always on the scale its distances are computed on. The whole series
+        estimators store the z-normalized collection when ``normalize=True``,
+        keeping a single copy rather than the raw and normalized ones both;
+        subsequence estimators leave it raw, since they z-normalize per subsequence
+        rather than per series. Whichever an estimator stores, ``predict`` brings
+        the query to the same scale before comparing.
+
+        The scale is decided by the value ``normalize`` had at ``fit`` time, which
+        estimators freeze as ``self._normalize`` and read from there afterwards.
+        Setting ``normalize`` on a fitted estimator therefore changes nothing until
+        it is refitted, instead of comparing a query against a collection that is
+        no longer on its scale.
+    n_cases_ : int
+        Number of time series in the fitted collection.
+    n_channels_ : int
+        Number of channels in the fitted time series.
+    n_timepoints_ : int
+        Number of timepoints in each fitted time series.
     fit_time_millis_ : float
         The wall-clock time taken by ``fit``, in milliseconds. Set automatically
         by the ``@method_timer`` decorator on ``fit`` after the estimator is fitted.
@@ -67,7 +89,9 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         No-op hook on the base class. Subclasses (e.g. subsequence searches whose
         parameters depend on the fitted series length) may override this to validate
         their parameters against ``n_timepoints_``. It is called by ``fit`` after
-        ``n_timepoints_``/``n_cases_`` are set and before ``_fit``.
+        ``n_timepoints_``/``n_cases_`` are set, and before ``X_`` is stored and
+        ``_fit`` runs, so that a parameter error leaves nothing behind on the
+        estimator. Validate parameters here rather than in ``_fit`` for that reason.
         """
         pass
 
@@ -146,8 +170,10 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         self.n_cases_ = self.metadata_["n_cases"]
         # X_inner_type is numpy3D, so X is always an equal-length 3D ndarray here.
         self.n_timepoints_ = X.shape[2]
-        self.X_ = X
+        # Validate before storing: an invalid parameter must not leave the whole
+        # collection referenced by an estimator that then failed to fit.
         self._validate_fit_params()
+        self.X_ = X
         self._fit(X, y=y)
         self.is_fitted = True
         return self
