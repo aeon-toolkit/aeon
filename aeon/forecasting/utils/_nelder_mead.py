@@ -3,7 +3,7 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
+from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit, _sarima_fit
 
 
 @njit(cache=True)
@@ -12,6 +12,8 @@ def dispatch_loss(fn_id, params, data, model):
         value = _arima_fit(params, data, model)
     elif fn_id == 1:
         value = _ets_fit(params, data, model)[0]
+    elif fn_id == 2:
+        value = _sarima_fit(params, data, model)
     else:
         raise ValueError("Unknown loss function ID")
     if np.isnan(value) or np.isinf(value):
