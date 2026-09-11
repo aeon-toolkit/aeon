@@ -38,7 +38,7 @@ if os.environ.get("CACHING_CICD_RUNNING") == "1":  # pragma: no cover
 
         for temp in files:
             if temp.endswith(".py"):
-                clean_files.append((temp.split("/")[-1]).strip(".py"))
+                clean_files.append(temp.split("/")[-1].removesuffix(".py"))
 
         return clean_files
 
