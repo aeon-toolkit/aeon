@@ -3039,6 +3039,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "JayeshSuryavanshi",
+      "name": "Jayesh Suryavanshi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43677505?v=4",
+      "profile": "https://jayeshsuryavanshi.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
