@@ -6,6 +6,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.interval_based import QUANTTransformer
+from aeon.utils.sklearn import _resolve_balanced_class_weight
 
 
 class QUANTClassifier(BaseClassifier):
@@ -128,23 +129,25 @@ class QUANTClassifier(BaseClassifier):
             quantile_divisor=self.quantile_divisor,
         )
 
-        self.estimator_ = _clone_estimator(
-            (
-                ExtraTreesClassifier(
-                    n_estimators=200,
-                    max_features=0.1,
-                    criterion="entropy",
-                    class_weight=self.class_weight,
-                    random_state=self.random_state,
-                )
-                if self.estimator is None
-                else self.estimator
-            ),
-            self.random_state,
-        )
+        if self.estimator is None:
+            class_weight, fit_kwargs = _resolve_balanced_class_weight(
+                self.class_weight, y
+            )
+            estimator = ExtraTreesClassifier(
+                n_estimators=200,
+                max_features=0.1,
+                criterion="entropy",
+                class_weight=class_weight,
+                random_state=self.random_state,
+            )
+        else:
+            fit_kwargs = {}
+            estimator = self.estimator
+
+        self.estimator_ = _clone_estimator(estimator, self.random_state)
 
         X_t = self.transformer_.fit_transform(X, y)
-        self.estimator_.fit(X_t, y)
+        self.estimator_.fit(X_t, y, **fit_kwargs)
 
         return self
 

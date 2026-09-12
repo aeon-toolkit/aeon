@@ -15,6 +15,7 @@ from aeon.transformations.collection.feature_based._catch22 import (
     _InternalCatch22,
     _warn_use_pycatch22_deprecated,
 )
+from aeon.utils.sklearn import _resolve_balanced_class_weight
 from aeon.utils.validation import check_n_jobs
 
 
@@ -201,21 +202,25 @@ class Catch22Classifier(BaseClassifier):
             parallel_backend=self.parallel_backend,
         )
 
-        self.estimator_ = _clone_estimator(
-            (
-                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
-                if self.estimator is None
-                else self.estimator
-            ),
-            self.random_state,
-        )
+        if self.estimator is None:
+            class_weight, fit_kwargs = _resolve_balanced_class_weight(
+                self.class_weight, y
+            )
+            estimator = RandomForestClassifier(
+                n_estimators=200, class_weight=class_weight
+            )
+        else:
+            fit_kwargs = {}
+            estimator = self.estimator
+
+        self.estimator_ = _clone_estimator(estimator, self.random_state)
 
         m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
             self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self.estimator_.fit(X_t, y)
+        self.estimator_.fit(X_t, y, **fit_kwargs)
 
         return self
 

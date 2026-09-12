@@ -13,7 +13,7 @@ def test_predict_proba():
     """Test predict_proba when classifier has no predict_proba method."""
     X = make_example_3d_numpy(return_y=False, n_cases=10)
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-    stc = ShapeletTransformClassifier(estimator=SVC(probability=False))
+    stc = ShapeletTransformClassifier(estimator=SVC())
     stc.fit(X, y)
     probas = stc._predict_proba(X)
     assert np.all(

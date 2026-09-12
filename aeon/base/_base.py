@@ -106,6 +106,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             object attributes containing double-underscores
             class and object methods, class attributes
             any attributes specified in the ``keep`` argument
+            temporary callback context attached by scikit-learn
 
         Parameters
         ----------
@@ -131,6 +132,9 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         attrs = [attr for attr in dir(self) if "__" not in attr]
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs)
+
+        # scikit-learn 1.9+ owns this temporary attribute and removes it after fit.
+        self_attrs.discard("_parent_callback_ctx")
 
         # keep specific attributes if set
         if keep is not None:
