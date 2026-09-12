@@ -44,6 +44,7 @@ class _TSFresh(BaseCollectionTransformer):
         "capability:multithreading": True,
         "capability:unequal_length": True,
         "fit_is_empty": True,
+        "non_deterministic": True,
         "python_dependencies": "tsfresh",
     }
 

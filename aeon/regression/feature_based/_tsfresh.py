@@ -69,6 +69,7 @@ class TSFreshRegressor(BaseRegressor):
         "capability:multithreading": True,
         "capability:unequal_length": True,
         "algorithm_type": "feature",
+        "non_deterministic": True,
         "python_dependencies": "tsfresh",
     }
 
