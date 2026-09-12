@@ -126,6 +126,10 @@ class BaseRotationForest(BaseEstimator):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     References
     ----------
@@ -146,6 +150,7 @@ class BaseRotationForest(BaseEstimator):
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
+        verbose: int = 0,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -157,6 +162,7 @@ class BaseRotationForest(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.verbose = verbose
 
         super().__init__()
 
@@ -200,8 +206,23 @@ class BaseRotationForest(BaseEstimator):
                 return self
 
         time_limit = self.time_limit_in_minutes * 60
-        start_time = time.time()
+        start_time = time.perf_counter()
         train_time = 0
+
+        log_each_estimator = self.verbose >= 2
+        log_progress = self.verbose == 1
+        if self.verbose > 0:
+            if time_limit > 0:
+                fit_limit = (
+                    f"time_limit={self._format_duration(time_limit)}, "
+                    f"max_n_estimators={self.contract_max_n_estimators}"
+                )
+            else:
+                fit_limit = f"n_estimators={self.n_estimators}"
+            self._log(
+                f"[RotF] Starting fit: n_cases={self.n_cases_}, "
+                f"n_attributes={self.n_atts_}, {fit_limit}, n_jobs={self._n_jobs}"
+            )
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -235,6 +256,10 @@ class BaseRotationForest(BaseEstimator):
         rng = check_random_state(self.random_state)
 
         if time_limit > 0:
+            if log_progress:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
+
             self._n_estimators = 0
             self.estimators_ = []
             self._pcas = []
@@ -268,29 +293,131 @@ class BaseRotationForest(BaseEstimator):
                 X_t += transformed_data
 
                 self._n_estimators += self._n_jobs
-                train_time = time.time() - start_time
+                train_time = time.perf_counter() - start_time
+
+                if log_each_estimator:
+                    contract_remaining = self._format_duration(
+                        max(0.0, time_limit - train_time)
+                    )
+                    first_estimator = self._n_estimators - len(fit) + 1
+                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
+                        self._log(
+                            f"[RotF] Estimator {estimator_idx}: "
+                            f"elapsed={train_time:.2f}s, "
+                            f"contract_remaining={contract_remaining}"
+                        )
+                elif log_progress and train_time >= next_progress:
+                    self._log(
+                        f"[RotF] Progress: built={self._n_estimators}, "
+                        f"elapsed={train_time:.2f}s"
+                    )
+                    next_progress = train_time + progress_interval
         else:
             self._n_estimators = self.n_estimators
 
-            fit = _run_jobs(
-                (
-                    delayed(self._fit_estimator)(
-                        X,
-                        X_cls_split,
-                        y,
-                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                        save_transformed_data,
+            if self.verbose > 0:
+                # fit in batches so progress can be reported between them; the
+                # random seeds are still drawn in the same order as the single
+                # call below, so the fitted ensemble is identical
+                estimator_start_time = time.perf_counter()
+                if log_each_estimator:
+                    batch_size = self._n_jobs
+                else:
+                    batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
+
+                fit = []
+                for batch_start in range(0, self._n_estimators, batch_size):
+                    current_batch_size = min(
+                        batch_size, self._n_estimators - batch_start
                     )
-                    for _ in range(self._n_estimators)
-                ),
-                self._n_jobs,
-                prefer="threads",
-            )
+                    batch_fit = _run_jobs(
+                        (
+                            delayed(self._fit_estimator)(
+                                X,
+                                X_cls_split,
+                                y,
+                                check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                                save_transformed_data,
+                            )
+                            for _ in range(current_batch_size)
+                        ),
+                        self._n_jobs,
+                        prefer="threads",
+                    )
+                    fit.extend(batch_fit)
+
+                    built = len(fit)
+                    estimator_elapsed = time.perf_counter() - estimator_start_time
+                    if log_each_estimator:
+                        if built == 1:
+                            time_estimate = "estimated_remaining=estimating"
+                        else:
+                            estimated_remaining = (estimator_elapsed / built) * (
+                                self._n_estimators - built
+                            )
+                            time_estimate = (
+                                "estimated_remaining="
+                                f"{self._format_duration(estimated_remaining)}"
+                            )
+                        elapsed = time.perf_counter() - start_time
+                        for estimator_idx in range(
+                            batch_start + 1, batch_start + current_batch_size + 1
+                        ):
+                            self._log(
+                                f"[RotF] Estimator "
+                                f"{estimator_idx}/{self._n_estimators}: "
+                                f"elapsed={elapsed:.2f}s, {time_estimate}"
+                            )
+                    else:
+                        self._log(
+                            f"[RotF] Progress: built={built}/{self._n_estimators}, "
+                            f"elapsed={time.perf_counter() - start_time:.2f}s"
+                        )
+            else:
+                fit = _run_jobs(
+                    (
+                        delayed(self._fit_estimator)(
+                            X,
+                            X_cls_split,
+                            y,
+                            check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                            save_transformed_data,
+                        )
+                        for _ in range(self._n_estimators)
+                    ),
+                    self._n_jobs,
+                    prefer="threads",
+                )
 
             self.estimators_, self._pcas, self._groups, X_t = zip(*fit)
 
         self._is_fitted = True
+        if self.verbose > 0:
+            self._log(
+                f"[RotF] Finished fit: built={len(self.estimators_)}, "
+                f"elapsed={time.perf_counter() - start_time:.2f}s"
+            )
         return X_t
+
+    @staticmethod
+    def _log(message):
+        """Print a fit progress message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_estimator(
         self,

@@ -7,6 +7,8 @@ transform has its own tests in test_tde_sfa.py.
 """
 
 import pickle
+import re
+import warnings
 
 import numpy as np
 import pytest
@@ -237,3 +239,157 @@ def test_subsampling_in_highly_imbalanced_datasets():
     tde.fit(X, y_sc)
 
     assert tde.is_fitted
+
+
+def test_tde_predict_multithreading_equivalence():
+    """Test that n_jobs > 1 predictions match single threaded ones.
+
+    Prediction is parallelised over ensemble members (and over test case
+    chunks in IndividualTDE); results are gathered in order, so the outputs
+    must be identical for any n_jobs.
+    """
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
+
+    def ensemble(n_jobs):
+        return TemporalDictionaryEnsemble(
+            n_parameter_samples=4,
+            max_ensemble_size=3,
+            randomly_selected_params=2,
+            random_state=0,
+            n_jobs=n_jobs,
+        )
+
+    st = ensemble(1).fit(X, y)
+    mt = ensemble(2).fit(X, y)
+    np.testing.assert_array_equal(st.predict_proba(X), mt.predict_proba(X))
+
+    Xm, ym = make_example_3d_numpy(n_cases=16, n_channels=3, n_timepoints=40)
+    it_st = IndividualTDE(window_size=12, random_state=0, n_jobs=1).fit(Xm, ym)
+    it_mt = IndividualTDE(window_size=12, random_state=0, n_jobs=3).fit(Xm, ym)
+    np.testing.assert_array_equal(it_st.predict(Xm), it_mt.predict(Xm))
+
+
+@pytest.mark.parametrize(
+    ("verbose", "expected_output", "excluded_output"),
+    [
+        (1, "[TDE] Progress: evaluated=", "[TDE] Candidate 1:"),
+        (2, "[TDE] Candidate 1:", "[TDE] Progress: evaluated="),
+    ],
+)
+def test_tde_fit_verbosity_levels(verbose, expected_output, excluded_output, capsys):
+    """TDE verbosity controls whether fit output is periodic or per candidate."""
+    n_cases = 20
+    n_timepoints = 24
+    n_parameter_samples = 4
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    tde = TemporalDictionaryEnsemble(
+        n_parameter_samples=n_parameter_samples,
+        max_ensemble_size=1,
+        randomly_selected_params=3,
+        random_state=0,
+        verbose=verbose,
+    )
+
+    tde.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"[TDE] Starting fit: n_cases={n_cases}" in output
+    assert expected_output in output
+    assert excluded_output not in output
+    assert f"[TDE] Finished fit: evaluated={n_parameter_samples}" in output
+    if verbose == 2:
+        assert "estimated_remaining=" in output
+        for status in ("retained", "replaced", "discarded"):
+            assert f"status={status}" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "remaining_time_pattern"),
+    [
+        (1, r"contract_remaining=\d+\.\d+s"),
+        (2, r"contract_remaining=\d+m \d+s"),
+        (120, r"contract_remaining=\d+h \d+m"),
+    ],
+)
+def test_tde_contract_verbosity_reports_remaining_time(
+    time_limit_in_minutes, remaining_time_pattern, capsys
+):
+    """TDE level-two output reports the remaining fit contract."""
+    n_cases = 20
+    n_timepoints = 24
+    max_parameter_samples = 2
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    tde = TemporalDictionaryEnsemble(
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_parameter_samples=max_parameter_samples,
+        max_ensemble_size=1,
+        randomly_selected_params=1,
+        random_state=0,
+        verbose=2,
+    )
+
+    tde.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert re.search(remaining_time_pattern, output)
+    assert "estimated_remaining=" not in output
+    assert f"[TDE] Finished fit: evaluated={max_parameter_samples}" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "expect_progress"),
+    [(1e-12, True), (120, False)],
+)
+def test_tde_contract_level_one_progress_is_rate_limited(
+    time_limit_in_minutes, expect_progress, capsys
+):
+    """TDE level-one contract progress is emitted only after its interval."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+    tde = TemporalDictionaryEnsemble(
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_parameter_samples=2,
+        max_ensemble_size=1,
+        randomly_selected_params=1,
+        random_state=0,
+        verbose=1,
+    )
+
+    tde.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert ("[TDE] Progress: evaluated=" in output) is expect_progress
+    assert "[TDE] Candidate " not in output
+
+
+def test_tde_deprecated_parameters_warn():
+    """Test the deprecated alphabet_size and typed_dict parameters.
+
+    Both parameters have no effect and raise a FutureWarning when a value is
+    passed; the defaults must stay silent. TODO remove in v1.7.0 along with
+    the parameters.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        IndividualTDE()
+        TemporalDictionaryEnsemble()
+
+    with pytest.warns(FutureWarning, match="alphabet_size"):
+        IndividualTDE(alphabet_size=4)
+    with pytest.warns(FutureWarning, match="typed_dict"):
+        IndividualTDE(typed_dict=True)
+    with pytest.warns(FutureWarning, match="typed_dict"):
+        TemporalDictionaryEnsemble(typed_dict=False)
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        TemporalDictionaryEnsemble(dim_threshold=0.5)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        TemporalDictionaryEnsemble(max_dims=5)
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        IndividualTDE(dim_threshold=0.5)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        IndividualTDE(max_dims=5)
