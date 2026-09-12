@@ -124,6 +124,7 @@ Interval-based
     DrCIFClassifier
     IntervalForestClassifier
     QUANTClassifier
+    PULSARClassifier
     RandomIntervalClassifier
     RandomIntervalSpectralEnsembleClassifier
     RSTSF
