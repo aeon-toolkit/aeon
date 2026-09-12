@@ -4,12 +4,4 @@
 <a href='https://github.com/LinGinQiu'><img src='https://avatars.githubusercontent.com/u/80885865?v=4' class='avatar' /></a> <br />
 <p><a href='https://github.com/LinGinQiu'>Chuanhang Qiu </a></p>
 </div>
-<div>
-<a href='https://github.com/lucifer4073'><img src='https://avatars.githubusercontent.com/u/99070111?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/lucifer4073'>Balgopal Moharana</a></p>
-</div>
-<div>
-<a href='https://github.com/TinaJin0228'><img src='https://avatars.githubusercontent.com/u/60577222?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/TinaJin0228'>TinaJin0228</a></p>
-</div>
 </div>
