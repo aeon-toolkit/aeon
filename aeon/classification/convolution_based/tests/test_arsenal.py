@@ -225,6 +225,18 @@ def test_arsenal_weights_are_cv_accuracies():
     assert all(0 <= weight <= 1 for weight in clf.weights_)
 
 
+def test_arsenal_binary_weights_are_not_degenerate():
+    """Binary member weights are real accuracies, not the constant 1.0 from sklearn."""
+    X, y = make_example_3d_numpy(
+        n_cases=40, n_channels=1, n_timepoints=30, random_state=0
+    )
+
+    clf = Arsenal(n_kernels=20, n_estimators=5, random_state=0).fit(X, y)
+
+    assert len(set(clf.weights_)) > 1
+    assert all(0 < weight <= 1 for weight in clf.weights_)
+
+
 def test_arsenal_n_jobs_does_not_change_output():
     """Threaded and sequential Arsenal fits produce identical results."""
     X, y = make_example_3d_numpy(

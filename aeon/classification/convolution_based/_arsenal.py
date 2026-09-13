@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 from joblib import delayed
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.linear_model import RidgeClassifier, RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
@@ -32,6 +32,38 @@ def _get_oob_indices(subsample, n_cases):
     in_bag = np.zeros(n_cases, dtype=bool)
     in_bag[subsample] = True
     return np.flatnonzero(~in_bag)
+
+
+_ALPHAS = np.logspace(-3, 3, 10)
+
+
+def _fit_ridge_classifier(X, y, class_weight):
+    """Fit a member ridge whose ``best_score_`` is its LOO CV accuracy.
+
+    For two classes ``RidgeClassifierCV`` reconstructs leave-one-out labels with
+    ``argmax`` over a single signed column, so ``best_score_`` is always 1.0 and
+    the first alpha is always chosen. See
+    https://github.com/scikit-learn/scikit-learn/issues/34942. Binary problems
+    therefore take the predicted class from the sign of the stored leave-one-out
+    decision values and refit at the best alpha. Multiclass is unchanged.
+    """
+    ridge = RidgeClassifierCV(
+        alphas=_ALPHAS,
+        class_weight=class_weight,
+        scoring="accuracy",
+        store_cv_results=len(np.unique(y)) == 2,
+    ).fit(X, y)
+    cv_results = getattr(ridge, "cv_results_", None)
+    if cv_results is None or cv_results.ndim != 3 or cv_results.shape[1] != 1:
+        return ridge
+
+    positive = (y == ridge.classes_[1])[:, None]
+    accuracies = ((cv_results[:, 0, :] > 0) == positive).mean(axis=0)
+    best = int(np.argmax(accuracies))
+    binary = RidgeClassifier(alpha=_ALPHAS[best], class_weight=class_weight).fit(X, y)
+    binary.best_score_ = float(accuracies[best])
+    binary.alpha_ = _ALPHAS[best]
+    return binary
 
 
 def _transform_with(rocket, X, pre_normalised):
@@ -428,15 +460,10 @@ class Arsenal(BaseClassifier):
         rocket.fit(X)
         transformed_x = _transform_with(rocket, X, self.rocket_transform == "rocket")
         scaler = StandardScaler(with_mean=False)
-        # scoring="accuracy" makes best_score_ the LOO CV accuracy used to
-        # weight this member; with the default scorer it is the negative LOO
-        # mean squared error, which inverts the weighting
-        ridge = RidgeClassifierCV(
-            alphas=np.logspace(-3, 3, 10),
-            class_weight=self.class_weight,
-            scoring="accuracy",
+        # best_score_ is the LOO CV accuracy used to weight this member
+        ridge = _fit_ridge_classifier(
+            scaler.fit_transform(transformed_x), y, self.class_weight
         )
-        ridge.fit(scaler.fit_transform(transformed_x), y)
         pipeline = make_pipeline(rocket, scaler, ridge)
 
         train_estimate = (
@@ -461,20 +488,13 @@ class Arsenal(BaseClassifier):
             # so its weight is zero evidence rather than a fake accuracy
             return np.empty(0, dtype=np.intp), 0.0, oob
 
-        clf = make_pipeline(
-            StandardScaler(with_mean=False),
-            RidgeClassifierCV(
-                alphas=np.logspace(-3, 3, 10),
-                class_weight=self.class_weight,
-                scoring="accuracy",
-            ),
+        scaler = StandardScaler(with_mean=False)
+        ridge = _fit_ridge_classifier(
+            scaler.fit_transform(Xt[subsample]), y[subsample], self.class_weight
         )
-        clf.fit(Xt[subsample], y[subsample])
-        preds = clf.predict(Xt[oob])
+        preds = ridge.predict(scaler.transform(Xt[oob]))
 
-        weight = clf.steps[1][1].best_score_
-
-        return np.searchsorted(self.classes_, preds), weight, oob
+        return np.searchsorted(self.classes_, preds), ridge.best_score_, oob
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
