@@ -159,14 +159,10 @@ class Rocket(BaseCollectionTransformer):
         # is already float32.
         X = np.asarray(X, dtype=np.float32)
 
-        if self._n_jobs == 1:
-            # the serial nogil kernels never enter numba's threading layer,
-            # so ensemble members can transform concurrently in joblib
-            # threads (concurrent entry aborts the default workqueue layer)
-            return _apply_kernels_serial(X, self.kernels)
-
         # the lock serialises parallel launches and the global thread-count
-        # swap across Python threads
+        # swap across Python threads, so ensemble members transforming in
+        # joblib threads never enter numba's threading layer concurrently
+        # (concurrent entry aborts the default workqueue layer)
         with _NUMBA_PARALLEL_LOCK:
             prev_threads = get_num_threads()
             try:
@@ -252,7 +248,12 @@ def _generate_kernels(n_timepoints, n_kernels, n_channels, seed):
     )
 
 
-def _apply_kernels_impl(X, kernels):
+@njit(
+    parallel=True,
+    fastmath=True,
+    cache=True,
+)
+def _apply_kernels(X, kernels):
     (
         weights,
         lengths,
@@ -310,17 +311,6 @@ def _apply_kernels_impl(X, kernels):
 
     # _X is already float32; astype would copy the whole feature matrix
     return _X
-
-
-# one kernel body, two compilations: a parallel dispatcher for standalone
-# n_jobs > 1 use, and a serial nogil dispatcher (prange degrades to range
-# without parallel=True) that never enters numba's threading layer, so
-# ensemble members can transform concurrently from joblib threads. The
-# transform kernels are compiled without fastmath so both compilations
-# produce identical results (measured as free here); fastmath would let
-# them reassociate differently and break n_jobs invariance.
-_apply_kernels = njit(parallel=True, cache=True)(_apply_kernels_impl)
-_apply_kernels_serial = njit(nogil=True, cache=True)(_apply_kernels_impl)
 
 
 @njit(fastmath=True, cache=True)
