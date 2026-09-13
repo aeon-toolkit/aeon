@@ -119,23 +119,91 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         depth=6,
         use_custom_filters=False,
     ):
+        self.depth = depth
         self.n_filters = n_filters
         self.n_conv_per_layer = n_conv_per_layer
         self.kernel_size = kernel_size
-        self.activation = activation
-        self.padding = padding
-        self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.use_bias = use_bias
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.padding = padding
+        self.activation = activation
+        self.use_bias = use_bias
         self.use_residual = use_residual
         self.use_bottleneck = use_bottleneck
-        self.depth = depth
         self.bottleneck_size = bottleneck_size
         self.use_custom_filters = use_custom_filters
 
         super().__init__()
+
+    def _check_params(self):
+        n = self.depth
+        n_conv = self.n_conv_per_layer
+        use_max_pool = self.use_max_pooling
+        self._n_filters = BaseDeepLearningNetwork._check_layer_param(
+            n, self.n_filters, "filters", default=32, same_as="depth"
+        )
+        self._n_conv_per_layer = BaseDeepLearningNetwork._check_layer_param(
+            n, n_conv, "conv per layers", default=3, same_as="depth"
+        )
+        self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
+            n, self.kernel_size, "kernels", default=40, same_as="depth"
+        )
+        self._use_max_pooling = BaseDeepLearningNetwork._check_layer_param(
+            n, use_max_pool, "use max pooling", default=True, same_as="depth"
+        )
+        self._max_pool_size = BaseDeepLearningNetwork._check_layer_param(
+            n, self.max_pool_size, "max pooling", default=3, same_as="depth"
+        )
+        self._strides = BaseDeepLearningNetwork._check_layer_param(
+            n, self.strides, "strides", default=1, same_as="depth"
+        )
+        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+            n, self.dilation_rate, "dilations", default=1, same_as="depth"
+        )
+        self._padding = BaseDeepLearningNetwork._check_layer_param(
+            n, self.padding, "paddings", default="same", same_as="depth"
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            n, self.activation, "activations", allow_none=True, same_as="depth"
+        )
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            n, self.use_bias, "biases", default=False, same_as="depth"
+        )
+
+    def build_base_graph(self, x):
+        self._check_params()
+
+        input_res = x
+        _use_custom_filters = False
+
+        for d in range(self.depth):
+            if d == 0 and self.use_custom_filters:
+                _use_custom_filters = True
+            else:
+                _use_custom_filters = False
+
+            x = self._inception_module(
+                x,
+                n_filters=self._n_filters[d],
+                dilation_rate=self._dilation_rate[d],
+                kernel_size=self._kernel_size[d],
+                padding=self._padding[d],
+                strides=self._strides[d],
+                activation=self._activation[d],
+                use_bias=self._use_bias[d],
+                use_max_pooling=self._use_max_pooling[d],
+                max_pool_size=self._max_pool_size[d],
+                n_conv_per_layer=self._n_conv_per_layer[d],
+                use_custom_filters=_use_custom_filters,
+            )
+
+            if self.use_residual and d % 3 == 2:
+                x = self._shortcut_layer(input_res, x, padding=self._padding[d])
+                input_res = x
+
+        return x
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of custom filters.
@@ -359,165 +427,3 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         x = tf.keras.layers.Add()([shortcut_y, out_tensor])
         x = tf.keras.layers.Activation("relu")(x)
         return x
-
-    def build_network(self, input_shape, **kwargs):
-        """
-        Construct a network and return its input and output layers.
-
-        input_shape : tuple
-            The shape of the data fed into the input layer
-
-        Returns
-        -------
-        input_layer : a keras layer
-        output_layer : a keras layer
-        """
-        # not sure of the whole padding thing
-
-        import tensorflow as tf
-
-        if isinstance(self.n_filters, list):
-            if len(self.n_filters) != self.depth:
-                raise ValueError(
-                    f"Number of filters {len(self.n_filters)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._nb_filters = self.n_filters
-        else:
-            self._nb_filters = [self.n_filters] * self.depth
-
-        if isinstance(self.kernel_size, list):
-            if len(self.kernel_size) != self.depth:
-                raise ValueError(
-                    f"Number of kernels {len(self.kernel_size)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._kernel_size = self.kernel_size
-        else:
-            self._kernel_size = [self.kernel_size] * self.depth
-
-        if isinstance(self.n_conv_per_layer, list):
-            if len(self.n_conv_per_layer) != self.depth:
-                raise ValueError(
-                    f"Number of convolution layers {len(self.n_conv_per_layer)}"
-                    f" should be the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._nb_conv_per_layer = self.n_conv_per_layer
-        else:
-            self._nb_conv_per_layer = [self.n_conv_per_layer] * self.depth
-
-        if isinstance(self.strides, list):
-            if len(self.strides) != self.depth:
-                raise ValueError(
-                    f"Number of strides {len(self.strides)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._strides = self.strides
-        else:
-            self._strides = [self.strides] * self.depth
-
-        if isinstance(self.dilation_rate, list):
-            if len(self.dilation_rate) != self.depth:
-                raise ValueError(
-                    f"Number of dilations {len(self.dilation_rate)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._dilation_rate = self.dilation_rate
-        else:
-            self._dilation_rate = [self.dilation_rate] * self.depth
-
-        if isinstance(self.padding, list):
-            if len(self.padding) != self.depth:
-                raise ValueError(
-                    f"Number of paddings {len(self.padding)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._padding = self.padding
-        else:
-            self._padding = [self.padding] * self.depth
-
-        if isinstance(self.activation, list):
-            if len(self.activation) != self.depth:
-                raise ValueError(
-                    f"Number of activations {len(self.activation)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._activation = self.activation
-        else:
-            self._activation = [self.activation] * self.depth
-
-        if isinstance(self.use_max_pooling, list):
-            if len(self.use_max_pooling) != self.depth:
-                raise ValueError(
-                    f"Number of max pooling conditions"
-                    f" {len(self.use_max_pooling)} should be the"
-                    f" same as depth but is not: {self.depth}"
-                )
-            self._use_max_pooling = self.use_max_pooling
-        else:
-            self._use_max_pooling = [self.use_max_pooling] * self.depth
-
-        if isinstance(self.max_pool_size, list):
-            if len(self.max_pool_size) != self.depth:
-                raise ValueError(
-                    f"Number of max pooling sizes {len(self.max_pool_size)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._max_pool_size = self.max_pool_size
-        else:
-            self._max_pool_size = [self.max_pool_size] * self.depth
-
-        if isinstance(self.use_bias, list):
-            if len(self.use_bias) != self.depth:
-                raise ValueError(
-                    f"Number of biases {len(self.use_bias)} should be"
-                    f" the same as depth but is"
-                    f" not: {self.depth}"
-                )
-            self._use_bias = self.use_bias
-        else:
-            self._use_bias = [self.use_bias] * self.depth
-
-        input_layer = tf.keras.layers.Input(input_shape)
-
-        x = input_layer
-        input_res = input_layer
-
-        _use_custom_filters = False
-
-        for d in range(self.depth):
-            if d == 0 and self.use_custom_filters:
-                _use_custom_filters = True
-            else:
-                _use_custom_filters = False
-
-            x = self._inception_module(
-                x,
-                n_filters=self._nb_filters[d],
-                dilation_rate=self._dilation_rate[d],
-                kernel_size=self._kernel_size[d],
-                padding=self._padding[d],
-                strides=self._strides[d],
-                activation=self._activation[d],
-                use_bias=self._use_bias[d],
-                use_max_pooling=self._use_max_pooling[d],
-                max_pool_size=self._max_pool_size[d],
-                n_conv_per_layer=self._nb_conv_per_layer[d],
-                use_custom_filters=_use_custom_filters,
-            )
-
-            if self.use_residual and d % 3 == 2:
-                x = self._shortcut_layer(input_res, x, padding=self._padding[d])
-                input_res = x
-
-        gap_layer = tf.keras.layers.GlobalAveragePooling1D()(x)
-
-        return input_layer, gap_layer
