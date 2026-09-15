@@ -82,6 +82,18 @@ def test_global_z_norm():
     assert np.all([np.allclose(x, x_inv) for x, x_inv in zip(X, X_inv)])
 
 
+def test_global_z_norm_2D():
+    """Test the GlobalNormalizer class with 2D arrays."""
+    X = np.random.rand(10, 10)
+
+    normaliser = GlobalNormalizer()
+    X_transformed = normaliser.fit_transform(X)
+    x_mean = np.mean(X_transformed, axis=1)
+    x_std = np.std(X_transformed, axis=1)
+    assert np.allclose(x_mean, 0, atol=1e-7)
+    assert np.allclose(x_std, 1, atol=1e-7)
+
+
 def test_global_centering():
     """Test the GlobalCenterer class."""
     X = [np.array([[1, 2, 3], [4, 5, 6]]), np.array([[7, 8, 9, 10], [10, 11, 12, 13]])]
@@ -102,6 +114,16 @@ def test_global_centering():
 
     X_inv = centerer.inverse_transform(X_transformed)
     assert np.all([np.allclose(x, x_inv) for x, x_inv in zip(X, X_inv)])
+
+
+def test_global_centering_2D():
+    """Test the GlobalCenterer class with 2D arrays."""
+    X = np.random.rand(10, 10)
+
+    centerer = GlobalCenterer()
+    X_transformed = centerer.fit_transform(X)
+    x_mean = np.mean(X_transformed, axis=1)
+    assert np.allclose(x_mean, 0, atol=1e-7)
 
 
 def test_global_min_max():
@@ -127,3 +149,15 @@ def test_global_min_max():
 
     X_inv = minmax.inverse_transform(X_transformed)
     assert np.all([np.allclose(x, x_inv) for x, x_inv in zip(X, X_inv)])
+
+
+def test_global_min_max_2D():
+    """Test the GlobalMinMaxScaler class with 2D arrays."""
+    X = np.random.rand(10, 10)
+
+    minmax = GlobalMinMaxScaler()
+    X_transformed = minmax.fit_transform(X)
+    x_min = np.min(X_transformed, axis=1)
+    x_max = np.max(X_transformed, axis=1)
+    assert np.allclose(x_min, 0, atol=1e-7)
+    assert np.allclose(x_max, 1, atol=1e-7)
