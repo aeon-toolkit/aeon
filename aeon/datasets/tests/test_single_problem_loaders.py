@@ -29,10 +29,8 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
 )
 
 UNIVARIATE_PROBLEMS = [
-    load_acsf1,
     load_arrow_head,
     load_italy_power_demand,
-    load_osuleaf,
     load_unit_test,
 ]
 MULTIVARIATE_PROBLEMS = [
@@ -129,6 +127,27 @@ def test_univariate_forecasting_loaders(data):
     assert isinstance(y2, pd.Series)
     assert y2.shape == FORECASTING_DATA[data][1]
     assert y.shape == y2.shape
+
+
+# TODO: remove in v1.7.0
+@pytest.mark.parametrize("loader", [load_lynx, load_shampoo_sales, load_PBS_dataset])
+def test_deprecated_forecasting_loaders_warn(loader):
+    """Deprecated loaders warn on use but still load their series until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        y = loader()
+    assert isinstance(y, np.ndarray)
+
+
+# TODO: remove in v1.7.0
+@pytest.mark.parametrize(
+    "loader, shape", [(load_osuleaf, (442, 1, 427)), (load_acsf1, (200, 1, 1460))]
+)
+def test_deprecated_classification_loaders_warn(loader, shape):
+    """Deprecated loaders warn on use but still load their data until removal."""
+    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
+        X, y = loader()
+    assert X.shape == shape
+    assert len(y) == len(X)
 
 
 def test_uschange():

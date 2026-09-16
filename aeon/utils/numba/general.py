@@ -23,7 +23,6 @@ __all__ = [
     "slope_derivative_3d",
     "generate_combinations",
     "get_all_subsequences",
-    "compute_mean_stds_collection_parallel",
     "prime_up_to",
     "is_prime",
 ]
@@ -476,46 +475,6 @@ def get_subsequence_with_mean_std(
             stds[i_channel] = _s**0.5
 
     return values, means, stds
-
-
-@njit(cache=True, fastmath=True, parallel=True)
-def compute_mean_stds_collection_parallel(X):
-    """
-    Return the mean and standard deviation for each channel of all series in X.
-
-    Parameters
-    ----------
-    X : array, shape (n_cases, n_channels, n_timepoints)
-        A time series collection
-
-    Returns
-    -------
-    means : array, shape (n_cases, n_channels)
-        The mean of each channel of each time series in X.
-    stds : array, shape (n_cases, n_channels)
-        The std of each channel of each time series in X.
-
-    """
-    n_channels = X[0].shape[0]
-    n_cases = len(X)
-    means = np.zeros((n_cases, n_channels))
-    stds = np.zeros((n_cases, n_channels))
-    for i_x in prange(n_cases):
-        n_timepoints = X[i_x].shape[1]
-        _s = np.zeros(n_channels)
-        _s2 = np.zeros(n_channels)
-        for i_t in range(n_timepoints):
-            for i_c in range(n_channels):
-                _s += X[i_x][i_c, i_t]
-                _s2 += X[i_x][i_c, i_t] ** 2
-
-        for i_c in range(n_channels):
-            means[i_x, i_c] = _s / n_timepoints
-            _std = _s2 / n_timepoints - means[i_x, i_c] ** 2
-            if _s > AEON_NUMBA_STD_THRESHOLD:
-                stds[i_x, i_c] = _std**0.5
-
-    return means, stds
 
 
 @njit(fastmath=True, cache=True)
