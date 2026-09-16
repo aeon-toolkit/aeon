@@ -140,3 +140,36 @@ def test_banded_dtw_matches_masked_kernel(x_size, y_size, n_channels):
                 f"banded != masked for window={window}, slope={slope}, "
                 f"channels={n_channels}, sizes=({x_size}, {y_size})"
             )
+
+
+@pytest.mark.parametrize("x_size,y_size", [(8, 40), (40, 8), (15, 30), (30, 15)])
+@pytest.mark.parametrize("slope", [0.2, 0.5, 1.0])
+def test_itakura_unequal_length_dtw_matches_cost_matrix(x_size, y_size, slope):
+    """Test that unequal-length series with Itakura slope match the cost matrix."""
+    from aeon.distances import dtw_alignment_path, dtw_cost_matrix
+
+    rng = np.random.default_rng(0)
+    x = rng.normal(size=x_size)
+    y = rng.normal(size=y_size)
+
+    dist = dtw_distance(x, y, itakura_max_slope=slope)
+    cost = dtw_cost_matrix(x, y, itakura_max_slope=slope)[-1, -1]
+    path_dist = dtw_alignment_path(x, y, itakura_max_slope=slope)[1]
+
+    assert dist == pytest.approx(cost, rel=1e-12)
+    assert dist == pytest.approx(path_dist, rel=1e-12)
+
+
+def test_itakura_short_series_zero_division_error():
+    """Test that series with length < 3 raises ZeroDivisionError consistently."""
+    from aeon.distances import dtw_cost_matrix
+
+    rng = np.random.default_rng(0)
+    x_short = rng.normal(size=2)
+    y_normal = rng.normal(size=10)
+
+    with pytest.raises(ZeroDivisionError):
+        dtw_distance(x_short, y_normal, itakura_max_slope=0.5)
+
+    with pytest.raises(ZeroDivisionError):
+        dtw_cost_matrix(x_short, y_normal, itakura_max_slope=0.5)
