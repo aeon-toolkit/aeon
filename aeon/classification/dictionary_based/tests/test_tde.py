@@ -8,6 +8,7 @@ transform has its own tests in test_tde_sfa.py.
 
 import pickle
 import re
+import warnings
 
 import numpy as np
 import pytest
@@ -240,6 +241,34 @@ def test_subsampling_in_highly_imbalanced_datasets():
     assert tde.is_fitted
 
 
+def test_tde_predict_multithreading_equivalence():
+    """Test that n_jobs > 1 predictions match single threaded ones.
+
+    Prediction is parallelised over ensemble members (and over test case
+    chunks in IndividualTDE); results are gathered in order, so the outputs
+    must be identical for any n_jobs.
+    """
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
+
+    def ensemble(n_jobs):
+        return TemporalDictionaryEnsemble(
+            n_parameter_samples=4,
+            max_ensemble_size=3,
+            randomly_selected_params=2,
+            random_state=0,
+            n_jobs=n_jobs,
+        )
+
+    st = ensemble(1).fit(X, y)
+    mt = ensemble(2).fit(X, y)
+    np.testing.assert_array_equal(st.predict_proba(X), mt.predict_proba(X))
+
+    Xm, ym = make_example_3d_numpy(n_cases=16, n_channels=3, n_timepoints=40)
+    it_st = IndividualTDE(window_size=12, random_state=0, n_jobs=1).fit(Xm, ym)
+    it_mt = IndividualTDE(window_size=12, random_state=0, n_jobs=3).fit(Xm, ym)
+    np.testing.assert_array_equal(it_st.predict(Xm), it_mt.predict(Xm))
+
+
 @pytest.mark.parametrize(
     ("verbose", "expected_output", "excluded_output"),
     [
@@ -336,3 +365,31 @@ def test_tde_contract_level_one_progress_is_rate_limited(
 
     assert ("[TDE] Progress: evaluated=" in output) is expect_progress
     assert "[TDE] Candidate " not in output
+
+
+def test_tde_deprecated_parameters_warn():
+    """Test the deprecated alphabet_size and typed_dict parameters.
+
+    Both parameters have no effect and raise a FutureWarning when a value is
+    passed; the defaults must stay silent. TODO remove in v1.7.0 along with
+    the parameters.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        IndividualTDE()
+        TemporalDictionaryEnsemble()
+
+    with pytest.warns(FutureWarning, match="alphabet_size"):
+        IndividualTDE(alphabet_size=4)
+    with pytest.warns(FutureWarning, match="typed_dict"):
+        IndividualTDE(typed_dict=True)
+    with pytest.warns(FutureWarning, match="typed_dict"):
+        TemporalDictionaryEnsemble(typed_dict=False)
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        TemporalDictionaryEnsemble(dim_threshold=0.5)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        TemporalDictionaryEnsemble(max_dims=5)
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        IndividualTDE(dim_threshold=0.5)
+    with pytest.warns(FutureWarning, match="max_dims"):
+        IndividualTDE(max_dims=5)
