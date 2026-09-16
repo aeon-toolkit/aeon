@@ -27,4 +27,6 @@ WORKDIR ${HOME}
 
 # Install aeon and the dependencies required to run the example notebooks
 RUN pip install --upgrade pip --no-cache-dir
+# CPU build of torch, the default Linux wheel includes CUDA
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu --no-cache-dir
 RUN pip install .[binder] --no-cache-dir

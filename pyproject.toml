@@ -112,6 +112,7 @@ binder = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tensorflow>=2.14; python_version < '3.14'",
+    "torch>=1.13.1",
     "tsfresh>=0.20.0",
 ]
 # docs dependencies
