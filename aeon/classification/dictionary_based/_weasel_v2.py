@@ -428,9 +428,6 @@ class WEASELTransformerV2:
             all_words = hstack(sfa_words)
         self.total_features_count = all_words.shape[1]
 
-        # SFA word counts are uint32. scikit-learn 1.8.0 RidgeCV/RidgeClassifierCV
-        # cast coef_ to the input dtype, truncating coefficients to zero for integer
-        # input, so return float32 (same memory footprint as uint32).
         return all_words.astype(np.float32, copy=False)
 
     def transform(self, X, y=None):
