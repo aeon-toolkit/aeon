@@ -70,34 +70,46 @@ def test_stc_verbosity_levels(verbose, capsys):
     if verbose == 0:
         assert fit_output == ""
     else:
-        assert "[STC] Starting fit: n_cases=12" in fit_output
-        assert "[STC] Finished shapelet transform in " in fit_output
-        assert "[STC] Finished estimator fit in " in fit_output
-        assert "[STC] Finished fit in " in fit_output
+        assert "[ShapeletTransformClassifier] Starting fit: n_cases=12" in fit_output
+        assert (
+            "[ShapeletTransformClassifier] Finished shapelet transform in "
+            in fit_output
+        )
+        assert "[ShapeletTransformClassifier] Finished estimator fit in " in fit_output
+        assert "[ShapeletTransformClassifier] Finished fit in " in fit_output
         if verbose == 1:
-            assert "[RST] Progress: extracted=" in fit_output
-            assert "[RotF] Progress: built=" in fit_output
-            assert "[RST] Batch " not in fit_output
-            assert "[RotF] Estimator " not in fit_output
+            assert "[RandomShapeletTransform] Progress: extracted=" in fit_output
+            assert "[RotationForestClassifier] Progress: built=" in fit_output
+            assert "[RandomShapeletTransform] Batch " not in fit_output
+            assert "[RotationForestClassifier] Estimator " not in fit_output
         else:
-            assert "[RST] Batch 1:" in fit_output
-            assert "[RotF] Estimator 1/2:" in fit_output
+            assert "[RandomShapeletTransform] Batch 1:" in fit_output
+            assert "[RotationForestClassifier] Estimator 1/2:" in fit_output
 
     stc.predict_proba(X[:2])
     predict_output = capsys.readouterr().out
     if verbose == 0:
         assert predict_output == ""
     else:
-        assert "[STC] Finished transform for predict_proba in " in predict_output
-        assert "[STC] Finished probability prediction in " in predict_output
+        assert (
+            "[ShapeletTransformClassifier] Finished transform for predict_proba in "
+            in predict_output
+        )
+        assert (
+            "[ShapeletTransformClassifier] Finished probability prediction in "
+            in predict_output
+        )
 
     stc.predict(X[:2])
     predict_output = capsys.readouterr().out
     if verbose == 0:
         assert predict_output == ""
     else:
-        assert "[STC] Finished transform for predict in " in predict_output
-        assert "[STC] Finished prediction in " in predict_output
+        assert (
+            "[ShapeletTransformClassifier] Finished transform for predict in "
+            in predict_output
+        )
+        assert "[ShapeletTransformClassifier] Finished prediction in " in predict_output
 
 
 def test_stc_train_estimate_verbosity(capsys):
@@ -122,11 +134,14 @@ def test_stc_train_estimate_verbosity(capsys):
 
     assert proba.shape == (len(y), 2)
     assert (
-        "[STC] Starting estimator fit and train estimates (RotationForest OOB)"
+        "[ShapeletTransformClassifier] "
+        "Starting estimator fit and train estimates (RotationForest OOB)" in output
+    )
+    assert "[RotationForestClassifier] Starting fit:" in output
+    assert (
+        "[ShapeletTransformClassifier] Finished estimator fit and train estimates in "
         in output
     )
-    assert "[RotF] Starting fit:" in output
-    assert "[STC] Finished estimator fit and train estimates in " in output
 
 
 def test_stc_contract_verbosity_is_propagated(capsys):
@@ -152,9 +167,9 @@ def test_stc_contract_verbosity_is_propagated(capsys):
 
     assert stc._transform_limit_in_minutes == pytest.approx(0.016)
     assert stc.estimator_.time_limit_in_minutes == pytest.approx(0.01)
-    assert "[RST] Starting fit: mode=contract" in output
-    assert "[RST] Batch 1:" in output
-    assert "[RotF] Estimator 1:" in output
+    assert "[RandomShapeletTransform] Starting fit: mode=contract" in output
+    assert "[RandomShapeletTransform] Batch 1:" in output
+    assert "[RotationForestClassifier] Estimator 1:" in output
 
 
 def test_stc_attribute_lifecycle():

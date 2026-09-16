@@ -306,10 +306,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         if self.verbose > 0:
             self._log(
-                f"[RST] Finished fit: "
+                f"[{type(self).__name__}] Finished fit: "
                 f"extracted={n_shapelets_extracted}/{sample_limit}, "
                 f"retained={len(self.shapelets)}, "
-                f"elapsed={self._format_seconds(perf_counter() - fit_start)}"
+                f"elapsed={perf_counter() - fit_start:.2f}s"
             )
 
         if cache_distance_vectors:
@@ -350,13 +350,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         if self.verbose > 0:
             if contracted:
                 fit_limit = (
-                    f"time_limit={self._format_seconds(time_limit)}, "
+                    f"time_limit={self._format_duration(time_limit)}, "
                     f"max_samples={sample_limit}"
                 )
             else:
                 fit_limit = f"candidate_samples={sample_limit}"
             self._log(
-                f"[RST] Starting fit: mode={mode}, n_cases={self.n_cases_}, "
+                f"[{type(self).__name__}] "
+                f"Starting fit: mode={mode}, n_cases={self.n_cases_}, "
                 f"n_channels={self.n_channels_}, {fit_limit}, "
                 f"batch_size={self._batch_size}, n_jobs={self._n_jobs}"
             )
@@ -437,10 +438,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
                 if report_progress:
                     self._log(
-                        f"[RST] Progress: "
+                        f"[{type(self).__name__}] Progress: "
                         f"extracted={n_shapelets_extracted}/{sample_limit}, "
                         f"kept={current_kept}, "
-                        f"elapsed={self._format_seconds(total_elapsed)}"
+                        f"elapsed={total_elapsed:.2f}s"
                     )
                     if contracted:
                         next_progress = total_elapsed + progress_interval
@@ -581,18 +582,19 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         return alpha * batch_elapsed + (1 - alpha) * avg_batch_time
 
     @staticmethod
-    def _format_seconds(seconds):
-        """Format seconds as h:mm:ss or m:ss."""
-        if not np.isfinite(seconds):
-            return "unknown"
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
 
-        seconds = max(0, int(round(seconds)))
-        hours, remainder = divmod(seconds, 3600)
-        minutes, secs = divmod(remainder, 60)
-
-        if hours > 0:
-            return f"{hours}:{minutes:02d}:{secs:02d}"
-        return f"{minutes}:{secs:02d}"
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _log_fit_progress(
         self,
@@ -621,18 +623,20 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         if mode == "fixed":
             remaining = max(0, sample_limit - n_shapelets_extracted)
-            eta_seconds = (
-                remaining / rate if rate > 0 and np.isfinite(rate) else float("nan")
+            eta_text = (
+                self._format_duration(remaining / rate)
+                if rate > 0 and np.isfinite(rate)
+                else "estimating"
             )
 
             self._log(
-                f"[RST] Batch {batch_number}: "
+                f"[{type(self).__name__}] Batch {batch_number}: "
                 f"extracted={n_shapelets_extracted}/{sample_limit}, "
                 f"kept={current_kept}, "
                 f"batch={batch_elapsed:.2f}s, avg_batch={avg_batch}, "
                 f"rate={rate_text}, "
-                f"elapsed={self._format_seconds(total_elapsed)}, "
-                f"estimated_remaining={self._format_seconds(eta_seconds)}"
+                f"elapsed={total_elapsed:.2f}s, "
+                f"estimated_remaining={eta_text}"
             )
         else:
             remaining_time = max(0.0, time_limit - total_elapsed)
@@ -643,14 +647,13 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             )
 
             self._log(
-                f"[RST] Batch {batch_number}: "
+                f"[{type(self).__name__}] Batch {batch_number}: "
                 f"extracted={n_shapelets_extracted}/{sample_limit}, "
                 f"kept={current_kept}, "
                 f"batch={batch_elapsed:.2f}s, avg_batch={avg_batch}, "
                 f"rate={rate_text}, "
-                f"elapsed={self._format_seconds(total_elapsed)}/"
-                f"{self._format_seconds(time_limit)}, "
-                f"contract_remaining={self._format_seconds(remaining_time)}, "
+                f"elapsed={total_elapsed:.2f}s, "
+                f"contract_remaining={self._format_duration(remaining_time)}, "
                 f"projected_total~{projected_total}"
             )
 

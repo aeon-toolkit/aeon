@@ -62,8 +62,8 @@ class _BaseHIVECOTE(BaseClassifier):
     def _fit(self, X, y):
         """Fit the ensemble to training data and calculate CAWPE weights."""
         self._n_jobs = check_n_jobs(self.n_jobs)
-        verbose_name = getattr(self, "_verbose_name", None)
-        logging_enabled = verbose_name is not None and self.verbose > 0
+        verbose_name = type(self).__name__
+        logging_enabled = self.verbose > 0
         total_start = perf_counter() if logging_enabled else None
 
         if logging_enabled:
@@ -108,11 +108,7 @@ class _BaseHIVECOTE(BaseClassifier):
             if hasattr(est, "n_jobs"):
                 est.n_jobs = self._n_jobs
             if hasattr(est, "verbose"):
-                est.verbose = (
-                    max(0, self.verbose - 2)
-                    if verbose_name is not None
-                    else self.verbose
-                )
+                est.verbose = max(0, self.verbose - 2)
 
             if logging_enabled:
                 self._log(f"[{verbose_name}] Starting {name}...")

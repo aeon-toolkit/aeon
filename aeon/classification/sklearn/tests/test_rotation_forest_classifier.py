@@ -107,13 +107,13 @@ def test_rotf_verbosity_levels(verbose, capsys):
     if verbose == 0:
         assert output == ""
     else:
-        assert "[RotF] Starting fit:" in output
-        assert "[RotF] Finished fit: built=2" in output
+        assert "[RotationForestClassifier] Starting fit:" in output
+        assert "[RotationForestClassifier] Finished fit: built=2" in output
         if verbose == 1:
-            assert "[RotF] Progress: built=" in output
-            assert "[RotF] Estimator " not in output
+            assert "[RotationForestClassifier] Progress: built=" in output
+            assert "[RotationForestClassifier] Estimator " not in output
         else:
-            assert "[RotF] Estimator 1/2:" in output
+            assert "[RotationForestClassifier] Estimator 1/2:" in output
             assert "estimated_remaining=" in output
 
 
@@ -140,7 +140,7 @@ def test_rotf_contract_verbosity_reports_remaining_time(
     rotf.fit(X, y)
     output = capsys.readouterr().out
 
-    assert "[RotF] Estimator 1:" in output
+    assert "[RotationForestClassifier] Estimator 1:" in output
     assert re.search(remaining_time_pattern, output)
     assert "estimated_remaining=" not in output
 
@@ -169,8 +169,8 @@ def test_rotf_contract_level_one_progress_is_rate_limited(
     rotf.fit(X, y)
     output = capsys.readouterr().out
 
-    assert ("[RotF] Progress: built=" in output) is reports_progress
-    assert "[RotF] Estimator " not in output
+    assert ("[RotationForestClassifier] Progress: built=" in output) is reports_progress
+    assert "[RotationForestClassifier] Estimator " not in output
 
 
 def test_parallel_verbose_fit_preserves_predictions(capsys):
@@ -191,5 +191,5 @@ def test_parallel_verbose_fit_preserves_predictions(capsys):
     np.testing.assert_allclose(verbose.predict_proba(X), quiet.predict_proba(X))
     assert verbose._n_jobs == 2
     output = capsys.readouterr().out
-    assert "[RotF] Estimator 1/4:" in output
-    assert "[RotF] Estimator 4/4:" in output
+    assert "[RotationForestClassifier] Estimator 1/4:" in output
+    assert "[RotationForestClassifier] Estimator 4/4:" in output

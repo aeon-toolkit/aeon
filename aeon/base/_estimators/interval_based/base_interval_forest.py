@@ -146,6 +146,10 @@ class BaseIntervalForest(ABC):
         the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
@@ -191,6 +195,7 @@ class BaseIntervalForest(ABC):
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        verbose=0,
     ):
         self.base_estimator = base_estimator
         self.n_estimators = n_estimators
@@ -207,6 +212,7 @@ class BaseIntervalForest(ABC):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
+        self.verbose = verbose
 
         super().__init__()
 
@@ -367,8 +373,8 @@ class BaseIntervalForest(ABC):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        verbose_name = getattr(self, "_verbose_name", None)
-        verbose = getattr(self, "verbose", 0) if verbose_name is not None else 0
+        verbose_name = type(self).__name__
+        verbose = self.verbose
         log_each_estimator = verbose >= 2
         log_progress = verbose == 1
         if verbose > 0:
@@ -899,10 +905,8 @@ class BaseIntervalForest(ABC):
             self._n_estimators = self.n_estimators
             if verbose > 0:
                 estimator_start_time = time.perf_counter()
-                if log_each_estimator:
-                    batch_size = self._n_jobs
-                else:
-                    batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
+                # about ten batches, but never fewer estimators than jobs
+                batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
 
                 fit = []
                 for batch_start in range(0, self._n_estimators, batch_size):

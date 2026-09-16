@@ -192,8 +192,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         "algorithm_type": "interval",
     }
 
-    _verbose_name = "DrCIF"
-
     # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
@@ -214,7 +212,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22 != "deprecated":
             _warn_use_pycatch22_deprecated(self)
-        self.verbose = verbose
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -254,6 +251,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
+            verbose=verbose,
         )
 
         if use_pycatch22 is True:

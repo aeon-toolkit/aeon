@@ -193,16 +193,19 @@ class ShapeletTransformClassifier(BaseClassifier):
         estimator_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log(
-                f"[STC] Starting estimator fit "
+                f"[{type(self).__name__}] Starting estimator fit "
                 f"({type(self.estimator_).__name__})..."
             )
         self.estimator_.fit(X_t, y)
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished estimator fit in "
+                f"[{type(self).__name__}] Finished estimator fit in "
                 f"{perf_counter() - estimator_start:.2f}s"
             )
-            self._log(f"[STC] Finished fit in {perf_counter() - fit_start:.2f}s")
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Finished fit in {perf_counter() - fit_start:.2f}s"
+            )
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
@@ -219,22 +222,22 @@ class ShapeletTransformClassifier(BaseClassifier):
         """
         transform_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
-            self._log("[STC] Starting transform for predict...")
+            self._log(f"[{type(self).__name__}] Starting transform for predict...")
         X_t = self.transformer_.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished transform for predict in "
+                f"[{type(self).__name__}] Finished transform for predict in "
                 f"{perf_counter() - transform_start:.2f}s"
             )
 
         predict_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
-            self._log("[STC] Starting prediction...")
+            self._log(f"[{type(self).__name__}] Starting prediction...")
         pred = self.estimator_.predict(X_t)
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished prediction in "
+                f"[{type(self).__name__}] Finished prediction in "
                 f"{perf_counter() - predict_start:.2f}s"
             )
 
@@ -255,18 +258,20 @@ class ShapeletTransformClassifier(BaseClassifier):
         """
         transform_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
-            self._log("[STC] Starting transform for predict_proba...")
+            self._log(
+                f"[{type(self).__name__}] Starting transform for predict_proba..."
+            )
         X_t = self.transformer_.transform(X)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished transform for predict_proba in "
+                f"[{type(self).__name__}] Finished transform for predict_proba in "
                 f"{perf_counter() - transform_start:.2f}s"
             )
 
         predict_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
-            self._log("[STC] Starting probability prediction...")
+            self._log(f"[{type(self).__name__}] Starting probability prediction...")
         m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
             proba = self.estimator_.predict_proba(X_t)
@@ -278,7 +283,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished probability prediction in "
+                f"[{type(self).__name__}] Finished probability prediction in "
                 f"{perf_counter() - predict_start:.2f}s"
             )
 
@@ -303,7 +308,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         ):
             if self.verbose > 0:
                 self._log(
-                    "[STC] Starting estimator fit and train estimates "
+                    f"[{type(self).__name__}] "
+                    "Starting estimator fit and train estimates "
                     "(RotationForest OOB)..."
                 )
 
@@ -311,7 +317,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         else:
             if self.verbose > 0:
                 self._log(
-                    "[STC] Starting estimator fit and train estimates "
+                    f"[{type(self).__name__}] "
+                    "Starting estimator fit and train estimates "
                     "(cross-validation)..."
                 )
 
@@ -333,8 +340,6 @@ class ShapeletTransformClassifier(BaseClassifier):
                     )
 
             estimator = _clone_estimator(self.estimator, self.random_state)
-            if hasattr(estimator, "verbose"):
-                estimator.verbose = self.verbose
 
             proba = cross_val_predict(
                 estimator,
@@ -347,10 +352,14 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished estimator fit and train estimates in "
+                f"[{type(self).__name__}] "
+                "Finished estimator fit and train estimates in "
                 f"{perf_counter() - estimator_start:.2f}s"
             )
-            self._log(f"[STC] Finished fit in {perf_counter() - fit_start:.2f}s")
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Finished fit in {perf_counter() - fit_start:.2f}s"
+            )
 
         return proba
 
@@ -395,7 +404,9 @@ class ShapeletTransformClassifier(BaseClassifier):
         if m is not None and self.time_limit_in_minutes > 0:
             self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        if hasattr(self.estimator_, "verbose"):
+        # only pass verbosity to RotationForestClassifier, other estimators such as
+        # scikit-learn forests interpret verbose levels differently
+        if isinstance(self.estimator_, RotationForestClassifier):
             self.estimator_.verbose = self.verbose
 
         transform_start = perf_counter() if self.verbose > 0 else None
@@ -405,16 +416,16 @@ class ShapeletTransformClassifier(BaseClassifier):
             else:
                 transform_limit = f"shapelet_samples={self.n_shapelet_samples}"
             self._log(
-                f"[STC] Starting fit: n_cases={self.n_instances_}, "
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_instances_}, "
                 f"n_channels={self.n_channels_}, {transform_limit}, "
                 f"n_jobs={self._n_jobs}"
             )
-            self._log("[STC] Starting shapelet transform...")
+            self._log(f"[{type(self).__name__}] Starting shapelet transform...")
         X_t = self.transformer_.fit_transform(X, y)
         X_t = np.nan_to_num(X_t, False, -1, -1, -1)
         if self.verbose > 0:
             self._log(
-                f"[STC] Finished shapelet transform in "
+                f"[{type(self).__name__}] Finished shapelet transform in "
                 f"{perf_counter() - transform_start:.2f}s, "
                 f"retained={len(self.transformer_.shapelets)}"
             )

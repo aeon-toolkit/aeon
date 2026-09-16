@@ -121,7 +121,6 @@ class HIVECOTEV2(_BaseHIVECOTE):
     _DEFAULT_N_PARA_SAMPLES = 250
     _DEFAULT_MAX_ENSEMBLE_SIZE = 50
     _DEFAULT_RAND_PARAMS = 50
-    _verbose_name = "HC2"
 
     def __init__(
         self,
@@ -223,7 +222,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
         if self.time_limit_in_minutes > 0:
             component_time = self.time_limit_in_minutes / 6
             self._log(
-                f"[HC2] Contract time = {self.time_limit_in_minutes} minutes, "
+                f"[{type(self).__name__}] "
+                f"Contract time = {self.time_limit_in_minutes} minutes, "
                 f"per-component allocation = {component_time:.4f} minutes"
             )
 

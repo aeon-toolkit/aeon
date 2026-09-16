@@ -374,7 +374,7 @@ class Arsenal(BaseClassifier):
             else:
                 fit_limit = f"n_estimators={self.n_estimators}"
             self._log(
-                f"[Arsenal] Starting fit: n_cases={self.n_cases_}, "
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
                 f"n_channels={self.n_channels_}, "
                 f"n_timepoints={self.n_timepoints_}, "
                 f"transform={self.rocket_transform}, n_kernels={self.n_kernels}, "
@@ -460,13 +460,14 @@ class Arsenal(BaseClassifier):
                     first_estimator = self.n_estimators_ - len(fit) + 1
                     for estimator_idx in range(first_estimator, self.n_estimators_ + 1):
                         self._log(
-                            f"[Arsenal] Estimator {estimator_idx}: "
+                            f"[{type(self).__name__}] Estimator {estimator_idx}: "
                             f"elapsed={train_time:.2f}s, "
                             f"contract_remaining={contract_remaining}"
                         )
                 elif log_progress and train_time >= next_progress:
                     self._log(
-                        f"[Arsenal] Progress: built={self.n_estimators_}, "
+                        f"[{type(self).__name__}] "
+                        f"Progress: built={self.n_estimators_}, "
                         f"elapsed={train_time:.2f}s"
                     )
                     next_progress = train_time + progress_interval
@@ -476,10 +477,8 @@ class Arsenal(BaseClassifier):
                 # random seeds are still drawn in the same order as the single
                 # call below, so the fitted ensemble is identical
                 estimator_start_time = time.perf_counter()
-                if log_each_estimator:
-                    batch_size = self._n_jobs
-                else:
-                    batch_size = max(self._n_jobs, (self.n_estimators + 9) // 10)
+                # about ten batches, but never fewer estimators than jobs
+                batch_size = max(self._n_jobs, (self.n_estimators + 9) // 10)
 
                 fit = []
                 for batch_start in range(0, self.n_estimators, batch_size):
@@ -527,13 +526,13 @@ class Arsenal(BaseClassifier):
                             batch_start + 1, batch_start + current_batch_size + 1
                         ):
                             self._log(
-                                f"[Arsenal] Estimator "
+                                f"[{type(self).__name__}] Estimator "
                                 f"{estimator_idx}/{self.n_estimators}: "
                                 f"elapsed={elapsed:.2f}s, {time_estimate}"
                             )
                     else:
                         self._log(
-                            f"[Arsenal] Progress: "
+                            f"[{type(self).__name__}] Progress: "
                             f"built={built}/{self.n_estimators}, "
                             f"elapsed={time.perf_counter() - start_time:.2f}s"
                         )
@@ -568,7 +567,7 @@ class Arsenal(BaseClassifier):
 
         if self.verbose > 0:
             self._log(
-                f"[Arsenal] Finished fit: built={self.n_estimators_}, "
+                f"[{type(self).__name__}] Finished fit: built={self.n_estimators_}, "
                 f"elapsed={time.perf_counter() - start_time:.2f}s"
             )
 

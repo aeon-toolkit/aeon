@@ -220,7 +220,7 @@ class BaseRotationForest(BaseEstimator):
             else:
                 fit_limit = f"n_estimators={self.n_estimators}"
             self._log(
-                f"[RotF] Starting fit: n_cases={self.n_cases_}, "
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
                 f"n_attributes={self.n_atts_}, {fit_limit}, n_jobs={self._n_jobs}"
             )
 
@@ -302,13 +302,14 @@ class BaseRotationForest(BaseEstimator):
                     first_estimator = self._n_estimators - len(fit) + 1
                     for estimator_idx in range(first_estimator, self._n_estimators + 1):
                         self._log(
-                            f"[RotF] Estimator {estimator_idx}: "
+                            f"[{type(self).__name__}] Estimator {estimator_idx}: "
                             f"elapsed={train_time:.2f}s, "
                             f"contract_remaining={contract_remaining}"
                         )
                 elif log_progress and train_time >= next_progress:
                     self._log(
-                        f"[RotF] Progress: built={self._n_estimators}, "
+                        f"[{type(self).__name__}] "
+                        f"Progress: built={self._n_estimators}, "
                         f"elapsed={train_time:.2f}s"
                     )
                     next_progress = train_time + progress_interval
@@ -320,10 +321,8 @@ class BaseRotationForest(BaseEstimator):
                 # random seeds are still drawn in the same order as the single
                 # call below, so the fitted ensemble is identical
                 estimator_start_time = time.perf_counter()
-                if log_each_estimator:
-                    batch_size = self._n_jobs
-                else:
-                    batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
+                # about ten batches, but never fewer estimators than jobs
+                batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
 
                 fit = []
                 for batch_start in range(0, self._n_estimators, batch_size):
@@ -364,13 +363,14 @@ class BaseRotationForest(BaseEstimator):
                             batch_start + 1, batch_start + current_batch_size + 1
                         ):
                             self._log(
-                                f"[RotF] Estimator "
+                                f"[{type(self).__name__}] Estimator "
                                 f"{estimator_idx}/{self._n_estimators}: "
                                 f"elapsed={elapsed:.2f}s, {time_estimate}"
                             )
                     else:
                         self._log(
-                            f"[RotF] Progress: built={built}/{self._n_estimators}, "
+                            f"[{type(self).__name__}] "
+                            f"Progress: built={built}/{self._n_estimators}, "
                             f"elapsed={time.perf_counter() - start_time:.2f}s"
                         )
             else:
@@ -394,7 +394,7 @@ class BaseRotationForest(BaseEstimator):
         self._is_fitted = True
         if self.verbose > 0:
             self._log(
-                f"[RotF] Finished fit: built={len(self.estimators_)}, "
+                f"[{type(self).__name__}] Finished fit: built={len(self.estimators_)}, "
                 f"elapsed={time.perf_counter() - start_time:.2f}s"
             )
         return X_t

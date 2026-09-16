@@ -369,7 +369,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 next_progress = progress_interval
 
             self._log(
-                f"[TDE] Starting fit: n_cases={self.n_cases_}, "
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
                 f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
                 f"{fit_limit}, max_ensemble_size={self.max_ensemble_size}"
             )
@@ -497,7 +497,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     )
 
                 self._log(
-                    f"[TDE] Candidate {num_classifiers}: "
+                    f"[{type(self).__name__}] Candidate {num_classifiers}: "
                     f"window_size={parameters[0]}, word_length={parameters[1]}, "
                     f"norm={parameters[2]}, levels={parameters[3]}, "
                     f"igb={parameters[4]}, accuracy={tde._accuracy:.4f}, "
@@ -512,7 +512,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
                 if report_progress:
                     self._log(
-                        f"[TDE] Progress: evaluated={num_classifiers}, "
+                        f"[{type(self).__name__}] "
+                        f"Progress: evaluated={num_classifiers}, "
                         f"retained={len(self.estimators_)}, elapsed={train_time:.2f}s"
                     )
                     if time_limit > 0:
@@ -525,7 +526,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         if self.verbose > 0:
             self._log(
-                f"[TDE] Finished fit: evaluated={num_classifiers}, "
+                f"[{type(self).__name__}] Finished fit: evaluated={num_classifiers}, "
                 f"retained={self.n_estimators_}, elapsed={train_time:.2f}s"
             )
 

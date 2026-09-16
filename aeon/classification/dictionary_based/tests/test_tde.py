@@ -243,8 +243,16 @@ def test_subsampling_in_highly_imbalanced_datasets():
 @pytest.mark.parametrize(
     ("verbose", "expected_output", "excluded_output"),
     [
-        (1, "[TDE] Progress: evaluated=", "[TDE] Candidate 1:"),
-        (2, "[TDE] Candidate 1:", "[TDE] Progress: evaluated="),
+        (
+            1,
+            "[TemporalDictionaryEnsemble] Progress: evaluated=",
+            "[TemporalDictionaryEnsemble] Candidate 1:",
+        ),
+        (
+            2,
+            "[TemporalDictionaryEnsemble] Candidate 1:",
+            "[TemporalDictionaryEnsemble] Progress: evaluated=",
+        ),
     ],
 )
 def test_tde_fit_verbosity_levels(verbose, expected_output, excluded_output, capsys):
@@ -266,10 +274,13 @@ def test_tde_fit_verbosity_levels(verbose, expected_output, excluded_output, cap
     tde.fit(X, y)
     output = capsys.readouterr().out
 
-    assert f"[TDE] Starting fit: n_cases={n_cases}" in output
+    assert f"[TemporalDictionaryEnsemble] Starting fit: n_cases={n_cases}" in output
     assert expected_output in output
     assert excluded_output not in output
-    assert f"[TDE] Finished fit: evaluated={n_parameter_samples}" in output
+    assert (
+        f"[TemporalDictionaryEnsemble] Finished fit: evaluated={n_parameter_samples}"
+        in output
+    )
     if verbose == 2:
         assert "estimated_remaining=" in output
         for status in ("retained", "replaced", "discarded"):
@@ -308,7 +319,10 @@ def test_tde_contract_verbosity_reports_remaining_time(
 
     assert re.search(remaining_time_pattern, output)
     assert "estimated_remaining=" not in output
-    assert f"[TDE] Finished fit: evaluated={max_parameter_samples}" in output
+    assert (
+        f"[TemporalDictionaryEnsemble] Finished fit: evaluated={max_parameter_samples}"
+        in output
+    )
 
 
 @pytest.mark.parametrize(
@@ -334,5 +348,7 @@ def test_tde_contract_level_one_progress_is_rate_limited(
     tde.fit(X, y)
     output = capsys.readouterr().out
 
-    assert ("[TDE] Progress: evaluated=" in output) is expect_progress
-    assert "[TDE] Candidate " not in output
+    assert (
+        "[TemporalDictionaryEnsemble] Progress: evaluated=" in output
+    ) is expect_progress
+    assert "[TemporalDictionaryEnsemble] Candidate " not in output

@@ -135,19 +135,19 @@ def test_fit_verbosity_levels(verbose, capsys):
     if verbose == 0:
         assert output == ""
     else:
-        assert "[RST] Starting fit: mode=fixed" in output
-        assert "[RST] Finished fit: extracted=20/20" in output
+        assert "[RandomShapeletTransform] Starting fit: mode=fixed" in output
+        assert "[RandomShapeletTransform] Finished fit: extracted=20/20" in output
         if verbose == 1:
-            assert "[RST] Progress: extracted=" in output
-            assert "[RST] Batch " not in output
+            assert "[RandomShapeletTransform] Progress: extracted=" in output
+            assert "[RandomShapeletTransform] Batch " not in output
         else:
-            assert "[RST] Batch 1: extracted=10/20" in output
+            assert "[RandomShapeletTransform] Batch 1: extracted=10/20" in output
             assert "estimated_remaining=" in output
 
 
 @pytest.mark.parametrize(
     ("time_limit_in_minutes", "formatted_limit"),
-    [(1, "1:00"), (2, "2:00"), (120, "2:00:00")],
+    [(1, "1m 0s"), (2, "2m 0s"), (120, "2h 0m")],
 )
 def test_contract_verbosity_reports_remaining_time(
     time_limit_in_minutes, formatted_limit, capsys
@@ -165,7 +165,7 @@ def test_contract_verbosity_reports_remaining_time(
     output = capsys.readouterr().out
 
     assert f"time_limit={formatted_limit}" in output
-    assert "[RST] Batch 1: extracted=10/10" in output
+    assert "[RandomShapeletTransform] Batch 1: extracted=10/10" in output
     assert "contract_remaining=" in output
     assert "projected_total~" in output
 
@@ -192,5 +192,7 @@ def test_contract_level_one_progress_is_rate_limited(
     transformer.fit(X, y)
     output = capsys.readouterr().out
 
-    assert ("[RST] Progress: extracted=100/100" in output) is reports_progress
-    assert "[RST] Batch " not in output
+    assert (
+        "[RandomShapeletTransform] Progress: extracted=100/100" in output
+    ) is reports_progress
+    assert "[RandomShapeletTransform] Batch " not in output

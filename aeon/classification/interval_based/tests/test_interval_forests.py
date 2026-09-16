@@ -114,8 +114,8 @@ def test_forest_pycatch22(cls):
 @pytest.mark.parametrize(
     ("verbose", "expected_output", "excluded_output"),
     [
-        (1, "[DrCIF] Progress: built=", "[DrCIF] Estimator 1/"),
-        (2, "[DrCIF] Estimator 1/", "[DrCIF] Progress: built="),
+        (1, "[DrCIFClassifier] Progress: built=", "[DrCIFClassifier] Estimator 1/"),
+        (2, "[DrCIFClassifier] Estimator 1/", "[DrCIFClassifier] Progress: built="),
     ],
 )
 def test_drcif_fit_verbosity_levels(verbose, expected_output, excluded_output, capsys):
@@ -137,10 +137,10 @@ def test_drcif_fit_verbosity_levels(verbose, expected_output, excluded_output, c
     drcif.fit(X, y)
     output = capsys.readouterr().out
 
-    assert f"[DrCIF] Starting fit: n_cases={n_cases}" in output
+    assert f"[DrCIFClassifier] Starting fit: n_cases={n_cases}" in output
     assert expected_output in output
     assert excluded_output not in output
-    assert f"[DrCIF] Finished fit: built={n_estimators}" in output
+    assert f"[DrCIFClassifier] Finished fit: built={n_estimators}" in output
     if verbose == 2:
         assert "estimated_remaining=" in output
 
@@ -177,7 +177,7 @@ def test_drcif_contract_verbosity_reports_remaining_time(
 
     assert re.search(remaining_time_pattern, output)
     assert "estimated_remaining=" not in output
-    assert f"[DrCIF] Finished fit: built={max_n_estimators}" in output
+    assert f"[DrCIFClassifier] Finished fit: built={max_n_estimators}" in output
 
 
 @pytest.mark.parametrize(
@@ -203,8 +203,8 @@ def test_drcif_contract_level_one_progress_is_rate_limited(
     drcif.fit(X, y)
     output = capsys.readouterr().out
 
-    assert ("[DrCIF] Progress: built=" in output) is expect_progress
-    assert "[DrCIF] Estimator " not in output
+    assert ("[DrCIFClassifier] Progress: built=" in output) is expect_progress
+    assert "[DrCIFClassifier] Estimator " not in output
 
 
 def test_drcif_parallel_verbosity_preserves_fit(capsys):
@@ -230,8 +230,21 @@ def test_drcif_parallel_verbosity_preserves_fit(capsys):
     output = capsys.readouterr().out
 
     assert detailed._n_jobs == n_jobs
-    assert f"[DrCIF] Estimator 1/{n_estimators}:" in output
+    assert f"[DrCIFClassifier] Estimator 1/{n_estimators}:" in output
     np.testing.assert_array_equal(quiet.predict_proba(X), detailed.predict_proba(X))
+
+
+def test_verbose_not_exposed_on_other_interval_forests(capsys):
+    """Interval forests that do not expose verbose stay silent during fit."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+    tsf = TimeSeriesForestClassifier(n_estimators=2, random_state=0)
+
+    assert "verbose" not in tsf.get_params()
+    assert tsf.verbose == 0
+    tsf.fit(X, y)
+    assert capsys.readouterr().out == ""
 
 
 def test_tic_curves_all_stump_forest():
