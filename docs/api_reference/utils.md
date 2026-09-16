@@ -176,6 +176,7 @@
     is_date_offset
     is_timedelta_or_date_offset
     check_n_jobs
+    check_lapack_svd_safe
     check_window_length
     get_n_cases
     get_type

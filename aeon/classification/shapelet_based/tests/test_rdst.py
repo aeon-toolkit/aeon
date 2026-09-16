@@ -1,5 +1,7 @@
 """RDST tests."""
 
+from unittest.mock import patch
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
@@ -31,3 +33,33 @@ def test_rdst_estimator_attribute_lifecycle():
 
     assert hasattr(model, "estimator_")
     assert not hasattr(model, "_estimator")
+
+
+def test_rdst_calls_lapack_check_with_default_estimator():
+    """RDSTClassifier should call check_lapack_svd_safe when estimator is None."""
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12)
+    clf = RDSTClassifier(max_shapelets=5)
+
+    with patch(
+        "aeon.classification.shapelet_based._rdst.check_lapack_svd_safe"
+    ) as mock_check:
+        clf.fit(X, y)
+
+    mock_check.assert_called_once()
+    args, _ = mock_check.call_args
+    assert args[2] == "RDSTClassifier"
+
+
+def test_rdst_skips_lapack_check_with_custom_estimator():
+    """RDSTClassifier should not call check_lapack_svd_safe with a custom estimator."""
+    from sklearn.linear_model import RidgeClassifier
+
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12)
+    clf = RDSTClassifier(max_shapelets=5, estimator=RidgeClassifier())
+
+    with patch(
+        "aeon.classification.shapelet_based._rdst.check_lapack_svd_safe"
+    ) as mock_check:
+        clf.fit(X, y)
+
+    mock_check.assert_not_called()
