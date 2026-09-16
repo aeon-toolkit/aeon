@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from sklearn.linear_model import RidgeClassifierCV
 
 from aeon.classification.dictionary_based._weasel import WEASEL
 from aeon.classification.dictionary_based._weasel_v2 import (
@@ -51,6 +52,27 @@ def test_weasel_v2_transform_no_y_unsupervised():
     all_words = weasel.fit_transform(X_train)
 
     np.testing.assert_equal(len(all_words), X_train.shape[0])
+
+
+def test_weasel_v2_transform_float_output():
+    """Test WEASELTransformerV2 output works with RidgeClassifierCV.
+
+    scikit-learn 1.8.0 RidgeClassifierCV truncates coefficients to zero for integer
+    input, see https://github.com/aeon-toolkit/aeon/issues/3830.
+    """
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
+
+    weasel = WEASELTransformerV2(random_state=0)
+    Xt_train = weasel.fit_transform(X_train, y_train)
+    Xt_test = weasel.transform(X_test)
+
+    assert Xt_train.dtype == np.float32
+    assert Xt_test.dtype == np.float32
+
+    clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10)).fit(Xt_train, y_train)
+    assert not np.allclose(clf.coef_, 0)
+    np.testing.assert_almost_equal(clf.score(Xt_test, y_test), 0.90909, decimal=4)
 
 
 def test_weasel_v2_transform_no_y_supervised():

@@ -185,7 +185,6 @@ class WEASEL_V2(BaseClassifier):
             n_jobs=self._n_jobs,
         )
         words = self.transform.fit_transform(X, y)
-        words = words.astype(np.float32, copy=False)
 
         # use RidgeClassifierCV for classification
         self.clf = RidgeClassifierCV(
@@ -429,7 +428,10 @@ class WEASELTransformerV2:
             all_words = hstack(sfa_words)
         self.total_features_count = all_words.shape[1]
 
-        return all_words
+        # SFA word counts are uint32. scikit-learn 1.8.0 RidgeCV/RidgeClassifierCV
+        # cast coef_ to the input dtype, truncating coefficients to zero for integer
+        # input, so return float32 (same memory footprint as uint32).
+        return all_words.astype(np.float32, copy=False)
 
     def transform(self, X, y=None):
         """Transform X into a WEASEL model.
@@ -454,11 +456,12 @@ class WEASELTransformerV2:
         )
 
         all_words = list(parallel_res)
-        return (
+        all_words = (
             np.concatenate(all_words, axis=1)
             if type(all_words[0]) is np.ndarray
             else hstack(all_words)
         )
+        return all_words.astype(np.float32, copy=False)
 
 
 def _parallel_fit(
