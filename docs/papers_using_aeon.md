@@ -12,6 +12,105 @@ aeon: a Python toolkit for learning from time series. Journal of Machine Learnin
 25(289), pp.1-10.
 [Paper](https://www.jmlr.org/papers/v25/23-1444.html)
 
+## 2026
+
+- Kim, J.-M., Kim, H.-H. and Nam, T.-K., 2026. Leakage-Free, Cross-Speed, and
+  Cross-Session Evaluation of Vibration-Based Propulsion-Shaft Misalignment
+  Diagnosis in Electric Ships: A Real-Time Detect-Then-Grade Cascade. Journal of
+  Marine Science and Engineering, 14(16), p.1464.
+  [Paper](https://doi.org/10.3390/jmse14161464)
+- Sadowska, M. and Gajowniczek, K., 2026. A Comparative Study of Time Series
+  Clustering Performance with Classification as a Benchmark. Big Data and
+  Cognitive Computing, 10(7), p.201.
+  [Paper](https://doi.org/10.3390/bdcc10070201)
+  [Code](https://github.com/MariaSadowska/TSC_clustering_article)
+- Miao, B., Theissler, A., Dong, Y., Lesh, A., Noh, H.Y., Loftus, D. and Lepech,
+  M., 2026. SingSys: acoustic vibration sensing for strength monitoring and
+  characterization of Engineered Biopolymer Composite (EBC). In Proceedings of
+  the 2026 ACM Sustainability Week, pp.379-382.
+  [Paper](https://doi.org/10.1145/3765611.3815358)
+- Kiakou, D., Mueller, K., Filip, P., Lasica, A., Hofmann, S.M., Ruzicka, F.,
+  Urgosik, D., Burdova, K. and Jech, R., 2026. Classification of Functional Brain
+  Patterns Elicited by Deep Brain Stimulation of the Subthalamic Nucleus in
+  Parkinson's Disease. IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering, 34, pp.2211-2223.
+  [Paper](https://doi.org/10.1109/TNSRE.2026.3682582)
+- Mivehchi, M. and Ziotopoulou, K., 2026. Time history-based validation of
+  nonlinear dynamic analyses of liquefiable geosystems. Soil Dynamics and
+  Earthquake Engineering, 207, p.110304.
+  [Paper](https://doi.org/10.1016/j.soildyn.2026.110304)
+- Zhang, H., He, X., Li, J., Li, J. and Yao, Q., 2026. FastTWE: making TWE-based
+  time-series similarity search faster via random convolutional kernels. Applied
+  Soft Computing, 186, p.114256.
+  [Paper](https://doi.org/10.1016/j.asoc.2025.114256)
+  [Code](https://github.com/pcjdhhhh/FastTWE)
+- Mozolewski, M., Bobek, S. and Nalepa, G.J., 2026. ExplainTS: a benchmark
+  dataset of pretrained models and post-hoc explanations for time-series
+  classification. Frontiers in Artificial Intelligence, 9, p.1759110.
+  [Paper](https://doi.org/10.3389/frai.2026.1759110)
+  [Code](https://github.com/mozo64/papers/tree/main/zenodo-ucr)
+- Miao, B.H., Dong, Y., Theissler, A., Lesh, A.C., Loftus, D.J. and Lepech, M.D.,
+  2026. AI-powered non-destructive testing for smart manufacturing of
+  carbon-negative biopolymer-bound soil composite. Communications Engineering,
+  5, p.64.
+  [Paper](https://doi.org/10.1038/s44172-026-00621-8)
+  [Code](https://github.com/ml-and-vis/BSC-quality-control)
+- Zhang, H., Li, J. and Yao, Q., 2026. RACER: Fast and Accurate Time Series
+  Clustering With Random Convolutional Kernels and Ensemble Methods. IEEE
+  Internet of Things Journal, 13(9), pp.19430-19442.
+  [Paper](https://doi.org/10.1109/JIOT.2026.3662758)
+  [Code](https://github.com/pcjdhhhh/RACER)
+- Niepala, A. and Ruszczak, B., 2026. Bare Soil Detection Using Convolutional
+  Transformers for Spectral-Wise Processing. Intelligent Environments 2026:
+  Combined Workshop Proceedings.
+  [Paper](https://doi.org/10.3233/AISE260022)
+- Holder, C. and Bagnall, A., 2026. Rock the KASBA: blazingly fast and accurate
+  time series clustering. Data Mining and Knowledge Discovery, 40, p.21.
+  [Paper](https://doi.org/10.1007/s10618-026-01189-9)
+  [Code](https://github.com/aeon-toolkit/aeon-benchmark)
+- Qiu, C., Middlehurst, M., Holder, C. and Bagnall, A., 2026. e-SMOTE: A Train
+  Set Rebalancing Algorithm for Time Series Classification. In Advanced
+  Analytics and Learning on Temporal Data, pp.1-17.
+  [Paper](https://doi.org/10.1007/978-3-032-15535-1_1)
+- Banwell, A. and Bagnall, A., 2026. Time Series Extrinsic Regression Algorithms
+  for Forecasting Long Time Series with a Short Horizon. In Advanced Analytics
+  and Learning on Temporal Data, pp.149-164.
+  [Paper](https://doi.org/10.1007/978-3-032-15535-1_10)
+- Papadeas, N., Serramazza, D.I., Abdallah, Z. and Ifrim, G., 2026. An Empirical
+  Evaluation of Factors Affecting SHAP Explanation of Time Series Classification.
+  In Machine Learning and Principles and Practice of Knowledge Discovery in
+  Databases, pp.458-473.
+  [Paper](https://doi.org/10.1007/978-3-032-19105-2_32)
+- Higgins, C., Carrigan, G., Isiacik, P.S. and Ifrim, G., 2026. Revisiting WEASEL
+  2.0: Reproduction, Sensitivity, and an Adaptive Ensemble-Size Rule.
+  arXiv:2608.18021.
+  [Paper](https://arxiv.org/abs/2608.18021)
+- Andrès, H., Boumezoued, A., Bourdon, A. and Jourdain, B., 2026. Approximation
+  of stochastic insurer balance-sheet results using signatures of economic
+  scenarios. arXiv:2607.24150.
+  [Paper](https://arxiv.org/abs/2607.24150)
+- O'Rourke, F.M., Trisovic, A. and Bertsimas, D., 2026. RocketPFN: Accurate Time
+  Series Classification via In-Context Learning. arXiv:2606.21786.
+  [Paper](https://arxiv.org/abs/2606.21786)
+- O'Rourke, F.M., Trisovic, A. and Bertsimas, D., 2026. A Causal DAG Prior for
+  Synthetic Time-Series Classification Datasets. arXiv:2606.21776.
+  [Paper](https://arxiv.org/abs/2606.21776)
+- Attwood, E., Cook, J.W.S. and Hill, P., 2026. Time Series Extrinsic Regression
+  of Ion Cyclotron Emission Spectra Trained on Particle-In-Cell Simulations.
+  arXiv:2605.18268.
+  [Paper](https://arxiv.org/abs/2605.18268)
+- Rantahalvari, E., Silvén, O., Boulkenafet, Z. and Álvarez Casado, C., 2026.
+  Selfie-Capture Dynamics as an Auxiliary Signal Against Deepfakes and Injection
+  Attacks for Mobile Identity Verification. arXiv:2605.00218.
+  [Paper](https://arxiv.org/abs/2605.00218)
+- Stüven, O., Moenck, K. and Schüppstuhl, T., 2026. CUROCKET: Optimizing ROCKET
+  for GPU. arXiv:2601.17091.
+  [Paper](https://arxiv.org/abs/2601.17091)
+- Skaf, W., Kern, F., Basu Roy, A., Pradhan, T., Kalkreuth, R. and Hoos, H., 2026.
+  Rapid Augmentations for Time Series (RATS): A High-Performance Library for Time
+  Series Augmentation. arXiv:2601.03159.
+  [Paper](https://arxiv.org/abs/2601.03159)
+
 ## 2025
 
 - Ismail-Fawaz, A., Devanne, M., Berretti, S., Weber, J. and Forestier, G., 2025.
@@ -19,13 +118,34 @@ aeon: a Python toolkit for learning from time series. Journal of Machine Learnin
   comparative analysis of metrics. Computer Vision and Image Understanding, 254,
   p.104337.
   [Paper](https://www.sciencedirect.com/science/article/pii/S1077314225000608) [Code](https://github.com/MSD-IRIMAS/Evaluating-HMG)
-- Rewicki, F,Denzler J. and Niebling, J., Anomalous Agreement: How to find the
-  Ideal Number of Anomaly Classes in Correlated, Multivariate Time Series Data.
-  arXiv:2501.07172
-  [Paper](https://arxiv.org/pdf/2501.07172) [Code](https://gitlab.com/dlr-dw/saai)
 - Serramazza, D., Nguyen, T. and Ifrim, G. A short tutorial for multivariate time
   series explanation using tsCaptum. Software Impacts, 22.
   [Paper](https://doi.org/10.1016/j.simpa.2024.100723)
+- Moore, J.B., Stackhouse, H.P., Fulcher, B.D. and Mahmoodian, S., 2025. Using
+  matrix-product states for time-series machine learning. Physical Review
+  Research, 7(4), p.043010.
+  [Paper](https://doi.org/10.1103/61h8-8qr5)
+  [Code](https://github.com/hugopstackhouse/MPSTime.jl)
+- Alagöz, C., 2025. Crossfire: cross-domain feature integration for robust time
+  series classification. PeerJ Computer Science, 11, e3328.
+  [Paper](https://doi.org/10.7717/peerj-cs.3328)
+  [Code](https://github.com/alagoz/cfire/tree/v1.0.0)
+- Ferfoglia, I., Silvetti, S., Saveri, G., Nenzi, L. and Bortolussi, L., 2025.
+  Guided by Stars: Interpretable Concept Learning Over Time Series via Temporal
+  Logic Semantics. arXiv:2511.04244.
+  [Paper](https://arxiv.org/abs/2511.04244)
+- Auer, A., Klotz, D., Böck, S. and Hochreiter, S., 2025. Pre-trained Forecasting
+  Models: Strong Zero-Shot Feature Extractors for Time Series Classification.
+  arXiv:2510.26777.
+  [Paper](https://arxiv.org/abs/2510.26777)
+- Ismail-Fawaz, A., 2025. Deep Learning For Time Series Analysis With Application
+  On Human Motion. arXiv:2502.19364.
+  [Paper](https://arxiv.org/abs/2502.19364)
+- Rewicki, F., Denzler, J. and Niebling, J., 2025. Anomalous Agreement: How to
+  find the Ideal Number of Anomaly Classes in Correlated, Multivariate Time
+  Series Data. arXiv:2501.07172.
+  [Paper](https://arxiv.org/abs/2501.07172)
+  [Code](https://gitlab.com/dlr-dw/saai)
 
 ## 2024
 
@@ -72,19 +192,9 @@ aeon: a Python toolkit for learning from time series. Journal of Machine Learnin
   Manufacturing of Sustainable Biopolymer Composites. In Proceedings of the 11th ACM
   International Conference on Systems for Energy-Efficient Buildings (BuildSys '24)
   [Paper](https://doi.org/10.1145/3671127.3698165)
-- Moore, J., Stackhouse, H. Fulcher, B. and Mahmoodian, S. Using matrix-product
-  states for time-series machine learning. 	arXiv:2412.15826
-  [Paper](https://arxiv.org/abs/2412.15826)
-- Holder, C. and Bagnall, B. 2024. Rock the KASBA: Blazingly Fast and Accurate Time
-  Series Clustering. arXiv: 2411.17838
-  [Paper](https://arxiv.org/abs/2411.17838)
-- Holder, C., Bagnall, B. and Lines, J. 2024. On time series clustering with k-means.
-  arXiv: 2410.14269
+- Holder, C., Bagnall, A. and Lines, J., 2024. On time series clustering with
+  k-means. arXiv:2410.14269.
   [Paper](https://arxiv.org/abs/2410.14269)
-- Ismail-Fawaz, A. 2024. Deep Learning For Time Series Analysis With Application On
-  Human Motion arXiv: 2502.19364
-  [Paper](https://arxiv.org/abs/2502.19364)
-
 ## 2023
 
 - Ayllón-Gavilán, R., Guijo-Rubio, D., Gutiérrez, P.A. and Hervás-Martínez, C., 2023,
