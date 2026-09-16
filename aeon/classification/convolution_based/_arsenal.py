@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 from joblib import delayed
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.linear_model import RidgeClassifier, RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
@@ -34,37 +34,36 @@ def _get_oob_indices(subsample, n_cases):
     return np.flatnonzero(~in_bag)
 
 
+_ALPHAS = np.logspace(-3, 3, 10)
+
+
 def _fit_ridge_classifier(X, y, class_weight):
-    """Fit Arsenal's ridge, falling back if NumPy's LOO SVD does not converge."""
+    """Fit a member ridge whose ``best_score_`` is its LOO CV accuracy.
+
+    For two classes ``RidgeClassifierCV`` reconstructs leave-one-out labels with
+    ``argmax`` over a single signed column, so ``best_score_`` is always 1.0 and
+    the first alpha is always chosen. See
+    https://github.com/scikit-learn/scikit-learn/issues/34942. Binary problems
+    therefore take the predicted class from the sign of the stored leave-one-out
+    decision values and refit at the best alpha. Multiclass is unchanged.
+    """
     ridge = RidgeClassifierCV(
-        alphas=np.logspace(-3, 3, 10),
+        alphas=_ALPHAS,
         class_weight=class_weight,
         scoring="accuracy",
-    )
-    try:
-        ridge.fit(X, y)
-        ridge.svd_fallback_ = False
+        store_cv_results=len(np.unique(y)) == 2,
+    ).fit(X, y)
+    cv_results = getattr(ridge, "cv_results_", None)
+    if cv_results is None or cv_results.ndim != 3 or cv_results.shape[1] != 1:
         return ridge
-    except np.linalg.LinAlgError:
-        # RidgeClassifierCV's efficient leave-one-out path uses an SVD for
-        # wide design matrices. Exceptionally ill-conditioned ROCKET feature
-        # matrices can make the LAPACK decomposition fail even when all values
-        # are finite. Explicit stratified CV avoids that decomposition while
-        # preserving deterministic accuracy-based alpha selection.
-        _, class_counts = np.unique(y, return_counts=True)
-        n_splits = min(5, int(class_counts.min()))
-        if n_splits < 2:
-            raise
 
-        ridge = RidgeClassifierCV(
-            alphas=np.logspace(-3, 3, 10),
-            class_weight=class_weight,
-            scoring="accuracy",
-            cv=n_splits,
-        )
-        ridge.fit(X, y)
-        ridge.svd_fallback_ = True
-        return ridge
+    positive = (y == ridge.classes_[1])[:, None]
+    accuracies = ((cv_results[:, 0, :] > 0) == positive).mean(axis=0)
+    best = int(np.argmax(accuracies))
+    binary = RidgeClassifier(alpha=_ALPHAS[best], class_weight=class_weight).fit(X, y)
+    binary.best_score_ = float(accuracies[best])
+    binary.alpha_ = _ALPHAS[best]
+    return binary
 
 
 def _transform_with(rocket, X, pre_normalised):
@@ -149,10 +148,6 @@ class Arsenal(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    verbose : int, default=0
-        Level of output printed during fit. Level 1 reports the fit configuration,
-        periodic progress and a final summary. Level 2 and above additionally report
-        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
@@ -223,7 +218,6 @@ class Arsenal(BaseClassifier):
         class_weight=None,
         n_jobs: int = 1,
         random_state=None,
-        verbose: int = 0,
     ):
         self.n_kernels = n_kernels
         self.n_estimators = n_estimators
@@ -236,7 +230,6 @@ class Arsenal(BaseClassifier):
         self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self.verbose = verbose
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -307,7 +300,7 @@ class Arsenal(BaseClassifier):
             Predicted probabilities using the ordering in classes_.
         """
         if self.rocket_transform == "rocket":
-            X = Normalizer().fit_transform(X)
+            X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
 
         y_probas = _run_jobs(
             (
@@ -361,30 +354,13 @@ class Arsenal(BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         time_limit = self.time_limit_in_minutes * 60
-        start_time = time.perf_counter()
+        start_time = time.time()
         train_time = 0
-
-        log_each_estimator = self.verbose >= 2
-        log_progress = self.verbose == 1
-        if self.verbose > 0:
-            if time_limit > 0:
-                fit_limit = (
-                    f"time_limit={self._format_duration(time_limit)}, "
-                    f"max_n_estimators={self.contract_max_n_estimators}"
-                )
-            else:
-                fit_limit = f"n_estimators={self.n_estimators}"
-            self._log(
-                f"[Arsenal] Starting fit: n_cases={self.n_cases_}, "
-                f"n_channels={self.n_channels_}, "
-                f"n_timepoints={self.n_timepoints_}, "
-                f"transform={self.rocket_transform}, n_kernels={self.n_kernels}, "
-                f"{fit_limit}, n_jobs={self._n_jobs}"
-            )
 
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(n_kernels=self.n_kernels)
-            X = Normalizer().fit_transform(X)
+            # Rocket convolves in float32; cast once, not once per member
+            X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
         elif self.rocket_transform == "minirocket":
             base_rocket = MiniRocket(
                 n_kernels=self.n_kernels,
@@ -405,10 +381,6 @@ class Arsenal(BaseClassifier):
         )
 
         if time_limit > 0:
-            if log_progress:
-                progress_interval = time_limit / 10
-                next_progress = progress_interval
-
             self.n_estimators_ = 0
             self.estimators_ = []
             weights = []
@@ -451,114 +423,29 @@ class Arsenal(BaseClassifier):
                 train_estimates += train_data
 
                 self.n_estimators_ += batch_size
-                train_time = time.perf_counter() - start_time
-
-                if log_each_estimator:
-                    contract_remaining = self._format_duration(
-                        max(0.0, time_limit - train_time)
-                    )
-                    first_estimator = self.n_estimators_ - len(fit) + 1
-                    for estimator_idx in range(first_estimator, self.n_estimators_ + 1):
-                        self._log(
-                            f"[Arsenal] Estimator {estimator_idx}: "
-                            f"elapsed={train_time:.2f}s, "
-                            f"contract_remaining={contract_remaining}"
-                        )
-                elif log_progress and train_time >= next_progress:
-                    self._log(
-                        f"[Arsenal] Progress: built={self.n_estimators_}, "
-                        f"elapsed={train_time:.2f}s"
-                    )
-                    next_progress = train_time + progress_interval
+                train_time = time.time() - start_time
         else:
-            if self.verbose > 0:
-                # fit in batches so progress can be reported between them; the
-                # random seeds are still drawn in the same order as the single
-                # call below, so the fitted ensemble is identical
-                estimator_start_time = time.perf_counter()
-                if log_each_estimator:
-                    batch_size = self._n_jobs
-                else:
-                    batch_size = max(self._n_jobs, (self.n_estimators + 9) // 10)
-
-                fit = []
-                for batch_start in range(0, self.n_estimators, batch_size):
-                    current_batch_size = min(
-                        batch_size, self.n_estimators - batch_start
-                    )
-                    batch_fit = _run_jobs(
-                        (
-                            delayed(self._fit_ensemble_estimator)(
-                                _clone_estimator(
-                                    base_rocket, rng.randint(np.iinfo(np.int32).max)
-                                ),
-                                X,
-                                y,
-                                train_rng=(
-                                    check_random_state(
-                                        train_rng.randint(np.iinfo(np.int32).max)
-                                    )
-                                    if return_train_estimates
-                                    else None
-                                ),
-                            )
-                            for _ in range(current_batch_size)
+            fit = _run_jobs(
+                (
+                    delayed(self._fit_ensemble_estimator)(
+                        _clone_estimator(
+                            base_rocket, rng.randint(np.iinfo(np.int32).max)
                         ),
-                        self._n_jobs,
-                        prefer="threads",
+                        X,
+                        y,
+                        train_rng=(
+                            check_random_state(
+                                train_rng.randint(np.iinfo(np.int32).max)
+                            )
+                            if return_train_estimates
+                            else None
+                        ),
                     )
-                    fit.extend(batch_fit)
-
-                    built = len(fit)
-                    estimator_elapsed = time.perf_counter() - estimator_start_time
-                    if log_each_estimator:
-                        if built == 1:
-                            time_estimate = "estimated_remaining=estimating"
-                        else:
-                            estimated_remaining = (estimator_elapsed / built) * (
-                                self.n_estimators - built
-                            )
-                            time_estimate = (
-                                "estimated_remaining="
-                                f"{self._format_duration(estimated_remaining)}"
-                            )
-                        elapsed = time.perf_counter() - start_time
-                        for estimator_idx in range(
-                            batch_start + 1, batch_start + current_batch_size + 1
-                        ):
-                            self._log(
-                                f"[Arsenal] Estimator "
-                                f"{estimator_idx}/{self.n_estimators}: "
-                                f"elapsed={elapsed:.2f}s, {time_estimate}"
-                            )
-                    else:
-                        self._log(
-                            f"[Arsenal] Progress: "
-                            f"built={built}/{self.n_estimators}, "
-                            f"elapsed={time.perf_counter() - start_time:.2f}s"
-                        )
-            else:
-                fit = _run_jobs(
-                    (
-                        delayed(self._fit_ensemble_estimator)(
-                            _clone_estimator(
-                                base_rocket, rng.randint(np.iinfo(np.int32).max)
-                            ),
-                            X,
-                            y,
-                            train_rng=(
-                                check_random_state(
-                                    train_rng.randint(np.iinfo(np.int32).max)
-                                )
-                                if return_train_estimates
-                                else None
-                            ),
-                        )
-                        for _ in range(self.n_estimators)
-                    ),
-                    self._n_jobs,
-                    prefer="threads",
-                )
+                    for _ in range(self.n_estimators)
+                ),
+                self._n_jobs,
+                prefer="threads",
+            )
 
             self.estimators_, weights, train_estimates = zip(*fit)
             self.n_estimators_ = self.n_estimators
@@ -566,33 +453,7 @@ class Arsenal(BaseClassifier):
         self.weights_ = list(weights)
         self._weight_sum = float(np.sum(weights))
 
-        if self.verbose > 0:
-            self._log(
-                f"[Arsenal] Finished fit: built={self.n_estimators_}, "
-                f"elapsed={time.perf_counter() - start_time:.2f}s"
-            )
-
         return list(train_estimates) if return_train_estimates else None
-
-    @staticmethod
-    def _log(message):
-        """Print a fit progress message after the caller checks verbosity."""
-        print(message, flush=True)  # noqa: T201
-
-    @staticmethod
-    def _format_duration(seconds):
-        """Format a duration for concise progress output."""
-        if seconds < 10:
-            return f"{seconds:.2f}s"
-        if seconds < 60:
-            return f"{seconds:.1f}s"
-        if seconds < 3600:
-            minutes, remaining_seconds = divmod(seconds, 60)
-            return f"{int(minutes)}m {remaining_seconds:.0f}s"
-
-        hours, remaining_seconds = divmod(seconds, 3600)
-        minutes = remaining_seconds // 60
-        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_ensemble_estimator(self, rocket, X, y, train_rng=None):
         # X is already normalised at ensemble level where the transformer
@@ -600,9 +461,7 @@ class Arsenal(BaseClassifier):
         rocket.fit(X)
         transformed_x = _transform_with(rocket, X, self.rocket_transform == "rocket")
         scaler = StandardScaler(with_mean=False)
-        # scoring="accuracy" makes best_score_ the LOO CV accuracy used to
-        # weight this member; with the default scorer it is the negative LOO
-        # mean squared error, which inverts the weighting
+        # best_score_ is the LOO CV accuracy used to weight this member
         ridge = _fit_ridge_classifier(
             scaler.fit_transform(transformed_x), y, self.class_weight
         )
@@ -632,15 +491,11 @@ class Arsenal(BaseClassifier):
 
         scaler = StandardScaler(with_mean=False)
         ridge = _fit_ridge_classifier(
-            scaler.fit_transform(Xt[subsample]),
-            y[subsample],
-            self.class_weight,
+            scaler.fit_transform(Xt[subsample]), y[subsample], self.class_weight
         )
         preds = ridge.predict(scaler.transform(Xt[oob]))
 
-        weight = ridge.best_score_
-
-        return np.searchsorted(self.classes_, preds), weight, oob
+        return np.searchsorted(self.classes_, preds), ridge.best_score_, oob
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
