@@ -328,6 +328,10 @@ def _univariate_msm_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -
 @njit(cache=True, fastmath=True)
 def _msm_dependent_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -> float:
     """Compute dependent unbounded MSM with two rolling rows."""
+    if x.shape[0] != y.shape[0]:
+        raise ValueError(
+            "Dependent MSM requires x and y to have the same number of channels."
+        )
     if x.shape[1] < y.shape[1]:
         x, y = y, x
 
@@ -421,6 +425,10 @@ def _msm_dependent_distance(
     This is optimized for memory usage by using a two-row buffer
     (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
     """
+    if x.shape[0] != y.shape[0]:
+        raise ValueError(
+            "Dependent MSM requires x and y to have the same number of channels."
+        )
     # Iterate over the larger dimension to minimize the size of the row buffers.
     # MSM is symmetric, so swapping x and y and transposing the bounding matrix
     # leaves the distance unchanged.
@@ -506,6 +514,10 @@ def _independent_cost_matrix(
 def _msm_dependent_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
+    if x.shape[0] != y.shape[0]:
+        raise ValueError(
+            "Dependent MSM requires x and y to have the same number of channels."
+        )
     x_size = x.shape[1]
     y_size = y.shape[1]
 
@@ -541,19 +553,27 @@ def _msm_dependent_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> float:
-    diameter = _univariate_squared_distance(y, z)
-    mid = (y + z) / 2.0
-    distance_to_mid = _univariate_squared_distance(mid, x)
+    # One pass over the channels with no temporary arrays: this is called about
+    # twice per cost matrix cell, so allocating a midpoint array dominated the
+    # runtime. Callers must check that all series have the same number of
+    # channels, as there are no bounds checks here.
+    diameter = 0.0
+    distance_to_mid = 0.0
+    dist_to_q_prev = 0.0
+    dist_to_c = 0.0
+    for i in range(x.shape[0]):
+        diff = y[i] - z[i]
+        diameter += diff * diff
+        diff = (y[i] + z[i]) / 2.0 - x[i]
+        distance_to_mid += diff * diff
+        diff = y[i] - x[i]
+        dist_to_q_prev += diff * diff
+        diff = z[i] - x[i]
+        dist_to_c += diff * diff
 
-    if distance_to_mid <= (diameter / 4.0):
+    if distance_to_mid <= diameter / 4.0:
         return c
-    else:
-        dist_to_q_prev = _univariate_squared_distance(y, x)
-        dist_to_c = _univariate_squared_distance(z, x)
-        if dist_to_q_prev < dist_to_c:
-            return c + dist_to_q_prev
-        else:
-            return c + dist_to_c
+    return c + min(dist_to_q_prev, dist_to_c)
 
 
 @njit(cache=True, fastmath=True)
