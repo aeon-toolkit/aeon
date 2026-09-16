@@ -12,27 +12,28 @@ from aeon.utils.validation import check_n_jobs
 
 
 class _BaseHIVECOTE(BaseClassifier):
-    """Modular base class for HIVE-COTE ensembles.
+    """
+    Modular base class for HIVE-COTE ensembles.
 
-    This class implements the CAWPE (Cross-validation Accuracy Weighted Probabilistic
-    Ensemble) structure. It obtains training predictions from each component with
-    ``fit_predict``, derives component weights from training accuracy, and combines
-    weighted probabilities during prediction.
+    This class handles the core logic of the CAWPE (Cross-validation Accuracy
+    Weighted Probabilistic Ensemble) structure. It accepts a list of base
+    estimators, trains them using fit_predict to get out-of-bag estimates,
+    calculates their weights based on training accuracy, and combines their
+    probabilities during prediction.
 
     Parameters
     ----------
-    estimators : list of tuple or None
-        ``(name, estimator)`` pairs for the ensemble components. Each estimator must be
-        a ``BaseClassifier``. Subclasses that construct components during fit may pass
-        None and populate ``_estimators`` before calling ``_fit``.
+    estimators : list of tuples
+        List of (name, estimator) tuples representing the ensemble components.
+        Each estimator must be an instance of BaseClassifier.
     alpha : int or float, default=4
-        Exponent applied to component training accuracy when calculating CAWPE weights.
+        The power parameter for the CAWPE weight calculation.
     random_state : int, RandomState instance or None, default=None
-        Seed or random number generator propagated to the components.
+        Seed for random number generation.
     n_jobs : int, default=1
-        The number of jobs propagated to the components.
+        The number of jobs to run in parallel.
     verbose : int, default=0
-        Level of output printed during fit.
+        Level of output printed to the console.
     """
 
     _tags = {
@@ -179,15 +180,8 @@ class _BaseHIVECOTE(BaseClassifier):
             probas = est.predict_proba(X)
             dists = np.add(dists, probas * weight)
 
-        return self._normalise_probabilities(dists)
-
-    @staticmethod
-    def _normalise_probabilities(dists):
-        """Normalise weighted probabilities, using uniform rows for zero totals."""
         sums = dists.sum(axis=1, keepdims=True)
-        zero_sum = sums[:, 0] == 0
-        sums[zero_sum] = 1.0
-        dists[zero_sum] = 1.0 / dists.shape[1]
+        sums[sums == 0] = 1.0
         return dists / sums
 
     def get_component_weights(self):

@@ -1,6 +1,7 @@
-"""Shapelet Transform Classifier (STC).
+"""A shapelet transform classifier (STC).
 
-Pipeline combining a configurable shapelet transform with a tabular classifier.
+Shapelet transform classifier pipeline that simply performs a (configurable) shapelet
+transform then builds (by default) a rotation forest classifier on the output.
 """
 
 __maintainer__ = ["TonyBagnall"]
@@ -21,54 +22,55 @@ from aeon.utils.validation import check_n_jobs
 
 
 class ShapeletTransformClassifier(BaseClassifier):
-    """Shapelet Transform Classifier (STC).
+    """
+    A shapelet transform classifier (STC).
 
-    STC transforms time series into distances from discriminative subsequences using
-    ``RandomShapeletTransform``, then fits a classifier to the transformed data. The
-    default classifier is ``RotationForestClassifier``. This implementation follows
-    [1]_ and [2]_, with random candidate-shapelet sampling.
+    Implementation of the binary shapelet transform classifier pipeline along the lines
+    of [1]_, [2]_, but with random shapelet sampling. Transforms the data using the
+    configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
+    classifier.
 
-    The shapelet transform can be contracted independently, or a total contract can be
-    divided between the transform and an estimator that supports
-    ``time_limit_in_minutes``.
+    As some implementations and applications contract the transformation solely,
+    contracting is available for the transform only and both classifier and transform.
 
     Parameters
     ----------
     n_shapelet_samples : int, default=10000
-        Number of candidate shapelets assessed by the transform. The transform retains
-        at most ``max_shapelets`` candidates with the highest information gain.
+        The number of candidate shapelets to be considered for the final transform.
+        Filtered down to ``<= max_shapelets``, keeping the shapelets with the most
+        information gain.
     max_shapelets : int or None, default=None
-        Maximum number of shapelets retained by the transform. The budget is divided
-        equally among classes. If None, use the smaller of 10 times the number of
-        training cases and 1000.
+        Max number of shapelets to keep for the final transform. Each class value will
+        have its own max, set to ``n_classes_ / max_shapelets``. If `None`, uses the
+        minimum between ``10 * n_cases_`` and `1000`.
     max_shapelet_length : int or None, default=None
-        Upper bound on candidate shapelet lengths. If None, use the length of the
-        longest training series.
+        Lower bound on candidate shapelet lengths for the transform. If ``None``, no
+        max length is used
     estimator : BaseEstimator or None, default=None
-        Classifier fitted to the transformed data. Must implement the scikit-learn
-        estimator interface. If None, use ``RotationForestClassifier``.
-    batch_size : int, default=100
+        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
+        `None` a default `RotationForestClassifier` classifier is used.
+    batch_size : int or None, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets in the transform.
     verbose : int, default=0
         Level of output printed to the console. ``0`` prints no output, ``1``
         prints STC phase timings and component progress, and ``2`` or greater
         prints detailed progress from the shapelet transform and estimator.
-    transform_limit_in_minutes : float, default=0
-        Independent time contract for fitting the shapelet transform, in minutes,
-        overriding ``n_shapelet_samples``. A value of 0 uses
-        ``n_shapelet_samples``.
-    time_limit_in_minutes : float, default=0
-        Total time contract for fitting STC, in minutes. A positive value overrides
-        ``transform_limit_in_minutes`` and divides time between the transform and the
-        classifier. The classifier is contracted only if it exposes a
-        ``time_limit_in_minutes`` parameter.
-    contract_max_n_shapelet_samples : int or float, default=np.inf
-        Maximum number of candidate shapelets assessed when contracting the
-        transform via ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
+    transform_limit_in_minutes : int, default=0
+        Time contract to limit transform time in minutes for the shapelet transform,
+        overriding `n_shapelet_samples`. A value of `0` means ``n_shapelet_samples``
+        is used.
+    time_limit_in_minutes : int, default=0
+        Time contract to limit build time in minutes, overriding ``n_shapelet_samples``
+        and ``transform_limit_in_minutes``. The ``estimator`` will only be contracted if
+        a ``time_limit_in_minutes parameter`` is present. Default of `0` means
+        ``n_shapelet_samples`` or ``transform_limit_in_minutes`` is used.
+    contract_max_n_shapelet_samples : int, default=np.inf
+        Max number of shapelets to extract when contracting the transform with
+        ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
     n_jobs : int, default=1
-        The number of jobs used by the transform and classifier. ``-1`` uses all
-        processors.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
+        `-1` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -77,11 +79,11 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     Attributes
     ----------
-    classes_ : np.ndarray of shape (n_classes_)
+    classes_ : list
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of channels per case in the training set.
@@ -414,7 +416,7 @@ class ShapeletTransformClassifier(BaseClassifier):
             self._log(
                 f"[STC] Finished shapelet transform in "
                 f"{perf_counter() - transform_start:.2f}s, "
-                f"retained={len(self.transformer_.shapelets_)}"
+                f"retained={len(self.transformer_.shapelets)}"
             )
 
         return X_t
