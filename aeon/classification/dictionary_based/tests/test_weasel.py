@@ -55,10 +55,10 @@ def test_weasel_v2_transform_no_y_unsupervised():
 
 
 def test_weasel_v2_transform_float_output():
-    """Test WEASELTransformerV2 output works with RidgeClassifierCV.
+    """Test WEASELTransformerV2 output is a float dtype.
 
-    scikit-learn 1.8.0 RidgeClassifierCV truncates coefficients to zero for integer
-    input, see https://github.com/aeon-toolkit/aeon/issues/3830.
+    Some versions of sklearn RidgeClassifierCV incorrectly convert values
+    using the input dtype, which can cause issues.
     """
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
