@@ -186,12 +186,12 @@ def test_incorrect_inputs():
     y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     with pytest.raises(
         ValueError,
-        match="Method must be one of the supported strings or a " "callable",
+        match="Method must be one of the supported strings or a callable",
     ):
         compute_distance(x, y, method="FOO")
     with pytest.raises(
         ValueError,
-        match="Method must be one of the supported strings or a " "callable",
+        match="Method must be one of the supported strings or a callable",
     ):
         pairwise_distance(x, y, method="FOO")
     with pytest.raises(ValueError, match="Method must be one of the supported strings"):
@@ -202,3 +202,67 @@ def test_incorrect_inputs():
     x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     with pytest.raises(ValueError, match="dist_func must be a callable"):
         _custom_func_pairwise(x, dist_func=None)
+
+
+@pytest.mark.parametrize(
+    "dtype_x,dtype_y",
+    [
+        (np.float64, np.int64),
+        (np.int64, np.float64),
+        (np.float32, np.float64),
+        (np.float64, np.float32),
+        (np.int32, np.float64),
+    ],
+)
+def test_dtw_distance_mixed_dtypes(dtype_x, dtype_y):
+    """Test that dtw_distance supports series with different dtypes (Issue #3826)."""
+    from aeon.distances import dtw_cost_matrix, dtw_distance
+
+    # Equal lengths
+    x = np.array([1, 2, 3, 4], dtype=dtype_x)
+    y = np.array([2, 3, 4, 5], dtype=dtype_y)
+    dist = dtw_distance(x, y)
+    expected = dtw_cost_matrix(x, y)[-1, -1]
+    assert dist == pytest.approx(expected, rel=1e-12)
+
+    # Unequal lengths (x shorter than y, and y shorter than x)
+    x_unequal = np.array([1, 2, 3, 4], dtype=dtype_x)
+    y_unequal = np.array([1, 2, 3], dtype=dtype_y)
+    dist_unequal = dtw_distance(x_unequal, y_unequal)
+    expected_unequal = dtw_cost_matrix(x_unequal, y_unequal)[-1, -1]
+    assert dist_unequal == pytest.approx(expected_unequal, rel=1e-12)
+
+    dist_swapped = dtw_distance(y_unequal, x_unequal)
+    expected_swapped = dtw_cost_matrix(y_unequal, x_unequal)[-1, -1]
+    assert dist_swapped == pytest.approx(expected_swapped, rel=1e-12)
+
+
+def test_dtw_pairwise_distance_mixed_dtypes():
+    """Test pairwise DTW distance with mixed dtypes."""
+    from aeon.distances import dtw_pairwise_distance
+
+    X = np.array([[[1.0, 2.0, 3.0, 4.0]]], dtype=np.float64)
+    Y = np.array([[[1, 2, 3]]], dtype=np.int64)
+    res = dtw_pairwise_distance(X, Y)
+    assert res.shape == (1, 1)
+    assert res[0, 0] == pytest.approx(1.0, rel=1e-12)
+
+
+def test_kneighbors_classifier_dtw_mixed_dtypes():
+    """Test KNeighborsTimeSeriesClassifier with DTW on mixed-dtype inputs."""
+    from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+
+    rng = np.random.default_rng(42)
+    X_train = rng.normal(size=(4, 1, 6)).astype(np.float64)
+    y_train = np.array([0, 1, 0, 1])
+
+    clf = KNeighborsTimeSeriesClassifier(distance="dtw")
+    clf.fit(X_train, y_train)
+
+    X_test_int = np.arange(12, dtype=np.int64).reshape(2, 1, 6)
+    preds = clf.predict(X_test_int)
+    assert preds.shape == (2,)
+
+    X_test_f32 = rng.normal(size=(2, 1, 6)).astype(np.float32)
+    preds_f32 = clf.predict(X_test_f32)
+    assert preds_f32.shape == (2,)
