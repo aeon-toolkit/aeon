@@ -122,8 +122,7 @@ def test_redcomets_imbalanced_input_uses_smote(monkeypatch):
 
     clf = REDCOMETS(variant=1, n_trees=3, random_state=0)
     clf.fit(X, y)
-    assert calls["smote"] > 0
-    assert calls["random_over_sampler"] == 0
+    assert calls == {"smote": 1, "random_over_sampler": 0}
     assert set(clf.classes_) == {0, 1}
     _assert_valid_output(clf, X)
 
@@ -154,7 +153,7 @@ def test_redcomets_tiny_minority_uses_random_oversampler(monkeypatch):
 
     clf = REDCOMETS(variant=1, n_trees=3, random_state=0)
     clf.fit(X, y)
-    assert calls["random_over_sampler"] > 0
+    assert calls["random_over_sampler"] == 1
     assert set(clf.classes_) == {0, 1}
     _assert_valid_output(clf, X)
 
