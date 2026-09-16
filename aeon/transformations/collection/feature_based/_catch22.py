@@ -1905,6 +1905,21 @@ _local_simple_mean3_stderr = Catch22._FC_LocalSimple_mean3_stderr
 
 
 @njit(fastmath=True, cache=True)
+def _zeros_promoted(series, n):
+    """Allocate a length-n zero array typed to match catch22's dtype rule.
+
+    Applies the same dtype-promotion rule used internally by
+    z_normalise_series_with_mean / _as_normalised_float (float32
+    input stays float32, every other dtype -- including integer input --
+    promotes to float64). Used both for typed placeholders whose real
+    values are assigned later, and for output buffers that must keep the
+    input's precision instead of silently upcasting to float64.
+    """
+    dtype = (series[:0] / 1).dtype
+    return np.zeros(n, dtype=dtype)
+
+
+@njit(fastmath=True, cache=True)
 def _transform_case_numba(
     X, f_idx, keep, outlier_norm, fft_case, ac_case, ac_tw, ac_nfft, stds
 ):
@@ -1920,7 +1935,7 @@ def _transform_case_numba(
     requested (numba's np.std can round differently from numpy's).
     """
     n_feats = len(f_idx)
-    c22 = np.zeros(n_feats * len(X))
+    c22 = _zeros_promoted(X[0], n_feats * len(X))
 
     f_count = -1
     for i in range(len(X)):
@@ -1934,7 +1949,10 @@ def _transform_case_numba(
         # typed placeholders; real values are assigned before first use. These
         # must be dtype-fixed (not aliases of series) so the kernel also
         # compiles for integer input arrays.
-        outlier_series = np.empty(0, np.float64)
+        # / 1 applies the same dtype promotion z_normalise_series_with_mean
+        # uses internally (float32 stays float32, everything else becomes
+        # float64), so this placeholder always matches the real value's dtype.
+        outlier_series = _zeros_promoted(series, 0)
         have_outlier = False
         fft = ac_tw[:0]
         have_fft = False
