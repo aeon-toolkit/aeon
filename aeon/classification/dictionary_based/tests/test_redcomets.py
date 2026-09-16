@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
+from aeon.classification.dictionary_based import _redcomets
 from aeon.classification.dictionary_based import REDCOMETS
 
 N_PER_CLASS = 10
@@ -87,7 +88,7 @@ def test_redcomets_balanced_input_needs_no_oversampling():
     _assert_valid_output(clf, X)
 
 
-def test_redcomets_imbalanced_input_uses_smote():
+def test_redcomets_imbalanced_input_uses_smote(monkeypatch):
     """An imbalanced class large enough for neighbour search is SMOTE-oversampled.
 
     The minority class has more than five samples, exercising the capped
@@ -95,14 +96,38 @@ def test_redcomets_imbalanced_input_uses_smote():
     """
     X, _ = _labelled_panel(n_channels=1, n_per_class=14)
     y = np.array([0] * 20 + [1] * 8)  # minority > 5 -> capped SMOTE neighbours
+    calls = {"smote": 0, "random_over_sampler": 0}
+
+    original_smote_fit_transform = _redcomets.SMOTE.fit_transform
+    original_random_over_sampler_fit_transform = (
+        _redcomets.RandomOverSampler.fit_transform
+    )
+
+    def counting_smote_fit_transform(self, X, y):
+        calls["smote"] += 1
+        return original_smote_fit_transform(self, X, y)
+
+    def counting_random_over_sampler_fit_transform(self, X, y):
+        calls["random_over_sampler"] += 1
+        return original_random_over_sampler_fit_transform(self, X, y)
+
+    monkeypatch.setattr(
+        _redcomets.SMOTE, "fit_transform", counting_smote_fit_transform
+    )
+    monkeypatch.setattr(
+        _redcomets.RandomOverSampler,
+        "fit_transform",
+        counting_random_over_sampler_fit_transform,
+    )
 
     clf = REDCOMETS(variant=1, n_trees=3, random_state=0)
     clf.fit(X, y)
+    assert calls == {"smote": 1, "random_over_sampler": 0}
     assert set(clf.classes_) == {0, 1}
     _assert_valid_output(clf, X)
 
 
-def test_redcomets_tiny_minority_uses_random_oversampler():
+def test_redcomets_tiny_minority_uses_random_oversampler(monkeypatch):
     """A minority class too small for SMOTE falls back to random oversampling.
 
     With two minority samples the SMOTE neighbour count drops below one, so
@@ -110,9 +135,25 @@ def test_redcomets_tiny_minority_uses_random_oversampler():
     """
     X, _ = _labelled_panel(n_channels=1, n_per_class=10)
     y = np.array([0] * 18 + [1] * 2)
+    calls = {"random_over_sampler": 0}
+
+    original_random_over_sampler_fit_transform = (
+        _redcomets.RandomOverSampler.fit_transform
+    )
+
+    def counting_random_over_sampler_fit_transform(self, X, y):
+        calls["random_over_sampler"] += 1
+        return original_random_over_sampler_fit_transform(self, X, y)
+
+    monkeypatch.setattr(
+        _redcomets.RandomOverSampler,
+        "fit_transform",
+        counting_random_over_sampler_fit_transform,
+    )
 
     clf = REDCOMETS(variant=1, n_trees=3, random_state=0)
     clf.fit(X, y)
+    assert calls["random_over_sampler"] == 1
     assert set(clf.classes_) == {0, 1}
     _assert_valid_output(clf, X)
 
