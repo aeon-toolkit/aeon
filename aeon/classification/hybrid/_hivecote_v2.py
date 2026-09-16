@@ -215,17 +215,15 @@ class HIVECOTEV2(_BaseHIVECOTE):
             ("TDE", TemporalDictionaryEnsemble(**self._tde_params)),
         ]
 
-        return super()._fit(X, y)
-
-    def _log_fit_configuration(self):
-        """Log the HC2 contract allocation when it is active."""
         if self.time_limit_in_minutes > 0:
-            component_time = self.time_limit_in_minutes / 6
             self._log(
                 f"[{type(self).__name__}] "
                 f"Contract time = {self.time_limit_in_minutes} minutes, "
-                f"per-component allocation = {component_time:.4f} minutes"
+                f"per-component allocation = "
+                f"{self.time_limit_in_minutes / 6:.4f} minutes"
             )
+
+        return super()._fit(X, y)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X.

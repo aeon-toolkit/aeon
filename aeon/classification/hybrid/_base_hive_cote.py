@@ -72,7 +72,6 @@ class _BaseHIVECOTE(BaseClassifier):
                 f"n_channels={X.shape[1]}, n_timepoints={X.shape[2]}, "
                 f"n_jobs={self._n_jobs}"
             )
-            self._log_fit_configuration()
 
         # Subclasses may construct their estimator list during fit and store it
         # in self._estimators to avoid mutating the init parameter self.estimators
@@ -152,9 +151,6 @@ class _BaseHIVECOTE(BaseClassifier):
         """Print a message when the configured verbosity reaches ``level``."""
         if self.verbose >= level:
             print(message, flush=True)  # noqa: T201
-
-    def _log_fit_configuration(self):
-        """Log subclass-specific fit configuration when verbosity is enabled."""
 
     def _predict(self, X) -> np.ndarray:
         """Predict class labels for X."""
