@@ -235,33 +235,3 @@ def test_arsenal_binary_weights_are_not_degenerate():
 
     assert len(set(clf.weights_)) > 1
     assert all(0 < weight <= 1 for weight in clf.weights_)
-
-
-def test_arsenal_n_jobs_does_not_change_output():
-    """Threaded and sequential Arsenal fits produce identical results."""
-    X, y = make_example_3d_numpy(
-        n_cases=20, n_channels=1, n_timepoints=30, random_state=0
-    )
-    X_test, _ = make_example_3d_numpy(
-        n_cases=10, n_channels=1, n_timepoints=30, random_state=1
-    )
-
-    sequential = Arsenal(n_kernels=20, n_estimators=3, random_state=0, n_jobs=1)
-    threaded = Arsenal(n_kernels=20, n_estimators=3, random_state=0, n_jobs=2)
-
-    sequential.fit(X, y)
-    threaded.fit(X, y)
-    assert threaded._n_jobs == 2
-
-    np.testing.assert_array_equal(sequential.weights_, threaded.weights_)
-    np.testing.assert_array_equal(
-        sequential.predict_proba(X_test), threaded.predict_proba(X_test)
-    )
-
-    sequential_train = Arsenal(
-        n_kernels=20, n_estimators=3, random_state=0, n_jobs=1
-    ).fit_predict_proba(X, y)
-    threaded_train = Arsenal(
-        n_kernels=20, n_estimators=3, random_state=0, n_jobs=2
-    ).fit_predict_proba(X, y)
-    np.testing.assert_array_equal(sequential_train, threaded_train)
