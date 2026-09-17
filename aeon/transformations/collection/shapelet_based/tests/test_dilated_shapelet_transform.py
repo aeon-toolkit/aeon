@@ -14,6 +14,7 @@ from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.distances import manhattan_distance
 from aeon.testing.data_generation import (
     make_example_2d_numpy_series,
+    make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
@@ -109,6 +110,49 @@ REFERENCE_TRANSFORM = {
     ),
 }
 
+# Shapelets obtained with RandomDilatedShapeletTransform(max_shapelets=200,
+# alpha_similarity=1.0, shapelet_lengths=[7, 11], random_state=0) on the "unit_test"
+# data of _reference_data. The alpha similarity mask exhausts the search space, so
+# fewer shapelets than max_shapelets are sampled. Each row holds the startpoint,
+# length, dilation, normalise, class and threshold of a shapelet.
+REFERENCE_MASKED_SHAPELETS = np.array(
+    [
+        [0, 11, 1, 0, 1, 814.41930467],
+        [11, 11, 1, 1, 0, 6.8951474],
+        [13, 11, 1, 1, 1, 4.90481184],
+        [3, 7, 2, 1, 0, 0.84535928],
+        [7, 7, 1, 1, 0, 1.31942472],
+        [3, 7, 1, 0, 1, 285.35335035],
+        [0, 7, 1, 1, 1, 3.92695963],
+        [4, 7, 2, 0, 0, 1053.9611068],
+        [3, 7, 1, 0, 0, 687.36451149],
+        [2, 11, 1, 1, 1, 1.60104968],
+        [12, 11, 1, 1, 1, 3.83734179],
+        [0, 11, 1, 1, 1, 2.4009189],
+        [12, 11, 1, 1, 1, 3.12359805],
+        [13, 11, 1, 1, 0, 13.09669552],
+        [0, 11, 1, 1, 0, 6.18668085],
+        [0, 11, 1, 1, 0, 6.02200276],
+        [12, 11, 1, 0, 0, 5535.49880171],
+        [10, 11, 1, 0, 1, 3677.6044851],
+        [9, 11, 1, 0, 1, 2258.80702914],
+        [1, 7, 2, 1, 1, 1.03036576],
+        [12, 11, 1, 0, 1, 3657.04349317],
+        [1, 7, 2, 1, 1, 0.95475617],
+        [7, 7, 2, 1, 1, 2.10446294],
+        [10, 7, 2, 1, 1, 1.9184237],
+        [12, 11, 1, 0, 0, 5528.1498125],
+        [2, 11, 1, 0, 0, 1288.51233803],
+        [2, 7, 2, 1, 1, 1.29178828],
+        [10, 7, 2, 1, 0, 4.79086391],
+        [4, 7, 2, 1, 0, 1.25689465],
+        [9, 7, 2, 1, 0, 3.91155139],
+        [2, 7, 2, 1, 1, 1.17686431],
+        [5, 7, 2, 0, 0, 1043.4324388],
+        [9, 7, 2, 0, 1, 1291.38324771],
+    ]
+)
+
 
 @pytest.mark.parametrize("case", list(REFERENCE_SHAPELETS))
 def test_rdst_fit_matches_reference(case):
@@ -145,6 +189,48 @@ def test_rdst_transform_float32_input():
     X_t32 = rdst.transform(X.astype(np.float32))
     # atol for the near zero minimum distances, which float32 rounds to ~1e-6
     assert_allclose(X_t32, X_t, rtol=1e-4, atol=1e-4)
+
+
+def test_rdst_fit_masked_matches_reference():
+    """Shapelets sampled with an exhausted alpha similarity mask are unchanged."""
+    X, y, _ = _reference_data("unit_test")
+    rdst = RandomDilatedShapeletTransform(
+        max_shapelets=200,
+        alpha_similarity=1.0,
+        shapelet_lengths=[7, 11],
+        random_state=0,
+    ).fit(X, y)
+    _, startpoints, lengths, dilations, thresholds, normalises, _, _, classes = (
+        rdst.shapelets_
+    )
+    expected = REFERENCE_MASKED_SHAPELETS
+    assert rdst.n_shapelets_ == len(expected)
+    assert startpoints.tolist() == expected[:, 0].tolist()
+    assert lengths.tolist() == expected[:, 1].tolist()
+    assert dilations.tolist() == expected[:, 2].tolist()
+    assert normalises.tolist() == expected[:, 3].astype(bool).tolist()
+    assert classes.tolist() == expected[:, 4].tolist()
+    assert_allclose(thresholds, expected[:, 5], rtol=1e-6)
+
+
+def test_rdst_fit_stops_when_search_space_is_exhausted():
+    """Only the shapelets which could be sampled are returned."""
+    # With alpha_similarity=1, a shapelet of length 11 masks the 10 admissible
+    # start points of a series of 20 points (dilation can only be 1), so a single
+    # shapelet per series and normalisation option can be sampled: 4 * 2 = 8.
+    X, y = make_example_3d_numpy(
+        n_cases=4, n_channels=1, n_timepoints=20, random_state=0
+    )
+    rdst = RandomDilatedShapeletTransform(
+        max_shapelets=100, shapelet_lengths=[11], alpha_similarity=1.0, random_state=0
+    ).fit(X, y)
+    values, startpoints, lengths, _, thresholds, _, _, _, _ = rdst.shapelets_
+    assert rdst.n_shapelets_ == 8
+    assert values.shape == (8, 1, 11)
+    assert np.all(np.isfinite(values))
+    assert np.all(np.isfinite(thresholds))
+    assert np.all(lengths == 11)
+    assert np.all(startpoints < 10)
 
 
 def test_shapelet_prime_dilation():

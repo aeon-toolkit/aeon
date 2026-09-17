@@ -743,6 +743,9 @@ def random_dilated_shapelet_extraction(
     """
     n_cases = len(X)
     max_shapelets = values.shape[0]
+    # Shapelets which could not be sampled because the search space was exhausted
+    # are dropped from the output.
+    sampled = np.zeros(max_shapelets, dtype=np.bool_)
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
 
@@ -777,15 +780,15 @@ def random_dilated_shapelet_extraction(
                 current_mask, rng_dilations[i_dilation]
             )
             if idx_sample >= 0:
+                sampled[i_shp] = True
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
                 for j in range(alpha_size):
-                    alpha_mask[norm, idx_sample, (idx_timestamp - (j * dilation))] = (
-                        False
-                    )
-                    alpha_mask[norm, idx_sample, (idx_timestamp + (j * dilation))] = (
-                        False
-                    )
+                    if idx_timestamp - (j * dilation) >= 0:
+                        alpha_mask[norm, idx_sample, idx_timestamp - (j * dilation)] = (
+                            False
+                        )
+                    alpha_mask[norm, idx_sample, idx_timestamp + (j * dilation)] = False
 
                 # Extract the values of shapelet
                 if norm:
@@ -848,21 +851,16 @@ def random_dilated_shapelet_extraction(
                     means[i_shp] = _means
                     stds[i_shp] = _stds
 
-    mask_values = np.ones(max_shapelets, dtype=np.bool_)
-    for i in prange(max_shapelets):
-        if np.all(values[i] == np.inf):
-            mask_values[i] = False
-
     return (
-        values[mask_values],
-        startpoints[mask_values],
-        lengths[mask_values],
-        dilations[mask_values],
-        thresholds[mask_values],
-        normalises[mask_values],
-        means[mask_values],
-        stds[mask_values],
-        classes[mask_values],
+        values[sampled],
+        startpoints[sampled],
+        lengths[sampled],
+        dilations[sampled],
+        thresholds[sampled],
+        normalises[sampled],
+        means[sampled],
+        stds[sampled],
+        classes[sampled],
     )
 
 
