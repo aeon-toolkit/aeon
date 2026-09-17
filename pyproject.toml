@@ -98,6 +98,7 @@ dev = [
     "pytest-rerunfailures",
     "pytest-timeout",
     "pytest-xdist[psutil]",
+    "pyyaml",
 ]
 binder = [
     "notebook",
