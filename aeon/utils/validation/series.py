@@ -268,7 +268,7 @@ def get_type(X, raise_error=True):
     """
     msg = None
     if isinstance(X, pd.Series):
-        if isinstance(X.dtype, np.dtype) and np.issubdtype(X.dtype, np.floating):
+        if _is_float_or_int_dtype(X.dtype):
             return "pd.Series"
         else:
             msg = "ERROR pd.Series must contain numeric values only"
