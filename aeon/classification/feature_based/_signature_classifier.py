@@ -62,7 +62,8 @@ class SignatureClassifier(BaseClassifier):
         Signature truncation depth.
     random_state : int, default=None
         If `int`, random_state is the seed used by the random number generator;
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
         The “balanced” mode uses the values of y to automatically adjust weights
