@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import yaml
 from sklearn.utils import check_random_state
 
 from aeon.testing.estimator_checking import parametrize_with_checks
@@ -17,10 +18,10 @@ ALL_TEST_ESTIMATORS = all_estimators(return_names=False, include_sklearn=False)
 
 
 def _get_pr_subsample_index(python_minor, os_str):
-    """Get the index of the estimator subsample to test in a PR run."""
-    # map the 3 Python versions used in the PR pytest matrix to distinct indices.
-    # other versions keep their minor version, i.e. 3.11, which only runs with PR
-    # testing in the soft dependency skip job and is not part of the matrix rotation
+    """Get the index of the estimator subsample to test in a PR run.
+    
+    Map the Python versions used in the PR pytest matrix to distinct indices.
+    """
     i = python_minor
     if i == 12:
         i = 0
@@ -56,20 +57,12 @@ def test_all_estimators(check):
     check()
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(
-        "pyyaml", package_import_alias={"pyyaml": "yaml"}, severity="none"
-    ),
-    reason="skip test if required soft dependency pyyaml not available",
-)
 def test_pr_subsample_covers_pr_pytest_matrix():
     """Test that PR runs test all estimators on each OS and Python version.
 
     Reads the pytest job matrix from the PR workflow, so this fails if the workflow
     Python versions or OS change without updating _get_pr_subsample_index.
     """
-    import yaml
-
     repo_root = Path(__file__).resolve().parent.parent.parent.parent
     workflow = repo_root / ".github" / "workflows" / "pr_pytest.yml"
 
