@@ -106,9 +106,7 @@ NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
 def _get_pr_subsample_index(python_minor, os_str):
     """Get the index of the estimator subsample to test in a PR run.
 
-    Map the Python versions used in the PR pytest matrix to distinct indices. Other
-    versions keep their minor version, i.e. 3.11, which only runs with PR testing in
-    the soft dependency skip job and is not part of the matrix rotation.
+    Map the Python versions used in the PR pytest matrix to distinct indices.
     """
     i = python_minor
     if i == 12:
