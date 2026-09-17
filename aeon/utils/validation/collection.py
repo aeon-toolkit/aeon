@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from numba.typed import List as NumbaList
 
-from aeon.utils.validation.series import _is_float_or_int_dtype
+from aeon.utils.validation import _is_float_or_int_dtype
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
