@@ -80,7 +80,7 @@ class HIVECOTEV1(_BaseHIVECOTE):
     See Also
     --------
     ShapeletTransformClassifier, TimeSeriesForestClassifier,
-    RandomIntervalSpectralForest, ContractableBOSS
+    RandomIntervalSpectralEnsembleClassifier, ContractableBOSS
         All components of HIVECOTE.
     HIVECOTEV2
         Successor to HIVECOTEV1.

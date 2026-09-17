@@ -70,7 +70,7 @@ class SummaryClassifier(BaseClassifier):
 
     See Also
     --------
-    SummaryTransformer
+    SevenNumberSummary
     SummaryRegressor
 
     Examples
