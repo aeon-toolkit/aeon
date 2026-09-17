@@ -19,6 +19,8 @@ from aeon.testing.data_generation import (
 )
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
+    _get_admissible_sampling_point,
+    _update_alpha_mask,
     compute_shapelet_dist_vector,
     compute_shapelet_features,
 )
@@ -231,6 +233,98 @@ def test_rdst_fit_stops_when_search_space_is_exhausted():
     assert np.all(np.isfinite(thresholds))
     assert np.all(lengths == 11)
     assert np.all(startpoints < 10)
+
+
+def _admissible_points(alpha_mask, n_timepoints, length, dilation):
+    """Admissible (series, timepoint) pairs of a length, in series order."""
+    points = []
+    for i in range(alpha_mask.shape[0]):
+        stop = n_timepoints[i] - (length - 1) * dilation
+        points += [(i, int(t)) for t in np.flatnonzero(alpha_mask[i, :stop])]
+    return points
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_get_admissible_sampling_point_draws_kth_admissible_point(seed):
+    """The k-th admissible point is returned, k drawn from their total number."""
+    n_timepoints = np.array([20, 16, 18])
+    alpha_mask = np.ones((3, 20), dtype=bool)
+    for i in range(3):
+        alpha_mask[i, n_timepoints[i] :] = False
+    alpha_mask[0, 2:9] = False
+    alpha_mask[1, :5] = False
+    alpha_mask[2, 4::3] = False
+    unique_lengths = np.array([3, 5])
+    length, dilation, i_length = 5, 2, 1
+    n_admissible = np.array(
+        [
+            [
+                alpha_mask[i, : n_timepoints[i] - (L - 1) * dilation].sum()
+                for L in unique_lengths
+            ]
+            for i in range(3)
+        ],
+        dtype=np.int64,
+    )
+    points = _admissible_points(alpha_mask, n_timepoints, length, dilation)
+    k = np.random.default_rng(seed).integers(0, high=len(points))
+    idx_sample, idx_timestamp = _get_admissible_sampling_point(
+        alpha_mask,
+        n_admissible,
+        n_timepoints,
+        length,
+        dilation,
+        i_length,
+        np.random.default_rng(seed),
+    )
+    assert (idx_sample, idx_timestamp) == points[k]
+
+
+def test_get_admissible_sampling_point_when_exhausted():
+    """No point is returned and no random number is drawn if none is admissible."""
+    n_timepoints = np.array([10, 10])
+    alpha_mask = np.zeros((2, 10), dtype=bool)
+    # The remaining points are beyond the admissible range of length 3 and dilation 1
+    alpha_mask[:, 8:] = True
+    n_admissible = np.zeros((2, 1), dtype=np.int64)
+    rng = np.random.default_rng(0)
+    idx_sample, idx_timestamp = _get_admissible_sampling_point(
+        alpha_mask, n_admissible, n_timepoints, 3, 1, 0, rng
+    )
+    assert (idx_sample, idx_timestamp) == (-1, -1)
+    assert rng.integers(0, 1000) == np.random.default_rng(0).integers(0, 1000)
+
+
+def test_update_alpha_mask_keeps_admissible_counts_consistent():
+    """Points at idx +/- j * dilation are masked and the counts follow the mask."""
+    n_timepoints = 30
+    dilation = 3
+    unique_lengths = np.array([4, 7])
+    alpha_mask = np.ones(32, dtype=bool)
+    alpha_mask[n_timepoints:] = False
+    n_admissible = np.array(
+        [n_timepoints - (L - 1) * dilation for L in unique_lengths], dtype=np.int64
+    )
+    # The third update overlaps the points masked by the first one
+    for idx_timestamp, alpha_size in [(4, 3), (2, 5), (10, 6)]:
+        expected = alpha_mask.copy()
+        for j in range(alpha_size):
+            if idx_timestamp - j * dilation >= 0:
+                expected[idx_timestamp - j * dilation] = False
+            expected[idx_timestamp + j * dilation] = False
+        _update_alpha_mask(
+            alpha_mask,
+            n_admissible,
+            n_timepoints,
+            idx_timestamp,
+            alpha_size,
+            dilation,
+            unique_lengths,
+        )
+        assert np.array_equal(alpha_mask, expected)
+        for i_length, L in enumerate(unique_lengths):
+            stop = n_timepoints - (L - 1) * dilation
+            assert n_admissible[i_length] == alpha_mask[:stop].sum()
 
 
 def test_shapelet_prime_dilation():

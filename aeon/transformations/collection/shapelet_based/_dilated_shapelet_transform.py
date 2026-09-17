@@ -14,7 +14,6 @@ from typing import Union
 
 import numpy as np
 from numba import njit, prange, set_num_threads
-from numba.typed import List
 from numpy.random._generator import Generator
 from sklearn.preprocessing import LabelEncoder
 
@@ -511,21 +510,97 @@ def _init_random_shapelet_params(
 
 
 @njit(cache=True)
-def _get_admissible_sampling_point(current_mask, random_generator):
-    n_cases = len(current_mask)
-    # Count the number of admissible points per sample as cumsum
+def _get_admissible_sampling_point(
+    alpha_mask, n_admissible, n_timepoints, length, dilation, i_length, random_generator
+):
+    """Draw uniformly a start point among the admissible ones of a shapelet length.
+
+    Parameters
+    ----------
+    alpha_mask : array, shape (n_cases, max_n_timepoints)
+        Boolean mask, True at the points not masked by the alpha similarity pruning
+        for the normalisation option of the shapelet.
+    n_admissible : array, shape (n_cases, n_lengths)
+        Number of admissible start points of each series for each shapelet length,
+        consistent with alpha_mask.
+    n_timepoints : array, shape (n_cases)
+        The number of timepoints of each series.
+    length : int
+        Length of the shapelet.
+    dilation : int
+        Dilation of the shapelet.
+    i_length : int
+        Column of n_admissible holding the counts of this length.
+    random_generator : Generator
+        Random generator, only used if at least one point is admissible.
+
+    Returns
+    -------
+    idx_sample : int
+        Index of the series the point belongs to, -1 if no point is admissible.
+    idx_timestamp : int
+        Index of the point in the series, -1 if no point is admissible.
+    """
+    n_cases = alpha_mask.shape[0]
     n_admissible_points = 0
     for i in range(n_cases):
-        n_admissible_points += current_mask[i].shape[0]
-    if n_admissible_points > 0:
-        idx_choice = random_generator.integers(0, high=n_admissible_points)
-        for i in range(n_cases):
-            _new_val = idx_choice - current_mask[i].shape[0]
-            if _new_val < 0 and current_mask[i].shape[0] > 0:
-                return i, current_mask[i][idx_choice]
-            idx_choice = _new_val
-    else:
+        n_admissible_points += n_admissible[i, i_length]
+    if n_admissible_points == 0:
         return -1, -1
+    # Index of the point among the admissible ones, in series order
+    idx_choice = random_generator.integers(0, high=n_admissible_points)
+    for i in range(n_cases):
+        if idx_choice < n_admissible[i, i_length]:
+            for idx_timestamp in range(n_timepoints[i] - (length - 1) * dilation):
+                if alpha_mask[i, idx_timestamp]:
+                    if idx_choice == 0:
+                        return i, idx_timestamp
+                    idx_choice -= 1
+        else:
+            idx_choice -= n_admissible[i, i_length]
+    return -1, -1
+
+
+@njit(fastmath=True, cache=True)
+def _update_alpha_mask(
+    alpha_mask,
+    n_admissible,
+    n_timepoints,
+    idx_timestamp,
+    alpha_size,
+    dilation,
+    unique_lengths,
+):
+    """Mask the points alpha similar to a sampled point and update the counts.
+
+    Parameters
+    ----------
+    alpha_mask : array, shape (max_n_timepoints)
+        Boolean mask of the series the point was sampled from, for the normalisation
+        option of the shapelet. Updated in place.
+    n_admissible : array, shape (n_lengths)
+        Number of admissible start points of the series for each shapelet length.
+        Updated in place.
+    n_timepoints : int
+        The number of timepoints of the series.
+    idx_timestamp : int
+        Index of the sampled point.
+    alpha_size : int
+        Number of points to mask in each direction, including the sampled point.
+    dilation : int
+        Dilation of the shapelet.
+    unique_lengths : array, shape (n_lengths)
+        The shapelet lengths of the columns of n_admissible.
+    """
+    n_lengths = unique_lengths.shape[0]
+    for j in range(alpha_size):
+        for direction in (-1, 1):
+            idx = idx_timestamp + direction * j * dilation
+            if idx >= 0 and idx < n_timepoints and alpha_mask[idx]:
+                alpha_mask[idx] = False
+                for i_length in range(n_lengths):
+                    if idx < n_timepoints - (unique_lengths[i_length] - 1) * dilation:
+                        n_admissible[i_length] -= 1
 
 
 @njit(fastmath=True, cache=True, parallel=True)
@@ -748,47 +823,55 @@ def random_dilated_shapelet_extraction(
     sampled = np.zeros(max_shapelets, dtype=np.bool_)
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
-
+        dilation = unique_dil[i_dilation]
         # (2, _, _): Mask is different for normalised and non-normalised shapelets
         alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):
             # For the unequal length case, we scale the mask up and set to False
             alpha_mask[:, _i, n_timepoints[_i] :] = False
 
-        id_shps = np.where(dilations == unique_dil[i_dilation])[0]
+        id_shps = np.where(dilations == dilation)[0]
         min_len = min(lengths[id_shps])
+        # Number of admissible start points of each series for each shapelet
+        # length, kept consistent with alpha_mask so that sampling a point does
+        # not require scanning the mask of every series.
+        unique_lengths = np.unique(lengths[id_shps])
+        n_lengths = unique_lengths.shape[0]
+        n_admissible = np.zeros((2, n_cases, n_lengths), dtype=np.int64)
+        for _i in range(n_cases):
+            for i_length in range(n_lengths):
+                n_admissible[:, _i, i_length] = max(
+                    0, n_timepoints[_i] - (unique_lengths[i_length] - 1) * dilation
+                )
         # For each shapelet id with this dilation
         for i_shp in id_shps:
             # Get shapelet params
-            dilation = dilations[i_shp]
             length = lengths[i_shp]
             norm = np.int_(normalises[i_shp])
-            # Possible sampling points given self similarity mask
-            current_mask = List(
-                [
-                    np.where(
-                        alpha_mask[
-                            norm,
-                            _i,
-                            : n_timepoints[_i] - (length - 1) * dilation,
-                        ]
-                    )[0]
-                    for _i in range(n_cases)
-                ]
-            )
+            i_length = np.searchsorted(unique_lengths, length)
+            # Sample a point given the self similarity mask
             idx_sample, idx_timestamp = _get_admissible_sampling_point(
-                current_mask, rng_dilations[i_dilation]
+                alpha_mask[norm],
+                n_admissible[norm],
+                n_timepoints,
+                length,
+                dilation,
+                i_length,
+                rng_dilations[i_dilation],
             )
             if idx_sample >= 0:
                 sampled[i_shp] = True
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
-                for j in range(alpha_size):
-                    if idx_timestamp - (j * dilation) >= 0:
-                        alpha_mask[norm, idx_sample, idx_timestamp - (j * dilation)] = (
-                            False
-                        )
-                    alpha_mask[norm, idx_sample, idx_timestamp + (j * dilation)] = False
+                _update_alpha_mask(
+                    alpha_mask[norm, idx_sample],
+                    n_admissible[norm, idx_sample],
+                    n_timepoints[idx_sample],
+                    idx_timestamp,
+                    alpha_size,
+                    dilation,
+                    unique_lengths,
+                )
 
                 # Extract the values of shapelet
                 if norm:
