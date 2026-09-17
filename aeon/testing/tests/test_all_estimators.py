@@ -5,22 +5,22 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
 import yaml
 from sklearn.utils import check_random_state
 
 from aeon.testing.estimator_checking import parametrize_with_checks
 from aeon.testing.testing_config import PR_TESTING
 from aeon.utils.discovery import all_estimators
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ALL_TEST_ESTIMATORS = all_estimators(return_names=False, include_sklearn=False)
 
 
 def _get_pr_subsample_index(python_minor, os_str):
     """Get the index of the estimator subsample to test in a PR run.
-    
-    Map the Python versions used in the PR pytest matrix to distinct indices.
+
+    Map the Python versions used in the PR pytest matrix to distinct indices. Other
+    versions keep their minor version, i.e. 3.11, which only runs with PR testing in
+    the soft dependency skip job and is not part of the matrix rotation.
     """
     i = python_minor
     if i == 12:
@@ -66,11 +66,20 @@ def test_pr_subsample_covers_pr_pytest_matrix():
     repo_root = Path(__file__).resolve().parent.parent.parent.parent
     workflow = repo_root / ".github" / "workflows" / "pr_pytest.yml"
 
-    if not workflow.exists():
-        pytest.skip(f"PR pytest workflow not found at {workflow}.")
+    assert workflow.exists(), f"PR pytest workflow not found at {workflow}."
 
     with open(workflow, encoding="utf-8") as f:
-        matrix = yaml.safe_load(f)["jobs"]["pytest"]["strategy"]["matrix"]
+        workflow_config = yaml.safe_load(f)
+
+    try:
+        matrix = workflow_config["jobs"]["pytest"]["strategy"]["matrix"]
+        runners = matrix["os"]
+        versions = matrix["python-version"]
+    except (KeyError, TypeError) as e:
+        raise AssertionError(
+            f"Could not find the pytest job OS and Python version matrix in "
+            f"{workflow.name}."
+        ) from e
 
     # matrix entries which are removed when running with PR testing
     pr_excludes = [e for e in matrix.get("exclude", []) if e.get("pr-testing") is True]
@@ -78,11 +87,11 @@ def test_pr_subsample_covers_pr_pytest_matrix():
     runner_systems = {"ubuntu": "Linux", "macos": "Darwin", "windows": "Windows"}
     os_indices = {}
     version_indices = {}
-    for runner in matrix["os"]:
+    for runner in runners:
         os_str = [s for r, s in runner_systems.items() if runner.lower().startswith(r)]
         assert len(os_str) == 1, f"Unknown OS for runner {runner} in {workflow.name}."
 
-        for version in matrix["python-version"]:
+        for version in versions:
             if any(
                 e.get("os", runner) == runner
                 and e.get("python-version", version) == version
