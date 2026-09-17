@@ -706,7 +706,7 @@ def load_shampoo_sales(return_array=True):
     path = os.path.join(MODULE, DIRNAME, name, fname)
     y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
     if return_array:
-        return y.values
+        return y.to_numpy(copy=True)
     y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
     y.name = "Number of shampoo sales"
     return y
@@ -780,7 +780,7 @@ def load_lynx(return_array=True):
     path = os.path.join(MODULE, DIRNAME, name, fname)
     y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
     if return_array:
-        return y.values
+        return y.to_numpy(copy=True)
     y.index = pd.PeriodIndex(y.index, freq="Y", name="Period")
     y.name = "Number of Lynx trappings"
     return y
@@ -833,7 +833,7 @@ def load_airline(return_array=True):
     path = os.path.join(MODULE, DIRNAME, name, fname)
     y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
     if return_array:
-        return y.values
+        return y.to_numpy(copy=True)
     # make sure time index is properly formatted
     y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
     y.name = "Number of airline passengers"
@@ -877,7 +877,7 @@ def load_solar(return_array=True):
     y = y.asfreq("30min")
     y = y.squeeze("columns")
     if return_array:
-        return y.values
+        return y.to_numpy(copy=True)
     return y
 
 
@@ -937,7 +937,7 @@ def load_PBS_dataset(return_array=True):
     path = os.path.join(MODULE, DIRNAME, name, fname)
     y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
     if return_array:
-        return y.values
+        return y.to_numpy(copy=True)
     # make sure time index is properly formatted
     y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
     y.name = "Number of scripts"
@@ -993,7 +993,7 @@ def load_uschange(return_array=True):
     data.name = name
     data = data.drop("Quarter", axis=1)
     if return_array:
-        return data.to_numpy().T
+        return data.to_numpy(copy=True).T
     return data.T
 
 
@@ -1052,5 +1052,5 @@ def load_longley(return_array=True):
     data.index = pd.PeriodIndex(data.index, freq="Y", name="Period")
     data = data.astype(float)
     if return_array:
-        return data.to_numpy().T
+        return data.to_numpy(copy=True).T
     return data.T

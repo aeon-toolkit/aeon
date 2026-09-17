@@ -134,8 +134,10 @@ def test_load_from_timeeval_csv_file_univariate():
     )
     assert isinstance(X, np.ndarray)
     assert X.shape == (7501,)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (7501,)
+    assert y.flags.writeable
 
 
 def test_load_from_timeeval_csv_file_multivariate():
@@ -145,8 +147,10 @@ def test_load_from_timeeval_csv_file_multivariate():
     )
     assert isinstance(X, np.ndarray)
     assert X.shape == (7040, 9)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (7040,)
+    assert y.flags.writeable
 
 
 def test_load_kdd_tsad_135():
