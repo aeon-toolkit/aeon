@@ -682,8 +682,8 @@ def load_shampoo_sales(return_array=True):
     >>> type(y)
     <class 'numpy.ndarray'>
     >>> y = load_shampoo_sales(return_array=False)
-    >>> type(y)
-    <class 'pandas.core.series.Series'>
+    >>> type(y).__name__
+    'Series'
 
     Notes
     -----
@@ -744,8 +744,8 @@ def load_lynx(return_array=True):
     >>> type(y)
     <class 'numpy.ndarray'>
     >>> y = load_lynx(return_array=False)
-    >>> type(y)
-    <class 'pandas.core.series.Series'>
+    >>> type(y).__name__
+    'Series'
 
     Notes
     -----
@@ -806,8 +806,8 @@ def load_airline(return_array=True):
     >>> type(y)
     <class 'numpy.ndarray'>
     >>> y = load_airline(return_array=False)
-    >>> type(y)
-    <class 'pandas.core.series.Series'>
+    >>> type(y).__name__
+    'Series'
 
     Notes
     -----

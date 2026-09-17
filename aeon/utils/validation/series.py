@@ -266,9 +266,7 @@ def get_type(X, raise_error=True):
     """
     msg = None
     if isinstance(X, pd.Series):
-        if np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
-            X.dtype, np.integer
-        ):
+        if pd.api.types.is_float_dtype(X.dtype):
             return "pd.Series"
         else:
             msg = "ERROR pd.Series must contain numeric values only"
@@ -279,9 +277,7 @@ def get_type(X, raise_error=True):
             and not isinstance(X.columns, pd.MultiIndex)
         ):
             for col in X:
-                if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
-                    X[col].dtype, np.integer
-                ):
+                if not _is_float_or_int_dtype(X[col].dtype):
                     msg = "ERROR pd.DataFrame must contain numeric values only"
                     break
             if msg is None:
@@ -389,3 +385,12 @@ def check_series_variance(X, threshold=1e-7, axis=None, raise_error=True):
             )
         return False
     return True
+
+
+def _is_float_or_int_dtype(dtype):
+    """Check a numpy or pandas dtype is a float or integer type.
+
+    Unlike ``np.issubdtype``, this does not raise for pandas extension dtypes such
+    as the ``str`` dtype used by default for string data from pandas 3.0.
+    """
+    return pd.api.types.is_float_dtype(dtype) or pd.api.types.is_integer_dtype(dtype)

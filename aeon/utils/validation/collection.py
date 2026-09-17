@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from numba.typed import List as NumbaList
 
+from aeon.utils.validation.series import _is_float_or_int_dtype
+
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "is_tabular",
@@ -367,9 +369,7 @@ def _is_pd_multiindex(X):
         and len(X.index.levels) == 2
     ):
         for col in X:
-            if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
-                X[col].dtype, np.integer
-            ):
+            if not _is_float_or_int_dtype(X[col].dtype):
                 return False
         return True
     return False
@@ -383,9 +383,7 @@ def _is_pd_wide(X):
         and not isinstance(X.columns, pd.MultiIndex)
     ):
         for col in X:
-            if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
-                X[col].dtype, np.integer
-            ):
+            if not _is_float_or_int_dtype(X[col].dtype):
                 return False
         return True
     return False
