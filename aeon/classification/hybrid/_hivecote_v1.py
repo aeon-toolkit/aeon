@@ -43,7 +43,9 @@ class HIVECOTEV1(_BaseHIVECOTE):
         Parameters for the ContractableBOSS module. If None, uses the default
         parameters.
     verbose : int, default=0
-        Level of output printed to the console (for information only).
+        Level of output printed during fit. Level 1 reports HC1 progress, level 2 also
+        reports component parameters, level 3 enables summary progress within each
+        component, and level 4 and above enables detailed component progress.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
