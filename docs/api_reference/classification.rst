@@ -26,6 +26,7 @@ Convolution-based
     RocketClassifier
     MiniRocketClassifier
     MultiRocketClassifier
+    KGMTPClassifier
 
 Deep learning
 -------------
