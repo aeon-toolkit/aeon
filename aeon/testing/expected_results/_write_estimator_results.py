@@ -40,6 +40,10 @@ excluded_estimators = [
     "FreshPRINCEClassifier",
     "DrCIFRegressor",
     "FreshPRINCERegressor",
+    # float32 predictions are small differences of terms around 1e5 on
+    # CardanoSentiment, so they round to multiples of 1/128 and flip with small
+    # numba code generation changes (e.g. numba 0.67 on Linux CI).
+    "MultiRocketRegressor",
     # squared_error tree splits land on catch22 autocorrelation index features
     # that flip with newer numpy FFT rounding, so predictions are not reproducible
     # to 2dp across numpy/numba versions (as with DrCIFRegressor above).
