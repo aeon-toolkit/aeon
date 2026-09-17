@@ -52,7 +52,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
             instead, which returns per-component probabilities without
             modifying the fitted estimator.
     verbose : int, default=0
-        Level of output printed to the console (for information only).
+        Level of output printed during fit. Level 1 reports HC2 progress, level 2 also
+        reports component parameters, level 3 enables summary progress within each
+        component, and level 4 and above enables detailed component progress.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -212,6 +214,14 @@ class HIVECOTEV2(_BaseHIVECOTE):
             ("Arsenal", Arsenal(**self._arsenal_params)),
             ("TDE", TemporalDictionaryEnsemble(**self._tde_params)),
         ]
+
+        if self.time_limit_in_minutes > 0:
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Contract time = {self.time_limit_in_minutes} minutes, "
+                f"per-component allocation = "
+                f"{self.time_limit_in_minutes / 6:.4f} minutes"
+            )
 
         return super()._fit(X, y)
 
