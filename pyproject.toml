@@ -50,7 +50,7 @@ dependencies = [
     "numpy>=2.0.0,<2.5.0",
     "packaging>=20.0",
     "pandas>=2.0.0,<2.4.0",
-    "scikit-learn>=1.6.0,<1.9.0",
+    "scikit-learn>=1.6.0,<1.10.0",
     "scipy>=1.9.0,<1.18.0",
     "threadpoolctl>=3.2.0",
     "typing-extensions>=4.6.0",
@@ -60,7 +60,6 @@ dependencies = [
 [project.optional-dependencies]
 all_extras = [
     "huggingface-hub>=0.20.0",
-    "imbalanced-learn",
     "matplotlib>=3.3.2",
     "pycatch22>=0.4.5",
     "pyod>=1.1.3",
