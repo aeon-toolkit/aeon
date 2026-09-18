@@ -49,7 +49,7 @@ dependencies = [
     "numba>=0.55,<0.64.0",
     "numpy>=2.0.0,<2.5.0",
     "packaging>=20.0",
-    "pandas>=2.0.0,<2.4.0",
+    "pandas>=2.0.0,<3.1.0",
     "scikit-learn>=1.6.0,<1.10.0",
     "scipy>=1.9.0,<1.18.0",
     "threadpoolctl>=3.2.0",
@@ -74,7 +74,7 @@ all_extras = [
     "keras>=3.6.0; python_version < '3.14'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
-    "tslearn>=0.5.2,<0.8.0",
+    "tslearn>=0.5.2,<0.10.0",
 ]
 dl = [
     "tensorflow>=2.14; python_version < '3.14'",
@@ -109,7 +109,7 @@ binder = [
     "tensorflow>=2.14; python_version < '3.13'",
 ]
 docs = [
-    "sphinx<8.3.0",
+    "sphinx<9.1.0",
     "sphinx-design",
     "sphinx-version-warning",
     "sphinx_issues",

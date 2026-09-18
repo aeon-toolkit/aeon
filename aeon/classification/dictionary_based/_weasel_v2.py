@@ -81,17 +81,18 @@ class WEASEL_V2(BaseClassifier):
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
+        If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights
         inversely proportional to class frequencies in the input data as
         n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
         For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV
+        is not an ensemble model.
     random_state : int or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
