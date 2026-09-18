@@ -4,12 +4,15 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.utils.numba.general import (
     combinations_1d,
     get_all_subsequences,
+    get_dilated_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
     is_prime,
+    normalise_dilated_subsequences,
     normalise_subsequences,
     prime_up_to,
     sliding_mean_std_one_series,
@@ -337,3 +340,87 @@ def test_is_prime():
             assert is_prime(n)
         else:
             assert not is_prime(n)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_get_dilated_subsequences(dtype):
+    """Test the (n_channels, length, n_subsequences) copy of the subsequences."""
+    X = np.asarray(
+        [[1, 2, 3, 4, 5, 6, 7, 8], [11, 12, 13, 14, 15, 16, 17, 18]], dtype=dtype
+    )
+    X_subs = get_dilated_subsequences(X, 3, 1)
+    X_true = np.asarray(
+        [
+            [[1, 2, 3, 4, 5, 6], [2, 3, 4, 5, 6, 7], [3, 4, 5, 6, 7, 8]],
+            [
+                [11, 12, 13, 14, 15, 16],
+                [12, 13, 14, 15, 16, 17],
+                [13, 14, 15, 16, 17, 18],
+            ],
+        ],
+        dtype=dtype,
+    )
+    assert_array_equal(X_subs, X_true)
+    assert X_subs.dtype == X.dtype
+    assert X_subs.flags["C_CONTIGUOUS"]
+
+    X_subs = get_dilated_subsequences(X, 3, 2)
+    X_true = np.asarray(
+        [
+            [[1, 2, 3, 4], [3, 4, 5, 6], [5, 6, 7, 8]],
+            [[11, 12, 13, 14], [13, 14, 15, 16], [15, 16, 17, 18]],
+        ],
+        dtype=dtype,
+    )
+    assert_array_equal(X_subs, X_true)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_get_dilated_subsequences_matches_get_all_subsequences(dtype):
+    """Both layouts hold the same subsequences."""
+    X = make_example_2d_numpy_series(n_timepoints=50, n_channels=3, random_state=0)
+    X = (X * 100).astype(dtype)
+    for length in [3, 5]:
+        for dilation in [1, 3, 5]:
+            X_subs = get_dilated_subsequences(X, length, dilation)
+            expected = get_all_subsequences(X, length, dilation).transpose(1, 2, 0)
+            assert_array_equal(X_subs, expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_dilated_subsequences(dtype):
+    """Matches normalise_subsequences on the transposed layout."""
+    X = make_example_2d_numpy_series(n_timepoints=50, n_channels=3, random_state=0)
+    X = (X * 100).astype(dtype)
+    for length in [3, 5]:
+        for dilation in [1, 3, 5]:
+            X_means, X_stds = sliding_mean_std_one_series(X, length, dilation)
+            X_norm = normalise_dilated_subsequences(
+                X, X_means, X_stds, length, dilation
+            )
+            expected = normalise_subsequences(
+                get_all_subsequences(X, length, dilation), X_means, X_stds
+            ).transpose(1, 2, 0)
+            assert X_norm.shape == expected.shape
+            assert_array_equal(X_norm, expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_dilated_subsequences_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.asarray([[1, 2, 3, 4, 5, 6], [4, 5, 6, 8, 9, 10]], dtype=dtype)
+    X_means, X_stds = sliding_mean_std_one_series(X, 3, 1)
+    X_norm = normalise_dilated_subsequences(X, X_means, X_stds, 3, 1)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert X_norm.dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_dilated_subsequences_zeroes_below_std_threshold(dtype):
+    """Constant subsequences are set to zero."""
+    X = np.asarray([[2, 2, 2, 2, 1, 2, 3, 4]], dtype=dtype)
+    X_means, X_stds = sliding_mean_std_one_series(X, 3, 1)
+    X_norm = normalise_dilated_subsequences(X, X_means, X_stds, 3, 1)
+    # The subsequences starting at 0 and 1 are constant, the others are not
+    assert np.all(X_norm[:, :, :2] == 0)
+    assert np.all(np.any(X_norm[:, :, 2:] != 0, axis=1))
