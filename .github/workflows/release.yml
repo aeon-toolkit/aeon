@@ -39,6 +39,18 @@ jobs:
           python -m pip install build
           python -m build
 
+      - name: Check tag matches built version
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! ls dist/aeon-"${RELEASE_TAG#v}"-*.whl > /dev/null 2>&1; then
+            echo "::error::Tag ${RELEASE_TAG} does not match the built distribution."
+            ls dist/
+            exit 1
+          fi
+
       - name: Store build files
         uses: actions/upload-artifact@v7
         with:
@@ -116,8 +128,12 @@ jobs:
       - name: Show dependencies
         run: python -m pip list
 
-      - name: Tests
-        run: python -m pytest -n logical
+      - name: Test installed wheel
+        shell: bash
+        run: |
+          mkdir wheel-test && cd wheel-test
+          python -c "import aeon; print(aeon.__file__); assert 'site-packages' in aeon.__file__, 'not the installed wheel'"
+          python -m pytest -c ../pyproject.toml -n logical --pyargs aeon
 
   upload-wheels:
     needs: test-wheels

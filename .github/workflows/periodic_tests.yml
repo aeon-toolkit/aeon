@@ -57,6 +57,13 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
+      - name: Install graphviz
+        # keras plot_model needs the graphviz "dot" binary, not just pydot;
+        # plotting_estimators.ipynb calls it through plot_network
+        run: |
+          brew install graphviz
+          dot -V
+
       - name: Setup Python 3.12
         uses: actions/setup-python@v7
         with:
@@ -75,7 +82,7 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 3
-          command: python -m pip install .[all_extras,binder,dev]
+          command: python -m pip install .[binder,dev]
 
       - name: Show dependencies
         run: python -m pip list
