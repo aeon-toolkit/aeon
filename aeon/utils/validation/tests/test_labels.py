@@ -187,12 +187,25 @@ def test_check_regression_y_rejects_nan(y):
 @pytest.mark.parametrize(
     "y",
     [
+        # numeric multiclass
         np.array([0, 1, 2, 1, 0]),
         pd.Series([0, 1, 2, 1, 0]),
+        # numeric binary (2 unique values)
+        np.array([0, 1, 0, 1]),
+        pd.Series([0, 1, 0, 1]),
+        # numeric constant (1 unique value)
+        np.array([5, 5, 5, 5]),
+        pd.Series([5, 5, 5, 5]),
     ],
 )
-def test_check_regression_y_allows_multiclass_integer_targets(y):
-    """Accept multiclass integer targets for regression without warning."""
+def test_check_regression_y_allows_numeric_targets(y):
+    """Accept numeric targets for regression, without warning.
+
+    A short or first-differenced series can produce windowed targets that take only
+    one or two unique integer values; these are reported by ``type_of_target`` as
+    ``"binary"`` but are still valid numeric regression targets, so they are accepted
+    without a warning.
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         check_regression_y(y)
@@ -201,38 +214,24 @@ def test_check_regression_y_allows_multiclass_integer_targets(y):
 @pytest.mark.parametrize(
     "y",
     [
-        np.array([0, 1, 0, 1]),
-        pd.Series([0, 1, 0, 1]),
-        np.array([5, 5, 5, 5]),
-        pd.Series([5, 5, 5, 5]),
-    ],
-)
-def test_check_regression_y_warns_on_binary_targets(y):
-    """Accept numeric binary/constant targets for regression, but warn.
-
-    A short or first-differenced series can produce windowed targets that take only
-    one or two unique integer values; these are reported by ``type_of_target`` as
-    ``"binary"`` but are still valid regression targets, so a warning is issued
-    rather than an error.
-    """
-    with pytest.warns(UserWarning, match=r"reports as 'binary'"):
-        check_regression_y(y)
-
-
-@pytest.mark.parametrize(
-    "y",
-    [
+        # string (categorical) targets, binary and multiclass
         np.array(["a", "b", "a", "c"]),
         pd.Series(["a", "b", "a", "c"]),
         np.array(["a", "b", "a", "b"]),
         pd.Series(["a", "b", "a", "b"]),
+        # datetime targets, binary and multiclass
+        np.array(["2020-01-01", "2020-01-02"], dtype="datetime64[D]"),
+        np.array(["2020-01-01", "2020-01-02", "2020-01-03"], dtype="datetime64[D]"),
+        # boolean targets
+        np.array([False, True, False, True]),
+        pd.Series([False, True, False, True]),
     ],
 )
-def test_check_regression_y_rejects_string_targets(y):
-    """Reject string targets for regression."""
+def test_check_regression_y_rejects_non_numeric_targets(y):
+    """Reject non-numeric (string, datetime, boolean) targets for regression."""
     with pytest.raises(
         ValueError,
-        match=r"y contains strings, cannot fit a regressor",
+        match=r"y is not numeric, cannot fit a regressor",
     ):
         check_regression_y(y)
 
