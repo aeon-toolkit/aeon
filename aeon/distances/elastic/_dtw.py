@@ -214,12 +214,17 @@ def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> 
     """
     # Optimization: Ensure we iterate over the larger dimension to minimize the
     # size of the cost vectors (prev and curr), which are allocated based on y.
-    # If x is smaller than y, we swap them to make y the smaller one.
+    # If x is smaller than y, we call the implementation with swapped arguments
+    # to avoid in-place variable mutation and Numba type unification failures.
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
-        # The bounding matrix must also be transposed to match the swapped series
-        bounding_matrix = bounding_matrix.T
+        return _dtw_distance_impl(y, x, bounding_matrix.T)
+    return _dtw_distance_impl(x, y, bounding_matrix)
 
+
+@njit(cache=True, fastmath=True)
+def _dtw_distance_impl(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
 
@@ -275,8 +280,21 @@ def _dtw_distance_direct(
     # Iterate over the larger dimension so the rolling buffers are sized by the
     # smaller one (same optimization as _dtw_distance). Bounds are computed after
     # the swap, which matches the dense version's transposed construction.
-    if x.shape[1] < y.shape[1]:
-        x, y = y, x
+    # Note: For unequal-length series with Itakura parallelogram, the constraint
+    # is asymmetric under transposition, so the swap is skipped to maintain
+    # exact alignment with create_bounding_matrix.
+    if itakura_max_slope is None and x.shape[1] < y.shape[1]:
+        return _dtw_distance_direct_impl(y, x, window, itakura_max_slope)
+    return _dtw_distance_direct_impl(x, y, window, itakura_max_slope)
+
+
+@njit(cache=True, fastmath=True)
+def _dtw_distance_direct_impl(
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float | None,
+    itakura_max_slope: float | None,
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
     if itakura_max_slope is None and x_size == y_size:
