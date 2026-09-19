@@ -61,7 +61,8 @@ class SlopeTransformer(BaseCollectionTransformer):
         n_cases, n_channels, n_timepoints = X.shape
         self._check_parameters(n_timepoints)
 
-        X = X / 1
+        dtype = np.float32 if X.dtype == np.float32 else np.float64
+        X = X.astype(dtype, copy=False)
 
         Xt = np.empty(
             (n_cases, n_channels, self.n_intervals),

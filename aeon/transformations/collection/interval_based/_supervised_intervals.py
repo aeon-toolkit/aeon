@@ -241,7 +241,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
         return self
 
     def _transform(self, X, y=None):
-        X = X / 1
+        dtype = np.float32 if X.dtype == np.float32 else np.float64
+        X = X.astype(dtype, copy=False)
 
         transform = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
@@ -263,7 +264,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
         return Xt
 
     def _fit_setup(self, X, y):
-        X = X / 1
+        dtype = np.float32 if X.dtype == np.float32 else np.float64
+        X = X.astype(dtype, copy=False)
 
         self.intervals_ = []
 

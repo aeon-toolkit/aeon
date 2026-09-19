@@ -88,8 +88,8 @@ class PLASeriesTransformer(BaseSeriesTransformer):
         if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
             raise ValueError("Invalid buffer_size: use a number only or keep empty.")
         results = None
-        X = X / 1
-        X = np.concatenate(X)
+        dtype = np.float32 if X.dtype == np.float32 else np.float64
+        X = np.concatenate(X).astype(dtype, copy=False)
         if isinstance(self.transformer, (str)):
             if self.transformer.lower() == "sliding window":
                 results = self._sliding_window(X)

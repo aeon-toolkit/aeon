@@ -80,7 +80,7 @@ def test_slope_performs_correcly_along_each_dim():
 
 @pytest.mark.parametrize(
     "dtype",
-    ["int32", "int64", "float32", "float64"],
+    ["int16", "int32", "int64", "float32", "float64"],
 )
 def test_slope_preserves_float_precision(dtype):
     """Check that Slope preserved float32 and promotes proper dtype output."""

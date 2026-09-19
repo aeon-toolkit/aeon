@@ -251,7 +251,7 @@ def test_piecewise_linear_approximation_one_segment(X):
 )
 @pytest.mark.parametrize(
     "dtype",
-    ["int32", "int64", "float32", "float64"],
+    ["int16", "int32", "int64", "float32", "float64"],
 )
 def test_pla_preserves_float_precision(X, transformer, dtype):
     """Test PLA float precision transformer."""

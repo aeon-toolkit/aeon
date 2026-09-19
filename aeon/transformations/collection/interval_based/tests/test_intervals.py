@@ -63,7 +63,7 @@ def test_supervised_transformers():
 
 @pytest.mark.parametrize(
     "dtype",
-    ["int32", "int64", "float32", "float64"],
+    ["int16", "int32", "int64", "float32", "float64"],
 )
 def test_supervised_intervals_preserves_float_precision(dtype):
     """Test SupervisedIntervals preserves float32 and promotes integer input."""
