@@ -9,7 +9,6 @@ from itertools import combinations
 import numpy as np
 from numba import float32, get_num_threads, njit, prange, set_num_threads, vectorize
 from scipy.signal import hilbert
-from sklearn.preprocessing import StandardScaler
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -472,11 +471,10 @@ class KGMTP(BaseCollectionTransformer):
     second, Hydra-style block of per-kernel max/min-competition count features is also
     produced.
 
-    ``fit`` also fits a ``StandardScaler`` on the pooled PPV features and a masked,
-    epsilon-regularized scaler on the pooled Hydra features. ``transform`` applies both
-    and concatenates the two blocks into a single 2D array.
-    ``n_ppv_features_``/``n_hydra_features_`` (see Attributes) recover the two blocks
-    from that combined output.
+    If ``scale_hydra`` is ``True`` (the default), ``fit`` also fits a masked,
+    epsilon-regularized scaler on the pooled Hydra features, and ``transform``
+    applies it before concatenating the Hydra block with the raw PPV-pooling block.
+    Set ``scale_hydra=False`` to get both blocks raw instead.
 
     Parameters
     ----------
@@ -490,6 +488,11 @@ class KGMTP(BaseCollectionTransformer):
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors. Bias-fitting during `fit` is always single-threaded.
+    scale_hydra : bool, default=True
+        Whether to scale the pooled Hydra features with a masked, epsilon-regularized
+        scaler fitted during `fit` (matching the original paper's pipeline). If
+        ``False``, `transform`'s Hydra block is left raw, like the PPV-pooling block
+        always is.
     random_state : int, ``numpy.random.Generator`` or None, default=None
         If ``int``, random_state is the seed used by the random number generator.
         If a ``Generator`` instance, random_state is the random number generator.
@@ -549,23 +552,21 @@ class KGMTP(BaseCollectionTransformer):
         n_kernels=50_000,
         max_dilations_per_kernel=32,
         n_features_per_kernel=5,
+        scale_hydra=True,
         n_jobs=1,
         random_state=None,
     ):
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
+        self.scale_hydra = scale_hydra
         self.n_jobs = n_jobs
         self.random_state = random_state
 
         super().__init__()
 
     def _fit(self, X, y=None):
-        """Fit the three branches and the two downstream scalers.
-
-        Fits the raw, Hilbert-transform, and first-difference branches in turn, then
-        fits a `StandardScaler` on the pooled PPV features and the Hydra-count scaler on
-        the pooled Hydra features (both computed from this same training data).
+        """Fit the three branches and the Hydra scaler.
 
         Parameters
         ----------
@@ -576,6 +577,31 @@ class KGMTP(BaseCollectionTransformer):
         Returns
         -------
         self
+        """
+        self._fit_transform(X, y)
+        return self
+
+    def _fit_transform(self, X, y=None):
+        """Fit the three branches and the Hydra scaler, and transform `X` in one pass.
+
+        Fits the raw, Hilbert-transform, and first-difference branches in turn (each
+        branch's `fit` already computes its own transform of `X` as a side effect,
+        to determine dilations/biases), then optionally fits the Hydra-count scaler on
+        the pooled Hydra features and applies it if `scale_hydra=True`. The PPV-pooling
+        features are left unscaled.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            Training time series (univariate, equal length).
+        y : ignored
+
+        Returns
+        -------
+        Xt : ndarray of shape (n_cases, n_ppv_features_ + n_hydra_features_)
+            Raw (unscaled) PPV-pooling features followed by Hydra max/min-count
+            features, scaled if `scale_hydra` is True (the default) and raw
+            otherwise (see `n_ppv_features_`, `n_hydra_features_`).
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
         rng = self._check_random_state(self.random_state)
@@ -625,10 +651,12 @@ class KGMTP(BaseCollectionTransformer):
         self.n_ppv_features_ = train_features.shape[1]
         self.n_hydra_features_ = train_hydra.shape[1]
 
-        self._ppv_scaler_ = StandardScaler().fit(train_features)
-        self._hydra_mu_, self._hydra_sigma_ = self._sparse_scaler_fit(train_hydra)
-
-        return self
+        if self.scale_hydra:
+            self._hydra_mu_, self._hydra_sigma_ = self._sparse_scaler_fit(train_hydra)
+            train_hydra = self._sparse_scaler_transform(
+                train_hydra, self._hydra_mu_, self._hydra_sigma_
+            )
+        return np.concatenate([train_features, train_hydra], axis=1)
 
     def _transform(self, X, y=None):
         """Apply the three fitted branches to `X`, scale, and concatenate.
@@ -642,18 +670,19 @@ class KGMTP(BaseCollectionTransformer):
         Returns
         -------
         Xt : ndarray of shape (n_cases, n_ppv_features_ + n_hydra_features_)
-            Scaled PPV-pooling features followed by scaled Hydra max/min-count features
-            (see `n_ppv_features_`, `n_hydra_features_`).
+            Raw (unscaled) PPV-pooling features followed by Hydra max/min-count
+            features, scaled if `scale_hydra` is True (the default) and raw
+            otherwise (see `n_ppv_features_`, `n_hydra_features_`).
         """
         X2d = X[:, 0, :].astype(np.float64)
         X_hilbert = self._hilbert_transform(X2d)
         X_diff = np.diff(X2d, 1)
 
         features, hydra = self._transform_branches(X2d, X_hilbert, X_diff)
-        features = self._ppv_scaler_.transform(features)
-        hydra = self._sparse_scaler_transform(
-            hydra, self._hydra_mu_, self._hydra_sigma_
-        )
+        if self.scale_hydra:
+            hydra = self._sparse_scaler_transform(
+                hydra, self._hydra_mu_, self._hydra_sigma_
+            )
         return np.concatenate([features, hydra], axis=1)
 
     def _transform_branches(self, X, X_hilbert, X_diff):

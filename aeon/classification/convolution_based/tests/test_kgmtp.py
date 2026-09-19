@@ -52,6 +52,22 @@ def test_kgmtp_classifier_custom_estimator():
     assert not np.all((proba == 0) | (proba == 1))
 
 
+def test_kgmtp_classifier_always_scales_hydra():
+    """`KGMTPClassifier` always scales the Hydra block, regardless of `KGMTP`'s default.
+
+    It reproduces the original paper's pipeline exactly, so unlike a
+    standalone `KGMTP`, this isn't meant to be a caller-facing choice.
+    """
+    X = np.random.default_rng(0).random(size=(20, 1, 60))
+    y = np.array([0, 1] * 10)
+
+    clf = KGMTPClassifier(random_state=0, **KGMTPClassifier._get_test_params()).fit(
+        X, y
+    )
+
+    assert clf._transformer.scale_hydra is True
+
+
 def test_kgmtp_classifier_beats_majority_baseline():
     """KGMTPClassifier meaningfully outperforms a majority-class baseline.
 

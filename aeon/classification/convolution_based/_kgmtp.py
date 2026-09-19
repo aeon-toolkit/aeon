@@ -9,6 +9,7 @@ __all__ = ["KGMTPClassifier"]
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
@@ -21,9 +22,13 @@ class KGMTPClassifier(BaseClassifier):
 
     This classifier transforms the input data using the `KGMTP` [1]_ transformer,
     extracting PPV-pooling and Hydra-style features from three representations of each
-    series (raw, its Hilbert transform, and its first difference) and scaling them
-    internally, then fits a sklearn classifier on the transformed features (default
-    classifier is `RidgeClassifierCV`).
+    series (raw, its Hilbert transform, and its first difference), with the
+    Hydra-style block always scaled internally by the transform (`KGMTP`'s own
+    `scale_hydra` parameter is fixed to ``True`` here, regardless of its default, to
+    reproduce the original algorithm exactly). A `StandardScaler` is then applied to
+    the full concatenated output (PPV-pooling + Hydra features), matching the
+    original paper's own pipeline, before fitting a sklearn classifier on the scaled
+    features (default classifier is `RidgeClassifierCV`).
 
     Parameters
     ----------
@@ -131,6 +136,11 @@ class KGMTPClassifier(BaseClassifier):
             max_dilations_per_kernel=self.max_dilations_per_kernel,
             n_features_per_kernel=self.n_features_per_kernel,
             n_jobs=self._n_jobs,
+            # Always scale the Hydra block, regardless of KGMTP's own default --
+            # this classifier's whole point is reproducing the original paper's
+            # pipeline exactly, so it isn't a knob for callers to turn off here
+            # (use KGMTP directly for raw, unscaled Hydra features).
+            scale_hydra=True,
             random_state=self.random_state,
         )
         self.estimator_ = _clone_estimator(
@@ -144,7 +154,9 @@ class KGMTPClassifier(BaseClassifier):
             self.random_state,
         )
 
-        self.pipeline_ = make_pipeline(self._transformer, self.estimator_)
+        self.pipeline_ = make_pipeline(
+            self._transformer, StandardScaler(), self.estimator_
+        )
         self.pipeline_.fit(X, y)
 
         return self

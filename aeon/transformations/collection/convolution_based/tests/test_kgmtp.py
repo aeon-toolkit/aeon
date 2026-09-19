@@ -60,10 +60,9 @@ def test_kgmtp_random_state_rejects_legacy_randomstate():
 def test_kgmtp_feature_block_sizes():
     """`n_ppv_features_`/`n_hydra_features_` match `transform`'s output width.
 
-    `transform` concatenates the (scaled) PPV-pooling block and the
-    (scaled) Hydra count block into one array; these two fitted
-    attributes are what let a caller split them back apart (see the
-    class docstring).
+    `transform` concatenates the raw PPV-pooling block and the (by default,
+    scaled) Hydra count block into one array; these two fitted attributes
+    are what let a caller split them back apart (see the class docstring).
     """
     X = np.random.default_rng(0).random(size=(10, 1, 100))
     kgmtp = KGMTP(random_state=0, **KGMTP._get_test_params()).fit(X)
@@ -72,6 +71,41 @@ def test_kgmtp_feature_block_sizes():
     assert Xt.shape[1] == kgmtp.n_ppv_features_ + kgmtp.n_hydra_features_
     assert kgmtp.n_hydra_features_ > 0
     assert kgmtp.n_ppv_features_ > 0
+
+
+def test_kgmtp_scale_hydra_false_leaves_hydra_raw():
+    """`scale_hydra=False` skips the Hydra scaler entirely.
+
+    The Hydra block of `transform`'s output should then equal the raw,
+    unscaled Hydra features `_transform_branches` computes directly, and no
+    scaler should be fitted (`_hydra_mu_`/`_hydra_sigma_` unset). Also checks
+    that `fit_transform` and `fit().transform()` agree with each other in
+    this mode, since `_fit_transform` is an optimized override rather than
+    the base class's default fit-then-transform.
+    """
+    X = np.random.default_rng(0).random(size=(10, 1, 100))
+    params = KGMTP._get_test_params()
+
+    kgmtp = KGMTP(random_state=0, scale_hydra=False, **params)
+    Xt = kgmtp.fit_transform(X)
+
+    assert not hasattr(kgmtp, "_hydra_mu_")
+    assert not hasattr(kgmtp, "_hydra_sigma_")
+
+    X2d = X[:, 0, :].astype(np.float64)
+    X_hilbert = kgmtp._hilbert_transform(X2d)
+    X_diff = np.diff(X2d, 1)
+    raw_features, raw_hydra = kgmtp._transform_branches(X2d, X_hilbert, X_diff)
+
+    np.testing.assert_array_equal(Xt[:, : kgmtp.n_ppv_features_], raw_features)
+    np.testing.assert_array_equal(Xt[:, kgmtp.n_ppv_features_ :], raw_hydra)
+    np.testing.assert_array_equal(Xt, kgmtp.transform(X))
+
+    # scale_hydra=True (the default) does scale the Hydra block, and differs
+    # from the raw one above.
+    kgmtp_scaled = KGMTP(random_state=0, **params).fit(X)
+    Xt_scaled = kgmtp_scaled.transform(X)
+    assert not np.array_equal(Xt_scaled[:, kgmtp_scaled.n_ppv_features_ :], raw_hydra)
 
 
 def test_kgmtp_n_jobs_does_not_change_output():
