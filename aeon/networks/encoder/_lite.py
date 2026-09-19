@@ -66,10 +66,46 @@ class LITENetwork(BaseDeepLearningNetwork):
         self.use_litemv = use_litemv
         self.n_filters = n_filters
         self.kernel_size = kernel_size
-        self.activation = activation
         self.strides = strides
+        self.activation = activation
 
         super().__init__()
+
+    def _check_params(self):
+        pass
+        # nothing to check but mandatory to override
+        # abstract method from BaseDeepLearningNetwork
+
+    def build_base_graph(self, x):
+
+        self._check_params()  # Do noting but called for consistency...
+
+        inception = self._inception_module(
+            input_tensor=x,
+            dilation_rate=1,
+            use_custom_filters=True,
+            use_multiplexing=True,
+        )
+
+        _kernel_size = self.kernel_size // 2
+
+        input_tensor = inception
+
+        dilation_rate = 1
+
+        for i in range(2):
+            dilation_rate = 2 ** (i + 1)
+
+            x = self._fcn_module(
+                input_tensor=input_tensor,
+                kernel_size=_kernel_size // (2**i),
+                n_filters=self.n_filters,
+                dilation_rate=dilation_rate,
+            )
+
+            input_tensor = x
+
+        return x
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of custom filters.
@@ -372,48 +408,3 @@ class LITENetwork(BaseDeepLearningNetwork):
         x = tf.keras.layers.Activation(activation=activation)(x)
 
         return x
-
-    def build_network(self, input_shape, **kwargs):
-        """
-        Construct a network and return its input and output layers.
-
-        input_shape : tuple
-            The shape of the data fed into the input layer
-
-        Returns
-        -------
-        input_layer : a keras layer
-        output_layer : a keras layer
-        """
-        import tensorflow as tf
-
-        input_layer = tf.keras.layers.Input(input_shape)
-
-        inception = self._inception_module(
-            input_tensor=input_layer,
-            dilation_rate=1,
-            use_custom_filters=True,
-            use_multiplexing=True,
-        )
-
-        _kernel_size = self.kernel_size // 2
-
-        input_tensor = inception
-
-        dilation_rate = 1
-
-        for i in range(2):
-            dilation_rate = 2 ** (i + 1)
-
-            x = self._fcn_module(
-                input_tensor=input_tensor,
-                kernel_size=_kernel_size // (2**i),
-                n_filters=self.n_filters,
-                dilation_rate=dilation_rate,
-            )
-
-            input_tensor = x
-
-        gap = tf.keras.layers.GlobalAveragePooling1D()(x)
-
-        return input_layer, gap

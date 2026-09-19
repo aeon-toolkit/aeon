@@ -53,12 +53,26 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     ):
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
-        self.activation_encoder = activation_encoder
-        self.activation_decoder = activation_decoder
         self.n_layers_encoder = n_layers_encoder
         self.n_layers_decoder = n_layers_decoder
+        self.activation_encoder = activation_encoder
+        self.activation_decoder = activation_decoder
 
         super().__init__()
+
+    def _check_params(self):
+        nb_e = self.n_layers_encoder
+        nb_d = self.n_layers_decoder
+        self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
+            nb_e, self.activation_encoder, "activation_encoder", allow_none=True
+        )
+        self._activation_decoder = BaseDeepLearningNetwork._check_layer_param(
+            nb_d, self.activation_decoder, "activation_decoder", allow_none=True
+        )
+
+    def build_base_graph(self, x):
+        self._check_params()
+        return x
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -78,48 +92,9 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if isinstance(self.activation_encoder, str):
-            self._activation_encoder = [
-                self.activation_encoder for _ in range(self.n_layers_encoder)
-            ]
-        else:
-            self._activation_encoder = self.activation_encoder
-            if not isinstance(self.activation_encoder, list):
-                raise ValueError(
-                    "Encoder activations should be a list or a single string."
-                )
-            if len(self.activation_encoder) != self.n_layers_encoder:
-                raise ValueError(
-                    f"Number of encoder activations {len(self.activation_encoder)}"
-                    f" should be same as number of encoder layers but is"
-                    f" not: {self.n_layers_encoder}"
-                )
-
-        if isinstance(self.activation_decoder, str):
-            self._activation_decoder = [
-                self.activation_decoder for _ in range(self.n_layers_decoder)
-            ]
-        else:
-            self._activation_decoder = self.activation_decoder
-            if not isinstance(self.activation_decoder, list):
-                raise ValueError(
-                    "Decoder activations should be a list or a single string."
-                )
-            if len(self.activation_decoder) != self.n_layers_decoder:
-                raise ValueError(
-                    f"Number of decoder activations {len(self.activation_decoder)}"
-                    f" should be same as number of decoder layers but is"
-                    f" not: {self.n_layers_decoder}"
-                )
-
-        if not isinstance(self.n_layers_encoder, int):
-            raise ValueError("Number of layers of the encoder must be an integer.")
-
-        if not isinstance(self.n_layers_decoder, int):
-            raise ValueError("Number of layers of the decoder must be an integer.")
-
         input_layer = tf.keras.layers.Input(input_shape)
         x = input_layer
+        x = self.build_base_graph(x)
 
         if self.latent_space_dim is None:
             if "num_input_samples" in kwargs.keys():
