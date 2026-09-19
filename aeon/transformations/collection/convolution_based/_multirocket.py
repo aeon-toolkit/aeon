@@ -1,11 +1,16 @@
-import multiprocessing
+"""MultiRocket transformer."""
+
+__maintainer__ = []
+__all__ = ["MultiRocket"]
+
 from itertools import combinations
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads
+from numba import njit, prange
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils._parallel import _NUMBA_RANDOM_LOCK, _numba_threads
 from aeon.utils.validation import check_n_jobs
 
 
@@ -22,9 +27,11 @@ class MultiRocket(BaseCollectionTransformer):
     Parameters
     ----------
     n_kernels : int, default = 6,250
-       Number of random convolutional kernels. The calculated number of features is the
-       nearest multiple of ``n_features_per_kernel(default 4)*84=336 < 50,000``
-       (``2*n_features_per_kernel(default 4)*n_kernels(default 6,250)``).
+       Number of kernels for each of the two representations. The number of kernels
+       used is rounded down to the nearest multiple of 84, unless a value of less than
+       84 is passed, in which case it is set to 84. The number of features is
+       ``2 * n_features_per_kernel`` times the number of kernels used, 49,728 with the
+       defaults.
     max_dilations_per_kernel : int, default = 32
         Maximum number of dilations per kernel.
     n_features_per_kernel : int, default = 4
@@ -47,6 +54,8 @@ class MultiRocket(BaseCollectionTransformer):
     parameter1 : tuple
         Parameter (dilations, n_features_per_dilation, biases) for
         transformation of input ``X1 = np.diff(X, 1)``.
+    n_kernels_ : int
+        The ``n_kernels`` value used, 84 if a smaller value was passed.
 
 
     See Also
@@ -126,8 +135,11 @@ class MultiRocket(BaseCollectionTransformer):
             if isinstance(self.random_state, np.random.RandomState)
             else self.random_state
         )
-        if self.random_state_ is not None:
-            np.random.seed(self.random_state_)
+        # a generator of its own rather than seeding np.random, so that channel
+        # selection is not disturbed by other threads drawing from the global
+        # state. Seeded, it draws what seeding np.random and drawing from it
+        # did, and both representations draw from the one generator in turn.
+        param_rng = check_random_state(self.random_state_)
 
         _, n_channels, n_timepoints = X.shape
         if n_timepoints < 9:
@@ -135,20 +147,18 @@ class MultiRocket(BaseCollectionTransformer):
                 f"n_timepoints must be >= 9, but found {n_timepoints};"
                 " zero pad shorter series so that n_timepoints == 9"
             )
-        X = X.astype(np.float32)
-        if self.normalise:
-            X = (X - X.mean(axis=-1, keepdims=True)) / (
-                X.std(axis=-1, keepdims=True) + 1e-8
-            )
+        # every one of the 84 base kernels needs at least one feature
+        self.n_kernels_ = max(self.n_kernels, 84)
+        X = self._prepare_input(X)
         if n_channels == 1:
-            X = X.squeeze()
+            X = X.squeeze(1)
             self.parameter = self._fit_univariate(X)
             _X1 = np.diff(X, 1)
             self.parameter1 = self._fit_univariate(_X1)
         else:
-            self.parameter = self._fit_multivariate(X)
+            self.parameter = self._fit_multivariate(X, param_rng)
             _X1 = np.diff(X, 1)
-            self.parameter1 = self._fit_multivariate(_X1)
+            self.parameter1 = self._fit_multivariate(_X1, param_rng)
 
         return self
 
@@ -163,50 +173,44 @@ class MultiRocket(BaseCollectionTransformer):
 
         Returns
         -------
-        pandas DataFrame, transformed features
+        np.ndarray (n_cases, n_features), transformed features
         """
         _, n_channels, n_timepoints = X.shape
+        X = self._prepare_input(X)
+        if n_channels > 1:
+            X1 = np.diff(X, 1)
+            transform_kernels = _transform_multi
+        else:
+            X = X.reshape(X.shape[0], X.shape[2])
+            X1 = np.diff(X, 1)
+            transform_kernels = _transform_uni
+
+        # unlike Rocket, no _NUMBA_PARALLEL_LOCK: serialising launches makes
+        # Arsenal members transform one at a time, 2-3x slower with n_jobs=4
+        with _numba_threads(self._n_jobs):
+            X = transform_kernels(
+                X,
+                X1,
+                self.parameter,
+                self.parameter1,
+                self.n_features_per_kernel,
+                MultiRocket._indices,
+            )
+
+        X = np.nan_to_num(X)  # not sure about this!
+        return X
+
+    def _prepare_input(self, X):
+        """Normalise if configured, then cast to float32, the same in fit and transform.
+
+        Normalising before the cast matches Rocket. asarray avoids a copy if X is
+        already float32.
+        """
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-        # change n_jobs depending on value and existing cores
-        prev_threads = get_num_threads()
-        if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self._n_jobs
-        set_num_threads(n_jobs)
-
-        X = X.astype(np.float32)
-        if n_channels > 1:
-            X1 = np.diff(X, 1)
-            X = _transform_multi(
-                X,
-                X1,
-                self.parameter,
-                self.parameter1,
-                self.n_features_per_kernel,
-                MultiRocket._indices,
-                self.random_state_,
-            )
-        else:
-            X = X.reshape(X.shape[0], X.shape[2])
-            X1 = np.diff(X, 1)
-            X = _transform_uni(
-                X,
-                X1,
-                self.parameter,
-                self.parameter1,
-                self.n_features_per_kernel,
-                MultiRocket._indices,
-                self.random_state_,
-            )
-
-        X = np.nan_to_num(X)  # not sure about this!
-
-        set_num_threads(prev_threads)
-        return X
+        return np.asarray(X, dtype=np.float32)
 
     def _fit_univariate(self, X):
         _, input_length = X.shape
@@ -214,31 +218,33 @@ class MultiRocket(BaseCollectionTransformer):
         n_kernels = 84
 
         dilations, n_features_per_dilation = _fit_dilations(
-            input_length, self.n_kernels, self.max_dilations_per_kernel
+            input_length, self.n_kernels_, self.max_dilations_per_kernel
         )
 
         n_features_per_kernel = np.sum(n_features_per_dilation)
 
         quantiles = _quantiles(n_kernels * n_features_per_kernel)
 
-        biases = _fit_biases_univariate(
-            X,
-            dilations,
-            n_features_per_dilation,
-            quantiles,
-            MultiRocket._indices,
-            self.random_state_,
-        )
+        # see the comment on the bias fitting in _fit_multivariate
+        with _NUMBA_RANDOM_LOCK:
+            biases = _fit_biases_univariate(
+                X,
+                dilations,
+                n_features_per_dilation,
+                quantiles,
+                MultiRocket._indices,
+                self.random_state_,
+            )
 
         return dilations, n_features_per_dilation, biases
 
-    def _fit_multivariate(self, X):
+    def _fit_multivariate(self, X, rng):
         _, n_channels, input_length = X.shape
 
         n_kernels = 84
 
         dilations, n_features_per_dilation = _fit_dilations(
-            input_length, self.n_kernels, self.max_dilations_per_kernel
+            input_length, self.n_kernels_, self.max_dilations_per_kernel
         )
 
         n_features_per_kernel = np.sum(n_features_per_dilation)
@@ -252,7 +258,7 @@ class MultiRocket(BaseCollectionTransformer):
         max_exponent = np.log2(max_n_channels + 1)
 
         n_channels_per_combination = (
-            2 ** np.random.uniform(0, max_exponent, n_combinations)
+            2 ** rng.uniform(0, max_exponent, n_combinations)
         ).astype(np.int32)
 
         channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
@@ -261,22 +267,26 @@ class MultiRocket(BaseCollectionTransformer):
         for combination_index in range(n_combinations):
             n_channels_this_combination = n_channels_per_combination[combination_index]
             n_channels_end = n_channels_start + n_channels_this_combination
-            channel_indices[n_channels_start:n_channels_end] = np.random.choice(
+            channel_indices[n_channels_start:n_channels_end] = rng.choice(
                 n_channels, n_channels_this_combination, replace=False
             )
 
             n_channels_start = n_channels_end
 
-        biases = _fit_biases_multivariate(
-            X,
-            n_channels_per_combination,
-            channel_indices,
-            dilations,
-            n_features_per_dilation,
-            quantiles,
-            MultiRocket._indices,
-            self.random_state_,
-        )
+        # bias fitting seeds and draws from np.random, which is global state
+        # shared across threads when JIT is disabled. Compiled, the call holds
+        # the GIL throughout, so the lock costs nothing in parallelism.
+        with _NUMBA_RANDOM_LOCK:
+            biases = _fit_biases_multivariate(
+                X,
+                n_channels_per_combination,
+                channel_indices,
+                dilations,
+                n_features_per_dilation,
+                quantiles,
+                MultiRocket._indices,
+                self.random_state_,
+            )
 
         return (
             n_channels_per_combination,
@@ -292,11 +302,7 @@ class MultiRocket(BaseCollectionTransformer):
     parallel=True,
     cache=True,
 )
-def _transform_uni(
-    X, X1, parameters, parameters1, n_features_per_kernel, indices, seed
-):
-    if seed is not None:
-        np.random.seed(seed)
+def _transform_uni(X, X1, parameters, parameters1, n_features_per_kernel, indices):
     n_cases, n_timepoints = X.shape
 
     dilations, n_features_per_dilation, biases = parameters
@@ -564,9 +570,7 @@ def _transform_uni(
     parallel=True,
     cache=True,
 )
-def _transform_multi(
-    X, X1, parameters, parameters1, n_features_per_kernel, indices, seed
-):
+def _transform_multi(X, X1, parameters, parameters1, n_features_per_kernel, indices):
     n_cases, n_channels, n_timepoints = X.shape
     (
         n_channels_per_combination,
@@ -575,8 +579,6 @@ def _transform_multi(
         n_features_per_dilation,
         biases,
     ) = parameters
-    if seed is not None:
-        np.random.seed(seed)
 
     _, _, dilations1, n_features_per_dilation1, biases1 = parameters1
     n_kernels = len(indices)
