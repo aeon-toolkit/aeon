@@ -8,6 +8,7 @@ import math
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 from numba.typed import List
+from scipy.stats import norm
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.linear_model import LogisticRegression
 from sklearn.utils import check_random_state
@@ -277,7 +278,7 @@ class MrSQMClassifier(BaseClassifier):
             cfg = dict(cfg)
             if cfg["method"] == "sax":
                 cfg.setdefault("dilation", 1)
-                if cfg["alphabet"] not in _SAX_BREAKPOINTS:
+                if not 2 <= cfg["alphabet"] <= 16:
                     raise ValueError("SAX alphabet size must be between 2 and 16.")
                 span = (cfg["window"] - 1) * cfg["dilation"] + 1
             elif cfg["method"] == "sfa":
@@ -308,7 +309,7 @@ class MrSQMClassifier(BaseClassifier):
                 X[:, channel, :],
                 cfg["window"],
                 cfg["word"],
-                _SAX_BREAKPOINTS[cfg["alphabet"]],
+                _sax_breakpoints(cfg["alphabet"]),
                 cfg["dilation"],
             )
 
@@ -390,165 +391,18 @@ class MrSQMClassifier(BaseClassifier):
         }
 
 
-# SAX breakpoints for alphabet sizes 2 to 16, as used by the original.
-_SAX_BREAKPOINTS = {
-    2: np.array([0.0]),
-    3: np.array([-0.430727299295, 0.430727299295]),
-    4: np.array([-0.674489750196, 0.0, 0.674489750196]),
-    5: np.array([-0.841621233573, -0.253347103136, 0.253347103136, 0.841621233573]),
-    6: np.array(
-        [-0.967421566102, -0.430727299295, 0.0, 0.430727299295, 0.967421566102]
-    ),
-    7: np.array(
-        [
-            -1.06757052388,
-            -0.565948821933,
-            -0.180012369793,
-            0.180012369793,
-            0.565948821933,
-            1.06757052388,
-        ]
-    ),
-    8: np.array(
-        [
-            -1.15034938038,
-            -0.674489750196,
-            -0.318639363964,
-            0.0,
-            0.318639363964,
-            0.674489750196,
-            1.15034938038,
-        ]
-    ),
-    9: np.array(
-        [
-            -1.22064034885,
-            -0.764709673786,
-            -0.430727299295,
-            -0.139710298882,
-            0.139710298882,
-            0.430727299295,
-            0.764709673786,
-            1.22064034885,
-        ]
-    ),
-    10: np.array(
-        [
-            -1.28155156554,
-            -0.841621233573,
-            -0.524400512708,
-            -0.253347103136,
-            0.0,
-            0.253347103136,
-            0.524400512708,
-            0.841621233573,
-            1.28155156554,
-        ]
-    ),
-    11: np.array(
-        [
-            -1.33517773612,
-            -0.908457868537,
-            -0.604585346583,
-            -0.348755695517,
-            -0.114185294321,
-            0.114185294321,
-            0.348755695517,
-            0.604585346583,
-            0.908457868537,
-            1.33517773612,
-        ]
-    ),
-    12: np.array(
-        [
-            -1.3829941271,
-            -0.967421566102,
-            -0.674489750196,
-            -0.430727299295,
-            -0.210428394248,
-            0.0,
-            0.210428394248,
-            0.430727299295,
-            0.674489750196,
-            0.967421566102,
-            1.3829941271,
-        ]
-    ),
-    13: np.array(
-        [
-            -1.42607687227,
-            -1.02007623279,
-            -0.736315917376,
-            -0.502402223373,
-            -0.293381232121,
-            -0.0965586152896,
-            0.0965586152896,
-            0.293381232121,
-            0.502402223373,
-            0.736315917376,
-            1.02007623279,
-            1.42607687227,
-        ]
-    ),
-    14: np.array(
-        [
-            -1.46523379269,
-            -1.06757052388,
-            -0.791638607743,
-            -0.565948821933,
-            -0.366106356801,
-            -0.180012369793,
-            0.0,
-            0.180012369793,
-            0.366106356801,
-            0.565948821933,
-            0.791638607743,
-            1.06757052388,
-            1.46523379269,
-        ]
-    ),
-    15: np.array(
-        [
-            -1.50108594604,
-            -1.11077161664,
-            -0.841621233573,
-            -0.62292572321,
-            -0.430727299295,
-            -0.253347103136,
-            -0.0836517339071,
-            0.0836517339071,
-            0.253347103136,
-            0.430727299295,
-            0.62292572321,
-            0.841621233573,
-            1.11077161664,
-            1.50108594604,
-        ]
-    ),
-    16: np.array(
-        [
-            -1.53412054435,
-            -1.15034938038,
-            -0.887146559019,
-            -0.674489750196,
-            -0.488776411115,
-            -0.318639363964,
-            -0.15731068461,
-            0.0,
-            0.15731068461,
-            0.318639363964,
-            0.488776411115,
-            0.674489750196,
-            0.887146559019,
-            1.15034938038,
-            1.53412054435,
-        ]
-    ),
-}
-
 # the original uses this truncated value of pi for the MFT
 _MFT_PI = 3.14159265
 _SPACE = 32
+
+
+def _sax_breakpoints(alphabet_size):
+    """Get the SAX breakpoints used by the original.
+
+    These are standard normal quantiles rounded to 12 significant digits.
+    """
+    q = norm.ppf(np.arange(1, alphabet_size) / alphabet_size)
+    return np.array([float(f"{v:.12g}") for v in q])
 
 
 def _create_pars(max_ws, xrep, rng):

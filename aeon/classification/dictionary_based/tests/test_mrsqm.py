@@ -9,8 +9,8 @@ import pytest
 
 from aeon.classification.dictionary_based import MrSQMClassifier
 from aeon.classification.dictionary_based._mrsqm import (
-    _SAX_BREAKPOINTS,
     _normalise_rows,
+    _sax_breakpoints,
     _sax_words,
     _sfa_lookup_table,
     _sfa_words,
@@ -49,15 +49,37 @@ def data():
     return X, y
 
 
+def test_sax_breakpoints_match_original():
+    """Breakpoints are the truncated values hard coded in the original."""
+    np.testing.assert_array_equal(_sax_breakpoints(2), [0.0])
+    np.testing.assert_array_equal(
+        _sax_breakpoints(5),
+        [-0.841621233573, -0.253347103136, 0.253347103136, 0.841621233573],
+    )
+    np.testing.assert_array_equal(
+        _sax_breakpoints(7),
+        [
+            -1.06757052388,
+            -0.565948821933,
+            -0.180012369793,
+            0.180012369793,
+            0.565948821933,
+            1.06757052388,
+        ],
+    )
+    assert _sax_breakpoints(13)[5] == -0.0965586152896
+    assert _sax_breakpoints(16)[0] == -1.53412054435
+
+
 def test_sax_words_match_original(data):
     """SAX words with numerosity reduction, with and without dilation."""
     X = data[0][:, 0, :]
-    words, n_words = _sax_words(X, 16, 4, _SAX_BREAKPOINTS[3], 1)
+    words, n_words = _sax_words(X, 16, 4, _sax_breakpoints(3), 1)
     assert _join(words, n_words, 0) == (
         b"bbcb bcba bbca bcbb bbab bbac babc bacb bbcb abcb acbb bcbb cbba cbbb "
         b"cabb cbbb bbbb bbbc"
     )
-    words, n_words = _sax_words(X, 8, 5, _SAX_BREAKPOINTS[6], 2)
+    words, n_words = _sax_words(X, 8, 5, _sax_breakpoints(6), 2)
     assert _join(words, n_words, 1) == (
         b"ddaec decdb ebcec ddebc cbfcd edcbc bdedb cfbdb cfccc fcccb ecdbb ebdbe "
         b"edbcd becdd bcccf debfb cabef dbdbe bbcef cbccf abeee bdbfd bceeb ccdfb "
