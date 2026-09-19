@@ -8,7 +8,7 @@ from itertools import combinations
 
 import numpy as np
 from numba import float32, get_num_threads, njit, prange, set_num_threads, vectorize
-from scipy import fftpack
+from scipy.signal import hilbert
 from sklearn.preprocessing import StandardScaler
 
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -701,15 +701,9 @@ class KGMTP(BaseCollectionTransformer):
 
     @staticmethod
     def _hilbert_transform(X):
-        """Row-wise discrete Hilbert transform.
-
-        `scipy.fftpack.hilbert` only accepts a 1-D array, hence the loop. The float32
-        round trip matches the original paper's precision.
-        """
-        out = np.zeros(X.shape, dtype=np.float32)
-        for i in range(X.shape[0]):
-            out[i] = fftpack.hilbert(X[i])
-        return out.astype(np.float64)
+        """Vectorised discrete Hilbert transform."""
+        out = -hilbert(X, axis=-1).imag
+        return out.astype(np.float32).astype(np.float64)
 
     @staticmethod
     def _sparse_scaler_fit(X, exponent=4):
