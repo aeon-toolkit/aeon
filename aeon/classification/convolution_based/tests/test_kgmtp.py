@@ -68,6 +68,27 @@ def test_kgmtp_classifier_always_scales_hydra():
     assert clf._transformer.scale_hydra is True
 
 
+def test_kgmtp_classifier_multivariate():
+    """`KGMTPClassifier` accepts and fits on multivariate series without error.
+
+    `KGMTP` itself processes each channel independently and concatenates
+    every channel's output (see its own tests for that in detail); this just
+    checks the classifier's end-to-end pipeline accepts multivariate input at
+    all, since it declares `capability:multivariate` and delegates entirely
+    to `KGMTP` for the actual per-channel handling.
+    """
+    X = np.random.default_rng(0).random(size=(20, 3, 60))
+    y = np.array([0, 1] * 10)
+
+    clf = KGMTPClassifier(random_state=0, **KGMTPClassifier._get_test_params()).fit(
+        X, y
+    )
+    preds = clf.predict(X)
+
+    assert preds.shape == (20,)
+    assert len(clf._transformer.base_) == 3
+
+
 def test_kgmtp_classifier_beats_majority_baseline():
     """KGMTPClassifier meaningfully outperforms a majority-class baseline.
 

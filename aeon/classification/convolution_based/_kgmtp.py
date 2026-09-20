@@ -1,6 +1,7 @@
 """KGMTP classifier.
 
-Pipeline classifier using the KGMTP transformer and RidgeClassifierCV classifier.
+Pipeline classifier using the KGMTP transformer, the StandardScaler scaler and the
+RidgeClassifierCV classifier.
 """
 
 __maintainer__ = ["johannfaouzi"]
@@ -30,11 +31,16 @@ class KGMTPClassifier(BaseClassifier):
     original paper's own pipeline, before fitting a sklearn classifier on the scaled
     features (default classifier is `RidgeClassifierCV`).
 
+    Multivariate series are supported: `KGMTP` processes each channel independently
+    and concatenates every channel's output, so the per-channel feature budget below
+    scales with the number of channels.
+
     Parameters
     ----------
     n_kernels : int, default=50_000
-        Total PPV-pooling feature budget for the `KGMTP` transform, split evenly across
-        its three internal representations (raw, Hilbert, first difference).
+        Total PPV-pooling feature budget per channel for the `KGMTP` transform,
+        split evenly across its three internal representations (raw, Hilbert, first
+        difference).
     max_dilations_per_kernel : int, default=32
         The maximum number of dilations per kernel.
     n_features_per_kernel : int, default=5
@@ -90,6 +96,7 @@ class KGMTPClassifier(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
+        "capability:multivariate": True,
         "algorithm_type": "convolution",
     }
 

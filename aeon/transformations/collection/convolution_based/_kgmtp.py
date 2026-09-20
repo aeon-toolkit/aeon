@@ -476,11 +476,19 @@ class KGMTP(BaseCollectionTransformer):
     applies it before concatenating the Hydra block with the raw PPV-pooling block.
     Set ``scale_hydra=False`` to get both blocks raw instead.
 
+    Multivariate series are supported by processing each channel independently through
+    this same raw/Hilbert/diff pipeline (with its own, separately fitted set of kernels
+    per channel), then concatenating every channel's output into the final design
+    matrix. Channels are never mixed, so ``n_kernels`` is the per-channel budget: the
+    total feature budget scales with the number of channels.
+
     Parameters
     ----------
     n_kernels : int, default=50_000
-        Total PPV-pooling feature budget, split evenly across the three representations
-        this transform computes internally (``n_kernels // 3`` each).
+        Total PPV-pooling feature budget per channel, split evenly across the three
+        representations this transform computes internally (``n_kernels // 3`` each).
+        For multivariate series, this same per-channel budget is used independently for
+        every channel, so the total feature budget scales with the number of channels.
     max_dilations_per_kernel : int, default=32
         Maximum number of dilations per kernel.
     n_features_per_kernel : int, default=5
@@ -502,10 +510,10 @@ class KGMTP(BaseCollectionTransformer):
 
     Attributes
     ----------
-    base_, hilbert_, diff_ : tuple
+    base_, hilbert_, diff_ : list of tuple, length n_channels
         Fitted kernel parameters for the raw, Hilbert-transform, and first-difference
-        representations respectively, each as ``(dilations, num_features_per_dilation,
-        biases, weights)``.
+        representations respectively, one entry per channel (in channel order), each
+        entry a ``(dilations, num_features_per_dilation, biases, weights)`` tuple.
     n_ppv_features_ : int
         Width of the PPV-pooling block within `transform`'s output.
     n_hydra_features_ : int
@@ -545,6 +553,7 @@ class KGMTP(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
         "capability:multithreading": True,
+        "capability:multivariate": True,
     }
 
     def __init__(
@@ -566,12 +575,13 @@ class KGMTP(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y=None):
-        """Fit the three branches and the Hydra scaler.
+        """Fit the three branches and the Hydra scaler, for every channel.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
-            Training time series (univariate, equal length).
+            Training time series (equal length). Each channel is fit independently
+            (see class docstring).
         y : ignored
 
         Returns
@@ -582,18 +592,20 @@ class KGMTP(BaseCollectionTransformer):
         return self
 
     def _fit_transform(self, X, y=None):
-        """Fit the three branches and the Hydra scaler, and transform `X` in one pass.
+        """Fit the three branches per channel and the Hydra scaler; transform `X`.
 
-        Fits the raw, Hilbert-transform, and first-difference branches in turn (each
-        branch's `fit` already computes its own transform of `X` as a side effect,
-        to determine dilations/biases), then optionally fits the Hydra-count scaler on
-        the pooled Hydra features and applies it if `scale_hydra=True`. The PPV-pooling
-        features are left unscaled.
+        For each channel, fits the raw, Hilbert-transform, and first-difference
+        branches in turn (each branch's `fit` already computes its own transform of
+        that channel as a side effect, to determine dilations/biases). Channels'
+        blocks are concatenated (see class docstring), then optionally fits the
+        Hydra-count scaler on the pooled, multi-channel Hydra features and applies it
+        if `scale_hydra=True`. The PPV-pooling features are left unscaled.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
-            Training time series (univariate, equal length).
+            Training time series (equal length). Each channel is fit independently
+            (see class docstring).
         y : ignored
 
         Returns
@@ -607,47 +619,66 @@ class KGMTP(BaseCollectionTransformer):
         rng = self._check_random_state(self.random_state)
         self.random_state_ = rng
 
-        X2d = X[:, 0, :].astype(np.float64)
-        X_hilbert = self._hilbert_transform(X2d)
-        X_diff = np.diff(X2d, 1)
-
         n_kernels_per_branch = self.n_kernels // 3
-        self._base = _KGMTPBranch(
-            n_kernels_per_branch,
-            self.max_dilations_per_kernel,
-            self.n_features_per_kernel,
-        ).fit(X2d, rng)
-        self._hilbert = _KGMTPBranch(
-            n_kernels_per_branch,
-            self.max_dilations_per_kernel,
-            self.n_features_per_kernel,
-        ).fit(X_hilbert, rng)
-        self._diff = _KGMTPBranch(
-            n_kernels_per_branch,
-            self.max_dilations_per_kernel,
-            self.n_features_per_kernel,
-        ).fit(X_diff, rng)
+        self._base, self._hilbert, self._diff = [], [], []
+        self.base_, self.hilbert_, self.diff_ = [], [], []
+        X_list, X_hilbert_list, X_diff_list = [], [], []
 
-        self.base_ = (
-            self._base.dilations_,
-            self._base.num_features_per_dilation_,
-            self._base.biases_,
-            self._base.weights_,
-        )
-        self.hilbert_ = (
-            self._hilbert.dilations_,
-            self._hilbert.num_features_per_dilation_,
-            self._hilbert.biases_,
-            self._hilbert.weights_,
-        )
-        self.diff_ = (
-            self._diff.dilations_,
-            self._diff.num_features_per_dilation_,
-            self._diff.biases_,
-            self._diff.weights_,
-        )
+        for c in range(X.shape[1]):
+            Xc = X[:, c, :].astype(np.float64)
+            Xc_hilbert = self._hilbert_transform(Xc)
+            Xc_diff = np.diff(Xc, 1)
+            X_list.append(Xc)
+            X_hilbert_list.append(Xc_hilbert)
+            X_diff_list.append(Xc_diff)
 
-        train_features, train_hydra = self._transform_branches(X2d, X_hilbert, X_diff)
+            base = _KGMTPBranch(
+                n_kernels_per_branch,
+                self.max_dilations_per_kernel,
+                self.n_features_per_kernel,
+            ).fit(Xc, rng)
+            hilbert = _KGMTPBranch(
+                n_kernels_per_branch,
+                self.max_dilations_per_kernel,
+                self.n_features_per_kernel,
+            ).fit(Xc_hilbert, rng)
+            diff = _KGMTPBranch(
+                n_kernels_per_branch,
+                self.max_dilations_per_kernel,
+                self.n_features_per_kernel,
+            ).fit(Xc_diff, rng)
+
+            self._base.append(base)
+            self._hilbert.append(hilbert)
+            self._diff.append(diff)
+            self.base_.append(
+                (
+                    base.dilations_,
+                    base.num_features_per_dilation_,
+                    base.biases_,
+                    base.weights_,
+                )
+            )
+            self.hilbert_.append(
+                (
+                    hilbert.dilations_,
+                    hilbert.num_features_per_dilation_,
+                    hilbert.biases_,
+                    hilbert.weights_,
+                )
+            )
+            self.diff_.append(
+                (
+                    diff.dilations_,
+                    diff.num_features_per_dilation_,
+                    diff.biases_,
+                    diff.weights_,
+                )
+            )
+
+        train_features, train_hydra = self._transform_branches(
+            X_list, X_hilbert_list, X_diff_list
+        )
         self.n_ppv_features_ = train_features.shape[1]
         self.n_hydra_features_ = train_hydra.shape[1]
 
@@ -659,12 +690,13 @@ class KGMTP(BaseCollectionTransformer):
         return np.concatenate([train_features, train_hydra], axis=1)
 
     def _transform(self, X, y=None):
-        """Apply the three fitted branches to `X`, scale, and concatenate.
+        """Apply the fitted branches to every channel of `X`, scale, and concatenate.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
-            Must have the same series length `X` was fitted on.
+            Must have the same number of channels and series length `X` was fitted
+            on.
         y : ignored
 
         Returns
@@ -674,24 +706,22 @@ class KGMTP(BaseCollectionTransformer):
             features, scaled if `scale_hydra` is True (the default) and raw
             otherwise (see `n_ppv_features_`, `n_hydra_features_`).
         """
-        X2d = X[:, 0, :].astype(np.float64)
-        X_hilbert = self._hilbert_transform(X2d)
-        X_diff = np.diff(X2d, 1)
+        X_list, X_hilbert_list, X_diff_list = [], [], []
+        for c in range(X.shape[1]):
+            Xc = X[:, c, :].astype(np.float64)
+            X_list.append(Xc)
+            X_hilbert_list.append(self._hilbert_transform(Xc))
+            X_diff_list.append(np.diff(Xc, 1))
 
-        features, hydra = self._transform_branches(X2d, X_hilbert, X_diff)
+        features, hydra = self._transform_branches(X_list, X_hilbert_list, X_diff_list)
         if self.scale_hydra:
             hydra = self._sparse_scaler_transform(
                 hydra, self._hydra_mu_, self._hydra_sigma_
             )
         return np.concatenate([features, hydra], axis=1)
 
-    def _transform_branches(self, X, X_hilbert, X_diff):
-        """Run the three fitted branches and concatenate each block.
-
-        Wires `n_jobs` to the Numba-parallel `_transform` kernel via
-        `set_num_threads`/`get_num_threads`, matching `MultiRocket`'s pattern. Shared by
-        `_fit` (to compute training features for scaler-fitting) and `_transform`.
-        """
+    def _transform_branches(self, X_list, X_hilbert_list, X_diff_list):
+        """Run each channel's fitted branches and concatenate every block."""
         prev_threads = get_num_threads()
         n_jobs = (
             multiprocessing.cpu_count()
@@ -700,16 +730,27 @@ class KGMTP(BaseCollectionTransformer):
         )
         set_num_threads(n_jobs)
         try:
-            base_features, base_hydra = self._base.transform(X)
-            hilbert_features, hilbert_hydra = self._hilbert.transform(X_hilbert)
-            diff_features, diff_hydra = self._diff.transform(X_diff)
+            features_blocks, hydra_blocks = [], []
+            for c, (Xc, Xc_hilbert, Xc_diff) in enumerate(
+                zip(X_list, X_hilbert_list, X_diff_list)
+            ):
+                base_features, base_hydra = self._base[c].transform(Xc)
+                hilbert_features, hilbert_hydra = self._hilbert[c].transform(Xc_hilbert)
+                diff_features, diff_hydra = self._diff[c].transform(Xc_diff)
+
+                features_blocks.append(
+                    np.concatenate(
+                        [base_features, hilbert_features, diff_features], axis=1
+                    )
+                )
+                hydra_blocks.append(
+                    np.concatenate([base_hydra, hilbert_hydra, diff_hydra], axis=1)
+                )
         finally:
             set_num_threads(prev_threads)
 
-        features = np.concatenate(
-            [base_features, hilbert_features, diff_features], axis=1
-        )
-        hydra = np.concatenate([base_hydra, hilbert_hydra, diff_hydra], axis=1)
+        features = np.concatenate(features_blocks, axis=1)
+        hydra = np.concatenate(hydra_blocks, axis=1)
         return features, hydra
 
     def _check_random_state(self, random_state):

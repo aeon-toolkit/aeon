@@ -39,8 +39,9 @@ def test_kgmtp_random_state_generator_advances():
     a = KGMTP(random_state=rng, **params).fit(X)
     b = KGMTP(random_state=rng, **params).fit(X)
 
-    # base_ is (dilations, num_features_per_dilation, biases, weights).
-    assert not np.array_equal(a.base_[2], b.base_[2])
+    # base_ is a list (one entry per channel) of (dilations,
+    # num_features_per_dilation, biases, weights); X here is univariate.
+    assert not np.array_equal(a.base_[0][2], b.base_[0][2])
 
 
 def test_kgmtp_random_state_rejects_legacy_randomstate():
@@ -95,7 +96,7 @@ def test_kgmtp_scale_hydra_false_leaves_hydra_raw():
     X2d = X[:, 0, :].astype(np.float64)
     X_hilbert = kgmtp._hilbert_transform(X2d)
     X_diff = np.diff(X2d, 1)
-    raw_features, raw_hydra = kgmtp._transform_branches(X2d, X_hilbert, X_diff)
+    raw_features, raw_hydra = kgmtp._transform_branches([X2d], [X_hilbert], [X_diff])
 
     np.testing.assert_array_equal(Xt[:, : kgmtp.n_ppv_features_], raw_features)
     np.testing.assert_array_equal(Xt[:, kgmtp.n_ppv_features_ :], raw_hydra)
@@ -106,6 +107,67 @@ def test_kgmtp_scale_hydra_false_leaves_hydra_raw():
     kgmtp_scaled = KGMTP(random_state=0, **params).fit(X)
     Xt_scaled = kgmtp_scaled.transform(X)
     assert not np.array_equal(Xt_scaled[:, kgmtp_scaled.n_ppv_features_ :], raw_hydra)
+
+
+def test_kgmtp_multivariate_concatenates_channels_sequentially():
+    """Multivariate series: each channel is fit/transformed independently in turn.
+
+    Per the class docstring, a multivariate `KGMTP` is equivalent to looping
+    over channels and fitting a standalone, univariate `KGMTP` on each one,
+    in order, sharing one continuously-advancing `Generator` -- this checks
+    that equivalence directly, channel by channel, rather than just checking
+    output shapes.
+    """
+    n_channels = 3
+    X = np.random.default_rng(1).random(size=(10, n_channels, 100))
+    params = KGMTP._get_test_params()
+
+    # scale_hydra=False keeps both blocks raw, so per-channel slices of the
+    # multivariate output can be compared exactly to a standalone fit -- with
+    # scaling on, the multivariate model's scaler is fit across all channels'
+    # pooled Hydra features at once, which wouldn't match a single channel's
+    # own scaler.
+    shared_rng = np.random.default_rng(0)
+    multi = KGMTP(random_state=shared_rng, scale_hydra=False, **params).fit(X)
+    Xt_multi = multi.transform(X)
+
+    assert len(multi.base_) == n_channels
+    assert len(multi.hilbert_) == n_channels
+    assert len(multi.diff_) == n_channels
+
+    # Total feature width scales linearly with the number of channels, since
+    # each channel gets its own full `n_kernels` budget (see class docstring).
+    single = KGMTP(random_state=0, scale_hydra=False, **params).fit(X[:, :1, :])
+    Xt_single = single.transform(X[:, :1, :])
+    assert multi.n_ppv_features_ == n_channels * single.n_ppv_features_
+    assert multi.n_hydra_features_ == n_channels * single.n_hydra_features_
+    assert Xt_multi.shape[1] == n_channels * Xt_single.shape[1]
+
+    per_channel_rng = np.random.default_rng(0)
+    offset_ppv, offset_hydra = 0, 0
+    for c in range(n_channels):
+        Xc = X[:, c : c + 1, :]
+        model_c = KGMTP(random_state=per_channel_rng, scale_hydra=False, **params).fit(
+            Xc
+        )
+        Xt_c = model_c.transform(Xc)
+        n_ppv_c, n_hydra_c = model_c.n_ppv_features_, model_c.n_hydra_features_
+
+        np.testing.assert_array_equal(
+            Xt_multi[:, offset_ppv : offset_ppv + n_ppv_c], Xt_c[:, :n_ppv_c]
+        )
+        np.testing.assert_array_equal(
+            Xt_multi[
+                :,
+                multi.n_ppv_features_
+                + offset_hydra : multi.n_ppv_features_
+                + offset_hydra
+                + n_hydra_c,
+            ],
+            Xt_c[:, n_ppv_c:],
+        )
+        offset_ppv += n_ppv_c
+        offset_hydra += n_hydra_c
 
 
 def test_kgmtp_n_jobs_does_not_change_output():
