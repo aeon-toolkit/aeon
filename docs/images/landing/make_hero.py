@@ -267,13 +267,7 @@ html.append("</div>")
 html.append(
     '<div class="aeon-hero-source"><p>Half-hourly solar power generation over six '
     "days, from <code>aeon.datasets.load_solar</code>. All four results are computed "
-    "with <code>aeon</code>.</p>"
-    # shown by landing.js, which is also what moves the panel from tab to tab
-    '<button class="aeon-hero-pause" type="button" hidden>'
-    '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">'
-    '<path class="aeon-icon-pause" d="M4 3h3v10H4zM9 3h3v10H9z"/>'
-    '<path class="aeon-icon-play" d="M4.5 2.5v11l9-5.5z"/></svg>'
-    "<span></span></button></div>"
+    "with <code>aeon</code>.</p></div>"
 )
 html.append("</div>")
 

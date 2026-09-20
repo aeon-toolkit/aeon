@@ -355,9 +355,6 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 }
 
 .aeon-hero-source {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
   padding: 0.7rem 1.25rem;
   border-top: 1px solid var(--pst-color-border);
   background-color: var(--aeon-tile-bg);
@@ -366,46 +363,7 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 }
 
 .aeon-hero-source p {
-  flex: 1;
   margin: 0;
-}
-
-/* lets the reader stop or restart the automatic change of tab */
-.aeon-hero-pause {
-  display: inline-flex;
-  flex: none;
-  gap: 0.4rem;
-  align-items: center;
-  min-height: 2.25rem;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid var(--pst-color-border);
-  border-radius: 999px;
-  background-color: var(--pst-color-background);
-  color: var(--pst-color-text-base);
-  font-family: var(--pst-font-family-heading);
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.aeon-hero-pause:hover {
-  border-color: var(--aeon-a);
-}
-
-.aeon-hero-pause:focus-visible {
-  outline: 2px solid var(--aeon-a);
-  outline-offset: 2px;
-}
-
-.aeon-hero-pause svg {
-  width: 0.8rem;
-  height: 0.8rem;
-  fill: currentColor;
-}
-
-.aeon-hero-panel.is-playing .aeon-icon-play,
-.aeon-hero-panel:not(.is-playing) .aeon-icon-pause {
-  display: none;
 }
 
 /* On a phone the plot is less than half its drawn size, so its text and lines are */
@@ -443,10 +401,6 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 
   .aeon-hero-caption {
     min-height: 5em;
-  }
-
-  .aeon-hero-source {
-    flex-wrap: wrap;
   }
 }
 
@@ -728,12 +682,6 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 /* The hero series is drawn once when the page loads and each overlay wipes in when */
 /* its tab is selected. The illustrations only move while their card is hovered or */
 /* focused. Nothing moves for readers who prefer reduced motion. */
-
-@media (prefers-reduced-motion: reduce) {
-  .aeon-hero-pause {
-    display: none;
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   .aeon-hero-panel {

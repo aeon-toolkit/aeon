@@ -237,20 +237,16 @@ html_theme = "pydata_sphinx_theme"
 # documentation.
 
 # The version switcher only lists the Read the Docs "stable" and "latest" aliases, so
-# it does not need updating on release. The theme resolves relative paths against the
-# site root, so the hosted documentation must use the absolute URL.
-if on_readthedocs:
-    switcher_json_url = "https://www.aeon-toolkit.org/en/latest/_static/switcher.json"
-else:
-    switcher_json_url = "_static/switcher.json"
-
+# it does not need updating on release. The theme (0.16.1 and later) resolves relative
+# paths against the root of the documentation being read, so every build, including the
+# pull request previews, loads the copy it ships.
 html_theme_options = {
     "logo": {"alt_text": "aeon - Home"},
     "navbar_align": "left",
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 5,
     "switcher": {
-        "json_url": switcher_json_url,
+        "json_url": "_static/switcher.json",
         "version_match": os.environ.get("READTHEDOCS_VERSION", "latest"),
     },
     "use_edit_page_button": True,

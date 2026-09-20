@@ -1,8 +1,8 @@
 // Tabs of the landing page hero panel.
 // The panel goes through its tabs once on its own, then rests on the first one. It
-// waits while the reader hovers or focuses it or while it is off screen, stops as soon
-// as the reader picks a tab, and can be paused and replayed with the button under the
-// plot. It never moves on its own for readers who prefer reduced motion.
+// waits while the reader hovers or focuses it or while it is off screen and stops as
+// soon as the reader picks a tab. It never moves on its own for readers who prefer
+// reduced motion.
 (function () {
   const panel = document.querySelector(".aeon-hero-panel");
   if (!panel) {
@@ -10,7 +10,6 @@
   }
   const tabs = Array.from(panel.querySelectorAll(".aeon-hero-tab"));
   const view = panel.querySelector(".aeon-hero-view");
-  const pause = panel.querySelector(".aeon-hero-pause");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const INTERVAL = 7000;
   let timer = null;
@@ -53,15 +52,6 @@
       timer = null;
     }
     panel.classList.toggle("is-playing", play);
-    if (pause) {
-      // the button reflects what the reader asked for, not the short waits on hover
-      const label = stopped ? "Play" : "Pause";
-      pause.querySelector("span").textContent = label;
-      pause.setAttribute(
-        "aria-label",
-        stopped ? "Play the demonstration" : "Pause the demonstration"
-      );
-    }
   }
 
   function pick(tab, focus) {
@@ -92,16 +82,6 @@
       pick(tabs[target], true);
     });
   });
-
-  if (pause) {
-    pause.hidden = false;
-    pause.addEventListener("click", function () {
-      stopped = !stopped;
-      // a pause on hover must not hold back a reader who just pressed play
-      engaged = false;
-      update();
-    });
-  }
 
   ["mouseenter", "focusin"].forEach(function (name) {
     panel.addEventListener(name, function () {

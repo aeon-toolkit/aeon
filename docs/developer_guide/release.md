@@ -21,7 +21,7 @@ The release process is as follows, on high-level:
 2. **Create a "release" pull request.**
   Create a branch from main and PR named after the release version. This should make
   changes to the version numbers (root `__init__.py`, `README.md` and `pyproject.toml`)
-  and have complete release notes in the [changelog](https://www.aeon-toolkit.org/en/latest/changelog.html)
+  and have complete release notes in the [changelog](../changelog.md)
   webpage (add the changelog and update changelog.md in docs). See the [release notes](#release-notes) section for more details.
 
 3. **Merge the "release" pull request.**

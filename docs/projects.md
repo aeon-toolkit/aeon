@@ -394,7 +394,7 @@ accompanied by the appropriate documentation. Some examples of improvements that
 be made include:
 
 - Linking to examples to in API pages where the function/class is used
-- Improving the [estimator overview page](https://www.aeon-toolkit.org/en/stable/estimator_overview.html)
+- Improving the [estimator overview page](estimator_overview.md)
 by further integrating the tags system or adding search and filtering functionality
 - Implementing workflows to ensure that new public functionality includes a valid
 docstring (i.e. has a description, parameters, returns, etc. sections where relevant)
