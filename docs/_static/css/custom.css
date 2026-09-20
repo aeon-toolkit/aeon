@@ -1,3 +1,54 @@
+/* brand colours */
+/* The brand orange (#F05F05) does not have enough contrast for text on a light */
+/* background, so a darker shade is used for the light theme. */
+
+html[data-theme="light"] {
+  --pst-color-primary: #005E80;
+  --pst-color-primary-highlight: #004966;
+  --pst-color-primary-bg: #D6EEF7;
+  --pst-color-secondary: #B84A04;
+  --pst-color-secondary-highlight: #8F3800;
+  --pst-color-secondary-bg: #FDE3D2;
+}
+
+html[data-theme="dark"] {
+  --pst-color-primary: #00ACEB;
+  --pst-color-primary-highlight: #4CC4F2;
+  --pst-color-primary-bg: #06323F;
+  --pst-color-secondary: #FB9456;
+  --pst-color-secondary-highlight: #FCB183;
+  --pst-color-secondary-bg: #4A2208;
+}
+
+/* typography */
+/* Nunito has rounded terminals like the lettering of the aeon logo. It is only used */
+/* for headings and navigation, body text and code keep the theme fonts. */
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("../fonts/nunito-latin-variable.woff2") format("woff2");
+}
+
+html {
+  --pst-font-family-heading: "Nunito", var(--pst-font-family-base-system);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+}
+
+.bd-header .navbar-nav .nav-link,
+.bd-sidebar-primary .caption-text {
+  font-family: var(--pst-font-family-heading);
+  font-weight: 600;
+}
+
 /* teams table */
 
 .aeon-teams-container {
@@ -46,27 +97,18 @@ img.avatar {
 /* meaning they are new variables. */
 /* They are used for displaying pandas dataframes in the rendered notebooks. */
 
-@media (prefers-color-scheme: dark) {
-  body:not([data-theme="light"]) {
-    --dataframe-header: #1f1f1f;
-    --dataframe-body-1: #2f2f2f;
-    --dataframe-body-2: #3f3f3f;
-    --dataframe-text: #f0f0f0;
-  }
-}
-
-body[data-theme="dark"] {
-    --dataframe-header: #1f1f1f;
-    --dataframe-body-1: #2f2f2f;
-    --dataframe-body-2: #3f3f3f;
-    --dataframe-text: #f0f0f0;
-}
-
-body {
+html[data-theme="light"] {
     --dataframe-header: #f0f0f0;
     --dataframe-body-1: #f8f8f8;
     --dataframe-body-2: #f0f0f0;
     --dataframe-text: #000000;
+}
+
+html[data-theme="dark"] {
+    --dataframe-header: #1f1f1f;
+    --dataframe-body-1: #2f2f2f;
+    --dataframe-body-2: #3f3f3f;
+    --dataframe-text: #f0f0f0;
 }
 
   .dataframe > tbody > tr:nth-child(odd) {

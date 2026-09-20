@@ -17,10 +17,10 @@
 .aeon-mini-card {
   display: block;
   text-decoration: none;
-  background: white;
+  background: var(--pst-color-surface);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #eaeaea;
+  border: 1px solid var(--pst-color-border);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
 }
@@ -49,6 +49,6 @@
   padding: 0.5rem 0.8rem;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #2c2c2c;
+  color: var(--pst-color-text-base);
   line-height: 1.1;
 }
