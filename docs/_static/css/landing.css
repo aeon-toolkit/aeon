@@ -4,32 +4,18 @@
 /* light surface, so it is only used for a background tint. */
 /* Everything is scoped to the page through the .aeon-lead element or the aeon- */
 /* classes, so these rules do not touch the rest of the documentation. */
+/* The illustration colours (--aeon-a, --aeon-ink, ...) are defined in custom.css, */
+/* they are shared with the getting started page. */
 
 html[data-theme="light"] {
-  --aeon-a: #0A84BD;
-  --aeon-b: #E25F08;
-  --aeon-c: #F8B90F;
-  --aeon-a-text: #005E80;
-  --aeon-b-text: #B84A04;
-  --aeon-ink: #768595;
-  --aeon-ink-strong: #5B6878;
   --aeon-hero-bg: #EEF7FB;
   --aeon-hero-rule: rgba(10, 132, 189, 0.09);
-  --aeon-tile-bg: #F2F8FB;
   --aeon-shadow: rgba(0, 60, 90, 0.35);
 }
 
 html[data-theme="dark"] {
-  --aeon-a: #2DB4F0;
-  --aeon-b: #FF9A4D;
-  --aeon-c: #FFD04A;
-  --aeon-a-text: #5CC8F5;
-  --aeon-b-text: #FFB27A;
-  --aeon-ink: #6B7989;
-  --aeon-ink-strong: #9AA7B4;
   --aeon-hero-bg: #0E1B25;
   --aeon-hero-rule: rgba(45, 180, 240, 0.07);
-  --aeon-tile-bg: #18232D;
   --aeon-shadow: rgba(0, 0, 0, 0.6);
 }
 

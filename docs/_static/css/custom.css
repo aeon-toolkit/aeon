@@ -20,6 +20,33 @@ html[data-theme="dark"] {
   --pst-color-secondary-bg: #4A2208;
 }
 
+/* illustration colours, shared by the landing and getting started pages */
+/* Lines and marks have a contrast of at least 3:1 with the surface they are drawn on */
+/* and text of at least 4.5:1, in both themes. Yellow cannot reach 3:1 on a light */
+/* surface, so it is only used for a background tint. */
+
+html[data-theme="light"] {
+  --aeon-a: #0A84BD;
+  --aeon-b: #E25F08;
+  --aeon-c: #F8B90F;
+  --aeon-a-text: #005E80;
+  --aeon-b-text: #B84A04;
+  --aeon-ink: #768595;
+  --aeon-ink-strong: #5B6878;
+  --aeon-tile-bg: #F2F8FB;
+}
+
+html[data-theme="dark"] {
+  --aeon-a: #2DB4F0;
+  --aeon-b: #FF9A4D;
+  --aeon-c: #FFD04A;
+  --aeon-a-text: #5CC8F5;
+  --aeon-b-text: #FFB27A;
+  --aeon-ink: #6B7989;
+  --aeon-ink-strong: #9AA7B4;
+  --aeon-tile-bg: #18232D;
+}
+
 /* typography */
 /* Nunito has rounded terminals like the lettering of the aeon logo. It is only used */
 /* for headings and navigation, body text and code keep the theme fonts. */

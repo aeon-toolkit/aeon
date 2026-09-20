@@ -668,6 +668,8 @@ def _add_page_assets(app, pagename, templatename, context, doctree):
     if pagename == "index":
         app.add_css_file("css/landing.css")
         app.add_js_file("js/landing.js", loading_method="defer")
+    elif pagename == "getting_started":
+        app.add_css_file("css/getting_started.css")
     # filter box of the module pages of the API reference
     elif pagename.startswith("api_reference/") and "auto_generated" not in pagename:
         app.add_js_file("js/api_filter.js", loading_method="defer")
