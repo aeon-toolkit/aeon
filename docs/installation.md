@@ -1,6 +1,6 @@
 # Installation
 
-`aeon` currently supports Python versions 3.9, 3.10, 3.11 and 3.12. Prior to these
+`aeon` currently supports Python versions 3.11, 3.12, 3.13 and 3.14. Prior to these
 instructions, please ensure you have a compatible version of Python installed
 (i.e. from https://www.python.org).
 

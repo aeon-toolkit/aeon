@@ -1,7 +1,7 @@
 # Getting Started
 
 The following information is designed to get users up and running with `aeon` quickly.
-If installation is required, please see our [installation guide](installation) for
+If installation is required, please see our [installation guide](installation.md) for
 installing `aeon`.
 
 We assume basic familiarity with the [`scikit-learn`](https://scikit-learn.org/stable/index.html)
@@ -26,7 +26,8 @@ classical techniques for the following learning tasks:
   series in an efficient way.
   ([more details](examples/similarity_search/similarity_search.ipynb)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
-  values or areas of a single time series that are not representative of the whole series.
+  values or areas of a single time series that are not representative of the whole series
+  ([more details](examples/anomaly_detection/anomaly_detection.ipynb)).
 - [**Forecasting**](api_reference/forecasting.rst), where the goal is to predict future values
   of a single time series
   ([more details](examples/forecasting/forecasting.ipynb)).
@@ -47,7 +48,7 @@ There are dedicated notebooks going into more detail for each of these modules. 
 guide is meant to give you the briefest of introductions to the main concepts and
 code for each task to get started. For more information on the variety of
 estimators available for each task, see the links above, the [API](api_reference) and
-[examples](https://www.aeon-toolkit.org/en/latest/examples.html) pages.
+[examples](examples.md) pages.
 
 ## A Single Time Series
 
@@ -65,11 +66,7 @@ international airline passengers, 1949 to 1960, in thousands.
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load an example univariate series as an array
 >>> y[:5]  # first five time points
-606.0
-508.0
-461.0
-390.0
-432.0
+[112. 118. 132. 129. 121.]
 ```
 
 A multivariate time series is made up of multiple series or channels, where each
@@ -102,22 +99,56 @@ structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
 ## Single Series Modules
 
 Different `aeon` modules work with individual series or collections of series.
-Estimators in the `anomaly detection`, `forecasting` and `segmentation` modules use
-single series input (they inherit from `BaseSeriesEstimator`). The functions in
-`distances` take two series as arguments.
+Estimators in the `forecasting` and `segmentation` modules and the series detectors of
+the `anomaly detection` module use single series input (they inherit from
+`BaseSeriesEstimator`). The functions in `distances` take two series as arguments.
 
 ### Anomaly Detection
 
 Anomaly detection (AD) is the process of identifying observations that are significantly
-different from the rest of the data. More details to follow soon, once we have
-written the notebook.
+different from the rest of the data. The detectors for single series are found in
+`aeon.anomaly_detection.series`, while `aeon.anomaly_detection.collection` contains
+detectors which flag whole series of a collection as anomalous. The following example
+uses `STOMP`, which requires the `stumpy` soft dependency. More details can be found in
+the [anomaly detection notebook](examples/anomaly_detection/anomaly_detection.ipynb).
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
->>> from aeon.anomaly_detection.distance_based import STOMP
->>> stomp = STOMP(window_size=200)
->>> scores = est.fit_predict(X) # Get the anomaly scores
+>>> from aeon.anomaly_detection.series.distance_based import STOMP
+>>> y = load_airline()
+>>> stomp = STOMP(window_size=12)
+>>> scores = stomp.fit_predict(y)  # get one anomaly score per time point
+>>> scores.shape
+(144,)
 ```
+
+### Forecasting
+
+Forecasting is the task of predicting future values of a time series. Forecasters in
+`aeon` inherit from [BaseForecaster](forecasting.BaseForecaster) and use `fit` to
+learn a model from a series, then `predict` to predict the value `horizon` steps after
+the end of a series, where `horizon` is a parameter of the forecaster with a default of
+one. The `forecast` method does both in one call. Forecasters which can predict several
+steps ahead by feeding their own predictions back as input also have an
+`iterative_forecast` method. In this example we use an [ETS](forecasting.stats.ETS)
+exponential smoothing model to forecast the monthly airline series.
+
+```{code-block} python
+>>> from aeon.datasets import load_airline
+>>> from aeon.forecasting.stats import ETS
+>>> y = load_airline()
+>>> ets = ETS(
+...     trend_type="additive", seasonality_type="multiplicative", seasonal_period=12
+... )
+>>> ets.forecast(y)  # fit on y and predict the next month
+452.53694093978413
+>>> ets.iterative_forecast(y, prediction_horizon=6)  # predict the next six months
+[452.53694094 429.6971235  495.39837173 504.44891764 503.97821465
+ 561.14770855]
+```
+
+More details on the forecasting module and the available strategies can be found in the
+[forecasting notebook](examples/forecasting/forecasting.ipynb).
 
 ### Segmentation
 
@@ -131,10 +162,9 @@ literature.
 ```{code-block} python
 >>> from aeon.datasets import load_airline
 >>> from aeon.segmentation import ClaSPSegmenter
->>> series = load_airline()
+>>> y = load_airline()
 >>> clasp = ClaSPSegmenter()  # An example segmenter
->>> clasp.fit(data)  # fit the segmenter on the data
->>> clasp.fit_predict(ts)
+>>> clasp.fit_predict(y)  # find the change points of the series
 [51]
 ```
 
@@ -147,9 +177,9 @@ all optimised using numba. They all work with multivariate and unequal length se
 ```{code-block} python
 >>> from aeon.datasets import load_japanese_vowels
 >>> from aeon.distances import dtw_distance
->>> data = load_japanese_vowels()  # load an example multivariate series collection
->>> dtw_distance(data[0], data[1])  # calculate the dtw distance
-14.416269807978
+>>> X, y = load_japanese_vowels()  # load an example multivariate series collection
+>>> dtw_distance(X[0], X[1])  # calculate the dtw distance between two series
+14.416269807978003
 ```
 
 ## Collections of Time Series
@@ -188,17 +218,21 @@ confusion is one reason we make the distinction between series and collection
 estimators.
 
 ```{code-block} python
->>>from aeon.datasets import load_basic_motions, load_plaid, load_japanese_vowels
+>>> from aeon.datasets import (
+...     load_basic_motions,
+...     load_japanese_vowels,
+...     load_pickup_gesture_wiimoteZ,
+... )
 >>> X2, y2 = load_basic_motions() # example equal length multivariate collection
 >>> X2.shape
 (80, 6, 100)
->>> X3, y3 = load_plaid()  # example unequal length univariate collection
+>>> X3, y3 = load_pickup_gesture_wiimoteZ()  # unequal length univariate collection
 >>> type(X3)
 <class 'list'>
 >>> len(X3)
-1074
+100
 >>> X3[0].shape
-(1, 500)
+(1, 324)
 >>> X4, y4 = load_japanese_vowels()  # example unequal length multivariate collection
 >>> len(X4)
 640
@@ -279,14 +313,14 @@ KNeighborsTimeSeriesRegressor()
 >>> y_pred[:6]
 [0.04218472 0.01459854 0.         0.0164468  0.06254257 0.11111111]
 >>> mean_squared_error(y_test, y_pred)
-0.002921957478363366
+0.0031081856179637894
 ```
 
 ### Clustering
 
 Like classification and regression, time series clustering (TSCL) aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
-the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering._k_means.TimeSeriesKMeans)
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering.TimeSeriesKMeans)
 clusterer on the [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead) dataset.
 
 ```{code-block} python
@@ -294,13 +328,16 @@ clusterer on the [ArrowHead](http://www.timeseriesclassification.com/description
 >>> from aeon.datasets import load_arrow_head
 >>> from sklearn.metrics import rand_score
 >>> X, y = load_arrow_head()
->>> kmeans = TimeSeriesKMeans(n_clusters=3, metric="dtw")
+>>> kmeans = TimeSeriesKMeans(
+...     n_clusters=3, distance="dtw", averaging_method="mean", random_state=0
+... )
 >>> kmeans.fit(X) # fit the clusterer
-TimeSeriesKMeans(n_clusters=3)
+TimeSeriesKMeans(averaging_method='mean', distance='dtw', n_clusters=3,
+                 random_state=0)
 >>> kmeans.labels_[0:10]  # cluster labels
-[2 1 1 0 1 1 0 1 1 0]
+[2 1 2 0 2 1 0 2 1 0]
 >>> rand_score(y, kmeans.labels_)
-0.6377792823290453
+0.6423832092078537
 ```
 
 After calling `fit`, the `labels_` attribute contains the cluster labels for
@@ -373,7 +410,9 @@ and those that transform a collection.
 
 Transformers inheriting from the [BaseSeriesTransformer](transformations.series.base.BaseSeriesTransformer)
 in the `aeon.transformations.series` package transform a single (possibly multivariate)
-time series into a different time series or a feature vector. More info to follow.
+time series into a different time series or a feature vector. The
+[smoothing filters notebook](examples/transformations/smoothing_filters.ipynb) shows more
+examples of series transformers.
 
 The following example shows how to use the
 [AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
@@ -391,7 +430,7 @@ class to extract the autocorrelation terms of a time series.
 
 ### Transformers for Collections of Time Series
 
-The `aeon.transformations.collections` module contains a range of transformers for
+The `aeon.transformations.collection` module contains a range of transformers for
 collections of time series. These do not allow for single series input,
 treat 2D input types as a collection of univariate series, and have no restrictions on
 the datatype of output.
@@ -406,23 +445,23 @@ statistics for each series.
 ```{code-block} python
 >>> from aeon.transformations.collection.feature_based import Catch22
 >>> import numpy as np
->>> X = np.random.RandomState().random(size=(4, 1, 10))  # four cases of 10 timepoints
+>>> X = np.random.RandomState(0).random(size=(4, 1, 10))  # four cases of 10 timepoints
 >>> c22 = Catch22(replace_nans=True)  # transform to four cases of 22 features
 >>> c22.fit_transform(X)[0]
-[ 4.99485761e-01  4.12452579e-01  3.00000000e+00  1.00000000e-01
-  0.00000000e+00  1.00000000e+00  2.00000000e+00  3.08148791e-34
-  1.96349541e+00  2.56152262e-01 -1.09028518e-02  9.08908735e-01
-  2.00000000e+00  1.00000000e+00  4.00000000e+00  1.88915916e+00
-  1.00000000e+00  5.95334611e-01  0.00000000e+00  0.00000000e+00
-  8.23045267e-03  0.00000000e+00]
+[ 4.99485767e-01  4.12452581e-01  5.67803350e-01  2.00000000e+00
+  9.08908735e-01 -1.09028518e-02  1.00000000e+00  2.00000000e+00
+  1.23456790e-02  0.00000000e+00  5.95334611e-01  2.00000000e+00
+  1.00000000e+00  7.00000000e-01  4.00000000e-01  3.08148791e-34
+  4.00000000e+00  2.04319187e+00  0.00000000e+00  0.00000000e+00
+  1.96349541e+00  2.76676065e-01]
 ```
 
 There are also series-to-series transformations, such as the
-[Padder](transformations.collection.Padder) to lengthen
+[Padder](transformations.collection.unequal_length.Padder) to lengthen
 series and process unequal length collections.
 
 ```{code-block} python
->>> from aeon.transformations.collection import Padder
+>>> from aeon.transformations.collection.unequal_length import Padder
 >>> from aeon.testing.data_generation import make_example_3d_numpy_list
 >>> X, _ = make_example_3d_numpy_list(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
@@ -436,7 +475,7 @@ series and process unequal length collections.
 >>> print(X[1])
 [[2.         0.28414423 0.3485172  0.08087359 3.33047938 3.112627
   3.48004859 3.91447337 3.19663426]]
->>> pad = Padder(pad_length=12, fill_value=0)  # pad to length 12
+>>> pad = Padder(padded_length=12, fill_value=0)  # pad to length 12
 >>> pad.fit_transform(X)
 [[[0.         1.6885315  1.71589124 1.69450348 1.24712739 0.76876341
    0.59506921 0.11342595 0.54531259 0.95533023 1.62433746 0.95995434]]
@@ -478,7 +517,7 @@ Pipeline(steps=[('catch22', Catch22(replace_nans=True)),
                  RandomForestClassifier(random_state=42))])
 >>> # Make predictions like any other sklearn estimator
 >>> accuracy_score(pipe.predict(X_test), y_test)
-0.8989310009718173
+0.8833819241982507
 ```
 
 Like with pipelines, tasks such as classification, regression and clustering can use
