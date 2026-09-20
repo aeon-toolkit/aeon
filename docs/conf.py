@@ -5,6 +5,8 @@ import os
 import sys
 from pathlib import Path
 
+from sphinx.ext.autosummary import Autosummary
+
 import aeon
 
 # -- Project information -----------------------------------------------------
@@ -661,11 +663,29 @@ def _add_estimator_capabilities_table(app, pagename, templatename, context, doct
                 )
 
 
-def _add_landing_page_assets(app, pagename, templatename, context, doctree):
-    """Add the stylesheet and script of the landing page to that page only."""
+def _add_page_assets(app, pagename, templatename, context, doctree):
+    """Add the stylesheets and scripts only some of the pages need to those pages."""
     if pagename == "index":
         app.add_css_file("css/landing.css")
         app.add_js_file("js/landing.js", loading_method="defer")
+    # filter box of the module pages of the API reference
+    elif pagename.startswith("api_reference/") and "auto_generated" not in pagename:
+        app.add_js_file("js/api_filter.js", loading_method="defer")
+
+
+class _ModuleAutosummary(Autosummary):
+    """Autosummary directive without signatures in the API reference module pages.
+
+    The truncated signatures add noise to the long tables of the module pages. These
+    tables are the ones with a toctree. The method tables numpydoc generates in the
+    class pages have no toctree and keep their signatures.
+    """
+
+    def run(self):
+        """Run the directive."""
+        if "toctree" in self.options:
+            self.options["nosignatures"] = None
+        return super().run()
 
 
 def setup(app):
@@ -675,6 +695,7 @@ def setup(app):
     ----------
     app : Sphinx application object
     """
+    app.add_directive("autosummary", _ModuleAutosummary, override=True)
     app.connect("builder-inited", _make_estimator_overview)
     app.connect("html-page-context", _add_estimator_capabilities_table)
-    app.connect("html-page-context", _add_landing_page_assets)
+    app.connect("html-page-context", _add_page_assets)

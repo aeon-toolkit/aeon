@@ -92,6 +92,129 @@ img.avatar {
   margin: 0;
 }
 
+/* API reference summary tables */
+/* The autosummary tables of the module pages and the method tables of the class */
+/* pages are shown as an index list instead of the bordered and striped table of */
+/* the theme: a name column of constant width, so that the tables of a page line */
+/* up, a muted description and a line between the rows. */
+
+.table.autosummary {
+  border: none;
+  margin-bottom: 1rem;
+}
+
+.table.autosummary tbody tr {
+  background-color: transparent;
+  border-bottom: 1px solid var(--pst-color-border);
+}
+
+.table.autosummary tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table.autosummary tbody tr:hover {
+  background-color: var(--pst-color-surface);
+}
+
+.table.autosummary td {
+  border: none;
+  padding: 0.6rem 0.75rem;
+  vertical-align: baseline;
+}
+
+.table.autosummary td p {
+  margin: 0;
+}
+
+/* tables which follow each other without a heading in between read as one list */
+.pst-scrollable-table-container:has(+ .pst-scrollable-table-container)
+  > .table.autosummary {
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--pst-color-border);
+}
+
+/* Nearly all names fit in this width. A table with a longer name gets a wider */
+/* column, as the theme does not let the names wrap. */
+.table.autosummary td:first-child {
+  width: 18rem;
+}
+
+.table.autosummary td ~ td {
+  color: var(--pst-color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.table.autosummary td:first-child a {
+  text-decoration: none;
+}
+
+.table.autosummary td:first-child a:hover {
+  text-decoration: underline;
+}
+
+.table.autosummary td:first-child code {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: var(--pst-color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* on small screens the description goes below the name */
+@media (max-width: 720px) {
+  .table.autosummary,
+  .table.autosummary tbody,
+  .table.autosummary tr,
+  .table.autosummary td {
+    display: block;
+  }
+
+  .table.autosummary td:first-child {
+    width: auto;
+    padding-bottom: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .table.autosummary td ~ td {
+    padding-top: 0.15rem;
+  }
+}
+
+/* filter box of the module pages, added by js/api_filter.js */
+
+.aeon-api-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.aeon-api-filter input {
+  flex: 1 1 16rem;
+  max-width: 26rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.375rem;
+  background-color: var(--pst-color-background);
+  color: var(--pst-color-text-base);
+}
+
+.aeon-api-filter input::placeholder {
+  color: var(--pst-color-text-muted);
+}
+
+.aeon-api-filter input:focus {
+  border-color: var(--pst-color-primary);
+}
+
+.aeon-api-filter-count {
+  color: var(--pst-color-text-muted);
+  font-size: 0.875rem;
+}
+
 /* DataFrame Color Variables */
 /* The following variables are defined only here, */
 /* meaning they are new variables. */
