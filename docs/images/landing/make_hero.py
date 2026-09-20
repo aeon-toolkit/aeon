@@ -2,10 +2,11 @@
 
 The panel shows six days of the solar power series shipped with aeon, seen through
 four tasks. Every overlay is computed with aeon: an ETS forecast of the last day, the
-STOMP anomaly scores, the MASS nearest neighbours of one day and a k-means clustering
-of the days. The output has no colours of its own, it is styled by
-docs/_static/css/landing.css so that it follows the light and dark themes. The tabs
-are driven by docs/_static/js/landing.js, both files are added to the page by conf.py.
+STOMP anomaly scores, the MASS nearest neighbours of one day and a nearest neighbour
+classification of the last two days. The output has no colours of its own, it is
+styled by docs/_static/css/landing.css so that it follows the light and dark themes.
+The tabs are driven by docs/_static/js/landing.js, both files are added to the page by
+conf.py.
 
 STOMP requires the stumpy soft dependency. Run from this directory:
 python make_hero.py
@@ -16,7 +17,7 @@ from pathlib import Path
 import numpy as np
 
 from aeon.anomaly_detection.series.distance_based import STOMP
-from aeon.clustering import TimeSeriesKMeans
+from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.datasets import load_solar
 from aeon.forecasting.stats import ETS
 from aeon.similarity_search.subsequence import MASS
@@ -82,15 +83,17 @@ matches, _ = searcher.predict(
 )
 match_starts = [int(m[1]) for m in matches]
 
-# clustering: each day is one series of the collection
+# classification: each day is one series, learn from the first four and label the rest
+N_TRAIN = 4
 days = y.reshape(n_days, 1, DAY)
-clusterer = TimeSeriesKMeans(
-    n_clusters=2, distance="euclidean", averaging_method="mean", random_state=0
+totals = days.sum(axis=(1, 2))
+# the known labels: a day that produces much less than the typical day is cloudy
+day_classes = np.where(totals < 0.6 * np.median(totals), "cloudy", "sunny")
+classifier = KNeighborsTimeSeriesClassifier(n_neighbors=1, distance="dtw")
+classifier.fit(days[:N_TRAIN], day_classes[:N_TRAIN])
+day_classes = np.concatenate(
+    [day_classes[:N_TRAIN], classifier.predict(days[N_TRAIN:])]
 )
-day_labels = clusterer.fit_predict(days)
-# the largest cluster is always drawn with the first colour
-if np.sum(day_labels == 0) < np.sum(day_labels == 1):
-    day_labels = 1 - day_labels
 
 # -- the plot --------------------------------------------------------------------------
 
@@ -171,23 +174,37 @@ for rank, start in enumerate(match_starts):
     )
 svg.append("</g>")
 
-# cluster lens
-svg.append('<g class="aeon-lens" data-lens="cluster">')
+# classify lens
+svg.append('<g class="aeon-lens" data-lens="classify">')
+x0 = _x(N_TRAIN * DAY)
+svg.append(
+    f'<rect class="aeon-hero-band aeon-neutral" x="{x0:.1f}" y="{PLOT_TOP}" '
+    f'width="{_x(n - 1) - x0:.1f}" height="{PLOT_BOTTOM - PLOT_TOP}"/>'
+)
 for d in range(n_days):
-    colour = "aeon-a" if day_labels[d] == 0 else "aeon-b"
+    colour = "aeon-a" if day_classes[d] == "sunny" else "aeon-b"
+    # the predicted days are drawn after the labelled ones
+    delay = "" if d < N_TRAIN else " aeon-delay-2"
     # one more point than a day so that consecutive days join up
     stop = min((d + 1) * DAY + 1, n)
-    svg.append(
-        _line(y[d * DAY : stop], d * DAY, f"aeon-hero-mark {colour}", draw=False)
-    )
+    svg.append(_line(y[d * DAY : stop], d * DAY, f"aeon-hero-mark {colour}{delay}"))
     svg.append(
         _text(
             _x(d * DAY + DAY / 2),
             STRIP_TOP + 18,
-            "group " + "AB"[day_labels[d]],
-            f"aeon-hero-label {colour}",
+            day_classes[d],
+            f"aeon-hero-label {colour}{delay}",
         )
     )
+# between the peaks of the two predicted days, where the series is at zero
+svg.append(
+    _text(
+        _x((N_TRAIN + n_days) * DAY / 2),
+        PLOT_TOP + 14,
+        "predicted",
+        "aeon-hero-tick aeon-delay-2",
+    )
+)
 svg.append("</g>")
 svg.append("</svg>")
 
@@ -216,11 +233,12 @@ LENSES = [
         "examples/similarity_search/similarity_search.html",
     ),
     (
-        "cluster",
-        "fa-solid fa-layer-group",
-        "Cluster",
-        "<code>TimeSeriesKMeans</code> sorts the six days into two groups.",
-        "examples/clustering/clustering.html",
+        "classify",
+        "fa-solid fa-tags",
+        "Classify",
+        "<code>KNeighborsTimeSeriesClassifier</code> learns from four labelled days "
+        "and labels the last two.",
+        "examples/classification/classification.html",
     ),
 ]
 

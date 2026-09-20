@@ -290,6 +290,10 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
   opacity: 0.08;
 }
 
+.aeon-hero-band.aeon-neutral {
+  fill: var(--aeon-ink);
+}
+
 .aeon-hero-score {
   fill: var(--aeon-b);
   opacity: 0.3;
@@ -339,14 +343,14 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 .aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"].aeon-lens,
 .aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"].aeon-lens,
 .aeon-hero-panel[data-lens="search"] [data-lens="search"].aeon-lens,
-.aeon-hero-panel[data-lens="cluster"] [data-lens="cluster"].aeon-lens {
+.aeon-hero-panel[data-lens="classify"] [data-lens="classify"].aeon-lens {
   opacity: 1;
 }
 
 .aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"].aeon-hero-caption,
 .aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"].aeon-hero-caption,
 .aeon-hero-panel[data-lens="search"] [data-lens="search"].aeon-hero-caption,
-.aeon-hero-panel[data-lens="cluster"] [data-lens="cluster"].aeon-hero-caption {
+.aeon-hero-panel[data-lens="classify"] [data-lens="classify"].aeon-hero-caption {
   display: block;
 }
 
@@ -748,17 +752,20 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
   .aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"].aeon-lens,
   .aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"].aeon-lens,
   .aeon-hero-panel[data-lens="search"] [data-lens="search"].aeon-lens,
-  .aeon-hero-panel[data-lens="cluster"] [data-lens="cluster"].aeon-lens {
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"].aeon-lens {
     animation: aeon-fade 0.4s ease var(--aeon-intro) both;
   }
 
   .aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"] .aeon-hero-mark,
   .aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"] .aeon-hero-mark,
-  .aeon-hero-panel[data-lens="search"] [data-lens="search"] .aeon-hero-mark {
+  .aeon-hero-panel[data-lens="search"] [data-lens="search"] .aeon-hero-mark,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"] .aeon-hero-mark {
     animation: aeon-wipe 0.9s ease-out calc(var(--aeon-intro) + var(--d, 0s)) both;
   }
 
-  .aeon-hero-panel[data-lens="search"] [data-lens="search"] .aeon-hero-label {
+  .aeon-hero-panel[data-lens="search"] [data-lens="search"] .aeon-hero-label,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"] .aeon-hero-label,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"] .aeon-hero-tick {
     animation: aeon-fade 0.4s ease calc(var(--aeon-intro) + var(--d, 0s) + 0.3s) both;
   }
 
