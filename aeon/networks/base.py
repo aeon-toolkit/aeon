@@ -89,6 +89,7 @@ class BaseDeepLearningNetwork(ABC):
         """Check and convert parameters to lists of length n_layers before building."""
         ...
 
+
     @abstractmethod
     def build_base_graph(self, x):
         """Construct the network graph without input and output layers.
@@ -97,13 +98,15 @@ class BaseDeepLearningNetwork(ABC):
 
         Parameters
         ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer
+        x : tf.Tensor
+            The input tensor to the network. Can be
+            any tensorflow layer, genrally an Input layer.
 
         Returns
         -------
-        input_layer : a keras layer
-        output_layer : a keras layer
+        x : tf.Tensor
+            The last layer of the network, generally used as
+            input for the final output layer of the network.
         """
         ...
 
