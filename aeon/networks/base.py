@@ -100,7 +100,7 @@ class BaseDeepLearningNetwork(ABC):
         ----------
         x : tf.Tensor
             The input tensor to the network. Can be
-            any tensorflow layer, genrally an Input layer.
+            any tensorflow layer, generally an Input layer.
 
         Returns
         -------
