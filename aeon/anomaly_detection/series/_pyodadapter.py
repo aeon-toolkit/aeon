@@ -107,11 +107,21 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
-        window_anomaly_scores = self.fitted_pyod_model_.decision_function(_X)
+        window_anomaly_scores = self._get_model_for_predict().decision_function(_X)
         point_anomaly_scores = reverse_windowing(
             window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
         return point_anomaly_scores
+
+    def _get_model_for_predict(self) -> BaseDetector:
+        """Return the fitted PyOD model used to score windows in ``_predict``.
+
+        Some PyOD models change their fitted state when ``decision_function``
+        is called. Subclasses wrapping such models should override this to
+        return a copy, so that ``predict`` does not modify the fitted
+        estimator.
+        """
+        return self.fitted_pyod_model_
 
     def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
