@@ -120,7 +120,7 @@ class OrdinalTDE(BaseClassifier):
 
     See Also
     --------
-    IndividualOrdinalTDE, TDE, WEASEL
+    IndividualOrdinalTDE, TemporalDictionaryEnsemble, WEASEL
         Normal versions of TDE.
 
     References
@@ -650,7 +650,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     See Also
     --------
-    TemporalDictinaryEnsemble, SFA
+    TemporalDictionaryEnsemble, SFA
 
     Notes
     -----
