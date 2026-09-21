@@ -1,5 +1,7 @@
 """Arsenal test code."""
 
+import re
+
 import numpy as np
 import pytest
 
@@ -235,3 +237,162 @@ def test_arsenal_binary_weights_are_not_degenerate():
 
     assert len(set(clf.weights_)) > 1
     assert all(0 < weight <= 1 for weight in clf.weights_)
+
+
+def test_arsenal_n_jobs_does_not_change_output():
+    """Threaded and sequential Arsenal fits produce identical results."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=30, random_state=0
+    )
+    X_test, _ = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=30, random_state=1
+    )
+
+    sequential = Arsenal(n_kernels=20, n_estimators=3, random_state=0, n_jobs=1)
+    threaded = Arsenal(n_kernels=20, n_estimators=3, random_state=0, n_jobs=2)
+
+    sequential.fit(X, y)
+    threaded.fit(X, y)
+    assert threaded._n_jobs == 2
+
+    np.testing.assert_array_equal(sequential.weights_, threaded.weights_)
+    np.testing.assert_array_equal(
+        sequential.predict_proba(X_test), threaded.predict_proba(X_test)
+    )
+
+    sequential_train = Arsenal(
+        n_kernels=20, n_estimators=3, random_state=0, n_jobs=1
+    ).fit_predict_proba(X, y)
+    threaded_train = Arsenal(
+        n_kernels=20, n_estimators=3, random_state=0, n_jobs=2
+    ).fit_predict_proba(X, y)
+    np.testing.assert_array_equal(sequential_train, threaded_train)
+
+
+@pytest.mark.parametrize("verbose", [0, 1, 2])
+def test_arsenal_verbosity_levels(verbose, capsys):
+    """Arsenal verbosity controls summary and per-estimator progress."""
+    X, y = make_example_3d_numpy(
+        n_cases=20,
+        n_timepoints=24,
+        n_labels=2,
+        random_state=0,
+    )
+    arsenal = Arsenal(
+        n_kernels=20,
+        n_estimators=2,
+        random_state=0,
+        verbose=verbose,
+    )
+
+    arsenal.fit(X, y)
+    output = capsys.readouterr().out
+
+    if verbose == 0:
+        assert output == ""
+    else:
+        assert "[Arsenal] Starting fit:" in output
+        assert "[Arsenal] Finished fit: built=2" in output
+        if verbose == 1:
+            assert "[Arsenal] Progress: built=" in output
+            assert "[Arsenal] Estimator " not in output
+        else:
+            assert "[Arsenal] Estimator 1/2:" in output
+            assert "estimated_remaining=" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "remaining_time_pattern"),
+    [
+        (1, r"contract_remaining=\d+(?:\.\d+)?s"),
+        (2, r"contract_remaining=\d+m \d+s"),
+        (120, r"contract_remaining=\d+h \d+m"),
+    ],
+)
+def test_arsenal_contract_verbosity_reports_remaining_time(
+    time_limit_in_minutes, remaining_time_pattern, capsys
+):
+    """Arsenal level-two output formats the remaining fit contract."""
+    X, y = make_example_3d_numpy(
+        n_cases=20,
+        n_timepoints=24,
+        n_labels=2,
+        random_state=0,
+    )
+    arsenal = Arsenal(
+        n_kernels=20,
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_estimators=1,
+        random_state=0,
+        verbose=2,
+    )
+
+    arsenal.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert "[Arsenal] Estimator 1:" in output
+    assert re.search(remaining_time_pattern, output)
+    assert "estimated_remaining=" not in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "reports_progress"),
+    [(1e-06, True), (120, False)],
+)
+def test_arsenal_contract_level_one_progress_is_rate_limited(
+    time_limit_in_minutes, reports_progress, capsys
+):
+    """Level-one contract progress is emitted per tenth of the contract.
+
+    A contract far shorter than the fit reports progress, a contract far
+    longer than the fit is silent, and per-estimator lines never appear at
+    level one.
+    """
+    X, y = make_example_3d_numpy(
+        n_cases=20,
+        n_timepoints=24,
+        n_labels=2,
+        random_state=0,
+    )
+    arsenal = Arsenal(
+        n_kernels=20,
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_estimators=1,
+        random_state=0,
+        verbose=1,
+    )
+
+    arsenal.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert ("[Arsenal] Progress: built=" in output) is reports_progress
+    assert "[Arsenal] Estimator " not in output
+
+
+def test_parallel_verbose_fit_preserves_predictions(capsys):
+    """Verbose batching preserves deterministic parallel Arsenal output."""
+    X, y = make_example_3d_numpy(
+        n_cases=20,
+        n_timepoints=24,
+        n_labels=2,
+        random_state=0,
+    )
+    quiet = Arsenal(
+        n_kernels=20,
+        n_estimators=4,
+        n_jobs=2,
+        random_state=0,
+    ).fit(X, y)
+    verbose = Arsenal(
+        n_kernels=20,
+        n_estimators=4,
+        n_jobs=2,
+        random_state=0,
+        verbose=2,
+    ).fit(X, y)
+
+    np.testing.assert_allclose(verbose.predict_proba(X), quiet.predict_proba(X))
+    assert verbose._n_jobs == 2
+    output = capsys.readouterr().out
+    assert "[Arsenal] Estimator 1/4:" in output
+    assert "[Arsenal] Estimator 4/4:" in output

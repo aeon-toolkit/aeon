@@ -79,7 +79,8 @@ class Catch22Classifier(BaseClassifier):
         if None a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
         The “balanced” mode uses the values of y to automatically adjust weights
