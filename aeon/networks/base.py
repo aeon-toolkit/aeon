@@ -89,12 +89,11 @@ class BaseDeepLearningNetwork(ABC):
         """Check and convert parameters to lists of length n_layers before building."""
         ...
 
-
     @abstractmethod
     def build_base_graph(self, x):
         """Construct the network graph without input and output layers.
 
-        Used to embed the network in any larger network.
+        Used to embed the network in any larger network
 
         Parameters
         ----------
