@@ -273,6 +273,7 @@ class ClaSPSegmenter(BaseSegmenter):
         return {}
 
     def _run_clasp(self, X):
+        X = np.asarray(X)
         n_jobs = check_n_jobs(self.n_jobs)
 
         clasp_transformer = ClaSPTransformer(
