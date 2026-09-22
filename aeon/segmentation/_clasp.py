@@ -205,9 +205,7 @@ class ClaSPSegmenter(BaseSegmenter):
     >>> X, true_period_size, cps = load_gun_point_segmentation()
     >>> dominant_period_size = find_dominant_window_sizes(X)
     >>> clasp = ClaSPSegmenter(dominant_period_size, n_cps=1)
-    >>> found_cps = clasp.fit_predict(X)
-    >>> profiles = clasp.profiles
-    >>> scores = clasp.scores
+    >>> found_cps, profiles, scores = clasp._run_clasp(X)
     """
 
     _tags = {"capability:multithreading": True, "fit_is_empty": True}
