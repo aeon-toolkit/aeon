@@ -7,6 +7,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["Arsenal"]
 
 import time
+from copy import deepcopy
 
 import numpy as np
 from joblib import delayed
@@ -15,6 +16,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 
+from aeon.base import CheckpointableMixin
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection import Normalizer
@@ -106,7 +108,7 @@ def _aggregate_class_votes(class_indices, weights, n_cases, n_classes, oobs=None
     return probabilities
 
 
-class Arsenal(BaseClassifier):
+class Arsenal(CheckpointableMixin, BaseClassifier):
     """
     Arsenal ensemble.
 
@@ -130,7 +132,8 @@ class Arsenal(BaseClassifier):
         MultiRocket only. The number of features per kernel.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators is used.
+        Default of 0 means n_estimators is used. Each call to ``fit`` or
+        ``resume_fit`` receives a new time budget. A running batch may overrun it.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
     class_weight : dict or "balanced", default=None
@@ -152,6 +155,12 @@ class Arsenal(BaseClassifier):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every fitted estimator and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved at completed batch boundaries and on successful
+        completion. None disables automatic writes. The parent must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured.
 
     Attributes
     ----------
@@ -171,6 +180,8 @@ class Arsenal(BaseClassifier):
         Weight of each estimator in the ensemble.
     n_estimators_ : int
         The number of estimators in the ensemble.
+    fit_elapsed_time_ : float
+        Accumulated fitting time in seconds across completed batches and calls.
 
     See Also
     --------
@@ -179,6 +190,13 @@ class Arsenal(BaseClassifier):
 
     Notes
     -----
+    ``resume_fit(X, y)`` continues from saved state using the original training
+    data. ``fit`` always starts afresh. Between calls, only ``n_estimators``,
+    ``contract_max_n_estimators``, ``time_limit_in_minutes``, ``n_jobs``,
+    ``verbose`` and checkpoint settings may change. Member limits apply to the
+    whole ensemble, including existing members. Training estimates, when
+    requested in the original fit, are retained in continuation state.
+
     For the Java version, see
     `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
     /tsml/classifiers/kernel_based/Arsenal.java>`_.
@@ -206,9 +224,16 @@ class Arsenal(BaseClassifier):
         "capability:multivariate": True,
         "capability:train_estimate": True,
         "capability:contractable": True,
+        "capability:checkpointing": True,
         "capability:multithreading": True,
         "algorithm_type": "convolution",
     }
+
+    _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
+        "n_estimators",
+        "contract_max_n_estimators",
+        "time_limit_in_minutes",
+    )
 
     def __init__(
         self,
@@ -223,6 +248,8 @@ class Arsenal(BaseClassifier):
         n_jobs: int = 1,
         random_state=None,
         verbose: int = 0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         self.n_kernels = n_kernels
         self.n_estimators = n_estimators
@@ -236,6 +263,8 @@ class Arsenal(BaseClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
+        self.checkpoint_path = checkpoint_path
+        self.checkpoint_interval = checkpoint_interval
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -284,7 +313,7 @@ class Arsenal(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        rng = check_random_state(self.random_state)
+        rng = deepcopy(check_random_state(self.random_state))
         return np.array(
             [
                 self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
@@ -329,7 +358,7 @@ class Arsenal(BaseClassifier):
         return probabilities / self._weight_sum
 
     def _fit_predict(self, X, y) -> np.ndarray:
-        rng = check_random_state(self.random_state)
+        rng = deepcopy(check_random_state(self.random_state))
         return np.array(
             [
                 self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
@@ -357,41 +386,15 @@ class Arsenal(BaseClassifier):
 
     def _fit_arsenal(self, X, y, return_train_estimates=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
-        time_limit = self.time_limit_in_minutes * 60
-        start_time = time.perf_counter()
-        train_time = 0
-
-        log_each_estimator = self.verbose >= 2
-        log_progress = self.verbose == 1
-        if self.verbose > 0:
-            if time_limit > 0:
-                fit_limit = (
-                    f"time_limit={self._format_duration(time_limit)}, "
-                    f"max_n_estimators={self.contract_max_n_estimators}"
-                )
-            else:
-                fit_limit = f"n_estimators={self.n_estimators}"
-            self._log(
-                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
-                f"n_channels={self.n_channels_}, "
-                f"n_timepoints={self.n_timepoints_}, "
-                f"transform={self.rocket_transform}, n_kernels={self.n_kernels}, "
-                f"{fit_limit}, n_jobs={self._n_jobs}"
-            )
-
         if self.rocket_transform == "rocket":
-            base_rocket = Rocket(n_kernels=self.n_kernels)
-            # Rocket convolves in float32; cast once, not once per member
-            X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
+            self._base_rocket = Rocket(n_kernels=self.n_kernels)
         elif self.rocket_transform == "minirocket":
-            base_rocket = MiniRocket(
+            self._base_rocket = MiniRocket(
                 n_kernels=self.n_kernels,
                 max_dilations_per_kernel=self.max_dilations_per_kernel,
             )
         elif self.rocket_transform == "multirocket":
-            base_rocket = MultiRocket(
+            self._base_rocket = MultiRocket(
                 n_kernels=self.n_kernels,
                 max_dilations_per_kernel=self.max_dilations_per_kernel,
                 n_features_per_kernel=self.n_features_per_kernel,
@@ -399,179 +402,149 @@ class Arsenal(BaseClassifier):
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
-        rng = check_random_state(self.random_state)
-        train_rng = (
+        self._rng = check_random_state(self.random_state)
+        self._train_rng = (
             check_random_state(self.random_state) if return_train_estimates else None
         )
+        self.estimators_ = []
+        self.weights_ = []
+        self._train_estimates = []
+        self.n_estimators_ = 0
+        self.fit_elapsed_time_ = 0.0
+        self._continue_arsenal(X, y)
+        return self._train_estimates if return_train_estimates else None
 
-        if time_limit > 0:
-            if log_progress:
-                progress_interval = time_limit / 10
-                next_progress = progress_interval
+    def _resume_fit(self, X, y):
+        self._continue_arsenal(X, y)
+        return self
 
-            self.n_estimators_ = 0
-            self.estimators_ = []
-            weights = []
-            train_estimates = []
+    def _continue_arsenal(self, X, y):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        time_limit = self.time_limit_in_minutes * 60
+        target = self.contract_max_n_estimators if time_limit > 0 else self.n_estimators
+        if not isinstance(target, (int, np.integer)) or target < 1:
+            raise ValueError(
+                "The target number of estimators must be a positive integer."
+            )
+        start_time = time.perf_counter()
+        train_time = 0.0
+        initial_count = self.n_estimators_
+        if self.rocket_transform == "rocket":
+            X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
 
-            while (
-                train_time < time_limit
-                and self.n_estimators_ < self.contract_max_n_estimators
-            ):
-                # never build past the contract, whatever the batch size
-                batch_size = min(
-                    self._n_jobs,
-                    self.contract_max_n_estimators - self.n_estimators_,
-                )
-                fit = _run_jobs(
-                    (
-                        delayed(self._fit_ensemble_estimator)(
-                            _clone_estimator(
-                                base_rocket, rng.randint(np.iinfo(np.int32).max)
-                            ),
-                            X,
-                            y,
-                            train_rng=(
-                                check_random_state(
-                                    train_rng.randint(np.iinfo(np.int32).max)
-                                )
-                                if return_train_estimates
-                                else None
-                            ),
-                        )
-                        for _ in range(batch_size)
-                    ),
-                    self._n_jobs,
-                    prefer="threads",
-                )
+        log_each_estimator = self.verbose >= 2
+        log_progress = self.verbose == 1
+        progress_interval = time_limit / 10 if time_limit > 0 else 0
+        next_progress = progress_interval
+        if self.verbose > 0:
+            fit_limit = (
+                f"time_limit={self._format_duration(time_limit)}, "
+                f"max_n_estimators={target}"
+                if time_limit > 0
+                else f"n_estimators={target}"
+            )
+            self._log(
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
+                f"transform={self.rocket_transform}, n_kernels={self.n_kernels}, "
+                f"{fit_limit}, n_jobs={self._n_jobs}"
+            )
 
-                estimators, batch_weights, train_data = zip(*fit)
-                self.estimators_ += estimators
-                weights += batch_weights
-                train_estimates += train_data
-
-                self.n_estimators_ += batch_size
-                train_time = time.perf_counter() - start_time
-
-                if log_each_estimator:
-                    contract_remaining = self._format_duration(
-                        max(0.0, time_limit - train_time)
-                    )
-                    first_estimator = self.n_estimators_ - len(fit) + 1
-                    for estimator_idx in range(first_estimator, self.n_estimators_ + 1):
-                        self._log(
-                            f"[{type(self).__name__}] Estimator {estimator_idx}: "
-                            f"elapsed={train_time:.2f}s, "
-                            f"contract_remaining={contract_remaining}"
-                        )
-                elif log_progress and train_time >= next_progress:
-                    self._log(
-                        f"[{type(self).__name__}] "
-                        f"Progress: built={self.n_estimators_}, "
-                        f"elapsed={train_time:.2f}s"
-                    )
-                    next_progress = train_time + progress_interval
-        else:
-            if self.verbose > 0:
-                # fit in batches so progress can be reported between them; the
-                # random seeds are still drawn in the same order as the single
-                # call below, so the fitted ensemble is identical
-                estimator_start_time = time.perf_counter()
-                # about ten batches, but never fewer estimators than jobs
-                batch_size = max(self._n_jobs, (self.n_estimators + 9) // 10)
-
-                fit = []
-                for batch_start in range(0, self.n_estimators, batch_size):
-                    current_batch_size = min(
-                        batch_size, self.n_estimators - batch_start
-                    )
-                    batch_fit = _run_jobs(
-                        (
-                            delayed(self._fit_ensemble_estimator)(
-                                _clone_estimator(
-                                    base_rocket, rng.randint(np.iinfo(np.int32).max)
-                                ),
-                                X,
-                                y,
-                                train_rng=(
-                                    check_random_state(
-                                        train_rng.randint(np.iinfo(np.int32).max)
-                                    )
-                                    if return_train_estimates
-                                    else None
-                                ),
-                            )
-                            for _ in range(current_batch_size)
+        batch_size = (
+            self._n_jobs
+            if time_limit > 0 or self.checkpoint_path is not None
+            else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
+        )
+        while self.n_estimators_ < target and (
+            time_limit <= 0 or train_time < time_limit
+        ):
+            current_batch_size = min(batch_size, target - self.n_estimators_)
+            rng, train_rng = deepcopy((self._rng, self._train_rng))
+            self._checkpoint_ready = False
+            fit = _run_jobs(
+                (
+                    delayed(self._fit_ensemble_estimator)(
+                        _clone_estimator(
+                            self._base_rocket, rng.randint(np.iinfo(np.int32).max)
                         ),
-                        self._n_jobs,
-                        prefer="threads",
+                        X,
+                        y,
+                        train_rng=(
+                            check_random_state(
+                                train_rng.randint(np.iinfo(np.int32).max)
+                            )
+                            if train_rng is not None
+                            else None
+                        ),
                     )
-                    fit.extend(batch_fit)
+                    for _ in range(current_batch_size)
+                ),
+                self._n_jobs,
+                prefer="threads",
+            )
+            estimators, weights, train_data = zip(*fit)
+            self.estimators_.extend(estimators)
+            self.weights_.extend(weights)
+            if self._train_rng is not None:
+                self._train_estimates.extend(train_data)
+            self._rng.set_state(rng.get_state())
+            if self._train_rng is not None:
+                self._train_rng.set_state(train_rng.get_state())
+            self.n_estimators_ = len(self.estimators_)
+            self._weight_sum = float(np.sum(self.weights_))
+            elapsed = time.perf_counter() - start_time
+            self.fit_elapsed_time_ += elapsed - train_time
+            train_time = elapsed
+            self._checkpoint_parameter_signature = self._checkpoint_parameter_hash()
+            self._checkpoint_ready = True
+            self._maybe_checkpoint()
 
-                    built = len(fit)
-                    estimator_elapsed = time.perf_counter() - estimator_start_time
-                    if log_each_estimator:
-                        if built == 1:
-                            time_estimate = "estimated_remaining=estimating"
-                        else:
-                            estimated_remaining = (estimator_elapsed / built) * (
-                                self.n_estimators - built
-                            )
-                            time_estimate = (
-                                "estimated_remaining="
-                                f"{self._format_duration(estimated_remaining)}"
-                            )
-                        elapsed = time.perf_counter() - start_time
-                        for estimator_idx in range(
-                            batch_start + 1, batch_start + current_batch_size + 1
-                        ):
-                            self._log(
-                                f"[{type(self).__name__}] Estimator "
-                                f"{estimator_idx}/{self.n_estimators}: "
-                                f"elapsed={elapsed:.2f}s, {time_estimate}"
-                            )
-                    else:
-                        self._log(
-                            f"[{type(self).__name__}] Progress: "
-                            f"built={built}/{self.n_estimators}, "
-                            f"elapsed={time.perf_counter() - start_time:.2f}s"
-                        )
-            else:
-                fit = _run_jobs(
-                    (
-                        delayed(self._fit_ensemble_estimator)(
-                            _clone_estimator(
-                                base_rocket, rng.randint(np.iinfo(np.int32).max)
-                            ),
-                            X,
-                            y,
-                            train_rng=(
-                                check_random_state(
-                                    train_rng.randint(np.iinfo(np.int32).max)
-                                )
-                                if return_train_estimates
-                                else None
-                            ),
-                        )
-                        for _ in range(self.n_estimators)
-                    ),
-                    self._n_jobs,
-                    prefer="threads",
+            if log_each_estimator:
+                if time_limit > 0:
+                    remaining = (
+                        "contract_remaining="
+                        f"{self._format_duration(max(0.0, time_limit - train_time))}"
+                    )
+                else:
+                    estimate = train_time / (self.n_estimators_ - initial_count)
+                    remaining_time = estimate * (target - self.n_estimators_)
+                    remaining = (
+                        "estimated_remaining="
+                        f"{self._format_duration(remaining_time)}"
+                    )
+                for estimator_idx in range(
+                    self.n_estimators_ - current_batch_size + 1, self.n_estimators_ + 1
+                ):
+                    member = (
+                        str(estimator_idx)
+                        if time_limit > 0
+                        else f"{estimator_idx}/{target}"
+                    )
+                    self._log(
+                        f"[{type(self).__name__}] Estimator {member}: "
+                        f"elapsed={train_time:.2f}s, {remaining}"
+                    )
+            elif log_progress and train_time >= next_progress:
+                built = (
+                    str(self.n_estimators_)
+                    if time_limit > 0
+                    else f"{self.n_estimators_}/{target}"
                 )
+                self._log(
+                    f"[{type(self).__name__}] Progress: built={built}, "
+                    f"elapsed={train_time:.2f}s"
+                )
+                next_progress = train_time + progress_interval
 
-            self.estimators_, weights, train_estimates = zip(*fit)
-            self.n_estimators_ = self.n_estimators
-
-        self.weights_ = list(weights)
-        self._weight_sum = float(np.sum(weights))
+            elapsed = time.perf_counter() - start_time
+            self.fit_elapsed_time_ += elapsed - train_time
+            train_time = elapsed
 
         if self.verbose > 0:
             self._log(
                 f"[{type(self).__name__}] Finished fit: built={self.n_estimators_}, "
                 f"elapsed={time.perf_counter() - start_time:.2f}s"
             )
-
-        return list(train_estimates) if return_train_estimates else None
 
     @staticmethod
     def _log(message):
@@ -661,6 +634,8 @@ class Arsenal(BaseClassifier):
         """
         if parameter_set == "results_comparison":
             return {"n_kernels": 20, "n_estimators": 5}
+        elif parameter_set == "checkpointing":
+            return {"n_kernels": 10, "n_estimators": 3}
         elif parameter_set == "contracting":
             return {
                 "time_limit_in_minutes": 5,

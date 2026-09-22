@@ -30,9 +30,10 @@ from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 
-from aeon.base import BaseCollectionEstimator
+from aeon.base import BaseCollectionEstimator, CheckpointableMixin
 from aeon.base._base import _clone_estimator
 from aeon.utils.decorators.method_timer import method_timer
+from aeon.utils.validation.collection import get_n_cases
 from aeon.utils.validation.labels import check_classification_y
 
 
@@ -124,7 +125,53 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         # this should happen last
         self.is_fitted = True
+        if self.get_tag("capability:checkpointing"):
+            self._maybe_checkpoint(force=True)
         return self
+
+    @final
+    def resume_fit(self, X, y):
+        """Continue fitting from a checkpoint or a completed partial fit.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Original training data, in the same order and with the same values
+            and dtypes after aeon's normal input conversion.
+        y : np.ndarray
+            Original training labels in the same order.
+
+        Returns
+        -------
+        self : BaseClassifier
+            The fitted classifier.
+
+        Notes
+        -----
+        Requires ``capability:checkpointing=True`` and saved continuation state.
+        Unlike ``fit``, this does not reset the estimator. Training data and
+        model-building parameters must match the original fit. Supporting
+        classifiers document which runtime parameters may change. Time contracts
+        apply independently to each invocation. Checkpoints made during a fit
+        need not have ``is_fitted=True`` to be resumed.
+        """
+        if not self.get_tag("capability:checkpointing"):
+            raise NotImplementedError("This classifier does not support checkpointing.")
+        X = self._preprocess_collection(X, store_metadata=False)
+        y = self._check_y(y, get_n_cases(X), update_classes=False)
+        self._validate_checkpoint(X, y)
+        self._start_checkpoint_timer()
+        self.is_fitted = False
+        self._resume_fit(X, y)
+        self.is_fitted = True
+        self._maybe_checkpoint(force=True)
+        return self
+
+    def _resume_fit(self, X, y):
+        """Continue algorithm-specific training from stored state."""
+        raise NotImplementedError(
+            "Checkpointable classifiers must implement _resume_fit."
+        )
 
     @final
     def predict(self, X) -> np.ndarray:
@@ -311,6 +358,8 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         # this should happen last
         self.is_fitted = True
+        if self.get_tag("capability:checkpointing"):
+            self._maybe_checkpoint(force=True)
         return y_pred
 
     @final
@@ -390,6 +439,8 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         # this should happen last
         self.is_fitted = True
+        if self.get_tag("capability:checkpointing"):
+            self._maybe_checkpoint(force=True)
         return y_proba
 
     def score(
@@ -612,6 +663,13 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
+
+        if self.get_tag("capability:checkpointing"):
+            if not isinstance(self, CheckpointableMixin):
+                raise TypeError(
+                    "Checkpointable classifiers must use CheckpointableMixin."
+                )
+            self._init_checkpoint(X, y)
 
         return X, y
 

@@ -7,11 +7,14 @@ import tempfile
 import time
 from copy import deepcopy
 from functools import partial
+from unittest.mock import patch
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_almost_equal
 from sklearn.ensemble._base import _set_random_states
 
+from aeon.base import CheckpointableMixin
 from aeon.base._base import _clone_estimator
 from aeon.classification.deep_learning import BaseDeepClassifier
 from aeon.testing.expected_results._write_estimator_results import (
@@ -70,6 +73,13 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
     if issubclass(estimator_class, BaseDeepClassifier):
         yield partial(
             check_classifier_saving_loading_deep_learning,
+            estimator_class=estimator_class,
+            datatype=datatypes[0][0],
+        )
+
+    if _get_tag(estimator_class, "capability:checkpointing", raise_error=True):
+        yield partial(
+            check_checkpointing_classifier,
             estimator_class=estimator_class,
             datatype=datatypes[0][0],
         )
@@ -145,6 +155,7 @@ def check_classifier_overrides_and_tags(estimator_class):
     # Test they don't override final methods, because Python does not enforce this
     final_methods = [
         "fit",
+        "resume_fit",
         "predict",
         "predict_proba",
         "fit_predict",
@@ -187,6 +198,57 @@ def check_classifier_overrides_and_tags(estimator_class):
         assert algorithm_type in valid_algorithm_types, (
             f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' "
             f"tag: '{algorithm_type}'. Valid types are {valid_algorithm_types}."
+        )
+
+
+def check_checkpointing_classifier(estimator_class, datatype):
+    """Compare uninterrupted training with recovery from a safe boundary.
+
+    The ``checkpointing`` test parameter set must run for multiple batches with
+    automatic checkpointing enabled. It should use a deterministic work limit,
+    not wall-clock timing. Each implementation must additionally test its own
+    continuation counters and random state.
+    """
+    assert issubclass(estimator_class, CheckpointableMixin)
+    estimator = estimator_class._create_test_instance(parameter_set="checkpointing")
+    _set_random_states(estimator, 42)
+    X, y = FULL_TEST_DATA_DICT[datatype]["train"]
+    X_test, _ = FULL_TEST_DATA_DICT[datatype]["test"]
+    uninterrupted = estimator.clone().fit(X, y)
+
+    class InterruptedFit(Exception):
+        """Simulate job termination immediately after a safe checkpoint."""
+
+    def interrupt_at_checkpoint(self, force=False):
+        if not force:
+            self.save_checkpoint(self.checkpoint_path)
+            raise InterruptedFit
+
+    with tempfile.TemporaryDirectory() as directory:
+        path = os.path.join(directory, "checkpoint.pkl")
+        estimator.set_params(checkpoint_path=path, checkpoint_interval=1)
+        with patch.object(
+            estimator_class, "_maybe_checkpoint", interrupt_at_checkpoint
+        ):
+            with pytest.raises(InterruptedFit):
+                estimator.fit(X, y)
+        restored = estimator_class.load_checkpoint(path)
+        assert not restored.is_fitted
+        bad_y = y.copy()
+        bad_y[0] = y[np.flatnonzero(y != y[0])[0]]
+        with pytest.raises(ValueError, match="Training data does not match"):
+            restored.resume_fit(X, bad_y)
+        restored.resume_fit(X, y)
+        assert restored.is_fitted
+        assert_array_almost_equal(
+            uninterrupted.predict_proba(X_test), restored.predict_proba(X_test)
+        )
+        np.testing.assert_array_equal(
+            uninterrupted.predict(X_test), restored.predict(X_test)
+        )
+        restored.fit(X, y)
+        assert_array_almost_equal(
+            uninterrupted.predict_proba(X_test), restored.predict_proba(X_test)
         )
 
 
