@@ -4,17 +4,11 @@ __maintainer__ = []
 __all__ = ["COPOD"]
 
 
-from copy import deepcopy
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from aeon.anomaly_detection.series._pyodadapter import PyODAdapter
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-if TYPE_CHECKING:
-    from pyod.models.base import BaseDetector
 
 
 class COPOD(PyODAdapter):
@@ -66,12 +60,6 @@ class COPOD(PyODAdapter):
 
     def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         return super()._fit_predict(X, y)
-
-    def _get_model_for_predict(self) -> "BaseDetector":
-        # PyOD's COPOD.decision_function overwrites the fitted attributes U_l,
-        # U_r, U_skew and O on every call, so score a copy to leave the fitted
-        # model unchanged, see #3825.
-        return deepcopy(self.fitted_pyod_model_)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default") -> dict:

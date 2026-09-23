@@ -5,6 +5,7 @@ from __future__ import annotations
 __maintainer__ = ["SebastianSchmidl"]
 __all__ = ["PyODAdapter"]
 
+from copy import copy
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -107,21 +108,16 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
-        window_anomaly_scores = self._get_model_for_predict().decision_function(_X)
+        # Some PyOD models change their fitted state when decision_function is
+        # called (e.g. COPOD overwrites U_l, U_r, U_skew, O and n_jobs, see
+        # #3825), so score a copy to leave the fitted model unchanged. A
+        # shallow copy is enough and keeps predict cheap: the changes are
+        # attribute re-assignments on the copy, which never touch the original.
+        window_anomaly_scores = copy(self.fitted_pyod_model_).decision_function(_X)
         point_anomaly_scores = reverse_windowing(
             window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
         return point_anomaly_scores
-
-    def _get_model_for_predict(self) -> BaseDetector:
-        """Return the fitted PyOD model used to score windows in ``_predict``.
-
-        Some PyOD models change their fitted state when ``decision_function``
-        is called. Subclasses wrapping such models should override this to
-        return a copy, so that ``predict`` does not modify the fitted
-        estimator.
-        """
-        return self.fitted_pyod_model_
 
     def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
@@ -156,7 +152,8 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
         self.fitted_pyod_model_.fit(X)
 
     def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
-        window_anomaly_scores = self.fitted_pyod_model_.decision_function(X)
+        # copy for the same reason as in _predict above
+        window_anomaly_scores = copy(self.fitted_pyod_model_).decision_function(X)
         point_anomaly_scores = reverse_windowing(
             window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
