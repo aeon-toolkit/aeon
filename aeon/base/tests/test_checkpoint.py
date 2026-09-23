@@ -2,8 +2,6 @@
 
 import json
 import pickle
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import pytest
@@ -11,13 +9,6 @@ import pytest
 from aeon import __version__
 from aeon.base import CheckpointableMixin, CheckpointVersionWarning
 from aeon.testing.mock_estimators import MockClassifier
-
-
-@pytest.fixture
-def checkpoint_directory():
-    """Create and clean up an isolated directory for checkpoint files."""
-    with TemporaryDirectory() as directory:
-        yield Path(directory)
 
 
 class _Checkpointable(CheckpointableMixin, MockClassifier):
@@ -84,8 +75,8 @@ def test_checkpoint_metadata(checkpoint_directory, field, value, message):
         _Checkpointable.load_checkpoint(path)
 
 
-def test_checkpoint_header_readable_without_unpickling(checkpoint_directory):
-    """The header identifies a checkpoint without executing its body."""
+def test_read_checkpoint_metadata(checkpoint_directory):
+    """The public reader returns the raw JSON header without unpickling."""
     path = checkpoint_directory / "checkpoint.pkl"
     estimator = _ready_estimator()
     estimator._checkpoint_parameter_signature = "a-parameter-hash"
@@ -93,6 +84,10 @@ def test_checkpoint_header_readable_without_unpickling(checkpoint_directory):
 
     with path.open("rb") as file:
         metadata = json.loads(file.readline())
+
+    with patch("aeon.base._checkpoint.pickle.load") as load:
+        assert CheckpointableMixin.read_checkpoint_metadata(path) == metadata
+        load.assert_not_called()
 
     assert metadata["aeon_version"] == __version__
     assert metadata["estimator_class"].endswith("_Checkpointable")
@@ -118,20 +113,6 @@ def test_checkpoint_version_mismatch_warns_and_loads(checkpoint_directory):
     assert restored.completed_ == [1, 2, 3]
     assert record[0].message.original_aeon_version == "0.0.0"
     assert record[0].message.current_aeon_version == __version__
-
-
-def test_read_checkpoint_metadata(checkpoint_directory):
-    """The public reader returns the header without loading the estimator."""
-    path = checkpoint_directory / "checkpoint.pkl"
-    estimator = _ready_estimator()
-    estimator._checkpoint_parameter_signature = "a-parameter-hash"
-    estimator.save_checkpoint(path)
-
-    metadata = CheckpointableMixin.read_checkpoint_metadata(path)
-
-    assert metadata["aeon_version"] == __version__
-    assert metadata["parameter_signature"] == "a-parameter-hash"
-    assert metadata["estimator_class"].endswith("_Checkpointable")
 
 
 def test_read_checkpoint_metadata_inspects_unloadable(checkpoint_directory):
