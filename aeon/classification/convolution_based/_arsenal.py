@@ -188,6 +188,11 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         The number of estimators in the ensemble.
     fit_elapsed_time_ : float
         Accumulated fitting time in seconds across completed batches and calls.
+    fit_time_millis_ : int
+        Duration of the initial fit call in milliseconds, not updated by
+        ``resume_fit``. Automatic checkpoints may omit this attribute because
+        they are saved before the fit timer is assigned. Use
+        ``fit_elapsed_time_`` for cumulative contract timing.
 
     See Also
     --------
@@ -443,6 +448,8 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
 
     def _get_ensemble_target(self):
         time_limit = self.time_limit_in_minutes * 60
+        if np.isnan(time_limit):
+            raise ValueError("time_limit_in_minutes must not be NaN.")
         target = self.contract_max_n_estimators if time_limit > 0 else self.n_estimators
         if not isinstance(target, (int, np.integer)) or target < 1:
             raise ValueError(

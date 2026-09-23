@@ -87,12 +87,11 @@ class CheckpointableMixin:
 
     A checkpoint is a single file holding a one-line JSON header followed by the
     pickled estimator. The header records the format and aeon versions, the
-    estimator class and the parameter signature, and is validated before the
-    body is unpickled, so an incompatible checkpoint is refused without running
-    its contents. It is also plain text, so a checkpoint can be identified
-    without loading it.
+    estimator class and the parameter signature. The format version is checked
+    before unpickling; estimator class and parameter-signature checks happen
+    after unpickling. The plain-text header can be inspected without loading
+    the estimator.
 
-    This makes refusing a checkpoint safe; it does not make loading one safe.
     Only load trusted files: the body is pickle and can execute arbitrary code.
     The default implementation requires ``cant_pickle=False``. A checkpoint from
     a different aeon version raises ``CheckpointVersionWarning`` and is still
@@ -186,9 +185,8 @@ class CheckpointableMixin:
             estimator is still loaded.
         """
         with Path(filepath).open("rb") as file:
-            # the header is read and validated before anything is unpickled, so
-            # an unreadable or incompatible checkpoint is rejected without
-            # executing its contents
+            # Reject unreadable headers and unsupported formats before unpickling.
+            # Class and parameter-signature checks below require the loaded body.
             metadata = _parse_checkpoint_header(file)
             if metadata.get("format_version") != _CHECKPOINT_FORMAT_VERSION:
                 raise ValueError("Unsupported checkpoint format version.")
@@ -300,11 +298,16 @@ class CheckpointableMixin:
                 "checkpoint_interval must be None or positive finite minutes."
             )
         if self.checkpoint_path is not None:
-            parent = Path(self.checkpoint_path).parent
+            path = Path(self.checkpoint_path)
+            parent = path.parent
             if not parent.is_dir():
                 raise FileNotFoundError(
                     f"Checkpoint parent directory does not exist or is not a "
                     f"directory: {parent}"
+                )
+            if path.is_dir():
+                raise IsADirectoryError(
+                    f"Checkpoint path must be a file, not a directory: {path}"
                 )
             if self.get_tag("cant_pickle"):
                 raise ValueError("Default checkpointing requires cant_pickle=False.")
