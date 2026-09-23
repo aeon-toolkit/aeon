@@ -37,7 +37,7 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
 
     The PyOD adapter supports unsupervised and semi-supervised learning. The adapter
     can be fitted on a reference time series and used to detect anomalies in a different
-    target time series with the same number of dimensions. The reference (or training)
+    target time series with the same number of channels. The reference (or training)
     time series does not need to be clean for most PyOD models. However, knowledge in
     form of anomaly labels about the potential existing anomalies in the reference time
     series are not used during the fitting process. Use ``fit`` to fit the model on the

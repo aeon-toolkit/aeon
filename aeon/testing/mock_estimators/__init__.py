@@ -13,6 +13,7 @@ __all__ = [
     "MockClassifierComposite",
     # clustering
     "MockCluster",
+    "MockTransductiveCluster",
     "MockDeepClusterer",
     # collection transformation
     "MockCollectionTransformer",
@@ -30,8 +31,9 @@ __all__ = [
     "MockMultivariateSeriesTransformer",
     "MockSeriesTransformerNoFit",
     # similarity search
-    "MockSeriesSimilaritySearch",
-    "MockCollectionSimilaritySearch",
+    "MockSubsequenceSearch",
+    "MockDistanceProfileSearch",
+    "MockWholeSeriesSearch",
 ]
 
 from aeon.testing.mock_estimators._mock_anomaly_detectors import (
@@ -46,7 +48,11 @@ from aeon.testing.mock_estimators._mock_classifiers import (
     MockClassifierParams,
     MockClassifierPredictProba,
 )
-from aeon.testing.mock_estimators._mock_clusterers import MockCluster, MockDeepClusterer
+from aeon.testing.mock_estimators._mock_clusterers import (
+    MockCluster,
+    MockDeepClusterer,
+    MockTransductiveCluster,
+)
 from aeon.testing.mock_estimators._mock_collection_transformers import (
     MockCollectionTransformer,
 )
@@ -66,6 +72,7 @@ from aeon.testing.mock_estimators._mock_series_transformers import (
     MockUnivariateSeriesTransformer,
 )
 from aeon.testing.mock_estimators._mock_similarity_searchers import (
-    MockCollectionSimilaritySearch,
-    MockSeriesSimilaritySearch,
+    MockDistanceProfileSearch,
+    MockSubsequenceSearch,
+    MockWholeSeriesSearch,
 )

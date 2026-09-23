@@ -27,10 +27,14 @@ class ESMOTE(BaseCollectionTransformer):
     distance : str or callable, default="twe"
         The distance metric to use for the nearest neighbors search and alignment path
         of synthetic time series.
+    distance_params : dict or None, default=None
+        Additional keyword arguments for the distance metric.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
         or a callable
         function.
+    n_jobs : int, default=1
+        Number of jobs to run in parallel for nearest-neighbour search.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -102,6 +106,11 @@ class ESMOTE(BaseCollectionTransformer):
         return self
 
     def _transform(self, X, y=None):
+        if y is None:
+            raise ValueError(
+                f"{self.__class__.__name__} resamples X and y together, so transform "
+                "needs the labels: pass y, or call fit_transform."
+            )
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
@@ -155,6 +164,7 @@ class ESMOTE(BaseCollectionTransformer):
                 nn_ts,
                 distance=self.distance,
                 step=steps[count],
+                **self._distance_params,
             )
 
         y_new = np.full(n_samples, fill_value=y_type, dtype=y_dtype)
@@ -179,14 +189,12 @@ class ESMOTE(BaseCollectionTransformer):
         transformation_precomputed: bool = False,
         transformed_x: np.ndarray | None = None,
         transformed_y: np.ndarray | None = None,
-        return_bias=True,
     ):
         """
         Generate a single synthetic sample using soft distance.
 
-        This is use soft distance to align the current time series with its nearest
-        neighbor, and then generate a synthetic sample by subtracting the aligned
-        nearest neighbor from the current time series.
+        This uses an elastic distance to align the current time series with its nearest
+        neighbor, then generates a synthetic sample from their aligned difference.
 
         # shape: (c, l) or (l)
         # shape: (c, l) or (l)
@@ -222,8 +230,5 @@ class ESMOTE(BaseCollectionTransformer):
             empty_of_array[:, k] = curr_ts[:, k] - nn_ts[:, key]
 
         bias = step * empty_of_array
-        if return_bias:
-            return bias
-
         new_ts = new_ts - bias
         return new_ts

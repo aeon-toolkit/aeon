@@ -1,6 +1,6 @@
 """Abstract base class for deep learning networks."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 from abc import ABC, abstractmethod
 
@@ -15,15 +15,14 @@ class BaseDeepLearningNetwork(ABC):
     """Abstract base class for deep learning networks."""
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
-        "structure": "encoder",
+        "python_dependencies": "tensorflow",
+        "python_version": "<3.14",
     }
 
     @abstractmethod
-    def __init__(self, soft_dependencies="tensorflow", python_version="<3.13"):
-        _check_soft_dependencies(soft_dependencies)
-        _check_python_version(python_version)
+    def __init__(self):
+        _check_soft_dependencies(self._config["python_dependencies"])
+        _check_python_version(self._config["python_version"])
         super().__init__()
 
     def __repr__(self):

@@ -13,10 +13,11 @@ from typing import final
 
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer, InverseTransformerMixin
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
-    """Transformer base class for collections."""
+    """Transformer base class for series."""
 
     # default tag values for series transformers
     _tags = {
@@ -29,6 +30,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         super().__init__(axis=axis)
 
     @final
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y=None, axis=1):
         """Fit transformer to X, optionally using y if supervised.
 

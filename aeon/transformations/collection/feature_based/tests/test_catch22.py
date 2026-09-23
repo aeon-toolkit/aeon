@@ -1,5 +1,7 @@
 """Catch22 test code."""
 
+import warnings
+
 import numpy as np
 import pytest
 from numpy import testing
@@ -47,6 +49,22 @@ def test_catch22_short_on_basic_motions():
     )
 
 
+@pytest.mark.parametrize("use_pycatch22", [True, False])
+def test_use_pycatch22_deprecation_warning(use_pycatch22):
+    """Test that every explicit use of the deprecated parameter warns."""
+    with pytest.warns(FutureWarning, match="use_pycatch22.*deprecated"):
+        Catch22(use_pycatch22=use_pycatch22)
+
+
+def test_use_pycatch22_deprecation_warning_as_error():
+    """Test that repeated warnings respect warnings-as-errors filters."""
+    for _ in range(2):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", FutureWarning)
+            with pytest.raises(FutureWarning, match="use_pycatch22.*deprecated"):
+                Catch22(use_pycatch22=True)
+
+
 @pytest.mark.skipif(
     not _check_soft_dependencies("pycatch22", severity="none"),
     reason="skip test if required soft dependency pycatch22 not available",
@@ -58,14 +76,16 @@ def test_catch22_wrapper_on_basic_motions():
     indices = np.random.RandomState(4).choice(len(X_train), 5, replace=False)
 
     # fit Catch22Wrapper and assert transformed data is the same
-    c22 = Catch22(use_pycatch22=True, replace_nans=True)
+    with pytest.warns(FutureWarning, match="use_pycatch22.*deprecated"):
+        c22 = Catch22(use_pycatch22=True, replace_nans=True)
     data = c22.fit_transform(X_train[indices])
     testing.assert_array_almost_equal(
         data, catch22wrapper_basic_motions_data, decimal=4
     )
 
     # fit Catch22Wrapper with select features and assert transformed data is the same
-    c22 = Catch22(use_pycatch22=True, replace_nans=True, features=feature_names)
+    with pytest.warns(FutureWarning, match="use_pycatch22.*deprecated"):
+        c22 = Catch22(use_pycatch22=True, replace_nans=True, features=feature_names)
     data = c22.fit_transform(X_train[indices])
     testing.assert_array_almost_equal(
         data,
@@ -1453,3 +1473,51 @@ catch22wrapper_basic_motions_data = np.array(
         ],
     ]
 )
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("pycatch22", severity="none"),
+    reason="skip test if required soft dependency pycatch22 not available",
+)
+def test_catch22_pycatch22_outlier_norm():
+    """Test that outlier_norm passes z-normalised series to DN_OutlierInclude.
+
+    Regression test for GH #3632: the outlier_norm condition checked the
+    wrong feature indices, so DN_OutlierInclude (features 13, 14) was
+    always computed on the raw series when use_pycatch22=True.
+    """
+    rng = np.random.RandomState(42)
+    X = rng.random((3, 1, 50))
+    X[0, 0, 5] = 100.0  # extreme outlier to ensure z-norm differs from raw
+
+    import pycatch22
+
+    passed_series = {}
+    real_p = pycatch22.DN_OutlierInclude_p_001_mdrmd
+    real_n = pycatch22.DN_OutlierInclude_n_001_mdrmd
+
+    def track_p(s):
+        passed_series["p"] = np.array(s)
+        return real_p(s)
+
+    def track_n(s):
+        passed_series["n"] = np.array(s)
+        return real_n(s)
+
+    pycatch22.DN_OutlierInclude_p_001_mdrmd = track_p
+    pycatch22.DN_OutlierInclude_n_001_mdrmd = track_n
+    try:
+        with pytest.warns(FutureWarning, match="use_pycatch22.*deprecated"):
+            Catch22(
+                use_pycatch22=True, outlier_norm=True, replace_nans=True
+            ).fit_transform(X)
+    finally:
+        pycatch22.DN_OutlierInclude_p_001_mdrmd = real_p
+        pycatch22.DN_OutlierInclude_n_001_mdrmd = real_n
+
+    # The series passed to DN_OutlierInclude should be z-normalised
+    # (mean ~ 0, std ~ 1) when outlier_norm=True
+    assert abs(np.mean(passed_series["p"])) < 1e-10
+    assert abs(np.std(passed_series["p"]) - 1.0) < 1e-10
+    assert abs(np.mean(passed_series["n"])) < 1e-10
+    assert abs(np.std(passed_series["n"]) - 1.0) < 1e-10

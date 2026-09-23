@@ -13,14 +13,13 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
-from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.transformations.collection.imbalance import SMOTE, RandomOverSampler
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class REDCOMETS(BaseClassifier):
@@ -92,7 +91,6 @@ class REDCOMETS(BaseClassifier):
     """
 
     _tags = {
-        "python_dependencies": "imblearn",
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -162,7 +160,7 @@ class REDCOMETS(BaseClassifier):
                     self.sax_clfs,
                 ) = self._build_univariate_ensemble(X_concat, y)
 
-            elif self.variant in [4, 5, 6, 7, 8, 9]:  # Ensemble
+            else:  # Ensemble (variants 4-9)
                 (
                     self.sfa_transforms,
                     self.sfa_clfs,
@@ -195,15 +193,6 @@ class REDCOMETS(BaseClassifier):
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
-        _check_soft_dependencies(
-            "imbalanced-learn",
-            package_import_alias={"imbalanced-learn": "imblearn"},
-            severity="error",
-            obj=self,
-        )
-
-        from imblearn.over_sampling import SMOTE, RandomOverSampler
-
         X = Normalizer().fit_transform(X).squeeze(1)
 
         if self.variant in [1, 2, 3]:
@@ -221,21 +210,32 @@ class REDCOMETS(BaseClassifier):
             y_smote = y
 
         else:
+            # Cap the minority count used for neighbour selection, matching the
+            # previous imblearn path: NearestNeighbors(n_neighbors=min_c-1)
+            # with self-exclusion leaves (min_c-2) synthesis neighbours.
             if min_neighbours > 5:
                 min_neighbours = 6
+            n_neighbors = min_neighbours - 2
+            X_3d = X[:, np.newaxis, :]
             try:
+                if n_neighbors < 1:
+                    raise ValueError(
+                        "Not enough minority samples for SMOTE neighbour search"
+                    )
                 X_smote, y_smote = SMOTE(
-                    sampling_strategy="all",
-                    k_neighbors=NearestNeighbors(
-                        n_neighbors=min_neighbours - 1, n_jobs=self._n_jobs
-                    ),
+                    n_neighbors=n_neighbors,
                     random_state=self.random_state,
-                ).fit_resample(X, y)
-
+                    distance="euclidean",
+                    n_jobs=self._n_jobs,
+                ).fit_transform(X_3d, y)
             except ValueError:
+                # aeon SMOTE raises ValueError when n_neighbors exceeds the
+                # minority class size; do not catch broader exceptions that
+                # could hide real bugs by silently falling back to ROS.
                 X_smote, y_smote = RandomOverSampler(
-                    sampling_strategy="all", random_state=self.random_state
-                ).fit_resample(X, y)
+                    random_state=self.random_state
+                ).fit_transform(X_3d, y)
+            X_smote = np.squeeze(X_smote, 1)
 
         lenses = self._get_random_lenses(X_smote, n_lenses)
         sfa_lenses = lenses[: n_lenses // 2]
@@ -306,7 +306,7 @@ class REDCOMETS(BaseClassifier):
         return sfa_transforms, sfa_clfs, sax_transforms, sax_clfs
 
     def _build_dimension_ensemble(self, X, y):
-        """Build an ensemble of univariate RED CoMETS ensembles over dimensions.
+        """Build an ensemble of univariate RED CoMETS ensembles over channels.
 
         Parameters
         ----------
@@ -396,8 +396,8 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
                 return self._predict_proba_unvivariate(X_concat)
-            elif self.variant in [4, 5, 6, 7, 8, 9]:
-                return self._predict_proba_dimension_ensemble(X)  # Ensemble
+            else:  # Ensemble (variants 4-9)
+                return self._predict_proba_dimension_ensemble(X)
 
     def _predict_proba_unvivariate(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in univariate X.
@@ -442,7 +442,7 @@ class REDCOMETS(BaseClassifier):
         return pred_mat
 
     def _predict_proba_dimension_ensemble(self, X) -> np.ndarray:
-        """Predicts labels probabilities using ensemble over the dimensions.
+        """Predicts labels probabilities using ensemble over the channels.
 
         Parameters
         ----------
@@ -473,8 +473,7 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [6, 7, 8, 9]:
                 dimension_pred_mats = None
             for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
-                sfa_dics = sfa.transform_words(X_d)
-                X_sfa = sfa_dics[:, 0, :]
+                X_sfa = sfa.transform_words(X_d)[0]
 
                 rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -486,7 +485,7 @@ class REDCOMETS(BaseClassifier):
                             (ensemble_pred_mats, [rf_pred_mat])
                         )
 
-                elif self.variant in [6, 7, 8, 9]:
+                else:  # variants 6-9
                     if dimension_pred_mats is None:
                         dimension_pred_mats = [rf_pred_mat]
                     else:
@@ -507,7 +506,7 @@ class REDCOMETS(BaseClassifier):
                             (ensemble_pred_mats, [rf_pred_mat])
                         )
 
-                elif self.variant in [6, 7, 8, 9]:
+                else:  # variants 6-9
                     if dimension_pred_mats is None:
                         dimension_pred_mats = [rf_pred_mat]
                     else:
@@ -518,7 +517,7 @@ class REDCOMETS(BaseClassifier):
             if self.variant in [6, 7, 8, 9]:
                 if self.variant in [6, 7]:
                     fused_dimension_pred_mat = np.sum(dimension_pred_mats, axis=0)
-                elif self.variant in [8, 9]:
+                else:  # variants 8, 9
                     weights = np.array(
                         [np.mean(mat.max(axis=1)) for mat in dimension_pred_mats]
                     ).reshape(-1, 1)
@@ -535,7 +534,7 @@ class REDCOMETS(BaseClassifier):
 
         if self.variant in [4, 6, 7]:
             pred_mat = np.sum(np.array(ensemble_pred_mats), axis=0)
-        elif self.variant in [5, 8, 9]:
+        else:  # variants 5, 8, 9
             weights = np.array(
                 [np.mean(mat.max(axis=1)) for mat in ensemble_pred_mats]
             ).reshape(-1, 1)
@@ -588,7 +587,7 @@ class REDCOMETS(BaseClassifier):
         """
 
         def _sax_wrapper(sax):
-            return np.squeeze(sax.fit_transform(X), 1)
+            return np.squeeze(sax.transform(X), 1)
 
         sax_parallel_res = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_sax_wrapper)(sax) for sax in sax_transforms

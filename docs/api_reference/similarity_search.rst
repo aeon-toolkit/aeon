@@ -4,49 +4,42 @@ Similarity search
 =================
 
 The :mod:`aeon.similarity_search` module contains algorithms and tools for similarity
-search tasks. First, we distinguish between `series` estimator and `collection`
-estimators, similarly to the `aeon.transformer` module. Secondly, we distinguish between
-estimators used `neighbors` (with suffix SNN for subsequence nearest neighbors, or ANN
-for approximate nearest neighbors) search and estimators used for `motifs` search.
+search tasks. The module is organized into two main categories:
+
+- **Subsequence search**: Finding nearest neighbors among subsequences of time series
+- **Whole series search**: Finding nearest neighbors among complete time series
 
 
-Series Similarity search estimators
------------------------------------
+Subsequence Search Estimators
+------------------------------
 
-.. currentmodule:: aeon.similarity_search.series.neighbors
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DummySNN
-    MassSNN
-
-.. currentmodule:: aeon.similarity_search.series.motifs
+.. currentmodule:: aeon.similarity_search.subsequence
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    StompMotif
+    NaiveSubsequenceSearch
+    MASS
 
 
-Collection Similarity search estimators
------------------------------------
+Whole Series Search Estimators
+-------------------------------
 
-.. currentmodule:: aeon.similarity_search.collection.neighbors
+.. currentmodule:: aeon.similarity_search.whole_series
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    RandomProjectionIndexANN
+    NaiveSeriesSearch
+    SimHashIndexANN
 
 
 Base Estimators
 ---------------
 
-.. currentmodule:: aeon.similarity_search._base
+.. currentmodule:: aeon.similarity_search
 
 .. autosummary::
     :toctree: auto_generated/
@@ -55,19 +48,20 @@ Base Estimators
     BaseSimilaritySearch
 
 
-.. currentmodule:: aeon.similarity_search.series._base
+.. currentmodule:: aeon.similarity_search.subsequence
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseSeriesSimilaritySearch
+    BaseSubsequenceSearch
+    BaseDistanceProfileSearch
 
 
-.. currentmodule:: aeon.similarity_search.collection._base
+.. currentmodule:: aeon.similarity_search.whole_series
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseCollectionSimilaritySearch
+    BaseWholeSeriesSearch

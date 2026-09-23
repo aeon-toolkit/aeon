@@ -13,6 +13,7 @@ from joblib import Parallel, delayed
 from numba import set_num_threads
 from scipy.sparse import hstack
 from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -73,7 +74,7 @@ class WEASEL(BaseClassifier):
         Number of possible letters (values) for each word.
     feature_selection : str, default: "chi2"
         Sets the feature selections strategy to be used. One of {"chi2", "none",
-        "random"}.  Large amounts of memory may beneeded depending on the setting of
+        "random"}.  Large amounts of memory may be needed depending on the setting of
         bigrams (true is more) or alpha (larger is more).
         'chi2' reduces the number of words, keeping those above the 'p_threshold'.
         'random' reduces the number to at most 'max_feature_count',
@@ -85,17 +86,18 @@ class WEASEL(BaseClassifier):
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accurate. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
+        If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights
         inversely proportional to class frequencies in the input data as
         n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
         For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV
+        is not an ensemble model.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -238,22 +240,22 @@ class WEASEL(BaseClassifier):
             all_words = np.concatenate(all_words, axis=1)
         else:
             all_words = hstack(all_words)
-
         # Ridge Classifier does not give probabilities
         if not self.support_probabilities:
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
+            all_words = all_words.astype(np.float32, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
                 solver="liblinear",
                 dual=True,
                 class_weight=self.class_weight,
-                penalty="l2",
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
             )
+            if self.n_classes_ > 2:
+                self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)
 
         self.clf.fit(all_words, y)
 

@@ -14,7 +14,10 @@ from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
 from aeon.transformations.collection import PeriodogramTransformer
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    _InternalCatch22,
+    _warn_use_pycatch22_deprecated,
+)
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
     row_iqr,
@@ -36,11 +39,11 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
     intervals on the base series, periodogram representation and differences
     representation described in the HIVE-COTE 2.0 paper Middlehurst et al (2021). [1]_
 
-    Overview: Input "n" series with "d" dimensions of length "m".
+    Overview: Input "n" series with "d" channels of length "m".
     For each tree
         - Sample n_intervals intervals per representation of random position and length
         - Subsample att_subsample_size catch22 or summary statistic attributes randomly
-        - Randomly select dimension for each interval
+        - Randomly select channel for each interval
         - Calculate attributes for each interval from its representation, concatenate
           to form new data set
         - Build a decision tree on new data set
@@ -106,10 +109,14 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default="deprecated"
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+
+        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
+        continues to use pycatch22 until removal. Omit this parameter to use aeon's
+        faster implementation.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -119,17 +126,21 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib. If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     n_classes_ : int
@@ -181,6 +192,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         "algorithm_type": "interval",
     }
 
+    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         base_estimator=None,
@@ -191,12 +203,15 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         att_subsample_size=10,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pycatch22=False,
+        use_pycatch22="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        verbose=0,
     ):
         self.use_pycatch22 = use_pycatch22
+        if use_pycatch22 != "deprecated":
+            _warn_use_pycatch22_deprecated(self)
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -210,7 +225,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         ]
 
         interval_features = [
-            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            _InternalCatch22(outlier_norm=True, use_pycatch22=use_pycatch22),
             row_mean,
             row_std,
             row_slope,
@@ -236,9 +251,10 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
+            verbose=verbose,
         )
 
-        if use_pycatch22:
+        if use_pycatch22 is True:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _fit(self, X, y):
@@ -270,7 +286,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
                 "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
+                    "capability:contractable" tag to True to test contracting
                     functionality
                 "train_estimate" - used in some classifiers that set the
                     "capability:train_estimate" tag to True to allow for more efficient

@@ -54,6 +54,7 @@ extensions = [
     "myst_parser",
     # local extensions (_sphinxext/)
     "sphinx_remove_toctrees",
+    "aeon_mini_gallery",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -291,7 +292,9 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["css/custom.css"]
+html_css_files = [
+    "css/custom.css",
+]
 
 html_show_sourcelink = False
 
@@ -412,12 +415,10 @@ def _get_estimator_doc_path(estimator_class, estimator_name):
                     hasattr(parent_module, estimator_name)
                     and getattr(parent_module, estimator_name) is estimator_class
                 ):
-                    # Use public API path
                     return f"{parent_path}.{estimator_name}"
         except (ImportError, AttributeError):
             continue
 
-    # Fallback: use current underscore-filtering logic
     modpath = str(estimator_class)[8:-2]
     path_parts = modpath.split(".")
     clean_path = ".".join([p for p in path_parts if not p.startswith("_")])

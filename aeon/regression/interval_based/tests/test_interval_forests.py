@@ -1,5 +1,7 @@
 """Test interval forest regressors."""
 
+import warnings
+
 import pytest
 
 from aeon.regression.interval_based import (
@@ -46,7 +48,14 @@ def test_forest_pycatch22(cls):
         params = params[0]
     params.update({"use_pycatch22": True})
 
-    reg = cls(**params)
-    reg.fit(X_train, y_train)
-    prob = reg.predict(X_test)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", FutureWarning)
+        reg = cls(**params)
+        reg.fit(X_train, y_train)
+        prob = reg.predict(X_test)
+
+    deprecation_warnings = [
+        warning for warning in caught if "use_pycatch22" in str(warning.message)
+    ]
+    assert len(deprecation_warnings) == 1
     _assert_predict_labels(prob, X_test)

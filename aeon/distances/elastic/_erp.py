@@ -11,7 +11,7 @@ from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -27,7 +27,7 @@ def erp_distance(
     r"""Compute the ERP distance between two time series.
 
     Edit Distance with Real Penalty, ERP, first proposed in [1]_, attempts to align
-    time series by better considering how indexes are carried forward through the
+    time series by better considering how indices are carried forward through the
     cost matrix. Usually in the dtw cost matrix, if an alignment cannot be found the
     previous value is carried forward in  the move off the diagonal. ERP instead
     proposes the idea of gaps or sequences of points that have no matches. These
@@ -248,7 +248,7 @@ def _precompute_g(
     return gx_distance, x_sum
 
 
-@threaded
+@numba_thread_handler
 def erp_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,

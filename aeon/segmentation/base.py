@@ -11,6 +11,7 @@ import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
 from aeon.utils.data_types import VALID_SERIES_INPUT_TYPES
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSegmenter(BaseSeriesEstimator):
@@ -18,7 +19,7 @@ class BaseSegmenter(BaseSeriesEstimator):
 
     Segmenters take a single time series of length ``n_timepoints`` and returns a
     segmentation. Series can be univariate (single series) or multivariate,
-    with ``n_channels`` dimensions. If the segmenter can handle multivariate series,
+    with ``n_channels`` channels. If the segmenter can handle multivariate series,
     if will have the tag ``"capability:multivariate"`` set to True. Multivariate
     series are segmented along a the axis of time determined by ``self.axis``.
 
@@ -77,6 +78,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         super().__init__(axis=axis)
 
     @final
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y=None, axis=1):
         """Fit time series segmenter to X.
 
@@ -143,7 +145,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         Returns
         -------
         List
-            Either a list of indexes of X indicating where each segment begins or a
+            Either a list of indices of X indicating where each segment begins or a
             list of integers of ``len(X)`` indicating which segment each time point
             belongs to.
         """

@@ -10,13 +10,14 @@ __all__ = [
     "ClaSPTransformer",
     "Dobin",
     "MatrixProfileTransformer",
-    "MatrixProfileSeriesTransformer",
     "LogTransformer",
     "PLASeriesTransformer",
+    "MSTLSeriesTransformer",
     "StatsModelsACF",
     "StatsModelsPACF",
     "BKFilter",
     "BoxCoxTransformer",
+    "YeoJohnsonTransformer",
     "ScaledLogitSeriesTransformer",
     "PCASeriesTransformer",
     "STLSeriesTransformer",
@@ -36,15 +37,14 @@ from aeon.transformations.series._collection_wrapper import CollectionToSeriesWr
 from aeon.transformations.series._diff import DifferenceTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._log import LogTransformer
-from aeon.transformations.series._matrix_profile import (
-    MatrixProfileSeriesTransformer,
-    MatrixProfileTransformer,
-)
+from aeon.transformations.series._matrix_profile import MatrixProfileTransformer
+from aeon.transformations.series._mstl import MSTLSeriesTransformer
 from aeon.transformations.series._pca import PCASeriesTransformer
 from aeon.transformations.series._pla import PLASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 from aeon.transformations.series._stl import STLSeriesTransformer
 from aeon.transformations.series._warping import WarpingSeriesTransformer
+from aeon.transformations.series._yeojohnson import YeoJohnsonTransformer
 from aeon.transformations.series.base import (
     BaseSeriesTransformer,
     SeriesInverseTransformerMixin,

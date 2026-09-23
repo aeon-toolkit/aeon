@@ -3,6 +3,7 @@ from itertools import combinations
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -33,8 +34,10 @@ class MultiRocket(BaseCollectionTransformer):
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
-    random_state : None or int, default = None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If ``int``, seed the random number generator with ``random_state``.
+        If ``RandomState`` instance, use it as the random number generator.
+        If ``None``, use the global random state.
 
     Attributes
     ----------
@@ -117,8 +120,11 @@ class MultiRocket(BaseCollectionTransformer):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
 
+        rng = check_random_state(self.random_state)
         self.random_state_ = (
-            np.int32(self.random_state) if isinstance(self.random_state, int) else None
+            rng.randint(np.iinfo(np.int32).max)
+            if isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
         if self.random_state_ is not None:
             np.random.seed(self.random_state_)

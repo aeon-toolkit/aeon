@@ -25,7 +25,7 @@ from aeon.utils.validation import check_n_jobs
 
 class SMOTE(BaseCollectionTransformer):
     """
-    Synthetic Minority Over-sampling TEchnique (SMOTE) for imbalanced datasets.
+    Synthetic Minority Over-sampling Technique (SMOTE) for imbalanced datasets.
 
     Generates synthetic samples of the minority class to address class imbalance.
     SMOTE constructs new samples by interpolating between existing minority samples
@@ -39,7 +39,8 @@ class SMOTE(BaseCollectionTransformer):
     ----------
     n_neighbors : int, default=5
         Number of nearest neighbours used to generate synthetic samples. A
-        `sklearn.neighbors.NearestNeighbors` instance is fitted for this purpose.
+        `_SingleClassKNN` wrapper around `KNeighborsTimeSeriesClassifier` is fitted
+        for this purpose.
     random_state : int, RandomState instance or None, default=None
         Controls the random number generation for reproducibility:
         - If `int`, sets the random seed.
@@ -124,7 +125,12 @@ class SMOTE(BaseCollectionTransformer):
         return self
 
     def _transform(self, X, y=None):
-        # remove the channel dimension to be compatible with sklearn
+        if y is None:
+            raise ValueError(
+                f"{self.__class__.__name__} resamples X and y together, so transform "
+                "needs the labels: pass y, or call fit_transform."
+            )
+        # remove the channel axis to be compatible with sklearn
         X = np.squeeze(X, axis=1)
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
@@ -149,7 +155,7 @@ class SMOTE(BaseCollectionTransformer):
         return X_resampled, y_resampled
 
     def _make_samples(
-        self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, y=None
+        self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0
     ):
         """Make artificial samples constructed based on nearest neighbours.
 
@@ -179,10 +185,6 @@ class SMOTE(BaseCollectionTransformer):
         step_size : float, default=1.0
             The step size to create samples.
 
-        y : ndarray of shape (n_samples_all,), default=None
-            The true target associated with `nn_data`. Used by Borderline SMOTE-2 to
-            weight the distances in the sample generation process.
-
         Returns
         -------
         X_new : ndarray
@@ -200,20 +202,18 @@ class SMOTE(BaseCollectionTransformer):
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
 
-        X_new = self._generate_samples(X, nn_data, nn_num, rows, cols, steps, y_type, y)
+        X_new = self._generate_samples(X, nn_data, nn_num, rows, cols, steps)
         y_new = np.full(n_samples, fill_value=y_type, dtype=y_dtype)
         return X_new, y_new
 
-    def _generate_samples(
-        self, X, nn_data, nn_num, rows, cols, steps, y_type=None, y=None
-    ):
+    def _generate_samples(self, X, nn_data, nn_num, rows, cols, steps):
         r"""Generate a synthetic sample.
 
         The rule for the generation is:
 
         .. math::
            \mathbf{s_{s}} = \mathbf{s_{i}} + \mathcal{u}(0, 1) \times
-           (\mathbf{s_{i}} - \mathbf{s_{nn}}) \,
+           (\mathbf{s_{nn}} - \mathbf{s_{i}}) \,
 
         where \mathbf{s_{s}} is the new synthetic samples, \mathbf{s_{i}} is
         the current sample, \mathbf{s_{nn}} is a randomly selected neighbors of
@@ -236,12 +236,6 @@ class SMOTE(BaseCollectionTransformer):
             will be used when creating new samples.
         steps : ndarray of shape (n_samples,), dtype=float
             Step sizes for new samples.
-        y_type : str, int or None, default=None
-            Class label of the current target classes for which we want to generate
-            samples.
-        y : ndarray of shape (n_samples_all,), default=None
-            The true target associated with `nn_data`. Used by Borderline SMOTE-2 to
-            weight the distances in the sample generation process.
 
         Returns
         -------
@@ -249,11 +243,6 @@ class SMOTE(BaseCollectionTransformer):
             Synthetically generated samples.
         """
         diffs = nn_data[nn_num[rows, cols]] - X[rows]
-        if y is not None:
-            mask_pair_samples = y[nn_num[rows, cols]] != y_type
-            diffs[mask_pair_samples] *= self._random_state.uniform(
-                low=0.0, high=0.5, size=(mask_pair_samples.sum(), 1)
-            )
         X_new = X[rows] + steps * diffs
         return X_new.astype(X.dtype)
 
@@ -266,10 +255,6 @@ class SMOTE(BaseCollectionTransformer):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            ClassifierChannelEnsemble provides the following special sets:
-            - "results_comparison" - used in some classifiers to compare against
-              previously generated results where the default set of parameters
-              cannot produce suitable probability estimates
 
         Returns
         -------

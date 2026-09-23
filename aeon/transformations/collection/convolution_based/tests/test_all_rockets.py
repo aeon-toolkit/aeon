@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from sklearn.utils import check_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.transformations.collection.convolution_based import (
@@ -105,6 +106,18 @@ def test_rocket_on_multivariate(transform):
     assert X_trans[2][3] == X_trans2[2][3]
     assert X_trans[0][80] == X_trans2[0][80]
     assert X_trans[3][55] == X_trans2[3][55]
+
+
+@pytest.mark.parametrize("rocket_class", [Rocket, MiniRocket, MultiRocket])
+def test_rocket_random_state_instance(rocket_class):
+    """Test seeded RandomState instances produce reproducible transforms."""
+    rocket1 = rocket_class(n_kernels=100, random_state=check_random_state(42))
+    rocket2 = rocket_class(n_kernels=100, random_state=check_random_state(42))
+
+    Xt1 = rocket1.fit_transform(multi_test_data)
+    Xt2 = rocket2.fit_transform(multi_test_data)
+
+    np.testing.assert_array_equal(Xt1, Xt2)
 
 
 def test_normalise_rocket():
@@ -222,3 +235,22 @@ def test_ppv():
     b = np.float32(-5.0)
     assert _PPV(a, b) == 1
     assert _PPV(b, a) == 0
+
+
+def test_transform_kernels_matches_transform():
+    """Rocket._transform_kernels equals transform when normalise is False.
+
+    ``_transform_kernels`` is the kernels-only entry point used by ensembles
+    that normalise input once. Only Rocket needs it, as it is the only rocket
+    transform that normalises by default; with normalisation off it must be
+    exactly the public transform. MiniRocket never normalises and MultiRocket
+    defaults to ``normalise=False``, so their ``_transform`` is already
+    kernels-only.
+    """
+    transformer = Rocket(n_kernels=100, normalise=False, random_state=0)
+    rng = check_random_state(0)
+    X = rng.standard_normal((10, 1, 30))
+
+    Xt = transformer.fit_transform(X)
+
+    np.testing.assert_array_equal(transformer._transform_kernels(X), Xt)

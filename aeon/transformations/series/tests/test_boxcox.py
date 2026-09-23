@@ -59,3 +59,49 @@ def test_guerrero_against_r_implementation(bounds, r_lambda):
     t = BoxCoxTransformer(bounds=bounds, method="guerrero", sp=20)
     t.fit(y)
     np.testing.assert_almost_equal(t.lambda_, r_lambda, decimal=4)
+
+
+def test_boxcox_inverse_transform_roundtrip():
+    """Test fitted Box-Cox transform is numerically invertible on positive data."""
+    y = load_airline()
+    t = BoxCoxTransformer()
+    Xt = t.fit_transform(y)
+    Xinv = t.inverse_transform(Xt)
+    np.testing.assert_allclose(
+        np.asarray(Xinv).squeeze(), np.asarray(y).squeeze(), rtol=1e-8
+    )
+
+
+def test_boxcox_all_method():
+    """``method='all'`` returns the Pearson and MLE estimates in that order."""
+    y = load_airline()
+    expected = np.array(
+        [
+            BoxCoxTransformer(method="pearsonr").fit(y).lambda_,
+            BoxCoxTransformer(method="mle").fit(y).lambda_,
+        ]
+    )
+    actual = BoxCoxTransformer(method="all").fit(y).lambda_
+    np.testing.assert_allclose(actual, expected)
+
+
+def test_boxcox_invalid_method_raises():
+    """Test fitting rejects unknown lambda-optimization methods."""
+    y = load_airline()
+    t = BoxCoxTransformer(method="bogus")
+    with pytest.raises(ValueError, match="not recognized"):
+        t.fit(y)
+
+
+def test_boxcox_guerrero_invalid_sp_raises():
+    """Test Guerrero lambda estimation requires seasonal periodicity >= 2."""
+    y = load_airline()
+    t = BoxCoxTransformer(method="guerrero", sp=1)
+    with pytest.raises(ValueError, match="seasonal periodicity"):
+        t.fit(y)
+
+
+def test_boxcox_invalid_bounds_raises():
+    """Fitting rejects bounds that are not a lower-upper pair."""
+    with pytest.raises(ValueError, match="tuple of length 2"):
+        BoxCoxTransformer(bounds=(1, 2, 3)).fit(load_airline())

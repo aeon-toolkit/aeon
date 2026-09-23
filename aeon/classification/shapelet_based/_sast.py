@@ -20,7 +20,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 class SASTClassifier(BaseClassifier):
-    """Classification pipeline using SAST [1]_ transformer and an sklean classifier.
+    """Classification pipeline using SAST [1]_ transformer and a sklearn classifier.
 
     Parameters
     ----------
@@ -28,7 +28,7 @@ class SASTClassifier(BaseClassifier):
         an array containing the lengths of the subsequences to be generated.
         If None, will be inferred during fit as np.arange(3, X.shape[1])
     stride : int, default = 1
-        the stride used when generating subsquences
+        the stride used when generating subsequences
     nb_inst_per_class : int default = 1
         the number of reference time series to select per class
     random_state : int, default = None
@@ -37,6 +37,15 @@ class SASTClassifier(BaseClassifier):
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
         Number of threads to use for the transform.
+
+    Attributes
+    ----------
+    pipeline_ : Pipeline
+        The fitted pipeline consisting of the transformer and classifier.
+    classifier_ : BaseEstimator
+        The fitted classifier.
+    transformer_ : BaseTransformer
+        The fitted shapelet transformer.
 
 
     References
@@ -100,7 +109,7 @@ class SASTClassifier(BaseClassifier):
 
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-        self._transformer = SAST(
+        self.transformer_ = SAST(
             self.length_list,
             self.stride,
             self.nb_inst_per_class,
@@ -108,7 +117,7 @@ class SASTClassifier(BaseClassifier):
             self._n_jobs,
         )
 
-        self._classifier = _clone_estimator(
+        self.classifier_ = _clone_estimator(
             (
                 RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
                 if self.classifier is None
@@ -117,9 +126,9 @@ class SASTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        self._pipeline = make_pipeline(self._transformer, self._classifier)
+        self.pipeline_ = make_pipeline(self.transformer_, self.classifier_)
 
-        self._pipeline.fit(X, y)
+        self.pipeline_.fit(X, y)
 
         return self
 
@@ -136,7 +145,7 @@ class SASTClassifier(BaseClassifier):
         array-like or list
             Predicted class labels.
         """
-        return self._pipeline.predict(X)
+        return self.pipeline_.predict(X)
 
     def _predict_proba(self, X):
         """Predict labels probabilities for the input.
@@ -151,12 +160,12 @@ class SASTClassifier(BaseClassifier):
         dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
-        m = getattr(self._classifier, "predict_proba", None)
+        m = getattr(self.classifier_, "predict_proba", None)
         if callable(m):
-            dists = self._pipeline.predict_proba(X)
+            dists = self.pipeline_.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._pipeline.predict(X)
+            preds = self.pipeline_.predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
@@ -183,7 +192,7 @@ class SASTClassifier(BaseClassifier):
         # get overall importance irrespective of class
         feature_importance = [abs(x) for x in feature_importance]
 
-        features = zip(self._transformer._kernel_orig, feature_importance)
+        features = zip(self.transformer_._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)
 
         max_ = min(limit, len(sorted_features))

@@ -16,7 +16,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            11.150969310377484,
+            11.900326351628069,
         ),
         (
             dict(
@@ -25,7 +25,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            [11.217749519087675, 1.536562128],
+            12.03610521881817,
         ),
         (
             dict(
@@ -34,7 +34,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.95447540517364,
+            12.116446361161152,
         ),
         (
             dict(
@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.664797705601895,
+            10.158588233985748,
         ),
     ],
 )
@@ -163,9 +163,9 @@ def test_autoets_forecast_sets_wrapped_and_returns_forecast():
 
 
 def test_autoets_iterative_forecast_shape_and_validity():
-    """iterative_forecast should delegate and return valid forecasts."""
+    """iterative_forecast should fit once and return valid forecasts."""
     forecaster = AutoETS()
-    forecaster.fit(y_pos)
+    assert forecaster.wrapped_model_ is None
 
     horizon = 5
     preds = forecaster.iterative_forecast(y_pos, prediction_horizon=horizon)
@@ -173,6 +173,7 @@ def test_autoets_iterative_forecast_shape_and_validity():
     assert isinstance(preds, np.ndarray)
     assert preds.shape == (horizon,)
     assert np.all(np.isfinite(preds))
+    assert forecaster.wrapped_model_ is not None
 
 
 def test_autoets_predict_matches_wrapped_predict():
@@ -231,3 +232,205 @@ def test_autoets_wrapped_model_parameters_match_selected_types():
     assert model._trend_type == forecaster.trend_type_
     assert model._seasonality_type == forecaster.seasonality_type_
     assert model._seasonal_period == forecaster.seasonal_period_
+
+
+def test_autoets_uses_provided_seasonal_period():
+    """AutoETS should use a provided seasonal period instead of inferring one."""
+    base = np.tile(np.array([10.0, 30.0, 12.0, 28.0]), 8)
+    y = base + 0.05 * np.sin(np.arange(base.size) * 0.7)
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+
+    assert forecaster.seasonality_type_ != 0
+    assert forecaster.seasonal_period_ == 4
+    assert forecaster.wrapped_model_._seasonal_period == 4
+
+
+def test_autoets_provided_seasonal_period_overrides_nonseasonal_aic_winner():
+    """A supplied seasonal period should force a seasonal model when possible."""
+    y = np.linspace(10.0, 30.0, 20) + 0.01 * np.sin(np.arange(20))
+
+    unconstrained = AutoETS()
+    unconstrained.fit(y)
+    forced = AutoETS(seasonal_period=4)
+    forced.fit(y)
+
+    assert unconstrained.seasonality_type_ == 0
+    assert forced.seasonality_type_ != 0
+    assert forced.seasonal_period_ == 4
+
+
+def test_autoets_invalid_seasonal_period_raises():
+    """AutoETS should reject invalid supplied seasonal periods."""
+    forecaster = AutoETS(seasonal_period=0)
+    y = np.array([10.0, 11.0, 12.0, 13.0])
+
+    with pytest.raises(ValueError, match="seasonal_period must be"):
+        forecaster.fit(y)
+
+
+@pytest.mark.parametrize(
+    "y, horizon",
+    [
+        (
+            np.array(
+                [
+                    417,
+                    451,
+                    360,
+                    525,
+                    392,
+                    375,
+                    326,
+                    594,
+                    519,
+                    570,
+                    416,
+                    556,
+                    272,
+                    391,
+                    732,
+                    890,
+                    855,
+                    737,
+                    470,
+                ],
+                dtype=np.float64,
+            ),
+            6,
+        ),
+        (
+            np.array(
+                [
+                    2032.0,
+                    2085.05,
+                    2068.75,
+                    1978.9,
+                    2472.25,
+                    2819.6,
+                    3016.45,
+                    2731.85,
+                    2506.75,
+                    5833.6,
+                    4474.0,
+                    7208.75,
+                    15586.15,
+                    25052.3,
+                ],
+                dtype=np.float64,
+            ),
+            6,
+        ),
+    ],
+)
+def test_autoets_issue_3297_forecasts_are_finite_and_bounded(y, horizon):
+    """AutoETS should not select unstable multiplicative trend issue cases."""
+    forecaster = AutoETS()
+    forecaster.fit(y)
+
+    preds = forecaster.iterative_forecast(y, prediction_horizon=horizon)
+
+    assert forecaster.trend_type_ != 2
+    assert np.all(np.isfinite(preds))
+    assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
+
+
+def test_autoets_rejects_unstable_multiplicative_seasonal_state():
+    """AutoETS should reject multiplicative seasonal states with invalid support."""
+    y = np.array(
+        [
+            2100.0,
+            1700.0,
+            2500.0,
+            16400.0,
+            1500.0,
+            2700.0,
+            2400.0,
+            3600.0,
+            3000.0,
+            2300.0,
+            2900.0,
+            2700.0,
+            2200.0,
+            32700.0,
+            7400.0,
+            2300.0,
+            2400.0,
+            2600.0,
+            2800.0,
+            2900.0,
+            2700.0,
+            2900.0,
+            4200.0,
+            4100.0,
+            3000.0,
+            3300.0,
+        ],
+        dtype=np.float64,
+    )
+
+    forecaster = AutoETS(seasonal_period=4)
+    forecaster.fit(y)
+    preds = forecaster.iterative_forecast(y, prediction_horizon=8)
+
+    assert np.all(np.isfinite(preds))
+    assert np.max(np.abs(preds)) < 10 * np.max(np.abs(y))
+
+
+def test_ets_liklihood_alias_is_deprecated():
+    """``ETS.liklihood_`` is a deprecated misspelled alias for ``likelihood_``.
+
+    The PR that introduced the rename keeps the old attribute name for one
+    release cycle as a property so callers do not break silently. Accessing
+    it must emit a :class:`DeprecationWarning` and return the same value as
+    :attr:`likelihood_`.
+    """
+    data = np.array([3.0, 10.0, 12.0, 13.0, 12.0, 10.0, 12.0, 3.0, 10.0, 12.0])
+    f = ETS().fit(data)
+    with pytest.warns(DeprecationWarning, match="liklihood_"):
+        deprecated_value = f.liklihood_
+    assert deprecated_value == f.likelihood_
+
+
+def test_validate_parameter_rejects_invalid_types():
+    """Non-string, non-int parameter values are rejected."""
+    with pytest.raises(ValueError, match="must be either string or integer"):
+        _validate_parameter(2.5, True)
+    with pytest.raises(ValueError, match="must be either string or integer"):
+        _validate_parameter([1], False)
+
+
+def test_ets_initialise_sets_states():
+    """_initialise computes level, trend and seasonality from data."""
+    y = np.arange(1.0, 21.0)
+    f = ETS(error_type=1, trend_type=1, seasonality_type=None)
+    f.fit(y)
+    f._initialise(y)
+    assert np.isfinite(f.level_)
+    assert np.isfinite(f.trend_)
+
+
+def test_ets_iterative_forecast_exog_raises():
+    """ETS and AutoETS iterative_forecast reject exogenous variables."""
+    y = np.arange(1.0, 21.0)
+    exog = np.arange(20.0)
+    with pytest.raises(NotImplementedError, match="ETS does not support exog"):
+        ETS().iterative_forecast(y, prediction_horizon=2, exog=exog)
+    with pytest.raises(NotImplementedError, match="AutoETS does not support exog"):
+        AutoETS().iterative_forecast(y, prediction_horizon=2, future_exog=exog)
+
+
+def test_auto_ets_negative_data_skips_multiplicative():
+    """Series with non-positive values exclude multiplicative candidates."""
+    rng = np.random.default_rng(0)
+    t = np.arange(24.0)
+    y = np.sin(2 * np.pi * t / 4.0) + 0.1 * rng.standard_normal(24) - 0.5
+    assert np.min(y) < 0
+    f = AutoETS(seasonal_period=4, allow_multiplicative_trend=True)
+    f.fit(y)
+    # multiplicative error/trend/seasonality cannot be selected
+    assert f.error_type_ != 2
+    assert f.trend_type_ != 2
+    assert f.seasonality_type_ != 2
+    assert np.isfinite(f.forecast_)

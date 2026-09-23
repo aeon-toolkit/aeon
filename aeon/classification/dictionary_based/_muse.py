@@ -14,6 +14,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse import hstack
 from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -35,7 +36,7 @@ class MUSE(BaseClassifier):
 
     There are these primary parameters:
              chi2-threshold: used for feature selection to select best words
-             binning_strategy: the binning strategy used to disctrtize into SFA words.
+             binning_strategy: the binning strategy used to discretize into SFA words.
 
     Parameters
     ----------
@@ -56,13 +57,13 @@ class MUSE(BaseClassifier):
     alphabet_size : default = 4
         Number of possible letters (values) for each word.
     use_first_order_differences : bool, default = True
-        If set to True will add the first order differences of each dimension
+        If set to True will add the first order differences of each channel
         to the data.
     feature_selection : str, default = "chi2"
         Sets the feature selections strategy to be used, one of
         {"chi2", "none", "random"}. "chi2" reduces the number of words significantly
         and is thus much faster (preferred). Random also reduces the number
-        significantly. None applies not feature selectiona and yields large
+        significantly. None applies no feature selection and yields large
         bag of words, e.g. much memory may be needed.
     p_threshold : int, default=0.05
         Used when feature selection is applied based on the chi-squared test.
@@ -74,17 +75,18 @@ class MUSE(BaseClassifier):
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accuracy. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
+        If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights
         inversely proportional to class frequencies in the input data as
         n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
         For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV
+        is not an ensemble model.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -103,7 +105,7 @@ class MUSE(BaseClassifier):
     See Also
     --------
     WEASEL
-        MUSE is the multivariare version of WEASEL.
+        MUSE is the multivariate version of WEASEL.
 
     References
     ----------
@@ -132,7 +134,9 @@ class MUSE(BaseClassifier):
     """
 
     _tags = {
-        "capability:univariate": False,
+        # MUSE warns on univariate input and carries on, and its own example
+        # runs on a univariate dataset, so the capability is there
+        "capability:univariate": True,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -199,12 +203,12 @@ class MUSE(BaseClassifier):
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        # add first order differences in each dimension to TS
+        # add first order differences in each channel to TS
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
         self.n_channels = X.shape[1]
 
-        self.highest_dim_bit = (math.ceil(math.log2(self.n_channels))) + 1
+        self.highest_channel_bit = (math.ceil(math.log2(self.n_channels))) + 1
 
         if self.n_channels == 1:
             warnings.warn(
@@ -263,16 +267,17 @@ class MUSE(BaseClassifier):
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
+            all_words = all_words.astype(np.float32, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
                 solver="liblinear",
                 dual=True,
                 class_weight=self.class_weight,
-                penalty="l2",
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
             )
+            if self.n_classes_ > 2:
+                self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)
 
         self.clf.fit(all_words, y)
         self.total_features_count = all_words.shape[-1]
@@ -383,12 +388,12 @@ def _compute_window_inc(n_timepoints, window_inc):
 
 
 def _parallel_transform_words(X, window_sizes, SFA_transformers, ind):
-    # On each dimension, perform SFA
-    X_dim = X[:, ind]
+    # On each channel, perform SFA
+    X_channel = X[:, ind]
 
     bag_all_words = []
     for i in range(len(window_sizes[ind])):
-        words = SFA_transformers[ind][i].transform(X_dim)
+        words = SFA_transformers[ind][i].transform(X_channel)
         bag_all_words.append(words)
 
     return bag_all_words
@@ -420,9 +425,9 @@ def _parallel_fit(
 
     all_words = []
 
-    # On each dimension, perform SFA
-    X_dim = X[:, ind]
-    n_timepoints = X_dim.shape[-1]
+    # On each channel, perform SFA
+    X_channel = X[:, ind]
+    n_timepoints = X_channel.shape[-1]
 
     # increment window size in steps of 'win_inc'
     win_inc = _compute_window_inc(n_timepoints, window_inc)
@@ -461,7 +466,7 @@ def _parallel_fit(
             return_sparse=True,
         )
 
-        all_words.append(transformer.fit_transform(X_dim, y))
+        all_words.append(transformer.fit_transform(X_channel, y))
         SFA_transformers.append(transformer)
         relevant_features_count = transformer.feature_count
 

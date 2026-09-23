@@ -46,3 +46,21 @@ def test_all_summary_stat_multi():
         assert not np.isnan(test_result).any()
         assert test_result.shape == (8,)
         assert train_result.shape == (8,)
+
+
+def test_estimator_attribute_created_on_fit():
+    """Test that estimator_ is only set after fitting, not before."""
+    from sklearn.cluster import KMeans
+
+    X_train, _ = load_gunpoint(split="train")
+    X_train = X_train[:10]
+
+    model = SummaryClusterer(random_state=1)
+
+    assert not hasattr(model, "estimator_")
+
+    model.fit(X_train)
+
+    assert hasattr(model, "estimator_")
+    assert isinstance(model.estimator_, KMeans)
+    assert not hasattr(model, "_estimator")

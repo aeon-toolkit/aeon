@@ -25,39 +25,20 @@ class FakeStumpi:
         p,
         k,
     ):
-        self.X = X
+        self.X = np.asarray(X)
         self.m = m
         self.egress = egress
         self.normalize = normalize
         self.p = p
         self.k = k
 
-        self._left_P = np.array(
-            [
-                5.92,
-                4.43,
-                3.07,
-                1.25,
-                3.07,
-                2.82,
-                1.19,
-                0.81,
-                0.58,
-                0.75,
-                0.70,
-                0.10,
-                0.35,
-                0.47,
-                0.77,
-                0.82,
-                0.62,
-            ]
-        )
-
+        n_windows = self.X.shape[0] - self.m + 1
+        self._left_P = np.arange(n_windows, dtype=np.float64)
         self._update_count = 0
 
     def update(self, X):
         """Fake update method."""
+        self._left_P = np.append(self._left_P, self._left_P.shape[0])
         self._update_count += 1
 
 
@@ -65,9 +46,12 @@ class FakeStumpi:
 def mock_stumpy_pkg():
     """Mock stumpy package."""
     mock_pkg = mock.MagicMock()
+    mock_pkg.stumpi_instances = []
 
     def fake_stumpi(X, m, egress, normalize, p, k):
-        return FakeStumpi(X, m, egress, normalize, p, k)
+        stumpi = FakeStumpi(X, m, egress, normalize, p, k)
+        mock_pkg.stumpi_instances.append(stumpi)
+        return stumpi
 
     mock_pkg.stumpi.side_effect = fake_stumpi
     with mock.patch.dict("sys.modules", {"stumpy": mock_pkg}):
@@ -81,22 +65,21 @@ class TestLeftSTAMPi:
         not _check_soft_dependencies("stumpy", severity="none"),
         reason="required soft dependency stumpy not available",
     )
-    def test_functional_it_allows_batch_processing_two_step(self):
-        """Functional testing the batch mode without mocking stumpy."""
+    def test_functional_predict_after_fit_is_independent_series(self):
+        """Functional testing predict returns scores for the predict series only."""
         # given
-        series = make_example_1d_numpy(n_timepoints=20, random_state=42)
-        series[7:10] += 3
+        train = make_example_1d_numpy(n_timepoints=20, random_state=42)
+        test = make_example_1d_numpy(n_timepoints=10, random_state=43)
 
-        model = LeftSTAMPi(window_size=4, n_init_train=5)
+        model = LeftSTAMPi(window_size=3, n_init_train=3)
 
         # when
-        model = model.fit(series[:5])
-        pred = model.predict(series[5:])
+        model = model.fit(train)
+        pred = model.predict(test)
 
         # then
-        assert pred.shape == (20,)
+        assert pred.shape == (10,)
         assert pred.dtype == np.float64
-        assert np.argmax(pred) == 8
 
     @pytest.mark.skipif(
         not _check_soft_dependencies("stumpy", severity="none"),
@@ -130,13 +113,42 @@ class TestLeftSTAMPi:
         pred = ad.fit_predict(series)
 
         # then
-        mock_stumpy_pkg.stumpi.has_been_called_once_with(
-            series[:5], m=4, egress=False, normalize=True, p=2
-        )
-        assert ad.mp_._update_count == 15
+        mock_stumpy_pkg.stumpi.assert_called_once()
+        call_args, call_kwargs = mock_stumpy_pkg.stumpi.call_args
+        np.testing.assert_array_equal(call_args[0], series[:5])
+        assert call_kwargs == {
+            "m": 4,
+            "egress": False,
+            "normalize": True,
+            "p": 2.0,
+            "k": 1,
+        }
+        assert mock_stumpy_pkg.stumpi_instances[-1]._update_count == 15
         assert pred.shape == (20,)
         assert pred.dtype == np.float64
-        assert np.argmax(pred) == 8
+
+    def test_predict_after_fit_returns_predict_series_length(self, mock_stumpy_pkg):
+        """Unit testing predict does not append to the fit series."""
+        train = make_example_1d_numpy(n_timepoints=20, random_state=42)
+        test = make_example_1d_numpy(n_timepoints=10, random_state=43)
+        ad = LeftSTAMPi(window_size=3, n_init_train=3)
+
+        ad.fit(train)
+        pred = ad.predict(test)
+
+        mock_stumpy_pkg.stumpi.assert_called_once()
+        call_args, call_kwargs = mock_stumpy_pkg.stumpi.call_args
+        np.testing.assert_array_equal(call_args[0], test[:3])
+        assert call_kwargs == {
+            "m": 3,
+            "egress": False,
+            "normalize": True,
+            "p": 2.0,
+            "k": 1,
+        }
+        assert mock_stumpy_pkg.stumpi_instances[-1]._update_count == 7
+        assert pred.shape == (10,)
+        assert pred.dtype == np.float64
 
     def test_window_size_defaults_to_3(self, mock_stumpy_pkg):
         """Unit testing the default window size."""

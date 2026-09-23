@@ -6,17 +6,58 @@ from numba import njit
 from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dispatch_loss(fn_id, params, data, model):
     if fn_id == 0:
-        return _arima_fit(params, data, model)
-    if fn_id == 1:
-        return _ets_fit(params, data, model)[0]
+        value = _arima_fit(params, data, model)
+    elif fn_id == 1:
+        value = _ets_fit(params, data, model)[0]
     else:
         raise ValueError("Unknown loss function ID")
+    if np.isnan(value) or np.isinf(value):
+        return np.inf
+    return value
 
 
 @njit(cache=True, fastmath=True)
+def _init_ets_simplex(points, model):
+    alpha_idx = 0
+    beta_idx = 1
+    phi_idx = 2
+    error_type = model[0]
+    trend_type = model[1]
+    seasonality_type = model[2]
+    points[:] = 0.0
+    base = points[0]
+    # Multiplicative-error/additive-seasonal models are especially sensitive to
+    # invalid fitted states from a large initial level/seasonal smoothing value.
+    base_alpha = 0.1 if error_type == 2 and seasonality_type == 1 else 0.5
+    base_level = 0.01 if error_type == 2 and seasonality_type == 1 else 0.1
+    base[alpha_idx] = base_alpha
+    param_index = 1
+    if trend_type != 0:
+        base[param_index] = base_level
+        param_index += 1
+        base[param_index] = 0.98
+        param_index += 1
+    if seasonality_type != 0:
+        base[param_index] = base_level
+
+    for i in range(1, len(points)):
+        # Numba row assignment copies the base vertex before perturbing one slot.
+        points[i] = base
+        param = i - 1
+        if param == alpha_idx:
+            points[i, param] = base_alpha * 1.2
+        elif trend_type != 0 and param == beta_idx:
+            points[i, param] = base_level * 1.2
+        elif trend_type != 0 and param == phi_idx:
+            points[i, param] = 0.9
+        else:
+            points[i, param] = base_level * 1.2
+
+
+@njit(cache=True, fastmath={"contract"})
 def nelder_mead(
     loss_id,
     num_params,
@@ -80,8 +121,11 @@ def nelder_mead(
        https://doi.org/10.1093/comjnl/7.4.308
     """
     points = np.full((num_params + 1, num_params), simplex_init)
-    for i in range(num_params):
-        points[i + 1][i] = simplex_init * 1.2
+    if loss_id == 1:
+        _init_ets_simplex(points, model)
+    else:
+        for i in range(num_params):
+            points[i + 1][i] = simplex_init * 1.2
     values = np.empty(len(points), dtype=np.float64)
     for i in range(len(points)):
         values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
@@ -136,6 +180,16 @@ def nelder_mead(
             values[i] = dispatch_loss(loss_id, points[i], data, model)
 
         # Convergence check
-        if np.max(np.abs(values - values[0])) < tol:
+        if (
+            not np.isnan(values[0])
+            and not np.isinf(values[0])
+            and np.max(np.abs(values - values[0])) < tol
+        ):
             break
-    return points[0], values[0]
+    # ``values`` is kept in sync with ``points`` at every exit of the main
+    # loop (sort, reflect/expand/contract write to both, shrink updates both
+    # per vertex). The previous implementation re-evaluated ``dispatch_loss``
+    # for all n+1 simplex vertices to pick the best, which was a wasted
+    # n+1 loss evaluations per optimiser call.
+    best = np.argmin(values)
+    return points[best], values[best]

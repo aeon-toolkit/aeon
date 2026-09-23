@@ -4,7 +4,7 @@ import numpy as np
 from numba import njit, prange
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -91,7 +91,7 @@ def _univariate_paa_sax_distance(
     return np.sqrt(dist)
 
 
-@threaded
+@numba_thread_handler
 def mindist_paa_sax_pairwise_distance(
     X: np.ndarray,
     y: np.ndarray,
@@ -133,7 +133,7 @@ def mindist_paa_sax_pairwise_distance(
         X, "X", multivariate_conversion
     )
     if y is None:
-        return _paa_sax_from_multiple_to_multiple_distance(_X, breakpoints, n)
+        return _paa_sax_from_multiple_to_multiple_distance(_X, None, breakpoints, n)
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )

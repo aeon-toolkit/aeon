@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.machine_learning._setar import SETAR
+from aeon.forecasting.machine_learning._setar import SETAR, _lagmat_1d
 
 
 def test_constant_series_scalar_and_close():
@@ -130,6 +130,22 @@ def test_predict_depends_only_on_tail_lags():
     y_tail = y_full[-keep:]
     pred_tail = f.predict(y_tail)
     assert np.isclose(pred_full, pred_tail, atol=1e-9), "Tail-invariance violated"
+
+
+def test_lagmat_1d_input_validation():
+    """_lagmat_1d rejects non-1D input and series no longer than maxlag."""
+    with pytest.raises(ValueError, match="must be a 1D array"):
+        _lagmat_1d(np.ones((2, 3)), 2)
+    with pytest.raises(ValueError, match="too short for lag construction"):
+        _lagmat_1d(np.arange(3.0), 3)
+
+
+def test_fit_setar_returns_none_for_degenerate_inputs():
+    """_fit_setar returns None when the series is too short or the grid is empty."""
+    # len(y) <= lag_order + delay -> no lag matrix can be built
+    assert SETAR._fit_setar(np.arange(5.0), lag_order=5, delay=1) is None
+    # a single usable observation -> empty threshold quantile range
+    assert SETAR._fit_setar(np.arange(7.0), lag_order=5, delay=1) is None
 
 
 def test_none_return_from_fit_setar_falls_back_to_linear():

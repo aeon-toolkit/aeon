@@ -108,8 +108,8 @@ The project developers would like to thank the following funders:
 :widths: 50 50
 :header-rows: 1
 
-* -
-  -
+* - The {INRIA P16](https://p16.inria.fr/fr/) funds Ali Ismail-Fawaz ({user}`hadifawaz1999`) and Germain Forestier ({user}`forestier`) between 2025-2028
+  - ![https://www.inria.fr/fr](images/funder_logos/Inria.png)
 * - The [UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst ({user}`matthewmiddlehurst`) and Tony Bagnall ({user}`TonyBagnall`) between 2022-2025
   - ![https://epsrc.ukri.org](images/funder_logos/ukri-epsrc-logo.png)
 ```

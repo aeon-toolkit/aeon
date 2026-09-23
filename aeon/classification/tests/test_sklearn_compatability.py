@@ -82,7 +82,11 @@ def test_sklearn_cross_validation():
     """Test sklearn cross-validation works with aeon data and classifiers."""
     clf = CanonicalIntervalForestClassifier._create_test_instance()
     X, y = make_example_3d_numpy(
-        n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
+        n_cases=20,
+        n_channels=2,
+        n_timepoints=30,
+        min_cases_per_label=10,
+        random_state=0,
     )
     scores = cross_val_score(clf, X, y=y, cv=StratifiedKFold(n_splits=2))
     assert isinstance(scores, np.ndarray)
@@ -92,7 +96,11 @@ def test_sklearn_cross_validation():
 def test_sklearn_cross_validation_iterators(cross_validation_method):
     """Test if sklearn cross-validation iterators can handle aeon data."""
     X, y = make_example_3d_numpy(
-        n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
+        n_cases=20,
+        n_channels=2,
+        n_timepoints=30,
+        min_cases_per_label=10,
+        random_state=0,
     )
     groups = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
 
@@ -106,11 +114,22 @@ def test_sklearn_parameter_tuning(parameter_tuning_method):
     clf = CanonicalIntervalForestClassifier._create_test_instance()
     param_grid = {"n_intervals": [2, 3], "att_subsample_size": [2, 3]}
     X, y = make_example_3d_numpy(
-        n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
+        n_cases=20,
+        n_channels=2,
+        n_timepoints=30,
+        min_cases_per_label=10,
+        random_state=0,
     )
-    parameter_tuning_method = parameter_tuning_method(
-        clf, param_grid, cv=StratifiedKFold(n_splits=2)
-    )
+    kwargs = {"cv": StratifiedKFold(n_splits=2)}
+    if parameter_tuning_method in [HalvingGridSearchCV, HalvingRandomSearchCV]:
+        # Successive halving subsamples training folds without stratification.
+        # min_resources=12 gives 6 of each 10-case fold, so both classes appear.
+        kwargs["min_resources"] = 12
+        kwargs["random_state"] = 0
+    elif parameter_tuning_method is RandomizedSearchCV:
+        kwargs["random_state"] = 0
+
+    parameter_tuning_method = parameter_tuning_method(clf, param_grid, **kwargs)
     parameter_tuning_method.fit(X, y)
     assert isinstance(
         parameter_tuning_method.best_estimator_, CanonicalIntervalForestClassifier
@@ -121,7 +140,11 @@ def test_sklearn_parameter_tuning(parameter_tuning_method):
 def test_sklearn_composite_classifiers(composite_classifier):
     """Test if sklearn composite classifiers can handle aeon data and classifiers."""
     X, y = make_example_3d_numpy(
-        n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
+        n_cases=20,
+        n_channels=2,
+        n_timepoints=30,
+        min_cases_per_label=10,
+        random_state=0,
     )
     rng = np.random.RandomState(0)
     perm = rng.permutation(len(y))

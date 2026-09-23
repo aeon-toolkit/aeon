@@ -69,7 +69,7 @@ class ContractableBOSS(BaseClassifier):
         Sets the feature selections strategy to be used. One of {"chi2", "none",
         "random"}. "chi2" reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
-        applies not feature selectiona and yields large bag of words, e.g. much
+        applies no feature selection and yields large bag of words, e.g. much
         memory may be needed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;

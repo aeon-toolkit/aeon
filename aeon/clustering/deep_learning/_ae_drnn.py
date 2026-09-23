@@ -16,7 +16,7 @@ from aeon.networks import AEDRNNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
-    from aeon.networks._ae_drnn import _TensorDilation
+    from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
@@ -102,6 +102,12 @@ class AEDRNNClusterer(BaseDeepClusterer):
         this parameter is discarded.
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
+
+    Attributes
+    ----------
+    estimator_ : BaseClusterer
+        The fitted clustering estimator used to assign cluster labels
+        from the model's latent space representation.
 
     References
     ----------
@@ -352,7 +358,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         """
         import tensorflow as tf
 
-        from aeon.networks._ae_drnn import _TensorDilation
+        from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
 
         self.model_ = tf.keras.models.load_model(
             model_path, custom_objects={"_TensorDilation": _TensorDilation}
@@ -360,7 +366,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.is_fitted = True
 
         # use deep copy to preserve fit state
-        self._estimator = deepcopy(estimator)
+        self.estimator_ = deepcopy(estimator)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

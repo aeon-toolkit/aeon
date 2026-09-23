@@ -134,7 +134,8 @@ class HidalgoSegmenter(BaseSegmenter):
         Parameters
         ----------
         X : np.ndarray
-            2D array of shape (n_timepoints, n_channels), where dim > 1 data to fit
+            2D array of shape (n_timepoints, n_channels), where n_channels > 1 data
+            to fit
             the algorithm to
 
         Returns
@@ -573,7 +574,7 @@ class HidalgoSegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        X : 2D np.ndarray of shape (N, dim), where dim > 1
+        X : 2D np.ndarray of shape (N, n_channels), where n_channels > 1
             data to fit the algorithm to
 
         Returns

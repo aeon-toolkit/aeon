@@ -33,9 +33,14 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     n_neighbors : int, default = 1
         Set ``k`` for knn.
     weights : str or callable, default = 'uniform'
-        Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
-        or a callable
-        function.
+        Mechanism for weighting a vote, one of:
+
+        - ``'uniform'`` : all points in each neighbourhood are weighted equally.
+        - ``'distance'`` : weight points by the inverse of their distance, so that
+          closer neighbours have greater influence.
+        - a callable : a user-defined function which accepts an array of distances
+          to the neighbours and returns an array of the same shape containing the
+          weights.
     distance : str or callable, default ='dtw'
         Distance measure between time series.
         Distance metric to compute similarity between time series. A ``list`` of valid
@@ -99,10 +104,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         if self._distance_params is None:
             self._distance_params = {}
 
-        if weights not in WEIGHTS_SUPPORTED:
+        if not callable(weights) and weights not in WEIGHTS_SUPPORTED:
             raise ValueError(
                 f"Unrecognised kNN weights: {weights}. "
-                f"Allowed values are: {WEIGHTS_SUPPORTED}. "
+                f"Allowed values are: {WEIGHTS_SUPPORTED}, or a callable. "
             )
         self.weights = weights
 
@@ -150,7 +155,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             neigh_dist = neigh_dist[0]
             neigh_ind = neigh_ind[0]
 
-            if self.weights == "distance":
+            if callable(self.weights):
+                weights = self.weights(neigh_dist)
+            elif self.weights == "distance":
                 weights = 1 / (neigh_dist + np.finfo(float).eps)
             elif self.weights == "uniform":
                 weights = np.repeat(1.0, len(neigh_ind))
@@ -182,13 +189,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        self._check_is_fitted()
-
-        neigh_ind = self._kneighbors(
-            X, n_neighbors=1, return_distance=False, query_is_train=False
-        )
-        indexes = neigh_ind[:, 0]
-        return self.classes_[self.y_[indexes]]
+        return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
 
     def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
         """Find the K-neighbors of a point.
