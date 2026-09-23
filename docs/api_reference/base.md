@@ -22,7 +22,7 @@ The `aeon.base` module contains abstract base classes.
 ## Checkpointing
 
 Estimators declaring `capability:checkpointing=True` can save training state
-and explicitly continue it. Initially, Arsenal supports this capability.
+and explicitly continue it. Arsenal and DrCIFClassifier support this capability.
 `fit` always starts a fresh fit; use `resume_fit` to continue a loaded checkpoint.
 
 ```python
@@ -43,18 +43,18 @@ clf.resume_fit(X_train, y_train)
 
 The interval is in minutes, and checkpoint timing is approximate. Periodic writes
 occur at the next algorithm-specific safe boundary after the interval has elapsed.
-For Arsenal, this is after a complete batch has joined and its results and RNG
-state have been committed. Long-running batches can therefore delay checkpoints
-beyond the requested interval. A successful fit also writes a
+For Arsenal and DrCIFClassifier, this is after a complete batch has joined and
+its results and RNG state have been committed. Long-running batches can delay
+checkpoints beyond the requested interval. A successful fit also writes a
 final checkpoint. With `checkpoint_interval=None`, only the final automatic
 write occurs; with `checkpoint_path=None`, automatic writes are disabled.
 Manual `clf.save_checkpoint(path)` is available after fitting. A killed job
 loses work since the last completed write, and no checkpoint exists until the
 first write. Set the interval shorter than the job's wall-time allowance.
 
-For contracted Arsenal fits, `time_limit_in_minutes` bounds total training time
-across calls, measured by `fit_elapsed_time_`. A fit interrupted after 10 hours
-of a 12 hour contract resumes with 2 hours remaining; raise
+For contracted Arsenal and DrCIFClassifier fits, `time_limit_in_minutes` bounds
+total training time across calls, measured by `fit_elapsed_time_`. A fit
+interrupted after 10 hours of a 12 hour contract resumes with 2 hours remaining; raise
 `time_limit_in_minutes` above the time already spent to grant more. `fit` always
 starts the budget afresh. `contract_max_n_estimators` remains a limit on the
 total ensemble size; increase it if it has already been reached. A batch may
@@ -62,7 +62,7 @@ overrun the time budget.
 
 `fit_time_millis_` records the initial fit call and is not updated by
 `resume_fit`. Automatic checkpoints may omit it because they are saved before
-the fit timer is assigned. Use Arsenal's `fit_elapsed_time_` for cumulative
+the fit timer is assigned. Use `fit_elapsed_time_` for cumulative
 contract timing across fit and resume calls.
 
 `resume_fit` is not limited to recovering an interrupted fit: because member
@@ -116,3 +116,12 @@ The classifier base handles data signatures and final writes. Provide a small
 deterministic `checkpointing` test parameter set that reaches multiple safe
 boundaries for the generic interruption/recovery estimator check. Add specific
 tests for algorithmic counters, random state and retained training estimates.
+
+Interval forests inherit checkpoint persistence and continuation from
+`BaseIntervalForest`. DrCIFClassifier enables this through its capability tag
+and constructor parameters. Other interval forests do not yet expose this
+capability. DrCIF checkpoints retain fitted representation transformers, trees,
+interval selectors and RNG state. When fitting requests training estimates,
+each batch also commits its OOB predictions before saving; transformed training
+matrices are not retained for this purpose. Changing `parallel_backend` between
+calls is allowed, as is changing `n_jobs`.
