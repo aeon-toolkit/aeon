@@ -42,6 +42,9 @@ class ResNetNetwork(BaseDeepLearningNetwork):
         Condition on whether or not to use bias values in the convolution layers in
         one residual block, if not a list, the same kernel size is used in all
         convolution layers.
+    transpose : bool, default = False
+        Whether or not to use transposed convolution layers instead of
+        convolution layers.
 
     Notes
     -----
@@ -78,7 +81,9 @@ class ResNetNetwork(BaseDeepLearningNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
+        transpose=False,
     ):
+        super().__init__()
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -88,8 +93,12 @@ class ResNetNetwork(BaseDeepLearningNetwork):
         self.padding = padding
         self.activation = activation
         self.use_bias = use_bias
+        self.transpose = transpose
 
-        super().__init__()
+        self.block_activation_names = None
+
+    def _set_block_activation_names_for_ae(self, names):
+        self.block_activation_names = names
 
     def _check_params(self):
         n_conv = self.n_conv_per_residual_block
@@ -123,11 +132,15 @@ class ResNetNetwork(BaseDeepLearningNetwork):
 
         self._check_params()
 
+        Conv = tf.keras.layers.Conv1D
+        if self.transpose:
+            Conv = tf.keras.layers.Conv1DTranspose
+
         for d in range(self.n_residual_blocks):
             input_block_tensor = x
 
             for c in range(self.n_conv_per_residual_block):
-                conv = tf.keras.layers.Conv1D(
+                conv = Conv(
                     filters=self._n_filters[d],
                     kernel_size=self._kernel_size[c],
                     strides=self._strides[c],
@@ -140,8 +153,17 @@ class ResNetNetwork(BaseDeepLearningNetwork):
                     conv = self._shortcut_layer(
                         input_tensor=input_block_tensor, output_tensor=conv
                     )
+                name = None
+                if (
+                    c == self.n_conv_per_residual_block - 1
+                    and self.block_activation_names is not None
+                ):
 
-                conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
+                    name = self.block_activation_names[d]
+
+                conv = tf.keras.layers.Activation(
+                    activation=self._activation[c], name=name
+                )(conv)
 
                 x = conv
         return x

@@ -57,6 +57,7 @@ class FCNNetwork(BaseDeepLearningNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
+        transpose=False,
     ):
         self.n_layers = n_layers
         self.n_filters = n_filters
@@ -66,8 +67,14 @@ class FCNNetwork(BaseDeepLearningNetwork):
         self.padding = padding
         self.activation = activation
         self.use_bias = use_bias
+        self.transpose = transpose
+
+        self.block_activation_names = None
 
         super().__init__()
+
+    def _set_block_activation_names_for_ae(self, names):
+        self.block_activation_names = names
 
     def _check_params(self):
         self._n_filters = BaseDeepLearningNetwork._check_layer_param(
@@ -97,8 +104,14 @@ class FCNNetwork(BaseDeepLearningNetwork):
 
         self._check_params()
 
+        Conv = (
+            tf.keras.layers.Conv1DTranspose
+            if self.transpose
+            else tf.keras.layers.Conv1D
+        )
+
         for i in range(self.n_layers):
-            conv = tf.keras.layers.Conv1D(
+            conv = Conv(
                 filters=self._n_filters[i],
                 kernel_size=self._kernel_size[i],
                 strides=self._strides[i],
@@ -108,7 +121,14 @@ class FCNNetwork(BaseDeepLearningNetwork):
             )(x)
 
             conv = tf.keras.layers.BatchNormalization()(conv)
-            conv = tf.keras.layers.Activation(activation=self._activation[i])(conv)
+
+            name = None
+            if self.block_activation_names is not None:
+                name = self.block_activation_names[i]
+
+            conv = tf.keras.layers.Activation(
+                activation=self._activation[i], name=name
+            )(conv)
 
             x = conv
         return x

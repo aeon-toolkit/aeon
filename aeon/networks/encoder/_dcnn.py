@@ -32,6 +32,9 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     padding: Union[str, List[str]], default="causal"
         Padding to be used in each DCNN Layer. Defaults to a list
         of causal paddings for `n_layers` elements.
+    transpose: bool, default=False
+        Whether or not to use transposed convolution layers instead of
+        convolution layers.
 
     References
     ----------
@@ -54,6 +57,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         n_filters=None,
         dilation_rate=None,
         padding="causal",
+        transpose=False,
     ):
         self.latent_space_dim = latent_space_dim
         self.n_layers = n_layers
@@ -62,6 +66,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self.n_filters = n_filters
         self.dilation_rate = dilation_rate
         self.padding = padding
+        self.transpose = transpose
 
         super().__init__()
 
@@ -120,31 +125,46 @@ class DCNNNetwork(BaseDeepLearningNetwork):
 
         return input_layer, output_layer
 
+    def _dcnn_conv(self, x, _n_filters, _dilation_rate, _kernel_size, _padding):
+        import tensorflow as tf
+
+        from aeon.utils.networks.weight_norm import _WeightNormalization
+
+        if self.transpose:
+            return tf.keras.layers.Conv1DTranspose(
+                filters=_n_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding,
+                kernel_regularizer="l2",
+            )(x)
+        else:
+            return _WeightNormalization(
+                tf.keras.layers.Conv1D(
+                    filters=_n_filters,
+                    kernel_size=_kernel_size,
+                    dilation_rate=_dilation_rate,
+                    padding=_padding,
+                )
+            )(x)
+
     def _dcnn_layer(
         self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size, _padding
     ):
         import tensorflow as tf
 
-        from aeon.utils.networks.weight_norm import _WeightNormalization
+        if self.transpose:
+            _add = tf.keras.layers.Conv1DTranspose(
+                filters=_n_filters, kernel_size=1, padding=_padding
+            )(_inputs)
+        else:
+            _add = tf.keras.layers.Conv1D(
+                filters=_n_filters, kernel_size=1, padding=_padding
+            )(_inputs)
 
-        _add = tf.keras.layers.Conv1D(_n_filters, kernel_size=1)(_inputs)
-        x = _WeightNormalization(
-            tf.keras.layers.Conv1D(
-                _n_filters,
-                kernel_size=_kernel_size,
-                dilation_rate=_dilation_rate,
-                padding=_padding,
-            )
-        )(_inputs)
-        x = _WeightNormalization(
-            tf.keras.layers.Conv1D(
-                _n_filters,
-                kernel_size=_kernel_size,
-                dilation_rate=_dilation_rate,
-                padding=_padding,
-                activation=_activation,
-            )
-        )(x)
+        x = self._dcnn_conv(_inputs, _n_filters, _dilation_rate, _kernel_size, _padding)
+        x = self._dcnn_conv(x, _n_filters, _dilation_rate, _kernel_size, _padding)
+
         output = tf.keras.layers.Add()([x, _add])
         output = tf.keras.layers.Activation(_activation)(output)
         return output

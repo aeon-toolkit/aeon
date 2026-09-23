@@ -2,14 +2,12 @@
 
 __maintainer__ = ["aadya940", "hadifawaz1999"]
 
-import warnings
 
-import numpy as np
-
-from aeon.networks.base import BaseDeepLearningNetwork
+from aeon.networks.base import BaseDeepAENetwork
+from aeon.networks.encoder._dcnn import DCNNNetwork
 
 
-class AEDCNNNetwork(BaseDeepLearningNetwork):
+class AEDCNNNetwork(BaseDeepAENetwork):
     """Establish the Auto-Encoder based structure for a DCN Network.
 
     Dilated Convolutional Neural (DCN) Network based Model
@@ -53,7 +51,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        **BaseDeepLearningNetwork._config,
+        **BaseDeepAENetwork._config,
         "structure": "auto-encoder",
     }
 
@@ -61,6 +59,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         self,
         latent_space_dim=128,
         temporal_latent_space=False,
+        repeated_latent_space=False,
         n_layers=4,
         kernel_size=3,
         activation="relu",
@@ -69,10 +68,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         padding_encoder="same",
         padding_decoder="same",
     ):
-        super().__init__()
-
-        self.latent_space_dim = latent_space_dim
-        self.temporal_latent_space = temporal_latent_space
+        super().__init__(latent_space_dim, temporal_latent_space, repeated_latent_space)
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.activation = activation
@@ -85,190 +81,54 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         default_n_filters = [32 * i for i in range(1, self.n_layers + 1)]
         default_dilation_rate = [2**l for l in range(1, self.n_layers + 1)]
 
-        self._kernel_size_encoder = BaseDeepLearningNetwork._check_layer_param(
+        self._kernel_size_encoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.kernel_size, "kernel size", default=3
         )
-        self._activation_encoder = BaseDeepLearningNetwork._check_layer_param(
+        self._activation_encoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.activation, "activations", allow_none=True
         )
-        self._n_filters_encoder = BaseDeepLearningNetwork._check_layer_param(
+        self._n_filters_encoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.n_filters, "filters", default_n_filters
         )
-        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+        self._dilation_rate = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.dilation_rate, "dilation rates", default_dilation_rate
         )
-        self._padding_encoder = BaseDeepLearningNetwork._check_layer_param(
+        self._padding_encoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.padding_encoder, "padding for encoder", default="same"
         )
-        self._padding_decoder = BaseDeepLearningNetwork._check_layer_param(
+        self._padding_decoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.padding_decoder, "padding for decoder", default="same"
         )
-
-    def build_base_graph(self, x):
-        self._check_params()
-        return x
-
-    def build_network(self, input_shape):
-        """Construct a network and return its input and output layers.
-
-        Parameters
-        ----------
-        input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
-            The shape of the data fed into the input layer.
-
-        Returns
-        -------
-        model : a keras Model.
-        """
-        import tensorflow as tf
-
-        input_layer = tf.keras.layers.Input(input_shape)
-        x = input_layer
-        x = self.build_base_graph(x)
-
-        if self.dilation_rate == 1 or np.all(np.array(self._dilation_rate) == 1):
-            warnings.warn(
-                """Currently, the dilation rate has been set to `1` which is
-            different from the original paper of the `AEDCNNNetwork` due to CPU
-            Implementation issues with `tensorflow.keras.layers.Conv1DTranspose`
-            & `dilation_rate` > 1 on some Hardwares & OS combinations. You
-            can use the dilation rates as specified in the paper by passing
-            `dilation_rate=None` to the Network/Clusterer.""",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        if np.any(np.array(self._dilation_rate) > 1):
-            warnings.warn(
-                """Current network configuration contains `dilation_rate`
-                more than 1, which is not supported by
-                `tensorflow.keras.layers.Conv1DTranspose` layer for certain
-                hardware architectures and/or Operating Systems.""",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        for i in range(0, self.n_layers):
-            x = self._dcnn_layer(
-                x,
-                self._n_filters_encoder[i],
-                self._dilation_rate[i],
-                _activation=self._activation_encoder[i],
-                _kernel_size=self._kernel_size_encoder[i],
-                _padding_encoder=self._padding_encoder[i],
-            )
-
-        if not self.temporal_latent_space:
-            shape_before_flatten = x.shape[1:]
-            x = tf.keras.layers.Flatten()(x)
-            output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
-
-        elif self.temporal_latent_space:
-            output_layer = tf.keras.layers.Conv1D(
-                filters=self.latent_space_dim,
-                kernel_size=1,
-            )(x)
-
-        encoder = tf.keras.Model(
-            inputs=input_layer, outputs=output_layer, name="encoder"
+        # add default values for strides, padding, and use_bias
+        # for compatibility with _build_latent_space_graph
+        self._strides = BaseDeepAENetwork._check_layer_param(
+            self.n_layers, param_name="strides", default=1
+        )
+        self._padding = BaseDeepAENetwork._check_layer_param(
+            self.n_layers, param_name="padding", default="same"
+        )
+        self._use_bias = BaseDeepAENetwork._check_layer_param(
+            self.n_layers, param_name="use_bias", default=True
         )
 
-        if self.temporal_latent_space:
-            input_layer_decoder = tf.keras.layers.Input(x.shape[1:])
-            temp = input_layer_decoder
-        elif not self.temporal_latent_space:
-            input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
-            # Cast to int to avoid Keras rejecting numpy scalar types
-            decoder_units = int(np.prod(shape_before_flatten))
-            dense_layer = tf.keras.layers.Dense(units=decoder_units)(
-                input_layer_decoder
-            )
+    def _build_encoder_graph(self, x):
+        self._input_shape = x.shape[1:]
+        return DCNNNetwork(
+            n_layers=self.n_layers,
+            n_filters=self._n_filters_encoder,
+            kernel_size=self._kernel_size_encoder,
+            activation=self._activation_encoder,
+            dilation_rate=self._dilation_rate,
+            padding=self._padding_encoder,
+        ).build_base_graph(x)
 
-            reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flatten)(
-                dense_layer
-            )
-            temp = reshape_layer
-
-        y = temp
-
-        for i in range(0, self.n_layers):
-            y = self._dcnn_layer_decoder(
-                y,
-                self._n_filters_encoder[::-1][i],
-                self._dilation_rate[::-1][i],
-                _activation=self._activation_encoder[::-1][i],
-                _kernel_size=self._kernel_size_encoder[::-1][i],
-                _padding_decoder=self._padding_decoder[i],
-            )
-
-        last_layer = tf.keras.layers.Conv1D(filters=input_shape[-1], kernel_size=1)(y)
-        decoder = tf.keras.Model(
-            inputs=input_layer_decoder, outputs=last_layer, name="decoder"
-        )
-
-        return encoder, decoder
-
-    def _dcnn_layer(
-        self,
-        _inputs,
-        _num_filters,
-        _dilation_rate,
-        _activation,
-        _kernel_size,
-        _padding_encoder,
-    ):
-        import tensorflow as tf
-
-        from aeon.utils.networks.weight_norm import _WeightNormalization
-
-        _add = tf.keras.layers.Conv1D(_num_filters, kernel_size=1)(_inputs)
-        x = _WeightNormalization(
-            tf.keras.layers.Conv1D(
-                _num_filters,
-                kernel_size=_kernel_size,
-                dilation_rate=_dilation_rate,
-                padding=_padding_encoder,
-            )
-        )(_inputs)
-        x = _WeightNormalization(
-            tf.keras.layers.Conv1D(
-                _num_filters,
-                kernel_size=_kernel_size,
-                dilation_rate=_dilation_rate,
-                padding=_padding_encoder,
-                activation=_activation,
-            )
-        )(x)
-        output = tf.keras.layers.Add()([x, _add])
-        output = tf.keras.layers.Activation(_activation)(output)
-        return output
-
-    def _dcnn_layer_decoder(
-        self,
-        _inputs,
-        _num_filters,
-        _dilation_rate,
-        _activation,
-        _kernel_size,
-        _padding_decoder,
-    ):
-        import tensorflow as tf
-
-        _add = tf.keras.layers.Conv1DTranspose(_num_filters, kernel_size=1)(_inputs)
-        x = tf.keras.layers.Conv1DTranspose(
-            _num_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding_decoder,
-            kernel_regularizer="l2",
-        )(_inputs)
-        x = tf.keras.layers.Conv1DTranspose(
-            _num_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding_decoder,
-            kernel_regularizer="l2",
-        )(x)
-        output = tf.keras.layers.Add()([x, _add])
-        output = tf.keras.layers.Activation(_activation)(output)
-        return output
+    def _build_decoder_graph(self, x):
+        return DCNNNetwork(
+            n_layers=self.n_layers,
+            n_filters=self._n_filters_encoder[::-1],
+            kernel_size=self._kernel_size_encoder[::-1],
+            activation=self._activation_encoder[::-1],
+            dilation_rate=self._dilation_rate[::-1],
+            padding=self._padding_decoder,
+            transpose=True,
+        ).build_base_graph(x)
