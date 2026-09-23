@@ -132,8 +132,11 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         MultiRocket only. The number of features per kernel.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators is used. Each call to ``fit`` or
-        ``resume_fit`` receives a new time budget. A running batch may overrun it.
+        Default of 0 means n_estimators is used. The contract bounds total
+        training time: ``fit`` starts the budget afresh, while ``resume_fit``
+        continues spending the budget left by earlier calls, so an ensemble
+        interrupted after 10 hours of a 12 hour contract resumes with 2 hours.
+        A running batch may overrun the contract.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
     class_weight : dict or "balanced", default=None
@@ -196,9 +199,17 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
     ``resume_fit(X, y)`` continues from saved state using the original training
     data. ``fit`` always starts afresh. Between calls, only ``n_estimators``,
     ``contract_max_n_estimators``, ``time_limit_in_minutes``, ``n_jobs``,
-    ``verbose`` and checkpoint settings may change. Member limits apply to the
-    whole ensemble, including existing members. Training estimates, when
+    ``verbose`` and checkpoint settings may change. Training estimates, when
     requested in the original fit, are retained in continuation state.
+
+    Member limits apply to the whole ensemble, including existing members, so
+    ``resume_fit`` also grows or shrinks a fit that completed normally. Raising
+    the limit builds the additional members and gives an ensemble identical to
+    an uninterrupted fit of that size. Lowering it discards the newest members;
+    the generators are not rewound, so raising the limit again trains new
+    members rather than the discarded ones. Growing a contracted fit also needs
+    ``time_limit_in_minutes`` raised above ``fit_elapsed_time_``, since the
+    contract covers total training time.
 
     For the Java version, see
     `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
@@ -434,6 +445,15 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
             raise ValueError(
                 "The target number of estimators must be a positive integer."
             )
+        # member limits apply to the whole ensemble, so a limit below the members
+        # already built discards the newest of them. The generators are not
+        # rewound, so rebuilding afterwards trains new members, not these ones.
+        if self.n_estimators_ > target:
+            del self.estimators_[target:]
+            del self.weights_[target:]
+            del self._train_estimates[target:]
+            self.n_estimators_ = len(self.estimators_)
+            self._weight_sum = float(np.sum(self.weights_))
         start_time = time.perf_counter()
         train_time = 0.0
         initial_count = self.n_estimators_
@@ -463,8 +483,10 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
             if time_limit > 0 or self.checkpoint_path is not None
             else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
         )
+        # the contract bounds total training time, so an interrupted fit resumes
+        # with whatever budget the earlier calls left rather than a fresh one
         while self.n_estimators_ < target and (
-            time_limit <= 0 or train_time < time_limit
+            time_limit <= 0 or self.fit_elapsed_time_ < time_limit
         ):
             current_batch_size = min(batch_size, target - self.n_estimators_)
             rng, train_rng = deepcopy((self._rng, self._train_rng))
@@ -503,15 +525,14 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
             elapsed = time.perf_counter() - start_time
             self.fit_elapsed_time_ += elapsed - train_time
             train_time = elapsed
-            self._checkpoint_parameter_signature = self._checkpoint_parameter_hash()
             self._checkpoint_ready = True
             self._checkpoint_if_due()
 
             if log_each_estimator:
                 if time_limit > 0:
+                    contract_left = max(0.0, time_limit - self.fit_elapsed_time_)
                     remaining = (
-                        "contract_remaining="
-                        f"{self._format_duration(max(0.0, time_limit - train_time))}"
+                        "contract_remaining=" f"{self._format_duration(contract_left)}"
                     )
                 else:
                     estimate = train_time / (self.n_estimators_ - initial_count)

@@ -107,6 +107,30 @@ def test_arsenal_interrupted_batch(_training_data, checkpoint_directory, n_jobs)
     assert Arsenal.load_checkpoint(path).is_fitted
 
 
+def test_arsenal_extend_and_truncate(_training_data):
+    """A completed ensemble grows to a raised limit and truncates to a lowered one."""
+    X, y = _training_data
+    params = dict(n_kernels=10, random_state=0)
+    uninterrupted = Arsenal(**params, n_estimators=5).fit(X, y)
+
+    # growing a completed fit reproduces an uninterrupted fit of the same size,
+    # so extending an ensemble costs nothing in fidelity
+    extended = Arsenal(**params, n_estimators=2).fit(X, y)
+    assert extended.n_estimators_ == 2
+    extended.set_params(n_estimators=5).resume_fit(X, y)
+    assert extended.n_estimators_ == 5
+    _assert_same_ensemble(uninterrupted, extended, X)
+
+    # a lowered limit discards the newest members, leaving the oldest untouched
+    extended.set_params(n_estimators=2).resume_fit(X, y)
+    assert extended.n_estimators_ == 2
+    assert len(extended.estimators_) == len(extended.weights_) == 2
+    np.testing.assert_array_equal(
+        extended.predict_proba(X),
+        Arsenal(**params, n_estimators=2).fit(X, y).predict_proba(X),
+    )
+
+
 def test_arsenal_resume_validation(_training_data):
     """Wrong values, labels and model parameters fail without changing metadata."""
     X, y = _training_data
@@ -133,30 +157,57 @@ def test_arsenal_resume_validation(_training_data):
         MockClassifier().resume_fit(X, y)
 
 
-def test_arsenal_new_contract_budget(_training_data):
-    """Each call receives a new time budget regardless of accumulated time."""
+def test_arsenal_contract_budget_persists(_training_data):
+    """The contract covers total training time across calls, not time per call."""
     X, y = _training_data
-    classifier = Arsenal(
+    params = dict(
         n_kernels=10,
-        time_limit_in_minutes=1e-12,
+        time_limit_in_minutes=60,
         contract_max_n_estimators=4,
         random_state=0,
-    ).fit(X, y)
-    assert classifier.n_estimators_ == 1
-    classifier.fit_elapsed_time_ = 1e9
-    classifier.resume_fit(X, y)
-    assert classifier.n_estimators_ == 2
-    assert classifier.fit_elapsed_time_ >= 1e9
+    )
+    # elapsed time is set explicitly throughout, so no assertion depends on
+    # how long the ensemble actually takes to build
+    uninterrupted = Arsenal(**params).fit(X, y)
+    assert uninterrupted.n_estimators_ == 4
+
+    partial = Arsenal(**params).set_params(contract_max_n_estimators=1)
+    partial.fit(X, y)
+    assert partial.n_estimators_ == 1
+    partial.set_params(contract_max_n_estimators=4)
+
+    # a budget already spent is not refilled by resuming
+    partial.fit_elapsed_time_ = 1e9
+    partial.resume_fit(X, y)
+    assert partial.n_estimators_ == 1
+
+    # budget that remains is spent by the resumed call
+    partial.fit_elapsed_time_ = 0.0
+    partial.resume_fit(X, y)
+    assert partial.n_estimators_ == 4
+    _assert_same_ensemble(uninterrupted, partial, X)
+
+    # fit always starts the budget afresh
+    partial.fit_elapsed_time_ = 1e9
+    partial.fit(X, y)
+    assert partial.n_estimators_ == 4
 
 
 def test_arsenal_random_state_object(_training_data, checkpoint_directory):
-    """Shared model/OOB RNGs remain shared after loading and resuming."""
+    """A RandomState object is copied, not shared, and survives resuming."""
     X, y = _training_data
-    params = dict(n_kernels=10, random_state=np.random.RandomState(0))
-    full = Arsenal(**deepcopy(params), n_estimators=4)
-    partial = Arsenal(**deepcopy(params), n_estimators=2)
+    seed = np.random.RandomState(0)
+    caller_state = joblib_hash(seed.get_state())
+    full = Arsenal(n_kernels=10, random_state=seed, n_estimators=4)
+    partial = Arsenal(n_kernels=10, random_state=deepcopy(seed), n_estimators=2)
     full.fit_predict(X, y)
     partial.fit_predict(X, y)
+
+    # continuation state is copied at fit, so the caller's generator is not
+    # advanced and the model and OOB streams are independent of each other
+    assert joblib_hash(seed.get_state()) == caller_state
+    assert full._rng is not full._train_rng
+
     partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
     restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
     restored.n_estimators = 4

@@ -15,6 +15,7 @@ The `aeon.base` module contains abstract base classes.
     BaseCollectionEstimator
     BaseSeriesEstimator
     CheckpointableMixin
+    CheckpointVersionWarning
     ComposableEstimatorMixin
 ```
 
@@ -51,12 +52,24 @@ Manual `clf.save_checkpoint(path)` is available after fitting. A killed job
 loses work since the last completed write, and no checkpoint exists until the
 first write. Set the interval shorter than the job's wall-time allowance.
 
-For contracted Arsenal fits, `time_limit_in_minutes` is a fresh budget for each
-invocation. For example, set `clf.time_limit_in_minutes = 3500` before resuming
-to allow another 3500 minutes. `contract_max_n_estimators` remains a limit on
-the total ensemble size; increase it if it has already been reached. A batch
-may overrun the time budget. `fit_elapsed_time_` reports accumulated fitting
-time separately. Non-contracted fits may continue after increasing `n_estimators`.
+For contracted Arsenal fits, `time_limit_in_minutes` bounds total training time
+across calls, measured by `fit_elapsed_time_`. A fit interrupted after 10 hours
+of a 12 hour contract resumes with 2 hours remaining; raise
+`time_limit_in_minutes` above the time already spent to grant more. `fit` always
+starts the budget afresh. `contract_max_n_estimators` remains a limit on the
+total ensemble size; increase it if it has already been reached. A batch may
+overrun the time budget.
+
+`resume_fit` is not limited to recovering an interrupted fit: because member
+limits apply to the whole ensemble, it also resizes one that completed normally,
+without needing a checkpoint file. Raising `n_estimators` (or
+`contract_max_n_estimators`) builds the extra members and yields an ensemble
+identical to an uninterrupted fit of that size, so an ensemble can be grown
+cheaply as more compute becomes available. Lowering it discards the newest
+members and keeps the oldest; the random generators are not rewound, so raising
+the limit again trains new members rather than restoring the discarded ones.
+Growing a contracted fit also requires raising `time_limit_in_minutes` above
+`fit_elapsed_time_`, since the contract bounds total training time.
 
 Continuation validates a joblib hash of the converted training data and labels,
 including values, order and dtypes. This reads the dataset once per fit/resume
@@ -67,11 +80,17 @@ state is preserved when fitting began with `fit_predict` or `fit_predict_proba`;
 `resume_fit` returns the estimator, not training predictions.
 
 Persistence uses whole-estimator pickle and requires `cant_pickle=False`.
-Only load trusted checkpoints. Files record the aeon version, estimator class
-and checkpoint format version; incompatible aeon or format versions are rejected.
-Use the same Python and dependency environment when resuming; cross-version
-compatibility is not guaranteed, including between development revisions with
-the same version number.
+Only load trusted checkpoints: the body is pickle and can execute arbitrary
+code. Each file begins with a one-line JSON header recording the format version,
+aeon version, estimator class and parameter signature, validated before the body
+is unpickled. `CheckpointableMixin.read_checkpoint_metadata(path)` returns that
+header without loading the estimator, so a checkpoint can be identified even
+when it cannot be restored. An unsupported format version is rejected; a
+checkpoint written by a different aeon version raises `CheckpointVersionWarning`
+and is still loaded, since refusing it would discard the fit. Use the same
+Python and dependency environment when resuming; cross-version compatibility is
+not guaranteed, including between development revisions with the same version
+number.
 
 Writes use a temporary file in the destination directory, followed by flush,
 file sync and atomic replacement. Failed serialization preserves the previous

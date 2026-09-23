@@ -128,7 +128,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
     @final
     def resume_fit(self, X, y):
-        """Continue fitting from a checkpoint or a completed partial fit.
+        """Continue fitting from a checkpoint or an already fitted estimator.
 
         Parameters
         ----------
@@ -147,8 +147,9 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         -----
         Requires ``capability:checkpointing=True`` and continuation state, which
         is preserved. Model-building parameters must match the original fit;
-        allowed runtime changes are documented by each classifier. Each call
-        receives a fresh time budget, including when resuming an interrupted fit.
+        allowed runtime changes are documented by each classifier. Any time
+        contract covers total training time across calls, so resuming continues
+        spending the budget rather than starting a new one.
         """
         if not self.get_tag("capability:checkpointing"):
             raise NotImplementedError("This classifier does not support checkpointing.")
