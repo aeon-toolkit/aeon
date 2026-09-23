@@ -228,7 +228,7 @@ def check_checkpointing_classifier(estimator_class, datatype):
         path = os.path.join(directory, "checkpoint.pkl")
         estimator.set_params(checkpoint_path=path, checkpoint_interval=1)
         with patch.object(
-            estimator_class, "_maybe_checkpoint", interrupt_at_checkpoint
+            estimator_class, "_checkpoint_if_due", interrupt_at_checkpoint
         ):
             with pytest.raises(InterruptedFit):
                 estimator.fit(X, y)

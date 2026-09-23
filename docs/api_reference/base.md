@@ -81,7 +81,7 @@ Implementers should inherit `CheckpointableMixin`, set the capability tag,
 provide `checkpoint_path` and `checkpoint_interval` constructor parameters,
 and implement `_resume_fit`. All continuation state must live on the estimator.
 Set `_checkpoint_ready=False` before a batch and set it to `True` only after
-committing results, counters and RNG state; then call `_maybe_checkpoint()`.
+committing results, counters and RNG state; then call `_checkpoint_if_due()`.
 The classifier base handles data signatures and final writes. Provide a small
 deterministic `checkpointing` test parameter set that reaches multiple safe
 boundaries for the generic interruption/recovery estimator check. Add specific

@@ -497,7 +497,7 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
             train_time = elapsed
             self._checkpoint_parameter_signature = self._checkpoint_parameter_hash()
             self._checkpoint_ready = True
-            self._maybe_checkpoint()
+            self._checkpoint_if_due()
 
             if log_each_estimator:
                 if time_limit > 0:

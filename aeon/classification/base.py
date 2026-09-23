@@ -126,7 +126,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         # this should happen last
         self.is_fitted = True
         if self.get_tag("capability:checkpointing"):
-            self._maybe_checkpoint(force=True)
+            self._checkpoint_if_due(force=True)
         return self
 
     @final
@@ -164,7 +164,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         self.is_fitted = False
         self._resume_fit(X, y)
         self.is_fitted = True
-        self._maybe_checkpoint(force=True)
+        self._checkpoint_if_due(force=True)
         return self
 
     def _resume_fit(self, X, y):
@@ -359,7 +359,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         # this should happen last
         self.is_fitted = True
         if self.get_tag("capability:checkpointing"):
-            self._maybe_checkpoint(force=True)
+            self._checkpoint_if_due(force=True)
         return y_pred
 
     @final
@@ -440,7 +440,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         # this should happen last
         self.is_fitted = True
         if self.get_tag("capability:checkpointing"):
-            self._maybe_checkpoint(force=True)
+            self._checkpoint_if_due(force=True)
         return y_proba
 
     def score(
