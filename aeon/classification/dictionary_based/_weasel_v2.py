@@ -40,7 +40,7 @@ class WEASEL_V2(BaseClassifier):
     for different window lengths and learns a logistic regression classifier
     on this bag.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -81,17 +81,18 @@ class WEASEL_V2(BaseClassifier):
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
+        If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights
         inversely proportional to class frequencies in the input data as
         n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
         For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV
+        is not an ensemble model.
     random_state : int or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
@@ -257,7 +258,7 @@ class WEASEL_V2(BaseClassifier):
 class WEASELTransformerV2:
     """The Word Extraction for Time Series Classifier v2.0 Transformation.
 
-    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    WEASEL 2.0 has three key parameters that are automatically set based on the
     length of the time series:
     (1) Minimal window length: Typically defaulted to 4
     (2) Maximal window length: Typically chosen from
@@ -299,6 +300,8 @@ class WEASELTransformerV2:
        "chi2" or "random". Else ignored.
     random_state: int or None, default=None
         Seed for random, integer
+    n_jobs : int, default=1
+        Number of CPU cores to use.
     """
 
     def __init__(
@@ -310,7 +313,7 @@ class WEASELTransformerV2:
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
-        n_jobs=4,
+        n_jobs=1,
     ):
         self.min_window = min_window
         self.norm_options = norm_options
@@ -388,7 +391,7 @@ class WEASELTransformerV2:
         # Randomly choose window sizes
         self.window_sizes = np.arange(self.min_window, self.max_window + 1, 1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 i,
                 XX,
@@ -424,10 +427,9 @@ class WEASELTransformerV2:
             all_words = np.concatenate(sfa_words, axis=1)
         else:
             all_words = hstack(sfa_words)
-
         self.total_features_count = all_words.shape[1]
 
-        return all_words
+        return all_words.astype(np.float32, copy=False)
 
     def transform(self, X, y=None):
         """Transform X into a WEASEL model.
@@ -447,16 +449,17 @@ class WEASELTransformerV2:
     def _transform_words(self, X):
         XX = X.squeeze(1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(transformer.transform)(XX) for transformer in self.SFA_transformers
         )
 
         all_words = list(parallel_res)
-        return (
+        all_words = (
             np.concatenate(all_words, axis=1)
             if type(all_words[0]) is np.ndarray
             else hstack(all_words)
         )
+        return all_words.astype(np.float32, copy=False)
 
 
 def _parallel_fit(

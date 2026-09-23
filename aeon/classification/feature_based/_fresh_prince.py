@@ -34,9 +34,12 @@ class FreshPRINCEClassifier(BaseClassifier):
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
         `DecisionTreeClassifier` using entropy as a splitting measure.
-    pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter in rotation forest. See the
-        scikit-learn PCA implementation for options.
+    pca_solver : str, default="deprecated"
+        Has no effect, the rotation forest group PCA is always computed with an
+        exact eigendecomposition.
+
+        .. deprecated:: 1.6.0
+            ``pca_solver`` has no effect and will be removed in v1.7.0.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
@@ -90,7 +93,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         default_fc_parameters="comprehensive",
         n_estimators=200,
         base_estimator=None,
-        pca_solver="auto",
+        pca_solver="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -231,7 +234,6 @@ class FreshPRINCEClassifier(BaseClassifier):
                 "base_estimator": DecisionTreeClassifier(
                     criterion="entropy", max_depth=3
                 ),
-                "pca_solver": "full",
                 "default_fc_parameters": "minimal",
             }
         else:

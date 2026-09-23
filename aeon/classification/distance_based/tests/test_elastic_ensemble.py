@@ -73,7 +73,7 @@ def test_proportion_train_in_param_finding():
         ee.fit(X, y)
     ee = ElasticEnsemble(
         distance_measures=["ddtw", "wddtw"],
-        proportion_train_in_param_finding=0.2,
+        proportion_train_in_param_finding=0.4,
         verbose=True,
     )
     ee.fit(X, y)
@@ -86,7 +86,7 @@ def test_all_distance_measures():
     """Test the 'all' option of the distance_measures parameter."""
     X = np.random.random(size=(10, 1, 10))
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
-    ee = ElasticEnsemble(distance_measures="all", proportion_train_in_param_finding=0.2)
+    ee = ElasticEnsemble(distance_measures="all", proportion_train_in_param_finding=0.4)
     ee.fit(X, y)
     distances = list(ee.get_metric_params())
     assert len(distances) == 9
@@ -98,7 +98,7 @@ def test_ts_quad_distance_measures():
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     ee = ElasticEnsemble(
         distance_measures="ts-quad",
-        proportion_train_in_param_finding=0.2,
+        proportion_train_in_param_finding=0.4,
         proportion_of_param_options=0.1,
     )
     ee.fit(X, y)

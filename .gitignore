@@ -159,9 +159,13 @@ envs/
 
 # example run output
 examples/local/
+results/
 
 # local files
 local_code/
 local/
 local_code.py
 local.py
+
+# coding tools
+.claude/

@@ -45,6 +45,7 @@ Distance-based
     KMeansAD
     LeftSTAMPi
     LOF
+    MADRID
     MERLIN
     STOMP
     ROCKAD
@@ -70,6 +71,7 @@ Outlier-Detection
     :toctree: auto_generated/
     :template: class.rst
 
+    ExtendedIsolationForest
     IsolationForest
     OneClassSVM
     STRAY

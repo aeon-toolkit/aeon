@@ -38,6 +38,14 @@ class RSASTClassifier(BaseClassifier):
     n_jobs : int, default -1
         Number of threads to use for the transform.
 
+    Attributes
+    ----------
+    pipeline_ : Pipeline
+        The fitted pipeline consisting of the transformer and classifier.
+    classifier_ : BaseEstimator
+        The fitted classifier.
+    transformer_ : BaseTransformer
+        The fitted shapelet transformer.
 
     References
     ----------
@@ -99,7 +107,7 @@ class RSASTClassifier(BaseClassifier):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self._transformer = RSAST(
+        self.transformer_ = RSAST(
             self.n_random_points,
             self.len_method,
             self.nb_inst_per_class,
@@ -107,7 +115,7 @@ class RSASTClassifier(BaseClassifier):
             self._n_jobs,
         )
 
-        self._classifier = _clone_estimator(
+        self.classifier_ = _clone_estimator(
             (
                 RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
                 if self.classifier is None
@@ -116,9 +124,9 @@ class RSASTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        self._pipeline = make_pipeline(self._transformer, self._classifier)
+        self.pipeline_ = make_pipeline(self.transformer_, self.classifier_)
 
-        self._pipeline.fit(X, y)
+        self.pipeline_.fit(X, y)
 
         return self
 
@@ -135,7 +143,7 @@ class RSASTClassifier(BaseClassifier):
         array-like or list
             Predicted class labels.
         """
-        return self._pipeline.predict(X)
+        return self.pipeline_.predict(X)
 
     def _predict_proba(self, X):
         """Predict labels probabilities for the input.
@@ -150,12 +158,12 @@ class RSASTClassifier(BaseClassifier):
         dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
-        m = getattr(self._classifier, "predict_proba", None)
+        m = getattr(self.classifier_, "predict_proba", None)
         if callable(m):
-            dists = self._pipeline.predict_proba(X)
+            dists = self.pipeline_.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._pipeline.predict(X)
+            preds = self.pipeline_.predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists

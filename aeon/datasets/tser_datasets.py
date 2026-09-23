@@ -1,4 +1,107 @@
-"""Datasets in the Monash tser data archives."""
+"""Datasets in the TSML regression archive. For any issues with these data.
+
+See https://github.com/time-series-machine-learning/tsml-repo.
+
+Datasets are all stored on Zenodo in the TSML grouping
+https://zenodo.org/communities/tsml/records?q=&l=list&p=1&s=10.
+
+The first release of the TSER archive are listed in tser_monash and are also stored
+http://tseregression.org/.
+
+To reference the smaller archive.
+ @article{Tan2020TSER,
+   title={Time Series Extrinsic Regression},
+   author={Tan, Chang Wei and Bergmeir, Christoph and Petitjean, Francois and Webb,
+   Geoffrey I},
+   journal={Data Mining and Knowledge Discovery},
+   pages={1--29},
+   year={2021},
+   publisher={Springer},
+   doi={https://doi.org/10.1007/s10618-021-00745-9}
+}
+
+To reference the larger more recent extension, please reference.
+
+@article{Guijo2024TSER,
+  title={Unsupervised feature based algorithms for time series extrinsic regression},
+  author={Guijo-Rubio, David and Middlehurst, Matthew and Arcencio, Guilherme and
+  Silva, Diego Furtado and Bagnall, Anthony},
+  journal={Data Mining and Knowledge Discovery},
+  pages={2141–2185},
+  volume={28},
+  year={2024},
+  publisher={Springer}
+  doi={https://doi.org/10.1007/s10618-024-01027-w}
+}
+
+
+"""
+
+tsr_zenodo = {
+    "AcousticContaminationMadrid": 11235178,
+    "AluminiumConcentration": 11235367,
+    "AppliancesEnergy": 18484626,
+    "AustraliaRainfall": 18484479,
+    "BIDMC32HR": 18485047,
+    "BIDMC32RR": 18485020,
+    "BIDMC32SpO2": 18484650,
+    "BarCrawl6min": 11235391,
+    "BeijingIntAirportPM25Quality": 11235409,
+    "BeijingPM10Quality": 18485104,
+    "BeijingPM25Quality": 18484804,
+    "BenzeneConcentration": 18484823,
+    "BinanceCoinSentiment": 11235432,
+    "BitcoinSentiment": 11235440,
+    "BoronConcentration": 11235446,
+    "CalciumConcentration": 11235454,
+    "CardanoSentiment": 11235463,
+    "ChilledWaterPredictor": 11235475,
+    "CopperConcentration": 11235478,
+    "Covid19Andalusia": 11235484,
+    "Covid3Month": 18484843,
+    "DailyOilGasPrices": 11235494,
+    "DailyTemperatureLatitude": 11235506,
+    "DhakaHourlyAirQuality": 11235519,
+    "ElectricMotorTemperature": 11235562,
+    "ElectricityPredictor": 11235530,
+    "EthereumSentiment": 11235577,
+    "FloodModeling1": 18484910,
+    "FloodModeling2": 18484871,
+    "FloodModeling3": 18484859,
+    "GasSensorArrayAcetone": 11235589,
+    "GasSensorArrayEthanol": 11235596,
+    "HotwaterPredictor": 11236611,
+    "HouseholdPowerConsumption1": 18484579,
+    "HouseholdPowerConsumption2": 18484955,
+    "IEEEPPG": 18484606,
+    "IronConcentration": 11236615,
+    "LPGasMonitoringHomeActivity": 11236623,
+    "LiveFuelMoistureContent": 18484619,
+    "MadridPM10Quality": 11236664,
+    "MagnesiumConcentration": 11236668,
+    "ManganeseConcentration": 11236670,
+    "MethaneMonitoringHomeActivity": 11236678,
+    "MetroInterstateTrafficVolume": 11236686,
+    "NaturalGasPricesSentiment": 11236690,
+    "NewsHeadlineSentiment": 18485036,
+    "NewsTitleSentiment": 18484638,
+    "OccupancyDetectionLight": 11236697,
+    "PPGDalia": 18485135,
+    "ParkingBirmingham": 11236708,
+    "PhosphorusConcentration": 11236716,
+    "PotassiumConcentration": 11236720,
+    "PrecipitationAndalusia": 11236733,
+    "SierraNevadaMountainsSnow": 11236739,
+    "SodiumConcentration": 11236749,
+    "SolarRadiationAndalusia": 11236753,
+    "SteamPredictor": 11236757,
+    "SulphurConcentration": 11236761,
+    "TetuanEnergyConsumption": 11236765,
+    "VentilatorPressure": 11236769,
+    "WaveDataTension": 11236774,
+    "WindTurbinePower": 11236780,
+    "ZincConcentration": 11236784,
+}
 
 tser_monash = {
     "AppliancesEnergy": 3902637,

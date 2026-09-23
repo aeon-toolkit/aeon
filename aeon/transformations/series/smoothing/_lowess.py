@@ -175,7 +175,9 @@ def _median_1d(a: np.ndarray) -> float:
 
     Could be made marginally faster using partition rather than sort.
     """
-    b = np.sort(a.copy())
+    b = a.copy()
+    b.sort()  # in-place sort; np.sort() behaves differently in numba @njit context
+
     n = b.size
     m = n // 2
     if n % 2 == 1:

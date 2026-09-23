@@ -21,9 +21,10 @@ Clustering Algorithms
     :template: class.rst
 
     KASBA
+    KShape
+    TimeSeriesAgglomerative
     TimeSeriesKMeans
     TimeSeriesKMedoids
-    TimeSeriesKShape
     TimeSeriesKernelKMeans
     TimeSeriesCLARA
     TimeSeriesCLARANS

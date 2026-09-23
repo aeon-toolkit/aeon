@@ -9,6 +9,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
+from aeon.clustering._cluster_initialisation import _kmeans_plus_plus_center_initialiser
 from aeon.clustering._k_means import EmptyClusterError
 from aeon.clustering.averaging import kasba_average
 from aeon.clustering.base import BaseClusterer
@@ -20,7 +21,7 @@ class KASBA(BaseClusterer):
     """KASBA clusterer [1]_.
 
     KASBA is a $k$-means clustering algorithm designed for use with the MSM distance
-    metric [2]_ however, it can be used with any elastic distance that is a metric.
+    metric [2]_. it can be used with any elastic distance that is a metric, such as TWE.
     KASBA finds initial clusters using an adapted form of kmeans++ to use
     elastic distances, a fast assignment step that exploits the metric property
     to avoid distance calculations in assignment, and an adapted elastic barycenter
@@ -32,12 +33,12 @@ class KASBA(BaseClusterer):
         The number of clusters to form as well as the number of centroids to generate.
     distance : str or callable, default='msm'
         The distance metric to use. If a string, must be one of the following:
-        'msm', 'twe'. The distance measure use MUST be a metric.
+        'msm', 'twe'. The distance measure used MUST be a metric.
     ba_subset_size : float, default=0.5
         The proportion of the data to use in the barycenter average step. For the first
         iteration all the data will be used however, on subsequent iterations a subset
         of the data will be used. This will be a % of the data passed (e.g. 0.5 = 50%).
-        If there are less than 10 data points, all the available data will be used
+        If there are fewer than 10 data points, all the available data will be used
         every iteration.
     initial_step_size : float, default=0.05
         The initial step size for the stochastic gradient descent in the
@@ -71,11 +72,11 @@ class KASBA(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
-        Array of shape (n_clusters, n_channels, n_timepoints))
+        Array of shape (n_clusters, n_channels, n_timepoints)
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_case,)
-        Labels that is the index each time series belongs to.
+        1d array of shape (n_cases,)
+        Labels indicating the cluster index assigned to each time series.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center.
     n_iter_ : int
@@ -83,11 +84,11 @@ class KASBA(BaseClusterer):
 
     References
     ----------
-    .. [1] Holder, Christopher & Bagnall, Anthony. (2024).
+    .. [1] Holder, C. and Bagnall, A.
        Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering.
-       10.48550/arXiv.2411.17838.
+       Data Mining and Knowledge Discovery 40(21), 2026
 
-    .. [2] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
+    .. [2] Stefan A., Athitsos V. and Das G.: The Move-Split-Merge metric for time
     series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
     Examples
@@ -95,7 +96,7 @@ class KASBA(BaseClusterer):
     >>> import numpy as np
     >>> from aeon.clustering import KASBA
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= KASBA(distance="msm",n_clusters=2)
+    >>> clst = KASBA(distance="msm", n_clusters=2)
     >>> clst.fit(X)
     KASBA(n_clusters=2)
     >>> preds = clst.predict(X)
@@ -142,8 +143,16 @@ class KASBA(BaseClusterer):
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
-        cluster_centers, distances_to_centers, labels = self._elastic_kmeans_plus_plus(
-            X,
+        cluster_centers, labels, distances_to_centers = (
+            _kmeans_plus_plus_center_initialiser(
+                X=X,
+                n_clusters=self.n_clusters,
+                random_state=self._random_state,
+                distance=self.distance,
+                distance_params=self._distance_params,
+                n_jobs=1,
+                return_distance_and_labels=True,
+            )
         )
         self.labels_, self.cluster_centers_, self.inertia_, self.n_iter_ = self._kasba(
             X,
@@ -320,34 +329,6 @@ class KASBA(BaseClusterer):
                 raise EmptyClusterError
 
         return labels, cluster_centers, distances_to_centers
-
-    def _elastic_kmeans_plus_plus(
-        self,
-        X,
-    ):
-        initial_center_idx = self._random_state.randint(X.shape[0])
-        indexes = [initial_center_idx]
-
-        min_distances = pairwise_distance(
-            X, X[initial_center_idx], method=self.distance, **self._distance_params
-        ).flatten()
-        labels = np.zeros(X.shape[0], dtype=int)
-
-        for i in range(1, self.n_clusters):
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
-
-            new_distances = pairwise_distance(
-                X, X[next_center_idx], method=self.distance, **self._distance_params
-            ).flatten()
-
-            closer_points = new_distances < min_distances
-            min_distances[closer_points] = new_distances[closer_points]
-            labels[closer_points] = i
-
-        centers = X[indexes]
-        return centers, min_distances, labels
 
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)

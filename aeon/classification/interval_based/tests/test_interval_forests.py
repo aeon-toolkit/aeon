@@ -1,5 +1,9 @@
 """Test interval forest classifiers."""
 
+import re
+import warnings
+
+import numpy as np
 import pytest
 
 from aeon.classification.interval_based import (
@@ -10,6 +14,7 @@ from aeon.classification.interval_based import (
     TimeSeriesForestClassifier,
 )
 from aeon.classification.sklearn import ContinuousIntervalTree
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
 from aeon.testing.utils.estimator_checks import _assert_predict_probabilities
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -40,7 +45,7 @@ def test_tic_curves(cls):
     params = cls._get_test_params()
     if isinstance(params, list):
         params = params[0]
-    params.update({"base_estimator": ContinuousIntervalTree()})
+    params.update({"base_estimator": ContinuousIntervalTree(), "random_state": 0})
 
     clf = cls(**params)
     clf.fit(X_train, y_train)
@@ -59,6 +64,25 @@ def test_tic_curves_invalid(cls):
         clf.temporal_importance_curves()
 
 
+def test_drcif_warns_once_for_use_pycatch22():
+    """Test that internal Catch22 clones do not repeat the public warning."""
+    X_train, y_train = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+    params = DrCIFClassifier._get_test_params()
+    params["use_pycatch22"] = False
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", FutureWarning)
+        DrCIFClassifier(**params).fit(X_train, y_train)
+
+    deprecation_warnings = [
+        warning
+        for warning in caught
+        if "use_pycatch22" in str(warning.message)
+        and issubclass(warning.category, FutureWarning)
+    ]
+    assert len(deprecation_warnings) == 1
+
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(["pycatch22"], severity="none"),
     reason="skip test if required soft dependency not available",
@@ -74,7 +98,167 @@ def test_forest_pycatch22(cls):
         params = params[0]
     params.update({"use_pycatch22": True})
 
-    clf = cls(**params)
-    clf.fit(X_train, y_train)
-    prob = clf.predict_proba(X_test)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", FutureWarning)
+        clf = cls(**params)
+        clf.fit(X_train, y_train)
+        prob = clf.predict_proba(X_test)
+
+    deprecation_warnings = [
+        warning for warning in caught if "use_pycatch22" in str(warning.message)
+    ]
+    assert len(deprecation_warnings) == 1
     _assert_predict_probabilities(prob, X_test, n_classes=2)
+
+
+@pytest.mark.parametrize(
+    ("verbose", "expected_output", "excluded_output"),
+    [
+        (1, "[DrCIFClassifier] Progress: built=", "[DrCIFClassifier] Estimator 1/"),
+        (2, "[DrCIFClassifier] Estimator 1/", "[DrCIFClassifier] Progress: built="),
+    ],
+)
+def test_drcif_fit_verbosity_levels(verbose, expected_output, excluded_output, capsys):
+    """DrCIF verbosity controls periodic or per-estimator fit output."""
+    n_cases = 20
+    n_timepoints = 24
+    n_estimators = 2
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    drcif = DrCIFClassifier(
+        n_estimators=n_estimators,
+        n_intervals=2,
+        att_subsample_size=2,
+        random_state=0,
+        verbose=verbose,
+    )
+
+    drcif.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"[DrCIFClassifier] Starting fit: n_cases={n_cases}" in output
+    assert expected_output in output
+    assert excluded_output not in output
+    assert f"[DrCIFClassifier] Finished fit: built={n_estimators}" in output
+    if verbose == 2:
+        assert "estimated_remaining=" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "remaining_time_pattern"),
+    [
+        (1, r"contract_remaining=\d+\.\d+s"),
+        (2, r"contract_remaining=\d+m \d+s"),
+        (120, r"contract_remaining=\d+h \d+m"),
+    ],
+)
+def test_drcif_contract_verbosity_reports_remaining_time(
+    time_limit_in_minutes, remaining_time_pattern, capsys
+):
+    """DrCIF level-two output reports the remaining fit contract."""
+    n_cases = 20
+    n_timepoints = 24
+    max_n_estimators = 2
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    drcif = DrCIFClassifier(
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_estimators=max_n_estimators,
+        n_intervals=2,
+        att_subsample_size=2,
+        random_state=0,
+        verbose=2,
+    )
+
+    drcif.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert re.search(remaining_time_pattern, output)
+    assert "estimated_remaining=" not in output
+    assert f"[DrCIFClassifier] Finished fit: built={max_n_estimators}" in output
+
+
+@pytest.mark.parametrize(
+    ("time_limit_in_minutes", "expect_progress"),
+    [(1e-12, True), (120, False)],
+)
+def test_drcif_contract_level_one_progress_is_rate_limited(
+    time_limit_in_minutes, expect_progress, capsys
+):
+    """DrCIF level-one contract progress is emitted only after its interval."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+    drcif = DrCIFClassifier(
+        time_limit_in_minutes=time_limit_in_minutes,
+        contract_max_n_estimators=2,
+        n_intervals=2,
+        att_subsample_size=2,
+        random_state=0,
+        verbose=1,
+    )
+
+    drcif.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert ("[DrCIFClassifier] Progress: built=" in output) is expect_progress
+    assert "[DrCIFClassifier] Estimator " not in output
+
+
+def test_drcif_parallel_verbosity_preserves_fit(capsys):
+    """Parallel DrCIF fits are unchanged when detailed output is enabled."""
+    n_cases = 20
+    n_timepoints = 24
+    n_estimators = 4
+    n_jobs = 2
+    X, y = make_example_3d_numpy(
+        n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2, random_state=0
+    )
+    params = {
+        "n_estimators": n_estimators,
+        "n_intervals": 2,
+        "att_subsample_size": 2,
+        "n_jobs": n_jobs,
+        "parallel_backend": "threading",
+        "random_state": 0,
+    }
+
+    quiet = DrCIFClassifier(**params).fit(X, y)
+    detailed = DrCIFClassifier(**params, verbose=2).fit(X, y)
+    output = capsys.readouterr().out
+
+    assert detailed._n_jobs == n_jobs
+    assert f"[DrCIFClassifier] Estimator 1/{n_estimators}:" in output
+    np.testing.assert_array_equal(quiet.predict_proba(X), detailed.predict_proba(X))
+
+
+def test_verbose_not_exposed_on_other_interval_forests(capsys):
+    """Interval forests that do not expose verbose stay silent during fit."""
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+    tsf = TimeSeriesForestClassifier(n_estimators=2, random_state=0)
+
+    assert "verbose" not in tsf.get_params()
+    assert tsf.verbose == 0
+    tsf.fit(X, y)
+    assert capsys.readouterr().out == ""
+
+
+def test_tic_curves_all_stump_forest():
+    """All-stump forests should return empty TIC outputs, not raise."""
+    X = np.zeros((10, 1, 20))
+    y = np.array([0, 1] * 5)
+    clf = CanonicalIntervalForestClassifier(
+        n_estimators=2,
+        n_intervals=2,
+        att_subsample_size=2,
+        base_estimator=ContinuousIntervalTree(),
+        random_state=0,
+    )
+    clf.fit(X, y)
+    names, curves = clf.temporal_importance_curves()
+    assert names == []
+    assert curves == []

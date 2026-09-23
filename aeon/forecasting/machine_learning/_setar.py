@@ -134,8 +134,6 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
 
         # Grid search for threshold over 15%-85% quantiles
         num_obs = th_var.shape[0]
-        if num_obs <= 0:
-            return None
         sort_idx = np.argsort(th_var)
         th_var_sorted = th_var[sort_idx]
         start = int(num_obs * 0.15)
@@ -143,8 +141,6 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
         if end <= start:
             return None
         grid = np.unique(th_var_sorted[start:end])  # Unique to avoid duplicates
-        if grid.size == 0:
-            return None
 
         best_sse = np.inf
         best_th = None

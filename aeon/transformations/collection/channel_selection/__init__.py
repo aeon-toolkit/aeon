@@ -10,6 +10,7 @@ __all__ = [
     "ElbowClassPairwise",
     "ElbowClassSum",
     "RandomChannelSelector",
+    "TSelect",
 ]
 
 
@@ -23,3 +24,4 @@ from aeon.transformations.collection.channel_selection._elbow_class import (
 from aeon.transformations.collection.channel_selection._random import (
     RandomChannelSelector,
 )
+from aeon.transformations.collection.channel_selection._tselect import TSelect

@@ -97,6 +97,17 @@ Interval based TSC
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/interval.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/interval_based/drcif.ipynb
+:link-type: ref
+:text-align: center
+
+DrCIF
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/classification/img/shapelet.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/shapelet_based.ipynb
@@ -388,6 +399,17 @@ Deep dive into distance profiles
 :text-align: center
 
 Benchmarking of similarity search speed-ups
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/simhash_index.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/simhash_index.ipynb
+:link-type: ref
+:text-align: center
+
+Deep dive into SimHash and the LSH index
 
 :::
 

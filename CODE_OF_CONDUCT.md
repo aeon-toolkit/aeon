@@ -38,7 +38,7 @@ or through the general `aeon` email ([contact@aeon-toolkit.org](mailto:contact@a
 OR
 
 Submit a report directly to the NumFOCUS Code of Conduct Working Group by using
-[NumFOCUS Code of Conduct Reporting Form](https://numfocus.typeform.com/to/ynjGdT?typeform-source=numfocus.org).
+[NumFOCUS Code of Conduct Reporting Form](https://forms.monday.com/forms/f130e8cddb99568fa86cf077b8912a60?r=use1).
 
 ## Who Will Receive Your Report
 

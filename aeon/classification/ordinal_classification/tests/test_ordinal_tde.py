@@ -52,12 +52,31 @@ def test_ordinal_tde_incorrect_input():
 
 
 def test_ordinal_tde_multivariate():
-    """Test TDE with incorrect input."""
+    """Test ordinal TDE channel selection."""
     # train TDE
     X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
-    tde = IndividualOrdinalTDE(max_dims=1)
+    tde = IndividualOrdinalTDE(max_channels=1, channel_threshold=0.0)
     tde._fit(X, y)
-    assert len(tde._dims) == 1
+    assert len(tde._channels) == 1
+
+
+def test_ordinal_tde_deprecated_channel_parameters_warn():
+    """Test deprecated channel parameter aliases."""
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        individual = IndividualOrdinalTDE(dim_threshold=0.0)
+    assert individual.channel_threshold == 0.0
+
+    with pytest.warns(FutureWarning, match="max_dims"):
+        individual = IndividualOrdinalTDE(max_dims=1)
+    assert individual.max_channels == 1
+
+    with pytest.warns(FutureWarning, match="dim_threshold"):
+        ensemble = OrdinalTDE(dim_threshold=0.0)
+    assert ensemble.channel_threshold == 0.0
+
+    with pytest.warns(FutureWarning, match="max_dims"):
+        ensemble = OrdinalTDE(max_dims=1)
+    assert ensemble.max_channels == 1
 
 
 def test_ordinal_tde_dict_states():

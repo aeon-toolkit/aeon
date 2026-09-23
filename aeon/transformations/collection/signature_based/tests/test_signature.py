@@ -8,13 +8,15 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("esig", severity="none"),
-    reason="skip test if required soft dependency esig not available",
+    not _check_soft_dependencies("roughpy", severity="none"),
+    reason="skip test if required soft dependency roughpy not available",
 )
 def test_generalised_signature_method():
     """Check that dimension and dim of output are correct."""
     # Build an array X, note that this is [n_sample, n_channels, length] shape.
-    import esig
+    from aeon.transformations.collection.signature_based._signature import (
+        _sigdim,
+    )
 
     n_channels = 3
     depth = 4
@@ -22,14 +24,11 @@ def test_generalised_signature_method():
 
     # Check the global dimension comes out correctly
     method = SignatureTransformer(depth=depth, window_name="global")
-    assert method.fit_transform(X).shape[1] == esig.sigdim(n_channels + 1, depth) - 1
+    assert method.fit_transform(X).shape[1] == _sigdim(n_channels + 1, depth) - 1
 
     # Check dyadic dim
     method = SignatureTransformer(depth=depth, window_name="dyadic", window_depth=3)
-    assert (
-        method.fit_transform(X).shape[1]
-        == (esig.sigdim(n_channels + 1, depth) - 1) * 15
-    )
+    assert method.fit_transform(X).shape[1] == (_sigdim(n_channels + 1, depth) - 1) * 15
 
     # Ensure an example
     X = np.array([[0, 1], [2, 3], [1, 1]]).reshape(-1, 2, 3)
@@ -41,8 +40,8 @@ def test_generalised_signature_method():
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("esig", severity="none"),
-    reason="skip test if required soft dependency esig not available",
+    not _check_soft_dependencies("roughpy", severity="none"),
+    reason="skip test if required soft dependency roughpy not available",
 )
 def test_window_error():
     """Test that wrong window parameters raise error."""
@@ -64,3 +63,17 @@ def test_window_error():
     )
     with pytest.raises(ValueError):
         method.fit_transform(X)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("roughpy", severity="none"),
+    reason="skip test if required soft dependency roughpy not available",
+)
+def test_depth_error():
+    """Test that a non-positive signature depth raises an error."""
+    X = np.random.randn(5, 2, 10)
+
+    for depth in (0, -1):
+        method = SignatureTransformer(depth=depth, window_name="global")
+        with pytest.raises(ValueError, match="Depth must be at least 1"):
+            method.fit_transform(X)

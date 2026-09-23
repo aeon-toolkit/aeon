@@ -9,7 +9,7 @@ import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import delayed
 from sklearn.base import BaseEstimator, is_classifier, is_regressor
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier, DecisionTreeRegressor
@@ -22,6 +22,7 @@ from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
 )
+from aeon.utils._parallel import _run_jobs
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 
@@ -36,7 +37,13 @@ class BaseIntervalForest(ABC):
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e. ``DecisionTreeClassifier(criterion="entropy")`` for
+        classification and ``DecisionTreeRegressor(criterion="squared_error")`` for
+        regression. Versions prior to and including 1.5.0 used
+        ``DecisionTreeRegressor(criterion="absolute_error")`` for regression by
+        default, which scales poorly with the number of cases and can be orders of
+        magnitude slower for larger datasets. Pass such an estimator explicitly to
+        restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     interval_selection_method : "random", "supervised" or "random-supervised",
@@ -135,10 +142,14 @@ class BaseIntervalForest(ABC):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
+        Specify the parallelisation backend implementation in joblib.  If None it uses
+        the Parallel default (loky).
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every fitted estimator and estimated remaining time.
 
     Attributes
     ----------
@@ -184,6 +195,7 @@ class BaseIntervalForest(ABC):
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        verbose=0,
     ):
         self.base_estimator = base_estimator
         self.n_estimators = n_estimators
@@ -200,6 +212,7 @@ class BaseIntervalForest(ABC):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
+        self.verbose = verbose
 
         super().__init__()
 
@@ -229,18 +242,18 @@ class BaseIntervalForest(ABC):
         if is_regressor(self):
             Xt = self._predict_setup(X)
 
-            y_preds = Parallel(
-                n_jobs=self._n_jobs,
+            y_preds = _run_jobs(
+                [
+                    delayed(self._predict_for_estimator)(
+                        Xt,
+                        self.estimators_[i],
+                        self.intervals_[i],
+                        predict_proba=False,
+                    )
+                    for i in range(self._n_estimators)
+                ],
+                self._n_jobs,
                 backend=self.parallel_backend,
-                prefer="threads",
-            )(
-                delayed(self._predict_for_estimator)(
-                    Xt,
-                    self.estimators_[i],
-                    self.intervals_[i],
-                    predict_proba=False,
-                )
-                for i in range(self._n_estimators)
             )
 
             return np.mean(y_preds, axis=0)
@@ -252,16 +265,18 @@ class BaseIntervalForest(ABC):
     def _predict_proba(self, X):
         Xt = self._predict_setup(X)
 
-        y_probas = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._predict_for_estimator)(
-                Xt,
-                self.estimators_[i],
-                self.intervals_[i],
-                predict_proba=True,
-            )
-            for i in range(self._n_estimators)
+        y_probas = _run_jobs(
+            [
+                delayed(self._predict_for_estimator)(
+                    Xt,
+                    self.estimators_[i],
+                    self.intervals_[i],
+                    predict_proba=True,
+                )
+                for i in range(self._n_estimators)
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
         )
 
         output = np.sum(y_probas, axis=0) / (
@@ -275,16 +290,18 @@ class BaseIntervalForest(ABC):
         if is_regressor(self):
             Xt = self._fit_forest(X, y, save_transformed_data=True)
 
-            p = Parallel(
-                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
-                delayed(self._train_estimate_for_estimator)(
-                    Xt,
-                    y,
-                    i,
-                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                )
-                for i in range(self._n_estimators)
+            p = _run_jobs(
+                [
+                    delayed(self._train_estimate_for_estimator)(
+                        Xt,
+                        y,
+                        i,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                    )
+                    for i in range(self._n_estimators)
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
             )
             y_preds, oobs = zip(*p)
 
@@ -319,17 +336,19 @@ class BaseIntervalForest(ABC):
 
         rng = check_random_state(self.random_state)
 
-        p = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._train_estimate_for_estimator)(
-                Xt,
-                y,
-                i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                probas=True,
-            )
-            for i in range(self._n_estimators)
+        p = _run_jobs(
+            [
+                delayed(self._train_estimate_for_estimator)(
+                    Xt,
+                    y,
+                    i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                    probas=True,
+                )
+                for i in range(self._n_estimators)
+            ],
+            self._n_jobs,
+            backend=self.parallel_backend,
         )
         y_probas, oobs = zip(*p)
 
@@ -354,12 +373,35 @@ class BaseIntervalForest(ABC):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
+        verbose_name = type(self).__name__
+        verbose = self.verbose
+        log_each_estimator = verbose >= 2
+        log_progress = verbose == 1
+        if verbose > 0:
+            fit_start_time = time.perf_counter()
+            if (
+                self.time_limit_in_minutes is not None
+                and self.time_limit_in_minutes > 0
+            ):
+                fit_limit = (
+                    f"time_limit={self.time_limit_in_minutes * 60:.2f}s, "
+                    f"max_n_estimators={self.contract_max_n_estimators}"
+                )
+            else:
+                fit_limit = f"n_estimators={self.n_estimators}"
+
+            self._log_forest(
+                f"[{verbose_name}] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
+                f"{fit_limit}, n_jobs={self._n_jobs}"
+            )
+
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
             if is_classifier(self):
                 self._base_estimator = DecisionTreeClassifier(criterion="entropy")
             elif is_regressor(self):
-                self._base_estimator = DecisionTreeRegressor(criterion="absolute_error")
+                self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
             else:
                 raise ValueError(
                     f"{self} must be a scikit-learn compatible classifier or "
@@ -527,7 +569,7 @@ class BaseIntervalForest(ABC):
             or self.max_interval_length == np.inf
         ):
             self._max_interval_length = [self.max_interval_length] * len(Xt)
-        # max_interval_length must be at less than one if it is a float  (proportion of
+        # max_interval_length must be less than one if it is a float (proportion
         # of the series length)
         elif (
             isinstance(self.max_interval_length, float)
@@ -617,7 +659,7 @@ class BaseIntervalForest(ABC):
                                 self._interval_function[i] = True
                             else:
                                 raise ValueError(
-                                    "Individual items in a interval_features list or "
+                                    "Individual items in an interval_features list or "
                                     "tuple must be a transformer or function. Input "
                                     f"{feature} does not contain only transformers and "
                                     f"functions."
@@ -632,7 +674,7 @@ class BaseIntervalForest(ABC):
                         self._interval_features.append([feature])
                     else:
                         raise ValueError(
-                            "Individual items in a interval_features list or tuple "
+                            "Individual items in an interval_features list or tuple "
                             f"must be a transformer or function. Found {feature}"
                         )
         # use basic summary stats by default if None
@@ -653,8 +695,8 @@ class BaseIntervalForest(ABC):
                 )
 
             self._att_subsample_size = [self.att_subsample_size] * len(Xt)
-        # att_subsample_size must be at less than one if it is a float (proportion of
-        # total attributed to subsample)
+        # att_subsample_size must be less than one if it is a float (proportion of
+        # total attributes to subsample)
         elif isinstance(self.att_subsample_size, float):
             if self.att_subsample_size > 1 or self.att_subsample_size <= 0:
                 raise ValueError(
@@ -799,8 +841,11 @@ class BaseIntervalForest(ABC):
 
         if self.time_limit_in_minutes is not None and self.time_limit_in_minutes > 0:
             time_limit = self.time_limit_in_minutes * 60
-            start_time = time.time()
+            start_time = time.perf_counter()
             train_time = 0
+            if log_progress:
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
 
             self._n_estimators = 0
             self.estimators_ = []
@@ -811,18 +856,18 @@ class BaseIntervalForest(ABC):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(
-                    n_jobs=self._n_jobs,
+                fit = _run_jobs(
+                    [
+                        delayed(self._fit_estimator)(
+                            Xt,
+                            y,
+                            rng.randint(np.iinfo(np.int32).max),
+                            save_transformed_data=save_transformed_data,
+                        )
+                        for _ in range(self._n_jobs)
+                    ],
+                    self._n_jobs,
                     backend=self.parallel_backend,
-                    prefer="threads",
-                )(
-                    delayed(self._fit_estimator)(
-                        Xt,
-                        y,
-                        rng.randint(np.iinfo(np.int32).max),
-                        save_transformed_data=save_transformed_data,
-                    )
-                    for _ in range(self._n_jobs)
                 )
 
                 (
@@ -836,23 +881,96 @@ class BaseIntervalForest(ABC):
                 transformed_intervals += td
 
                 self._n_estimators += self._n_jobs
-                train_time = time.time() - start_time
+                train_time = time.perf_counter() - start_time
+
+                if log_each_estimator:
+                    contract_remaining = self._format_duration(
+                        max(0.0, time_limit - train_time)
+                    )
+                    elapsed = time.perf_counter() - fit_start_time
+                    first_estimator = self._n_estimators - len(fit) + 1
+                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
+                        self._log_forest(
+                            f"[{verbose_name}] Estimator {estimator_idx}: "
+                            f"elapsed={elapsed:.2f}s, "
+                            f"contract_remaining={contract_remaining}"
+                        )
+                elif log_progress and train_time >= next_progress:
+                    self._log_forest(
+                        f"[{verbose_name}] Progress: built={self._n_estimators}, "
+                        f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
+                    )
+                    next_progress = train_time + progress_interval
         else:
             self._n_estimators = self.n_estimators
+            if verbose > 0:
+                estimator_start_time = time.perf_counter()
+                # about ten batches, but never fewer estimators than jobs
+                batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
 
-            fit = Parallel(
-                n_jobs=self._n_jobs,
-                backend=self.parallel_backend,
-                prefer="threads",
-            )(
-                delayed(self._fit_estimator)(
-                    Xt,
-                    y,
-                    rng.randint(np.iinfo(np.int32).max),
-                    save_transformed_data=save_transformed_data,
+                fit = []
+                for batch_start in range(0, self._n_estimators, batch_size):
+                    current_batch_size = min(
+                        batch_size, self._n_estimators - batch_start
+                    )
+                    batch_fit = _run_jobs(
+                        [
+                            delayed(self._fit_estimator)(
+                                Xt,
+                                y,
+                                rng.randint(np.iinfo(np.int32).max),
+                                save_transformed_data=save_transformed_data,
+                            )
+                            for _ in range(current_batch_size)
+                        ],
+                        self._n_jobs,
+                        backend=self.parallel_backend,
+                    )
+                    fit.extend(batch_fit)
+
+                    built = len(fit)
+                    estimator_elapsed = time.perf_counter() - estimator_start_time
+                    if log_each_estimator:
+                        if built == 1:
+                            time_estimate = "estimated_remaining=estimating"
+                        else:
+                            estimated_remaining = (estimator_elapsed / built) * (
+                                self._n_estimators - built
+                            )
+                            time_estimate = (
+                                "estimated_remaining="
+                                f"{self._format_duration(estimated_remaining)}"
+                            )
+                        elapsed = time.perf_counter() - fit_start_time
+                        for estimator_idx in range(
+                            batch_start + 1, batch_start + current_batch_size + 1
+                        ):
+                            self._log_forest(
+                                f"[{verbose_name}] Estimator "
+                                f"{estimator_idx}/{self._n_estimators}: "
+                                f"elapsed={elapsed:.2f}s, "
+                                f"{time_estimate}"
+                            )
+                    else:
+                        self._log_forest(
+                            f"[{verbose_name}] Progress: "
+                            f"built={built}/{self._n_estimators}, "
+                            f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
+                        )
+            else:
+                fit = _run_jobs(
+                    [
+                        delayed(self._fit_estimator)(
+                            Xt,
+                            y,
+                            rng.randint(np.iinfo(np.int32).max),
+                            save_transformed_data=save_transformed_data,
+                        )
+                        for _ in range(self._n_estimators)
+                    ],
+                    self._n_jobs,
+                    backend=self.parallel_backend,
                 )
-                for _ in range(self._n_estimators)
-            )
 
             (
                 self.estimators_,
@@ -860,7 +978,33 @@ class BaseIntervalForest(ABC):
                 transformed_intervals,
             ) = zip(*fit)
 
+        if verbose > 0:
+            self._log_forest(
+                f"[{verbose_name}] Finished fit: built={len(self.estimators_)}, "
+                f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
+            )
+
         return transformed_intervals
+
+    @staticmethod
+    def _log_forest(message):
+        """Print a forest fit message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _fit_estimator(self, Xt, y, seed, save_transformed_data=False):
         # random state for this estimator
@@ -868,7 +1012,7 @@ class BaseIntervalForest(ABC):
 
         intervals = []
         transform_data_lengths = []
-        interval_features = np.empty((self.n_cases_, 0))
+        interval_feature_parts = []
 
         # for each transformed series
         for r in range(len(Xt)):
@@ -1003,9 +1147,12 @@ class BaseIntervalForest(ABC):
             intervals.append(selector)
             f = intervals[r].fit_transform(Xt[r], y)
 
-            # concatenate the data and save this transforms number of attributes
+            # save this transforms number of attributes
             transform_data_lengths.append(f.shape[1])
-            interval_features = np.hstack((interval_features, f))
+            interval_feature_parts.append(f)
+
+        # concatenate once rather than growing the array with a copy per transform
+        interval_features = np.hstack(interval_feature_parts)
 
         if isinstance(self.replace_nan, str) and self.replace_nan.lower() == "nan":
             interval_features = np.nan_to_num(
@@ -1072,11 +1219,9 @@ class BaseIntervalForest(ABC):
         return Xt
 
     def _predict_for_estimator(self, Xt, estimator, intervals, predict_proba=False):
-        interval_features = np.empty((Xt[0].shape[0], 0))
-
-        for r in range(len(Xt)):
-            f = intervals[r].transform(Xt[r])
-            interval_features = np.hstack((interval_features, f))
+        interval_features = np.hstack(
+            [intervals[r].transform(Xt[r]) for r in range(len(Xt))]
+        )
 
         if isinstance(self.replace_nan, str) and self.replace_nan.lower() == "nan":
             interval_features = np.nan_to_num(
@@ -1157,10 +1302,12 @@ class BaseIntervalForest(ABC):
             raise NotImplementedError(
                 "Temporal importance curves are not available for regression."
             )
-        if not isinstance(self._base_estimator, ContinuousIntervalTree):
+        if not isinstance(
+            self._base_estimator, (ContinuousIntervalTree, BaseDecisionTree)
+        ):
             raise ValueError(
                 "base_estimator for temporal importance curves must"
-                " be ContinuousIntervalTree."
+                " be ContinuousIntervalTree or a scikit-learn BaseDecisionTree."
             )
 
         curves = {}
@@ -1168,9 +1315,31 @@ class BaseIntervalForest(ABC):
             counts = {}
 
         for i, est in enumerate(self.estimators_):
-            splits, gains = est.tree_node_splits_and_gain()
-            split_features = []
+            if isinstance(est, ContinuousIntervalTree):
+                splits, gains = est.tree_node_splits_and_gain()
+            elif isinstance(est, BaseDecisionTree):
+                tree = est.tree_
+                internal_nodes = np.where(tree.feature >= 0)[0]
+                splits = tree.feature[internal_nodes]
+                impurity = tree.impurity[internal_nodes]
+                impurity_left = tree.impurity[tree.children_left[internal_nodes]]
+                impurity_right = tree.impurity[tree.children_right[internal_nodes]]
+                n_samples_node = tree.n_node_samples[internal_nodes]
+                gains = (
+                    impurity
+                    - (
+                        tree.n_node_samples[tree.children_left[internal_nodes]]
+                        / n_samples_node
+                    )
+                    * impurity_left
+                    - (
+                        tree.n_node_samples[tree.children_right[internal_nodes]]
+                        / n_samples_node
+                    )
+                    * impurity_right
+                )
 
+            split_features = []
             for n, rep in enumerate(self.intervals_[i]):
                 t = 0
                 rep_name = (
@@ -1272,9 +1441,12 @@ class BaseIntervalForest(ABC):
                 names.append(f"{rep}{key[2]}{dim}")
                 values.append(value)
 
+            if not names:
+                return [], []
+
             names, values = zip(*sorted(zip(names, values)))
 
-            return names, values
+            return list(names), list(values)
 
 
 def _is_transformer(obj):

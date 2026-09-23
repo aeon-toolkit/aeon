@@ -10,7 +10,7 @@ from aeon.distances.pointwise._squared import (
     squared_distance,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -69,7 +69,7 @@ def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     return np.sqrt(_univariate_squared_distance(x, y))
 
 
-@threaded
+@numba_thread_handler
 def euclidean_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,

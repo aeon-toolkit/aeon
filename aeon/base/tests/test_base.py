@@ -95,6 +95,17 @@ def test_reset_invalid():
         clf.reset(keep=1)
 
 
+def test_reset_preserves_sklearn_callback_context():
+    """Test reset preserves callback context temporarily owned by scikit-learn."""
+    clf = MockClassifier()
+    callback_context = object()
+    clf._parent_callback_ctx = callback_context
+
+    clf.reset()
+
+    assert clf._parent_callback_ctx is callback_context
+
+
 def test_clone():
     """Tests that clone method correctly clones an estimator."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
@@ -238,6 +249,7 @@ def test_get_fitted_params():
         "classes_",
         "metadata_",
         "n_classes_",
+        "fit_time_millis_",
     }
 
     assert isinstance(params, dict)
@@ -252,6 +264,7 @@ def test_get_fitted_params():
             "mock___foo_",
             "mock___metadata_",
             "mock___n_classes_",
+            "mock___fit_time_millis_",
         }
     )
     assert comp_params["foo_"] is composite.foo_

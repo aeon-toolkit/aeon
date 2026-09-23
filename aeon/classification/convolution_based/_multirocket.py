@@ -37,18 +37,19 @@ class MultiRocketClassifier(BaseClassifier):
     estimator : sklearn compatible classifier or None, default=None
         The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
         is used.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         Only applies if estimator is None and the default is used.
         From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
+        If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights
         inversely proportional to class frequencies in the input data as
         n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
         For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV
+        is not an ensemble model.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -64,6 +65,8 @@ class MultiRocketClassifier(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
+    estimator_ : sklearn classifier
+        The fitted estimator.
 
     References
     ----------
@@ -141,7 +144,7 @@ class MultiRocketClassifier(BaseClassifier):
             random_state=self.random_state,
         )
         self._scaler = StandardScaler(with_mean=False)
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RidgeClassifierCV(
                     alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
@@ -155,7 +158,7 @@ class MultiRocketClassifier(BaseClassifier):
         self.pipeline_ = make_pipeline(
             self._transformer,
             self._scaler,
-            self._estimator,
+            self.estimator_,
         )
         self.pipeline_.fit(X, y)
 
@@ -189,7 +192,7 @@ class MultiRocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:

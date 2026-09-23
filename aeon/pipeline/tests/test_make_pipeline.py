@@ -32,7 +32,7 @@ from aeon.transformations.collection.unequal_length import Padder
 )
 def test_make_pipeline(pipeline):
     """Test that make_pipeline works for different types of estimator."""
-    X, y = make_example_3d_numpy()
+    X, y = make_example_3d_numpy(n_cases=15, n_labels=4)
 
     est = make_pipeline(pipeline)
     est.fit(X, y)

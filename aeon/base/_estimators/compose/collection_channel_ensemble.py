@@ -222,7 +222,7 @@ class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEsti
         if self.remainder is not None:
             current_channels = []
             all_channels = np.arange(n_channels)
-            for channels in self._channels:
+            for channels in self.channels_:
                 if isinstance(channels, int):
                     channels = [channels]
                 current_channels.extend(all_channels[channels])

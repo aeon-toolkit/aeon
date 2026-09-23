@@ -50,7 +50,7 @@ class RDSTRegressor(BaseRegressor):
         will be used.
     alpha_similarity : float, default=0.5
         The strength of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
+        the allowed number of common indices with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
         the whole search space has been covered. The default is 0.5, and the maximum is
@@ -78,6 +78,9 @@ class RDSTRegressor(BaseRegressor):
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.
+    estimator_ : sklearn estimator or Pipeline
+        The fitted regressor (or scaling+regressor pipeline) used to predict from the
+        shapelet-transformed data.
 
     See Also
     --------
@@ -142,7 +145,6 @@ class RDSTRegressor(BaseRegressor):
         self.transformed_data_ = []
 
         self._transformer = None
-        self._estimator = None
 
         super().__init__()
 
@@ -178,24 +180,24 @@ class RDSTRegressor(BaseRegressor):
             random_state=self.random_state,
         )
         if self.estimator is None:
-            self._estimator = make_pipeline(
+            self.estimator_ = make_pipeline(
                 StandardScaler(with_mean=True),
                 RidgeCV(
                     alphas=np.logspace(-4, 4, 20),
                 ),
             )
         else:
-            self._estimator = _clone_estimator(self.estimator, self.random_state)
-            m = getattr(self._estimator, "n_jobs", None)
+            self.estimator_ = _clone_estimator(self.estimator, self.random_state)
+            m = getattr(self.estimator_, "n_jobs", None)
             if m is not None:
-                self._estimator.n_jobs = self._n_jobs
+                self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
 
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -214,7 +216,7 @@ class RDSTRegressor(BaseRegressor):
         """
         X_t = self._transformer.transform(X)
 
-        return self._estimator.predict(X_t)
+        return self.estimator_.predict(X_t)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

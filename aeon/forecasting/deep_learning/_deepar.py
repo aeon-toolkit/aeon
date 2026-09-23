@@ -18,7 +18,7 @@ from sklearn.utils import check_random_state
 
 from aeon.forecasting.base import DirectForecastingMixin, IterativeForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
-from aeon.networks._deepar import DeepARNetwork
+from aeon.networks.encoder_decoder._deepar import DeepARNetwork
 
 
 class DeepARForecaster(
@@ -305,7 +305,7 @@ class DeepARForecaster(
             horizon capability, returns single step prediction.
         """
         if y is None:
-            if not hasattr(self, "last_window_"):
+            if self.last_window_ is None:
                 raise ValueError("No fitted data available for prediction.")
             y_inner = self.last_window_
         else:
@@ -324,7 +324,7 @@ class DeepARForecaster(
         if self.use_probabilistic:
             prediction = pred[0, :, :]  # return both mu and std
         else:
-            prediction = float(pred[0, 0, :])  # return only mu
+            prediction = float(pred[0, 0, 0])  # return only mu
         return prediction
 
     @classmethod

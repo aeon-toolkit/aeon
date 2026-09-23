@@ -62,3 +62,27 @@ def test_all_fc_parameters_multi():
         assert not np.isnan(test_result).any()
         assert test_result.shape == (5,)
         assert train_result.shape == (5,)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tsfresh"], severity="none"),
+    reason="TSFresh soft dependency unavailable.",
+)
+def test_estimator_attribute_created_on_fit():
+    """Test that estimator_ is only set after fitting, not before."""
+    from sklearn.cluster import KMeans
+
+    X_train, _ = load_gunpoint(split="train")
+    X_train = X_train[:10]
+
+    model = TSFreshClusterer(
+        n_clusters=2, random_state=1, default_fc_parameters="minimal"
+    )
+
+    assert not hasattr(model, "estimator_")
+
+    model.fit(X_train)
+
+    assert hasattr(model, "estimator_")
+    assert isinstance(model.estimator_, KMeans)
+    assert not hasattr(model, "_estimator")

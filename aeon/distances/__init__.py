@@ -69,8 +69,6 @@ __all__ = [
     "shape_dtw_pairwise_distance",
     "sbd_distance",
     "sbd_pairwise_distance",
-    "mp_distance",
-    "mp_pairwise_distance",
     "mindist_paa_sax_distance",
     "mindist_sax_distance",
     "mindist_sfa_distance",
@@ -95,7 +93,6 @@ from aeon.distances._distance import (
     get_pairwise_distance_function,
     pairwise_distance,
 )
-from aeon.distances._mpdist import mp_distance, mp_pairwise_distance
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_best_shift,

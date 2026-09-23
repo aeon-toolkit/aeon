@@ -469,14 +469,14 @@ def _draw(
         row_comparates = [
             x
             for x in analysis["ordered-comparate-names"]
-            if not (x in excluded_row_comparates)
+            if x not in excluded_row_comparates
         ]
 
     if excluded_col_comparates is not None:
         col_comparates = [
             x
             for x in analysis["ordered-comparate-names"]
-            if not (x in excluded_col_comparates)
+            if x not in excluded_col_comparates
         ]
 
     n_rows = len(row_comparates)

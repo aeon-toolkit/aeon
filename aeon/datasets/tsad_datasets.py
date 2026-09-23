@@ -26,8 +26,8 @@ Learning types:
 
 Time series types:
 
-- univariate: Univariate datasets consist of a single feature/dimension/channel.
-- multivariate: Multivariate datasets have two or more features/dimensions/channels.
+- univariate: Univariate datasets consist of a single channel.
+- multivariate: Multivariate datasets have two or more channels.
 """
 
 import os

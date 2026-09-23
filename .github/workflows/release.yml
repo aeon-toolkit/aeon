@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -38,6 +38,18 @@ jobs:
         run: |
           python -m pip install build
           python -m build
+
+      - name: Check tag matches built version
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! ls dist/aeon-"${RELEASE_TAG#v}"-*.whl > /dev/null 2>&1; then
+            echo "::error::Tag ${RELEASE_TAG} does not match the built distribution."
+            ls dist/
+            exit 1
+          fi
 
       - name: Store build files
         uses: actions/upload-artifact@v7
@@ -58,15 +70,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Clear disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@v2.0.0
         with:
           dotnet: false
           large-packages: false
@@ -100,14 +112,14 @@ jobs:
 
       - if: runner.os == 'Windows'
         name: Windows install
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
           command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
       - if: runner.os != 'Windows'
         name: Unix install
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -116,8 +128,12 @@ jobs:
       - name: Show dependencies
         run: python -m pip list
 
-      - name: Tests
-        run: python -m pytest -n logical
+      - name: Test installed wheel
+        shell: bash
+        run: |
+          mkdir wheel-test && cd wheel-test
+          python -c "import aeon; print(aeon.__file__); assert 'site-packages' in aeon.__file__, 'not the installed wheel'"
+          python -m pytest -c ../pyproject.toml -n logical --pyargs aeon
 
   upload-wheels:
     needs: test-wheels

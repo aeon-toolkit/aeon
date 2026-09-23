@@ -1,7 +1,7 @@
 """Base channel selection transformer.
 
 Extends BaseCollectionTransformer and implements _transform to return
-selected indexes.
+selected indices.
 """
 
 __maintainer__ = ["TonyBagnall"]
@@ -14,7 +14,7 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 class BaseChannelSelector(BaseCollectionTransformer):
     """Abstract base class for channel selection transformers.
 
-    Extends BaseCollectionTransformer by implementing``_transform`` to return
+    Extends BaseCollectionTransformer by implementing ``_transform`` to return
     channels selected in fit.
 
     Attributes

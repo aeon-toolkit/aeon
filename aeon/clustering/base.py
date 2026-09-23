@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.base import ClusterMixin
 
 from aeon.base import BaseCollectionEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
@@ -23,6 +24,7 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
 
     _tags = {
         "fit_is_empty": False,
+        "capability:predict": True,
     }
 
     @abstractmethod
@@ -30,8 +32,12 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y=None) -> BaseCollectionEstimator:
         """Fit time series clusterer to training data.
+
+        Clusters the collection ``X`` and stores the cluster index of each time
+        series in the ``labels_`` attribute.
 
         Parameters
         ----------
@@ -60,6 +66,11 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
     def predict(self, X) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
+        Only clusterers with the ``capability:predict`` tag set to True support
+        assigning previously unseen cases to clusters. Transductive clusterers
+        (tag set to False) can only cluster the collection they are fitted on;
+        use ``fit_predict(X)`` or inspect ``labels_`` after ``fit(X)`` instead.
+
         Parameters
         ----------
         X : 3D np.ndarray
@@ -75,10 +86,17 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         Returns
         -------
         np.array
-            shape ``(n_cases)`, index of the cluster each time series in X.
-            belongs to.
+            shape ``(n_cases,)``, index of the cluster to which each time series in X
+            belongs.
+
+        Raises
+        ------
+        NotImplementedError
+            If the ``capability:predict`` tag is False, as the clusterer does not
+            support out-of-sample prediction.
         """
         self._check_is_fitted()
+        self._check_predict_capability()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict(X)
@@ -109,24 +127,35 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
+
+        Raises
+        ------
+        NotImplementedError
+            If the ``capability:predict`` tag is False, as the clusterer does not
+            support out-of-sample prediction.
         """
         self._check_is_fitted()
+        self._check_predict_capability()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict_proba(X)
 
     @final
     def fit_predict(self, X, y=None) -> np.ndarray:
-        """Compute cluster centers and predict cluster index for each time series.
+        """Fit the clusterer to X and return the cluster index of each time series.
 
-        Convenience method; equivalent of calling fit(X) followed by predict(X)
+        Convenience method; equivalent of calling ``fit(X)`` and returning
+        ``labels_``, the cluster indices assigned to the fitted collection. It
+        does not call ``predict(X)``, so it is valid for all clusterers,
+        including transductive ones that do not support out-of-sample
+        prediction (``capability:predict`` tag set to False).
 
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
             (n_cases, n_channels, n_timepoints)).
-            Time series instances to train clusterer and then have indexes each belong
-            to return.
+            Time series instances used to train the clusterer and return their assigned
+            cluster indices.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -134,8 +163,17 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
-        self.fit(X)
+        self.fit(X, y)
         return self.labels_
+
+    def _check_predict_capability(self):
+        """Raise an error if the clusterer cannot predict on unseen data."""
+        if not self.get_tag("capability:predict"):
+            raise NotImplementedError(
+                f"{self.__class__.__name__} does not support out-of-sample "
+                "prediction. Use fit_predict(X) to cluster a collection, or "
+                "inspect labels_ after fit(X)."
+            )
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.

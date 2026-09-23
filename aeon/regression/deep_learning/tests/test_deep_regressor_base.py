@@ -59,31 +59,23 @@ def test_dummy_deep_regressor():
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = str(time.time_ns())
 
-        # create a dummy regressor
         dummy_deep_rg = _DummyDeepRegressor(last_file_name=last_file_name)
-
-        # generate random data
-
-        X, y = make_example_2d_numpy_collection()
+        X, y = make_example_2d_numpy_collection(regression_target=True)
 
         # test fit function on random data
         dummy_deep_rg.fit(X=X, y=y)
 
         # test save last model to file than delete it
-
         dummy_deep_rg.save_last_model_to_file(file_path=tmp)
 
         # create a new dummy deep classifier
-        dummy_deep_clf2 = _DummyDeepRegressor()
+        dummy_deep_rg2 = _DummyDeepRegressor()
 
         # load without fitting
-        dummy_deep_clf2.load_model(model_path=tmp + last_file_name + ".keras")
+        dummy_deep_rg2.load_model(model_path=tmp + last_file_name + ".keras")
 
         # predict
-        ypred = dummy_deep_clf2.predict(X=X)
+        ypred = dummy_deep_rg2.predict(X=X)
 
         assert len(ypred) == len(y)
-
-        # test summary of model
-
         assert dummy_deep_rg.summary() is not None
