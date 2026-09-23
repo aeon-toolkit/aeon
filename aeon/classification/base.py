@@ -30,7 +30,7 @@ from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 
-from aeon.base import BaseCollectionEstimator, CheckpointableMixin
+from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.decorators.method_timer import method_timer
 from aeon.utils.validation.collection import get_n_cases
@@ -148,12 +148,10 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         Notes
         -----
-        Requires ``capability:checkpointing=True`` and saved continuation state.
-        Unlike ``fit``, this does not reset the estimator. Training data and
-        model-building parameters must match the original fit. Supporting
-        classifiers document which runtime parameters may change. Time contracts
-        apply independently to each invocation. Checkpoints made during a fit
-        need not have ``is_fitted=True`` to be resumed.
+        Requires ``capability:checkpointing=True`` and continuation state, which
+        is preserved. Model-building parameters must match the original fit;
+        allowed runtime changes are documented by each classifier. Each call
+        receives a fresh time budget, including when resuming an interrupted fit.
         """
         if not self.get_tag("capability:checkpointing"):
             raise NotImplementedError("This classifier does not support checkpointing.")
@@ -665,10 +663,6 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         y = self._check_y(y, self.metadata_["n_cases"])
 
         if self.get_tag("capability:checkpointing"):
-            if not isinstance(self, CheckpointableMixin):
-                raise TypeError(
-                    "Checkpointable classifiers must use CheckpointableMixin."
-                )
             self._init_checkpoint(X, y)
 
         return X, y
