@@ -267,9 +267,14 @@ class CheckpointableMixin:
         self._checkpoint_ready = False
 
     def _checkpoint_parameter_hash(self):
+        # a generator passed as random_state is consumed by fitting, by the
+        # estimator or by components sharing it, so it is identified by type:
+        # its evolving state is not a change of model configuration
         return joblib_hash(
             {
-                name: value
+                name: (
+                    type(value) if isinstance(value, np.random.RandomState) else value
+                )
                 for name, value in self.get_params(deep=False).items()
                 if name not in self._checkpoint_mutable_params
             }

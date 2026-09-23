@@ -11,6 +11,8 @@ import math
 import sys
 import time
 import warnings
+from copy import deepcopy
+from numbers import Real
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -18,6 +20,7 @@ from numba import njit, types
 from numba.typed import Dict
 from sklearn.utils import check_random_state
 
+from aeon.base import CheckpointableMixin
 from aeon.classification.base import BaseClassifier
 from aeon.utils.validation import check_n_jobs
 
@@ -48,7 +51,7 @@ def _kernel_ridge_preds(x_hist, y_hist, candidates):
     return (cs @ xs.T * gamma + 1.0) @ dual
 
 
-class TemporalDictionaryEnsemble(BaseClassifier):
+class TemporalDictionaryEnsemble(CheckpointableMixin, BaseClassifier):
     """
     Temporal Dictionary Ensemble (TDE).
 
@@ -104,7 +107,11 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
-        Default of 0 means n_parameter_samples is used.
+        Default of 0 means n_parameter_samples is used. The contract bounds total
+        training time: ``fit`` starts the budget afresh, while ``resume_fit``
+        continues spending the budget left by earlier calls, so an ensemble
+        interrupted after 10 hours of a 12 hour contract resumes with 2 hours.
+        A running candidate evaluation may overrun the contract.
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
@@ -128,6 +135,18 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every evaluated parameter combination and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved after each evaluated parameter combination and on
+        successful completion. None disables automatic writes. The parent must
+        exist. Checkpoints hold the fitted ensemble members, each of which keeps
+        the word counts for its training subsample, so files are as large as the
+        fitted model and grow as the ensemble fills.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured. Timing is approximate:
+        TDE writes after the next evaluated parameter combination once the
+        interval has elapsed. A slow evaluation can therefore delay checkpoints
+        beyond the requested interval.
 
     Attributes
     ----------
@@ -147,6 +166,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         The final number of classifiers used. Will be <= `max_ensemble_size`.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
+    fit_elapsed_time_ : float
+        Accumulated fitting time in seconds across evaluated parameter
+        combinations and calls.
+    fit_time_millis_ : int
+        Duration of the initial fit call in milliseconds, not updated by
+        ``resume_fit``. Automatic checkpoints may omit this attribute because
+        they are saved before the fit timer is assigned. Use
+        ``fit_elapsed_time_`` for cumulative contract timing.
 
     See Also
     --------
@@ -155,6 +182,30 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
     Notes
     -----
+    ``resume_fit(X, y)`` continues the parameter search from saved state using
+    the original training data. ``fit`` always starts afresh. Between calls,
+    only ``n_parameter_samples``, ``contract_max_n_parameter_samples``,
+    ``time_limit_in_minutes``, ``n_jobs``, ``verbose`` and checkpoint settings
+    may change. Train estimates, when requested in the original fit, continue to
+    be collected for newly evaluated members.
+
+    ``max_ensemble_size`` cannot change between calls. Retention and replacement
+    decisions are made against it as each candidate is evaluated, so a later
+    value would neither recover candidates already discarded nor reproduce an
+    uninterrupted fit. The search budget limits the number of parameter
+    combinations evaluated in total, including those evaluated by earlier calls,
+    so lowering it below the number already evaluated simply stops the search.
+    Growing a contracted fit also needs ``time_limit_in_minutes`` raised above
+    ``fit_elapsed_time_``, since the contract covers total training time.
+
+    The parameter search is continued from a private copy of the generator, so
+    it is reproduced exactly. Ensemble members, however, are given
+    ``random_state`` itself, and a ``RandomState`` instance is consumed by them
+    on nearest neighbour ties. Members built after resuming therefore depend on
+    anything that used that generator in between, including predictions made
+    from the checkpoint. Pass an integer seed where a resumed fit must match an
+    uninterrupted one exactly.
+
     For the Java version, see
     `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
     tsml/classifiers/dictionary_based/TDE.java>`_.
@@ -186,9 +237,19 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         "capability:multivariate": True,
         "capability:train_estimate": True,
         "capability:contractable": True,
+        "capability:checkpointing": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
+
+    # max_ensemble_size is deliberately absent: retention and replacement
+    # decisions are made against it as candidates are evaluated, so it cannot
+    # change between calls
+    _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
+        "n_parameter_samples",
+        "contract_max_n_parameter_samples",
+        "time_limit_in_minutes",
+    )
 
     # TODO remove 'dim_threshold', 'max_dims' and 'typed_dict' in v1.7.0
     def __init__(
@@ -210,6 +271,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         n_jobs=1,
         random_state=None,
         verbose=0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -254,6 +317,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.verbose = verbose
+        self.checkpoint_path = checkpoint_path
+        self.checkpoint_interval = checkpoint_interval
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -305,7 +370,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             )
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
@@ -329,24 +393,104 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         if win_inc < 1:
             win_inc = 1
 
-        possible_parameters = self._unique_parameters(max_window, win_inc)
-        # float array mirror of possible_parameters for the kernel ridge
-        # parameter selection, kept in sync as parameters are popped
-        candidate_parameters = np.array(possible_parameters, dtype=np.float64)
-        num_classifiers = 0
-        subsample_size = int(self.n_cases_ * 0.7)
-        lowest_acc = 1
-        lowest_acc_idx = 0
+        self._possible_parameters = self._unique_parameters(max_window, win_inc)
+        # float array mirror of _possible_parameters for the kernel ridge
+        # parameter selection, kept in sync as parameters are removed
+        self._candidate_parameters = np.array(
+            self._possible_parameters, dtype=np.float64
+        )
+        self._num_classifiers = 0
+        self._subsample_size = int(self.n_cases_ * 0.7)
+        self._lowest_acc = 1
+        self._lowest_acc_idx = 0
+        self._keep_train_preds = keep_train_preds
 
+        if self.bigrams is None:
+            if self.n_channels_ > 1:
+                self._use_bigrams = False
+            else:
+                self._use_bigrams = True
+        else:
+            self._use_bigrams = self.bigrams
+
+        # copy, so the stored generator is never the global numpy RandomState
+        # shared by every random_state=None estimator; continuation state must
+        # not be advanced by unrelated code between fit and resume_fit
+        self._rng = deepcopy(check_random_state(self.random_state))
+        self.fit_elapsed_time_ = 0.0
+
+        self._continue_tde(X, y)
+
+        return self
+
+    def _resume_fit(self, X, y):
+        self._continue_tde(X, y)
+        return self
+
+    def _validate_resume_fit(self, X, y):
+        check_n_jobs(self.n_jobs)
+        self._get_search_budget()
+
+    def _get_search_budget(self):
+        """Return the candidate search limits, validating them first.
+
+        Returns
+        -------
+        n_parameter_samples : int
+            Parameter combinations to evaluate when uncontracted, else 0.
+        contract_max_n_parameter_samples : int or float
+            Cap on evaluations when contracted, else infinite.
+        time_limit : float
+            Contract in seconds, 0 when uncontracted.
+        """
         time_limit = self.time_limit_in_minutes * 60
-        start_time = time.perf_counter()
-        train_time = 0
+        if np.isnan(time_limit):
+            raise ValueError("time_limit_in_minutes must not be NaN.")
+
         if time_limit > 0:
             n_parameter_samples = 0
             contract_max_n_parameter_samples = self.contract_max_n_parameter_samples
+            limit = contract_max_n_parameter_samples
         else:
             n_parameter_samples = self.n_parameter_samples
             contract_max_n_parameter_samples = np.inf
+            limit = n_parameter_samples
+
+        # the contracted cap is allowed to be infinite, the contract bounds it
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, Real)
+            or np.isnan(limit)
+            or limit < 1
+        ):
+            raise ValueError(
+                "The number of parameter combinations to evaluate must be " "positive."
+            )
+
+        return n_parameter_samples, contract_max_n_parameter_samples, time_limit
+
+    def _continue_tde(self, X, y):
+        """Evaluate parameter combinations until the search budget is spent."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        (
+            n_parameter_samples,
+            contract_max_n_parameter_samples,
+            time_limit,
+        ) = self._get_search_budget()
+
+        start_time = time.perf_counter()
+        train_time = 0
+        # the contract covers training time across all calls, so this call adds
+        # to the budget already spent rather than restarting it
+        call_start_elapsed = self.fit_elapsed_time_
+        # progress reporting, in contrast, covers this call only, so a resumed
+        # fit reports from zero rather than continuing an earlier schedule
+        initial_num_classifiers = self._num_classifiers
+
+        # every update a candidate makes is committed together once it has been
+        # evaluated, so the estimator always holds a state that can be resumed,
+        # including while a candidate is being evaluated
+        self._checkpoint_ready = True
 
         log_each_candidate = self.verbose >= 2
         log_progress = self.verbose == 1
@@ -363,7 +507,12 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 progress_interval = time_limit / 10
                 next_progress = progress_interval
             else:
-                parameter_target = min(n_parameter_samples, len(possible_parameters))
+                # the target counts every evaluation, including any made by an
+                # earlier call, so it is unchanged by resuming
+                parameter_target = min(
+                    n_parameter_samples,
+                    self._num_classifiers + len(self._possible_parameters),
+                )
                 fit_limit = f"parameter_samples={parameter_target}"
                 progress_interval = max(1, math.ceil(parameter_target / 10))
                 next_progress = progress_interval
@@ -374,26 +523,23 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 f"{fit_limit}, max_ensemble_size={self.max_ensemble_size}"
             )
 
-        rng = check_random_state(self.random_state)
-
-        if self.bigrams is None:
-            if self.n_channels_ > 1:
-                use_bigrams = False
-            else:
-                use_bigrams = True
-        else:
-            use_bigrams = self.bigrams
-
-        # use time limit or n_parameter_samples if limit is 0
+        # use time limit or n_parameter_samples if limit is 0. The contract
+        # bounds total training time, so an interrupted fit resumes with
+        # whatever budget the earlier calls left rather than a fresh one
         while (
             (
-                train_time < time_limit
-                and num_classifiers < contract_max_n_parameter_samples
+                self.fit_elapsed_time_ < time_limit
+                and self._num_classifiers < contract_max_n_parameter_samples
             )
-            or num_classifiers < n_parameter_samples
-        ) and len(possible_parameters) > 0:
-            if num_classifiers < self.randomly_selected_params:
-                idx = rng.randint(0, len(possible_parameters))
+            or self._num_classifiers < n_parameter_samples
+        ) and len(self._possible_parameters) > 0:
+            # the candidate is evaluated against a copy of the random state and
+            # its parameters stay in the search space until it is retained or
+            # discarded, so a failed evaluation is repeated exactly on resuming
+            rng = deepcopy(self._rng)
+
+            if self._num_classifiers < self.randomly_selected_params:
+                idx = rng.randint(0, len(self._possible_parameters))
             else:
                 # kernel ridge regression on standardised parameters, the
                 # same computation as StandardScaler + KernelRidge(
@@ -402,16 +548,15 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 preds = _kernel_ridge_preds(
                     np.array(self._prev_parameters_x, dtype=np.float64),
                     np.array(self._prev_parameters_y, dtype=np.float64),
-                    candidate_parameters,
+                    self._candidate_parameters,
                 )
                 idx = rng.choice(np.flatnonzero(preds == preds.max()))
 
-            parameters = possible_parameters.pop(idx)
-            candidate_parameters = np.delete(candidate_parameters, idx, axis=0)
+            parameters = self._possible_parameters[idx]
 
             while True:
                 subsample = rng.choice(
-                    self.n_cases_, size=subsample_size, replace=False
+                    self.n_cases_, size=self._subsample_size, replace=False
                 )
                 X_subsample = X[subsample]
                 y_subsample = y[subsample]
@@ -423,7 +568,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             # oversubscribe
             tde = IndividualTDE(
                 *parameters,
-                bigrams=use_bigrams,
+                bigrams=self._use_bigrams,
                 channel_threshold=self.channel_threshold,
                 max_channels=self.max_channels,
                 random_state=self.random_state,
@@ -437,9 +582,13 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             tde._accuracy = self._individual_train_acc(
                 tde,
                 y_subsample,
-                subsample_size,
-                0 if num_classifiers < self.max_ensemble_size else lowest_acc,
-                keep_train_preds,
+                self._subsample_size,
+                (
+                    0
+                    if self._num_classifiers < self.max_ensemble_size
+                    else self._lowest_acc
+                ),
+                self._keep_train_preds,
             )
             if tde._accuracy > 0:
                 weight = math.pow(tde._accuracy, 4)
@@ -447,34 +596,47 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 weight = 0.000000001
 
             if log_each_candidate:
-                if num_classifiers < self.max_ensemble_size:
+                if self._num_classifiers < self.max_ensemble_size:
                     candidate_status = "retained"
-                elif tde._accuracy > lowest_acc:
+                elif tde._accuracy > self._lowest_acc:
                     candidate_status = "replaced"
                 else:
                     candidate_status = "discarded"
 
-            if num_classifiers < self.max_ensemble_size:
-                if tde._accuracy < lowest_acc:
-                    lowest_acc = tde._accuracy
-                    lowest_acc_idx = num_classifiers
+            # commit the candidate: every update below leaves the estimator in a
+            # state a checkpoint can resume from, so none may be skipped
+            del self._possible_parameters[idx]
+            self._candidate_parameters = np.delete(
+                self._candidate_parameters, idx, axis=0
+            )
+            self._rng.set_state(rng.get_state())
+
+            if self._num_classifiers < self.max_ensemble_size:
+                if tde._accuracy < self._lowest_acc:
+                    self._lowest_acc = tde._accuracy
+                    self._lowest_acc_idx = self._num_classifiers
                 self.weights_.append(weight)
                 self.estimators_.append(tde)
-            elif tde._accuracy > lowest_acc:
-                self.weights_[lowest_acc_idx] = weight
-                self.estimators_[lowest_acc_idx] = tde
-                lowest_acc, lowest_acc_idx = self._worst_ensemble_acc()
+            elif tde._accuracy > self._lowest_acc:
+                self.weights_[self._lowest_acc_idx] = weight
+                self.estimators_[self._lowest_acc_idx] = tde
+                self._lowest_acc, self._lowest_acc_idx = self._worst_ensemble_acc()
 
             self._prev_parameters_x.append(parameters)
             self._prev_parameters_y.append(tde._accuracy)
 
-            num_classifiers += 1
+            self._num_classifiers += 1
+            self.n_estimators_ = len(self.estimators_)
+            self._weight_sum = np.sum(self.weights_)
             train_time = time.perf_counter() - start_time
+            self.fit_elapsed_time_ = call_start_elapsed + train_time
+            self._checkpoint_if_due()
 
             if log_each_candidate:
                 candidate_duration = train_time - previous_train_time
                 previous_train_time = train_time
-                if num_classifiers == 1:
+                candidates_this_call = self._num_classifiers - initial_num_classifiers
+                if candidates_this_call == 1:
                     candidate_duration_ema = candidate_duration
                 else:
                     candidate_duration_ema = (
@@ -482,14 +644,16 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     )
 
                 if time_limit > 0:
+                    contract_left = max(0.0, time_limit - self.fit_elapsed_time_)
                     time_estimate = (
-                        "contract_remaining="
-                        f"{self._format_duration(max(0.0, time_limit - train_time))}"
+                        f"contract_remaining={self._format_duration(contract_left)}"
                     )
-                elif num_classifiers == 1:
+                elif candidates_this_call == 1:
                     time_estimate = "estimated_remaining=estimating"
                 else:
-                    remaining_candidates = max(0, parameter_target - num_classifiers)
+                    remaining_candidates = max(
+                        0, parameter_target - self._num_classifiers
+                    )
                     estimated_remaining = candidate_duration_ema * remaining_candidates
                     time_estimate = (
                         "estimated_remaining="
@@ -497,7 +661,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     )
 
                 self._log(
-                    f"[{type(self).__name__}] Candidate {num_classifiers}: "
+                    f"[{type(self).__name__}] Candidate {self._num_classifiers}: "
                     f"window_size={parameters[0]}, word_length={parameters[1]}, "
                     f"norm={parameters[2]}, levels={parameters[3]}, "
                     f"igb={parameters[4]}, accuracy={tde._accuracy:.4f}, "
@@ -508,12 +672,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 if time_limit > 0:
                     report_progress = train_time >= next_progress
                 else:
-                    report_progress = num_classifiers >= next_progress
+                    report_progress = (
+                        self._num_classifiers - initial_num_classifiers >= next_progress
+                    )
 
                 if report_progress:
                     self._log(
                         f"[{type(self).__name__}] "
-                        f"Progress: evaluated={num_classifiers}, "
+                        f"Progress: evaluated={self._num_classifiers}, "
                         f"retained={len(self.estimators_)}, elapsed={train_time:.2f}s"
                     )
                     if time_limit > 0:
@@ -521,16 +687,19 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     else:
                         next_progress += progress_interval
 
+            # logging is part of the fit, so it is charged to the contract
+            train_time = time.perf_counter() - start_time
+            self.fit_elapsed_time_ = call_start_elapsed + train_time
+
         self.n_estimators_ = len(self.estimators_)
         self._weight_sum = np.sum(self.weights_)
 
         if self.verbose > 0:
             self._log(
-                f"[{type(self).__name__}] Finished fit: evaluated={num_classifiers}, "
+                f"[{type(self).__name__}] Finished fit: "
+                f"evaluated={self._num_classifiers}, "
                 f"retained={self.n_estimators_}, elapsed={train_time:.2f}s"
             )
-
-        return self
 
     @staticmethod
     def _log(message):
@@ -612,7 +781,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         return sums / (np.ones(self.n_classes_) * self._weight_sum)
 
     def _fit_predict(self, X, y) -> np.ndarray:
-        rng = check_random_state(self.random_state)
+        # copy, so tie breaking never advances a generator shared with the
+        # continuation state or with other estimators
+        rng = deepcopy(check_random_state(self.random_state))
         return np.array(
             [
                 self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
@@ -758,6 +929,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             return {
                 "time_limit_in_minutes": 5,
                 "contract_max_n_parameter_samples": 5,
+                "max_ensemble_size": 2,
+                "randomly_selected_params": 3,
+            }
+        elif parameter_set == "checkpointing":
+            # enough combinations to replace an ensemble member, and enough
+            # random ones that the guided search is exercised too
+            return {
+                "n_parameter_samples": 5,
                 "max_ensemble_size": 2,
                 "randomly_selected_params": 3,
             }
