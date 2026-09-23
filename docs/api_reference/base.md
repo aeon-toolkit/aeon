@@ -40,8 +40,11 @@ clf = Arsenal.load_checkpoint("arsenal.pkl")
 clf.resume_fit(X_train, y_train)
 ```
 
-The interval is in minutes. Writes occur after a complete batch has joined and
-its results and RNG state have been committed. A successful fit also writes a
+The interval is in minutes, and checkpoint timing is approximate. Periodic writes
+occur at the next algorithm-specific safe boundary after the interval has elapsed.
+For Arsenal, this is after a complete batch has joined and its results and RNG
+state have been committed. Long-running batches can therefore delay checkpoints
+beyond the requested interval. A successful fit also writes a
 final checkpoint. With `checkpoint_interval=None`, only the final automatic
 write occurs; with `checkpoint_path=None`, automatic writes are disabled.
 Manual `clf.save_checkpoint(path)` is available after fitting. A killed job

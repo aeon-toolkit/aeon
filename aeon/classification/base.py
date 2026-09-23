@@ -123,10 +123,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         self._fit(X, y)
 
-        # this should happen last
-        self.is_fitted = True
-        if self.get_tag("capability:checkpointing"):
-            self._checkpoint_if_due(force=True)
+        self._fit_complete()
         return self
 
     @final
@@ -161,8 +158,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         self._start_checkpoint_timer()
         self.is_fitted = False
         self._resume_fit(X, y)
-        self.is_fitted = True
-        self._checkpoint_if_due(force=True)
+        self._fit_complete()
         return self
 
     def _resume_fit(self, X, y):
@@ -354,10 +350,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         y_pred = self._fit_predict(X, y, **kwargs)
 
-        # this should happen last
-        self.is_fitted = True
-        if self.get_tag("capability:checkpointing"):
-            self._checkpoint_if_due(force=True)
+        self._fit_complete()
         return y_pred
 
     @final
@@ -435,10 +428,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         y_proba = self._fit_predict_proba(X, y, **kwargs)
 
-        # this should happen last
-        self.is_fitted = True
-        if self.get_tag("capability:checkpointing"):
-            self._checkpoint_if_due(force=True)
+        self._fit_complete()
         return y_proba
 
     def score(
@@ -654,6 +644,12 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         """
         cv_size = BaseClassifier._get_folds(kwargs)
         return self._fit_predict_default(X, y, "predict_proba", cv_size)
+
+    def _fit_complete(self):
+        """Mark fitting complete and save the final checkpoint if configured."""
+        self.is_fitted = True
+        if self.get_tag("capability:checkpointing"):
+            self._checkpoint_if_due(force=True)
 
     def _fit_setup(self, X, y):
         # reset estimator at the start of fit

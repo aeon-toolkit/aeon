@@ -161,6 +161,9 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
     checkpoint_interval : float or None, default=None
         Minimum minutes between periodic checkpoint writes. None saves only on
         successful completion when a path is configured.
+        Timing is approximate: Arsenal writes at the next completed batch of
+        ensemble members after the interval has elapsed. Long-running batches
+        can therefore delay checkpoints beyond the requested interval.
 
     Attributes
     ----------

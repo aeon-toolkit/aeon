@@ -23,6 +23,10 @@ class CheckpointableMixin:
     The interval is in minutes; None disables periodic saves. A configured path
     is also saved on successful completion. No background workers are started.
 
+    Checkpoint timing is approximate. A periodic checkpoint is written at the
+    next algorithm-specific safe boundary after the interval has elapsed.
+    Long-running iterations or batches can delay writes beyond the interval.
+
     Subclasses must store all continuation state on the estimator and set
     ``_checkpoint_ready`` only after a complete, consistent update. Checkpointing
     must not run concurrently with fitting. Override save/load together if a
