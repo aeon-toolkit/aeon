@@ -108,6 +108,13 @@ class CheckpointableMixin:
         "verbose",
     )
 
+    def __getstate__(self):
+        """Serialize checkpoint paths without platform-specific Path classes."""
+        state = super().__getstate__().copy()
+        if isinstance(state.get("checkpoint_path"), os.PathLike):
+            state["checkpoint_path"] = os.fspath(state["checkpoint_path"])
+        return state
+
     def save_checkpoint(self, filepath):
         """Atomically save a resumable estimator to ``filepath``.
 
@@ -293,7 +300,12 @@ class CheckpointableMixin:
                 "checkpoint_interval must be None or positive finite minutes."
             )
         if self.checkpoint_path is not None:
-            Path(self.checkpoint_path)
+            parent = Path(self.checkpoint_path).parent
+            if not parent.is_dir():
+                raise FileNotFoundError(
+                    f"Checkpoint parent directory does not exist or is not a "
+                    f"directory: {parent}"
+                )
             if self.get_tag("cant_pickle"):
                 raise ValueError("Default checkpointing requires cant_pickle=False.")
         self._checkpoint_last_time = time.monotonic()

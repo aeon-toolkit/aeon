@@ -437,14 +437,23 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         self._continue_arsenal(X, y)
         return self
 
-    def _continue_arsenal(self, X, y):
-        self._n_jobs = check_n_jobs(self.n_jobs)
+    def _validate_resume_fit(self, X, y):
+        check_n_jobs(self.n_jobs)
+        self._get_ensemble_target()
+
+    def _get_ensemble_target(self):
         time_limit = self.time_limit_in_minutes * 60
         target = self.contract_max_n_estimators if time_limit > 0 else self.n_estimators
         if not isinstance(target, (int, np.integer)) or target < 1:
             raise ValueError(
                 "The target number of estimators must be a positive integer."
             )
+        return target
+
+    def _continue_arsenal(self, X, y):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        time_limit = self.time_limit_in_minutes * 60
+        target = self._get_ensemble_target()
         # member limits apply to the whole ensemble, so a limit below the members
         # already built discards the newest of them. The generators are not
         # rewound, so rebuilding afterwards trains new members, not these ones.
@@ -478,9 +487,12 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
                 f"{fit_limit}, n_jobs={self._n_jobs}"
             )
 
+        periodic_checkpoints = (
+            self.checkpoint_path is not None and self.checkpoint_interval is not None
+        )
         batch_size = (
             self._n_jobs
-            if time_limit > 0 or self.checkpoint_path is not None
+            if time_limit > 0 or periodic_checkpoints
             else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
         )
         # the contract bounds total training time, so an interrupted fit resumes

@@ -102,6 +102,8 @@ leave a temporary file; the last completed checkpoint remains the recovery file.
 Implementers should inherit `CheckpointableMixin`, set the capability tag,
 provide `checkpoint_path` and `checkpoint_interval` constructor parameters,
 and implement `_resume_fit`. All continuation state must live on the estimator.
+Override `_validate_resume_fit(X, y)` to reject invalid continuation parameters
+before the fitted flag is cleared. This hook must not change fitted state.
 Set `_checkpoint_ready=False` before a batch and set it to `True` only after
 committing results, counters and RNG state; then call `_checkpoint_if_due()`.
 The classifier base handles data signatures and final writes. Provide a small

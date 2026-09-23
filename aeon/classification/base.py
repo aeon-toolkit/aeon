@@ -157,10 +157,14 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         y = self._check_y(y, get_n_cases(X), update_classes=False)
         self._validate_checkpoint(X, y)
         self._start_checkpoint_timer()
+        self._validate_resume_fit(X, y)
         self.is_fitted = False
         self._resume_fit(X, y)
         self._fit_complete()
         return self
+
+    def _validate_resume_fit(self, X, y):
+        """Validate continuation parameters without changing fitted state."""
 
     def _resume_fit(self, X, y):
         """Continue algorithm-specific training from stored state."""
