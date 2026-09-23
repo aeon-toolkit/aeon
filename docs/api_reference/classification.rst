@@ -155,6 +155,7 @@ sklearn
     :template: class.rst
 
     ContinuousIntervalTree
+    PrevalidatedRidgeClassifier
     RotationForestClassifier
     SklearnClassifierWrapper
 

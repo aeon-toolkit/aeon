@@ -290,7 +290,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         )
         if np.isinf(X_new).any() or np.isnan(X_new).any():
             warnings.warn(
-                "Some invalid values (inf or nan) where converted from to 0 during the"
+                "Some invalid values (inf or nan) were converted to zeros during the"
                 " shapelet transformation.",
                 stacklevel=2,
             )
