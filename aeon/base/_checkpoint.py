@@ -128,7 +128,7 @@ class CheckpointableMixin:
         then replaces the destination. Failed serialization leaves the previous
         checkpoint intact. Concurrent writers to the same path are unsupported.
         """
-        if self.get_tag("cant_pickle"):
+        if self._checkpoint_cant_pickle():
             raise ValueError(
                 "Default checkpoint persistence requires cant_pickle=False."
             )
@@ -256,6 +256,15 @@ class CheckpointableMixin:
         with Path(filepath).open("rb") as file:
             return _parse_checkpoint_header(file)
 
+    def _checkpoint_cant_pickle(self):
+        """Whether the estimator declares that it cannot be pickled.
+
+        Estimators outside the aeon base classes, such as the scikit-learn
+        facing Rotation Forest, have no tag system and are always picklable.
+        """
+        get_tag = getattr(self, "get_tag", None)
+        return get_tag is not None and bool(get_tag("cant_pickle"))
+
     @classmethod
     def _checkpoint_class_name(cls):
         return f"{cls.__module__}.{cls.__qualname__}"
@@ -267,9 +276,14 @@ class CheckpointableMixin:
         self._checkpoint_ready = False
 
     def _checkpoint_parameter_hash(self):
+        # a generator passed as random_state is consumed by fitting, by the
+        # estimator or by components sharing it, so it is identified by type:
+        # its evolving state is not a change of model configuration
         return joblib_hash(
             {
-                name: value
+                name: (
+                    type(value) if isinstance(value, np.random.RandomState) else value
+                )
                 for name, value in self.get_params(deep=False).items()
                 if name not in self._checkpoint_mutable_params
             }
@@ -309,12 +323,33 @@ class CheckpointableMixin:
                 raise IsADirectoryError(
                     f"Checkpoint path must be a file, not a directory: {path}"
                 )
-            if self.get_tag("cant_pickle"):
+            if self._checkpoint_cant_pickle():
                 raise ValueError("Default checkpointing requires cant_pickle=False.")
         self._checkpoint_last_time = time.monotonic()
 
+    def _set_checkpoint_parent(self, parent):
+        """Route this estimator's checkpoints through ``parent``.
+
+        Used when a checkpointable estimator is fitted inside another, such as
+        the Rotation Forest inside ``ShapeletTransformClassifier``. The child
+        holds no path of its own: its safe boundaries save the parent, which
+        holds the child and therefore all of its continuation state.
+
+        A child boundary is only ever a periodic opportunity, never a forced
+        write: the child finishing does not mean the parent has, and the
+        parent writes its own final checkpoint once it has.
+        """
+        self._checkpoint_parent = parent
+
     def _checkpoint_if_due(self, force=False):
         """Save at a safe boundary when due, or on successful completion."""
+        parent = getattr(self, "_checkpoint_parent", None)
+        if parent is not None:
+            # the parent decides, since only it knows where to write. A child
+            # reaching a boundary, or finishing, says nothing about whether the
+            # parent has finished, so its completion is not forced through
+            parent._checkpoint_if_due()
+            return
         if self.checkpoint_path is None:
             return
         if force or (

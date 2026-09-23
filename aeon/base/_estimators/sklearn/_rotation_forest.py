@@ -9,6 +9,7 @@ __all__ = ["BaseRotationForest"]
 
 import time
 import warnings
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,7 @@ from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
+from aeon.base._checkpoint import CheckpointableMixin
 from aeon.utils._parallel import _run_jobs
 from aeon.utils.validation import check_n_jobs
 
@@ -81,7 +83,7 @@ class _GroupPCA:
         return (X - self.mean_) @ self.components_.T
 
 
-class BaseRotationForest(BaseEstimator):
+class BaseRotationForest(CheckpointableMixin, BaseEstimator):
     """A base class for Rotation Forest (RotF) estimators.
 
     Implements the code shared by ``RotationForestClassifier`` and
@@ -130,6 +132,27 @@ class BaseRotationForest(BaseEstimator):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every fitted estimator and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved at completed batch boundaries and on successful
+        completion. None disables automatic writes. The parent must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured. Timing is approximate:
+        the forest writes at the next completed batch of trees after the
+        interval has elapsed.
+
+    Attributes
+    ----------
+    fit_elapsed_time_ : float
+        Accumulated fitting time in seconds across completed batches and calls.
+
+    Notes
+    -----
+    ``resume_fit(X, y)`` continues from saved state using the original training
+    data. ``fit`` always starts afresh. Tree limits apply to the whole forest,
+    so ``resume_fit`` also grows or shrinks one that completed normally: raising
+    the limit gives a forest identical to an uninterrupted fit of that size,
+    while lowering it discards the newest trees without rewinding the generator.
 
     References
     ----------
@@ -137,6 +160,12 @@ class BaseRotationForest(BaseEstimator):
        forest: A new classifier ensemble method." IEEE transactions on pattern analysis
        and machine intelligence 28.10 (2006).
     """
+
+    _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
+        "n_estimators",
+        "contract_max_n_estimators",
+        "time_limit_in_minutes",
+    )
 
     def __init__(
         self,
@@ -151,6 +180,8 @@ class BaseRotationForest(BaseEstimator):
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
         verbose: int = 0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -163,6 +194,8 @@ class BaseRotationForest(BaseEstimator):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
+        self.checkpoint_path = checkpoint_path
+        self.checkpoint_interval = checkpoint_interval
 
         super().__init__()
 
@@ -191,7 +224,6 @@ class BaseRotationForest(BaseEstimator):
             self._label_average = np.mean(y)
 
         self.n_cases_, self.n_atts_ = X.shape
-        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self._is_classifier:
             self.classes_ = np.unique(y)
@@ -200,29 +232,15 @@ class BaseRotationForest(BaseEstimator):
             for index, class_val in enumerate(self.classes_):
                 self._class_dictionary[class_val] = index
 
-            # escape if only one class seen
-            if self.n_classes_ == 1:
-                self._is_fitted = True
-                return self
+        # the signature covers the validated data, which resume_fit reproduces
+        # from the same X and y, rather than the caller's raw input
+        self._init_checkpoint(X, y)
 
-        time_limit = self.time_limit_in_minutes * 60
-        start_time = time.perf_counter()
-        train_time = 0
-
-        log_each_estimator = self.verbose >= 2
-        log_progress = self.verbose == 1
-        if self.verbose > 0:
-            if time_limit > 0:
-                fit_limit = (
-                    f"time_limit={self._format_duration(time_limit)}, "
-                    f"max_n_estimators={self.contract_max_n_estimators}"
-                )
-            else:
-                fit_limit = f"n_estimators={self.n_estimators}"
-            self._log(
-                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
-                f"n_attributes={self.n_atts_}, {fit_limit}, n_jobs={self._n_jobs}"
-            )
+        # escape if only one class seen
+        if self._is_classifier and self.n_classes_ == 1:
+            self._checkpoint_ready = True
+            self._is_fitted = True
+            return self
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -234,170 +252,237 @@ class BaseRotationForest(BaseEstimator):
 
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
-        X = X[:, self._useful_atts]
         if sum(self._useful_atts) == 0:
             raise ValueError(
                 "All attributes in X contain the same value.",
             )
 
-        self._n_atts = X.shape[1]
+        self._n_atts = int(sum(self._useful_atts))
 
         # normalise attributes
-        self._min = X.min(axis=0)
-        self._ptp = X.max(axis=0) - self._min
-        X = (X - self._min) / self._ptp
+        useful_X = X[:, self._useful_atts]
+        self._min = useful_X.min(axis=0)
+        self._ptp = useful_X.max(axis=0) - self._min
 
+        # copy, so the stored generator is never the global numpy RandomState
+        # shared by every random_state=None estimator; continuation state must
+        # not be advanced by unrelated code between fit and resume_fit
+        self._rng = deepcopy(check_random_state(self.random_state))
+        self._save_transformed_data = save_transformed_data
+        self.estimators_ = []
+        self._pcas = []
+        self._groups = []
+        self._transformed_data = []
+        self._n_estimators = 0
+        self.fit_elapsed_time_ = 0.0
+
+        self._continue_rotf(X, y)
+
+        self._is_fitted = True
+        self._checkpoint_if_due(force=True)
+        return self._transformed_data
+
+    def resume_fit(self, X, y):
+        """Continue fitting the forest from a checkpoint or a fitted forest.
+
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            Original training data, with the same values and order as the fit
+            it continues.
+        y : array-like, shape = [n_cases]
+            Original training labels or targets in the original order.
+
+        Returns
+        -------
+        self :
+            Reference to self.
+
+        Notes
+        -----
+        ``fit`` always starts afresh. Only ``n_estimators``,
+        ``contract_max_n_estimators``, ``time_limit_in_minutes``, ``n_jobs``,
+        ``verbose`` and the checkpoint settings may change between calls. Any
+        time contract covers total training time across calls.
+        """
+        # checked first: validating the data needs a fitted estimator, so an
+        # unfitted one would otherwise fail with a less helpful error
+        if not getattr(self, "_checkpoint_ready", False):
+            raise ValueError("No safe continuation state is available; call fit first.")
+        X = self._check_X(X)
+        X, y = validate_data(self, X=X, y=y, reset=False, accept_sparse=False)
+        self._validate_checkpoint(X, y)
+        self._start_checkpoint_timer()
+        check_n_jobs(self.n_jobs)
+        self._get_forest_target()
+        if self._is_classifier and self.n_classes_ == 1:
+            # nothing was built, and nothing can be: the forest is complete
+            return self
+
+        self._is_fitted = False
+        self._continue_rotf(X, y)
+        self._is_fitted = True
+        self._checkpoint_if_due(force=True)
+        return self
+
+    def _get_forest_target(self):
+        """Return the total number of trees to build, validating the limit."""
+        time_limit = self.time_limit_in_minutes * 60
+        if np.isnan(time_limit):
+            raise ValueError("time_limit_in_minutes must not be NaN.")
+        target = self.contract_max_n_estimators if time_limit > 0 else self.n_estimators
+        if not isinstance(target, (int, np.integer)) or target < 1:
+            raise ValueError("The target number of trees must be a positive integer.")
+        return target
+
+    def _prepare_fit_X(self, X):
+        """Subset and normalise validated training data for fitting."""
+        return (X[:, self._useful_atts] - self._min) / self._ptp
+
+    def _continue_rotf(self, X, y):
+        """Build trees until the forest reaches its target or runs out of time."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        time_limit = self.time_limit_in_minutes * 60
+        target = self._get_forest_target()
+        # tree limits apply to the whole forest, so a limit below the trees
+        # already built discards the newest of them. The generator is not
+        # rewound, so rebuilding afterwards grows new trees, not these ones.
+        if self._n_estimators > target:
+            del self.estimators_[target:]
+            del self._pcas[target:]
+            del self._groups[target:]
+            del self._transformed_data[target:]
+            self._n_estimators = len(self.estimators_)
+
+        start_time = time.perf_counter()
+        train_time = 0.0
+        # the contract covers training time across all calls, so this call adds
+        # to the budget already spent rather than restarting it
+        call_start_elapsed = self.fit_elapsed_time_
+        initial_count = self._n_estimators
+
+        X = self._prepare_fit_X(X)
         X_cls_split = (
             [X[np.where(y == i)] for i in self.classes_]
             if self._is_classifier
             else None
         )
 
-        rng = check_random_state(self.random_state)
+        log_each_estimator = self.verbose >= 2
+        log_progress = self.verbose == 1
+        progress_interval = time_limit / 10 if time_limit > 0 else 0
+        next_progress = progress_interval
+        if self.verbose > 0:
+            fit_limit = (
+                f"time_limit={self._format_duration(time_limit)}, "
+                f"max_n_estimators={target}"
+                if time_limit > 0
+                else f"n_estimators={target}"
+            )
+            self._log(
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
+                f"n_attributes={self.n_atts_}, {fit_limit}, n_jobs={self._n_jobs}"
+            )
 
-        if time_limit > 0:
-            if log_progress:
-                progress_interval = time_limit / 10
-                next_progress = progress_interval
-
-            self._n_estimators = 0
-            self.estimators_ = []
-            self._pcas = []
-            self._groups = []
-            X_t = []
-
-            while (
-                train_time < time_limit
-                and self._n_estimators < self.contract_max_n_estimators
-            ):
-                fit = _run_jobs(
-                    (
-                        delayed(self._fit_estimator)(
-                            X,
-                            X_cls_split,
-                            y,
-                            check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                            save_transformed_data,
-                        )
-                        for _ in range(self._n_jobs)
-                    ),
-                    self._n_jobs,
-                    prefer="threads",
-                )
-
-                estimators, pcas, groups, transformed_data = zip(*fit)
-
-                self.estimators_ += estimators
-                self._pcas += pcas
-                self._groups += groups
-                X_t += transformed_data
-
-                self._n_estimators += self._n_jobs
-                train_time = time.perf_counter() - start_time
-
-                if log_each_estimator:
-                    contract_remaining = self._format_duration(
-                        max(0.0, time_limit - train_time)
+        periodic_checkpoints = (
+            getattr(self, "_checkpoint_parent", None) is not None
+            or self.checkpoint_path is not None
+            and self.checkpoint_interval is not None
+        )
+        batch_size = (
+            self._n_jobs
+            if time_limit > 0 or periodic_checkpoints
+            else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
+        )
+        # the contract bounds total training time, so an interrupted fit resumes
+        # with whatever budget the earlier calls left rather than a fresh one
+        while self._n_estimators < target and (
+            time_limit <= 0 or self.fit_elapsed_time_ < time_limit
+        ):
+            current_batch_size = min(batch_size, target - self._n_estimators)
+            # the batch is grown from a copy of the random state, and nothing is
+            # committed until it has joined, so a failed batch is rebuilt from
+            # the same seeds rather than skipping them
+            rng = deepcopy(self._rng)
+            fit = _run_jobs(
+                (
+                    delayed(self._fit_estimator)(
+                        X,
+                        X_cls_split,
+                        y,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                        self._save_transformed_data,
                     )
-                    first_estimator = self._n_estimators - len(fit) + 1
-                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
-                        self._log(
-                            f"[{type(self).__name__}] Estimator {estimator_idx}: "
-                            f"elapsed={train_time:.2f}s, "
-                            f"contract_remaining={contract_remaining}"
-                        )
-                elif log_progress and train_time >= next_progress:
+                    for _ in range(current_batch_size)
+                ),
+                self._n_jobs,
+                prefer="threads",
+            )
+            estimators, pcas, groups, transformed_data = zip(*fit)
+
+            # commit the batch: these updates belong together, and a checkpoint
+            # may only be written once all of them have been made
+            self.estimators_.extend(estimators)
+            self._pcas.extend(pcas)
+            self._groups.extend(groups)
+            if self._save_transformed_data:
+                self._transformed_data.extend(transformed_data)
+            self._rng.set_state(rng.get_state())
+            self._n_estimators = len(self.estimators_)
+            train_time = time.perf_counter() - start_time
+            self.fit_elapsed_time_ = call_start_elapsed + train_time
+            self._checkpoint_ready = True
+            self._checkpoint_if_due()
+
+            if log_each_estimator:
+                if time_limit > 0:
+                    contract_left = max(0.0, time_limit - self.fit_elapsed_time_)
+                    remaining = (
+                        f"contract_remaining={self._format_duration(contract_left)}"
+                    )
+                else:
+                    estimate = train_time / (self._n_estimators - initial_count)
+                    remaining_time = estimate * (target - self._n_estimators)
+                    remaining = (
+                        f"estimated_remaining={self._format_duration(remaining_time)}"
+                    )
+                for estimator_idx in range(
+                    self._n_estimators - current_batch_size + 1, self._n_estimators + 1
+                ):
+                    member = (
+                        str(estimator_idx)
+                        if time_limit > 0
+                        else f"{estimator_idx}/{target}"
+                    )
                     self._log(
-                        f"[{type(self).__name__}] "
-                        f"Progress: built={self._n_estimators}, "
-                        f"elapsed={train_time:.2f}s"
+                        f"[{type(self).__name__}] Estimator {member}: "
+                        f"elapsed={train_time:.2f}s, {remaining}"
                     )
-                    next_progress = train_time + progress_interval
-        else:
-            self._n_estimators = self.n_estimators
-
-            if self.verbose > 0:
-                # fit in batches so progress can be reported between them; the
-                # random seeds are still drawn in the same order as the single
-                # call below, so the fitted ensemble is identical
-                estimator_start_time = time.perf_counter()
-                # about ten batches, but never fewer estimators than jobs
-                batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
-
-                fit = []
-                for batch_start in range(0, self._n_estimators, batch_size):
-                    current_batch_size = min(
-                        batch_size, self._n_estimators - batch_start
-                    )
-                    batch_fit = _run_jobs(
-                        (
-                            delayed(self._fit_estimator)(
-                                X,
-                                X_cls_split,
-                                y,
-                                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                                save_transformed_data,
-                            )
-                            for _ in range(current_batch_size)
-                        ),
-                        self._n_jobs,
-                        prefer="threads",
-                    )
-                    fit.extend(batch_fit)
-
-                    built = len(fit)
-                    estimator_elapsed = time.perf_counter() - estimator_start_time
-                    if log_each_estimator:
-                        if built == 1:
-                            time_estimate = "estimated_remaining=estimating"
-                        else:
-                            estimated_remaining = (estimator_elapsed / built) * (
-                                self._n_estimators - built
-                            )
-                            time_estimate = (
-                                "estimated_remaining="
-                                f"{self._format_duration(estimated_remaining)}"
-                            )
-                        elapsed = time.perf_counter() - start_time
-                        for estimator_idx in range(
-                            batch_start + 1, batch_start + current_batch_size + 1
-                        ):
-                            self._log(
-                                f"[{type(self).__name__}] Estimator "
-                                f"{estimator_idx}/{self._n_estimators}: "
-                                f"elapsed={elapsed:.2f}s, {time_estimate}"
-                            )
-                    else:
-                        self._log(
-                            f"[{type(self).__name__}] "
-                            f"Progress: built={built}/{self._n_estimators}, "
-                            f"elapsed={time.perf_counter() - start_time:.2f}s"
-                        )
-            else:
-                fit = _run_jobs(
-                    (
-                        delayed(self._fit_estimator)(
-                            X,
-                            X_cls_split,
-                            y,
-                            check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                            save_transformed_data,
-                        )
-                        for _ in range(self._n_estimators)
-                    ),
-                    self._n_jobs,
-                    prefer="threads",
+            elif log_progress and train_time >= next_progress:
+                built = (
+                    str(self._n_estimators)
+                    if time_limit > 0
+                    else f"{self._n_estimators}/{target}"
                 )
+                self._log(
+                    f"[{type(self).__name__}] Progress: built={built}, "
+                    f"elapsed={train_time:.2f}s"
+                )
+                next_progress = train_time + progress_interval
 
-            self.estimators_, self._pcas, self._groups, X_t = zip(*fit)
+            # logging is part of the fit, so it is charged to the contract
+            train_time = time.perf_counter() - start_time
+            self.fit_elapsed_time_ = call_start_elapsed + train_time
 
-        self._is_fitted = True
+        # an already spent budget leaves the loop without a batch, but the state
+        # it starts from is still resumable
+        self._checkpoint_ready = True
+
         if self.verbose > 0:
             self._log(
                 f"[{type(self).__name__}] Finished fit: built={len(self.estimators_)}, "
-                f"elapsed={time.perf_counter() - start_time:.2f}s"
+                f"elapsed={train_time:.2f}s"
             )
-        return X_t
 
     @staticmethod
     def _log(message):
@@ -622,7 +707,9 @@ class BaseRotationForest(BaseEstimator):
         """
         X_t = self._fit_rotf(X, y, save_transformed_data=True)
 
-        rng = check_random_state(self.random_state)
+        # copy, so out of bag estimates never advance a generator shared with
+        # the continuation state or with the trees
+        rng = deepcopy(check_random_state(self.random_state))
 
         train_fn = (
             self._train_probas_for_estimator
