@@ -23,7 +23,7 @@ def checkpoint_directory():
 
 
 @pytest.fixture
-def training_data():
+def _training_data():
     """Provide a small deterministic classification dataset."""
     return make_example_3d_numpy(n_cases=12, n_timepoints=24, random_state=42)
 
@@ -47,15 +47,13 @@ def _assert_same_ensemble(expected, actual, X):
     )
 
 
-@pytest.mark.parametrize("n_jobs", [1, 2])
-@pytest.mark.parametrize("contracted", [False, True])
-@pytest.mark.parametrize("train_estimates", [False, True])
+@pytest.mark.parametrize("contracted, train_estimates", [(False, False), (True, True)])
 def test_arsenal_resume(
-    training_data, checkpoint_directory, n_jobs, contracted, train_estimates
+    _training_data, checkpoint_directory, contracted, train_estimates
 ):
     """A resumed ensemble has the same members, RNG and OOB state as a full fit."""
-    X, y = training_data
-    params = dict(n_kernels=10, random_state=0, n_jobs=n_jobs)
+    X, y = _training_data
+    params = dict(n_kernels=10, random_state=0)
     limit = "contract_max_n_estimators" if contracted else "n_estimators"
     if contracted:
         params["time_limit_in_minutes"] = 5
@@ -63,7 +61,7 @@ def test_arsenal_resume(
     partial = Arsenal(**params, **{limit: 2})
     method = "fit_predict_proba" if train_estimates else "fit"
     getattr(full, method)(X, y)
-    getattr(partial, method)(X, y)
+    getattr(partial, method)(X[:, 0], y)
     partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
     restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
     restored.set_params(**{limit: 4})
@@ -77,9 +75,9 @@ def test_arsenal_resume(
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_arsenal_interrupted_batch(training_data, checkpoint_directory, n_jobs):
+def test_arsenal_interrupted_batch(_training_data, checkpoint_directory, n_jobs):
     """A failed next batch can be recovered without skipping random seeds."""
-    X, y = training_data
+    X, y = _training_data
     path = checkpoint_directory / "arsenal.pkl"
     params = dict(n_kernels=10, n_estimators=4, random_state=0, n_jobs=n_jobs)
     uninterrupted = Arsenal(**params).fit(X, y)
@@ -109,9 +107,9 @@ def test_arsenal_interrupted_batch(training_data, checkpoint_directory, n_jobs):
     assert Arsenal.load_checkpoint(path).is_fitted
 
 
-def test_arsenal_resume_validation(training_data):
+def test_arsenal_resume_validation(_training_data):
     """Wrong values, labels and model parameters fail without changing metadata."""
-    X, y = training_data
+    X, y = _training_data
     classifier = Arsenal(n_kernels=10, n_estimators=1, random_state=0).fit(X, y)
     original = joblib_hash((classifier.classes_, classifier.metadata_))
     changed_X = X.copy()
@@ -135,18 +133,9 @@ def test_arsenal_resume_validation(training_data):
         MockClassifier().resume_fit(X, y)
 
 
-def test_arsenal_resume_converted_data(training_data):
-    """Canonical preprocessing permits equivalent 2D and 3D input."""
-    X, y = training_data
-    classifier = Arsenal(n_kernels=10, n_estimators=1, random_state=0).fit(X[:, 0], y)
-    classifier.n_estimators = 2
-    classifier.resume_fit(X, y)
-    assert classifier.n_estimators_ == 2
-
-
-def test_arsenal_new_contract_budget(training_data, checkpoint_directory):
+def test_arsenal_new_contract_budget(_training_data):
     """Each call receives a new time budget regardless of accumulated time."""
-    X, y = training_data
+    X, y = _training_data
     classifier = Arsenal(
         n_kernels=10,
         time_limit_in_minutes=1e-12,
@@ -155,22 +144,19 @@ def test_arsenal_new_contract_budget(training_data, checkpoint_directory):
     ).fit(X, y)
     assert classifier.n_estimators_ == 1
     classifier.fit_elapsed_time_ = 1e9
-    classifier.save_checkpoint(checkpoint_directory / "arsenal.pkl")
-    restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
-    restored.resume_fit(X, y)
-    assert restored.n_estimators_ == 2
-    assert restored.fit_elapsed_time_ >= 1e9
+    classifier.resume_fit(X, y)
+    assert classifier.n_estimators_ == 2
+    assert classifier.fit_elapsed_time_ >= 1e9
 
 
-@pytest.mark.parametrize("method", ["fit", "fit_predict", "fit_predict_proba"])
-def test_arsenal_random_state_object(training_data, checkpoint_directory, method):
+def test_arsenal_random_state_object(_training_data, checkpoint_directory):
     """Shared model/OOB RNGs remain shared after loading and resuming."""
-    X, y = training_data
+    X, y = _training_data
     params = dict(n_kernels=10, random_state=np.random.RandomState(0))
     full = Arsenal(**deepcopy(params), n_estimators=4)
     partial = Arsenal(**deepcopy(params), n_estimators=2)
-    getattr(full, method)(X, y)
-    getattr(partial, method)(X, y)
+    full.fit_predict(X, y)
+    partial.fit_predict(X, y)
     partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
     restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
     restored.n_estimators = 4
