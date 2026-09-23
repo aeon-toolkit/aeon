@@ -10,7 +10,6 @@ from functools import partial
 from unittest.mock import patch
 
 import numpy as np
-import pytest
 from numpy.testing import assert_array_almost_equal
 from sklearn.ensemble._base import _set_random_states
 
@@ -209,6 +208,8 @@ def check_checkpointing_classifier(estimator_class, datatype):
     not wall-clock timing. Each implementation must additionally test its own
     continuation counters and random state.
     """
+    import pytest
+
     assert issubclass(estimator_class, CheckpointableMixin)
     estimator = estimator_class._create_test_instance(parameter_set="checkpointing")
     _set_random_states(estimator, 42)
