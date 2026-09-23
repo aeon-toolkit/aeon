@@ -405,9 +405,14 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
-        self._rng = check_random_state(self.random_state)
+        # copy, so the stored generators are never the global numpy RandomState
+        # shared by every random_state=None estimator; continuation state must
+        # not be advanced by unrelated code between fit and resume_fit
+        self._rng = deepcopy(check_random_state(self.random_state))
         self._train_rng = (
-            check_random_state(self.random_state) if return_train_estimates else None
+            deepcopy(check_random_state(self.random_state))
+            if return_train_estimates
+            else None
         )
         self.estimators_ = []
         self.weights_ = []
