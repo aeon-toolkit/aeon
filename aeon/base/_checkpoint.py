@@ -153,7 +153,8 @@ class CheckpointableMixin:
             raise ValueError("No safe continuation state is available; call fit first.")
         if joblib_hash((X, y), coerce_mmap=True) != self._checkpoint_data_signature:
             raise ValueError(
-                "Training data does not match the original checkpoint data."
+                "Unable to resume fitting: X and y must match the training data "
+                "used in the original fit."
             )
         if self._checkpoint_parameter_hash() != self._checkpoint_parameter_signature:
             raise ValueError("Model-building parameters have changed since fitting.")

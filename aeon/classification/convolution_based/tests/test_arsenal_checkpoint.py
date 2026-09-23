@@ -123,7 +123,7 @@ def test_arsenal_resume_validation(training_data):
         (X, changed_y),
         (X[::-1], y[::-1]),
     ]:
-        with pytest.raises(ValueError, match="Training data does not match"):
+        with pytest.raises(ValueError, match="Unable to resume fitting: X and y"):
             classifier.resume_fit(candidate_X, candidate_y)
     assert joblib_hash((classifier.classes_, classifier.metadata_)) == original
     classifier.set_params(n_kernels=20)
