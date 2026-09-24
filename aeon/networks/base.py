@@ -153,7 +153,6 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
 
     def _build_latent_graph(self, x):
         import tensorflow as tf
-
         enc_out_shape = x.shape[1:]
 
         if self.repeated_latent_space:
@@ -198,9 +197,9 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
     def _build_projection_graph(self, x):
         import tensorflow as tf
 
-        return tf.keras.layers.Conv1DTranspose(
-            filters=self._input_shape[-1],
-            kernel_size=1,
+        return tf.keras.layers.Dense(
+            units=self._input_shape[-1],
+            activation="linear",
             use_bias=self._use_bias[0],
         )(x)
 
@@ -222,6 +221,7 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
             input for the final output layer of the network.
         """
         self._check_params()
+        self._input_shape = x.shape[1:] # save for reconstruction
         x = self._build_encoder_graph(x)
         x = self._build_latent_graph(x)
         x = self._build_decoder_graph(x)

@@ -129,7 +129,6 @@ class AEResNetNetwork(BaseDeepAENetwork):
         )
 
     def _build_encoder_graph(self, x):
-        self._input_shape = x.shape[1:]
         encoder = ResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,
             n_conv_per_residual_block=self.n_conv_per_residual_block,

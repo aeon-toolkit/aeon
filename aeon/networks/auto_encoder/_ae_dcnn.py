@@ -112,7 +112,6 @@ class AEDCNNNetwork(BaseDeepAENetwork):
         )
 
     def _build_encoder_graph(self, x):
-        self._input_shape = x.shape[1:]
         return DCNNNetwork(
             n_layers=self.n_layers,
             n_filters=self._n_filters_encoder,
