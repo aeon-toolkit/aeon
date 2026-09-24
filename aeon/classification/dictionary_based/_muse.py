@@ -75,17 +75,18 @@ class MUSE(BaseClassifier):
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accuracy. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
+        If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights
         inversely proportional to class frequencies in the input data as
         n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
         For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV
+        is not an ensemble model.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -133,7 +134,9 @@ class MUSE(BaseClassifier):
     """
 
     _tags = {
-        "capability:univariate": False,
+        # MUSE warns on univariate input and carries on, and its own example
+        # runs on a univariate dataset, so the capability is there
+        "capability:univariate": True,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -264,15 +267,14 @@ class MUSE(BaseClassifier):
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
+            all_words = all_words.astype(np.float32, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
                 solver="liblinear",
                 dual=True,
                 class_weight=self.class_weight,
-                penalty="l2",
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
             )
             if self.n_classes_ > 2:
                 self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)

@@ -6,6 +6,7 @@ __all__ = ["RSTSF"]
 import numpy as np
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.utils.class_weight import compute_sample_weight
 
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection import (
@@ -135,12 +136,14 @@ class RSTSF(BaseClassifier):
         self.clf_ = ExtraTreesClassifier(
             n_estimators=self.n_estimators,
             criterion="entropy",
-            class_weight="balanced",
             max_features="sqrt",
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
-        self.clf_.fit(Xt, y)
+        # equivalent to passing class_weight="balanced" to the classifier, which
+        # scikit-learn 1.9 mishandles for string class labels that parse as
+        # integers, see _resolve_balanced_class_weight
+        self.clf_.fit(Xt, y, sample_weight=compute_sample_weight("balanced", y))
 
         relevant_features = []
         for tree in self.clf_.estimators_:
