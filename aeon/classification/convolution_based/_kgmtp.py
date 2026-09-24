@@ -1,7 +1,8 @@
 """KGMTP classifier.
 
-Pipeline classifier using the KGMTP transformer, the StandardScaler scaler and the
-RidgeClassifierCV classifier.
+Pipeline classifier using the KGMTP transformer and a scikit-learn estimator: by
+default, a StandardScaler followed by RidgeClassifierCV, or a user-supplied
+estimator fit directly on the transform's output.
 """
 
 __maintainer__ = ["johannfaouzi"]
@@ -22,36 +23,49 @@ class KGMTPClassifier(BaseClassifier):
     """KG-MTP classifier.
 
     This classifier transforms the input data using the `KGMTP` [1]_ transformer,
-    extracting PPV-pooling and Hydra-style features from three representations of each
+    extracting pooling and Hydra-style features from three representations of each
     series (raw, its Hilbert transform, and its first difference), with the
-    Hydra-style block always scaled internally by the transform (`KGMTP`'s own
-    `scale_hydra` parameter is fixed to ``True`` here, regardless of its default, to
-    reproduce the original algorithm exactly). A `StandardScaler` is then applied to
-    the full concatenated output (PPV-pooling + Hydra features), matching the
-    original paper's own pipeline, before fitting a sklearn classifier on the scaled
-    features (default classifier is `RidgeClassifierCV`).
+    Hydra-style block scaled according to `scale_hydra`. If `estimator` is left as
+    ``None`` (the default), a `StandardScaler` -> `RidgeClassifierCV` pipeline is
+    then fit on the full concatenated output (pooling + Hydra features) --
+    together with `scale_hydra`'s default of ``True``, reproducing the original
+    paper's pipeline exactly. A custom `estimator` is instead fit directly on the
+    concatenated output, with no `StandardScaler` applied.
 
     Multivariate series are supported: `KGMTP` processes each channel independently
-    and concatenates every channel's output, so the per-channel feature budget below
-    scales with the number of channels.
+    and concatenates every channel's output (see its docstring), so the per-channel
+    feature budget below scales with the number of channels.
 
     Parameters
     ----------
     n_kernels : int, default=50_000
-        Total PPV-pooling feature budget per channel for the `KGMTP` transform,
+        Total pooling feature budget *per channel* for the `KGMTP` transform,
         split evenly across its three internal representations (raw, Hilbert, first
         difference).
     max_dilations_per_kernel : int, default=32
         The maximum number of dilations per kernel.
-    n_features_per_kernel : int, default=5
-        The number of PPV-pooling statistics per kernel.
+    scale_hydra : bool, default=True
+        Whether to scale the pooled Hydra features with `KGMTP`'s masked,
+        epsilon-regularized scaler, passed straight through to the `KGMTP`
+        transform. The default, ``True``, is what the original paper's pipeline
+        uses.
     estimator : sklearn compatible classifier or None, default=None
-        The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-        is used.
-    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
-            default=None
-        Only applies if estimator is None and the default is used. From sklearn
-        documentation: If not given, all classes are supposed to have weight one.
+        The estimator used. If None, a pipeline consisting of StandardScaler() followed
+        by RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used. If not None, it is
+        fit directly on KGMTP's raw output instead.
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
+        Only applies if estimator is None and the default is used.
+        From sklearn documentation:
+        If None, all classes are assigned equal weights.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        For multi-output, the weights of each column of y will be multiplied.
+        A dictionary can also be provided to specify weights for each class manually.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV is not an
+        ensemble model.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`. ``-1`` means
         using all processors.
@@ -69,7 +83,8 @@ class KGMTPClassifier(BaseClassifier):
     classes_ : list
         The classes labels.
     estimator_ : sklearn classifier
-        The fitted estimator.
+        The fitted estimator: a `StandardScaler` -> `RidgeClassifierCV` pipeline when
+        `estimator` is None, otherwise the fitted clone of the given `estimator`.
 
     See Also
     --------
@@ -104,7 +119,7 @@ class KGMTPClassifier(BaseClassifier):
         self,
         n_kernels=50_000,
         max_dilations_per_kernel=32,
-        n_features_per_kernel=5,
+        scale_hydra=True,
         estimator=None,
         class_weight=None,
         n_jobs=1,
@@ -112,7 +127,7 @@ class KGMTPClassifier(BaseClassifier):
     ):
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
-        self.n_features_per_kernel = n_features_per_kernel
+        self.scale_hydra = scale_hydra
         self.estimator = estimator
 
         self.class_weight = class_weight
@@ -141,29 +156,24 @@ class KGMTPClassifier(BaseClassifier):
         self._transformer = KGMTP(
             n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
-            n_features_per_kernel=self.n_features_per_kernel,
             n_jobs=self._n_jobs,
-            # Always scale the Hydra block, regardless of KGMTP's own default --
-            # this classifier's whole point is reproducing the original paper's
-            # pipeline exactly, so it isn't a knob for callers to turn off here
-            # (use KGMTP directly for raw, unscaled Hydra features).
-            scale_hydra=True,
+            scale_hydra=self.scale_hydra,
             random_state=self.random_state,
         )
-        self.estimator_ = _clone_estimator(
-            (
+
+        estimator = (
+            make_pipeline(
+                StandardScaler(),
                 RidgeClassifierCV(
                     alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
-                )
-                if self.estimator is None
-                else self.estimator
-            ),
-            self.random_state,
+                ),
+            )
+            if self.estimator is None
+            else self.estimator
         )
+        self.estimator_ = _clone_estimator(estimator, self.random_state)
 
-        self.pipeline_ = make_pipeline(
-            self._transformer, StandardScaler(), self.estimator_
-        )
+        self.pipeline_ = make_pipeline(self._transformer, self.estimator_)
         self.pipeline_.fit(X, y)
 
         return self
@@ -190,5 +200,4 @@ class KGMTPClassifier(BaseClassifier):
         return {
             "n_kernels": 1200,
             "max_dilations_per_kernel": 4,
-            "n_features_per_kernel": 5,
         }

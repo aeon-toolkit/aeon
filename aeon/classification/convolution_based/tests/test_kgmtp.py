@@ -3,17 +3,18 @@
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.metrics import accuracy_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.convolution_based._kgmtp import KGMTPClassifier
 from aeon.datasets import load_italy_power_demand
 
 
 def test_kgmtp_classifier_default_estimator():
-    """`predict_proba` falls back to one-hot when the estimator has none.
+    """With `estimator=None`, a StandardScaler -> RidgeClassifierCV pipeline is used.
 
-    With `estimator=None`, a `RidgeClassifierCV` is fit internally, and
-    (since it has no `predict_proba`) `predict_proba` falls back to a
-    one-hot distribution over `predict`'s output.
+    `predict_proba` falls back to a one-hot distribution over `predict`'s output,
+    since neither step of that pipeline has its own `predict_proba`.
     """
     X = np.random.default_rng(0).random(size=(20, 1, 60))
     y = np.array([0, 1] * 10)
@@ -22,7 +23,9 @@ def test_kgmtp_classifier_default_estimator():
         X, y
     )
 
-    assert isinstance(clf.estimator_, RidgeClassifierCV)
+    assert isinstance(clf.estimator_, Pipeline)
+    assert isinstance(clf.estimator_.steps[0][1], StandardScaler)
+    assert isinstance(clf.estimator_.steps[-1][1], RidgeClassifierCV)
     assert not hasattr(clf.estimator_, "predict_proba")
 
     proba = clf.predict_proba(X)
@@ -33,9 +36,10 @@ def test_kgmtp_classifier_default_estimator():
 
 
 def test_kgmtp_classifier_custom_estimator():
-    """A custom estimator's own `predict_proba` is used, not the fallback.
+    """A custom `estimator` is fit directly, with no `StandardScaler` wrapping.
 
-    Rather than falling back to the one-hot approximation.
+    Its own `predict_proba` is used too, rather than falling back to the one-hot
+    approximation.
     """
     from sklearn.ensemble import RandomForestClassifier
 
@@ -48,35 +52,37 @@ def test_kgmtp_classifier_custom_estimator():
         **KGMTPClassifier._get_test_params(),
     ).fit(X, y)
 
+    assert isinstance(clf.estimator_, RandomForestClassifier)
+
     proba = clf.predict_proba(X)
     assert not np.all((proba == 0) | (proba == 1))
 
 
-def test_kgmtp_classifier_always_scales_hydra():
-    """`KGMTPClassifier` always scales the Hydra block, regardless of `KGMTP`'s default.
+def test_kgmtp_classifier_scale_hydra_passed_through():
+    """`scale_hydra` is passed straight through to `KGMTP`, for either estimator.
 
-    It reproduces the original paper's pipeline exactly, so unlike a
-    standalone `KGMTP`, this isn't meant to be a caller-facing choice.
+    Default=True reproduces the original paper's pipeline; the caller's choice is
+    otherwise respected as given, with the default and a custom estimator alike.
     """
+    from sklearn.ensemble import RandomForestClassifier
+
     X = np.random.default_rng(0).random(size=(20, 1, 60))
     y = np.array([0, 1] * 10)
 
-    clf = KGMTPClassifier(random_state=0, **KGMTPClassifier._get_test_params()).fit(
-        X, y
-    )
+    for estimator in (None, RandomForestClassifier(n_estimators=5, random_state=0)):
+        for scale_hydra in (True, False):
+            clf = KGMTPClassifier(
+                estimator=estimator,
+                scale_hydra=scale_hydra,
+                random_state=0,
+                **KGMTPClassifier._get_test_params(),
+            ).fit(X, y)
 
-    assert clf._transformer.scale_hydra is True
+            assert clf._transformer.scale_hydra is scale_hydra
 
 
 def test_kgmtp_classifier_multivariate():
-    """`KGMTPClassifier` accepts and fits on multivariate series without error.
-
-    `KGMTP` itself processes each channel independently and concatenates
-    every channel's output (see its own tests for that in detail); this just
-    checks the classifier's end-to-end pipeline accepts multivariate input at
-    all, since it declares `capability:multivariate` and delegates entirely
-    to `KGMTP` for the actual per-channel handling.
-    """
+    """`KGMTPClassifier` accepts and fits on multivariate series without error."""
     X = np.random.default_rng(0).random(size=(20, 3, 60))
     y = np.array([0, 1] * 10)
 
@@ -90,20 +96,7 @@ def test_kgmtp_classifier_multivariate():
 
 
 def test_kgmtp_classifier_beats_majority_baseline():
-    """KGMTPClassifier meaningfully outperforms a majority-class baseline.
-
-    None of the other tests in this file check that the fitted pipeline
-    actually *learns* anything -- they only check API mechanics (shapes,
-    the one-hot `predict_proba` fallback, etc.) and would still pass even
-    if the features carried no signal at all. This is a lightweight
-    sanity/regression check rather than a unit test: it fits on a small,
-    fast, real UCR dataset (bundled with aeon, so no network access is
-    needed) and checks accuracy clearly beats always predicting the
-    training set's majority class. The margin is a threshold rather than
-    a pinned exact value, so it stays robust to minor Numba/platform
-    floating-point differences while still catching a badly broken
-    pipeline (e.g. features carrying no signal, or labels misaligned).
-    """
+    """KGMTPClassifier meaningfully outperforms a majority-class baseline."""
     X_train, y_train = load_italy_power_demand(split="train")
     X_test, y_test = load_italy_power_demand(split="test")
 

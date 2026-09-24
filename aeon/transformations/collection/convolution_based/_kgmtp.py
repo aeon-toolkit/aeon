@@ -26,6 +26,12 @@ _KERNEL_LENGTH = 6
 # drives the "alpha" multiplier in `_build_kernel_group_tables` below.
 _GROUP_MULTIPLIERS = {1: 1.0, 2: 1.0, 3: 1.0, 4: 2.0, 5: 5.0}
 
+# Number of pooling statistics `_transform` computes per kernel/dilation/bias
+# combination (proportion of positive values, mean of positive values, mean index of
+# positive values, longest below-bias stretch, zero-crossing count) -- fixed by that
+# function's own logic, not a tunable width.
+_N_POOLING_FEATURES = 5
+
 
 def _build_kernel_group_tables():
     """Precompute the fixed per-kernel tables `_fit_biases`/`_transform` need.
@@ -177,14 +183,12 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, weights, rng
 
 
 @njit(
-    "(float64[:,:],Tuple((int32[:],int32[:],float32[:],float32[:,:])),int32)",
+    "(float64[:,:],Tuple((int32[:],int32[:],float32[:],float32[:,:])))",
     fastmath=True,
     parallel=True,
     cache=True,
 )
-def _transform(
-    X, parameters, n_features_per_kernel=5
-) -> tuple[float32[:, :], float32[:, :]]:
+def _transform(X, parameters) -> tuple[float32[:, :], float32[:, :]]:
     dilations, num_features_per_dilation, biases, weights = parameters
     kernel_length = weights.shape[1]
 
@@ -194,7 +198,7 @@ def _transform(
 
     num_features = num_kernels * np.sum(num_features_per_dilation)
     features = np.zeros(
-        (num_examples, num_features * n_features_per_kernel), dtype=np.float32
+        (num_examples, num_features * _N_POOLING_FEATURES), dtype=np.float32
     )
     features_hydra = np.zeros(
         (num_examples, num_kernels * num_dilations * 2), dtype=np.float32
@@ -351,24 +355,21 @@ def _transform(
 class _KGMTPBranch:
     """One kernel-grouping-and-pooling sub-transform."""
 
-    def __init__(
-        self, n_kernels=50_000, max_dilations_per_kernel=32, n_features_per_kernel=5
-    ):
+    def __init__(self, n_kernels=50_000, max_dilations_per_kernel=32):
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
-        self.n_features_per_kernel = n_features_per_kernel
 
     def fit(self, X, rng):
         weights = self._build_weights()
         num_kernels, kernel_length = weights.shape
         _, input_length = X.shape
 
-        num_kernel_features = int(self.n_kernels / self.n_features_per_kernel)
+        num_kernel_features = int(self.n_kernels / _N_POOLING_FEATURES)
         if num_kernel_features < num_kernels:
             raise ValueError(
-                f"n_kernels // n_features_per_kernel must be at least "
+                f"n_kernels // {_N_POOLING_FEATURES} must be at least "
                 f"the number of kernels ({num_kernels}); got "
-                f"{self.n_kernels} // {self.n_features_per_kernel} = "
+                f"{self.n_kernels} // {_N_POOLING_FEATURES} = "
                 f"{num_kernel_features}. Increase `n_kernels`."
             )
 
@@ -400,7 +401,7 @@ class _KGMTPBranch:
             self.biases_,
             self.weights_,
         )
-        features, features_hydra = _transform(X, parameters, self.n_features_per_kernel)
+        features, features_hydra = _transform(X, parameters)
         features = np.nan_to_num(features)
         return features, features_hydra
 
@@ -465,42 +466,41 @@ class KGMTP(BaseCollectionTransformer):
     Every series is fed through three representations (raw, its Hilbert transform, and
     its first difference), each fit and transformed by its own independent
     kernel-grouping-and-pooling sub-transform, with the resulting features concatenated
-    across the three. Alongside the MiniRocket-style PPV-pooling features (extended to 5
-    statistics per kernel: proportion of positive values, mean of positive values, mean
-    index of positive values, longest below-bias stretch, and zero-crossing count), a
-    second, Hydra-style block of per-kernel max/min-competition count features is also
+    across the three. Alongside the MiniRocket-style pooling features (5 statistics per
+    kernel: proportion of positive values, mean of positive values, mean index of
+    positive values, longest below-bias stretch, and zero-crossing count), a second,
+    Hydra-style block of per-kernel max/min-competition count features is also
     produced.
 
     If ``scale_hydra`` is ``True`` (the default), ``fit`` also fits a masked,
     epsilon-regularized scaler on the pooled Hydra features, and ``transform``
-    applies it before concatenating the Hydra block with the raw PPV-pooling block.
+    applies it before concatenating the Hydra block with the raw pooling block.
     Set ``scale_hydra=False`` to get both blocks raw instead.
 
     Multivariate series are supported by processing each channel independently through
     this same raw/Hilbert/diff pipeline (with its own, separately fitted set of kernels
     per channel), then concatenating every channel's output into the final design
-    matrix. Channels are never mixed, so ``n_kernels`` is the per-channel budget: the
-    total feature budget scales with the number of channels.
+    matrix (channel 0's pooling block followed by channel 1's, and so on, likewise for
+    the Hydra block). Channels are never mixed, so ``n_kernels`` is the per-channel
+    budget: the total feature budget scales with the number of channels.
 
     Parameters
     ----------
     n_kernels : int, default=50_000
-        Total PPV-pooling feature budget per channel, split evenly across the three
+        Total pooling feature budget per channel, split evenly across the three
         representations this transform computes internally (``n_kernels // 3`` each).
         For multivariate series, this same per-channel budget is used independently for
         every channel, so the total feature budget scales with the number of channels.
     max_dilations_per_kernel : int, default=32
         Maximum number of dilations per kernel.
-    n_features_per_kernel : int, default=5
-        Number of PPV-pooling statistics produced per kernel/dilation combination.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for `transform`. ``-1`` means using all
-        processors. Bias-fitting during `fit` is always single-threaded.
     scale_hydra : bool, default=True
         Whether to scale the pooled Hydra features with a masked, epsilon-regularized
         scaler fitted during `fit` (matching the original paper's pipeline). If
-        ``False``, `transform`'s Hydra block is left raw, like the PPV-pooling block
+        ``False``, `transform`'s Hydra block is left raw, like the pooling block
         always is.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for `transform`. ``-1`` means using all
+        processors. Bias-fitting during `fit` is always single-threaded.
     random_state : int, ``numpy.random.Generator`` or None, default=None
         If ``int``, random_state is the seed used by the random number generator.
         If a ``Generator`` instance, random_state is the random number generator.
@@ -514,8 +514,8 @@ class KGMTP(BaseCollectionTransformer):
         Fitted kernel parameters for the raw, Hilbert-transform, and first-difference
         representations respectively, one entry per channel (in channel order), each
         entry a ``(dilations, num_features_per_dilation, biases, weights)`` tuple.
-    n_ppv_features_ : int
-        Width of the PPV-pooling block within `transform`'s output.
+    n_pooling_features_ : int
+        Width of the pooling block within `transform`'s output.
     n_hydra_features_ : int
         Width of the Hydra block within `transform`'s output.
     random_state_ : numpy.random.Generator
@@ -560,14 +560,12 @@ class KGMTP(BaseCollectionTransformer):
         self,
         n_kernels=50_000,
         max_dilations_per_kernel=32,
-        n_features_per_kernel=5,
         scale_hydra=True,
         n_jobs=1,
         random_state=None,
     ):
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
-        self.n_features_per_kernel = n_features_per_kernel
         self.scale_hydra = scale_hydra
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -599,7 +597,7 @@ class KGMTP(BaseCollectionTransformer):
         that channel as a side effect, to determine dilations/biases). Channels'
         blocks are concatenated (see class docstring), then optionally fits the
         Hydra-count scaler on the pooled, multi-channel Hydra features and applies it
-        if `scale_hydra=True`. The PPV-pooling features are left unscaled.
+        if `scale_hydra=True`. The pooling features are left unscaled.
 
         Parameters
         ----------
@@ -610,10 +608,10 @@ class KGMTP(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : ndarray of shape (n_cases, n_ppv_features_ + n_hydra_features_)
-            Raw (unscaled) PPV-pooling features followed by Hydra max/min-count
+        Xt : ndarray of shape (n_cases, n_pooling_features_ + n_hydra_features_)
+            Raw (unscaled) pooling features followed by Hydra max/min-count
             features, scaled if `scale_hydra` is True (the default) and raw
-            otherwise (see `n_ppv_features_`, `n_hydra_features_`).
+            otherwise (see `n_pooling_features_`, `n_hydra_features_`).
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
         rng = self._check_random_state(self.random_state)
@@ -633,19 +631,13 @@ class KGMTP(BaseCollectionTransformer):
             X_diff_list.append(Xc_diff)
 
             base = _KGMTPBranch(
-                n_kernels_per_branch,
-                self.max_dilations_per_kernel,
-                self.n_features_per_kernel,
+                n_kernels_per_branch, self.max_dilations_per_kernel
             ).fit(Xc, rng)
             hilbert = _KGMTPBranch(
-                n_kernels_per_branch,
-                self.max_dilations_per_kernel,
-                self.n_features_per_kernel,
+                n_kernels_per_branch, self.max_dilations_per_kernel
             ).fit(Xc_hilbert, rng)
             diff = _KGMTPBranch(
-                n_kernels_per_branch,
-                self.max_dilations_per_kernel,
-                self.n_features_per_kernel,
+                n_kernels_per_branch, self.max_dilations_per_kernel
             ).fit(Xc_diff, rng)
 
             self._base.append(base)
@@ -679,7 +671,7 @@ class KGMTP(BaseCollectionTransformer):
         train_features, train_hydra = self._transform_branches(
             X_list, X_hilbert_list, X_diff_list
         )
-        self.n_ppv_features_ = train_features.shape[1]
+        self.n_pooling_features_ = train_features.shape[1]
         self.n_hydra_features_ = train_hydra.shape[1]
 
         if self.scale_hydra:
@@ -701,10 +693,10 @@ class KGMTP(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : ndarray of shape (n_cases, n_ppv_features_ + n_hydra_features_)
-            Raw (unscaled) PPV-pooling features followed by Hydra max/min-count
+        Xt : ndarray of shape (n_cases, n_pooling_features_ + n_hydra_features_)
+            Raw (unscaled) pooling features followed by Hydra max/min-count
             features, scaled if `scale_hydra` is True (the default) and raw
-            otherwise (see `n_ppv_features_`, `n_hydra_features_`).
+            otherwise (see `n_pooling_features_`, `n_hydra_features_`).
         """
         X_list, X_hilbert_list, X_diff_list = [], [], []
         for c in range(X.shape[1]):
@@ -721,7 +713,16 @@ class KGMTP(BaseCollectionTransformer):
         return np.concatenate([features, hydra], axis=1)
 
     def _transform_branches(self, X_list, X_hilbert_list, X_diff_list):
-        """Run each channel's fitted branches and concatenate every block."""
+        """Run each channel's fitted branches and concatenate every block.
+
+        Wires `n_jobs` to the Numba-parallel `_transform` kernel via
+        `set_num_threads`/`get_num_threads`, matching `MultiRocket`'s pattern. Shared
+        by `_fit_transform` (to compute training features for scaler-fitting) and
+        `_transform`. `X_list`/`X_hilbert_list`/`X_diff_list` are per-channel 2D
+        arrays, in the same channel order `self._base`/`self._hilbert`/`self._diff`
+        were fitted in; blocks are concatenated with the three representations
+        varying fastest within a channel, then channels (see class docstring).
+        """
         prev_threads = get_num_threads()
         n_jobs = (
             multiprocessing.cpu_count()
@@ -800,12 +801,10 @@ class KGMTP(BaseCollectionTransformer):
         """Return testing parameter settings for the estimator.
 
         `n_kernels=1200` is the smallest budget that clears `_KGMTPBranch.fit`'s
-        `n_kernels // n_features_per_kernel >= num_kernels(62)` floor once split three
-        ways and divided by the default `n_features_per_kernel=5` (1200 // 3 // 5 = 80
-        >= 62).
+        `n_kernels // 5 >= num_kernels(62)` floor once split three ways
+        (1200 // 3 // 5 = 80 >= 62).
         """
         return {
             "n_kernels": 1200,
             "max_dilations_per_kernel": 4,
-            "n_features_per_kernel": 5,
         }

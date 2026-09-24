@@ -15,22 +15,22 @@ def test_kgmtp_n_kernels_too_small():
     """Test KGMTP raises a clear error when n_kernels is too small.
 
     `_KGMTPBranch.fit` needs the per-branch kernel-feature budget
-    (`n_kernels // 3 // n_features_per_kernel`) to be at least the fixed
-    number of kernels (62); below that it would otherwise divide by zero
-    downstream, so this is turned into an explicit `ValueError` instead.
+    (`n_kernels // 3 // 5`) to be at least the fixed number of kernels (62).
+    Below that, it would otherwise divide by zero downstream, so this is turned into an
+    explicit `ValueError` instead.
     """
     X = np.random.default_rng(0).random(size=(10, 1, 100))
     kgmtp = KGMTP(n_kernels=30)  # 30 // 3 // 5 = 2 < 62
-    with pytest.raises(ValueError, match="n_kernels // n_features_per_kernel"):
+    with pytest.raises(ValueError, match="n_kernels // 5"):
         kgmtp.fit(X)
 
 
 def test_kgmtp_random_state_generator_advances():
     """A shared Generator advances across fit() calls rather than repeating.
 
-    Matches how `KGMTP` is meant to be used across many resamples of a
-    benchmark: one `Generator`, passed to several `KGMTP` instances,
-    continuously advancing rather than reset per instance.
+    Matches how `KGMTP` is meant to be used across many resamples of a benchmark: one
+    `Generator`, passed to several `KGMTP` instances, continuously advancing rather than
+    reset per instance.
     """
     X = np.random.default_rng(0).random(size=(10, 1, 100))
     rng = np.random.default_rng(42)
@@ -47,10 +47,9 @@ def test_kgmtp_random_state_generator_advances():
 def test_kgmtp_random_state_rejects_legacy_randomstate():
     """A legacy `numpy.random.RandomState` is explicitly rejected.
 
-    Unlike most aeon estimators, `random_state` here only accepts an int,
-    `None`, or a `numpy.random.Generator` -- the bias-fitting kernel is
-    Numba-compiled and only implements the modern `Generator` API in
-    nopython mode.
+    Unlike most aeon estimators, `random_state` here only accepts an int, `None`, or a
+    `numpy.random.Generator`, since the bias-fitting kernel is Numba-compiled and only
+    implements the modern `Generator` API in nopython mode.
     """
     X = np.random.default_rng(0).random(size=(10, 1, 100))
     kgmtp = KGMTP(random_state=np.random.RandomState(0), **KGMTP._get_test_params())
@@ -59,9 +58,9 @@ def test_kgmtp_random_state_rejects_legacy_randomstate():
 
 
 def test_kgmtp_feature_block_sizes():
-    """`n_ppv_features_`/`n_hydra_features_` match `transform`'s output width.
+    """`n_pooling_features_`/`n_hydra_features_` match `transform`'s output width.
 
-    `transform` concatenates the raw PPV-pooling block and the (by default,
+    `transform` concatenates the raw pooling block and the (by default,
     scaled) Hydra count block into one array; these two fitted attributes
     are what let a caller split them back apart (see the class docstring).
     """
@@ -69,9 +68,9 @@ def test_kgmtp_feature_block_sizes():
     kgmtp = KGMTP(random_state=0, **KGMTP._get_test_params()).fit(X)
     Xt = kgmtp.transform(X)
 
-    assert Xt.shape[1] == kgmtp.n_ppv_features_ + kgmtp.n_hydra_features_
+    assert Xt.shape[1] == kgmtp.n_pooling_features_ + kgmtp.n_hydra_features_
     assert kgmtp.n_hydra_features_ > 0
-    assert kgmtp.n_ppv_features_ > 0
+    assert kgmtp.n_pooling_features_ > 0
 
 
 def test_kgmtp_scale_hydra_false_leaves_hydra_raw():
@@ -98,15 +97,17 @@ def test_kgmtp_scale_hydra_false_leaves_hydra_raw():
     X_diff = np.diff(X2d, 1)
     raw_features, raw_hydra = kgmtp._transform_branches([X2d], [X_hilbert], [X_diff])
 
-    np.testing.assert_array_equal(Xt[:, : kgmtp.n_ppv_features_], raw_features)
-    np.testing.assert_array_equal(Xt[:, kgmtp.n_ppv_features_ :], raw_hydra)
+    np.testing.assert_array_equal(Xt[:, : kgmtp.n_pooling_features_], raw_features)
+    np.testing.assert_array_equal(Xt[:, kgmtp.n_pooling_features_ :], raw_hydra)
     np.testing.assert_array_equal(Xt, kgmtp.transform(X))
 
     # scale_hydra=True (the default) does scale the Hydra block, and differs
     # from the raw one above.
     kgmtp_scaled = KGMTP(random_state=0, **params).fit(X)
     Xt_scaled = kgmtp_scaled.transform(X)
-    assert not np.array_equal(Xt_scaled[:, kgmtp_scaled.n_ppv_features_ :], raw_hydra)
+    assert not np.array_equal(
+        Xt_scaled[:, kgmtp_scaled.n_pooling_features_ :], raw_hydra
+    )
 
 
 def test_kgmtp_multivariate_concatenates_channels_sequentially():
@@ -122,11 +123,6 @@ def test_kgmtp_multivariate_concatenates_channels_sequentially():
     X = np.random.default_rng(1).random(size=(10, n_channels, 100))
     params = KGMTP._get_test_params()
 
-    # scale_hydra=False keeps both blocks raw, so per-channel slices of the
-    # multivariate output can be compared exactly to a standalone fit -- with
-    # scaling on, the multivariate model's scaler is fit across all channels'
-    # pooled Hydra features at once, which wouldn't match a single channel's
-    # own scaler.
     shared_rng = np.random.default_rng(0)
     multi = KGMTP(random_state=shared_rng, scale_hydra=False, **params).fit(X)
     Xt_multi = multi.transform(X)
@@ -135,11 +131,9 @@ def test_kgmtp_multivariate_concatenates_channels_sequentially():
     assert len(multi.hilbert_) == n_channels
     assert len(multi.diff_) == n_channels
 
-    # Total feature width scales linearly with the number of channels, since
-    # each channel gets its own full `n_kernels` budget (see class docstring).
     single = KGMTP(random_state=0, scale_hydra=False, **params).fit(X[:, :1, :])
     Xt_single = single.transform(X[:, :1, :])
-    assert multi.n_ppv_features_ == n_channels * single.n_ppv_features_
+    assert multi.n_pooling_features_ == n_channels * single.n_pooling_features_
     assert multi.n_hydra_features_ == n_channels * single.n_hydra_features_
     assert Xt_multi.shape[1] == n_channels * Xt_single.shape[1]
 
@@ -151,31 +145,27 @@ def test_kgmtp_multivariate_concatenates_channels_sequentially():
             Xc
         )
         Xt_c = model_c.transform(Xc)
-        n_ppv_c, n_hydra_c = model_c.n_ppv_features_, model_c.n_hydra_features_
+        n_pooling_c, n_hydra_c = model_c.n_pooling_features_, model_c.n_hydra_features_
 
         np.testing.assert_array_equal(
-            Xt_multi[:, offset_ppv : offset_ppv + n_ppv_c], Xt_c[:, :n_ppv_c]
+            Xt_multi[:, offset_ppv : offset_ppv + n_pooling_c], Xt_c[:, :n_pooling_c]
         )
         np.testing.assert_array_equal(
             Xt_multi[
                 :,
-                multi.n_ppv_features_
-                + offset_hydra : multi.n_ppv_features_
+                multi.n_pooling_features_
+                + offset_hydra : multi.n_pooling_features_
                 + offset_hydra
                 + n_hydra_c,
             ],
-            Xt_c[:, n_ppv_c:],
+            Xt_c[:, n_pooling_c:],
         )
-        offset_ppv += n_ppv_c
+        offset_ppv += n_pooling_c
         offset_hydra += n_hydra_c
 
 
 def test_kgmtp_n_jobs_does_not_change_output():
-    """`n_jobs` must not change `_transform`'s numeric result.
-
-    It only changes how the per-example loop is threaded (via
-    `numba.set_num_threads`).
-    """
+    """`n_jobs` must not change `_transform`'s numeric result."""
     X_train = np.random.default_rng(0).random(size=(10, 1, 100))
     X_test = np.random.default_rng(1).random(size=(6, 1, 100))
     params = KGMTP._get_test_params()
