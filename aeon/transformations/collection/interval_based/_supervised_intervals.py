@@ -17,6 +17,10 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.collection.interval_based._interval_features import (
+    _fit_transform_feature,
+    _transform_feature,
+)
 from aeon.utils.numba.general import z_normalise_series_3d
 from aeon.utils.numba.stats import (
     fisher_score,
@@ -411,7 +415,9 @@ class SupervisedIntervals(BaseCollectionTransformer):
         start, end, dim, feature = self.intervals_[idx]
 
         if isinstance(feature, BaseTransformer):
-            return feature.transform(X[:, dim, start:end]).flatten()
+            return _transform_feature(
+                feature, X[:, dim, start:end], expand_fallback=False
+            ).flatten()
         else:
             return feature(X[:, dim, start:end])
 
@@ -445,8 +451,12 @@ class SupervisedIntervals(BaseCollectionTransformer):
             sub_interval_1 = X[:, div_point:]
 
             if feature_is_transformer:
-                interval_feature_0 = feature.fit_transform(sub_interval_0).flatten()
-                interval_feature_1 = feature.fit_transform(sub_interval_1).flatten()
+                interval_feature_0 = _fit_transform_feature(
+                    feature, sub_interval_0, expand_fallback=False
+                ).flatten()
+                interval_feature_1 = _fit_transform_feature(
+                    feature, sub_interval_1, expand_fallback=False
+                ).flatten()
             else:
                 interval_feature_0 = feature(sub_interval_0)
                 interval_feature_1 = feature(sub_interval_1)
@@ -463,8 +473,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 if keep_transform:
                     if self.normalise_for_search:
                         if feature_is_transformer:
-                            interval_feature_to_use = feature.transform(
-                                X_ori[:, ini_idx:end]
+                            interval_feature_to_use = _transform_feature(
+                                feature, X_ori[:, ini_idx:end], expand_fallback=False
                             ).flatten()
                         else:
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
@@ -490,8 +500,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
                 if keep_transform:
                     if self.normalise_for_search:
                         if feature_is_transformer:
-                            interval_feature_to_use = feature.transform(
-                                X_ori[:, ini_idx:end]
+                            interval_feature_to_use = _transform_feature(
+                                feature, X_ori[:, ini_idx:end], expand_fallback=False
                             ).flatten()
                         else:
                             interval_feature_to_use = feature(X_ori[:, ini_idx:end])
