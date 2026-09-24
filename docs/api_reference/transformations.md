@@ -137,6 +137,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     ESMOTE
     SMOTE
     OHIT
+    RandomOverSampler
 ```
 
 ### Interval based
@@ -217,6 +218,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     AutoCorrelationSeriesTransformer
+    CollectionToSeriesWrapper
     ClaSPTransformer
     DifferenceTransformer
     Dobin

@@ -5,26 +5,40 @@ import numpy as np
 from aeon.transformations.collection.imbalance import ESMOTE
 
 
-def test_smote():
-    """Test the ESMOTE class.
+def test_esmote_balances_classes():
+    """ESMOTE oversamples the minority class up to the majority count."""
+    majority, minority = 20, 6
+    X = np.random.RandomState(0).rand(majority + minority, 1, 10)
+    y = np.array([0] * majority + [1] * minority)
 
-    This function creates a 3D numpy array, applies
-    ESMOTE using the ESMOTE class, and asserts that the
-    transformed data has a balanced number of samples.
+    res_X, res_y = ESMOTE(random_state=0).fit_transform(X, y)
+    _, counts = np.unique(res_y, return_counts=True)
+
+    assert res_y.shape == (2 * majority,)
+    assert set(counts) == {majority}
+
+
+def test_esmote_deterministic():
+    """A fixed random_state gives identical synthetic series across fits.
+
+    ESMOTE draws neighbours, step sizes and alignment tie-breaks from its random
+    state; seeding it must make the whole elastic generation reproducible.
     """
-    n_samples = 100  # Total number of labels
-    majority_num = 90  # number of majority class
-    minority_num = n_samples - majority_num  # number of minority class
+    X = np.random.RandomState(1).rand(26, 1, 10)
+    y = np.array([0] * 20 + [1] * 6)
 
-    X = np.random.rand(n_samples, 1, 10)
-    y = np.array([0] * majority_num + [1] * minority_num)
+    res1 = ESMOTE(random_state=7).fit_transform(X, y)[0]
+    res2 = ESMOTE(random_state=7).fit_transform(X, y)[0]
 
-    transformer = ESMOTE()
-    transformer.fit(X, y)
-    res_X, res_y = transformer.transform(X, y)
-    _, res_count = np.unique(res_y, return_counts=True)
+    np.testing.assert_array_equal(res1, res2)
 
-    assert len(res_X) == 2 * majority_num
-    assert len(res_y) == 2 * majority_num
-    assert res_count[0] == majority_num
-    assert res_count[1] == majority_num
+
+def test_esmote_skips_already_balanced_class():
+    """A non-majority class already at the majority count gets no synthetic samples."""
+    y = np.array([0] * 8 + [1] * 8 + [2] * 6)
+    X = np.random.RandomState(2).rand(len(y), 1, 10)
+
+    _, res_y = ESMOTE(random_state=0).fit_transform(X, y)
+    _, counts = np.unique(res_y, return_counts=True)
+
+    assert set(counts) == {8}  # smaller class raised to the tied-majority count
