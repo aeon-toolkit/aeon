@@ -2,24 +2,24 @@
 
 __maintainer__ = []
 
-import tensorflow as tf
-
 from aeon.networks.base import BaseDeepLearningNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+if _check_soft_dependencies(["tensorflow"], severity="none"):
+    import tensorflow as tf
 
-@tf.keras.utils.register_keras_serializable(package="aeon")
-class ConstantMultiply(tf.keras.layers.Layer):
-    def __init__(self, w, **kwargs):
-        super().__init__(**kwargs)
-        self.w = w
+    class ConstantMultiply(tf.keras.layers.Layer):
+        def __init__(self, w, **kwargs):
+            super().__init__(**kwargs)
+            self.w = w
 
-    def call(self, inputs):
-        return inputs * self.w
+        def call(self, inputs):
+            return inputs * self.w
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({"w": self.w})
-        return config
+        def get_config(self):
+            config = super().get_config()
+            config.update({"w": self.w})
+            return config
 
 
 class RecurrentNetwork(BaseDeepLearningNetwork):
