@@ -354,8 +354,6 @@ def test_rnn_network_activation(activation):
 @pytest.mark.parametrize("return_sequence_last", [True, False])
 def test_rnn_network_return_sequence_last(return_sequence_last):
     """Test RecurrentNetwork with different return_sequence_last configurations."""
-    import tensorflow as tf
-
     input_shape = (100, 5)
     n_layers = 3
 
@@ -364,26 +362,17 @@ def test_rnn_network_return_sequence_last(return_sequence_last):
     )
     input_layer, output_layer = rnn_network.build_network(input_shape)
 
-    # Create a model to inspect layers
-    model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+    # check output shape based on return_sequence_last
+    if return_sequence_last:
+        expected_output_shape = (
+            None,
+            input_shape[0],
+            64,
+        )  # (batch_size, timesteps, n_units)
+    else:
+        expected_output_shape = (None, 64)  # (batch_size, n_units)
 
-    # Check return_sequences setting
-    simple_layers = [
-        layer
-        for layer in model.layers
-        if "simple" in layer.name and isinstance(layer, tf.keras.layers.SimpleRNN)
-    ]
-    assert len(simple_layers) == n_layers
-
-    # Check return_sequences for each layer
-    for i, layer in enumerate(simple_layers):
-        is_last_layer = i == n_layers - 1
-        expected_return_sequences = not is_last_layer or return_sequence_last
-
-        assert (
-            layer.return_sequences == expected_return_sequences
-        ), f"Layer {i} got {layer.return_sequences},\
-              expected {expected_return_sequences}"
+    assert output_layer.shape == expected_output_shape
 
 
 @pytest.mark.skipif(
@@ -611,3 +600,47 @@ def test_rnn_network_activation_list_mismatch(activation):
     ):
         rnn_network = RecurrentNetwork(n_layers=wrong_n_layers, activation=activation)
         input_layer, output_layer = rnn_network.build_network(input_shape)
+
+
+# make a test to check residual lstm
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+def test_rnn_network_residual_lstm():
+    """Test RecurrentNetwork with residual connections in LSTM."""
+    import tensorflow as tf
+
+    input_shape = (100, 5)
+    n_layers = 4
+    n_units = [32, 64, 64, 32]
+    residual = [1, 0.5, 0.5, 0]
+
+    rnn_network = RecurrentNetwork(
+        rnn_type="lstm", n_layers=n_layers, n_units=n_units, residual=residual
+    )
+    input_layer, output_layer = rnn_network.build_network(input_shape)
+
+    # Create a model to inspect layers
+    model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+
+    # Check that the correct number of LSTM layers are created
+    lstm_layers = [
+        layer
+        for layer in model.layers
+        if "lstm" in layer.name and isinstance(layer, tf.keras.layers.LSTM)
+    ]
+    assert len(lstm_layers) == n_layers
+
+    residual_layers = [
+        layer for layer in model.layers if isinstance(layer, tf.keras.layers.Add)
+    ]
+    assert len(residual_layers) == 3
+
+    multiply_layers = [layer for layer in model.layers if "multiply" in layer.name]
+    assert len(multiply_layers) == 2  # Should have 2 multiply (for 0.5 residuals)
+
+    dense_reshaper = [layer for layer in model.layers if "residual_dense" in layer.name]
+    # Should have 2 reshape dense 5 -> 32 and 32 -> 64
+    # 64->32 is not needed because it does not have a residual
+    assert len(dense_reshaper) == 2

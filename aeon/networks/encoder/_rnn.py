@@ -2,7 +2,24 @@
 
 __maintainer__ = []
 
+import tensorflow as tf
+
 from aeon.networks.base import BaseDeepLearningNetwork
+
+
+@tf.keras.utils.register_keras_serializable(package="aeon")
+class ConstantMultiply(tf.keras.layers.Layer):
+    def __init__(self, w, **kwargs):
+        super().__init__(**kwargs)
+        self.w = w
+
+    def call(self, inputs):
+        return inputs * self.w
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"w": self.w})
+        return config
 
 
 class RecurrentNetwork(BaseDeepLearningNetwork):
@@ -29,6 +46,9 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         Dropout rate applied after each intermediate recurrent layer (not last layer).
     dropout_output : float, default=0.0
         Dropout rate applied after the last recurrent layer.
+    residual : list or int, default=0
+        Residual connections strength for each layer.
+        If an int, the same residual strength is used for all layers.
     bidirectional : bool, default=False
         Whether to use bidirectional recurrent layers.
     activation : str or list of str, default='tanh'
@@ -61,6 +81,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         n_units=64,
         dropout_intermediate=0.0,
         dropout_output=0.0,
+        residual=0,
         bidirectional=False,
         activation="tanh",
         return_sequence_last=False,
@@ -70,6 +91,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.n_units = n_units
         self.dropout_intermediate = dropout_intermediate
         self.dropout_output = dropout_output
+        self.residual = residual
         self.bidirectional = bidirectional
         self.activation = activation
         self.return_sequence_last = return_sequence_last
@@ -79,7 +101,8 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
     def _check_params(self):
         if self.rnn_type not in ["lstm", "gru", "simple"]:
             raise ValueError(
-                f"Unknown RNN type: {self.rnn_type}. Should be 'lstm', 'gru' 'simple'"
+                f"Unknown RNN type: {self.rnn_type}. "
+                "Should be 'lstm', 'gru' or 'simple'"
             )
 
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
@@ -88,59 +111,82 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self._activation = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.activation, "activations", allow_none=True
         )
+        self._residual = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.residual, "residual", default=0
+        )
+
+    def _get_rnn_cell(self):
+
+        if self.rnn_type == "lstm":
+            return tf.keras.layers.LSTM
+        elif self.rnn_type == "gru":
+            return tf.keras.layers.GRU
+        else:  # simple
+            return tf.keras.layers.SimpleRNN
+
+    def _dropout_layer(self, x, i):
+
+        # if last layer, apply output dropout; otherwise, apply intermediate dropout
+        if i == (self.n_layers - 1):
+            if self.dropout_output > 0:
+                return tf.keras.layers.Dropout(
+                    self.dropout_output, name="dropout_output"
+                )(x)
+        else:
+            if self.dropout_intermediate > 0:
+                return tf.keras.layers.Dropout(
+                    self.dropout_intermediate, name=f"dropout_intermediate_{i+1}"
+                )(x)
+
+        return x
 
     def build_base_graph(self, x):
-        import tensorflow as tf
 
         self._check_params()
-
-        # Select RNN cell type
-        if self.rnn_type == "lstm":
-            self._rnn_cell = tf.keras.layers.LSTM
-        elif self.rnn_type == "gru":
-            self._rnn_cell = tf.keras.layers.GRU
-        else:  # simple
-            self._rnn_cell = tf.keras.layers.SimpleRNN
+        self._rnn_cell = self._get_rnn_cell()
 
         # Build RNN layers
         for i in range(self.n_layers):
-            # Determine return_sequences for current layer
-            # All layers except the last must return sequences for stacking
-            # The last layer uses the return_sequence_last parameter
-            is_last_layer = i == (self.n_layers - 1)
-            return_sequences = (not is_last_layer) or self.return_sequence_last
+
+            # Store residual connection for the current layer
+            x_skip = x
 
             # Create the recurrent layer
-            if self.bidirectional:
-                x = tf.keras.layers.Bidirectional(
-                    self._rnn_cell(
-                        units=self._n_units[i],
-                        activation=self._activation[i],
-                        return_sequences=return_sequences,
-                        name=f"{self.rnn_type}_{i+1}",
-                    )
-                )(x)
-            else:
-                x = self._rnn_cell(
-                    units=self._n_units[i],
-                    activation=self._activation[i],
-                    return_sequences=return_sequences,
-                    name=f"{self.rnn_type}_{i+1}",
-                )(x)
+            cell = self._rnn_cell(
+                units=self._n_units[i],
+                activation=self._activation[i],
+                return_sequences=True,
+                name=f"{self.rnn_type}_{i+1}",
+            )
 
-            # Add appropriate dropout based on layer position
-            if is_last_layer:
-                # Apply output dropout to the last layer
-                if self.dropout_output > 0:
-                    x = tf.keras.layers.Dropout(
-                        self.dropout_output, name="dropout_output"
-                    )(x)
+            if self.bidirectional:
+                x = tf.keras.layers.Bidirectional(cell)(x)
             else:
-                # Apply intermediate dropout to all layers except the last
-                if self.dropout_intermediate > 0:
-                    x = tf.keras.layers.Dropout(
-                        self.dropout_intermediate, name=f"dropout_intermediate_{i+1}"
-                    )(x)
+                x = cell(x)
+
+            x = self._dropout_layer(x, i)
+
+            # Add residual connection
+            if self._residual[i] > 0:
+                # match shape skip shape if different from x
+                if x_skip.shape[-1] != x.shape[-1]:
+                    x_skip = tf.keras.layers.Dense(
+                        units=x.shape[-1],
+                        activation=None,
+                        name=f"residual_dense_{i+1}",
+                    )(x_skip)
+
+                # if _residual is a weight
+                if self._residual[i] != 1:
+                    # create tf constant with the weight
+                    # weight = tf.ones_like(x_skip) * self._residual[i]
+                    # x_skip = tf.keras.layers.Multiply()([x_skip, weight])
+                    x_skip = ConstantMultiply(self._residual[i])(x_skip)
+
+                x = tf.keras.layers.Add(name=f"residual_{i+1}")([x, x_skip])
+
+            if i == (self.n_layers - 1) and not self.return_sequence_last:
+                x = x[:, -1, :]
 
         return x
 
@@ -159,8 +205,6 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         input_layer : a keras layer
         output_layer : a keras layer
         """
-        import tensorflow as tf
-
         input_layer = tf.keras.layers.Input(shape=input_shape)
         x = self.build_base_graph(input_layer)
 
