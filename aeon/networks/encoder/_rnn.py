@@ -2,24 +2,46 @@
 
 __maintainer__ = []
 
-import tensorflow as tf
+from enum import StrEnum, auto, unique
 
 from aeon.networks.base import BaseDeepLearningNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if _check_soft_dependencies(["tensorflow"], severity="none"):
+    import tensorflow as tf
+
+    class ConstantMultiply(tf.keras.layers.Layer):
+        def __init__(self, w, **kwargs):
+            super().__init__(**kwargs)
+            self.w = w
+
+        def call(self, inputs):
+            return inputs * self.w
+
+        def get_config(self):
+            config = super().get_config()
+            config.update({"w": self.w})
+            return config
 
 
-@tf.keras.utils.register_keras_serializable(package="aeon")
-class ConstantMultiply(tf.keras.layers.Layer):
-    def __init__(self, w, **kwargs):
-        super().__init__(**kwargs)
-        self.w = w
+@unique
+class RNN_TYPE(StrEnum):
+    LSTM = auto()
+    GRU = auto()
+    SIMPLE = auto()
 
-    def call(self, inputs):
-        return inputs * self.w
+    @staticmethod
+    def exists(rnn_type: str) -> bool:
+        """Check if the given rnn_type exists in the RNN_TYPE enum."""
+        return rnn_type.lower() in (item.value for item in RNN_TYPE)
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({"w": self.w})
-        return config
+    @staticmethod
+    def _check_params(rnn_type: str):
+        if not RNN_TYPE.exists(rnn_type):
+            raise ValueError(
+                f"Invalid value for 'rnn_type' ({rnn_type}). "
+                f"Valid options are: {[item.value for item in RNN_TYPE]}"
+            )
 
 
 class RecurrentNetwork(BaseDeepLearningNetwork):
@@ -34,7 +56,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     Parameters
     ----------
-    rnn_type : str, default='lstm'
+    rnn_type : RNN_TYPE or str, default=RNN_TYPE.LSTM
         Type of RNN cell to use ('lstm', 'gru', or 'simple').
     n_layers : int, default=1
         Number of recurrent layers.
@@ -76,7 +98,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        rnn_type="simple",
+        rnn_type=RNN_TYPE.SIMPLE,
         n_layers=1,
         n_units=64,
         dropout_intermediate=0.0,
@@ -99,11 +121,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def _check_params(self):
-        if self.rnn_type not in ["lstm", "gru", "simple"]:
-            raise ValueError(
-                f"Unknown RNN type: {self.rnn_type}. "
-                "Should be 'lstm', 'gru' or 'simple'"
-            )
+        RNN_TYPE._check_params(self.rnn_type)
 
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.n_units, "units", default=64
@@ -117,11 +135,11 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     def _get_rnn_cell(self):
 
-        if self.rnn_type == "lstm":
+        if self.rnn_type == RNN_TYPE.LSTM:
             return tf.keras.layers.LSTM
-        elif self.rnn_type == "gru":
+        elif self.rnn_type == RNN_TYPE.GRU:
             return tf.keras.layers.GRU
-        else:  # simple
+        elif self.rnn_type == RNN_TYPE.SIMPLE:
             return tf.keras.layers.SimpleRNN
 
     def _dropout_layer(self, x, i):

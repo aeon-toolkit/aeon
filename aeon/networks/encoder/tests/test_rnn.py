@@ -2,7 +2,7 @@
 
 import pytest
 
-from aeon.networks import RecurrentNetwork
+from aeon.networks import RNN_TYPE, RecurrentNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -11,7 +11,18 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "rnn_type", ["lstm", "gru", "simple", "LSTM", "GRU", "invalid"]
+    "rnn_type",
+    [
+        "lstm",
+        "gru",
+        "simple",
+        "LSTM",
+        "GRU",
+        "invalid",
+        RNN_TYPE.LSTM,
+        RNN_TYPE.GRU,
+        RNN_TYPE.SIMPLE,
+    ],
 )
 def test_rnn_network_rnn_type(rnn_type):
     """Test RecurrentNetwork with different RNN types."""
@@ -20,7 +31,7 @@ def test_rnn_network_rnn_type(rnn_type):
     input_shape = (100, 5)
 
     if rnn_type == "invalid":
-        with pytest.raises(ValueError, match="Unknown RNN type"):
+        with pytest.raises(ValueError, match="Invalid value for 'rnn_type'"):
             rnn_network = RecurrentNetwork(rnn_type=rnn_type)
             input_layer, output_layer = rnn_network.build_network(input_shape)
     else:
@@ -42,7 +53,7 @@ def test_rnn_network_rnn_type(rnn_type):
 
         # Check that the correct RNN type is used by layer name pattern
         expected_type = rnn_type.lower()
-        layer_names = [layer.name for layer in model.layers]
+        layer_names = [layer.name.lower() for layer in model.layers]
 
         # Find RNN layer by name pattern
         rnn_layer_found = False
