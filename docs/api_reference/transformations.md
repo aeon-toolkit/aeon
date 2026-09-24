@@ -116,6 +116,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     Catch22
+    EvoForestTSWM
     TSFresh
     TSFreshRelevant
     SevenNumberSummary
