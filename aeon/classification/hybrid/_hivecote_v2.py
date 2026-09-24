@@ -91,7 +91,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
 
     See Also
     --------
-    HIVECOTEV1, ShapeletTransformClassifier, DrCIF, Arsenal, TemporalDictionaryEnsemble
+    HIVECOTEV1, ShapeletTransformClassifier, DrCIFClassifier, Arsenal,
+    TemporalDictionaryEnsemble
         Components of HIVECOTE.
 
     Notes

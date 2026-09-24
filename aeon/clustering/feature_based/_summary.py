@@ -53,7 +53,7 @@ class SummaryClusterer(BaseClusterer):
 
     See Also
     --------
-    SummaryTransformer
+    SevenNumberSummary
     SummaryRegressor
 
     Examples

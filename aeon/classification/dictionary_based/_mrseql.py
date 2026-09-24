@@ -6,6 +6,7 @@ __all__ = ["MrSEQLClassifier"]
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.classification import BaseClassifier
 
@@ -29,9 +30,19 @@ def _from_numpy3d_to_nested_dataframe(X):
     return df
 
 
+# TODO: remove in v1.8.0
+@deprecated(
+    version="1.7.0",
+    reason="MrSEQLClassifier is deprecated and will be removed in v1.8.0. The "
+    "mrseql package it wraps is no longer maintained and is incompatible with "
+    "current scikit-learn and pandas releases.",
+    category=FutureWarning,
+)
 class MrSEQLClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Learning (MrSEQL) Classifier.
+
+    Deprecated and will be removed in v1.8.0.
 
     This is a wrapper for the MrSEQLClassifier algorithm from the `mrseql` package.
     MrSEQL is not included in ``all_extras`` as it requires gcc and fftw
@@ -63,7 +74,7 @@ class MrSEQLClassifier(BaseClassifier):
     >>> from aeon.classification.dictionary_based import MrSEQLClassifier
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(random_state=0)
-    >>> clf = MrSEQLClassifier(random_state=0) # doctest: +SKIP
+    >>> clf = MrSEQLClassifier() # doctest: +SKIP
     >>> clf.fit(X, y) # doctest: +SKIP
     MrSEQLClassifier(...)
     >>> clf.predict(X) # doctest: +SKIP
