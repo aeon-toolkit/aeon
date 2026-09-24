@@ -22,7 +22,6 @@ __all__ = [
     "DeepARNetwork",
     "TCNNetwork",
     "NBeatsNetwork",
-    "RNN_TYPE",
 ]
 
 from aeon.networks.auto_encoder._ae_abgru import AEAttentionBiGRUNetwork
@@ -42,6 +41,6 @@ from aeon.networks.encoder._lite import LITENetwork
 from aeon.networks.encoder._mlp import MLPNetwork
 from aeon.networks.encoder._nbeats import NBeatsNetwork
 from aeon.networks.encoder._resnet import ResNetNetwork
-from aeon.networks.encoder._rnn import RNN_TYPE, RecurrentNetwork
+from aeon.networks.encoder._rnn import RecurrentNetwork
 from aeon.networks.encoder._tcn import TCNNetwork
 from aeon.networks.encoder_decoder._deepar import DeepARNetwork

@@ -2,7 +2,8 @@
 
 import pytest
 
-from aeon.networks import RNN_TYPE, RecurrentNetwork
+from aeon.networks import RecurrentNetwork
+from aeon.typing import RNN_TYPE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
