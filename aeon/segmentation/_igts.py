@@ -51,6 +51,13 @@ def entropy(X: npt.ArrayLike) -> float:
     -------
     entropy: float
         Computed entropy.
+
+    References
+    ----------
+    .. [1] Sadri, Amin, Yongli Ren, and Flora D. Salim.
+       "Information gain-based metric for recognizing transitions in human activities.",
+       Pervasive and Mobile Computing, 38, 92-109, (2017).
+       https://www.sciencedirect.com/science/article/abs/pii/S1574119217300081
     """
     p = np.sum(X, axis=0) / np.sum(X)
     p = p[p > 0.0]

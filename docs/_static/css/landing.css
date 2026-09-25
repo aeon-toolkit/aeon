@@ -1,0 +1,869 @@
+/* Landing page (docs/index.md). */
+/* Colours: lines and marks have a contrast of at least 3:1 with the surface they are */
+/* drawn on and text of at least 4.5:1, in both themes. Yellow cannot reach 3:1 on a */
+/* light surface, so it is only used for a background tint. */
+/* Everything is scoped to the page through the .aeon-lead element or the aeon- */
+/* classes, so these rules do not touch the rest of the documentation. */
+/* The illustration colours (--aeon-a, --aeon-ink, ...) are defined in custom.css, */
+/* they are shared with the getting started page. */
+
+html[data-theme="light"] {
+  --aeon-hero-bg: #EEF7FB;
+  --aeon-hero-rule: rgba(10, 132, 189, 0.09);
+  --aeon-shadow: rgba(0, 60, 90, 0.35);
+}
+
+html[data-theme="dark"] {
+  --aeon-hero-bg: #0E1B25;
+  --aeon-hero-rule: rgba(45, 180, 240, 0.07);
+  --aeon-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* -- page layout -- */
+
+/* The hero band sticks out of the page on both sides. It is clipped by the full-width */
+/* container of the theme and not by the body: a clip on the body is handed over to the */
+/* window as "hidden", which hides the scrollbar but still lets touch screens pan */
+/* sideways into the overflow. */
+.bd-container:has(.aeon-lead) {
+  overflow-x: clip;
+}
+
+/* The theme limits articles to 60em and clips what overflows them. The landing page */
+/* uses more of the screen and lets the hero band reach the edges of the window. */
+.bd-main .bd-content .bd-article-container:has(.aeon-lead) {
+  max-width: 78rem;
+  overflow-x: visible;
+}
+
+.bd-article-container:has(.aeon-lead) .bd-header-article,
+.bd-article-container:has(.aeon-lead) .prev-next-footer {
+  display: none;
+}
+
+/* isolation keeps the hero band above the page background of the theme */
+section:has(> .aeon-lead) {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  column-gap: 3.5rem;
+  align-items: start;
+}
+
+section:has(> .aeon-lead) > * {
+  grid-column: 1 / -1;
+}
+
+section:has(> .aeon-lead) > section {
+  margin-top: 5rem;
+}
+
+section:has(> .aeon-lead) > section > h2 {
+  margin-top: 0;
+  font-size: clamp(1.7rem, 1.3rem + 1.4vw, 2.3rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+section:has(> .aeon-lead) > section > h2 + p {
+  max-width: 60ch;
+  margin-bottom: 2rem;
+  color: var(--pst-color-text-muted);
+  font-size: 1.08rem;
+}
+
+/* -- hero -- */
+
+/* Tinted band behind the hero, ruled like plotting paper. It is far wider than the */
+/* window on both sides, so it fills it even though the article is not exactly centred */
+/* in it, and the page container clips what sticks out. */
+section:has(> .aeon-lead)::before {
+  content: "";
+  grid-column: 1 / -1;
+  grid-row: 1 / 4;
+  align-self: stretch;
+  z-index: -1;
+  margin: -2.5rem -100vw -3.5rem;
+  background-color: var(--aeon-hero-bg);
+  background-image:
+    linear-gradient(var(--aeon-hero-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--aeon-hero-rule) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: linear-gradient(#000 55%, transparent);
+  mask-image: linear-gradient(#000 55%, transparent);
+}
+
+section:has(> .aeon-lead) > h1 {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 2.5rem 0 1.25rem;
+  font-size: clamp(2.3rem, 1.5rem + 2.6vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+section:has(> .aeon-lead) > .aeon-lead {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 1.18rem;
+  line-height: 1.6;
+}
+
+section:has(> .aeon-lead) > .aeon-hero-actions {
+  grid-column: 1;
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0 2.5rem;
+}
+
+.aeon-hero-actions > * {
+  margin: 0;
+}
+
+/* the install command takes its own row, the two buttons sit below it */
+.aeon-hero-actions > div[class*="highlight-"] {
+  flex: 0 0 100%;
+}
+
+.aeon-hero-actions > div[class*="highlight-"] > .highlight {
+  max-width: 24rem;
+}
+
+.aeon-hero-actions pre {
+  padding: 0.6rem 3rem 0.6rem 1rem;
+  border-radius: 10px;
+}
+
+.aeon-hero-actions .sd-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-family: var(--pst-font-family-heading);
+  font-weight: 700;
+}
+
+section:has(> .aeon-lead) > .aeon-hero-panel {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  margin: 2.5rem 0;
+}
+
+@media (max-width: 1100px) {
+  section:has(> .aeon-lead) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  section:has(> .aeon-lead)::before {
+    grid-row: 1 / 5;
+  }
+
+  section:has(> .aeon-lead) > .aeon-hero-panel {
+    grid-column: 1;
+    grid-row: 4;
+    margin-top: 0;
+  }
+}
+
+/* -- hero panel -- */
+
+.aeon-hero-panel {
+  overflow: hidden;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 18px;
+  background-color: var(--pst-color-background);
+  box-shadow: 0 34px 60px -42px var(--aeon-shadow);
+}
+
+.aeon-hero-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--pst-color-border);
+}
+
+.aeon-hero-tab {
+  position: relative;
+  display: inline-flex;
+  flex: 1 0 auto;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  border-radius: 11px;
+  background-color: transparent;
+  color: var(--pst-color-text-muted);
+  font-family: var(--pst-font-family-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.aeon-hero-tab:hover {
+  color: var(--pst-color-text-base);
+}
+
+.aeon-hero-tab:focus-visible {
+  outline: 2px solid var(--aeon-a);
+  outline-offset: 2px;
+}
+
+.aeon-hero-tab[aria-selected="true"] {
+  background-color: var(--aeon-tile-bg);
+  color: var(--aeon-a-text);
+}
+
+/* shows how long until the panel moves to the next tab */
+.aeon-hero-tab::after {
+  content: "";
+  position: absolute;
+  right: 0.9rem;
+  bottom: 4px;
+  left: 0.9rem;
+  height: 2px;
+  border-radius: 2px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.aeon-hero-view {
+  padding: 1rem 1.25rem 0.25rem;
+}
+
+.aeon-hero-plot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.aeon-hero-grid {
+  stroke: var(--pst-color-border);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.aeon-hero-tick {
+  fill: var(--pst-color-text-muted);
+  font-size: 15px;
+}
+
+.aeon-hero-base,
+.aeon-hero-mark {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aeon-hero-base {
+  stroke: var(--aeon-ink);
+  stroke-width: 2.5;
+}
+
+.aeon-hero-mark {
+  stroke-width: 3.5;
+}
+
+.aeon-hero-mark.aeon-a,
+.aeon-hero-ring.aeon-a {
+  stroke: var(--aeon-a);
+}
+
+.aeon-hero-mark.aeon-b,
+.aeon-hero-ring.aeon-b {
+  stroke: var(--aeon-b);
+}
+
+.aeon-hero-dashed {
+  stroke-dasharray: 2 7;
+}
+
+.aeon-hero-band {
+  fill: var(--aeon-b);
+  opacity: 0.08;
+}
+
+.aeon-hero-band.aeon-neutral {
+  fill: var(--aeon-ink);
+}
+
+.aeon-hero-score {
+  fill: var(--aeon-b);
+  opacity: 0.3;
+}
+
+.aeon-hero-ring {
+  fill: none;
+  stroke-width: 2.5;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.aeon-hero-label {
+  font-family: var(--pst-font-family-heading);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.aeon-hero-label.aeon-a {
+  fill: var(--aeon-a-text);
+}
+
+.aeon-hero-label.aeon-b {
+  fill: var(--aeon-b-text);
+}
+
+.aeon-delay-1 {
+  --d: 0.5s;
+}
+
+.aeon-delay-2 {
+  --d: 1s;
+}
+
+/* only the overlay and the caption of the selected tab are shown */
+.aeon-lens {
+  opacity: 0;
+}
+
+.aeon-hero-caption {
+  display: none;
+  min-height: 3.3em;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.98rem;
+}
+
+.aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"].aeon-lens,
+.aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"].aeon-lens,
+.aeon-hero-panel[data-lens="search"] [data-lens="search"].aeon-lens,
+.aeon-hero-panel[data-lens="classify"] [data-lens="classify"].aeon-lens {
+  opacity: 1;
+}
+
+.aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"].aeon-hero-caption,
+.aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"].aeon-hero-caption,
+.aeon-hero-panel[data-lens="search"] [data-lens="search"].aeon-hero-caption,
+.aeon-hero-panel[data-lens="classify"] [data-lens="classify"].aeon-hero-caption {
+  display: block;
+}
+
+.aeon-hero-source {
+  padding: 0.7rem 1.25rem;
+  border-top: 1px solid var(--pst-color-border);
+  background-color: var(--aeon-tile-bg);
+  color: var(--pst-color-text-muted);
+  font-size: 0.85rem;
+}
+
+.aeon-hero-source p {
+  margin: 0;
+}
+
+/* On a phone the plot is less than half its drawn size, so its text and lines are */
+/* enlarged, the tabs sit in two rows instead of scrolling out of view and the caption */
+/* keeps room for three lines so that changing tab does not move the page. */
+@media (max-width: 600px) {
+  .aeon-hero-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .aeon-hero-tab {
+    flex: 1 1 calc(50% - 0.25rem);
+  }
+
+  .aeon-hero-view {
+    padding: 0.75rem 0.75rem 0.25rem;
+  }
+
+  .aeon-hero-tick {
+    font-size: 24px;
+  }
+
+  .aeon-hero-label {
+    font-size: 25px;
+  }
+
+  .aeon-hero-base {
+    stroke-width: 4;
+  }
+
+  .aeon-hero-mark {
+    stroke-width: 5.5;
+  }
+
+  .aeon-hero-caption {
+    min-height: 5em;
+  }
+}
+
+/* -- task cards -- */
+
+.bd-content .aeon-tasks .sd-card {
+  overflow: hidden;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 14px;
+  background-color: var(--pst-color-background);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bd-content .aeon-tasks .sd-card:hover,
+.bd-content .aeon-tasks .sd-card:focus-within {
+  border-color: var(--aeon-a);
+  box-shadow: 0 22px 36px -30px var(--aeon-shadow);
+}
+
+/* the link of a card covers it but has no box of its own to draw a focus ring on */
+.bd-content .aeon-tasks .sd-card:focus-within,
+.bd-content .aeon-community .sd-card:focus-within {
+  outline: 2px solid var(--aeon-a);
+  outline-offset: 2px;
+}
+
+.bd-content .aeon-tasks .sd-card .sd-card-header {
+  padding: 0.9rem 1.1rem 0.6rem;
+  border-bottom: 0;
+  background-color: var(--aeon-tile-bg);
+}
+
+.bd-content .aeon-tasks .sd-card .sd-card-body {
+  padding: 1rem 1.1rem 1.1rem;
+  background-color: transparent;
+}
+
+.aeon-tasks .sd-card-title {
+  margin-bottom: 0.35rem;
+  color: var(--pst-color-primary);
+  font-family: var(--pst-font-family-heading);
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.aeon-tasks .sd-card-title .sd-badge {
+  margin-left: 0.3rem;
+  font-family: var(--pst-font-family-base);
+  font-size: 0.68rem;
+  font-weight: 400;
+  vertical-align: middle;
+}
+
+.aeon-tasks .sd-card-text {
+  color: var(--pst-color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* -- task illustrations -- */
+
+.aeon-icon {
+  display: block;
+  width: 100%;
+  max-width: 15rem;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.aeon-icon .i-line {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aeon-icon .i-a {
+  stroke: var(--aeon-a);
+}
+
+.aeon-icon .i-b {
+  stroke: var(--aeon-b);
+}
+
+.aeon-icon .i-ink {
+  stroke: var(--aeon-ink);
+}
+
+.aeon-icon .i-ink-strong {
+  stroke: var(--aeon-ink-strong);
+}
+
+.aeon-icon .i-thin {
+  stroke-width: 1.1;
+}
+
+.aeon-icon .i-thick {
+  stroke-width: 5;
+}
+
+.aeon-icon .i-dash {
+  stroke-dasharray: 3 5.5;
+}
+
+.aeon-icon .i-fill-a {
+  fill: var(--aeon-a);
+}
+
+.aeon-icon .i-fill-b {
+  fill: var(--aeon-b);
+}
+
+.aeon-icon .i-fill-c {
+  fill: var(--aeon-c);
+}
+
+.aeon-icon .i-fill-ink {
+  fill: var(--aeon-ink-strong);
+}
+
+.aeon-icon .i-soft-a {
+  fill: var(--aeon-a);
+  fill-opacity: 0.13;
+}
+
+.aeon-icon .i-soft-b {
+  fill: var(--aeon-b);
+  fill-opacity: 0.15;
+}
+
+.aeon-icon .i-soft-c {
+  fill: var(--aeon-c);
+  fill-opacity: 0.2;
+}
+
+.aeon-icon .i-card {
+  fill: var(--pst-color-background);
+  stroke: var(--aeon-ink);
+  stroke-width: 1.6;
+}
+
+.aeon-icon .i-chip-a {
+  fill: var(--aeon-a-text);
+}
+
+.aeon-icon .i-chip-b {
+  fill: var(--aeon-b-text);
+}
+
+.aeon-icon .i-chip-text {
+  fill: var(--pst-color-background);
+  font-family: var(--pst-font-family-heading);
+  font-size: 12px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.aeon-icon .i-pop,
+.aeon-icon .i-rise,
+.aeon-icon .i-drop,
+.aeon-icon .i-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.aeon-icon .i-rise {
+  transform-origin: bottom;
+}
+
+.aeon-icon .i-drop {
+  transform-origin: top;
+}
+
+.aeon-icon .i-fan {
+  transition: transform 0.35s ease var(--d, 0s);
+}
+
+/* -- reasons, code example and community -- */
+
+.aeon-reasons .aeon-reason-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  margin-bottom: 0.9rem;
+  border-radius: 12px;
+  background-color: var(--aeon-tile-bg);
+  color: var(--aeon-a-text);
+  font-size: 1.25rem;
+}
+
+.aeon-reasons strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--pst-font-family-heading);
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.aeon-reasons p {
+  color: var(--pst-color-text-muted);
+}
+
+.aeon-reasons p:has(> strong),
+.aeon-reasons p:has(> .aeon-reason-icon) {
+  margin-bottom: 0;
+  color: inherit;
+}
+
+.aeon-code-example {
+  align-items: center;
+}
+
+.aeon-code-example pre {
+  margin: 0;
+  padding: 1.25rem 1.4rem;
+  border-radius: 14px;
+  box-shadow: 0 30px 50px -40px var(--aeon-shadow);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.aeon-code-example .aeon-steps ol {
+  padding-left: 1.3rem;
+}
+
+.aeon-code-example .aeon-steps li {
+  margin-bottom: 0.6rem;
+  padding-left: 0.3rem;
+}
+
+.aeon-code-example .aeon-steps li::marker {
+  color: var(--aeon-b-text);
+  font-family: var(--pst-font-family-heading);
+  font-weight: 800;
+}
+
+.bd-content .aeon-community .sd-card {
+  border: 1px solid var(--pst-color-border);
+  border-radius: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.bd-content .aeon-community .sd-card:hover,
+.bd-content .aeon-community .sd-card:focus-within {
+  border-color: var(--aeon-a);
+}
+
+.bd-content .aeon-community .sd-card .sd-card-body {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  background-color: transparent;
+}
+
+.aeon-community .sd-card-body > p {
+  margin: 0;
+}
+
+.aeon-community .aeon-community-icon {
+  color: var(--aeon-a-text);
+  font-size: 1.6rem;
+}
+
+.aeon-community strong {
+  display: block;
+  font-family: var(--pst-font-family-heading);
+  font-weight: 800;
+}
+
+.aeon-community .aeon-community-text {
+  color: var(--pst-color-text-muted);
+  font-size: 0.92rem;
+}
+
+/* -- motion -- */
+/* The hero series is drawn once when the page loads and each overlay wipes in when */
+/* its tab is selected. The illustrations only move while their card is hovered or */
+/* focused. Nothing moves for readers who prefer reduced motion. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .aeon-hero-panel {
+    --aeon-intro: 1.5s;
+  }
+
+  .aeon-hero-panel.is-ready {
+    --aeon-intro: 0s;
+  }
+
+  .aeon-hero-base {
+    stroke-dasharray: 1;
+    animation: aeon-draw 1.5s cubic-bezier(0.45, 0, 0.25, 1) both;
+  }
+
+  .aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"].aeon-lens,
+  .aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"].aeon-lens,
+  .aeon-hero-panel[data-lens="search"] [data-lens="search"].aeon-lens,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"].aeon-lens {
+    animation: aeon-fade 0.4s ease var(--aeon-intro) both;
+  }
+
+  .aeon-hero-panel[data-lens="forecast"] [data-lens="forecast"] .aeon-hero-mark,
+  .aeon-hero-panel[data-lens="anomaly"] [data-lens="anomaly"] .aeon-hero-mark,
+  .aeon-hero-panel[data-lens="search"] [data-lens="search"] .aeon-hero-mark,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"] .aeon-hero-mark {
+    animation: aeon-wipe 0.9s ease-out calc(var(--aeon-intro) + var(--d, 0s)) both;
+  }
+
+  .aeon-hero-panel[data-lens="search"] [data-lens="search"] .aeon-hero-label,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"] .aeon-hero-label,
+  .aeon-hero-panel[data-lens="classify"] [data-lens="classify"] .aeon-hero-tick {
+    animation: aeon-fade 0.4s ease calc(var(--aeon-intro) + var(--d, 0s) + 0.3s) both;
+  }
+
+  .aeon-hero-panel[data-lens="anomaly"] .aeon-hero-ring {
+    animation: aeon-pulse 1.4s ease-out calc(var(--aeon-intro) + 0.6s) 2 both;
+  }
+
+  .aeon-hero-panel.is-playing .aeon-hero-tab[aria-selected="true"]::after {
+    animation: aeon-progress 7s linear both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-draw {
+    stroke-dasharray: 1;
+    animation: aeon-draw 0.9s ease-out var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-pop {
+    animation: aeon-pop 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-rise,
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-drop {
+    animation: aeon-grow 0.5s cubic-bezier(0.3, 1.3, 0.5, 1) var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-fade {
+    animation: aeon-fade 0.5s ease var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-reveal {
+    animation: aeon-wipe 0.8s ease-out var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-seek {
+    animation: aeon-seek 1.1s cubic-bezier(0.6, 0, 0.3, 1) var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-settle {
+    animation: aeon-settle 0.8s cubic-bezier(0.3, 1.4, 0.5, 1) var(--d, 0s) both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-pulse {
+    animation: aeon-pulse 1.2s ease-out var(--d, 0s) 2 both;
+  }
+
+  .aeon-tasks .sd-card:is(:hover, :focus-within) .i-fan {
+    transform: translate(var(--fan), calc(var(--fan) * -0.7));
+  }
+}
+
+@keyframes aeon-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes aeon-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes aeon-wipe {
+  from {
+    clip-path: inset(-12px 100% -12px -12px);
+  }
+
+  to {
+    clip-path: inset(-12px -12px -12px -12px);
+  }
+}
+
+@keyframes aeon-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes aeon-grow {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes aeon-seek {
+  from {
+    transform: translateX(-64.4px);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes aeon-settle {
+  from {
+    transform: translateY(36px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes aeon-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  70% {
+    opacity: 0;
+    transform: scale(2);
+  }
+
+  71% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes aeon-progress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

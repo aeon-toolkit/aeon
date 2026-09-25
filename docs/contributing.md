@@ -150,7 +150,7 @@ Guidance for issues and reporting bugs in `aeon`.
 
 +++
 
-```{button-ref} contributing/reporting_bugs
+```{button-ref} contributing/issues
 :color: primary
 :click-parent:
 :expand:
@@ -186,4 +186,6 @@ Mentoring and Projects
 :hidden:
 
 contributing/issues.md
+developer_guide.md
+projects.md
 ```

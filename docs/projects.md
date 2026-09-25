@@ -394,7 +394,7 @@ accompanied by the appropriate documentation. Some examples of improvements that
 be made include:
 
 - Linking to examples to in API pages where the function/class is used
-- Improving the [estimator overview page](https://www.aeon-toolkit.org/en/stable/estimator_overview.html)
+- Improving the [estimator overview page](estimator_overview.md)
 by further integrating the tags system or adding search and filtering functionality
 - Implementing workflows to ensure that new public functionality includes a valid
 docstring (i.e. has a description, parameters, returns, etc. sections where relevant)
@@ -427,24 +427,27 @@ Python standards.
 
 The `aeon` toolkit uses `pre-commit` to run code quality checks on all code changes
 and ensure that they meet the project's standards. This includes a number of checks and
-formatting tools, such as `black`, `flake8`, and `isort` (see [here](https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml)).
-Over time new tools have been released such as `ruff` and tools we previously used such
-as `pydocstyle` have been deprecated. The first part of this project will involve
-modernising the `pre-commit` configuration to use the latest tools.
+formatting tools, such as `ruff`, `black`, and `isort` (see [here](https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml)).
+Linting and docstring checks have already been moved from `flake8` and the deprecated
+`pydocstyle` to `ruff`. The first part of this project will involve continuing this
+modernisation of the `pre-commit` configuration, i.e. reviewing whether the remaining
+tools and the enabled rule sets are still the best options, and keeping the
+configuration in line with the Python versions supported by `aeon`.
 
 `aeon` contributors have been encouraged to add type hints to the codebase, but this
 is a gradual process and there are still many parts of the codebase that are not fully
 typed. A big issue we face in this is the current lack of automated testing to ensure
-that implemented type hints are accurate. This second part project will involve
-implementing robust testing utilities to help contributors and reviewers ensure that
-new type hints are correct.
+that implemented type hints are accurate. A `mypy` workflow exists, but it only runs on
+pull requests with the `run typecheck test` label. This second part of the project will
+involve implementing robust testing utilities to help contributors and reviewers ensure
+that new type hints are correct.
 
 Other ideas to improve the code quality testing in `aeon` pull requests or deliver
 feedback from tests to contributors are welcome.
 
 #### Expected Outcome(s)
 
-1. Learn about used for code quality checks and type checking in Python.
+1. Learn about the tools used for code quality checks and type checking in Python.
 2. Familiarise yourself with the `aeon` CI including pre-commit and GitHub Actions
 workflows.
 3. Update workflows for checking code quality in `aeon` pull requests
