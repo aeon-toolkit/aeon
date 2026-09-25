@@ -8,6 +8,7 @@ from numpy import array_equal, asarray
 from scipy.stats import norm
 
 from aeon.segmentation import HMMSegmenter as HMM
+from aeon.testing.utils.estimator_checks import _changed_state, _snapshot_state
 
 
 def test_hmm_basic_gauss():
@@ -83,3 +84,28 @@ def test_hmm_behaves_as_expected_on_simple_input():
     labels = hmm_est.predict(obs)
     ground_truth = asarray([0, 0, 0, 0, 1, 1, 1])
     assert array_equal(labels, ground_truth)
+
+
+@pytest.mark.parametrize("initial_probs", [None, np.array([0.8, 0.2])])
+def test_hmm_predict_does_not_change_state(initial_probs):
+    """Predict repeatedly on different series without retaining working state."""
+    emission_funcs = [(norm.pdf, {"loc": mean, "scale": 0.25}) for mean in [3.5, -5]]
+    estimator = HMM(
+        emission_funcs,
+        asarray([[0.25, 0.75], [0.666, 0.333]]),
+        initial_probs=initial_probs,
+    )
+    X = asarray([3.7, 3.2, 3.4, 3.6, -5.1, -5.2, -4.9])
+    other_X = asarray([-5.1, -5.2, 3.5, 3.6])
+    estimator.fit(X)
+    state_before = _snapshot_state(estimator)
+
+    for series, expected in [
+        (X, [0, 0, 0, 0, 1, 1, 1]),
+        (other_X, [1, 1, 0, 0]),
+        (X, [0, 0, 0, 0, 1, 1, 1]),
+    ]:
+        original_series = series.copy()
+        np.testing.assert_array_equal(estimator.predict(series), expected)
+        np.testing.assert_array_equal(series, original_series)
+        assert not _changed_state(state_before, estimator)
