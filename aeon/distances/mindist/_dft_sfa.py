@@ -71,15 +71,16 @@ def _univariate_dft_sfa_distance(
 ) -> float:
     dist = 0.0
     for i in range(x_dft.shape[0]):
-        if y_sfa[i] >= breakpoints.shape[-1]:
+        y_sfa_i = np.int64(y_sfa[i])
+        if y_sfa_i >= breakpoints.shape[-1]:
             br_upper = np.inf
         else:
-            br_upper = breakpoints[i, y_sfa[i]]
+            br_upper = breakpoints[i, y_sfa_i]
 
-        if y_sfa[i] - 1 < 0:
+        if y_sfa_i - 1 < 0:
             br_lower = -np.inf
         else:
-            br_lower = breakpoints[i, y_sfa[i] - 1]
+            br_lower = breakpoints[i, y_sfa_i - 1]
 
         if br_lower > x_dft[i]:
             dist += (br_lower - x_dft[i]) ** 2
@@ -137,20 +138,24 @@ def _dft_sfa_from_multiple_to_multiple_distance(
     X: np.ndarray, y: np.ndarray | None, breakpoints: np.ndarray
 ) -> np.ndarray:
     if y is None:
-        n_instances = X.shape[0]
+        n_instances = len(X)
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
             for j in range(i + 1, n_instances):
-                distances[i, j] = _univariate_dft_sfa_distance(X[i], X[j], breakpoints)
+                distances[i, j] = _univariate_dft_sfa_distance(
+                    X[i].ravel(), X[j].ravel(), breakpoints
+                )
                 distances[j, i] = distances[i, j]
     else:
-        n_instances = X.shape[0]
-        m_instances = y.shape[0]
+        n_instances = len(X)
+        m_instances = len(y)
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
             for j in range(m_instances):
-                distances[i, j] = _univariate_dft_sfa_distance(X[i], y[j], breakpoints)
+                distances[i, j] = _univariate_dft_sfa_distance(
+                    X[i].ravel(), y[j].ravel(), breakpoints
+                )
 
     return distances
