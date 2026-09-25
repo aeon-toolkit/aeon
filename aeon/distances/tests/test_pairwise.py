@@ -4,6 +4,10 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
+from aeon.distances import (
+    minkowski_distance,
+    minkowski_pairwise_distance,
+)
 from aeon.distances import pairwise_distance as compute_pairwise_distance
 from aeon.distances._distance import (
     DISTANCES,
@@ -544,6 +548,34 @@ def test_single_to_multiple_distances(dist):
             dist["distance"],
             dist["pairwise_distance"],
         )
+
+
+@pytest.mark.parametrize("n_channels", [1, 2])
+def test_minkowski_pairwise_weights_match_single_distance(n_channels):
+    """Pairwise Minkowski distances should apply one series-shaped weight array."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(4, n_channels, 5))
+    Y = rng.normal(size=(3, n_channels, 5))
+    w = np.abs(rng.normal(size=(n_channels, 5))) + 0.1
+
+    expected_self = np.array(
+        [[minkowski_distance(x, y, p=2, w=w) for y in X] for x in X]
+    )
+    expected_xy = np.array([[minkowski_distance(x, y, p=2, w=w) for y in Y] for x in X])
+
+    assert_almost_equal(minkowski_pairwise_distance(X, p=2, w=w), expected_self)
+    assert_almost_equal(minkowski_pairwise_distance(X, Y, p=2, w=w), expected_xy)
+    assert_almost_equal(minkowski_pairwise_distance(Y, X, p=2, w=w).T, expected_xy)
+
+
+@pytest.mark.parametrize("with_y", [False, True])
+def test_minkowski_pairwise_rejects_invalid_weight_shape(with_y):
+    """Pairwise Minkowski should reject weights that do not match a series."""
+    X = np.zeros((2, 1, 5))
+    args = (X, X) if with_y else (X,)
+
+    with pytest.raises(ValueError, match="same shape"):
+        minkowski_pairwise_distance(*args, p=2, w=np.ones((2, 5)))
 
 
 @pytest.mark.parametrize("seed", [1, 10, 42, 52, 100])
