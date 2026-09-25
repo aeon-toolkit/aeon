@@ -9,7 +9,7 @@ from typing import Literal
 import numpy as np
 from numpy.fft import fft, ifft
 from numpy.linalg import eigh
-from sklearn.utils import check_random_state
+from aeon.utils.validation import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import sbd_pairwise_distance

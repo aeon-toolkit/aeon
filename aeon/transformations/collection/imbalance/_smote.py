@@ -16,7 +16,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 
 import numpy as np
-from sklearn.utils import check_random_state
+from aeon.utils.validation import check_random_state
 
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.transformations.collection import BaseCollectionTransformer
