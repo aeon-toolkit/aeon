@@ -6,7 +6,7 @@ __all__ = ["RandomOverSampler"]
 from collections import OrderedDict
 
 import numpy as np
-from sklearn.utils import check_random_state
+from aeon.utils.validation import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 

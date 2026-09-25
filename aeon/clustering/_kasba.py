@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
-from sklearn.utils import check_random_state
+from aeon.utils.validation import check_random_state
 
 from aeon.clustering._cluster_initialisation import _kmeans_plus_plus_center_initialiser
 from aeon.clustering._k_means import EmptyClusterError

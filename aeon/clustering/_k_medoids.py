@@ -9,7 +9,7 @@ from collections.abc import Callable
 import numpy as np
 from numpy.random import RandomState
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.utils import check_random_state
+from aeon.utils.validation import check_random_state
 
 from aeon.clustering._cluster_initialisation import (
     resolve_center_initialiser,
