@@ -7,10 +7,12 @@ __all__ = [
     "Arsenal",
     "HydraClassifier",
     "MultiRocketHydraClassifier",
+    "KGMTPClassifier",
 ]
 
 from aeon.classification.convolution_based._arsenal import Arsenal
 from aeon.classification.convolution_based._hydra import HydraClassifier
+from aeon.classification.convolution_based._kgmtp import KGMTPClassifier
 from aeon.classification.convolution_based._minirocket import MiniRocketClassifier
 from aeon.classification.convolution_based._mr_hydra import MultiRocketHydraClassifier
 from aeon.classification.convolution_based._multirocket import MultiRocketClassifier
