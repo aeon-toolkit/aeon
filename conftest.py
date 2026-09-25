@@ -10,7 +10,17 @@ least once, but not necessarily on each operating system / python version combin
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 import pytest
+
+
+@pytest.fixture
+def checkpoint_directory():
+    """Create and clean up an isolated directory for checkpoint files."""
+    with TemporaryDirectory() as directory:
+        yield Path(directory)
 
 
 def pytest_addoption(parser):
