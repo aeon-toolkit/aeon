@@ -33,17 +33,36 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
         self,
         latent_space_dim=128,
         n_layers=None,
-        n_units=None,
+        n_units=50,
         activation="relu",
         temporal_latent_space=False,
     ):
         super().__init__()
 
         self.latent_space_dim = latent_space_dim
-        self.activation = activation
         self.n_layers = n_layers
         self.n_units = n_units
+        self.activation = activation
         self.temporal_latent_space = temporal_latent_space
+
+    def _check_params(self):
+        self._n_layers = self.n_layers
+        if self._n_layers is None:
+            self._n_layers = 2
+
+        self._n_units = BaseDeepLearningNetwork._check_layer_param(
+            self._n_layers, self.n_units, "units", 50
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            self._n_layers, self.activation, "activations", allow_none=True
+        )
+
+        # last layer unit always equals to half of the latent space dimension
+        self._n_units[-1] = self.latent_space_dim // 2
+
+    def build_base_graph(self, x):
+        self._check_params()
+        return x
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -60,46 +79,10 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if self.n_layers is None:
-            if self.n_units is not None:
-                raise ValueError("""Cannot pass number of units without specifying
-                            number of layers.""")
-            elif self.n_units is None:
-                self._n_layers, self._n_units = 2, [50, self.latent_space_dim // 2]
-        elif self.n_layers is not None:
-            self._n_layers = self.n_layers
-            if self.n_units is None:
-                self._n_units = [50 for _ in range(self.n_layers)]
-                self._n_units[-1] = self.latent_space_dim // 2
-            elif self.n_units is not None:
-                if isinstance(self.n_units, list):
-                    self._n_units = self.n_units
-                    self._n_units[-1] = self.latent_space_dim // 2
-                    if len(self.n_units) != self.n_layers:
-                        raise ValueError(
-                            f"Number of units per layer {len(self.n_units)} should be"
-                            f" same as number of layers but is"
-                            f" not: {self.n_layers}"
-                        )
-                elif isinstance(self.n_units, int):
-                    self._n_units = [self.n_units for _ in range(self.n_layers)]
-                    self._n_units[-1] = self.latent_space_dim // 2
-
-        if isinstance(self.activation, str):
-            self._activation = [self.activation for _ in range(self._n_layers)]
-        else:
-            self._activation = self.activation
-            if not isinstance(self.activation, list):
-                raise ValueError("Activations should be a list or a single string.")
-            if len(self.activation) != self._n_layers:
-                raise ValueError(
-                    f"Number of activations {len(self.activation)} should be"
-                    f" same as number of layers but is"
-                    f" not: {self.n_layers}"
-                )
-
         encoder_inputs = tf.keras.layers.Input(shape=input_shape, name="encoder_input")
         x = encoder_inputs
+        x = self.build_base_graph(x)
+
         for i in range(self._n_layers):
             return_sequences = i < self._n_layers - 1
             if self.temporal_latent_space:
