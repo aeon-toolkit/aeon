@@ -7,6 +7,7 @@ import inspect
 import time
 import warnings
 from abc import ABC, abstractmethod
+from copy import deepcopy
 
 import numpy as np
 from joblib import delayed
@@ -15,6 +16,7 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
+from aeon.base import CheckpointableMixin
 from aeon.base._base import _clone_estimator
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.base import BaseTransformer
@@ -27,7 +29,7 @@ from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseIntervalForest(ABC):
+class BaseIntervalForest(CheckpointableMixin, ABC):
     """A base class for interval extracting forest estimators.
 
     Allows the implementation of classifiers and regressors along the lines of [1][2][3]
@@ -150,6 +152,11 @@ class BaseIntervalForest(ABC):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every fitted estimator and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        File for automatic checkpoints. Used by subclasses that expose this
+        parameter and declare ``capability:checkpointing=True``.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic saves; None saves only on completion.
 
     Attributes
     ----------
@@ -165,6 +172,10 @@ class BaseIntervalForest(ABC):
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
+    n_estimators_ : int
+        Number of fitted ensemble members.
+    fit_elapsed_time_ : float
+        Accumulated training time in seconds across batches and continuation calls.
 
     References
     ----------
@@ -176,6 +187,13 @@ class BaseIntervalForest(ABC):
     .. [3] Cabello, Nestor, et al. "Fast and Accurate Time Series Classification
        Through Supervised Interval Search." IEEE ICDM 2020
     """
+
+    _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
+        "n_estimators",
+        "contract_max_n_estimators",
+        "time_limit_in_minutes",
+        "parallel_backend",
+    )
 
     @abstractmethod
     def __init__(
@@ -196,6 +214,8 @@ class BaseIntervalForest(ABC):
         n_jobs=1,
         parallel_backend=None,
         verbose=0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         self.base_estimator = base_estimator
         self.n_estimators = n_estimators
@@ -213,6 +233,8 @@ class BaseIntervalForest(ABC):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
         self.verbose = verbose
+        self.checkpoint_path = checkpoint_path
+        self.checkpoint_interval = checkpoint_interval
 
         super().__init__()
 
@@ -286,6 +308,8 @@ class BaseIntervalForest(ABC):
 
     def _fit_predict(self, X, y) -> np.ndarray:
         rng = check_random_state(self.random_state)
+        if self.get_tag("capability:checkpointing"):
+            rng = deepcopy(rng)
 
         if is_regressor(self):
             Xt = self._fit_forest(X, y, save_transformed_data=True)
@@ -332,6 +356,10 @@ class BaseIntervalForest(ABC):
                 "Train probability estimates are only available for classification"
             )
 
+        if self.get_tag("capability:checkpointing"):
+            self._fit_forest(X, y, return_train_estimates=True)
+            return self._checkpoint_train_proba()
+
         Xt = self._fit_forest(X, y, save_transformed_data=True)
 
         rng = check_random_state(self.random_state)
@@ -367,18 +395,21 @@ class BaseIntervalForest(ABC):
 
         return results
 
-    def _fit_forest(self, X, y, save_transformed_data=False):
+    def _fit_forest(
+        self, X, y, save_transformed_data=False, return_train_estimates=False
+    ):
         rng = check_random_state(self.random_state)
+        checkpointing = self.get_tag("capability:checkpointing")
+        if checkpointing:
+            rng = deepcopy(rng)
+            self._forest_fit_limits()
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         verbose_name = type(self).__name__
         verbose = self.verbose
-        log_each_estimator = verbose >= 2
-        log_progress = verbose == 1
         if verbose > 0:
-            fit_start_time = time.perf_counter()
             if (
                 self.time_limit_in_minutes is not None
                 and self.time_limit_in_minutes > 0
@@ -404,8 +435,7 @@ class BaseIntervalForest(ABC):
                 self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
             else:
                 raise ValueError(
-                    f"{self} must be a scikit-learn compatible classifier or "
-                    "regressor."
+                    f"{self} must be a scikit-learn compatible classifier or regressor."
                 )
         # base_estimator must be an sklearn estimator
         elif not isinstance(self.base_estimator, BaseEstimator):
@@ -839,152 +869,182 @@ class BaseIntervalForest(ABC):
         ):
             raise ValueError(f"Invalid replace_nan input. Found {self.replace_nan}")
 
-        if self.time_limit_in_minutes is not None and self.time_limit_in_minutes > 0:
-            time_limit = self.time_limit_in_minutes * 60
-            start_time = time.perf_counter()
-            train_time = 0
-            if log_progress:
-                progress_interval = time_limit / 10
-                next_progress = progress_interval
+        self._rng = rng
+        self._train_rng = (
+            deepcopy(check_random_state(self.random_state))
+            if return_train_estimates
+            else None
+        )
+        self.estimators_ = []
+        self.intervals_ = []
+        self._train_estimates = []
+        self._transformed_data = []
+        self._save_transformed_data = save_transformed_data
+        self._n_estimators = self.n_estimators_ = 0
+        self.fit_elapsed_time_ = 0.0
+        self._continue_forest(Xt, y)
+        transformed_data = self._transformed_data
+        if not checkpointing:
+            del self._transformed_data
+        return transformed_data
 
-            self._n_estimators = 0
-            self.estimators_ = []
-            self.intervals_ = []
-            transformed_intervals = []
+    def _forest_fit_limits(self):
+        """Validate mutable work limits before changing continuation state."""
+        time_limit = (
+            0 if self.time_limit_in_minutes is None else self.time_limit_in_minutes * 60
+        )
+        if np.isnan(time_limit):
+            raise ValueError("time_limit_in_minutes must not be NaN.")
+        target = self.contract_max_n_estimators if time_limit > 0 else self.n_estimators
+        if (
+            isinstance(target, (bool, np.bool_))
+            or not isinstance(target, (int, np.integer))
+            or target < 1
+        ):
+            raise ValueError(
+                "The target number of estimators must be a positive integer."
+            )
+        return time_limit, target
 
-            while (
-                train_time < time_limit
-                and self._n_estimators < self.contract_max_n_estimators
-            ):
-                fit = _run_jobs(
+    def _validate_resume_fit(self, X, y):
+        check_n_jobs(self.n_jobs)
+        self._forest_fit_limits()
+
+    def _resume_fit(self, X, y):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        self._continue_forest(self._predict_setup(X), y)
+        return self
+
+    def _continue_forest(self, Xt, y):
+        """Commit trees, interval selectors and OOB state at batch boundaries."""
+        time_limit, target = self._forest_fit_limits()
+        if self._n_estimators > target:
+            del self.estimators_[target:]
+            del self.intervals_[target:]
+            del self._train_estimates[target:]
+            del self._transformed_data[target:]
+            self._n_estimators = self.n_estimators_ = target
+
+        checkpointing = self.get_tag("capability:checkpointing")
+        periodic = (
+            checkpointing
+            and self.checkpoint_path is not None
+            and self.checkpoint_interval is not None
+        )
+        batch_size = (
+            self._n_jobs
+            if time_limit > 0 or periodic
+            else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
+        )
+        start = time.perf_counter()
+        accounted_time = 0.0
+        initial_count = self._n_estimators
+        next_progress = time_limit / 10 if time_limit > 0 else 0
+        name = type(self).__name__
+        while self._n_estimators < target and (
+            time_limit <= 0 or self.fit_elapsed_time_ < time_limit
+        ):
+            size = min(batch_size, target - self._n_estimators)
+            rng, train_rng = (
+                deepcopy((self._rng, self._train_rng))
+                if checkpointing
+                else (self._rng, self._train_rng)
+            )
+            if checkpointing:
+                self._checkpoint_ready = False
+            fit = _run_jobs(
+                [
+                    delayed(self._fit_estimator)(
+                        Xt,
+                        y,
+                        rng.randint(np.iinfo(np.int32).max),
+                        save_transformed_data=(
+                            self._save_transformed_data or train_rng is not None
+                        ),
+                    )
+                    for _ in range(size)
+                ],
+                self._n_jobs,
+                backend=self.parallel_backend,
+            )
+            estimators, intervals, transformed = zip(*fit)
+            train_estimates = []
+            if train_rng is not None:
+                train_estimates = _run_jobs(
                     [
-                        delayed(self._fit_estimator)(
-                            Xt,
+                        delayed(self._train_estimate_for_estimator)(
+                            transformed,
                             y,
-                            rng.randint(np.iinfo(np.int32).max),
-                            save_transformed_data=save_transformed_data,
+                            i,
+                            check_random_state(
+                                train_rng.randint(np.iinfo(np.int32).max)
+                            ),
+                            probas=True,
                         )
-                        for _ in range(self._n_jobs)
+                        for i in range(size)
                     ],
                     self._n_jobs,
                     backend=self.parallel_backend,
                 )
 
-                (
-                    estimators,
-                    intervals,
-                    td,
-                ) = zip(*fit)
+            self.estimators_.extend(estimators)
+            self.intervals_.extend(intervals)
+            self._train_estimates.extend(train_estimates)
+            if self._save_transformed_data:
+                self._transformed_data.extend(transformed)
+            self._rng, self._train_rng = rng, train_rng
+            self._n_estimators = self.n_estimators_ = len(self.estimators_)
+            elapsed = time.perf_counter() - start
+            self.fit_elapsed_time_ += elapsed - accounted_time
+            accounted_time = elapsed
+            if checkpointing:
+                self._checkpoint_ready = True
+                self._checkpoint_if_due()
 
-                self.estimators_ += estimators
-                self.intervals_ += intervals
-                transformed_intervals += td
-
-                self._n_estimators += self._n_jobs
-                train_time = time.perf_counter() - start_time
-
-                if log_each_estimator:
-                    contract_remaining = self._format_duration(
-                        max(0.0, time_limit - train_time)
+            if self.verbose >= 2:
+                if time_limit > 0:
+                    remaining = "contract_remaining=" + self._format_duration(
+                        max(0.0, time_limit - self.fit_elapsed_time_)
                     )
-                    elapsed = time.perf_counter() - fit_start_time
-                    first_estimator = self._n_estimators - len(fit) + 1
-                    for estimator_idx in range(first_estimator, self._n_estimators + 1):
-                        self._log_forest(
-                            f"[{verbose_name}] Estimator {estimator_idx}: "
-                            f"elapsed={elapsed:.2f}s, "
-                            f"contract_remaining={contract_remaining}"
-                        )
-                elif log_progress and train_time >= next_progress:
+                else:
+                    remaining = "estimated_remaining=" + self._format_duration(
+                        elapsed
+                        / (self._n_estimators - initial_count)
+                        * (target - self._n_estimators)
+                    )
+                for i in range(self._n_estimators - size + 1, self._n_estimators + 1):
+                    member = str(i) if time_limit > 0 else f"{i}/{target}"
                     self._log_forest(
-                        f"[{verbose_name}] Progress: built={self._n_estimators}, "
-                        f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
+                        f"[{name}] Estimator {member}: "
+                        f"elapsed={elapsed:.2f}s, {remaining}"
                     )
-                    next_progress = train_time + progress_interval
-        else:
-            self._n_estimators = self.n_estimators
-            if verbose > 0:
-                estimator_start_time = time.perf_counter()
-                # about ten batches, but never fewer estimators than jobs
-                batch_size = max(self._n_jobs, (self._n_estimators + 9) // 10)
-
-                fit = []
-                for batch_start in range(0, self._n_estimators, batch_size):
-                    current_batch_size = min(
-                        batch_size, self._n_estimators - batch_start
-                    )
-                    batch_fit = _run_jobs(
-                        [
-                            delayed(self._fit_estimator)(
-                                Xt,
-                                y,
-                                rng.randint(np.iinfo(np.int32).max),
-                                save_transformed_data=save_transformed_data,
-                            )
-                            for _ in range(current_batch_size)
-                        ],
-                        self._n_jobs,
-                        backend=self.parallel_backend,
-                    )
-                    fit.extend(batch_fit)
-
-                    built = len(fit)
-                    estimator_elapsed = time.perf_counter() - estimator_start_time
-                    if log_each_estimator:
-                        if built == 1:
-                            time_estimate = "estimated_remaining=estimating"
-                        else:
-                            estimated_remaining = (estimator_elapsed / built) * (
-                                self._n_estimators - built
-                            )
-                            time_estimate = (
-                                "estimated_remaining="
-                                f"{self._format_duration(estimated_remaining)}"
-                            )
-                        elapsed = time.perf_counter() - fit_start_time
-                        for estimator_idx in range(
-                            batch_start + 1, batch_start + current_batch_size + 1
-                        ):
-                            self._log_forest(
-                                f"[{verbose_name}] Estimator "
-                                f"{estimator_idx}/{self._n_estimators}: "
-                                f"elapsed={elapsed:.2f}s, "
-                                f"{time_estimate}"
-                            )
-                    else:
-                        self._log_forest(
-                            f"[{verbose_name}] Progress: "
-                            f"built={built}/{self._n_estimators}, "
-                            f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
-                        )
-            else:
-                fit = _run_jobs(
-                    [
-                        delayed(self._fit_estimator)(
-                            Xt,
-                            y,
-                            rng.randint(np.iinfo(np.int32).max),
-                            save_transformed_data=save_transformed_data,
-                        )
-                        for _ in range(self._n_estimators)
-                    ],
-                    self._n_jobs,
-                    backend=self.parallel_backend,
+            elif self.verbose == 1 and elapsed >= next_progress:
+                self._log_forest(
+                    f"[{name}] Progress: built={self._n_estimators}, "
+                    f"elapsed={elapsed:.2f}s"
                 )
+                next_progress = elapsed + time_limit / 10
+            elapsed = time.perf_counter() - start
+            self.fit_elapsed_time_ += elapsed - accounted_time
+            accounted_time = elapsed
 
-            (
-                self.estimators_,
-                self.intervals_,
-                transformed_intervals,
-            ) = zip(*fit)
-
-        if verbose > 0:
+        if self.verbose > 0:
             self._log_forest(
-                f"[{verbose_name}] Finished fit: built={len(self.estimators_)}, "
-                f"elapsed={time.perf_counter() - fit_start_time:.2f}s"
+                f"[{name}] Finished fit: built={self._n_estimators}, "
+                f"elapsed={time.perf_counter() - start:.2f}s"
             )
 
-        return transformed_intervals
+    def _checkpoint_train_proba(self):
+        """Aggregate retained out-of-bag predictions for checkpointable forests."""
+        probabilities, oobs = zip(*self._train_estimates)
+        results = np.sum(probabilities, axis=0)
+        divisors = np.zeros(self.n_cases_)
+        for oob in oobs:
+            divisors[oob] += 1
+        missing = divisors == 0
+        results[~missing] /= divisors[~missing, None]
+        results[missing] = 1 / self.n_classes_
+        return results
 
     @staticmethod
     def _log_forest(message):

@@ -104,9 +104,10 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         Different subsample sizes for each series_transformers series can be specified
         using a list or tuple. Any list or tuple input must be the same length as the
         number of series_transformers.
-    time_limit_in_minutes : int, default=0
+    time_limit_in_minutes : float or None, default=None
         Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators are used.
+        None or a non-positive value uses n_estimators. The budget covers total
+        training time across fit and resume_fit calls. A batch may overrun it.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     use_pycatch22 : bool, default="deprecated"
@@ -134,6 +135,13 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every fitted estimator and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved at completed batch boundaries and on successful
+        completion. None disables automatic writes. The parent must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured. Writes occur at the
+        next completed batch, so long-running batches can delay them.
 
     Attributes
     ----------
@@ -153,6 +161,10 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
+    n_estimators_ : int
+        Number of fitted trees in the ensemble.
+    fit_elapsed_time_ : float
+        Accumulated training time in seconds across completed batches and calls.
 
     See Also
     --------
@@ -161,6 +173,18 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
 
     Notes
     -----
+    ``resume_fit(X, y)`` continues a fitted or loaded checkpoint using the original
+    training data. ``fit`` starts afresh. Between calls, only member limits,
+    time budgets, n_jobs, parallel_backend, verbose and checkpoint settings may
+    change. Raising the member limit grows the forest; lowering it discards the
+    newest trees. Random generators are not rewound when trees are discarded.
+    OOB results are retained when fitting starts with ``fit_predict`` or
+    ``fit_predict_proba``. Resume returns the classifier, not training predictions.
+
+    ``fit_time_millis_`` measures the initial fit call, is not updated by resume,
+    and may be absent from automatic checkpoints. Use ``fit_elapsed_time_`` for
+    cumulative contract timing.
+
     For the Java version, see
     `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
     /tsml/classifiers/interval_based/DrCIF.java>`_.
@@ -188,6 +212,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         "capability:multivariate": True,
         "capability:train_estimate": True,
         "capability:contractable": True,
+        "capability:checkpointing": True,
         "capability:multithreading": True,
         "algorithm_type": "interval",
     }
@@ -208,6 +233,8 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         n_jobs=1,
         parallel_backend=None,
         verbose=0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22 != "deprecated":
@@ -252,6 +279,8 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
             verbose=verbose,
+            checkpoint_path=checkpoint_path,
+            checkpoint_interval=checkpoint_interval,
         )
 
         if use_pycatch22 is True:
@@ -288,6 +317,8 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
                 "contracting" - used in classifiers that set the
                     "capability:contractable" tag to True to test contracting
                     functionality
+                "checkpointing" - uses multiple batches for interruption and
+                    recovery checks
                 "train_estimate" - used in some classifiers that set the
                     "capability:train_estimate" tag to True to allow for more efficient
                     testing when relevant parameters are available
@@ -301,6 +332,8 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}
+        elif parameter_set == "checkpointing":
+            return {"n_estimators": 3, "n_intervals": 2, "att_subsample_size": 2}
         elif parameter_set == "contracting":
             return {
                 "time_limit_in_minutes": 5,
