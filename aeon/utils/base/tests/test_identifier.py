@@ -41,3 +41,13 @@ def test_get_identifier():
         == get_identifier(MockSeriesTransformer())
         == "series-transformer"
     )
+
+
+def test_get_identifier_multiple_raises():
+    """An estimator with more than one base type is ambiguous and must raise."""
+
+    class MockClassifierRegressor(MockClassifier, MockRegressor):
+        pass
+
+    with pytest.raises(TypeError, match="multiple identifiers"):
+        get_identifier(MockClassifierRegressor)

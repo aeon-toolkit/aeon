@@ -61,7 +61,7 @@ def get_identifier(estimator):
         identifiers.remove("similarity-search")
 
     if len(identifiers) > 1:
-        TypeError(
+        raise TypeError(
             f"Error, multiple identifiers could be determined for obj: {identifiers}"
         )
 
