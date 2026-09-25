@@ -14,7 +14,6 @@ from typing import Union
 
 import numpy as np
 from numba import njit, prange, set_num_threads
-from numba.typed import List
 from numpy.random._generator import Generator
 from sklearn.preprocessing import LabelEncoder
 
@@ -23,10 +22,10 @@ from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     choice_log,
     combinations_1d,
-    get_all_subsequences,
+    get_dilated_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
-    normalise_subsequences,
+    normalise_dilated_subsequences,
     prime_up_to,
     sliding_mean_std_one_series,
 )
@@ -511,21 +510,97 @@ def _init_random_shapelet_params(
 
 
 @njit(cache=True)
-def _get_admissible_sampling_point(current_mask, random_generator):
-    n_cases = len(current_mask)
-    # Count the number of admissible points per sample as cumsum
+def _get_admissible_sampling_point(
+    alpha_mask, n_admissible, n_timepoints, length, dilation, i_length, random_generator
+):
+    """Draw uniformly a start point among the admissible ones of a shapelet length.
+
+    Parameters
+    ----------
+    alpha_mask : array, shape (n_cases, max_n_timepoints)
+        Boolean mask, True at the points not masked by the alpha similarity pruning
+        for the normalisation option of the shapelet.
+    n_admissible : array, shape (n_cases, n_lengths)
+        Number of admissible start points of each series for each shapelet length,
+        consistent with alpha_mask.
+    n_timepoints : array, shape (n_cases)
+        The number of timepoints of each series.
+    length : int
+        Length of the shapelet.
+    dilation : int
+        Dilation of the shapelet.
+    i_length : int
+        Column of n_admissible holding the counts of this length.
+    random_generator : Generator
+        Random generator, only used if at least one point is admissible.
+
+    Returns
+    -------
+    idx_sample : int
+        Index of the series the point belongs to, -1 if no point is admissible.
+    idx_timestamp : int
+        Index of the point in the series, -1 if no point is admissible.
+    """
+    n_cases = alpha_mask.shape[0]
     n_admissible_points = 0
     for i in range(n_cases):
-        n_admissible_points += current_mask[i].shape[0]
-    if n_admissible_points > 0:
-        idx_choice = random_generator.integers(0, high=n_admissible_points)
-        for i in range(n_cases):
-            _new_val = idx_choice - current_mask[i].shape[0]
-            if _new_val < 0 and current_mask[i].shape[0] > 0:
-                return i, current_mask[i][idx_choice]
-            idx_choice = _new_val
-    else:
+        n_admissible_points += n_admissible[i, i_length]
+    if n_admissible_points == 0:
         return -1, -1
+    # Index of the point among the admissible ones, in series order
+    idx_choice = random_generator.integers(0, high=n_admissible_points)
+    for i in range(n_cases):
+        if idx_choice < n_admissible[i, i_length]:
+            for idx_timestamp in range(n_timepoints[i] - (length - 1) * dilation):
+                if alpha_mask[i, idx_timestamp]:
+                    if idx_choice == 0:
+                        return i, idx_timestamp
+                    idx_choice -= 1
+        else:
+            idx_choice -= n_admissible[i, i_length]
+    return -1, -1
+
+
+@njit(fastmath=True, cache=True)
+def _update_alpha_mask(
+    alpha_mask,
+    n_admissible,
+    n_timepoints,
+    idx_timestamp,
+    alpha_size,
+    dilation,
+    unique_lengths,
+):
+    """Mask the points alpha similar to a sampled point and update the counts.
+
+    Parameters
+    ----------
+    alpha_mask : array, shape (max_n_timepoints)
+        Boolean mask of the series the point was sampled from, for the normalisation
+        option of the shapelet. Updated in place.
+    n_admissible : array, shape (n_lengths)
+        Number of admissible start points of the series for each shapelet length.
+        Updated in place.
+    n_timepoints : int
+        The number of timepoints of the series.
+    idx_timestamp : int
+        Index of the sampled point.
+    alpha_size : int
+        Number of points to mask in each direction, including the sampled point.
+    dilation : int
+        Dilation of the shapelet.
+    unique_lengths : array, shape (n_lengths)
+        The shapelet lengths of the columns of n_admissible.
+    """
+    n_lengths = unique_lengths.shape[0]
+    for j in range(alpha_size):
+        for direction in (-1, 1):
+            idx = idx_timestamp + direction * j * dilation
+            if idx >= 0 and idx < n_timepoints and alpha_mask[idx]:
+                alpha_mask[idx] = False
+                for i_length in range(n_lengths):
+                    if idx < n_timepoints - (unique_lengths[i_length] - 1) * dilation:
+                        n_admissible[i_length] -= 1
 
 
 @njit(fastmath=True, cache=True, parallel=True)
@@ -743,49 +818,60 @@ def random_dilated_shapelet_extraction(
     """
     n_cases = len(X)
     max_shapelets = values.shape[0]
+    # Shapelets which could not be sampled because the search space was exhausted
+    # are dropped from the output.
+    sampled = np.zeros(max_shapelets, dtype=np.bool_)
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
-
+        dilation = unique_dil[i_dilation]
         # (2, _, _): Mask is different for normalised and non-normalised shapelets
         alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):
             # For the unequal length case, we scale the mask up and set to False
             alpha_mask[:, _i, n_timepoints[_i] :] = False
 
-        id_shps = np.where(dilations == unique_dil[i_dilation])[0]
+        id_shps = np.where(dilations == dilation)[0]
         min_len = min(lengths[id_shps])
+        # Number of admissible start points of each series for each shapelet
+        # length, kept consistent with alpha_mask so that sampling a point does
+        # not require scanning the mask of every series.
+        unique_lengths = np.unique(lengths[id_shps])
+        n_lengths = unique_lengths.shape[0]
+        n_admissible = np.zeros((2, n_cases, n_lengths), dtype=np.int64)
+        for _i in range(n_cases):
+            for i_length in range(n_lengths):
+                n_admissible[:, _i, i_length] = max(
+                    0, n_timepoints[_i] - (unique_lengths[i_length] - 1) * dilation
+                )
         # For each shapelet id with this dilation
         for i_shp in id_shps:
             # Get shapelet params
-            dilation = dilations[i_shp]
             length = lengths[i_shp]
             norm = np.int_(normalises[i_shp])
-            # Possible sampling points given self similarity mask
-            current_mask = List(
-                [
-                    np.where(
-                        alpha_mask[
-                            norm,
-                            _i,
-                            : n_timepoints[_i] - (length - 1) * dilation,
-                        ]
-                    )[0]
-                    for _i in range(n_cases)
-                ]
-            )
+            i_length = np.searchsorted(unique_lengths, length)
+            # Sample a point given the self similarity mask
             idx_sample, idx_timestamp = _get_admissible_sampling_point(
-                current_mask, rng_dilations[i_dilation]
+                alpha_mask[norm],
+                n_admissible[norm],
+                n_timepoints,
+                length,
+                dilation,
+                i_length,
+                rng_dilations[i_dilation],
             )
             if idx_sample >= 0:
+                sampled[i_shp] = True
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
-                for j in range(alpha_size):
-                    alpha_mask[norm, idx_sample, (idx_timestamp - (j * dilation))] = (
-                        False
-                    )
-                    alpha_mask[norm, idx_sample, (idx_timestamp + (j * dilation))] = (
-                        False
-                    )
+                _update_alpha_mask(
+                    alpha_mask[norm, idx_sample],
+                    n_admissible[norm, idx_sample],
+                    n_timepoints[idx_sample],
+                    idx_timestamp,
+                    alpha_size,
+                    dilation,
+                    unique_lengths,
+                )
 
                 # Extract the values of shapelet
                 if norm:
@@ -813,15 +899,22 @@ def random_dilated_shapelet_extraction(
                 else:
                     id_test = idx_sample
 
-                # Compute distance vector, first get the subsequences
-                X_subs = get_all_subsequences(X[id_test], length, dilation)
+                # Compute the distance vector between the shapelet and the
+                # subsequences of the other sample
                 if norm:
-                    # normalise them if needed
                     X_means, X_stds = sliding_mean_std_one_series(
                         X[id_test], length, dilation
                     )
-                    X_subs = normalise_subsequences(X_subs, X_means, X_stds)
-                x_dist = compute_shapelet_dist_vector(X_subs, _val)
+                    x_dist = compute_shapelet_dist_vector(
+                        normalise_dilated_subsequences(
+                            X[id_test], X_means, X_stds, length, dilation
+                        ),
+                        _val,
+                    )
+                else:
+                    x_dist = compute_shapelet_dist_vector(
+                        get_dilated_subsequences(X[id_test], length, dilation), _val
+                    )
 
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
                 upper_bound = np.percentile(x_dist, threshold_percentiles[1])
@@ -841,21 +934,16 @@ def random_dilated_shapelet_extraction(
                     means[i_shp] = _means
                     stds[i_shp] = _stds
 
-    mask_values = np.ones(max_shapelets, dtype=np.bool_)
-    for i in prange(max_shapelets):
-        if np.all(values[i] == np.inf):
-            mask_values[i] = False
-
     return (
-        values[mask_values],
-        startpoints[mask_values],
-        lengths[mask_values],
-        dilations[mask_values],
-        thresholds[mask_values],
-        normalises[mask_values],
-        means[mask_values],
-        stds[mask_values],
-        classes[mask_values],
+        values[sampled],
+        startpoints[sampled],
+        lengths[sampled],
+        dilations[sampled],
+        thresholds[sampled],
+        normalises[sampled],
+        means[sampled],
+        stds[sampled],
+        classes[sampled],
     )
 
 
@@ -881,7 +969,7 @@ def dilated_shapelet_transform(
     X : array, shape (n_cases, n_channels, n_timepoints)
         Time series dataset
     shapelets : tuple
-        The returned tuple contains 7 arrays describing the shapelets parameters:
+        The returned tuple contains 9 arrays describing the shapelets parameters:
         - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
         - startpoints : array, shape (max_shapelets)
@@ -899,8 +987,7 @@ def dilated_shapelet_transform(
         - stds : array, shape (n_shapelets, n_channels)
             Standard deviation of the shapelets
         - classes : array, shape (max_shapelets)
-        An initialized (empty) startpoint array for each shapelet
-
+            Class from which the shapelet was extracted
 
     Returns
     -------
@@ -924,34 +1011,98 @@ def dilated_shapelet_transform(
     n_cases = len(X)
     n_ft = 3
 
-    # (u_l * u_d , 2)
+    # Unique (length, dilation) pairs, shape (n_params, 2)
     params_shp = combinations_1d(lengths, dilations)
+    n_params = params_shp.shape[0]
+    # Ids of the shapelets of each pair, as id_shps[id_start[i]:id_start[i+1]], with
+    # the non-normalised ones first and the normalised ones from position id_norm[i]
+    id_shps, id_start, id_norm = _group_shapelets_by_params(
+        params_shp, lengths, dilations, normalises
+    )
 
     X_new = np.zeros((n_cases, n_ft * n_shapelets))
-    for i_params in prange(params_shp.shape[0]):
+    # One parallel iteration per (series, pair), ordered by series so that the work
+    # is balanced between threads and each row of X_new is written by one thread
+    for i_iter in prange(n_cases * n_params):
+        i_x = i_iter // n_params
+        i_params = i_iter % n_params
         length = params_shp[i_params, 0]
         dilation = params_shp[i_params, 1]
-        id_shps = np.where((lengths == length) & (dilations == dilation))[0]
+        # Distance vector buffer, reused by all the shapelets of the pair
+        dist_vector = np.zeros(X[i_x].shape[1] - (length - 1) * dilation)
 
-        for i_x in prange(n_cases):
-            X_subs = get_all_subsequences(X[i_x], length, dilation)
-            idx_no_norm = id_shps[np.where(~normalises[id_shps])[0]]
-            for i_shp in idx_no_norm:
+        if id_start[i_params] < id_norm[i_params]:
+            X_subs = get_dilated_subsequences(X[i_x], length, dilation)
+            for i in range(id_start[i_params], id_norm[i_params]):
+                i_shp = id_shps[i]
+                _compute_shapelet_dist_vector(X_subs, values[i_shp], dist_vector)
                 X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
-                    compute_shapelet_features(X_subs, values[i_shp], thresholds[i_shp])
+                    _features_from_dist_vector(dist_vector, thresholds[i_shp])
                 )
 
-            idx_norm = id_shps[np.where(normalises[id_shps])[0]]
-            if len(idx_norm) > 0:
-                X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
-                X_subs = normalise_subsequences(X_subs, X_means, X_stds)
-                for i_shp in idx_norm:
-                    X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
-                        compute_shapelet_features(
-                            X_subs, values[i_shp], thresholds[i_shp]
-                        )
-                    )
+        if id_norm[i_params] < id_start[i_params + 1]:
+            X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
+            X_subs_norm = normalise_dilated_subsequences(
+                X[i_x], X_means, X_stds, length, dilation
+            )
+            for i in range(id_norm[i_params], id_start[i_params + 1]):
+                i_shp = id_shps[i]
+                _compute_shapelet_dist_vector(X_subs_norm, values[i_shp], dist_vector)
+                X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
+                    _features_from_dist_vector(dist_vector, thresholds[i_shp])
+                )
     return X_new
+
+
+@njit(cache=True)
+def _group_shapelets_by_params(
+    params_shp: np.ndarray,
+    lengths: np.ndarray,
+    dilations: np.ndarray,
+    normalises: np.ndarray,
+):
+    """Group the shapelet ids by (length, dilation) pair, non-normalised ones first.
+
+    Parameters
+    ----------
+    params_shp : array, shape (n_params, 2)
+        The unique (length, dilation) pairs of the shapelets.
+    lengths : array, shape (n_shapelets)
+        Length parameter of the shapelets
+    dilations : array, shape (n_shapelets)
+        Dilation parameter of the shapelets
+    normalises : array, shape (n_shapelets)
+        Normalization indicator of the shapelets
+
+    Returns
+    -------
+    id_shps : array, shape (n_shapelets)
+        The shapelet ids, grouped by pair.
+    id_start : array, shape (n_params + 1)
+        The ids of the i-th pair are id_shps[id_start[i]:id_start[i + 1]].
+    id_norm : array, shape (n_params)
+        Within the i-th pair, the ids from position id_norm[i] on are the ones of
+        the shapelets using z-normalisation.
+    """
+    n_params = params_shp.shape[0]
+    id_shps = np.zeros(lengths.shape[0], dtype=np.int_)
+    id_start = np.zeros(n_params + 1, dtype=np.int_)
+    id_norm = np.zeros(n_params, dtype=np.int_)
+    n = 0
+    for i_params in range(n_params):
+        id_start[i_params] = n
+        in_pair = (lengths == params_shp[i_params, 0]) & (
+            dilations == params_shp[i_params, 1]
+        )
+        for i_shp in np.where(in_pair & ~normalises)[0]:
+            id_shps[n] = i_shp
+            n += 1
+        id_norm[i_params] = n
+        for i_shp in np.where(in_pair & normalises)[0]:
+            id_shps[n] = i_shp
+            n += 1
+    id_start[n_params] = n
+    return id_shps, id_start, id_norm
 
 
 @njit(fastmath=True, cache=True)
@@ -971,12 +1122,32 @@ def compute_shapelet_features(
 
     Parameters
     ----------
-    X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
-        The subsequences of an input time series given the length and dilation parameter
+    X_subs : array, shape (n_channels, length, n_timestamps-(length-1)*dilation)
+        The subsequences of an input time series given the length and dilation
+        parameter, as given by ``get_dilated_subsequences`` or
+        ``normalise_dilated_subsequences``.
     values : array, shape (n_channels, length)
         The value array of the shapelet
-    length : int
-        Length of the shapelet
+    threshold : float
+        The threshold parameter of the shapelet
+
+    Returns
+    -------
+    min, argmin, shapelet occurrence
+        The three computed features as float dtypes
+    """
+    dist_vector = compute_shapelet_dist_vector(X_subs, values)
+    return _features_from_dist_vector(dist_vector, threshold)
+
+
+@njit(fastmath=True, cache=True)
+def _features_from_dist_vector(dist_vector: np.ndarray, threshold: float):
+    """Extract the min, argmin and shapelet occurrence features of a distance vector.
+
+    Parameters
+    ----------
+    dist_vector : array, shape (n_subsequences)
+        The distance vector between a shapelet and the subsequences of a series.
     threshold : float
         The threshold parameter of the shapelet
 
@@ -988,14 +1159,8 @@ def compute_shapelet_features(
     _min = np.inf
     _argmin = np.inf
     _SO = 0
-
-    n_subsequences, n_channels, length = X_subs.shape
-
-    for i_sub in prange(n_subsequences):
-        _dist = 0
-        for k in prange(n_channels):
-            for i_len in prange(length):
-                _dist += abs(X_subs[i_sub, k, i_len] - values[k, i_len])
+    for i_sub in range(dist_vector.shape[0]):
+        _dist = dist_vector[i_sub]
         if _dist < _min:
             _min = _dist
             _argmin = i_sub
@@ -1010,36 +1175,55 @@ def compute_shapelet_dist_vector(
     X_subs: np.ndarray,
     values: np.ndarray,
 ):
-    """Extract the features from a shapelet distance vector.
+    """Compute the distance vector between a shapelet and the subsequences of a series.
 
-    Given a shapelet and a time series, extract three features from the resulting
-    distance vector:
-        - min
-        - argmin
-        - Shapelet Occurrence : number of point in the distance vector inferior to the
-        threshold parameter
+    The distance between the shapelet and a subsequence is the sum over the channels
+    of the Manhattan distance between their values.
 
     Parameters
     ----------
-    X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
-        The subsequences of an input time series given the length and dilation parameter
+    X_subs : array, shape (n_channels, length, n_timestamps-(length-1)*dilation)
+        The subsequences of an input time series given the length and dilation
+        parameter, as given by ``get_dilated_subsequences`` or
+        ``normalise_dilated_subsequences``.
     values : array, shape (n_channels, length)
         The value array of the shapelet
-    length : int
-        Length of the shapelet
-    distance: CPUDispatcher
-        A Numba function used to compute the distance between two multidimensional
-        time series of shape (n_channels, length).
 
     Returns
     -------
     dist_vector : array, shape = (n_timestamps-(length-1)*dilation)
         The distance vector between the shapelets and candidate subsequences
     """
-    n_subsequences, n_channels, length = X_subs.shape
-    dist_vector = np.zeros(n_subsequences)
-    for i_sub in prange(n_subsequences):
-        for k in prange(n_channels):
-            for i_len in prange(length):
-                dist_vector[i_sub] += abs(X_subs[i_sub, k, i_len] - values[k, i_len])
+    dist_vector = np.zeros(X_subs.shape[2])
+    _compute_shapelet_dist_vector(X_subs, values, dist_vector)
     return dist_vector
+
+
+@njit(fastmath=True, cache=True)
+def _compute_shapelet_dist_vector(
+    X_subs: np.ndarray,
+    values: np.ndarray,
+    dist_vector: np.ndarray,
+):
+    """Compute the distance vector of ``compute_shapelet_dist_vector`` in place.
+
+    Parameters
+    ----------
+    X_subs : array, shape (n_channels, length, n_subsequences)
+        The subsequences of an input time series, see
+        ``compute_shapelet_dist_vector``.
+    values : array, shape (n_channels, length)
+        The value array of the shapelet
+    dist_vector : array, shape (n_subsequences)
+        The array in which the distance vector is written.
+    """
+    n_channels, length, n_subsequences = X_subs.shape
+    dist_vector[:] = 0
+    # With the subsequences as the innermost loop, each step reads contiguous
+    # memory and the loop is vectorised by the compiler
+    for k in range(n_channels):
+        for i_len in range(length):
+            x = X_subs[k, i_len]
+            value = values[k, i_len]
+            for i_sub in range(n_subsequences):
+                dist_vector[i_sub] += abs(x[i_sub] - value)
