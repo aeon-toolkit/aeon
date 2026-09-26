@@ -50,3 +50,10 @@ def test_shift_scale_invariant_distance_float32():
     dist32 = shift_scale_invariant_distance(x.astype(np.float32), y.astype(np.float32))
 
     assert_almost_equal(dist32, dist64, decimal=4)
+
+    # A float32 input must also yield a float32 shifted output: the zero-padding
+    # now matches the input dtype instead of forcing float64 (#3722).
+    _, shifted32 = shift_scale_invariant_best_shift(
+        x.astype(np.float32), y.astype(np.float32)
+    )
+    assert shifted32.dtype == np.float32
