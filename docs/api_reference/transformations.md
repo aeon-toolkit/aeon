@@ -77,6 +77,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     MiniRocket
     MultiRocket
     HydraTransformer
+    KGMTP
 ```
 
 ```{eval-rst}
