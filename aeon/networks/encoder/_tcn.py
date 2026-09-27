@@ -63,6 +63,62 @@ class TCNNetwork(BaseDeepLearningNetwork):
 
         super().__init__()
 
+    def _check_params(self):
+        pass
+        # nothing to check but mandatory to override
+        # abstract method from BaseDeepLearningNetwork
+
+    def build_base_graph(self, x):
+        self._check_params()
+
+        # Transpose input to match the expected format (batch, n_timepoints, n_channels)
+        n_inputs = x.shape[2]  # input_shape is of shape (n_timepoints, n_channels)
+
+        # Apply TCN using the private function
+        x = self._temporal_conv_net(
+            x,
+            n_inputs=n_inputs,
+            n_blocks=self.n_blocks,
+            kernel_size=self.kernel_size,
+            dropout=self.dropout,
+        )
+
+        return x
+
+    def build_network(self, input_shape: tuple, **kwargs) -> tuple:
+        """Build the complete TCN architecture.
+
+        Constructs a series of temporal blocks with exponentially increasing
+        dilation factors to achieve a large receptive field efficiently.
+
+        Parameters
+        ----------
+        input_shape : tuple
+            Shape of input data (n_timepoints, n_channels).
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        tuple
+            A tuple containing (input_layer, output_tensor) representing
+            the complete network architecture.
+
+        Notes
+        -----
+        The dilation factor for layer i is 2^i, which ensures exponential
+        growth of the receptive field while maintaining computational
+        efficiency.
+        """
+        import tensorflow as tf
+
+        # Create input layer
+        input_layer = tf.keras.layers.Input(shape=input_shape)
+        x = self.build_base_graph(input_layer)
+        output = tf.keras.layers.Dense(input_shape[1])(x[:, -1, :])
+
+        return input_layer, output
+
     def _conv1d_with_variable_padding(
         self,
         input_tensor,
@@ -268,49 +324,3 @@ class TCNNetwork(BaseDeepLearningNetwork):
             )
 
         return input_tensor
-
-    def build_network(self, input_shape: tuple, **kwargs) -> tuple:
-        """Build the complete TCN architecture.
-
-        Constructs a series of temporal blocks with exponentially increasing
-        dilation factors to achieve a large receptive field efficiently.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            Shape of input data (n_timepoints, n_channels).
-        **kwargs
-            Additional keyword arguments (unused).
-
-        Returns
-        -------
-        tuple
-            A tuple containing (input_layer, output_tensor) representing
-            the complete network architecture.
-
-        Notes
-        -----
-        The dilation factor for layer i is 2^i, which ensures exponential
-        growth of the receptive field while maintaining computational
-        efficiency.
-        """
-        import tensorflow as tf
-
-        # Create input layer
-        input_layer = tf.keras.layers.Input(shape=input_shape)
-
-        # Transpose input to match the expected format (batch, n_timepoints, n_channels)
-        x = input_layer
-        n_inputs = input_shape[1]  # input_shape is of shape (n_timepoints, n_channels)
-
-        # Apply TCN using the private function
-        x = self._temporal_conv_net(
-            x,
-            n_inputs=n_inputs,
-            n_blocks=self.n_blocks,
-            kernel_size=self.kernel_size,
-            dropout=self.dropout,
-        )
-        output = tf.keras.layers.Dense(input_shape[1])(x[:, -1, :])
-        # output = tf.keras.layers.Dense(1)(x)
-        return input_layer, output
