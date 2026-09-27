@@ -12,8 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.feature_based._catch22 import (
-    _InternalCatch22,
-    _warn_use_pycatch22_deprecated,
+    Catch22,
 )
 from aeon.utils.sklearn import _resolve_balanced_class_weight
 from aeon.utils.validation import check_n_jobs
@@ -55,14 +54,6 @@ class Catch22Classifier(BaseClassifier):
         series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, default="deprecated"
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
-
-        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
-        continues to use pycatch22 until removal. Omit this parameter to use aeon's
-        faster implementation.
     estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn RandomForestClassifier(n_estimators=200).
@@ -145,14 +136,12 @@ class Catch22Classifier(BaseClassifier):
         "algorithm_type": "feature",
     }
 
-    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=True,
         outlier_norm=True,
         replace_nans=True,
-        use_pycatch22="deprecated",
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -163,9 +152,6 @@ class Catch22Classifier(BaseClassifier):
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
-        self.use_pycatch22 = use_pycatch22
-        if use_pycatch22 != "deprecated":
-            _warn_use_pycatch22_deprecated(self)
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -193,12 +179,11 @@ class Catch22Classifier(BaseClassifier):
             Reference to self.
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-        self._transformer = _InternalCatch22(
+        self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
             replace_nans=self.replace_nans,
-            use_pycatch22=self.use_pycatch22,
             n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )

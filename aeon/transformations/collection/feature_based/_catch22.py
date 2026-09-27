@@ -7,18 +7,15 @@ __maintainer__ = []
 __all__ = ["Catch22"]
 
 import math
-import warnings
-from weakref import WeakSet
 
 import numpy as np
 from joblib import Parallel, delayed
 from numba import njit
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils.numba.general import z_normalise_series, z_normalise_series_with_mean
+from aeon.utils.numba.general import z_normalise_series_with_mean
 from aeon.utils.numba.stats import mean, numba_max, numba_min
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 feature_names = [
     "DN_HistogramMode_5",
@@ -71,23 +68,6 @@ feature_names_short = [
 ]
 
 
-# TODO remove with 'use_pycatch22' in v1.7.0
-_WARNED_USE_PYCATCH22_ESTIMATORS = WeakSet()
-
-
-def _warn_use_pycatch22_deprecated(estimator):
-    """Emit the ``use_pycatch22`` warning once per live estimator instance."""
-    if estimator not in _WARNED_USE_PYCATCH22_ESTIMATORS:
-        warnings.warn(
-            "The 'use_pycatch22' parameter is deprecated and will be removed in "
-            "v1.7.0. Setting use_pycatch22=True continues to use pycatch22 until "
-            "removal. Omit the parameter to use aeon's faster implementation.",
-            FutureWarning,
-            stacklevel=3,
-        )
-        _WARNED_USE_PYCATCH22_ESTIMATORS.add(estimator)
-
-
 class Catch22(BaseCollectionTransformer):
     """Canonical Time-series Characteristics (Catch22).
 
@@ -136,14 +116,6 @@ class Catch22(BaseCollectionTransformer):
         series that were already normalized.
     replace_nans : bool, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, default="deprecated"
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
-
-        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
-        continues to use pycatch22 until removal. Omit this parameter to use aeon's
-        faster implementation.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. Requires multiple input
         cases. ``-1`` means using all processors.
@@ -202,14 +174,12 @@ class Catch22(BaseCollectionTransformer):
         "fit_is_empty": True,
     }
 
-    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         features="all",
         catch24=False,
         outlier_norm=True,
         replace_nans=False,
-        use_pycatch22="deprecated",
         n_jobs=1,
         parallel_backend=None,
     ):
@@ -217,16 +187,10 @@ class Catch22(BaseCollectionTransformer):
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
-        self.use_pycatch22 = use_pycatch22
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
         super().__init__()
-
-        if use_pycatch22 != "deprecated":
-            _warn_use_pycatch22_deprecated(self)
-        if use_pycatch22 is True:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.
@@ -274,129 +238,87 @@ class Catch22(BaseCollectionTransformer):
             Catch22._FC_LocalSimple_mean3_stderr,
         ]
 
-        use_pycatch22_transform = False
-        if self.use_pycatch22 is True:
-            if _check_soft_dependencies("pycatch22", severity="none"):
-                import pycatch22
-
-                features = [
-                    pycatch22.DN_HistogramMode_5,
-                    pycatch22.DN_HistogramMode_10,
-                    pycatch22.CO_f1ecac,
-                    pycatch22.CO_FirstMin_ac,
-                    pycatch22.CO_HistogramAMI_even_2_5,
-                    pycatch22.CO_trev_1_num,
-                    pycatch22.MD_hrv_classic_pnn40,
-                    pycatch22.SB_BinaryStats_mean_longstretch1,
-                    pycatch22.SB_TransitionMatrix_3ac_sumdiagcov,
-                    pycatch22.PD_PeriodicityWang_th0_01,
-                    pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
-                    pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
-                    pycatch22.FC_LocalSimple_mean1_tauresrat,
-                    pycatch22.DN_OutlierInclude_p_001_mdrmd,
-                    pycatch22.DN_OutlierInclude_n_001_mdrmd,
-                    pycatch22.SP_Summaries_welch_rect_area_5_1,
-                    pycatch22.SB_BinaryStats_diff_longstretch0,
-                    pycatch22.SB_MotifThree_quantile_hh,
-                    pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
-                    pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                    pycatch22.SP_Summaries_welch_rect_centroid,
-                    pycatch22.FC_LocalSimple_mean3_stderr,
-                ]
-
-                use_pycatch22_transform = True
-            else:
-                warnings.warn(
-                    "pycatch22 not installed, but 'self.use_pycatch22' is set to True."
-                    "Please install pycatch22. Aeon catch22 will be used.",
-                    stacklevel=2,
-                )
-
-        if use_pycatch22_transform:
-            func = self._transform_case_pycatch22
-            case_args = [(X[i], f_idx, features) for i in range(n_cases)]
+        # The two welch power-spectrum features (indices 15 and 20) each need
+        # np.fft.fft of the mean-centred series. np.fft.fft has a high fixed
+        # per-call cost on short interval series, so compute it once for the
+        # whole batch (all cases share a length) instead of once per case. The
+        # result is bit-identical: a 1D FFT equals the matching row of the
+        # batched FFT, and the subtracted mean uses the same numba mean().
+        fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+        # The autocorrelation features (2, 3, 8, 10, 12) all need the
+        # normalised autocorrelation of the series. Compute it for the whole
+        # batch with two batched np.fft calls instead of a hand-written
+        # radix-2 FFT per series. NOT bit-identical: pocketfft rounds
+        # differently in the last bits, so index-valued outputs can flip at
+        # exact fp ties (rare).
+        ac_cache = self._ac_batch_cache(X, f_idx, n_cases)
+        # Twiddles for the hand-written FFT are still needed by the
+        # per-series fallback (np-list input) and by feature 12's rare
+        # no-crossing fallback on the differenced series.
+        if ac_cache is None or 12 in f_idx:
+            ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
         else:
-            # The two welch power-spectrum features (indices 15 and 20) each need
-            # np.fft.fft of the mean-centred series. np.fft.fft has a high fixed
-            # per-call cost on short interval series, so compute it once for the
-            # whole batch (all cases share a length) instead of once per case. The
-            # result is bit-identical: a 1D FFT equals the matching row of the
-            # batched FFT, and the subtracted mean uses the same numba mean().
-            fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
-            # The autocorrelation features (2, 3, 8, 10, 12) all need the
-            # normalised autocorrelation of the series. Compute it for the whole
-            # batch with two batched np.fft calls instead of a hand-written
-            # radix-2 FFT per series. NOT bit-identical: pocketfft rounds
-            # differently in the last bits, so index-valued outputs can flip at
-            # exact fp ties (rare).
-            ac_cache = self._ac_batch_cache(X, f_idx, n_cases)
-            # Twiddles for the hand-written FFT are still needed by the
-            # per-series fallback (np-list input) and by feature 12's rare
-            # no-crossing fallback on the differenced series.
-            if ac_cache is None or 12 in f_idx:
-                ac_tw, ac_nfft = self._ac_twiddle_cache(X, f_idx)
-            else:
-                ac_tw, ac_nfft = None, 0
+            ac_tw, ac_nfft = None, 0
 
-            if isinstance(X, np.ndarray) and X.ndim == 3:
-                # Equal-length input: run the whole per-case dispatch loop
-                # inside numba (_transform_case_numba). Each feature-kernel
-                # call from Python costs several microseconds of dispatcher
-                # overhead, which dominates short interval series; calling the
-                # same compiled kernels from compiled code is nearly free. The
-                # welch/autocorrelation caches above are guaranteed non-None
-                # whenever their features are present and unmasked, so the
-                # kernel has no per-series fallbacks.
-                n_channels = X.shape[1]
-                tf = getattr(self, "_transform_features", None)
-                if tf is not None and len(tf) == len(f_idx) * n_channels:
-                    keep = np.asarray(tf, dtype=np.bool_)
-                else:
-                    keep = np.ones(len(f_idx) * n_channels, dtype=np.bool_)
-                f_arr = np.asarray(f_idx, dtype=np.int64)
-                # catch24's standard deviation stays a numpy call for exact
-                # reproducibility (numba's np.std can round differently). The
-                # ascontiguousarray is load-bearing: np.std along axis 2 only
-                # matches the per-series np.std bit-for-bit when the last axis is
-                # contiguous, so do not simplify it to np.std(X, axis=2).
-                stds = None
-                if 23 in f_idx:
-                    stds = np.std(np.ascontiguousarray(X), axis=2)
-                # typed empty placeholders for absent caches; the matching
-                # kernel branches are unreachable when a cache was not built
-                no_fft = np.empty((0, 0), dtype=np.complex128)
-                no_ac = np.empty((0, 0), dtype=np.float64)
-                no_std = np.empty(0, dtype=np.float64)
-                tw = ac_tw if ac_tw is not None else np.empty(0, np.complex128)
-                func = _transform_case_numba
-                case_args = [
-                    (
-                        X[i],
-                        f_arr,
-                        keep,
-                        bool(self.outlier_norm),
-                        no_fft if fft_cache is None else fft_cache[i],
-                        no_ac if ac_cache is None else ac_cache[i],
-                        tw,
-                        ac_nfft,
-                        no_std if stds is None else stds[i],
-                    )
-                    for i in range(n_cases)
-                ]
+        if isinstance(X, np.ndarray) and X.ndim == 3:
+            # Equal-length input: run the whole per-case dispatch loop
+            # inside numba (_transform_case_numba). Each feature-kernel
+            # call from Python costs several microseconds of dispatcher
+            # overhead, which dominates short interval series; calling the
+            # same compiled kernels from compiled code is nearly free. The
+            # welch/autocorrelation caches above are guaranteed non-None
+            # whenever their features are present and unmasked, so the
+            # kernel has no per-series fallbacks.
+            n_channels = X.shape[1]
+            tf = getattr(self, "_transform_features", None)
+            if tf is not None and len(tf) == len(f_idx) * n_channels:
+                keep = np.asarray(tf, dtype=np.bool_)
             else:
-                func = self._transform_case
-                case_args = [
-                    (
-                        X[i],
-                        f_idx,
-                        features,
-                        None if fft_cache is None else fft_cache[i],
-                        ac_tw,
-                        ac_nfft,
-                        None if ac_cache is None else ac_cache[i],
-                    )
-                    for i in range(n_cases)
-                ]
+                keep = np.ones(len(f_idx) * n_channels, dtype=np.bool_)
+            f_arr = np.asarray(f_idx, dtype=np.int64)
+            # catch24's standard deviation stays a numpy call for exact
+            # reproducibility (numba's np.std can round differently). The
+            # ascontiguousarray is load-bearing: np.std along axis 2 only
+            # matches the per-series np.std bit-for-bit when the last axis is
+            # contiguous, so do not simplify it to np.std(X, axis=2).
+            stds = None
+            if 23 in f_idx:
+                stds = np.std(np.ascontiguousarray(X), axis=2)
+            # typed empty placeholders for absent caches; the matching
+            # kernel branches are unreachable when a cache was not built
+            no_fft = np.empty((0, 0), dtype=np.complex128)
+            no_ac = np.empty((0, 0), dtype=np.float64)
+            no_std = np.empty(0, dtype=np.float64)
+            tw = ac_tw if ac_tw is not None else np.empty(0, np.complex128)
+            func = _transform_case_numba
+            case_args = [
+                (
+                    X[i],
+                    f_arr,
+                    keep,
+                    bool(self.outlier_norm),
+                    no_fft if fft_cache is None else fft_cache[i],
+                    no_ac if ac_cache is None else ac_cache[i],
+                    tw,
+                    ac_nfft,
+                    no_std if stds is None else stds[i],
+                )
+                for i in range(n_cases)
+            ]
+        else:
+            func = self._transform_case
+            case_args = [
+                (
+                    X[i],
+                    f_idx,
+                    features,
+                    None if fft_cache is None else fft_cache[i],
+                    ac_tw,
+                    ac_nfft,
+                    None if ac_cache is None else ac_cache[i],
+                )
+                for i in range(n_cases)
+            ]
 
         # Run cases sequentially when not parallelising: a joblib Parallel still
         # wraps every task in delayed() and copies it, which is pure overhead here
@@ -625,40 +547,6 @@ class Catch22(BaseCollectionTransformer):
             fmeans[i] = mean(flat[i])
         fft = np.fft.fft(flat - fmeans[:, np.newaxis], n=nfft, axis=1)
         return fft.reshape(n_cases, n_channels, nfft)
-
-    def _transform_case_pycatch22(self, X, f_idx, features):
-        c22 = np.zeros(len(f_idx) * len(X))
-
-        if hasattr(self, "_transform_features") and len(
-            self._transform_features
-        ) == len(c22):
-            transform_feature = self._transform_features
-        else:
-            transform_feature = [True] * len(c22)
-
-        f_count = -1
-        for i in range(len(X)):
-            dim = i * len(f_idx)
-            series = list(X[i])
-
-            if self.outlier_norm and (13 in f_idx or 14 in f_idx):
-                outlier_series = list(z_normalise_series(X[i]))
-
-            for n, feature in enumerate(f_idx):
-                f_count += 1
-                if not transform_feature[f_count]:
-                    continue
-
-                if self.outlier_norm and feature in [13, 14]:
-                    c22[dim + n] = features[feature](outlier_series)
-                elif feature == 22:
-                    c22[dim + n] = np.mean(series)
-                elif feature == 23:
-                    c22[dim + n] = np.std(series)
-                else:
-                    c22[dim + n] = features[feature](series)
-
-        return c22
 
     @property
     def get_features_arguments(self):
@@ -1094,34 +982,6 @@ class Catch22(BaseCollectionTransformer):
             break
 
         return out
-
-
-# TODO remove with 'use_pycatch22' in v1.7.0
-class _InternalCatch22(Catch22):
-    """Catch22 implementation for internal composition without public warnings."""
-
-    def __init__(
-        self,
-        features="all",
-        catch24=False,
-        outlier_norm=True,
-        replace_nans=False,
-        use_pycatch22="deprecated",
-        n_jobs=1,
-        parallel_backend=None,
-    ):
-        super().__init__(
-            features=features,
-            catch24=catch24,
-            outlier_norm=outlier_norm,
-            replace_nans=replace_nans,
-            use_pycatch22="deprecated",
-            n_jobs=n_jobs,
-            parallel_backend=parallel_backend,
-        )
-        self.use_pycatch22 = use_pycatch22
-        if use_pycatch22 is True:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
 
 @njit(fastmath=True, cache=True)

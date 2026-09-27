@@ -11,8 +11,7 @@ from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import PeriodogramTransformer
 from aeon.transformations.collection.feature_based._catch22 import (
-    _InternalCatch22,
-    _warn_use_pycatch22_deprecated,
+    Catch22,
 )
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
@@ -102,14 +101,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, default="deprecated"
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
-
-        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
-        continues to use pycatch22 until removal. Omit this parameter to use aeon's
-        faster implementation.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -173,7 +164,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         "algorithm_type": "interval",
     }
 
-    # TODO remove 'use_pycatch22' in v1.7.0
     def __init__(
         self,
         base_estimator=None,
@@ -184,14 +174,10 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         att_subsample_size=10,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pycatch22="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
-        self.use_pycatch22 = use_pycatch22
-        if use_pycatch22 != "deprecated":
-            _warn_use_pycatch22_deprecated(self)
 
         series_transformers = [
             None,
@@ -200,7 +186,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         ]
 
         interval_features = [
-            _InternalCatch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            Catch22(outlier_norm=True),
             row_mean,
             row_std,
             row_slope,
@@ -227,9 +213,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
-
-        if use_pycatch22 is True:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)
