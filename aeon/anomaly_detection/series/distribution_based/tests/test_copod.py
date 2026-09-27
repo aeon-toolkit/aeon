@@ -29,6 +29,31 @@ def test_copod_default():
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
 )
+def test_copod_predict_does_not_change_n_jobs():
+    """Test predict leaves n_jobs on the fitted model alone.
+
+    PyOD's COPOD reassigns ``n_jobs`` inside ``decision_function`` when
+    ``n_features <= n_jobs`` (multithreaded path). The estimator check does
+    not cover that path, see #3825.
+    """
+    series = make_example_1d_numpy(n_timepoints=80, random_state=0)
+
+    copod = COPOD(window_size=2, stride=1, n_jobs=1)
+    copod.fit(series, axis=0)
+    # n_jobs=1 never takes the parallel path during fit, so set up the
+    # precondition for it directly on the fitted model
+    copod.fitted_pyod_model_.n_jobs = 4
+
+    preds = copod.predict(series, axis=0)
+
+    assert preds.shape == (80,)
+    assert copod.fitted_pyod_model_.n_jobs == 4
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("pyod", severity="none"),
+    reason="required soft dependency PyOD not available",
+)
 def test_copod_pyod_parameters():
     """Test parameters are correctly passed to the PyOD model."""
     params = {"n_jobs": 2}
