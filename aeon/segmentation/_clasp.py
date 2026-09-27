@@ -205,9 +205,7 @@ class ClaSPSegmenter(BaseSegmenter):
     >>> X, true_period_size, cps = load_gun_point_segmentation()
     >>> dominant_period_size = find_dominant_window_sizes(X)
     >>> clasp = ClaSPSegmenter(dominant_period_size, n_cps=1)
-    >>> found_cps = clasp.fit_predict(X)
-    >>> profiles = clasp.profiles
-    >>> scores = clasp.scores
+    >>> found_cps, profiles, scores = clasp._run_clasp(X)
     """
 
     _tags = {"capability:multithreading": True, "fit_is_empty": True}
@@ -244,10 +242,10 @@ class ClaSPSegmenter(BaseSegmenter):
                 "Period-Length is larger than size of the time series", stacklevel=1
             )
 
-            self.found_cps, self.profiles, self.scores = [], [], []
+            return []
         else:
-            self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-            return self.found_cps
+            found_cps, _, _ = self._run_clasp(X)
+            return found_cps
 
     def predict_scores(self, X):
         """Return scores in ClaSP's profile for each annotation.
@@ -262,8 +260,8 @@ class ClaSPSegmenter(BaseSegmenter):
         np.ndarray
             Scores for sequence X
         """
-        self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-        return self.scores
+        _, _, scores = self._run_clasp(X)
+        return scores
 
     def get_fitted_params(self):
         """Get fitted parameters.
@@ -272,9 +270,10 @@ class ClaSPSegmenter(BaseSegmenter):
         -------
         fitted_params : dict
         """
-        return {"profiles": self.profiles, "scores": self.scores}
+        return {}
 
     def _run_clasp(self, X):
+        X = np.asarray(X)
         n_jobs = check_n_jobs(self.n_jobs)
 
         clasp_transformer = ClaSPTransformer(
@@ -283,14 +282,12 @@ class ClaSPSegmenter(BaseSegmenter):
             n_jobs=n_jobs,
         ).fit(X)
 
-        self.found_cps, self.profiles, self.scores = _segmentation(
+        return _segmentation(
             X,
             clasp_transformer,
             n_change_points=self.n_cps,
             exclusion_radius=self.exclusion_radius,
         )
-
-        return self.found_cps, self.profiles, self.scores
 
     def _get_interval_series(self, X, found_cps):
         """Get the segmentation results based on the found change points.
