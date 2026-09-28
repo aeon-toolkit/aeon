@@ -33,3 +33,4 @@ Deep learning networks
     NBeatsNetwork
     TCNNetwork
     DeepARNetwork
+    RNN_TYPE
