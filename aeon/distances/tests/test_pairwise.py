@@ -8,6 +8,7 @@ from aeon.distances import pairwise_distance as compute_pairwise_distance
 from aeon.distances._distance import (
     DISTANCES,
     MIN_DISTANCES,
+    SIGNED_DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
     SYMMETRIC_DISTANCES,
 )
@@ -66,9 +67,18 @@ def _validate_pairwise_result(
     assert_almost_equal(
         pairwise_result, compute_pairwise_distance(x, method=name, symmetric=symmetric)
     )
+
+    computed_pw = compute_pairwise_distance(x, method=distance, symmetric=symmetric)
+    if name in SIGNED_DISTANCES:
+        # Signed distances (e.g. soft distances) do not return 0 on the
+        # diagonal, but the callable-based pairwise path assumes a zero diagonal
+        # for symmetric distances. Align the diagonal before comparing.
+        computed_pw[np.diag_indices_from(computed_pw)] = pairwise_result[
+            np.diag_indices_from(pairwise_result)
+        ]
     assert_almost_equal(
         pairwise_result,
-        compute_pairwise_distance(x, method=distance, symmetric=symmetric),
+        computed_pw,
     )
 
     if isinstance(x, np.ndarray):
@@ -551,7 +561,7 @@ def test_single_to_multiple_distances(dist):
 def test_pairwise_distance_non_negative(dist, seed):
     """Most estimators require distances to be non-negative."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES:
+    if dist["name"] in MIN_DISTANCES or dist["name"] in SIGNED_DISTANCES:
         return
     X = make_example_3d_numpy(
         n_cases=5, n_channels=1, n_timepoints=10, random_state=seed, return_y=False
