@@ -1,3 +1,81 @@
+/* brand colours */
+/* The brand orange (#F05F05) does not have enough contrast for text on a light */
+/* background, so a darker shade is used for the light theme. */
+
+html[data-theme="light"] {
+  --pst-color-primary: #005E80;
+  --pst-color-primary-highlight: #004966;
+  --pst-color-primary-bg: #D6EEF7;
+  --pst-color-secondary: #B84A04;
+  --pst-color-secondary-highlight: #8F3800;
+  --pst-color-secondary-bg: #FDE3D2;
+}
+
+html[data-theme="dark"] {
+  --pst-color-primary: #00ACEB;
+  --pst-color-primary-highlight: #4CC4F2;
+  --pst-color-primary-bg: #06323F;
+  --pst-color-secondary: #FB9456;
+  --pst-color-secondary-highlight: #FCB183;
+  --pst-color-secondary-bg: #4A2208;
+}
+
+/* illustration colours, shared by the landing and getting started pages */
+/* Lines and marks have a contrast of at least 3:1 with the surface they are drawn on */
+/* and text of at least 4.5:1, in both themes. Yellow cannot reach 3:1 on a light */
+/* surface, so it is only used for a background tint. */
+
+html[data-theme="light"] {
+  --aeon-a: #0A84BD;
+  --aeon-b: #E25F08;
+  --aeon-c: #F8B90F;
+  --aeon-a-text: #005E80;
+  --aeon-b-text: #B84A04;
+  --aeon-ink: #768595;
+  --aeon-ink-strong: #5B6878;
+  --aeon-tile-bg: #F2F8FB;
+}
+
+html[data-theme="dark"] {
+  --aeon-a: #2DB4F0;
+  --aeon-b: #FF9A4D;
+  --aeon-c: #FFD04A;
+  --aeon-a-text: #5CC8F5;
+  --aeon-b-text: #FFB27A;
+  --aeon-ink: #6B7989;
+  --aeon-ink-strong: #9AA7B4;
+  --aeon-tile-bg: #18232D;
+}
+
+/* typography */
+/* Nunito has rounded terminals like the lettering of the aeon logo. It is only used */
+/* for headings and navigation, body text and code keep the theme fonts. */
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("../fonts/nunito-latin-variable.woff2") format("woff2");
+}
+
+html {
+  --pst-font-family-heading: "Nunito", var(--pst-font-family-base-system);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+}
+
+.bd-header .navbar-nav .nav-link,
+.bd-sidebar-primary .caption-text {
+  font-family: var(--pst-font-family-heading);
+  font-weight: 600;
+}
+
 /* teams table */
 
 .aeon-teams-container {
@@ -41,32 +119,146 @@ img.avatar {
   margin: 0;
 }
 
+/* API reference summary tables */
+/* The autosummary tables of the module pages and the method tables of the class */
+/* pages are shown as an index list instead of the bordered and striped table of */
+/* the theme: a name column of constant width, so that the tables of a page line */
+/* up, a muted description and a line between the rows. */
+
+.table.autosummary {
+  border: none;
+  margin-bottom: 1rem;
+}
+
+.table.autosummary tbody tr {
+  background-color: transparent;
+  border-bottom: 1px solid var(--pst-color-border);
+}
+
+.table.autosummary tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table.autosummary tbody tr:hover {
+  background-color: var(--pst-color-surface);
+}
+
+.table.autosummary td {
+  border: none;
+  padding: 0.6rem 0.75rem;
+  vertical-align: baseline;
+}
+
+.table.autosummary td p {
+  margin: 0;
+}
+
+/* tables which follow each other without a heading in between read as one list */
+.pst-scrollable-table-container:has(+ .pst-scrollable-table-container)
+  > .table.autosummary {
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--pst-color-border);
+}
+
+/* Nearly all names fit in this width. A table with a longer name gets a wider */
+/* column, as the theme does not let the names wrap. */
+.table.autosummary td:first-child {
+  width: 18rem;
+}
+
+.table.autosummary td ~ td {
+  color: var(--pst-color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.table.autosummary td:first-child a {
+  text-decoration: none;
+}
+
+.table.autosummary td:first-child a:hover {
+  text-decoration: underline;
+}
+
+.table.autosummary td:first-child code {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: var(--pst-color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* on small screens the description goes below the name */
+@media (max-width: 720px) {
+  .table.autosummary,
+  .table.autosummary tbody,
+  .table.autosummary tr,
+  .table.autosummary td {
+    display: block;
+  }
+
+  .table.autosummary td:first-child {
+    width: auto;
+    padding-bottom: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .table.autosummary td ~ td {
+    padding-top: 0.15rem;
+  }
+}
+
+/* filter box of the module pages, added by js/api_filter.js */
+
+.aeon-api-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.aeon-api-filter input {
+  flex: 1 1 16rem;
+  max-width: 26rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.375rem;
+  background-color: var(--pst-color-background);
+  color: var(--pst-color-text-base);
+}
+
+.aeon-api-filter input::placeholder {
+  color: var(--pst-color-text-muted);
+}
+
+.aeon-api-filter input:focus {
+  border-color: var(--pst-color-primary);
+}
+
+.aeon-api-filter-count {
+  color: var(--pst-color-text-muted);
+  font-size: 0.875rem;
+}
+
 /* DataFrame Color Variables */
 /* The following variables are defined only here, */
 /* meaning they are new variables. */
 /* They are used for displaying pandas dataframes in the rendered notebooks. */
 
-@media (prefers-color-scheme: dark) {
-  body:not([data-theme="light"]) {
-    --dataframe-header: #1f1f1f;
-    --dataframe-body-1: #2f2f2f;
-    --dataframe-body-2: #3f3f3f;
-    --dataframe-text: #f0f0f0;
-  }
-}
-
-body[data-theme="dark"] {
-    --dataframe-header: #1f1f1f;
-    --dataframe-body-1: #2f2f2f;
-    --dataframe-body-2: #3f3f3f;
-    --dataframe-text: #f0f0f0;
-}
-
-body {
+html[data-theme="light"] {
     --dataframe-header: #f0f0f0;
     --dataframe-body-1: #f8f8f8;
     --dataframe-body-2: #f0f0f0;
     --dataframe-text: #000000;
+}
+
+html[data-theme="dark"] {
+    --dataframe-header: #1f1f1f;
+    --dataframe-body-1: #2f2f2f;
+    --dataframe-body-2: #3f3f3f;
+    --dataframe-text: #f0f0f0;
 }
 
   .dataframe > tbody > tr:nth-child(odd) {

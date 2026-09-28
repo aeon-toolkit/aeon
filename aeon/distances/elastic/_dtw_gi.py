@@ -177,7 +177,7 @@ def dtw_gi_distance(
     This is implemented through the bounding_matrix structure, that supplies a mask for
     allowable warpings. The most common bounding strategies include the
     Sakoe-Chiba band [3]_. The width of the allowed warping is controlled through the
-     ``window`` parameter which sets the maximum proportion of warping allowed.
+    ``window`` parameter which sets the maximum proportion of warping allowed.
 
     Parameters
     ----------

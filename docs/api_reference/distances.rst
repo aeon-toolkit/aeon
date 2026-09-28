@@ -50,6 +50,20 @@ Dynamic Time Warping (DTW)
     dtw_cost_matrix
     dtw_alignment_path
 
+Dynamic Time Warping with Global Invariances (DTW-GI)
+-----------------------------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    dtw_gi_distance
+    dtw_gi_pairwise_distance
+    dtw_gi_cost_matrix
+    dtw_gi_alignment_path
+
 Edit Real Penalty (ERP)
 -----------------------
 
@@ -103,6 +117,20 @@ Longest Common Subsequence (LCSS)
     lcss_pairwise_distance
     lcss_cost_matrix
     lcss_alignment_path
+
+Lower bounding distances for symbolic representations (MinDist)
+---------------------------------------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    mindist_sax_distance
+    mindist_paa_sax_distance
+    mindist_sfa_distance
+    mindist_dft_sfa_distance
 
 Manhattan
 ---------
@@ -167,6 +195,33 @@ Shape Dynamic Time Warping (Shape DTW)
     shape_dtw_pairwise_distance
     shape_dtw_cost_matrix
     shape_dtw_alignment_path
+
+Shift and Scale Invariant
+-------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    shift_scale_invariant_distance
+    shift_scale_invariant_pairwise_distance
+    shift_scale_invariant_best_shift
+
+Soft Dynamic Time Warping (soft-DTW)
+------------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    soft_dtw_distance
+    soft_dtw_pairwise_distance
+    soft_dtw_cost_matrix
+    soft_dtw_alignment_path
 
 Squared
 -------
