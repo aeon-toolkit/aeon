@@ -14,6 +14,7 @@ import numpy as np
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils import check_random_state
 
+from aeon.base import CheckpointableMixin
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
@@ -21,7 +22,7 @@ from aeon.transformations.collection.shapelet_based import RandomShapeletTransfo
 from aeon.utils.validation import check_n_jobs
 
 
-class ShapeletTransformClassifier(BaseClassifier):
+class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
     """
     A shapelet transform classifier (STC).
 
@@ -76,6 +77,17 @@ class ShapeletTransformClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved once the shapelet transform completes, at the
+        estimator's own safe boundaries when it supports checkpointing, and on
+        successful completion. None disables automatic writes. The parent
+        directory must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only at
+        the transform boundary and on successful completion when a path is
+        configured. Periodic writes need an estimator that supports
+        checkpointing, since the shapelet transform has no safe boundary inside
+        it.
 
     Attributes
     ----------
@@ -91,6 +103,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         The fitted base classifier.
     transformer_ : RandomShapeletTransform
         The fitted shapelet transformer.
+    fit_elapsed_time_ : float
+        Accumulated fitting time in seconds across calls.
 
     See Also
     --------
@@ -99,6 +113,26 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     Notes
     -----
+    ``resume_fit(X, y)`` continues from saved state using the original training
+    data. ``fit`` always starts afresh. Between calls, only
+    ``time_limit_in_minutes``, ``n_jobs``, ``verbose`` and the checkpoint
+    settings may change; the rest shapes the transform or the estimator, both
+    of which a continued fit inherits.
+
+    Fitting has two phases. The shapelet transform has no safe boundary inside
+    it, so it is all or nothing: a checkpoint is written once it completes,
+    whatever the interval, since it is usually the larger part of the build.
+    The estimator fit that follows is resumable only when the estimator itself
+    supports checkpointing, as the default ``RotationForestClassifier`` does. It
+    then writes through this classifier at its own boundaries, so there is a
+    single checkpoint file holding the whole pipeline. With any other estimator,
+    a resumed fit rebuilds it from the start on the transformed data, which is
+    still the smaller half of the work.
+
+    ``resume_fit`` returns the classifier, not training predictions, so a fit
+    begun with ``fit_predict`` or ``fit_predict_proba`` and then resumed gives
+    no train estimates.
+
     For the Java version, see
     `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
     java/tsml/classifiers/shapelet_based/ShapeletTransformClassifier.java>`_.
@@ -133,11 +167,18 @@ class ShapeletTransformClassifier(BaseClassifier):
         "capability:multivariate": True,
         "capability:train_estimate": True,
         "capability:contractable": True,
+        "capability:checkpointing": True,
         "capability:multithreading": True,
         "capability:unequal_length": True,
         "algorithm_type": "shapelet",
         "X_inner_type": ["np-list", "numpy3D"],
     }
+
+    # the transform is complete before any checkpoint exists, so the parameters
+    # shaping it are fixed, as is the estimator a continued fit inherits
+    _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
+        "time_limit_in_minutes",
+    )
 
     def __init__(
         self,
@@ -152,6 +193,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         contract_max_n_shapelet_samples: int = np.inf,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ) -> None:
         self.n_shapelet_samples = n_shapelet_samples
         self.max_shapelets = max_shapelets
@@ -164,6 +207,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.contract_max_n_shapelet_samples = contract_max_n_shapelet_samples
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.checkpoint_path = checkpoint_path
+        self.checkpoint_interval = checkpoint_interval
 
         super().__init__()
 
@@ -187,25 +232,93 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        fit_start = perf_counter() if self.verbose > 0 else None
-        X_t = self._fit_stc_shared(X, y)
+        fit_start = perf_counter()
+        self.fit_elapsed_time_ = 0.0
+        self._fit_stc_shared(X, y)
+        self._continue_stc(y)
+        self.fit_elapsed_time_ = perf_counter() - fit_start
+        if self.verbose > 0:
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Finished fit in {self.fit_elapsed_time_:.2f}s"
+            )
 
+    def _resume_fit(self, X, y):
+        fit_start = perf_counter()
+        self._continue_stc(y)
+        self.fit_elapsed_time_ += perf_counter() - fit_start
+        if self.verbose > 0:
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Finished fit in {self.fit_elapsed_time_:.2f}s total"
+            )
+        return self
+
+    def _validate_resume_fit(self, X, y):
+        check_n_jobs(self.n_jobs)
+        if getattr(self, "_transformed_train_data", None) is None:
+            raise ValueError(
+                "The shapelet transform did not complete, so there is no "
+                "transformed data to continue the estimator fit from."
+            )
+
+    def _continue_stc(self, y):
+        """Fit, or continue fitting, the estimator on the transformed data."""
+        self._apply_runtime_settings()
+        # a checkpointable estimator that already holds continuation state was
+        # interrupted part way through; anything else starts from scratch on
+        # the transformed data, which the transform phase already saved
+        resumable = isinstance(self.estimator_, CheckpointableMixin) and getattr(
+            self.estimator_, "_checkpoint_ready", False
+        )
         estimator_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log(
-                f"[{type(self).__name__}] Starting estimator fit "
+                f"[{type(self).__name__}] "
+                f"{'Continuing' if resumable else 'Starting'} estimator fit "
                 f"({type(self.estimator_).__name__})..."
             )
-        self.estimator_.fit(X_t, y)
+        if resumable:
+            self.estimator_.resume_fit(self._transformed_train_data, y)
+        else:
+            self.estimator_.fit(self._transformed_train_data, y)
         if self.verbose > 0:
             self._log(
                 f"[{type(self).__name__}] Finished estimator fit in "
                 f"{perf_counter() - estimator_start:.2f}s"
             )
-            self._log(
-                f"[{type(self).__name__}] "
-                f"Finished fit in {perf_counter() - fit_start:.2f}s"
-            )
+
+    def _split_time_limits(self):
+        """Divide any overall contract between the transform and estimator."""
+        transform_limit = 0
+        classifier_limit = 0
+        if self.time_limit_in_minutes > 0:
+            # contracting 2/3 transform (with 1/5 of that taken away for final
+            # transform), 1/3 classifier
+            third = self.time_limit_in_minutes / 3
+            classifier_limit = third
+            transform_limit = (third * 2) / 5 * 4
+        elif self.transform_limit_in_minutes > 0:
+            transform_limit = self.transform_limit_in_minutes
+        return transform_limit, classifier_limit
+
+    def _apply_runtime_settings(self):
+        """Push the settings that may change between calls onto the estimator."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        _, self._classifier_limit_in_minutes = self._split_time_limits()
+
+        m = getattr(self.estimator_, "n_jobs", None)
+        if m is not None:
+            self.estimator_.n_jobs = self._n_jobs
+
+        m = getattr(self.estimator_, "time_limit_in_minutes", None)
+        if m is not None and self.time_limit_in_minutes > 0:
+            self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
+
+        # only pass verbosity to RotationForestClassifier, other estimators such as
+        # scikit-learn forests interpret verbose levels differently
+        if isinstance(self.estimator_, RotationForestClassifier):
+            self.estimator_.verbose = self.verbose
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
@@ -368,16 +481,10 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.n_channels_ = X[0].shape[0]
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self._transform_limit_in_minutes = 0
-        self._classifier_limit_in_minutes = 0
-        if self.time_limit_in_minutes > 0:
-            # contracting 2/3 transform (with 1/5 of that taken away for final
-            # transform), 1/3 classifier
-            third = self.time_limit_in_minutes / 3
-            self._classifier_limit_in_minutes = third
-            self._transform_limit_in_minutes = (third * 2) / 5 * 4
-        elif self.transform_limit_in_minutes > 0:
-            self._transform_limit_in_minutes = self.transform_limit_in_minutes
+        (
+            self._transform_limit_in_minutes,
+            self._classifier_limit_in_minutes,
+        ) = self._split_time_limits()
 
         self.transformer_ = RandomShapeletTransform(
             n_shapelet_samples=self.n_shapelet_samples,
@@ -395,19 +502,12 @@ class ShapeletTransformClassifier(BaseClassifier):
             RotationForestClassifier() if self.estimator is None else self.estimator,
             self.random_state,
         )
+        self._apply_runtime_settings()
 
-        m = getattr(self.estimator_, "n_jobs", None)
-        if m is not None:
-            self.estimator_.n_jobs = self._n_jobs
-
-        m = getattr(self.estimator_, "time_limit_in_minutes", None)
-        if m is not None and self.time_limit_in_minutes > 0:
-            self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
-
-        # only pass verbosity to RotationForestClassifier, other estimators such as
-        # scikit-learn forests interpret verbose levels differently
-        if isinstance(self.estimator_, RotationForestClassifier):
-            self.estimator_.verbose = self.verbose
+        # a checkpointable estimator holds no path of its own: its boundaries
+        # save this classifier, which holds it and the transform it needs
+        if isinstance(self.estimator_, CheckpointableMixin):
+            self.estimator_._set_checkpoint_parent(self)
 
         transform_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
@@ -429,6 +529,14 @@ class ShapeletTransformClassifier(BaseClassifier):
                 f"{perf_counter() - transform_start:.2f}s, "
                 f"retained={len(self.transformer_.shapelets)}"
             )
+
+        # the transform has no safe boundary inside it, so this is the first
+        # point a checkpoint can be taken. It is always written when a path is
+        # configured, interval or not, because it is usually the larger part of
+        # the build and repeating it is the cost a checkpoint exists to avoid
+        self._transformed_train_data = X_t
+        self._checkpoint_ready = True
+        self._checkpoint_if_due(force=True)
 
         return X_t
 
@@ -472,6 +580,15 @@ class ShapeletTransformClassifier(BaseClassifier):
                 "n_shapelet_samples": 50,
                 "max_shapelets": 10,
                 "batch_size": 10,
+            }
+        elif parameter_set == "checkpointing":
+            # the forest is the only resumable phase, so it must run for more
+            # than one batch of trees
+            return {
+                "estimator": RotationForestClassifier(n_estimators=3),
+                "n_shapelet_samples": 10,
+                "max_shapelets": 3,
+                "batch_size": 5,
             }
         elif parameter_set == "contracting":
             return {

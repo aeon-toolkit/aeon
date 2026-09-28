@@ -62,6 +62,13 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved at completed batch boundaries and on successful
+        completion. None disables automatic writes. The parent must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured. Use ``resume_fit`` to
+        continue a loaded checkpoint; ``fit`` always starts afresh.
 
     Attributes
     ----------
@@ -118,6 +125,8 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         super().__init__(
             n_estimators=n_estimators,
@@ -130,6 +139,8 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
             contract_max_n_estimators=contract_max_n_estimators,
             n_jobs=n_jobs,
             random_state=random_state,
+            checkpoint_path=checkpoint_path,
+            checkpoint_interval=checkpoint_interval,
         )
 
     def fit(self, X, y):

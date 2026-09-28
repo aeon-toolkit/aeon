@@ -65,6 +65,13 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every fitted estimator and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved at completed batch boundaries and on successful
+        completion. None disables automatic writes. The parent must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured. Use ``resume_fit`` to
+        continue a loaded checkpoint; ``fit`` always starts afresh.
 
     Attributes
     ----------
@@ -118,6 +125,8 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
         verbose: int = 0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         super().__init__(
             n_estimators=n_estimators,
@@ -131,6 +140,8 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose,
+            checkpoint_path=checkpoint_path,
+            checkpoint_interval=checkpoint_interval,
         )
 
     def fit(self, X, y):
