@@ -93,23 +93,6 @@ class HMMSegmenter(BaseSegmenter):
         Probability over the hidden state identity of the first state. If the
         __init__ param of same name was passed it will take on that value.
         Otherwise it is set to be uniform over all hidden states.
-    num_states : int
-        The number of hidden states.  Set to be the length of the emission_funcs
-        parameter which was passed.
-    states : list
-        A list of integers from 0 to num_states-1.  Integer labels for the hidden
-        states.
-    num_obs : int
-        The length of the observations data.  Extracted from data.
-    trans_prob : 2D np.ndarray, shape = [num_observations, num_hidden_states]
-        Shape [num observations, num hidden states]. The max probability that that
-        observation is assigned to that hidden state.
-        Calculated in _calculate_trans_mat and assigned in _predict.
-    trans_id : 2D np.ndarray, shape = [num_observations, num_hidden_states]
-        Shape [num observations, num hidden states]. The state id of the state
-        proceeding the observation is assigned to that hidden state in the most
-        likely path where that occurs. Calculated in _calculate_trans_mat and
-        assigned in _predict.
 
     Examples
     --------
@@ -363,26 +346,22 @@ class HMMSegmenter(BaseSegmenter):
             Array of predicted class labels, same size as input.
         """
         X = X.squeeze()
-        self.num_states = len(self.emission_funcs)
-        self.states = list(range(self.num_states))
-        self.num_obs = len(X)
+        num_states = len(self.emission_funcs)
+        states = list(range(num_states))
+        num_obs = len(X)
         emi_probs = self._make_emission_probs(self.emission_funcs, X)
         init_probs = self.initial_probs
         if self.initial_probs is None:
-            init_probs = 1.0 / self.num_states * np.ones(self.num_states)
+            init_probs = 1.0 / num_states * np.ones(num_states)
         trans_prob, trans_id = self._calculate_trans_mats(
             init_probs,
             emi_probs,
             self.transition_prob_mat,
-            self.num_obs,
-            self.num_states,
+            num_obs,
+            num_states,
         )
 
-        self.trans_prob = trans_prob
-        self.trans_id = trans_id
-        return self._hmm_viterbi_label(
-            self.num_obs, self.states, self.trans_prob, self.trans_id
-        )
+        return self._hmm_viterbi_label(num_obs, states, trans_prob, trans_id)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
