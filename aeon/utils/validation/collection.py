@@ -293,17 +293,21 @@ def get_type(X, raise_error=True):
     'numpy3D'
     """
     msg = None
-    if isinstance(X, np.ndarray):  # "numpy3D" or numpy2D
+    if isinstance(X, np.ndarray):  # numpy array
         if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
             X.dtype, np.integer
         ):
             msg = "ERROR np.ndarray must contain numeric values only"
-        elif X.ndim == 3:
-            return "numpy3D"
+        elif X.ndim == 1:
+            return "numpy1D"
         elif X.ndim == 2:
             return "numpy2D"
+        elif X.ndim == 3:
+            return "numpy3D"
+        elif X.ndim == 4:
+            return "numpy4D"
         else:
-            msg = f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
+            msg = f"ERROR np.ndarray must be 1D, 2D, 3D or 4D but found " f"{X.ndim}"
     elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):
             for a in X:
@@ -545,12 +549,18 @@ def check_collection_variance(X, threshold=1e-7, raise_error=True):
 
     t = get_type(X)
 
-    if t == "numpy3D":
-        ranges = np.nanmax(X, axis=2) - np.nanmin(X, axis=2)
-        stds = np.nanstd(X, ddof=0, axis=2)
+    if t == "numpy1D":
+        ranges = (np.nanmax(X, axis=0) - np.nanmin(X, axis=0))[None, None]
+        stds = np.nanstd(X, axis=0, ddof=0)[None, None]
     elif t == "numpy2D":
         ranges = (np.nanmax(X, axis=1) - np.nanmin(X, axis=1))[:, None]
         stds = np.nanstd(X, axis=1, ddof=0)[:, None]
+    elif t == "numpy3D":
+        ranges = np.nanmax(X, axis=2) - np.nanmin(X, axis=2)
+        stds = np.nanstd(X, ddof=0, axis=2)
+    elif t == "numpy4D":
+        ranges = np.nanmax(X, axis=(2, 3)) - np.nanmin(X, axis=(2, 3))
+        stds = np.nanstd(X, ddof=0, axis=(2, 3))
     elif t == "np-list":
         _check_list_equal_channels(X)
         ranges = np.empty((len(X), X[0].shape[0]), dtype=float)

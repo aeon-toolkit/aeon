@@ -426,12 +426,16 @@ def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
     inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """
-    if "numpy3D" in inner_types:
-        return "numpy3D"
-    if "np-list" in inner_types:
-        return "np-list"
+    if "numpy1D" in inner_types:
+        return "numpy1D"
     if "numpy2D" in inner_types:
         return "numpy2D"
+    if "numpy3D" in inner_types:
+        return "numpy3D"
+    if "numpy4D" in inner_types:
+        return "numpy4D"
+    if "np-list" in inner_types:
+        return "np-list"
     if "df-list" in inner_types:
         return "df-list"
     if "pd-wide" in inner_types:
