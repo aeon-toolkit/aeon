@@ -6,6 +6,9 @@ collection using transform.
 """
 
 __all__ = [
+    "CLeVerCluster",
+    "CLeVerHybrid",
+    "CLeVerRank",
     "ChannelScorer",
     "ElbowClassPairwise",
     "ElbowClassSum",
@@ -16,6 +19,11 @@ __all__ = [
 
 from aeon.transformations.collection.channel_selection._channel_scorer import (
     ChannelScorer,
+)
+from aeon.transformations.collection.channel_selection._clever import (
+    CLeVerCluster,
+    CLeVerHybrid,
+    CLeVerRank,
 )
 from aeon.transformations.collection.channel_selection._elbow_class import (
     ElbowClassPairwise,
