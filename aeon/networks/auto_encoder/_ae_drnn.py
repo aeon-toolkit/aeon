@@ -25,7 +25,6 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
 
     import tensorflow as tf
 
-
     @tf.keras.utils.register_keras_serializable(package="aeon")
     class DRNN_BidirectionalGRU(tf.keras.layers.Layer):
 
@@ -47,22 +46,21 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
         def call(self, inputs):
             output, forward_h, backward_h = self.gru(inputs)
 
-            final_state = tf.keras.layers.Concatenate()(
-                [forward_h, backward_h]
-            )
+            final_state = tf.keras.layers.Concatenate()([forward_h, backward_h])
 
             return output, final_state
 
         def get_config(self):
             config = super().get_config()
-            config.update({
-                "nunits": self.nunits,
-                "activation": tf.keras.activations.serialize(
-                    tf.keras.activations.get(self.activation)
-                ),
-            })
+            config.update(
+                {
+                    "nunits": self.nunits,
+                    "activation": tf.keras.activations.serialize(
+                        tf.keras.activations.get(self.activation)
+                    ),
+                }
+            )
             return config
-
 
 
 class AEDRNNNetwork(BaseDeepAENetwork):
@@ -139,10 +137,16 @@ class AEDRNNNetwork(BaseDeepAENetwork):
             dec_l, self.dilation_rate_decoder, "dilation rates for decoder", default=1
         )
         self._activation_encoder = BaseDeepAENetwork._check_layer_param(
-            enc_l, self.activation_encoder, "activation for encoder", allow_none=True,
+            enc_l,
+            self.activation_encoder,
+            "activation for encoder",
+            allow_none=True,
         )
         self._activation_decoder = BaseDeepAENetwork._check_layer_param(
-            dec_l, self.activation_decoder, "activation for decoder", allow_none=True,
+            dec_l,
+            self.activation_decoder,
+            "activation for decoder",
+            allow_none=True,
         )
         default = [100] + [50 for _ in range(self.n_layers_encoder - 1)]
         self._n_units_encoder = BaseDeepAENetwork._check_layer_param(
@@ -158,7 +162,6 @@ class AEDRNNNetwork(BaseDeepAENetwork):
             1, param_name="use_bias", default=True
         )
 
-
     def _build_encoder_graph(self, x):
         _finals = []
 
@@ -166,13 +169,12 @@ class AEDRNNNetwork(BaseDeepAENetwork):
             x, final = DRNN_BidirectionalGRU(
                 self._n_units_encoder[i], activation=self._activation_encoder[i]
             )(x)
-            if (i < self.n_layers_encoder - 1):
+            if i < self.n_layers_encoder - 1:
                 x = _TensorDilation(self._dilation_rate_encoder[i])(x)
             _finals.append(final)
 
         finals = tf.keras.layers.Concatenate()(_finals)
         return x, finals
-
 
     def _build_latent_graph(self, x):
         x, finals = x
@@ -197,7 +199,6 @@ class AEDRNNNetwork(BaseDeepAENetwork):
                 return_sequences=True,
                 activation=self._activation_decoder[i],
             )(x)
-            if (i < self.n_layers_decoder - 1):
+            if i < self.n_layers_decoder - 1:
                 x = _TensorDilation(self._dilation_rate_decoder[i])(x)
         return x
-

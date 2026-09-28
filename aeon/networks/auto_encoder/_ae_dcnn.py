@@ -99,14 +99,8 @@ class AEDCNNNetwork(BaseDeepAENetwork):
         self._padding_decoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.padding_decoder, "padding for decoder", default="same"
         )
-        # add default values for strides, padding, and use_bias
+        # add default values for use_bias
         # for compatibility with _build_latent_space_graph
-        self._strides = BaseDeepAENetwork._check_layer_param(
-            self.n_layers, param_name="strides", default=1
-        )
-        self._padding = BaseDeepAENetwork._check_layer_param(
-            self.n_layers, param_name="padding", default="same"
-        )
         self._use_bias = BaseDeepAENetwork._check_layer_param(
             self.n_layers, param_name="use_bias", default=True
         )

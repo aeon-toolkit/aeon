@@ -153,23 +153,22 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
 
     def _build_latent_graph(self, x):
         import tensorflow as tf
+
         enc_out_shape = x.shape[1:]
 
         if self.repeated_latent_space:
             x = tf.keras.layers.GlobalAveragePooling1D()(x)
             x = tf.keras.layers.Dense(self.latent_space_dim)(x)
-        elif not self.temporal_latent_space:
-            x = tf.keras.layers.Flatten()(x)
-            x = tf.keras.layers.Dense(self.latent_space_dim)(x)
-        else:
+        elif self.temporal_latent_space:
             x = tf.keras.layers.Conv1D(
                 filters=self.latent_space_dim,
                 kernel_size=1,
-                strides=self._strides[-1],
-                padding=self._padding[-1],
-                dilation_rate=self._dilation_rate[-1],
+                padding="same",
                 use_bias=self._use_bias[-1],
             )(x)
+        else:
+            x = tf.keras.layers.Flatten()(x)
+            x = tf.keras.layers.Dense(self.latent_space_dim)(x)
 
         self._enc_out = x
         self._dec_in = x
@@ -221,7 +220,7 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
             input for the final output layer of the network.
         """
         self._check_params()
-        self._input_shape = x.shape[1:] # save for reconstruction
+        self._input_shape = x.shape[1:]  # save for reconstruction
         x = self._build_encoder_graph(x)
         x = self._build_latent_graph(x)
         x = self._build_decoder_graph(x)
