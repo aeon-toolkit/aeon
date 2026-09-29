@@ -69,33 +69,33 @@ def _np_list(n, shape):
     return [np.arange(p).reshape(shape) + i * p for i in range(n)]
 
 
-@pytest.mark.parametrize(
-    "X, scaler_axis, reduce_axis",
-    [
-        ################################################
-        # 3D arrays:
-        (_np_array((2, 3, 4)), None, (0, -1)),  # (sample, channels, time)
-        (_np_array((2, 3, 4)), 1, (0, 1)),  # (sample, time, channels)
-        ################################################
-        # Unequal length series:
-        (_np_list(2, (3, 4)), None, (0, -1)),  # list of (channels, time)
-        ################################################
-        # 2D arrays:
-        (_np_array((2, 5)), None, 1),  # (channels, time) = 1 multivariate
-        (_np_array((2, 5)), 0, 0),  # (time, channels) = 1 multivariate
-        (_np_array((2, 5)), (0, 1), (0, 1)),  # (samples, time)  = n univariate
-        ################ EXOTIC CASES ! ################
-        # 1D arrays: (time,) = 1 univariate
-        (_np_array((10,)), None, -1),
-        ################################################
-        # 4D arrays: works thanks to generalisation but
-        # few use cases for this in practice ...
-        (_np_array((2, 3, 4, 5)), None, (0, 3)),  # (sample, channels, features, time)
-        (_np_array((2, 3, 4, 5)), 2, (0, 2)),  # (sample, channels, time, features)
-        (_np_array((2, 3, 4, 5)), 1, (0, 1)),  # (sample, time, channels, features)
-        (_np_array((2, 3, 4, 5)), (2, 3), (0, 2, 3)),  # Weird example
-    ],
-)
+GLOBAL_SCALER_TESTS = [
+    ################################################
+    # 3D arrays:
+    (_np_array((2, 3, 4)), None, (0, -1)),  # (sample, channels, time)
+    (_np_array((2, 3, 4)), 1, (0, 1)),  # (sample, time, channels)
+    ################################################
+    # Unequal length series:
+    (_np_list(2, (3, 4)), None, (0, -1)),  # list of (channels, time)
+    ################################################
+    # 2D arrays:
+    (_np_array((2, 5)), 1, (1,)),  # (channels, time) = 1 multivariate
+    (_np_array((2, 5)), 0, (0,)),  # (time, channels) = 1 multivariate
+    (_np_array((2, 5)), None, (0, 1)),  # (samples, time)  = n univariate
+    ################ EXOTIC CASES ! ################
+    # 1D arrays: (time,) = 1 univariate
+    (_np_array((10,)), None, (-1,)),
+    ################################################
+    # 4D arrays: works thanks to generalisation but
+    # few use cases for this in practice ...
+    (_np_array((2, 3, 4, 5)), None, (0, 3)),  # (sample, channels, features, time)
+    (_np_array((2, 3, 4, 5)), 2, (0, 2)),  # (sample, channels, time, features)
+    (_np_array((2, 3, 4, 5)), 1, (0, 1)),  # (sample, time, channels, features)
+    (_np_array((2, 3, 4, 5)), (2, 3), (0, 2, 3)),  # Weird example
+]
+
+
+@pytest.mark.parametrize("X, scaler_axis, reduce_axis", GLOBAL_SCALER_TESTS)
 def test_global_z_norm(X, scaler_axis, reduce_axis):
     """Test GlobalNormalizer on regular array layouts."""
     if scaler_axis is None:
@@ -105,43 +105,31 @@ def test_global_z_norm(X, scaler_axis, reduce_axis):
 
     X_transformed = normaliser.fit_transform(X)
 
+    # check that the scaler fit on the right axis
+    if isinstance(X, list):
+        target_shape = (X[0].shape[0], 1)
+    else:
+        reduced_axis = np.zeros(X.ndim, dtype=bool)
+        reduced_axis[list(reduce_axis)] = True
+        target_shape = tuple(
+            1 if reduced_axis[i] else X.shape[i] for i in range(X.ndim)
+        )
+    assert normaliser.x_means.shape == target_shape
+    assert normaliser.x_stds.shape == target_shape
+
+    # check that the transformed data has the desired characteristics
     mean = np.mean(X_transformed, axis=reduce_axis)
     std = np.std(X_transformed, axis=reduce_axis)
 
     assert np.allclose(mean, 2)
     assert np.allclose(std, 3)
 
+    # check that the inverse transform recovers the original data
     X_inv = normaliser.inverse_transform(X_transformed)
     assert np.allclose(X, X_inv)
 
 
-@pytest.mark.parametrize(
-    "X, scaler_axis, reduce_axis",
-    [
-        ################################################
-        # 3D arrays:
-        (_np_array((2, 3, 4)), None, (0, -1)),  # (sample, channels, time)
-        (_np_array((2, 3, 4)), 1, (0, 1)),  # (sample, time, channels)
-        ################################################
-        # Unequal length series:
-        (_np_list(2, (3, 4)), None, (0, -1)),  # list of (channels, time)
-        ################################################
-        # 2D arrays:
-        (_np_array((2, 5)), None, 1),  # (channels, time) = 1 multivariate
-        (_np_array((2, 5)), 0, 0),  # (time, channels) = 1 multivariate
-        (_np_array((2, 5)), (0, 1), (0, 1)),  # (samples, time)  = n univariate
-        ################ EXOTIC CASES ! ################
-        # 1D arrays: (time,) = 1 univariate
-        (_np_array((10,)), None, -1),
-        ################################################
-        # 4D arrays: works thanks to generalisation but
-        # few use cases for this in practice ...
-        (_np_array((2, 3, 4, 5)), None, (0, 3)),  # (sample, channels, features, time)
-        (_np_array((2, 3, 4, 5)), 2, (0, 2)),  # (sample, channels, time, features)
-        (_np_array((2, 3, 4, 5)), 1, (0, 1)),  # (sample, time, channels, features)
-        (_np_array((2, 3, 4, 5)), (2, 3), (0, 2, 3)),  # Weird example
-    ],
-)
+@pytest.mark.parametrize("X, scaler_axis, reduce_axis", GLOBAL_SCALER_TESTS)
 def test_global_minmax_norm(X, scaler_axis, reduce_axis):
     """Test GlobalMinMaxScaler on regular array layouts."""
     if scaler_axis is None:
@@ -151,42 +139,30 @@ def test_global_minmax_norm(X, scaler_axis, reduce_axis):
 
     X_transformed = normaliser.fit_transform(X)
 
+    # check that the scaler fit on the right axis
+    if isinstance(X, list):
+        target_shape = (X[0].shape[0], 1)
+    else:
+        reduced_axis = np.zeros(X.ndim, dtype=bool)
+        reduced_axis[list(reduce_axis)] = True
+        target_shape = tuple(
+            1 if reduced_axis[i] else X.shape[i] for i in range(X.ndim)
+        )
+    assert normaliser.x_mins.shape == target_shape
+    assert normaliser.x_maxs.shape == target_shape
+
+    # check that the transformed data has the desired characteristics
     mini = np.min(X_transformed, axis=reduce_axis)
     maxi = np.max(X_transformed, axis=reduce_axis)
     assert np.allclose(mini, -1)
     assert np.allclose(maxi, 2)
 
+    # check that the inverse transform recovers the original data
     X_inv = normaliser.inverse_transform(X_transformed)
     assert np.allclose(X, X_inv)
 
 
-@pytest.mark.parametrize(
-    "X, scaler_axis, reduce_axis",
-    [
-        ################################################
-        # 3D arrays:
-        (_np_array((2, 3, 4)), None, (0, -1)),  # (sample, channels, time)
-        (_np_array((2, 3, 4)), 1, (0, 1)),  # (sample, time, channels)
-        ################################################
-        # Unequal length series:
-        (_np_list(2, (3, 4)), None, (0, -1)),  # list of (channels, time)
-        ################################################
-        # 2D arrays:
-        (_np_array((2, 5)), None, 1),  # (channels, time) = 1 multivariate
-        (_np_array((2, 5)), 0, 0),  # (time, channels) = 1 multivariate
-        (_np_array((2, 5)), (0, 1), (0, 1)),  # (samples, time)  = n univariate
-        ################ EXOTIC CASES ! ################
-        # 1D arrays: (time,) = 1 univariate
-        (_np_array((10,)), None, -1),
-        ################################################
-        # 4D arrays: works thanks to generalisation but
-        # few use cases for this in practice ...
-        (_np_array((2, 3, 4, 5)), None, (0, 3)),  # (sample, channels, features, time)
-        (_np_array((2, 3, 4, 5)), 2, (0, 2)),  # (sample, channels, time, features)
-        (_np_array((2, 3, 4, 5)), 1, (0, 1)),  # (sample, time, channels, features)
-        (_np_array((2, 3, 4, 5)), (2, 3), (0, 2, 3)),  # Weird example
-    ],
-)
+@pytest.mark.parametrize("X, scaler_axis, reduce_axis", GLOBAL_SCALER_TESTS)
 def test_global_center_norm(X, scaler_axis, reduce_axis):
     """Test GlobalCenterer on regular array layouts."""
     if scaler_axis is None:
@@ -196,8 +172,21 @@ def test_global_center_norm(X, scaler_axis, reduce_axis):
 
     X_transformed = normaliser.fit_transform(X)
 
+    # check that the scaler fit on the right axis
+    if isinstance(X, list):
+        target_shape = (X[0].shape[0], 1)
+    else:
+        reduced_axis = np.zeros(X.ndim, dtype=bool)
+        reduced_axis[list(reduce_axis)] = True
+        target_shape = tuple(
+            1 if reduced_axis[i] else X.shape[i] for i in range(X.ndim)
+        )
+    assert normaliser.x_means.shape == target_shape
+
+    # check that the transformed data has the desired characteristics
     mean = np.mean(X_transformed, axis=reduce_axis)
     assert np.allclose(mean, 2)
 
+    # check that the inverse transform recovers the original data
     X_inv = normaliser.inverse_transform(X_transformed)
     assert np.allclose(X, X_inv)

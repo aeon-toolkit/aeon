@@ -253,7 +253,7 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, mean=0.0, std=1.0, axis=-1):
+    def __init__(self, mean=0.0, std=1.0, axis=None):
         super().__init__()
         self.mean = mean
         self.std = std
@@ -261,9 +261,6 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
 
         self.x_means = None
         self.x_stds = None
-
-        if isinstance(self.axis, int):
-            self.axis = (self.axis,)
 
     def _fit(self, X, y=None):
         """
@@ -282,10 +279,7 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             self.x_stds = np.std(X, axis=1, keepdims=True)
             return
 
-        if X.ndim >= 3:
-            ax = (0,) + self.axis
-        else:
-            ax = self.axis
+        ax = self._convert_ax_to_tuple(self.axis, X)
 
         self.x_means = np.mean(X, axis=ax, keepdims=True)
         self.x_stds = np.std(X, axis=ax, keepdims=True)
@@ -364,7 +358,7 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, min: float = 0.0, max: float = 1.0, axis=-1):
+    def __init__(self, min: float = 0.0, max: float = 1.0, axis=None):
         super().__init__()
 
         self.min = min
@@ -373,9 +367,6 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
 
         self.x_mins = None
         self.x_maxs = None
-
-        if isinstance(self.axis, int):
-            self.axis = (self.axis,)
 
     def _fit(self, X, y=None):
         """
@@ -394,10 +385,7 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             self.x_maxs = np.max(X, axis=1, keepdims=True)
             return
 
-        if X.ndim >= 3:
-            ax = (0,) + self.axis
-        else:
-            ax = self.axis
+        ax = self._convert_ax_to_tuple(self.axis, X)
 
         self.x_mins = np.min(X, axis=ax, keepdims=True)
         self.x_maxs = np.max(X, axis=ax, keepdims=True)
@@ -479,15 +467,12 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, mean=0.0, axis=-1):
+    def __init__(self, mean=0.0, axis=None):
         super().__init__()
         self.mean = mean
         self.axis = axis
 
         self.x_means = None
-
-        if isinstance(self.axis, int):
-            self.axis = (self.axis,)
 
     def _fit(self, X, y=None):
         """
@@ -505,10 +490,7 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
             self.x_means = np.mean(X, axis=1, keepdims=True)
             return
 
-        if X.ndim >= 3:
-            ax = (0,) + self.axis
-        else:
-            ax = self.axis
+        ax = self._convert_ax_to_tuple(self.axis, X)
 
         self.x_means = np.mean(X, axis=ax, keepdims=True)
 
