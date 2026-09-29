@@ -68,6 +68,14 @@ COLLECTIONS_DATA_TYPES = [
     # index [case, timepoint], columns [channel]
 ]
 
+GLOBAL_RESCALER_DATA_TYPES = [
+    "numpy1D",
+    "numpy2D",
+    "numpy3D",
+    "np-list",
+    "numpy4D",
+]
+
 # subset of collection dtypes capable of handling multivariate time series
 COLLECTIONS_MULTIVARIATE_DATA_TYPES = [
     "numpy3D",
