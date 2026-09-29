@@ -94,16 +94,16 @@ def _univariate_dft_sfa_distance(
 def mindist_dft_sfa_pairwise_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1
 ) -> np.ndarray:
-    """Compute the DFT SFA pairwise distance between a set of SFA representations.
+    """Compute pairwise distances between DFT and SFA representations.
 
     Parameters
     ----------
     X : np.ndarray
-        A collection of DFT instances  of shape ``(n_instances, n_timepoints)``.
+        A collection of DFT instances of shape ``(n_instances, n_timepoints)``.
     y : np.ndarray
-        A collection of SFA instances  of shape ``(n_instances, n_timepoints)``.
+        A collection of SFA instances of shape ``(m_instances, n_timepoints)``.
     breakpoints: np.ndarray
-        The breakpoints of the SAX transformation
+        The breakpoints of the SFA transformation
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -111,22 +111,23 @@ def mindist_dft_sfa_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
-        SFA pairwise matrix between the instances of X.
+    np.ndarray (n_instances, m_instances)
+        Pairwise distance matrix between the DFT instances in X and SFA instances in
+        y.
 
     Raises
     ------
     ValueError
-        If X is not 2D array when only passing X.
-        If X and y are not 1D, 2D arrays when passing both X and y.
+        If y is None.
+        If X and y are not 1D, 2D or 3D arrays.
     """
+    if y is None:
+        raise ValueError("y must not be None for DFT-SFA pairwise distance")
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
-    if y is None:
-        return _dft_sfa_from_multiple_to_multiple_distance(_X, None, breakpoints)
-
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
@@ -135,27 +136,16 @@ def mindist_dft_sfa_pairwise_distance(
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _dft_sfa_from_multiple_to_multiple_distance(
-    X: np.ndarray, y: np.ndarray | None, breakpoints: np.ndarray
+    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
 ) -> np.ndarray:
-    if y is None:
-        n_instances = len(X)
-        distances = np.zeros((n_instances, n_instances))
+    n_instances = len(X)
+    m_instances = len(y)
+    distances = np.zeros((n_instances, m_instances))
 
-        for i in prange(n_instances):
-            for j in range(i + 1, n_instances):
-                distances[i, j] = _univariate_dft_sfa_distance(
-                    X[i].ravel(), X[j].ravel(), breakpoints
-                )
-                distances[j, i] = distances[i, j]
-    else:
-        n_instances = len(X)
-        m_instances = len(y)
-        distances = np.zeros((n_instances, m_instances))
-
-        for i in prange(n_instances):
-            for j in range(m_instances):
-                distances[i, j] = _univariate_dft_sfa_distance(
-                    X[i].ravel(), y[j].ravel(), breakpoints
-                )
+    for i in prange(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _univariate_dft_sfa_distance(
+                X[i].ravel(), y[j].ravel(), breakpoints
+            )
 
     return distances

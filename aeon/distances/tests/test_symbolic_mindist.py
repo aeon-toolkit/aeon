@@ -1,6 +1,7 @@
 """Test MinDist functions of symbolic representations."""
 
 import numpy as np
+import pytest
 from scipy.stats import zscore
 
 from aeon.datasets import load_unit_test
@@ -28,78 +29,103 @@ from aeon.transformations.collection.dictionary_based._sfa_fast import (
 
 
 def test_pairwise_mindist_matches_single_distances():
-    """Test pairwise Mindist functions with 3D collection input."""
-    X = np.array(
-        [
-            [[0.0, 1.0, 2.0, 3.0]],
-            [[3.0, 2.0, 1.0, 0.0]],
-            [[0.0, 2.0, 0.0, 2.0]],
-        ]
-    )
-    y = np.array(
-        [
-            [[1.0, 3.0, 1.0, 3.0]],
-            [[2.0, 0.0, 2.0, 0.0]],
-        ]
-    )
-    sax_breakpoints = np.array([0.5, 1.5, 2.5])
-    sfa_breakpoints = np.tile(sax_breakpoints, (X.shape[-1], 1))
-    symbolic_X = X.astype(np.int64)
-    symbolic_y = y.astype(np.int64)
+    """Test pairwise Mindist functions using their corresponding transforms."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(3, 1, 16))
+    y = rng.normal(size=(2, 1, 16))
 
-    functions = [
+    sax = SAX(n_segments=4, alphabet_size=4).fit(X)
+    sax_X = sax.transform(X)
+    sax_y = sax.transform(y)
+    paa_X = sax._get_paa(X)
+
+    sfa = SFAWhole(word_length=4, alphabet_size=4, norm=True).fit(X)
+    sfa_X, dft_X = sfa.transform_words(X.squeeze(1))
+    sfa_y, _ = sfa.transform_words(y.squeeze(1))
+
+    symmetric_functions = [
         (
             mindist_sax_pairwise_distance,
             mindist_sax_distance,
-            symbolic_X,
-            symbolic_y,
-            sax_breakpoints,
-            (8,),
+            sax_X,
+            sax_y,
+            sax.breakpoints,
+            (X.shape[-1],),
         ),
         (
             mindist_sfa_pairwise_distance,
             mindist_sfa_distance,
-            symbolic_X,
-            symbolic_y,
-            sfa_breakpoints,
-            (),
-        ),
-        (
-            mindist_paa_sax_pairwise_distance,
-            mindist_paa_sax_distance,
-            X,
-            y,
-            sax_breakpoints,
-            (8,),
-        ),
-        (
-            mindist_dft_sfa_pairwise_distance,
-            mindist_dft_sfa_distance,
-            X,
-            y,
-            sfa_breakpoints,
+            sfa_X,
+            sfa_y,
+            sfa.breakpoints,
             (),
         ),
     ]
 
-    for pairwise_distance, distance, x, y, breakpoints, extra_args in functions:
-        pairwise = pairwise_distance(x, None, breakpoints, *extra_args)
-        assert pairwise.shape == (len(x), len(x))
-        for i in range(len(x)):
-            for j in range(len(x)):
+    for (
+        pairwise_distance,
+        distance,
+        transformed_X,
+        transformed_y,
+        bp,
+        args,
+    ) in symmetric_functions:
+        pairwise = pairwise_distance(transformed_X, None, bp, *args)
+        assert pairwise.shape == (len(transformed_X), len(transformed_X))
+        for i in range(len(transformed_X)):
+            for j in range(len(transformed_X)):
                 expected = distance(
-                    x[i].ravel(), x[j].ravel(), breakpoints, *extra_args
+                    transformed_X[i].ravel(), transformed_X[j].ravel(), bp, *args
                 )
                 assert pairwise[i, j] == expected
 
-        pairwise = pairwise_distance(x, y, breakpoints, *extra_args)
-        assert pairwise.shape == (len(x), len(y))
-        for i in range(len(x)):
-            for j in range(len(y)):
+        pairwise = pairwise_distance(transformed_X, transformed_y, bp, *args)
+        assert pairwise.shape == (len(transformed_X), len(transformed_y))
+        for i in range(len(transformed_X)):
+            for j in range(len(transformed_y)):
                 expected = distance(
-                    x[i].ravel(), y[j].ravel(), breakpoints, *extra_args
+                    transformed_X[i].ravel(), transformed_y[j].ravel(), bp, *args
                 )
                 assert pairwise[i, j] == expected
+
+    cross_representation_functions = [
+        (
+            mindist_paa_sax_pairwise_distance,
+            mindist_paa_sax_distance,
+            paa_X,
+            sax_y,
+            sax.breakpoints,
+            (X.shape[-1],),
+        ),
+        (
+            mindist_dft_sfa_pairwise_distance,
+            mindist_dft_sfa_distance,
+            dft_X,
+            sfa_y,
+            sfa.breakpoints,
+            (),
+        ),
+    ]
+
+    for (
+        pairwise_distance,
+        distance,
+        transformed_X,
+        transformed_y,
+        bp,
+        args,
+    ) in cross_representation_functions:
+        pairwise = pairwise_distance(transformed_X, transformed_y, bp, *args)
+        assert pairwise.shape == (len(transformed_X), len(transformed_y))
+        for i in range(len(transformed_X)):
+            for j in range(len(transformed_y)):
+                expected = distance(
+                    transformed_X[i].ravel(), transformed_y[j].ravel(), bp, *args
+                )
+                assert pairwise[i, j] == expected
+
+        with pytest.raises(ValueError, match="y must not be None"):
+            pairwise_distance(transformed_X, None, bp, *args)
 
 
 def test_sax_mindist():
