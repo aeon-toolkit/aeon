@@ -73,15 +73,16 @@ def _univariate_paa_sax_distance(
     n_split = np.array_split(np.arange(n), m)
 
     for i in range(x_paa.shape[0]):
-        if y_sax[i] >= breakpoints.shape[0]:
+        y_sax_i = np.int64(y_sax[i])
+        if y_sax_i >= breakpoints.shape[0]:
             br_upper = np.inf
         else:
-            br_upper = breakpoints[y_sax[i]]
+            br_upper = breakpoints[y_sax_i]
 
-        if y_sax[i] - 1 < 0:
+        if y_sax_i - 1 < 0:
             br_lower = -np.inf
         else:
-            br_lower = breakpoints[y_sax[i] - 1]
+            br_lower = breakpoints[y_sax_i - 1]
 
         if br_lower > x_paa[i]:
             dist += n_split[i].shape[0] * (br_lower - x_paa[i]) ** 2
@@ -99,14 +100,14 @@ def mindist_paa_sax_pairwise_distance(
     n: int,
     n_jobs: int = 1,
 ) -> np.ndarray:
-    """Compute the PAA SAX pairwise distance between a set of SAX representations.
+    """Compute pairwise distances between PAA and SAX representations.
 
     Parameters
     ----------
     X : np.ndarray
-        A collection of PAA instances  of shape ``(n_instances, n_timepoints)``.
+        A collection of PAA instances of shape ``(n_instances, n_timepoints)``.
     y : np.ndarray
-        A collection of paa instances  of shape ``(n_instances, n_timepoints)``.
+        A collection of SAX instances of shape ``(m_instances, n_timepoints)``.
     breakpoints: np.ndarray
         The breakpoints of the SAX transformation
     n : int
@@ -118,22 +119,24 @@ def mindist_paa_sax_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
-        SAX pairwise matrix between the instances of X.
+    np.ndarray (n_instances, m_instances)
+        Pairwise distance matrix between the PAA instances in X and SAX instances in
+        y.
 
     Raises
     ------
     ValueError
-        If X is not 2D array when only passing X.
-        If X and y are not 1D, 2D arrays when passing both X and y.
+        If y is None.
+        If X and y are not 1D, 2D or 3D arrays.
 
     """
+    if y is None:
+        raise ValueError("y must not be None for PAA-SAX pairwise distance")
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
-    if y is None:
-        return _paa_sax_from_multiple_to_multiple_distance(_X, None, breakpoints, n)
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
@@ -144,25 +147,14 @@ def mindist_paa_sax_pairwise_distance(
 def _paa_sax_from_multiple_to_multiple_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
-    if y is None:
-        n_instances = X.shape[0]
-        distances = np.zeros((n_instances, n_instances))
+    n_instances = len(X)
+    m_instances = len(y)
+    distances = np.zeros((n_instances, m_instances))
 
-        for i in prange(n_instances):
-            for j in range(i + 1, n_instances):
-                distances[i, j] = _univariate_paa_sax_distance(
-                    X[i], X[j], breakpoints, n
-                )
-                distances[j, i] = distances[i, j]
-    else:
-        n_instances = X.shape[0]
-        m_instances = y.shape[0]
-        distances = np.zeros((n_instances, m_instances))
-
-        for i in prange(n_instances):
-            for j in range(m_instances):
-                distances[i, j] = _univariate_paa_sax_distance(
-                    X[i], y[j], breakpoints, n
-                )
+    for i in prange(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _univariate_paa_sax_distance(
+                X[i].ravel(), y[j].ravel(), breakpoints, n
+            )
 
     return distances
