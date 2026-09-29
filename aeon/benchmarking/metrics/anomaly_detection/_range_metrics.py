@@ -200,7 +200,7 @@ def range_f_score(
 
     if precision + recall > 0:
         fscore = ((1 + beta**2) * (precision * recall)) / (
-            beta**2 * (precision + recall)
+            beta**2 * precision + recall
         )
     else:
         fscore = 0.0
