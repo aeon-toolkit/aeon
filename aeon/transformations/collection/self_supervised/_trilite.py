@@ -487,7 +487,7 @@ class TRILITE(BaseCollectionTransformer):
             all_indices_without_ref = np.delete(arr=all_indices, obj=i_ref)
 
             # choose a random sample used for the negative generation
-            index_neg = int(np.random.choice(all_indices_without_ref, size=1))
+            index_neg = np.random.choice(all_indices_without_ref, size=1).item()
 
             _ref = ref[i_ref].copy()
 
@@ -497,19 +497,19 @@ class TRILITE(BaseCollectionTransformer):
             )
 
             # choose samples used for the mixing up
-            index_ts1_pos = int(
-                np.random.choice(all_indices_without_ref_and_not_ref, size=1)
-            )
-            index_ts2_pos = int(
-                np.random.choice(all_indices_without_ref_and_not_ref, size=1)
-            )
+            index_ts1_pos = np.random.choice(
+                all_indices_without_ref_and_not_ref, size=1
+            ).item()
+            index_ts2_pos = np.random.choice(
+                all_indices_without_ref_and_not_ref, size=1
+            ).item()
 
-            index_ts1_neg = int(
-                np.random.choice(all_indices_without_ref_and_not_ref, size=1)
-            )
-            index_ts2_neg = int(
-                np.random.choice(all_indices_without_ref_and_not_ref, size=1)
-            )
+            index_ts1_neg = np.random.choice(
+                all_indices_without_ref_and_not_ref, size=1
+            ).item()
+            index_ts2_neg = np.random.choice(
+                all_indices_without_ref_and_not_ref, size=1
+            ).item()
 
             _not_ref = ref[index_neg].copy()
 
@@ -570,7 +570,9 @@ class TRILITE(BaseCollectionTransformer):
     def _apply_masking(self, pos, neg, n_channels, length_TS, mask_length):
         """Apply masking phase on pos and neg."""
         # select a random start for the mask
-        start_mask = int(np.random.randint(low=0, high=length_TS - mask_length, size=1))
+        start_mask = np.random.randint(
+            low=0, high=length_TS - mask_length, size=1
+        ).item()
         stop_mask = start_mask + mask_length
 
         # define noise on replacement on the left side of the mask

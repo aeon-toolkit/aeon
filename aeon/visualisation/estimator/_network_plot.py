@@ -64,8 +64,11 @@ def plot_network(
                 show_layer_activations=show_layer_activations,
                 dpi=dpi,
             )
-        except ImportError:
-            raise ImportError("Either graphviz or pydot should be installed.")
+        except ImportError as e:
+            raise ImportError(
+                "plot_network requires both the pydot package and a graphviz "
+                "installation providing the 'dot' binary."
+            ) from e
 
     else:
         file_name_ = "model" if file_name is None else file_name
@@ -87,5 +90,8 @@ def plot_network(
                 show_layer_activations=show_layer_activations,
                 dpi=dpi,
             )
-        except ImportError:
-            raise ImportError("Either graphviz or pydot should be installed.")
+        except ImportError as e:
+            raise ImportError(
+                "plot_network requires both the pydot package and a graphviz "
+                "installation providing the 'dot' binary."
+            ) from e

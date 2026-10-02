@@ -451,6 +451,8 @@ def test_load_from_ucr_tsv():
         "datasets/data/GunPoint/GunPoint_TRAIN.tsv",
     )
     X2, y2 = load_from_tsv_file(data_path)
+    assert X2.flags.writeable
+    assert y2.flags.writeable
     y = y.astype(float)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
