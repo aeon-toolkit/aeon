@@ -2,6 +2,8 @@
 
 from functools import partial
 
+import numpy as np
+
 from aeon.base._base import _clone_estimator
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
@@ -67,13 +69,26 @@ def check_forecaster_output(estimator, datatype):
     y_pred = estimator.predict(
         FULL_TEST_DATA_DICT[datatype]["test"][0],
     )
-    assert isinstance(y_pred, float), (
-        f"predict(y) output should be float, got" f" {type(y_pred)}"
-    )
+    if estimator.metadata_["multivariate"]:
+        assert isinstance(y_pred, np.ndarray), (
+            "predict(y) output should be np.ndarray for multivariate series, "
+            f"got {type(y_pred)}"
+        )
+        assert y_pred.shape == (estimator.metadata_["n_channels"],), (
+            "predict(y) output should have shape (n_channels,), got " f"{y_pred.shape}"
+        )
+    else:
+        assert isinstance(
+            y_pred, float
+        ), f"predict(y) output should be float, got {type(y_pred)}"
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    assert y_pred2 == y_pred3, (
-        f"fit(y).predict(y) and forecast(y) should be the same, but"
-        f"output differ: {y_pred2} != {y_pred3}"
+    np.testing.assert_array_equal(
+        y_pred2,
+        y_pred3,
+        err_msg=(
+            "fit(y).predict(y) and forecast(y) should be the same, but "
+            f"output differ: {y_pred2} != {y_pred3}"
+        ),
     )
