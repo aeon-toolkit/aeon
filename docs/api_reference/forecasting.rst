@@ -21,6 +21,7 @@ Forecasting Models
     :template: class.rst
 
     BaseForecaster
+    ESNormalisedRegressionForecaster
     NaiveForecaster
     RegressionForecaster
 
