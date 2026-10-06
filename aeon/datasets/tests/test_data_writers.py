@@ -4,6 +4,7 @@ import os
 import tempfile
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from aeon.datasets import (
@@ -125,3 +126,43 @@ def test_save_data_to_ts_file_invalid():
             match="The number of cases in X does not match the number of values in y",
         ):
             save_to_ts_file(X, y, path=tmp, label_type="classification")
+
+
+@pytest.mark.parametrize(
+    "indices",
+    [[10, 20, 30], [2, 0, 1], ["case_0", "case_1", "case_2"]],
+)
+@pytest.mark.parametrize("regression", [False, True])
+def test_save_to_ts_file_pandas_series_non_range_index(indices, regression):
+    """Ensure save_to_ts_file correctly aligns pd.Series y with non-range indices."""
+    X = np.array([
+        [[1.0, 2.0]],
+        [[3.0, 4.0]],
+        [[5.0, 6.0]],
+    ])
+    if regression:
+        labels = [1.5, 2.5, 3.5]
+        label_type = "regression"
+    else:
+        labels = ["class_a", "class_b", "class_a"]
+        label_type = "classification"
+
+    y = pd.Series(labels, index=indices)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        save_to_ts_file(
+            X=X,
+            y=y,
+            path=tmp,
+            problem_name="test_series_index",
+            label_type=label_type,
+        )
+        load_path = os.path.join(tmp, "test_series_index.ts")
+        _, loaded_y = load_from_ts_file(full_file_path_and_name=load_path)
+
+        if regression:
+            np.testing.assert_array_almost_equal(loaded_y.astype(float), np.array(labels))
+        else:
+            np.testing.assert_array_equal(loaded_y, np.array(labels))
+
+

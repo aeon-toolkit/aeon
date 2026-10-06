@@ -111,6 +111,7 @@ def save_to_ts_file(
             raise ValueError(
                 "The number of cases in X does not match the number of values in y."
             )
+        y = np.asarray(y)
     else:
         raise ValueError(bad_label_type)
 
