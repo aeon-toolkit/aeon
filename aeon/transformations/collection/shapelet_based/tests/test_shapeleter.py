@@ -1,6 +1,7 @@
 """Tests for Shapeleter transformer."""
 
 import numpy as np
+
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransformer,
 )

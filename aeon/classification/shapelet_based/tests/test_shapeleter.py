@@ -1,6 +1,7 @@
 """Tests for Shapeleter classifier."""
 
 import numpy as np
+
 from aeon.classification.shapelet_based._shapeleter import (
     ShapeleterClassifier,
 )
