@@ -76,7 +76,7 @@ class BaseDeepLearningNetwork(ABC):
                 )
             param = default
 
-        if isinstance(param, list):
+        if isinstance(param, list) or isinstance(param, np.ndarray):
             if len(param) != depth:
                 raise ValueError(
                     f"Number of {param_name} ({len(param)}) should be"
