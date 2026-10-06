@@ -17,7 +17,11 @@ from aeon.transformations.series import (
     BaseSeriesTransformer,
     SeriesInverseTransformerMixin,
 )
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, VALID_SERIES_INNER_TYPES
+from aeon.utils.data_types import (
+    COLLECTIONS_DATA_TYPES,
+    GLOBAL_RESCALER_DATA_TYPES,
+    VALID_SERIES_INNER_TYPES,
+)
 
 
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
@@ -64,11 +68,12 @@ def check_transformer_overrides_and_tags(estimator_class):
                 f"Override _{method} instead."
             )
 
-    dtypes = (
-        VALID_SERIES_INNER_TYPES
-        if issubclass(estimator_class, BaseSeriesTransformer)
-        else COLLECTIONS_DATA_TYPES
-    )
+    if issubclass(estimator_class, BaseSeriesTransformer):
+        dtypes = VALID_SERIES_INNER_TYPES
+    elif issubclass(estimator_class, BaseGlobalCollectionTransformer):
+        dtypes = GLOBAL_RESCALER_DATA_TYPES
+    else:
+        dtypes = COLLECTIONS_DATA_TYPES
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
