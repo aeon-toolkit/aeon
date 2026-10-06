@@ -65,6 +65,9 @@ EXCLUDED_TESTS = {
     # broken by 0.63.0 numba update, see #3307 attempt to fix
     "HIVECOTEV2": ["check_classifier_against_expected_results"],
     "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    # broken by 0.67.0 numba update on CardanoSentiment, float32 predictions lose
+    # precision so small feature changes alter results
+    "MultiRocketRegressor": ["check_regressor_against_expected_results"],
     # multithreading issue, sometimes produces different results between single
     # and multithreading
     "FreshPRINCEClassifier": ["check_estimator_multithreading"],
@@ -101,3 +104,24 @@ NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
 NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
     "get_fitted_params",
 )
+
+
+def _get_pr_subsample_index(python_minor, os_str):
+    """Get the index of the estimator subsample to test in a PR run.
+
+    Map the Python versions used in the PR pytest matrix to distinct indices.
+    """
+    i = python_minor
+    if i == 12:
+        i = 0
+    elif i == 13:
+        i = 1
+    elif i == 14:
+        i = 2
+
+    if os_str == "Linux":
+        i = i + 1
+    elif os_str == "Darwin":
+        i = i + 2
+
+    return i % 3
