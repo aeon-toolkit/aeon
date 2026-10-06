@@ -270,6 +270,27 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
 class BaseGlobalCollectionTransformer(BaseCollectionTransformer):
     """Base class for scalers that operate on collections of time series."""
 
+    def _convert_ax_to_tuple(self, ax, X):
+        """Convert axis to tuple for use in np.mean and np.std."""
+        # if ax is None set it to -1 by default.
+        if ax is None:
+            ax = -1
+
+            if X.ndim == 2:
+                # special case for 2D arrays :
+                # by default, 2D arrays are n univariate series :
+                return (0, 1)
+
+        # convert to tuple :
+        if isinstance(ax, int):
+            ax = (ax,)
+
+        if X.ndim >= 3:
+            # for 3D array 0 is always the sample axis,
+            # so it always needs to be reduced.
+            return (0,) + ax
+        return ax
+
     @final
     def inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.

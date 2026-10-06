@@ -652,7 +652,7 @@ def test_rnn_network_residual_lstm():
     multiply_layers = [layer for layer in model.layers if "multiply" in layer.name]
     assert len(multiply_layers) == 2  # Should have 2 multiply (for 0.5 residuals)
 
-    dense_reshaper = [layer for layer in model.layers if "residual_dense" in layer.name]
+    reshaper = [layer for layer in model.layers if "residual_reshape" in layer.name]
     # Should have 2 reshape dense 5 -> 32 and 32 -> 64
     # 64->32 is not needed because it does not have a residual
-    assert len(dense_reshaper) == 2
+    assert len(reshaper) == 2

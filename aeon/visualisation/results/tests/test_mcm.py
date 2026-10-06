@@ -66,3 +66,23 @@ def test_mcm_file_save():
             pvalue_correction="Holm",
         )
         assert isinstance(fig, plt.Figure)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+@pytest.mark.parametrize(
+    "order_stats",
+    ["average-statistic", "average-rank", "max-wins", "amean-amean", "pvalue"],
+)
+def test_mcm_order_stats(order_stats):
+    """Test every order_stats option."""
+    import matplotlib.pyplot as plt
+
+    df = pd.DataFrame(
+        np.random.rand(10, 3),  # 10 rows, 3 columns of random numbers
+        columns=["Classifier1", "Classifier2", "Classifier3"],
+    )
+    fig = create_multi_comparison_matrix(df, order_stats=order_stats)
+    assert isinstance(fig, plt.Figure)
