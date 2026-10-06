@@ -3,7 +3,7 @@
 import json
 import time
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 
 import pytest
 
@@ -12,13 +12,6 @@ from aeon.datasets.dataset_collections import tsml_archives
 from aeon.datasets.tsc_datasets import tsc_zenodo
 from aeon.datasets.tser_datasets import tsr_zenodo
 from aeon.testing.testing_config import PR_TESTING
-
-ZENODO_API = "https://zenodo.org/api"
-ZENODO_COMMUNITY = "tsml"
-_HEADERS = {
-    "User-Agent": "aeon-tests/1.0 (Zenodo version check)",
-    "Accept": "application/json",
-}
 
 # Dictionaries mapping names to Zenodo record IDs in the tsml community.
 ZENODO_ID_DICTS = {
@@ -41,7 +34,7 @@ def _get_json(url, retries=3):
     """Return the JSON at url, waiting and retrying if rate limited."""
     for attempt in range(retries + 1):
         try:
-            with urlopen(Request(url, headers=_HEADERS), timeout=60) as response:
+            with urlopen(url, timeout=60) as response:
                 return json.load(response)
         except HTTPError as e:
             if e.code != 429 or attempt == retries:
@@ -53,7 +46,7 @@ def _latest_community_versions():
     """Return {concept record ID: latest record ID} for the tsml community."""
     latest = {}
     # 25 is the largest page size Zenodo allows without authentication
-    url = f"{ZENODO_API}/communities/{ZENODO_COMMUNITY}/records?size=25&sort=oldest"
+    url = "https://zenodo.org/api/communities/tsml/records?size=25&sort=oldest"
     while url:
         page = _get_json(url)
         for record in page["hits"]["hits"]:
@@ -96,7 +89,7 @@ def test_zenodo_ids_are_latest_versions():
                 continue
 
             try:
-                record = _get_json(f"{ZENODO_API}/records/{record_id}")
+                record = _get_json(f"https://zenodo.org/api/records/{record_id}")
             except HTTPError as e:
                 if e.code not in (404, 410):
                     raise
@@ -115,7 +108,7 @@ def test_zenodo_ids_are_latest_versions():
             else:
                 problems.append(
                     f"{dict_name}[{name!r}] = {record_id} is not in the Zenodo "
-                    f"{ZENODO_COMMUNITY} community."
+                    "tsml community."
                 )
 
     assert not problems, "Out of date Zenodo IDs:\n" + "\n".join(problems)
