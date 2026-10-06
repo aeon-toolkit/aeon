@@ -10,3 +10,6 @@ from aeon.transformations.collection.shapelet_based._sast import SAST
 from aeon.transformations.collection.shapelet_based._shapelet_transform import (
     RandomShapeletTransform,
 )
+
+from aeon.transformations.collection.shapelet_based._shapeleter import ShapeleterTransformer
+__all__.append("ShapeleterTransformer")

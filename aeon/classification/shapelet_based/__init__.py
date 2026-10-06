@@ -11,3 +11,6 @@ from aeon.classification.shapelet_based._rdst import RDSTClassifier
 from aeon.classification.shapelet_based._rsast import RSASTClassifier
 from aeon.classification.shapelet_based._sast import SASTClassifier
 from aeon.classification.shapelet_based._stc import ShapeletTransformClassifier
+
+from aeon.classification.shapelet_based._shapeleter import ShapeleterClassifier
+__all__.append("ShapeleterClassifier")
