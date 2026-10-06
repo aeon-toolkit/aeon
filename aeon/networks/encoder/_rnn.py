@@ -140,9 +140,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self._residual = RecurrentNetwork._check_residual_matrix(
             self.n_layers, self.residual
         )
-        self._rnn_cell = RecurrentNetwork._check_rnn_cell(
-            self.rnn_type
-        )
+        self._rnn_cell = RecurrentNetwork._check_rnn_cell(self.rnn_type)
 
     @staticmethod
     def _check_residual_matrix(n_layers, residual):
