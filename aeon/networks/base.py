@@ -4,6 +4,8 @@ __maintainer__ = ["hadifawaz1999"]
 
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 from aeon.utils.repr import get_unchanged_and_required_params_as_str
 from aeon.utils.validation._dependencies import (
     _check_python_version,
@@ -74,7 +76,7 @@ class BaseDeepLearningNetwork(ABC):
                 )
             param = default
 
-        if isinstance(param, list):
+        if isinstance(param, list) or isinstance(param, np.ndarray):
             if len(param) != depth:
                 raise ValueError(
                     f"Number of {param_name} ({len(param)}) should be"
