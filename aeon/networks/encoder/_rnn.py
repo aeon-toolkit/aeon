@@ -137,50 +137,56 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self._attention = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.attention, "attention", default=False
         )
-        self._residual = self._check_residual_matrix()
-        self._rnn_cell = self._check_rnn_cell()
+        self._residual = RecurrentNetwork._check_residual_matrix(
+            self.n_layers, self.residual
+        )
+        self._rnn_cell = RecurrentNetwork._check_rnn_cell(
+            self.rnn_type
+        )
 
-    def _check_residual_matrix(self):
+    @staticmethod
+    def _check_residual_matrix(n_layers, residual):
         # if not matrix return diagonal :
-        if not isinstance(self.residual, np.ndarray) or self.residual.ndim <= 1:
+        if not isinstance(residual, np.ndarray) or residual.ndim <= 1:
             residual = BaseDeepLearningNetwork._check_layer_param(
-                self.n_layers, self.residual, "residual", default=0
+                n_layers, residual, "residual", default=0
             )
             # if given as a single value, remove
             # the useless redisual between input layer and first layer
-            if isinstance(self.residual, (int, float)):
+            if isinstance(residual, (int, float)):
                 residual[0] = 0
 
             return np.diag(residual)
 
         # check matrix shape
-        if self.residual.shape != (self.n_layers, self.n_layers):
+        if residual.shape != (n_layers, n_layers):
             raise ValueError(
-                f"Residual matrix shape {self.residual.shape} does not match "
-                f"the number of layers {self.n_layers}. "
+                f"Residual matrix shape {residual.shape} does not match "
+                f"the number of layers {n_layers}. "
                 "It should be a square matrix of shape (n_layers, n_layers)."
             )
         # check that no connections exists where 'j' is less than 'i'
-        for i in range(self.n_layers):
+        for i in range(n_layers):
             for j in range(i):
-                if self.residual[i, j] != 0:
+                if residual[i, j] != 0:
                     raise ValueError(
                         f"Residual connection from layer {i} to layer {j} "
                         "is not allowed. Only connections where 'j' is greater "
                         "than or equal to 'i' are allowed."
                     )
-        return self.residual
+        return residual
 
-    def _check_rnn_cell(self):
-        if self.rnn_type == "lstm":
+    @staticmethod
+    def _check_rnn_cell(rnn_type):
+        if rnn_type == "lstm":
             return tf.keras.layers.LSTM
-        elif self.rnn_type == "gru":
+        elif rnn_type == "gru":
             return tf.keras.layers.GRU
-        elif self.rnn_type == "simple":
+        elif rnn_type == "simple":
             return tf.keras.layers.SimpleRNN
 
         raise ValueError(
-            f"Unknown RNN type: {self.rnn_type}. " "Should be 'lstm', 'gru' or 'simple'"
+            f"Unknown RNN type: {rnn_type}. " "Should be 'lstm', 'gru' or 'simple'"
         )
 
     def _build_dropout_layer(self, x, i):
