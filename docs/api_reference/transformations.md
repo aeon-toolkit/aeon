@@ -177,6 +177,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
 
     RandomShapeletTransform
     RandomDilatedShapeletTransform
+    ShapeleterTransformer
     SAST
     RSAST
 ```
