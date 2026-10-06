@@ -135,11 +135,13 @@ def test_save_data_to_ts_file_invalid():
 @pytest.mark.parametrize("regression", [False, True])
 def test_save_to_ts_file_pandas_series_non_range_index(indices, regression):
     """Ensure save_to_ts_file correctly aligns pd.Series y with non-range indices."""
-    X = np.array([
-        [[1.0, 2.0]],
-        [[3.0, 4.0]],
-        [[5.0, 6.0]],
-    ])
+    X = np.array(
+        [
+            [[1.0, 2.0]],
+            [[3.0, 4.0]],
+            [[5.0, 6.0]],
+        ]
+    )
     if regression:
         labels = [1.5, 2.5, 3.5]
         label_type = "regression"
