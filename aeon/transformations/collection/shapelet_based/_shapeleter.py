@@ -52,7 +52,12 @@ def _compute_jaccard_matrix(edges, n_nodes):
 
 
 def _hypergraph_prune(
-    shapelets, shapelet_len, labels, neighbor_k=(3, 5), save_rate=0.5, jaccard_threshold=0.9
+    shapelets,
+    shapelet_len,
+    labels,
+    neighbor_k=(3, 5),
+    save_rate=0.5,
+    jaccard_threshold=0.9,
 ):
     """Prune candidate shapelets using hypergraph purity and Jaccard diversity."""
     n_shapelets = len(labels)
@@ -97,7 +102,9 @@ def _hypergraph_prune(
     top_node = int(np.argmax(purity))
     saved_nodes = [top_node]
 
-    lbl_idx = (np.where(unique_labels == labels[top_node])[0][0] + 1) % len(unique_labels)
+    lbl_idx = (np.where(unique_labels == labels[top_node])[0][0] + 1) % len(
+        unique_labels
+    )
     candidate_nodes = [node for node in np.argsort(purity)[::-1] if node != top_node]
 
     for _ in range(save_n - 1):
@@ -171,17 +178,23 @@ class _CombinationFusion:
         self.lda_ar = []
 
         for i in range(n_features):
-            lda, trans = self._fit_single_pair(x_orig[:, i:i+1], x_abs[:, i:i+1], y)
+            lda, trans = self._fit_single_pair(
+                x_orig[:, i : i + 1], x_abs[:, i : i + 1], y
+            )
             self.lda_oa.append(lda)
-            out_oa[:, i:i+1] = trans
+            out_oa[:, i : i + 1] = trans
 
-            lda, trans = self._fit_single_pair(x_orig[:, i:i+1], x_ord[:, i:i+1], y)
+            lda, trans = self._fit_single_pair(
+                x_orig[:, i : i + 1], x_ord[:, i : i + 1], y
+            )
             self.lda_or.append(lda)
-            out_or[:, i:i+1] = trans
+            out_or[:, i : i + 1] = trans
 
-            lda, trans = self._fit_single_pair(x_abs[:, i:i+1], x_ord[:, i:i+1], y)
+            lda, trans = self._fit_single_pair(
+                x_abs[:, i : i + 1], x_ord[:, i : i + 1], y
+            )
             self.lda_ar.append(lda)
-            out_ar[:, i:i+1] = trans
+            out_ar[:, i : i + 1] = trans
 
         np.clip(out_oa, -self.threshold, self.threshold, out=out_oa)
         np.clip(out_or, -self.threshold, self.threshold, out=out_or)
@@ -200,9 +213,15 @@ class _CombinationFusion:
         out_ar = np.zeros_like(x_orig)
 
         for i in range(n_features):
-            out_oa[:, i:i+1] = self._transform_single_pair(x_orig[:, i:i+1], x_abs[:, i:i+1], self.lda_oa[i])
-            out_or[:, i:i+1] = self._transform_single_pair(x_orig[:, i:i+1], x_ord[:, i:i+1], self.lda_or[i])
-            out_ar[:, i:i+1] = self._transform_single_pair(x_abs[:, i:i+1], x_ord[:, i:i+1], self.lda_ar[i])
+            out_oa[:, i : i + 1] = self._transform_single_pair(
+                x_orig[:, i : i + 1], x_abs[:, i : i + 1], self.lda_oa[i]
+            )
+            out_or[:, i : i + 1] = self._transform_single_pair(
+                x_orig[:, i : i + 1], x_ord[:, i : i + 1], self.lda_or[i]
+            )
+            out_ar[:, i : i + 1] = self._transform_single_pair(
+                x_abs[:, i : i + 1], x_ord[:, i : i + 1], self.lda_ar[i]
+            )
 
         np.clip(out_oa, -self.threshold, self.threshold, out=out_oa)
         np.clip(out_or, -self.threshold, self.threshold, out=out_or)
@@ -279,7 +298,9 @@ class ShapeleterTransformer(BaseCollectionTransformer):
             for l_val in np.unique(lengths):
                 for d_val in np.unique(dilas):
                     for norm_flag in [0, 1]:
-                        mask = (lengths == l_val) & (dilas == d_val) & (norms == norm_flag)
+                        mask = (
+                            (lengths == l_val) & (dilas == d_val) & (norms == norm_flag)
+                        )
                         sub_idx = np.where(mask)[0]
                         if len(sub_idx) > 0:
                             pruned_rel = _hypergraph_prune(
@@ -292,7 +313,9 @@ class ShapeleterTransformer(BaseCollectionTransformer):
 
             if len(selected_idx) > 0:
                 selected_idx = np.hstack(selected_idx)
-                self._rdst.shapelets_ = tuple(attr[selected_idx] for attr in self._rdst.shapelets_)
+                self._rdst.shapelets_ = tuple(
+                    attr[selected_idx] for attr in self._rdst.shapelets_
+                )
 
         self._shapelet_lengths = self._rdst.shapelets_[2]
         self._shapelet_dilations = self._rdst.shapelets_[3]
@@ -304,7 +327,10 @@ class ShapeleterTransformer(BaseCollectionTransformer):
         # Scale SOO features
         n_shapelets = len(self._shapelet_lengths)
         for i in range(n_shapelets):
-            denom = self._series_len - (self._shapelet_lengths[i] - 1) * self._shapelet_dilations[i]
+            denom = (
+                self._series_len
+                - (self._shapelet_lengths[i] - 1) * self._shapelet_dilations[i]
+            )
             denom = max(1.0, float(denom))
             raw_feats[:, 2 + 3 * i] = raw_feats[:, 2 + 3 * i] / denom
 
@@ -368,7 +394,10 @@ class ShapeleterTransformer(BaseCollectionTransformer):
 
         n_shapelets = len(self._shapelet_lengths)
         for i in range(n_shapelets):
-            denom = self._series_len - (self._shapelet_lengths[i] - 1) * self._shapelet_dilations[i]
+            denom = (
+                self._series_len
+                - (self._shapelet_lengths[i] - 1) * self._shapelet_dilations[i]
+            )
             denom = max(1.0, float(denom))
             raw_feats[:, 2 + 3 * i] = raw_feats[:, 2 + 3 * i] / denom
 
@@ -376,7 +405,9 @@ class ShapeleterTransformer(BaseCollectionTransformer):
         x_soo = self._scaler_soo.transform(raw_feats[:, 2::3])
         x_arg = raw_feats[:, 1::3]
 
-        x_min_abs, x_min_ord, x_soo_abs, x_soo_ord = self._encode_positions(x_min, x_soo, x_arg)
+        x_min_abs, x_min_ord, x_soo_abs, x_soo_ord = self._encode_positions(
+            x_min, x_soo, x_arg
+        )
 
         m_oa, m_or, m_ar = self._fusion_min.transform(x_min, x_min_abs, x_min_ord)
         s_oa, s_or, s_ar = self._fusion_soo.transform(x_soo, x_soo_abs, x_soo_ord)

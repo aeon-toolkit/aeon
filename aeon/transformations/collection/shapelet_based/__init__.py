@@ -1,15 +1,21 @@
-"""Shapelet based transformers."""
+"""Shapelet based collection transformers."""
 
-__all__ = ["RandomShapeletTransform", "RandomDilatedShapeletTransform", "SAST", "RSAST"]
+__all__ = [
+    "RandomDilatedShapeletTransform",
+    "RSAST",
+    "SAST",
+    "ShapeletTransform",
+    "ShapeleterTransformer",
+]
 
-from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
+from aeon.transformations.collection.shapelet_based._rdst import (
     RandomDilatedShapeletTransform,
 )
 from aeon.transformations.collection.shapelet_based._rsast import RSAST
 from aeon.transformations.collection.shapelet_based._sast import SAST
 from aeon.transformations.collection.shapelet_based._shapelet_transform import (
-    RandomShapeletTransform,
+    ShapeletTransform,
 )
-
-from aeon.transformations.collection.shapelet_based._shapeleter import ShapeleterTransformer
-__all__.append("ShapeleterTransformer")
+from aeon.transformations.collection.shapelet_based._shapeleter import (
+    ShapeleterTransformer,
+)
