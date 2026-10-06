@@ -161,8 +161,8 @@ def test_save_to_ts_file_pandas_series_non_range_index(indices, regression):
         _, loaded_y = load_from_ts_file(full_file_path_and_name=load_path)
 
         if regression:
-            np.testing.assert_array_almost_equal(loaded_y.astype(float), np.array(labels))
+            np.testing.assert_array_almost_equal(
+                loaded_y.astype(float), np.array(labels)
+            )
         else:
             np.testing.assert_array_equal(loaded_y, np.array(labels))
-
-
