@@ -4,13 +4,11 @@ __maintainer__ = []
 __all__ = ["ShapeleterClassifier"]
 
 from sklearn.linear_model import RidgeClassifierCV
-from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.shapelet_based._shapeleter import (
-    ShapeleterTransformer,
-)
+from aeon.transformations.collection.shapelet_based import ShapeleterTransformer
 
 
 class ShapeleterClassifier(BaseClassifier):
@@ -24,6 +22,8 @@ class ShapeleterClassifier(BaseClassifier):
         Absolute positional scaling parameter.
     ko : float, default=1.5
         Ordinal positional scaling parameter.
+    save_rate : float, default=0.5
+        Proportion of shapelets preserved by hypergraph selection.
     random_state : int, RandomState instance or None, default=None
         Controls the randomness.
     """
@@ -31,7 +31,6 @@ class ShapeleterClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": False,
         "capability:unequal_length": False,
-        "capability:predict_proba": False,
         "algorithm_type": "shapelet",
     }
 
@@ -40,11 +39,13 @@ class ShapeleterClassifier(BaseClassifier):
         max_shapelets=1000,
         ka=1.5,
         ko=1.5,
+        save_rate=0.5,
         random_state=None,
     ):
         self.max_shapelets = max_shapelets
         self.ka = ka
         self.ko = ko
+        self.save_rate = save_rate
         self.random_state = random_state
         super().__init__()
 
@@ -54,6 +55,7 @@ class ShapeleterClassifier(BaseClassifier):
             max_shapelets=self.max_shapelets,
             ka=self.ka,
             ko=self.ko,
+            save_rate=self.save_rate,
             random_state=self.random_state,
         )
         X_trans = self._transformer.fit_transform(X, y)
