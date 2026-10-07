@@ -65,6 +65,9 @@ EXCLUDED_TESTS = {
     # broken by 0.63.0 numba update, see #3307 attempt to fix
     "HIVECOTEV2": ["check_classifier_against_expected_results"],
     "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    # broken by 0.67.0 numba update on CardanoSentiment, float32 predictions lose
+    # precision so small feature changes alter results
+    "MultiRocketRegressor": ["check_regressor_against_expected_results"],
     # multithreading issue, sometimes produces different results between single
     # and multithreading
     "FreshPRINCEClassifier": ["check_estimator_multithreading"],
