@@ -1540,8 +1540,10 @@ def test_catch22_float32_output_dtype():
     c22 = Catch22(outlier_norm=True, replace_nans=True)
     result = c22.fit_transform(X)
     assert result.shape == (6, 22)
+    assert result.dtype == np.float32
 
     # outlier_norm=False takes the other branch -- should still work
     c22_no_norm = Catch22(outlier_norm=False, replace_nans=True)
     result_no_norm = c22_no_norm.fit_transform(X)
     assert result_no_norm.shape == (6, 22)
+    assert result_no_norm.dtype == np.float32
