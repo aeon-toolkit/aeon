@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["ShapeleterTransformer"]
 
 import numpy as np
+from numba import njit, prange
 from scipy.sparse import lil_matrix
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics.pairwise import euclidean_distances
@@ -15,17 +16,34 @@ from aeon.transformations.collection.shapelet_based import (
 )
 
 
+@njit(fastmath=True, cache=True)
 def _assign_order(positions_abs):
     """Convert absolute shapelet positions to ordinal positions with tie handling."""
-    positions_ord = np.zeros_like(positions_abs, dtype=float)
-    unique_positions = np.unique(positions_abs)
-    front_n = 0.0
-    for pos in unique_positions:
-        mask = positions_abs == pos
-        curr_n = np.sum(mask)
-        positions_ord[mask] = front_n + (curr_n - 1.0) / 2.0
-        front_n += curr_n
+    n = len(positions_abs)
+    positions_ord = np.zeros(n, dtype=np.float64)
+    order = np.argsort(positions_abs)
+    i = 0
+    while i < n:
+        j = i + 1
+        val = positions_abs[order[i]]
+        while j < n and positions_abs[order[j]] == val:
+            j += 1
+        curr_n = float(j - i)
+        rank_val = float(i) + (curr_n - 1.0) / 2.0
+        for k in range(i, j):
+            positions_ord[order[k]] = rank_val
+        i = j
     return positions_ord
+
+
+@njit(parallel=True, fastmath=True, cache=True)
+def _assign_order_batch(positions_abs_2d):
+    """Compute ordinal positions across all cases in parallel."""
+    n_cases, n_feats = positions_abs_2d.shape
+    out = np.zeros((n_cases, n_feats), dtype=np.float64)
+    for c in prange(n_cases):
+        out[c] = _assign_order(positions_abs_2d[c])
+    return out
 
 
 def _compute_jaccard_matrix(edges, n_nodes):
@@ -356,8 +374,6 @@ class ShapeleterTransformer(BaseCollectionTransformer):
 
     def _encode_positions(self, x_min, x_soo, x_arg):
         """Dual absolute and ordinal sinusoidal positional encoding."""
-        n_cases = x_min.shape[0]
-
         x_min_abs = np.copy(x_min)
         x_min_ord = np.copy(x_min)
         x_soo_abs = np.copy(x_soo)
@@ -378,9 +394,7 @@ class ShapeleterTransformer(BaseCollectionTransformer):
             x_soo_abs[:, sub_idx] += np.sin(pos_abs / base_abs)
 
             # Ordinal with tie-break
-            pos_ord = np.zeros_like(pos_abs)
-            for c in range(n_cases):
-                pos_ord[c, :] = _assign_order(pos_abs[c, :])
+            pos_ord = _assign_order_batch(pos_abs)
 
             x_min_ord[:, sub_idx] += np.sin(pos_ord / base_ord)
             x_soo_ord[:, sub_idx] += np.sin(pos_ord / base_ord)
