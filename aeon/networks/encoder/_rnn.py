@@ -105,7 +105,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         attention=False,
     ):
         super().__init__()
-        self.rnn_type = rnn_type.lower()
+        self.rnn_type = rnn_type
         self.n_layers = n_layers
         self.n_units = n_units
         self.dropout_intermediate = dropout_intermediate
@@ -117,8 +117,9 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.attention = attention
 
     def _check_params(self):
-        RNN_TYPE._check_params(self.rnn_type)
-
+        self._rnn_type = RNN_TYPE._check_params(
+            self.rnn_type,
+        )
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.n_units, "units", default=64
         )
@@ -135,7 +136,6 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             self.n_layers, self.attention, "attention", default=False
         )
         self._residual = self._check_residual_matrix()
-        self._rnn_cell = self._check_rnn_cell()
 
     def _check_residual_matrix(self):
         # if not matrix return diagonal :
@@ -168,18 +168,6 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                     )
         return self.residual
 
-    def _check_rnn_cell(self):
-        if self.rnn_type == RNN_TYPE.LSTM:
-            return tf.keras.layers.LSTM
-        elif self.rnn_type == RNN_TYPE.GRU:
-            return tf.keras.layers.GRU
-        elif self.rnn_type == RNN_TYPE.SIMPLE:
-            return tf.keras.layers.SimpleRNN
-
-        raise ValueError(
-            f"Unknown RNN type: {self.rnn_type}. " "Should be 'lstm', 'gru' or 'simple'"
-        )
-
     def _build_dropout_layer(self, x, i):
         # if last layer, apply output dropout; otherwise, apply intermediate dropout
         if i == (self.n_layers - 1):
@@ -196,11 +184,11 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     def _build_rnn_cell(self, x, i):
         # Create the recurrent layer
-        cell = self._rnn_cell(
+        cell = self._rnn_type(
             units=self._n_units[i],
             activation=self._activation[i],
             return_sequences=True,
-            name=f"{self.rnn_type}_{i+1}",
+            name=f"{self._rnn_type}_{i+1}",
         )
 
         if self._bidirectional[i]:
@@ -279,5 +267,4 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         """
         input_layer = tf.keras.layers.Input(shape=input_shape)
         x = self.build_base_graph(input_layer)
-
         return input_layer, x

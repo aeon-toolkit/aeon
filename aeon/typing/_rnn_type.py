@@ -19,3 +19,15 @@ class RNN_TYPE(StrEnum):
                 f"Invalid value for 'rnn_type' ({rnn_type}). "
                 f"Valid options are: {[item.value for item in RNN_TYPE]}"
             )
+        return RNN_TYPE[rnn_type.upper()]
+
+    def __call__(self, **kwargs):
+        import tensorflow as tf
+
+        match self:
+            case RNN_TYPE.LSTM:
+                return tf.keras.layers.LSTM(**kwargs)
+            case RNN_TYPE.GRU:
+                return tf.keras.layers.GRU(**kwargs)
+            case RNN_TYPE.SIMPLE:
+                return tf.keras.layers.SimpleRNN(**kwargs)
