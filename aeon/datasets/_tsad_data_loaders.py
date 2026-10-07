@@ -259,10 +259,10 @@ def load_from_timeeval_csv_file(path: Path) -> tuple[np.ndarray, np.ndarray]:
         The binary anomaly labels with shape (n_instances,).
     """
     df = pd.read_csv(path, index_col=0)
-    X = df.iloc[:, :-1].values
+    X = df.iloc[:, :-1].to_numpy(copy=True)
     if X.ndim == 2 and X.shape[1] == 1:
         X = X.ravel()
-    y = df.iloc[:, -1].values
+    y = df.iloc[:, -1].to_numpy(copy=True)
     return X, y
 
 

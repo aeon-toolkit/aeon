@@ -589,7 +589,7 @@ class SFA(BaseCollectionTransformer):
     def _igb_mae(self, dft, y):
         breakpoints = np.zeros((self.word_length, self.alphabet_size))
         clf = DecisionTreeRegressor(
-            criterion="friedman_mse",
+            criterion="squared_error",
             max_depth=int(np.floor(np.log2(self.alphabet_size))),
             max_leaf_nodes=self.alphabet_size,
             random_state=self.random_state,
