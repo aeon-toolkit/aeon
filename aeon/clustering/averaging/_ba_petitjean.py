@@ -208,8 +208,8 @@ def _ba_one_iter_petitjean(
     gamma: float = 1.0,
 ):
     X_size, X_dims, X_timepoints = X.shape
-    local_alignments = np.zeros((X_size, X_dims, X_timepoints))
-    local_sums = np.zeros((X_size, X_timepoints))
+    local_alignments = np.zeros((X_size, X_dims, X_timepoints), dtype=X.dtype)
+    local_sums = np.zeros((X_size, X_timepoints), dtype=X.dtype)
 
     for i in prange(X_size):
         curr_ts = X[i]
@@ -237,8 +237,8 @@ def _ba_one_iter_petitjean(
             local_alignments[i, :, k] += curr_ts[:, j] * weights[i]
             local_sums[i, k] += weights[i]
 
-    alignment = np.zeros((X_dims, X_timepoints))
-    sum = np.zeros(X_timepoints)
+    alignment = np.zeros((X_dims, X_timepoints), dtype=X.dtype)
+    sum = np.zeros(X_timepoints, dtype=X.dtype)
     for i in range(X_size):
         alignment += local_alignments[i]
         sum += local_sums[i]

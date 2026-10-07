@@ -5,6 +5,7 @@ __maintainer__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepAENetwork
 from aeon.networks.encoder._resnet import ResNetNetwork
+from aeon.typing import LATENT_SPACE
 
 
 class AEResNetNetwork(BaseDeepAENetwork):
@@ -17,11 +18,11 @@ class AEResNetNetwork(BaseDeepAENetwork):
     ----------
     latent_space_dim : int, default = 128
         Dimension of the auto-encoder's latent space.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
-    repeated_latent_space : bool, default = False
-        Flag to choose whether the latent space is given as a repeated vector to the
-        decoder.
+    latent_space_type : LATENT_SPACE, default = LATENT_SPACE.FLATTEN
+        Type of latent space to use. Options are:
+        - LATENT_SPACE.FLATTEN: The latent space is a flattened vector.
+        - LATENT_SPACE.TIME: The latent space is a time series.
+        - LATENT_SPACE.REPEATED: The latent space is a repeated vector.
     n_residual_blocks : int, default = 3
         The number of residual blocks of ResNet's model.
     n_conv_per_residual_block : int, default = 3
@@ -48,8 +49,7 @@ class AEResNetNetwork(BaseDeepAENetwork):
         a list, the same kernel size is used in all convolution layers.
     use_bias : bool or list of bool, default = True
         Condition on whether or not to use bias values in the convolution layers in
-        one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
+        one residual block.
 
     Notes
     -----
@@ -78,8 +78,7 @@ class AEResNetNetwork(BaseDeepAENetwork):
     def __init__(
         self,
         latent_space_dim=128,
-        temporal_latent_space=False,
-        repeated_latent_space=False,
+        latent_space_type=LATENT_SPACE.FLAT,
         n_residual_blocks=3,
         n_conv_per_residual_block=3,
         n_filters=None,
@@ -90,7 +89,7 @@ class AEResNetNetwork(BaseDeepAENetwork):
         activation="relu",
         use_bias=True,
     ):
-        super().__init__(latent_space_dim, temporal_latent_space, repeated_latent_space)
+        super().__init__(latent_space_dim, latent_space_type)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -106,6 +105,9 @@ class AEResNetNetwork(BaseDeepAENetwork):
         n_res = self.n_residual_blocks
         res = "number of residual blocks"
         conv = "number of convolution layers per residual block"
+        self._latent_space_type = LATENT_SPACE._check_param(
+            self.latent_space_type,
+        )
         self._n_filters = BaseDeepAENetwork._check_layer_param(
             n_res, self.n_filters, "filters", default=[64, 128, 128], same_as=res
         )

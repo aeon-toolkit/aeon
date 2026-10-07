@@ -2,12 +2,16 @@
 
 __maintainer__ = ["aadya940", "hadifawaz1999"]
 
+import numpy as np
+
 from aeon.networks.base import BaseDeepAENetwork
+from aeon.typing import LATENT_SPACE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
     import tensorflow as tf
 
+    @tf.keras.utils.register_keras_serializable(package="aeon")
     class _TensorDilation(tf.keras.layers.Layer):
         """A layer for dilation of a tensorflow tensor."""
 
@@ -70,8 +74,11 @@ class AEDRNNNetwork(BaseDeepAENetwork):
     ----------
     latent_space_dim : int, default = 128
         Dimensionality of the latent space.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
+    latent_space_type : LATENT_SPACE, default = LATENT_SPACE.REPEATED
+        Type of latent space to use. Options are:
+        - LATENT_SPACE.FLAT: The latent space is a flattened vector.
+        - LATENT_SPACE.TIME: The latent space is a time series.
+        - LATENT_SPACE.REPEATED: The latent space is a repeated vector.
     n_layers_encoder : int, default = 3
         Number of GRU layers in the encoder.
     n_layers_decoder : int, default = 1
@@ -102,7 +109,7 @@ class AEDRNNNetwork(BaseDeepAENetwork):
     def __init__(
         self,
         latent_space_dim=128,
-        temporal_latent_space=False,
+        latent_space_type=LATENT_SPACE.REPEATED,
         n_layers_encoder=3,
         n_layers_decoder=1,
         dilation_rate_encoder=None,
@@ -112,10 +119,10 @@ class AEDRNNNetwork(BaseDeepAENetwork):
         n_units_encoder=None,
         n_units_decoder=None,
     ):
-        super().__init__(latent_space_dim, temporal_latent_space, False)
+        super().__init__(latent_space_dim, latent_space_type)
 
         self.latent_space_dim = latent_space_dim
-        self.temporal_latent_space = temporal_latent_space
+        self.latent_space_type = latent_space_type
         self.n_layers_encoder = n_layers_encoder
         self.n_layers_decoder = n_layers_decoder
         self.dilation_rate_encoder = dilation_rate_encoder
@@ -128,7 +135,12 @@ class AEDRNNNetwork(BaseDeepAENetwork):
     def _check_params(self):
         enc_l = self.n_layers_encoder
         dec_l = self.n_layers_decoder
+        enc_act = self.activation_encoder
+        dec_act = self.activation_decoder
 
+        self._latent_space_type = LATENT_SPACE._check_param(
+            self.latent_space_type,
+        )
         default = [2**l for l in range(1, self.n_layers_encoder + 1)]
         self._dilation_rate_encoder = BaseDeepAENetwork._check_layer_param(
             enc_l, self.dilation_rate_encoder, "dilation rates for encoder", default
@@ -137,16 +149,10 @@ class AEDRNNNetwork(BaseDeepAENetwork):
             dec_l, self.dilation_rate_decoder, "dilation rates for decoder", default=1
         )
         self._activation_encoder = BaseDeepAENetwork._check_layer_param(
-            enc_l,
-            self.activation_encoder,
-            "activation for encoder",
-            allow_none=True,
+            enc_l, enc_act, "activation for encoder", allow_none=True
         )
         self._activation_decoder = BaseDeepAENetwork._check_layer_param(
-            dec_l,
-            self.activation_decoder,
-            "activation for decoder",
-            allow_none=True,
+            dec_l, dec_act, "activation for decoder", allow_none=True
         )
         default = [100] + [50 for _ in range(self.n_layers_encoder - 1)]
         self._n_units_encoder = BaseDeepAENetwork._check_layer_param(
@@ -176,21 +182,26 @@ class AEDRNNNetwork(BaseDeepAENetwork):
         finals = tf.keras.layers.Concatenate()(_finals)
         return x, finals
 
-    def _build_latent_graph(self, x):
-        x, finals = x
+    def _build_flat_latent_graph(self, x):
+        import tensorflow as tf
 
-        if not self.temporal_latent_space:
-            x = tf.keras.layers.Dense(self.latent_space_dim)(finals)
-        else:
-            x = tf.keras.layers.Dense(self.latent_space_dim)(x)
+        enc_out_shape = (self._input_shape[0], self._n_units_encoder[-1] * 2)
+        decoder_units = int(np.prod(enc_out_shape))
 
-        # save to allow building a separate encoder and decoder model
-        self._enc_out = x
-        self._dec_in = x
-
-        if not self.temporal_latent_space:
-            x = tf.keras.layers.RepeatVector(self._input_shape[0])(x)
+        x = self._build_latent_projection(x[1])  # use final
+        x = tf.keras.layers.Dense(units=decoder_units)(x)
+        x = tf.keras.layers.Reshape(target_shape=enc_out_shape)(x)
         return x
+
+    def _build_repeated_latent_graph(self, x):
+        import tensorflow as tf
+
+        x = self._build_latent_projection(x[1])  # use final
+        x = tf.keras.layers.RepeatVector(self._input_shape[0])(x)
+        return x
+
+    def _build_time_latent_graph(self, x):
+        return self._build_latent_projection(x[0])  # use x sequence
 
     def _build_decoder_graph(self, x):
         for i in range(self.n_layers_decoder):

@@ -102,6 +102,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         activation="tanh",
         return_sequence_last=False,
         attention=False,
+        name_prefix=""
     ):
         super().__init__()
         self.rnn_type = rnn_type.lower()
@@ -114,6 +115,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.return_sequence_last = return_sequence_last
         self.attention = attention
+        self.name_prefix = name_prefix
 
     def _check_params(self):
         if self.rnn_type not in ["lstm", "gru", "simple"]:
@@ -142,16 +144,24 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         )
         self._rnn_cell = RecurrentNetwork._check_rnn_cell(self.rnn_type)
 
+        self._name_prefix = self.name_prefix
+        if len(self._name_prefix) > 0 and not self._name_prefix.endswith("_"):
+            self._name_prefix += "_"
+
     @staticmethod
     def _check_residual_matrix(n_layers, residual):
         # if not matrix return diagonal :
         if not isinstance(residual, np.ndarray) or residual.ndim <= 1:
+
+            # if given as a single value, remove
+            # the useless redisual between input layer and first layer
+            residual_is_a_number = isinstance(residual, (bool, int, float))
+
             residual = BaseDeepLearningNetwork._check_layer_param(
                 n_layers, residual, "residual", default=0
             )
-            # if given as a single value, remove
-            # the useless redisual between input layer and first layer
-            if isinstance(residual, (int, float)):
+
+            if (residual_is_a_number):
                 residual[0] = 0
 
             return np.diag(residual)
@@ -192,12 +202,13 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         if i == (self.n_layers - 1):
             if self.dropout_output > 0:
                 return tf.keras.layers.Dropout(
-                    self.dropout_output, name="dropout_output"
+                    self.dropout_output, name=self._name_prefix + "dropout_output"
                 )(x)
         else:
             if self._dropout_intermediate[i] > 0:
                 return tf.keras.layers.Dropout(
-                    self._dropout_intermediate[i], name=f"dropout_intermediate_{i+1}"
+                    self._dropout_intermediate[i],
+                    name=f"{self._name_prefix}dropout_intermediate_{i+1}"
                 )(x)
         return x
 
@@ -207,7 +218,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             units=self._n_units[i],
             activation=self._activation[i],
             return_sequences=True,
-            name=f"{self.rnn_type}_{i+1}",
+            name=f"{self._name_prefix}{self.rnn_type}_{i+1}",
         )
 
         if self._bidirectional[i]:
@@ -216,7 +227,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             x = cell(x)
 
         if self._attention[i]:
-            x = tf.keras.layers.Attention(name=f"attention_{i+1}")([x, x])
+            x = tf.keras.layers.Attention(name=f"{self._name_prefix}attention_{i+1}")([x, x])
 
         x = self._build_dropout_layer(x, i)
         return x
@@ -232,7 +243,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                         filters=x.shape[-1],
                         kernel_size=1,
                         activation=None,
-                        name=f"residual_reshape[{fr+1}-{to+1}]",
+                        name=f"{self._name_prefix}residual_reshape{fr+1}-{to+1}",
                     )(sk)
 
                 # if _residual is a weight
@@ -240,14 +251,14 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                     # create tf constant with the weight
                     w = round(self._residual[fr, to], 2)
                     sk = ConstantMultiply(
-                        self._residual[fr, to], name=f"multiply[{fr+1}-{to+1}]_x{w}"
+                        self._residual[fr, to], name=f"{self._name_prefix}multiply{fr+1}-{to+1}_x{w}"
                     )(sk)
 
                 x_skip.append(sk)
 
         if len(x_skip) > 0:
             x_skip.append(x)
-            x = tf.keras.layers.Add(name=f"residuals_of_layer_{to+1}")(x_skip)
+            x = tf.keras.layers.Add(name=f"{self._name_prefix}residuals_of_layer_{to+1}")(x_skip)
 
         return x
 

@@ -5,6 +5,7 @@ __maintainer__ = ["aadya940", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepAENetwork
 from aeon.networks.encoder._dcnn import DCNNNetwork
+from aeon.typing import LATENT_SPACE
 
 
 class AEDCNNNetwork(BaseDeepAENetwork):
@@ -17,8 +18,11 @@ class AEDCNNNetwork(BaseDeepAENetwork):
     ----------
     latent_space_dim: int, default=128
         Dimension of the models's latent space.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
+    latent_space_type : LATENT_SPACE, default = LATENT_SPACE.FLATTEN
+        Type of latent space to use. Options are:
+        - LATENT_SPACE.FLATTEN: The latent space is a flattened vector.
+        - LATENT_SPACE.TIME: The latent space is a time series.
+        - LATENT_SPACE.REPEATED: The latent space is a repeated vector.
     n_layers: int, default=4
         Number of convolution layers in the autoencoder.
     kernel_size: Union[int, List[int]], default=3
@@ -58,8 +62,7 @@ class AEDCNNNetwork(BaseDeepAENetwork):
     def __init__(
         self,
         latent_space_dim=128,
-        temporal_latent_space=False,
-        repeated_latent_space=False,
+        latent_space_type=LATENT_SPACE.FLAT,
         n_layers=4,
         kernel_size=3,
         activation="relu",
@@ -68,7 +71,7 @@ class AEDCNNNetwork(BaseDeepAENetwork):
         padding_encoder="same",
         padding_decoder="same",
     ):
-        super().__init__(latent_space_dim, temporal_latent_space, repeated_latent_space)
+        super().__init__(latent_space_dim, latent_space_type)
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.activation = activation
@@ -81,6 +84,9 @@ class AEDCNNNetwork(BaseDeepAENetwork):
         default_n_filters = [32 * i for i in range(1, self.n_layers + 1)]
         default_dilation_rate = [2**l for l in range(1, self.n_layers + 1)]
 
+        self._latent_space_type = LATENT_SPACE._check_param(
+            self.latent_space_type,
+        )
         self._kernel_size_encoder = BaseDeepAENetwork._check_layer_param(
             self.n_layers, self.kernel_size, "kernel size", default=3
         )

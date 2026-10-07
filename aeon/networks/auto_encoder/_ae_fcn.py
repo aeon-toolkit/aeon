@@ -4,6 +4,7 @@ __maintainer__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepAENetwork
 from aeon.networks.encoder._fcn import FCNNetwork
+from aeon.typing import LATENT_SPACE
 
 
 class AEFCNNetwork(BaseDeepAENetwork):
@@ -16,8 +17,11 @@ class AEFCNNetwork(BaseDeepAENetwork):
     ----------
     latent_space_dim : int, default = 128
         Dimension of the auto-encoder's latent space.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
+    latent_space_type : LATENT_SPACE, default = LATENT_SPACE.FLAT
+        Type of latent space to use. Options are:
+        - LATENT_SPACE.FLAT: The latent space is a flattened vector.
+        - LATENT_SPACE.TIME: The latent space is a time series.
+        - LATENT_SPACE.REPEATED: The latent space is a repeated vector.
     n_layers : int, default = 3
         Number of convolution layers.
     n_filters : int or list of int, default = [128,256,128]
@@ -63,8 +67,7 @@ class AEFCNNetwork(BaseDeepAENetwork):
     def __init__(
         self,
         latent_space_dim=128,
-        temporal_latent_space=False,
-        repeated_latent_space=False,
+        latent_space_type=LATENT_SPACE.FLAT,
         n_layers=3,
         n_filters=None,
         kernel_size=None,
@@ -74,7 +77,7 @@ class AEFCNNetwork(BaseDeepAENetwork):
         activation="relu",
         use_bias=True,
     ):
-        super().__init__(latent_space_dim, temporal_latent_space, repeated_latent_space)
+        super().__init__(latent_space_dim, latent_space_type)
         self.n_layers = n_layers
         self.n_filters = n_filters
         self.kernel_size = kernel_size
@@ -86,6 +89,10 @@ class AEFCNNetwork(BaseDeepAENetwork):
 
     def _check_params(self):
         n = self.n_layers
+
+        self._latent_space_type = LATENT_SPACE._check_param(
+            self.latent_space_type,
+        )
         self._n_filters = BaseDeepAENetwork._check_layer_param(
             n, self.n_filters, "filters", default=[128, 256, 128]
         )

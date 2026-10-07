@@ -1,23 +1,18 @@
 """Deep Learning Auto-Encoder using Attention Bidirectional GRU Network."""
 
 __maintainer__ = []
-__all__ = ["AEAttentionBiGRUClusterer"]
+__all__ = ["AEDeTSECClusterer"]
 
 import gc
-import os
-import time
-from copy import deepcopy
-
-from sklearn.utils import check_random_state
 
 from aeon.clustering import DummyClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
-from aeon.networks import AEAttentionBiGRUNetwork
+from aeon.networks import AEDeTSECNetwork
 
 
-class AEAttentionBiGRUClusterer(BaseDeepClusterer):
+class AEDeTSECClusterer(BaseDeepClusterer):
     """
-    Auto-Encoder based Attention Bidirectional GRU Network.
+    Auto-Encoder based on DeTSEC network.
 
     Adapted from the implementation used in [1]_.
 
@@ -27,16 +22,14 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    latent_space_dim : int, default=128
-        Dimension of the latent space of the auto-encoder.
-    n_layers_encoder : int, default = 2
-        Number of Attention Bidirectional GRU Layers in the encoder.
-    n_layers_encoder : int, default = 2
-        Number of Attention Bidirectional GRU Layers in the decoder.
-    activation_encoder : str or list of str, default = "relu"
-        Activation used after the Attention Bidirectional GRU Layer of the encoder.
-    activation_encoder : str or list of str, default = "relu"
-        Activation used after the Attention Bidirectional GRU Layer of the decoder.
+    n_filters_encoder : int, default=64
+        Number of filters in the encoder.
+    n_filters_decoder : int or list of int, default=64
+        Number of filters in the decoder.
+    activation_encoder : str, default='tanh'
+        Activation function of the encoder.
+    activation_decoder : str, default='tanh'
+        Activation function of the decoder.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -124,11 +117,10 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
     def __init__(
         self,
         estimator=None,
-        latent_space_dim=128,
-        n_layers_encoder=2,
-        n_layers_decoder=2,
-        activation_encoder="relu",
-        activation_decoder="relu",
+        n_filters_encoder=64,
+        n_filters_decoder=64,
+        activation_encoder="tanh",
+        activation_decoder="tanh",
         n_epochs=2000,
         batch_size=32,
         validation_split=0,
@@ -147,40 +139,40 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         init_file_name="init_model",
         callbacks=None,
     ):
-        self.latent_space_dim = latent_space_dim
-        self.n_layers_encoder = n_layers_encoder
-        self.n_layers_decoder = n_layers_decoder
-        self.activation_encoder = activation_encoder
-        self.activation_decoder = activation_decoder
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metrics = metrics
-        self.verbose = verbose
-        self.use_mini_batch_size = use_mini_batch_size
-        self.callbacks = callbacks
-        self.file_path = file_path
-        self.n_epochs = n_epochs
-        self.validation_split = validation_split
-        self.save_best_model = save_best_model
-        self.save_last_model = save_last_model
-        self.save_init_model = save_init_model
-        self.best_file_name = best_file_name
-        self.init_file_name = init_file_name
-        self.random_state = random_state
-
         super().__init__(
             estimator=estimator,
+            n_epochs=n_epochs,
             batch_size=batch_size,
+            validation_split=validation_split,
+            use_mini_batch_size=use_mini_batch_size,
+            random_state=random_state,
+            verbose=verbose,
+            loss=loss,
+            metrics=metrics,
+            optimizer=optimizer,
+            file_path=file_path,
+            save_best_model=save_best_model,
+            save_last_model=save_last_model,
+            save_init_model=save_init_model,
+            best_file_name=best_file_name,
             last_file_name=last_file_name,
+            init_file_name=init_file_name,
+            callbacks=callbacks,
         )
 
-        self._network = AEAttentionBiGRUNetwork(
-            latent_space_dim=self.latent_space_dim,
-            n_layers_encoder=self.n_layers_encoder,
-            n_layers_decoder=self.n_layers_decoder,
+        self.n_filters_encoder = n_filters_encoder
+        self.n_filters_decoder = n_filters_decoder
+        self.activation_encoder = activation_encoder
+        self.activation_decoder = activation_decoder
+
+        self._network = AEDeTSECNetwork(
+            n_filters_encoder=self.n_filters_encoder,
+            n_filters_decoder=self.n_filters_decoder,
             activation_encoder=self.activation_encoder,
             activation_decoder=self.activation_decoder,
         )
+
+        self.can_multi_rec = False
 
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -200,38 +192,21 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         -------
         output : a compiled Keras Model.
         """
-        import numpy as np
         import tensorflow as tf
 
-        if self.metrics is None:
-            self._metrics = ["mean_squared_error"]
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
-            self._metrics = self.metrics
+        self._check_params()
 
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
-        tf.keras.utils.set_random_seed(self.random_state_)
-        encoder, decoder = self._network.build_network(input_shape, **kwargs)
+        tf.keras.utils.set_random_seed(self._random_state)
+        self._network.build_network(input_shape, **kwargs)
+        model = self._network.get_autoencoder_model()
 
-        input_layer = tf.keras.layers.Input(input_shape, name="input layer")
-        encoder_output = encoder(input_layer)
-        decoder_output = decoder(encoder_output)
-        output_layer = decoder_output
-
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        self.optimizer_ = (
-            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
-        )
-
-        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
+        self._metrics = self._metrics + self._metrics
+        model.compile(optimizer=self._optimizer, loss=self.loss, metrics=self._metrics)
 
         return model
 
     def _fit(self, X):
-        """Fit the classifier on the training set (X, y).
+        """Fit the Clusterer on the training set X.
 
         Parameters
         ----------
@@ -242,8 +217,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         -------
         self : object
         """
-        import tensorflow as tf
-
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
@@ -257,59 +230,25 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             self.training_model_.summary()
 
         if self.use_mini_batch_size:
-            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+            self._batch_size = min(self.batch_size, X.shape[0] // 10)
         else:
-            mini_batch_size = self.batch_size
-
-        self.file_name_ = (
-            self.best_file_name if self.save_best_model else str(time.time_ns())
-        )
-
-        if self.callbacks is None:
-            self.callbacks_ = [
-                tf.keras.callbacks.ReduceLROnPlateau(
-                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                ),
-                tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="val_loss" if self.validation_split > 0 else "loss",
-                    save_best_only=True,
-                ),
-            ]
-        else:
-            self.callbacks_ = self._get_model_checkpoint_callback(
-                callbacks=self.callbacks,
-                file_path=self.file_path,
-                file_name=self.file_name_,
-            )
+            self._batch_size = self.batch_size
 
         self.history = self.training_model_.fit(
             X,
-            X,
-            batch_size=mini_batch_size,
+            (X, X),
+            batch_size=self._batch_size,
+            validation_split=self.validation_split,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=self.callbacks_,
-            validation_split=self.validation_split,
+            callbacks=self._callbacks,
         )
 
-        try:
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras",
-                compile=False,
-            )
-            if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".keras")
-        except FileNotFoundError:
-            self.model_ = deepcopy(self.training_model_)
+        self._load_best_model_and_save()
 
         self._fit_clustering(X=X)
 
-        if self.save_last_model:
-            self.save_last_model_to_file(file_path=self.file_path)
-
         gc.collect()
-
         return self
 
     @classmethod
@@ -338,8 +277,8 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers_encoder": 1,
-            "n_layers_decoder": 1,
+            "n_filters_encoder": 2,
+            "n_filters_decoder": 2,
         }
 
         return [param1]
