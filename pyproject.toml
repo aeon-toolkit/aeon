@@ -128,7 +128,7 @@ docs = [
     "numpydoc",
     "myst-parser",
     "jupyter",
-    "furo",
+    "pydata-sphinx-theme>=0.16.1",
     "tabulate",
     "matplotlib",
 ]

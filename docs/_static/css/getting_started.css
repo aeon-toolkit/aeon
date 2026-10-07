@@ -1,0 +1,213 @@
+/* Getting started page (docs/getting_started.md). */
+/* The figures in docs/images/getting_started have no colours of their own, the */
+/* classes starting with "f-" pick them here from the illustration colours of */
+/* custom.css. Yellow is only used as a fill, it has too little contrast for lines. */
+
+.aeon-fig {
+  margin: 1.25rem 0 1.75rem;
+}
+
+.aeon-fig svg {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 12px;
+  background: var(--aeon-tile-bg);
+}
+
+/* The caption says what the figure shows and is its colour key. */
+.aeon-fig > p {
+  max-width: 640px;
+  margin: 0.6rem auto 0;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--pst-color-text-muted);
+}
+
+/* -- lines -- */
+
+.aeon-fig .f-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aeon-fig .f-a {
+  stroke: var(--aeon-a);
+}
+
+.aeon-fig .f-b {
+  stroke: var(--aeon-b);
+}
+
+.aeon-fig .f-ink {
+  stroke: var(--aeon-ink);
+}
+
+.aeon-fig .f-ink-strong {
+  stroke: var(--aeon-ink-strong);
+}
+
+.aeon-fig .f-grid {
+  stroke: var(--aeon-ink);
+  stroke-width: 1;
+  stroke-opacity: 0.25;
+}
+
+.aeon-fig .f-thin {
+  stroke-width: 1;
+}
+
+.aeon-fig .f-bold {
+  stroke-width: 3;
+}
+
+.aeon-fig .f-faint {
+  stroke-opacity: 0.35;
+}
+
+.aeon-fig .f-dash {
+  stroke-dasharray: 5 5;
+}
+
+/* -- fills -- */
+
+.aeon-fig .f-fill-a {
+  fill: var(--aeon-a);
+}
+
+.aeon-fig .f-fill-b {
+  fill: var(--aeon-b);
+}
+
+.aeon-fig .f-fill-ink {
+  fill: var(--aeon-ink-strong);
+}
+
+.aeon-fig .f-dot {
+  fill-opacity: 0.65;
+}
+
+.aeon-fig .f-soft-a {
+  fill: var(--aeon-a);
+  fill-opacity: 0.16;
+}
+
+.aeon-fig .f-soft-b {
+  fill: var(--aeon-b);
+  fill-opacity: 0.16;
+}
+
+.aeon-fig .f-soft-c {
+  fill: var(--aeon-c);
+  fill-opacity: 0.22;
+}
+
+.aeon-fig .f-soft-ink {
+  fill: var(--aeon-ink);
+  fill-opacity: 0.16;
+}
+
+/* a surface standing out of the tile, and a step of a diagram */
+.aeon-fig .f-card,
+.aeon-fig .f-box {
+  fill: var(--pst-color-background);
+  stroke: var(--aeon-ink);
+  stroke-width: 1;
+}
+
+.aeon-fig .f-box {
+  stroke: var(--aeon-a);
+  stroke-width: 1.5;
+}
+
+/* -- text -- */
+
+.aeon-fig .f-text {
+  fill: var(--pst-color-text-muted);
+  font-family: var(--pst-font-family-base);
+  font-size: 13px;
+}
+
+.aeon-fig .f-strong {
+  fill: var(--pst-color-text-base);
+  font-weight: 700;
+}
+
+.aeon-fig .f-code {
+  fill: var(--pst-color-text-base);
+  font-family: var(--pst-font-family-monospace);
+  font-size: 13px;
+}
+
+.aeon-fig .f-chip-text {
+  fill: var(--pst-color-background);
+  font-family: var(--pst-font-family-heading);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Text in a figure shrinks with it, so it is set larger on narrow screens. */
+@media (max-width: 600px) {
+  .aeon-fig .f-text,
+  .aeon-fig .f-code {
+    font-size: 19px;
+  }
+
+  .aeon-fig .f-chip-text {
+    font-size: 18px;
+  }
+}
+
+/* -- colour key of the captions -- */
+
+.aeon-fig .k-a,
+.aeon-fig .k-b,
+.aeon-fig .k-c,
+.aeon-fig .k-ink {
+  font-weight: 600;
+}
+
+.aeon-fig .k-a::before,
+.aeon-fig .k-b::before,
+.aeon-fig .k-c::before,
+.aeon-fig .k-ink::before {
+  content: "";
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.3em;
+  border-radius: 3px;
+}
+
+.aeon-fig .k-a {
+  color: var(--aeon-a-text);
+}
+
+.aeon-fig .k-b {
+  color: var(--aeon-b-text);
+}
+
+.aeon-fig .k-c,
+.aeon-fig .k-ink {
+  color: var(--pst-color-text-base);
+}
+
+.aeon-fig .k-a::before {
+  background: var(--aeon-a);
+}
+
+.aeon-fig .k-b::before {
+  background: var(--aeon-b);
+}
+
+.aeon-fig .k-c::before {
+  background: var(--aeon-c);
+}
+
+.aeon-fig .k-ink::before {
+  background: var(--aeon-ink-strong);
+}

@@ -638,3 +638,153 @@ Plotting Estimators
 :::
 
 ::::
+
+```{toctree}
+:hidden:
+:caption: Classification
+
+Overview <examples/classification/classification.ipynb>
+Convolution based <examples/classification/convolution_based.ipynb>
+Deep learning <examples/classification/deep_learning.ipynb>
+Dictionary based <examples/classification/dictionary_based.ipynb>
+Distance based <examples/classification/distance_based.ipynb>
+Feature based <examples/classification/feature_based.ipynb>
+Hybrid <examples/classification/hybrid.ipynb>
+Interval based <examples/classification/interval_based.ipynb>
+DrCIF <examples/classification/interval_based/drcif.ipynb>
+Shapelet based <examples/classification/shapelet_based.ipynb>
+Early classification <examples/classification/early_classification.ipynb>
+Rotation Forest <examples/classification/rotation_forest.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Regression
+
+Overview <examples/regression/regression.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Clustering
+
+Overview <examples/clustering/clustering.ipynb>
+Partition based <examples/clustering/partitional_clustering.ipynb>
+Feature based <examples/clustering/feature_based_clustering.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Anomaly Detection
+
+Overview <examples/anomaly_detection/anomaly_detection.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Forecasting
+
+Overview <examples/forecasting/forecasting.ipynb>
+Direct forecasting <examples/forecasting/direct.ipynb>
+Iterative forecasting <examples/forecasting/iterative.ipynb>
+Forecasting with regression <examples/forecasting/regression.ipynb>
+ARIMA <examples/forecasting/stats/arima.ipynb>
+CES <examples/forecasting/stats/ces.ipynb>
+DOTM <examples/forecasting/stats/dotm.ipynb>
+ETS <examples/forecasting/stats/ets.ipynb>
+Theta <examples/forecasting/stats/theta.ipynb>
+TVP <examples/forecasting/stats/tvp.ipynb>
+SETAR <examples/forecasting/machine_learning/setar.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Segmentation
+
+Overview <examples/segmentation/segmentation.ipynb>
+ClaSP <examples/segmentation/segmentation_with_clasp.ipynb>
+Hidalgo <examples/segmentation/hidalgo_segmentation.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Similarity Search
+
+Overview <examples/similarity_search/similarity_search.ipynb>
+Distance profiles <examples/similarity_search/distance_profiles.ipynb>
+Code speed <examples/similarity_search/code_speed.ipynb>
+SimHash and the LSH index <examples/similarity_search/simhash_index.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Transformations
+
+Overview <examples/transformations/transformations.ipynb>
+Preprocessing <examples/transformations/preprocessing.ipynb>
+Smoothing filters <examples/transformations/smoothing_filters.ipynb>
+Channel selection <examples/transformations/channel_selection.ipynb>
+Class imbalance <examples/transformations/imbalance.ipynb>
+catch22 <examples/transformations/catch22.ipynb>
+tsfresh <examples/transformations/tsfresh.ipynb>
+ROCKET <examples/transformations/rocket.ipynb>
+MiniRocket <examples/transformations/minirocket.ipynb>
+SAST <examples/transformations/sast.ipynb>
+SAX <examples/transformations/SAX.ipynb>
+Signature method <examples/transformations/signature_method.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Distances
+
+Overview <examples/distances/distances.ipynb>
+With scikit-learn <examples/distances/sklearn_distances.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Networks
+
+Deep learning <examples/networks/deep_learning.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Data
+
+Overview <examples/datasets/datasets.ipynb>
+Loading data <examples/datasets/data_loading.ipynb>
+Provided datasets <examples/datasets/provided_data.ipynb>
+Datasets from the web <examples/datasets/load_data_from_web.ipynb>
+Unequal length and missing values <examples/datasets/data_unequal.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Benchmarking
+
+Overview <examples/benchmarking/benchmarking.ipynb>
+Published results <examples/benchmarking/published_results.ipynb>
+Reference results <examples/benchmarking/reference_results.ipynb>
+Regression <examples/benchmarking/regression.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Base
+
+Base classes <examples/base/base_classes.ipynb>
+BaseSeriesEstimator <examples/base/series_estimator.ipynb>
+```
+
+```{toctree}
+:hidden:
+:caption: Visualisation
+
+Plotting series <examples/visualisation/plotting_series.ipynb>
+Plotting results <examples/visualisation/plotting_results.ipynb>
+Plotting for learning tasks <examples/visualisation/plotting_for_learning_tasks.ipynb>
+Plotting distances <examples/visualisation/plotting_distances.ipynb>
+Plotting estimators <examples/visualisation/plotting_estimators.ipynb>
+```

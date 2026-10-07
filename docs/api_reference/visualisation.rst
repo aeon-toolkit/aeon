@@ -37,3 +37,4 @@ Visualisation
     plot_temporal_importance_curves
     plot_network
     plot_pairwise_distance_matrix
+    plot_sax_representation
