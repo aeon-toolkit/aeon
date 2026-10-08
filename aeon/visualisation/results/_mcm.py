@@ -317,8 +317,8 @@ def _get_analysis(
 
         ax.legend(handles=legend_elements)
 
-        if not os.path.exists(save_path + "1v1_plots/"):
-            os.mkdir(save_path + "1v1_plots/")
+        if not os.path.exists(os.path.join(save_path, "1v1_plots/")):
+            os.mkdir(os.path.join(save_path, "1v1_plots/"))
         plt.savefig(save_path, bbox_inches="tight")
         plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
         plt.cla()
