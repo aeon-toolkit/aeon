@@ -69,6 +69,10 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         or just the last output (False).
     attention : bool or list of bool, default=False
         Whether to apply self-attention mechanism after each recurrent layer (see [4]).
+    use_bias : bool or list of bool, default = True
+        Condition on whether or not to use bias values in the convolution layers in
+        one residual block, if not a list, the same kernel size is used in all
+        convolution layers.
 
     References
     ----------
@@ -102,6 +106,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         activation="tanh",
         return_sequence_last=False,
         attention=False,
+        use_bias=True,
     ):
         super().__init__()
         self.rnn_type = rnn_type.lower()
@@ -114,6 +119,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.return_sequence_last = return_sequence_last
         self.attention = attention
+        self.use_bias = use_bias
 
     def _check_params(self):
         if self.rnn_type not in ["lstm", "gru", "simple"]:
@@ -137,10 +143,15 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self._attention = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.attention, "attention", default=False
         )
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.use_bias, "biases", default=True
+        )
         self._residual = RecurrentNetwork._check_residual_matrix(
             self.n_layers, self.residual
         )
-        self._rnn_cell = RecurrentNetwork._check_rnn_cell(self.rnn_type)
+        self._rnn_cell = RecurrentNetwork._check_rnn_cell(
+            self.rnn_type,
+        )
 
     @staticmethod
     def _check_residual_matrix(n_layers, residual):
@@ -207,6 +218,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             units=self._n_units[i],
             activation=self._activation[i],
             return_sequences=True,
+            use_bias=self._use_bias[i],
             name=f"{self.rnn_type}_{i+1}",
         )
 
