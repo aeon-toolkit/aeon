@@ -5,7 +5,7 @@ __all__ = ["ShapeleterTransformer"]
 
 import numpy as np
 from numba import njit, prange
-from scipy.sparse import lil_matrix
+from scipy.sparse import csr_matrix
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.preprocessing import MinMaxScaler
@@ -52,15 +52,14 @@ def _compute_jaccard_matrix(edges, n_nodes):
         return np.eye(max(1, n_nodes))
 
     num_edges = len(edges)
-    h_mat = lil_matrix((n_nodes, num_edges), dtype=int)
-    for edge_id, edge in enumerate(edges):
-        for node in edge:
-            if node < n_nodes:
-                h_mat[node, edge_id] = 1
+    edge_lens = [len(e) for e in edges]
+    cols = np.repeat(np.arange(num_edges), edge_lens)
+    rows = np.concatenate(edges)
+    data = np.ones(len(rows), dtype=np.int32)
 
-    h_csr = h_mat.tocsr()
-    intersection = h_csr.dot(h_csr.T).toarray()
-    degrees = np.array(h_csr.sum(axis=1)).flatten()
+    h_csr = csr_matrix((data, (rows, cols)), shape=(n_nodes, num_edges))
+    intersection = (h_csr @ h_csr.T).toarray()
+    degrees = np.asarray(h_csr.sum(axis=1)).ravel()
     union = degrees[:, np.newaxis] + degrees[np.newaxis, :] - intersection
 
     j_matrix = np.zeros((n_nodes, n_nodes), dtype=float)
