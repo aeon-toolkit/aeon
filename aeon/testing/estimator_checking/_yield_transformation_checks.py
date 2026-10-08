@@ -11,12 +11,17 @@ from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
 from aeon.transformations.collection import CollectionInverseTransformerMixin
+from aeon.transformations.collection.base import BaseGlobalCollectionTransformer
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import (
     BaseSeriesTransformer,
     SeriesInverseTransformerMixin,
 )
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, VALID_SERIES_INNER_TYPES
+from aeon.utils.data_types import (
+    COLLECTIONS_DATA_TYPES,
+    GLOBAL_RESCALER_DATA_TYPES,
+    VALID_SERIES_INNER_TYPES,
+)
 
 
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
@@ -63,11 +68,12 @@ def check_transformer_overrides_and_tags(estimator_class):
                 f"Override _{method} instead."
             )
 
-    dtypes = (
-        VALID_SERIES_INNER_TYPES
-        if issubclass(estimator_class, BaseSeriesTransformer)
-        else COLLECTIONS_DATA_TYPES
-    )
+    if issubclass(estimator_class, BaseSeriesTransformer):
+        dtypes = VALID_SERIES_INNER_TYPES
+    elif issubclass(estimator_class, BaseGlobalCollectionTransformer):
+        dtypes = GLOBAL_RESCALER_DATA_TYPES
+    else:
+        dtypes = COLLECTIONS_DATA_TYPES
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
@@ -89,7 +95,10 @@ def check_transformer_overrides_and_tags(estimator_class):
     inherits_inverse = (
         issubclass(estimator_class, SeriesInverseTransformerMixin)
         if issubclass(estimator_class, BaseSeriesTransformer)
-        else issubclass(estimator_class, CollectionInverseTransformerMixin)
+        else (
+            issubclass(estimator_class, CollectionInverseTransformerMixin)
+            or issubclass(estimator_class, BaseGlobalCollectionTransformer)
+        )
     )
     if estimator_class.get_class_tag("capability:inverse_transform"):
         assert inherits_inverse
