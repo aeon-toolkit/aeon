@@ -72,7 +72,7 @@ Available archive lists
     The 133 Multivariate TSC problems described in [6]_.
 
 ``multiverse_core``
-    A 66-dataset core subset of the Multiverse archive described in [6]_.
+    A 65-dataset core subset of the Multiverse archive described in [6]_.
 
 ``eeg2026``
     The 28 open source EEG classification problems introduced in [7]_.
@@ -565,7 +565,7 @@ redux = [
     "Tools",
 ]
 
-# 66 MTSC datasets recommended for general purpose algorithm comparison [6]
+# 65 MTSC datasets recommended for general purpose algorithm comparison [6]
 multiverse_core = [
     "Alzheimers",
     "AppliancesEnergy_disc",
@@ -577,7 +577,6 @@ multiverse_core = [
     "AutomotiveRoadTrials",
     "BeijingPM10Quality_disc",
     "BeijingPM25Quality_disc",
-    "BenzeneConcentration_disc",
     "BIDMC32HR_disc",
     "BIDMC32SpO2_disc",
     "Blink",
@@ -956,7 +955,7 @@ tsc_zenodo = {
     "BeetleFly": 11185218,
     "BeijingPM10Quality_disc": 18497561,
     "BeijingPM25Quality_disc": 18498242,
-    "BenzeneConcentration_disc": 18498580,
+    "BenzeneConcentration_disc": 23060100,
     "BirdChicken": 11185259,
     "Blink": 18735667,
     "BoneIntensitiesAgeGroup": 18498586,
@@ -1058,7 +1057,7 @@ tsc_zenodo = {
     "InnerSpeech": 15425020,
     "InsectEPGRegularTrain": 11197587,
     "InsectEPGSmallTrain": 11197608,
-    "InsectWingbeat": 11206234,
+    "InsectWingbeat": 21871184,
     "InsectWingbeatSound": 11197635,
     "ItalyPowerDemand": 11197656,
     "JapaneseVowels": 18735628,
