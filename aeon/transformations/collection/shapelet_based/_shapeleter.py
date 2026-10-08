@@ -171,7 +171,8 @@ class _CombinationFusion:
                 lda = LinearDiscriminantAnalysis(n_components=1)
                 lda.fit(feat, y)
                 trans = lda.transform(feat)
-                return lda, trans
+                if trans.ndim == 2 and trans.shape[1] == 1:
+                    return lda, trans
             except Exception:
                 pass
         return None, np.mean(feat, axis=1, keepdims=True)
@@ -180,7 +181,9 @@ class _CombinationFusion:
         feat = np.hstack([v1, v2])
         if lda is not None:
             try:
-                return lda.transform(feat)
+                trans = lda.transform(feat)
+                if trans.ndim == 2 and trans.shape[1] == 1:
+                    return trans
             except Exception:
                 pass
         return np.mean(feat, axis=1, keepdims=True)
