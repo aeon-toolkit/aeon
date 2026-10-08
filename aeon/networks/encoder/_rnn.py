@@ -70,6 +70,10 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         or just the last output (False).
     attention : bool or list of bool, default=False
         Whether to apply self-attention mechanism after each recurrent layer (see [4]).
+    use_bias : bool or list of bool, default = True
+        Condition on whether or not to use bias values in the convolution layers in
+        one residual block, if not a list, the same kernel size is used in all
+        convolution layers.
 
     References
     ----------
@@ -103,6 +107,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         activation="tanh",
         return_sequence_last=False,
         attention=False,
+        use_bias=True,
     ):
         super().__init__()
         self.rnn_type = rnn_type
@@ -115,6 +120,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.return_sequence_last = return_sequence_last
         self.attention = attention
+        self.use_bias = use_bias
 
     def _check_params(self):
         self._rnn_type = RNN_TYPE._check_params(
@@ -135,38 +141,44 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self._attention = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.attention, "attention", default=False
         )
-        self._residual = self._check_residual_matrix()
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.use_bias, "biases", default=True
+        )
+        self._residual = RecurrentNetwork._check_residual_matrix(
+            self.n_layers, self.residual
+        )
 
-    def _check_residual_matrix(self):
+    @staticmethod
+    def _check_residual_matrix(n_layers, residual):
         # if not matrix return diagonal :
-        if not isinstance(self.residual, np.ndarray) or self.residual.ndim <= 1:
+        if not isinstance(residual, np.ndarray) or residual.ndim <= 1:
             residual = BaseDeepLearningNetwork._check_layer_param(
-                self.n_layers, self.residual, "residual", default=0
+                n_layers, residual, "residual", default=0
             )
             # if given as a single value, remove
             # the useless redisual between input layer and first layer
-            if isinstance(self.residual, (int, float)):
+            if isinstance(residual, (int, float)):
                 residual[0] = 0
 
             return np.diag(residual)
 
         # check matrix shape
-        if self.residual.shape != (self.n_layers, self.n_layers):
+        if residual.shape != (n_layers, n_layers):
             raise ValueError(
-                f"Residual matrix shape {self.residual.shape} does not match "
-                f"the number of layers {self.n_layers}. "
+                f"Residual matrix shape {residual.shape} does not match "
+                f"the number of layers {n_layers}. "
                 "It should be a square matrix of shape (n_layers, n_layers)."
             )
         # check that no connections exists where 'j' is less than 'i'
-        for i in range(self.n_layers):
+        for i in range(n_layers):
             for j in range(i):
-                if self.residual[i, j] != 0:
+                if residual[i, j] != 0:
                     raise ValueError(
                         f"Residual connection from layer {i} to layer {j} "
                         "is not allowed. Only connections where 'j' is greater "
                         "than or equal to 'i' are allowed."
                     )
-        return self.residual
+        return residual
 
     def _build_dropout_layer(self, x, i):
         # if last layer, apply output dropout; otherwise, apply intermediate dropout
@@ -188,7 +200,8 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             units=self._n_units[i],
             activation=self._activation[i],
             return_sequences=True,
-            name=f"{self._rnn_type}_{i+1}",
+            use_bias=self._use_bias[i],
+            name=f"{self.rnn_type}_{i+1}",
         )
 
         if self._bidirectional[i]:
