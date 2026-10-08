@@ -48,7 +48,7 @@ class SummaryRegressor(BaseRegressor):
 
     See Also
     --------
-    SummaryTransformer
+    SevenNumberSummary
     SummaryClassifier
 
     Examples

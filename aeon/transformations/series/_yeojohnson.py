@@ -42,19 +42,13 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
     See Also
     --------
-    aeon.transformations.boxcox.BoxCoxTransformer :
+    aeon.transformations.series.BoxCoxTransformer :
         Transform input data by using the Box-Cox power transform. Used to
         make data more normally distributed and stabilize its variance based
         on the hyperparameter lambda.
-    aeon.transformations.boxcox.LogTransformer :
+    aeon.transformations.series.LogTransformer :
         Transform input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     References
     ----------

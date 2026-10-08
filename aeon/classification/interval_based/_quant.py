@@ -37,7 +37,8 @@ class QUANTClassifier(BaseClassifier):
     estimator : sklearn estimator, default=None
         The estimator to use for classification. If None, an ExtraTreesClassifier
         with 200 estimators is used.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         Only applies if estimator is None, and the default ExtraTreesClassifier is used.
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.

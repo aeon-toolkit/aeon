@@ -83,6 +83,13 @@ def test_get_type(data):
         assert get_type(MULTIVARIATE_SERIES[data]["train"][0]) == data
 
 
+def test_get_type_integer_values():
+    """Test integer valued series are accepted by the get_type function."""
+    assert get_type(np.array([1, 2, 3])) == "np.ndarray"
+    assert get_type(pd.Series([1, 2, 3])) == "pd.Series"
+    assert get_type(pd.DataFrame([[1, 2], [3, 4]])) == "pd.DataFrame"
+
+
 def test_get_type_errors():
     """Test error catching in the get_type function."""
     with pytest.raises(TypeError, match="must be of type"):
@@ -103,6 +110,8 @@ def test_get_type_errors():
     df = pd.DataFrame(data)
     with pytest.raises(TypeError, match="contain numeric values only"):
         get_type(df)
+    with pytest.raises(TypeError, match="contain numeric values only"):
+        get_type(df["String_Column"])
 
 
 def _make_flat_series(x):
