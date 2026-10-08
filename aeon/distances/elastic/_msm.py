@@ -300,9 +300,19 @@ def _msm_independent_distance_unbounded(
 @njit(cache=True, fastmath=True)
 def _univariate_msm_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) -> float:
     """Compute univariate unbounded MSM with two rolling rows."""
+    # Iterate over the longer series so the row buffers are sized by the shorter
+    # one. MSM is symmetric, so the arguments are swapped by calling the
+    # implementation rather than reassigning x and y, which Numba cannot type
+    # when the two series have different dtypes.
     if x.shape[0] < y.shape[0]:
-        x, y = y, x
+        return _univariate_msm_distance_unbounded_impl(y, x, c)
+    return _univariate_msm_distance_unbounded_impl(x, y, c)
 
+
+@njit(cache=True, fastmath=True)
+def _univariate_msm_distance_unbounded_impl(
+    x: np.ndarray, y: np.ndarray, c: float
+) -> float:
     x_size = x.shape[0]
     y_size = y.shape[0]
 
@@ -332,9 +342,16 @@ def _msm_dependent_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) ->
         raise ValueError(
             "Dependent MSM requires x and y to have the same number of channels."
         )
+    # See _univariate_msm_distance_unbounded for why this is not an in-place swap.
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
+        return _msm_dependent_distance_unbounded_impl(y, x, c)
+    return _msm_dependent_distance_unbounded_impl(x, y, c)
 
+
+@njit(cache=True, fastmath=True)
+def _msm_dependent_distance_unbounded_impl(
+    x: np.ndarray, y: np.ndarray, c: float
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
 
@@ -382,11 +399,17 @@ def _univariate_msm_distance(
     # Iterate over the larger dimension to minimize the size of the row buffers.
     # MSM is symmetric (its cost function is symmetric in its last two arguments),
     # so swapping x and y and transposing the bounding matrix leaves the distance
-    # unchanged.
+    # unchanged. The swap is a call with swapped arguments rather than a
+    # reassignment, which Numba cannot type when x and y have different dtypes.
     if x.shape[0] < y.shape[0]:
-        x, y = y, x
-        bounding_matrix = bounding_matrix.T
+        return _univariate_msm_distance_impl(y, x, bounding_matrix.T, c)
+    return _univariate_msm_distance_impl(x, y, bounding_matrix, c)
 
+
+@njit(cache=True, fastmath=True)
+def _univariate_msm_distance_impl(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
     x_size = x.shape[0]
     y_size = y.shape[0]
 
@@ -431,11 +454,18 @@ def _msm_dependent_distance(
         )
     # Iterate over the larger dimension to minimize the size of the row buffers.
     # MSM is symmetric, so swapping x and y and transposing the bounding matrix
-    # leaves the distance unchanged.
+    # leaves the distance unchanged. The swap is a call with swapped arguments
+    # rather than a reassignment, which Numba cannot type when x and y have
+    # different dtypes.
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
-        bounding_matrix = bounding_matrix.T
+        return _msm_dependent_distance_impl(y, x, bounding_matrix.T, c)
+    return _msm_dependent_distance_impl(x, y, bounding_matrix, c)
 
+
+@njit(cache=True, fastmath=True)
+def _msm_dependent_distance_impl(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
 
