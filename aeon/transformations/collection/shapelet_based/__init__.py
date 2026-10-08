@@ -5,6 +5,7 @@ __all__ = [
     "RandomShapeletTransform",
     "RSAST",
     "SAST",
+    "ShapeleterTransform",
     "ShapeleterTransformer",
 ]
 
@@ -17,5 +18,6 @@ from aeon.transformations.collection.shapelet_based._shapelet_transform import (
     RandomShapeletTransform,
 )
 from aeon.transformations.collection.shapelet_based._shapeleter import (
+    ShapeleterTransform,
     ShapeleterTransformer,
 )
