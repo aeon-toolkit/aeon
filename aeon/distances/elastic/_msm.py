@@ -17,11 +17,11 @@ from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
-# TODO: remove MSM bounding parameters in v1.7.0
+# TODO: remove MSM bounding parameters in v1.8.0
 def _warn_bounding_deprecated(stacklevel=2):
     warnings.warn(
         "The 'window' and 'itakura_max_slope' parameters are deprecated for MSM "
-        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "and will be removed in v1.8.0. Bounding constraints are not part of the "
         "standard MSM algorithm.",
         FutureWarning,
         stacklevel=stacklevel,
@@ -91,7 +91,7 @@ def msm_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
@@ -102,7 +102,7 @@ def msm_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
 
     Returns
@@ -194,7 +194,7 @@ def msm_cost_matrix(
         The window size to use for the bounding matrix. If None, the
         bounding matrix is not used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
@@ -205,7 +205,7 @@ def msm_cost_matrix(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
 
     Returns
@@ -609,7 +609,7 @@ def msm_pairwise_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
@@ -620,7 +620,7 @@ def msm_pairwise_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
@@ -786,7 +786,7 @@ def msm_alignment_path(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
     independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
@@ -797,7 +797,7 @@ def msm_alignment_path(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard MSM algorithm.
 
     Returns
