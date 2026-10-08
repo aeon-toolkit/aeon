@@ -6,6 +6,8 @@ __all__ = [
 
 import os
 
+import numpy as np
+
 
 def check_n_jobs(n_jobs: int) -> int:
     """Check `n_jobs` parameter according to the scikit-learn convention.
@@ -34,3 +36,9 @@ def check_n_jobs(n_jobs: int) -> int:
         return max(1, os.cpu_count() + 1 + n_jobs)
     else:
         return n_jobs
+
+
+def _is_float_or_int_dtype(dtype):
+    return isinstance(dtype, np.dtype) and (
+        np.issubdtype(dtype, np.floating) or np.issubdtype(dtype, np.integer)
+    )

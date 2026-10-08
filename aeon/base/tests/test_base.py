@@ -95,6 +95,17 @@ def test_reset_invalid():
         clf.reset(keep=1)
 
 
+def test_reset_preserves_sklearn_callback_context():
+    """Test reset preserves callback context temporarily owned by scikit-learn."""
+    clf = MockClassifier()
+    callback_context = object()
+    clf._parent_callback_ctx = callback_context
+
+    clf.reset()
+
+    assert clf._parent_callback_ctx is callback_context
+
+
 def test_clone():
     """Tests that clone method correctly clones an estimator."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]

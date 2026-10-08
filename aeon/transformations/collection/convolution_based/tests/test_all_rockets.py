@@ -235,3 +235,22 @@ def test_ppv():
     b = np.float32(-5.0)
     assert _PPV(a, b) == 1
     assert _PPV(b, a) == 0
+
+
+def test_transform_kernels_matches_transform():
+    """Rocket._transform_kernels equals transform when normalise is False.
+
+    ``_transform_kernels`` is the kernels-only entry point used by ensembles
+    that normalise input once. Only Rocket needs it, as it is the only rocket
+    transform that normalises by default; with normalisation off it must be
+    exactly the public transform. MiniRocket never normalises and MultiRocket
+    defaults to ``normalise=False``, so their ``_transform`` is already
+    kernels-only.
+    """
+    transformer = Rocket(n_kernels=100, normalise=False, random_state=0)
+    rng = check_random_state(0)
+    X = rng.standard_normal((10, 1, 30))
+
+    Xt = transformer.fit_transform(X)
+
+    np.testing.assert_array_equal(transformer._transform_kernels(X), Xt)

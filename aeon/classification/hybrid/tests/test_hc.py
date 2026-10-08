@@ -61,6 +61,85 @@ def test_hc2_defaults_and_verbosity():
     HIVECOTEV2._DEFAULT_RAND_PARAMS = 50
 
 
+def test_hc1_verbose_progress_and_parameter_output(capsys):
+    """HC1 verbosity four reports ensemble and detailed component progress."""
+    n_cases = 20
+    n_timepoints = 24
+    X, y = make_example_3d_numpy(n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2)
+    hc1 = HIVECOTEV1(
+        verbose=4,
+        **HIVECOTEV1._get_test_params(parameter_set="default"),
+    )
+
+    hc1.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"[HIVECOTEV1] Starting fit: n_cases={n_cases}" in output
+    for component_name in ("STC", "TSF", "RISE", "cBOSS"):
+        assert f"[HIVECOTEV1] Starting {component_name}..." in output
+        assert f"[HIVECOTEV1] {component_name} params:" in output
+        assert f"[HIVECOTEV1] Finished {component_name} in " in output
+    assert "[HIVECOTEV1] Finished fit in " in output
+    assert "[HIVECOTEV1] Component summary:" in output
+    assert "[ShapeletTransformClassifier] Starting fit:" in output
+    assert "[RandomShapeletTransform] Batch 1:" in output
+
+    components = dict(zip(hc1.component_names_, hc1.fitted_estimators_))
+    assert components["STC"].verbose == 2
+    assert components["STC"].transformer_.verbose == 2
+
+
+def test_hc2_verbose_progress_and_parameter_output(capsys):
+    """HC2 verbosity four reports ensemble and detailed component progress."""
+    n_cases = 20
+    n_timepoints = 24
+    X, y = make_example_3d_numpy(n_cases=n_cases, n_timepoints=n_timepoints, n_labels=2)
+    hc2 = HIVECOTEV2(
+        verbose=4,
+        **HIVECOTEV2._get_test_params(parameter_set="default"),
+    )
+
+    hc2.fit(X, y)
+    output = capsys.readouterr().out
+
+    assert f"[HIVECOTEV2] Starting fit: n_cases={n_cases}" in output
+    for component_name in ("STC", "DrCIF", "Arsenal", "TDE"):
+        assert f"[HIVECOTEV2] Starting {component_name}..." in output
+        assert f"[HIVECOTEV2] {component_name} params:" in output
+        assert f"[HIVECOTEV2] Finished {component_name} in " in output
+    assert "[HIVECOTEV2] Finished fit in " in output
+    assert "[HIVECOTEV2] Component summary:" in output
+    assert "[RandomShapeletTransform] Batch 1:" in output
+    assert "[DrCIFClassifier] Estimator 1/" in output
+    assert "[Arsenal] Estimator 1/" in output
+    assert "[TemporalDictionaryEnsemble] Candidate 1:" in output
+
+    components = dict(zip(hc2.component_names_, hc2.fitted_estimators_))
+    assert components["STC"].verbose == 2
+    assert components["STC"].transformer_.verbose == 2
+    # STC only passes verbosity to RotationForestClassifier, not scikit-learn
+    assert components["STC"].estimator_.verbose == 0
+    assert components["DrCIF"].verbose == 2
+    assert components["Arsenal"].verbose == 2
+    assert components["TDE"].verbose == 2
+
+
+def test_hc2_contract_allocation_is_logged(capsys):
+    """HC2 reports how its contract is split between components."""
+    contract_minutes = 0.01
+    params = HIVECOTEV2._get_test_params(parameter_set="contracting")
+    params["time_limit_in_minutes"] = contract_minutes
+    X, y = make_example_3d_numpy(
+        n_cases=20, n_timepoints=24, n_labels=2, random_state=0
+    )
+
+    HIVECOTEV2(verbose=1, random_state=0, **params).fit(X, y)
+    output = capsys.readouterr().out
+
+    assert "[HIVECOTEV2] Contract time = 0.01 minutes" in output
+    assert "per-component allocation = 0.0017 minutes" in output
+
+
 def test_get_component_weights_after_fit():
     """get_component_weights returns one weight per component, all in [0, 1]."""
     X, y = make_example_3d_numpy(n_cases=20, n_timepoints=24, n_labels=2)

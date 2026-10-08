@@ -123,6 +123,7 @@ def test_univariate_forecasting_loaders(data):
     """Test baked in loaders of univariate forecasting data."""
     y = FORECASTING_DATA[data][0]()
     assert isinstance(y, np.ndarray)
+    assert y.flags.writeable
     y2 = FORECASTING_DATA[data][0](return_array=False)
     assert isinstance(y2, pd.Series)
     assert y2.shape == FORECASTING_DATA[data][1]
@@ -154,6 +155,7 @@ def test_uschange():
     """Test if multivariate uschange dataset is loaded correctly."""
     data = load_uschange()
     assert isinstance(data, np.ndarray)
+    assert data.flags.writeable
     assert data.shape == (5, 187)
     X = load_uschange(return_array=False)
     assert isinstance(X, pd.DataFrame)
@@ -164,6 +166,7 @@ def test_longley():
     """Test if multivariate longley dataset is loaded correctly."""
     data = load_longley()
     assert isinstance(data, np.ndarray)
+    assert data.flags.writeable
     assert data.shape == (6, 16)
     X = load_longley(return_array=False)
 

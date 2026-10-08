@@ -22,6 +22,7 @@ Clustering Algorithms
 
     KASBA
     KShape
+    TimeSeriesAgglomerative
     TimeSeriesKMeans
     TimeSeriesKMedoids
     TimeSeriesKernelKMeans

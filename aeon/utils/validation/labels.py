@@ -59,7 +59,8 @@ def check_regression_y(y):
     TypeError
         If y is not a 1D pd.Series or np.ndarray.
     ValueError
-        If y is not a continuous target.
+        If y is not a numeric regression target, e.g. it contains strings or
+        datetimes.
         if y is empty.
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
@@ -72,16 +73,22 @@ def check_regression_y(y):
         raise ValueError("y must not be empty.")
 
     y_type = type_of_target(y, input_name="y")
-    if y_type != "continuous" and y_type != "multiclass":
+    if y_type not in ("continuous", "multiclass", "binary"):
         raise ValueError(
             f"y type is {y_type} which is not valid for regression. "
             f"Should be continuous according to sklearn.utils.multiclass.type_of_target"
         )
 
-    if any([isinstance(label, str) for label in y]):
+    # type_of_target reports non-numeric targets (e.g. strings or datetimes) as
+    # "binary" or "multiclass" just like integer targets, so the type alone is not
+    # enough: also require a numeric dtype. This rejects categorical (including
+    # string and datetime) targets while accepting numeric ones, including a numeric
+    # "binary" target with only one or two unique values (e.g. a short or
+    # first-differenced integer series), which is a valid regression target.
+    if not np.issubdtype(np.asarray(y).dtype, np.number):
         raise ValueError(
-            "y contains strings, cannot fit a regressor. If suitable, convert "
-            "to floats or consider classification."
+            "y is not numeric, cannot fit a regressor. If suitable, convert to "
+            "floats or consider classification."
         )
 
 

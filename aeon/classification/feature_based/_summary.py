@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.utils.sklearn import _resolve_balanced_class_weight
 from aeon.utils.validation import check_n_jobs
 
 
@@ -44,7 +45,8 @@ class SummaryClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
         The “balanced” mode uses the values of y to automatically adjust weights
@@ -69,7 +71,7 @@ class SummaryClassifier(BaseClassifier):
 
     See Also
     --------
-    SummaryTransformer
+    SevenNumberSummary
     SummaryRegressor
 
     Examples
@@ -135,21 +137,25 @@ class SummaryClassifier(BaseClassifier):
             summary_stats=self.summary_stats,
         )
 
-        self.estimator_ = _clone_estimator(
-            (
-                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
-                if self.estimator is None
-                else self.estimator
-            ),
-            self.random_state,
-        )
+        if self.estimator is None:
+            class_weight, fit_kwargs = _resolve_balanced_class_weight(
+                self.class_weight, y
+            )
+            estimator = RandomForestClassifier(
+                n_estimators=200, class_weight=class_weight
+            )
+        else:
+            fit_kwargs = {}
+            estimator = self.estimator
+
+        self.estimator_ = _clone_estimator(estimator, self.random_state)
 
         m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
             self.estimator_.n_jobs = self._n_jobs
 
         X_t = self.transformer_.fit_transform(X, y)
-        self.estimator_.fit(X_t, y)
+        self.estimator_.fit(X_t, y, **fit_kwargs)
 
         return self
 
