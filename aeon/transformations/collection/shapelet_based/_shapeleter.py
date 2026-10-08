@@ -1,7 +1,7 @@
 """Shapeleter transformation."""
 
 __maintainer__ = []
-__all__ = ["ShapeleterTransform", "ShapeleterTransformer"]
+__all__ = ["ShapeleterTransform"]
 
 import numpy as np
 from numba import njit, prange

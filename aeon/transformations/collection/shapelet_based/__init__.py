@@ -6,7 +6,6 @@ __all__ = [
     "RSAST",
     "SAST",
     "ShapeleterTransform",
-    "ShapeleterTransformer",
 ]
 
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
@@ -19,5 +18,4 @@ from aeon.transformations.collection.shapelet_based._shapelet_transform import (
 )
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
-    ShapeleterTransformer,
 )
