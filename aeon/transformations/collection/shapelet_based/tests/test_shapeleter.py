@@ -3,7 +3,7 @@
 import numpy as np
 
 from aeon.transformations.collection.shapelet_based._shapeleter import (
-    ShapeleterTransformer,
+    ShapeleterTransform,
 )
 
 
@@ -12,7 +12,7 @@ def test_shapeleter_transformer_features():
     X = np.random.RandomState(42).normal(size=(5, 1, 30))
     y = np.array([0, 1, 0, 1, 0])
 
-    st = ShapeleterTransformer(max_shapelets=20, ka=1.5, ko=1.5, random_state=42)
+    st = ShapeleterTransform(max_shapelets=20, ka=1.5, ko=1.5, random_state=42)
     st.fit(X, y)
     Xt = st.transform(X)
 

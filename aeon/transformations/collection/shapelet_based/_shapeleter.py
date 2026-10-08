@@ -1,7 +1,7 @@
 """Shapeleter transformation."""
 
 __maintainer__ = []
-__all__ = ["ShapeleterTransformer"]
+__all__ = ["ShapeleterTransform", "ShapeleterTransformer"]
 
 import numpy as np
 from numba import njit, prange
@@ -254,7 +254,7 @@ class _CombinationFusion:
         )
 
 
-class ShapeleterTransformer(BaseCollectionTransformer):
+class ShapeleterTransform(BaseCollectionTransformer):
     """Shapeleter transformer with hypergraph pruning and dual positional embedding.
 
     Parameters
@@ -430,3 +430,6 @@ class ShapeleterTransformer(BaseCollectionTransformer):
 
         # Concatenate all 8 multiviews
         return np.hstack([x_min, x_soo, m_oa, m_or, m_ar, s_oa, s_or, s_ar])
+
+
+ShapeleterTransformer = ShapeleterTransform

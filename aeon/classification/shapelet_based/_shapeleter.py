@@ -8,7 +8,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.shapelet_based import ShapeleterTransformer
+from aeon.transformations.collection.shapelet_based import ShapeleterTransform
 
 
 class ShapeleterClassifier(BaseClassifier):
@@ -51,7 +51,7 @@ class ShapeleterClassifier(BaseClassifier):
 
     def _fit(self, X, y):
         """Fit Shapeleter classifier on training series."""
-        self._transformer = ShapeleterTransformer(
+        self._transformer = ShapeleterTransform(
             max_shapelets=self.max_shapelets,
             ka=self.ka,
             ko=self.ko,
