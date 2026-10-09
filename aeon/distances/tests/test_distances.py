@@ -214,27 +214,16 @@ def test_incorrect_inputs():
         (np.int32, np.float64),
     ],
 )
-def test_dtw_distance_mixed_dtypes(dtype_x, dtype_y):
+@pytest.mark.parametrize("len_x,len_y", [(4, 4), (4, 3), (3, 4)])
+def test_dtw_distance_mixed_dtypes(dtype_x, dtype_y, len_x, len_y):
     """Test that dtw_distance supports series with different dtypes (Issue #3826)."""
     from aeon.distances import dtw_cost_matrix, dtw_distance
 
-    # Equal lengths
-    x = np.array([1, 2, 3, 4], dtype=dtype_x)
-    y = np.array([2, 3, 4, 5], dtype=dtype_y)
+    x = np.arange(1, len_x + 1, dtype=dtype_x)
+    y = np.arange(2, len_y + 2, dtype=dtype_y)
     dist = dtw_distance(x, y)
     expected = dtw_cost_matrix(x, y)[-1, -1]
     assert dist == pytest.approx(expected, rel=1e-12)
-
-    # Unequal lengths (x shorter than y, and y shorter than x)
-    x_unequal = np.array([1, 2, 3, 4], dtype=dtype_x)
-    y_unequal = np.array([1, 2, 3], dtype=dtype_y)
-    dist_unequal = dtw_distance(x_unequal, y_unequal)
-    expected_unequal = dtw_cost_matrix(x_unequal, y_unequal)[-1, -1]
-    assert dist_unequal == pytest.approx(expected_unequal, rel=1e-12)
-
-    dist_swapped = dtw_distance(y_unequal, x_unequal)
-    expected_swapped = dtw_cost_matrix(y_unequal, x_unequal)[-1, -1]
-    assert dist_swapped == pytest.approx(expected_swapped, rel=1e-12)
 
 
 def test_dtw_pairwise_distance_mixed_dtypes():

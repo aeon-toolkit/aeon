@@ -365,9 +365,10 @@ def _dtw_distance_banded(
 ) -> float:
     """Banded DTW on per-row column bounds [j_start[i], j_end[i]).
 
-    Uses the same two-buffer O(min(N, M))-space scheme as _dtw_distance, but the
-    inner loop covers only the in-band range, and the row hand-off is a buffer
-    swap instead of an O(M) copy.
+    Uses a two-buffer scheme sized by the second input's length (O(min(N, M))
+    when inputs are swapped, or O(M) for unswapped Itakura constraints where y
+    can be the longer series). The inner loop covers only the in-band range,
+    and the row hand-off is a buffer swap instead of an O(M) copy.
 
     Correctness of buffer reuse relies on j_start and j_end being non-decreasing
     (guaranteed by create_band_bounds): positions right of a row's band still
