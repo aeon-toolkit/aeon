@@ -89,7 +89,9 @@ def test_all_distance_measures():
     ee = ElasticEnsemble(distance_measures="all", proportion_train_in_param_finding=0.4)
     ee.fit(X, y)
     distances = list(ee.get_metric_params())
-    assert len(distances) == 9
+    assert len(distances) == 11
+    for distance in ("dtw_full", "ddtw_full"):
+        assert ee.get_metric_params()[distance] == "{'window': 1.0}"
 
 
 def test_ts_quad_distance_measures():
