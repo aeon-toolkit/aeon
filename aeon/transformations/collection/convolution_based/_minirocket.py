@@ -3,14 +3,14 @@
 __maintainer__ = []
 __all__ = ["MiniRocket"]
 
-import multiprocessing
 from itertools import combinations
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads, vectorize
+from numba import njit, prange, vectorize
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils._parallel import _NUMBA_RANDOM_LOCK, _numba_threads
 from aeon.utils.validation import check_n_jobs
 
 
@@ -26,7 +26,7 @@ class MiniRocket(BaseCollectionTransformer):
     ----------
      n_kernels : int, default=10,000
         Number of random convolutional kernels. The number of kernels used is rounded
-        down to the nearest multiple of 84, unless a value of less than 84 is passec,
+        down to the nearest multiple of 84, unless a value of less than 84 is passed,
         in which case it is set to 84.
      max_dilations_per_kernel : int, default=32
          Maximum number of dilations per kernel.
@@ -43,6 +43,8 @@ class MiniRocket(BaseCollectionTransformer):
      self.parameters : Tuple (int32[:], int32[:], int32[:], int32[:], float32[:])
          n_channels_per_comb, channel_indices, dilations, n_features_per_dilation,
          biases
+     n_kernels_ : int
+         The ``n_kernels`` value used, 84 if a smaller value was passed.
 
     See Also
     --------
@@ -123,11 +125,10 @@ class MiniRocket(BaseCollectionTransformer):
                 f"n_timepoints must be >= 9, but found {n_timepoints};"
                 " zero pad shorter series so that n_timepoints == 9"
             )
-        X = X.astype(np.float32)
-        if self.n_kernels < 84:
-            self.n_kernels_ = 84
-        else:
-            self.n_kernels_ = self.n_kernels
+        # asarray avoids a copy if X is already float32
+        X = np.asarray(X, dtype=np.float32)
+        # every one of the 84 base kernels needs at least one feature
+        self.n_kernels_ = max(self.n_kernels, 84)
         self.parameters = _static_fit(
             X, self.n_kernels_, self.max_dilations_per_kernel, random_state
         )
@@ -144,23 +145,19 @@ class MiniRocket(BaseCollectionTransformer):
 
         Returns
         -------
-        pandas DataFrame, transformed features
+        np.ndarray (n_cases, n_features), transformed features
         """
-        X = X.astype(np.float32)
+        # asarray avoids a copy if X is already float32
+        X = np.asarray(X, dtype=np.float32)
         _, n_channels, n_timepoints = X.shape
-        # change n_jobs depending on value and existing cores
-        prev_threads = get_num_threads()
-        if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self._n_jobs
-        set_num_threads(n_jobs)
-        if n_channels == 1:
-            X = X.squeeze(1)
-            X_ = _static_transform_uni(X, self.parameters, MiniRocket._indices)
-        else:
-            X_ = _static_transform_multi(X, self.parameters, MiniRocket._indices)
-        set_num_threads(prev_threads)
+        # unlike Rocket, no _NUMBA_PARALLEL_LOCK: serialising launches makes
+        # Arsenal members transform one at a time, 2-3x slower with n_jobs=4
+        with _numba_threads(self._n_jobs):
+            if n_channels == 1:
+                X = X.squeeze(1)
+                X_ = _static_transform_uni(X, self.parameters, MiniRocket._indices)
+            else:
+                X_ = _static_transform_multi(X, self.parameters, MiniRocket._indices)
         return X_
 
 
@@ -195,8 +192,10 @@ def _quantiles(n):
 
 
 def _static_fit(X, n_features=10_000, max_dilations_per_kernel=32, seed=None):
-    if seed is not None:
-        np.random.seed(seed)
+    # a generator of its own rather than seeding np.random, so that channel
+    # selection is not disturbed by other threads drawing from the global
+    # state. Seeded, it draws what seeding np.random and drawing from it did.
+    rng = check_random_state(seed)
     _, n_channels, n_timepoints = X.shape
     n_kernels = 84
     dilations, n_features_per_dilation = _fit_dilations(
@@ -209,27 +208,31 @@ def _static_fit(X, n_features=10_000, max_dilations_per_kernel=32, seed=None):
     max_n_channels = min(n_channels, 9)
     max_exponent = np.log2(max_n_channels + 1)
     n_channels_per_combination = (
-        2 ** np.random.uniform(0, max_exponent, n_combinations)
+        2 ** rng.uniform(0, max_exponent, n_combinations)
     ).astype(np.int32)
     channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
     n_channels_start = 0
     for combination_index in range(n_combinations):
         n_channels_this_combination = n_channels_per_combination[combination_index]
         n_channels_end = n_channels_start + n_channels_this_combination
-        channel_indices[n_channels_start:n_channels_end] = np.random.choice(
+        channel_indices[n_channels_start:n_channels_end] = rng.choice(
             n_channels, n_channels_this_combination, replace=False
         )
         n_channels_start = n_channels_end
-    biases = _fit_biases(
-        X,
-        n_channels_per_combination,
-        channel_indices,
-        dilations,
-        n_features_per_dilation,
-        quantiles,
-        MiniRocket._indices,
-        seed,
-    )
+    # bias fitting seeds and draws from np.random, which is global state shared
+    # across threads when JIT is disabled. Compiled, the call holds the GIL
+    # throughout, so the lock costs nothing in parallelism.
+    with _NUMBA_RANDOM_LOCK:
+        biases = _fit_biases(
+            X,
+            n_channels_per_combination,
+            channel_indices,
+            dilations,
+            n_features_per_dilation,
+            quantiles,
+            MiniRocket._indices,
+            seed,
+        )
     return (
         n_channels_per_combination,
         channel_indices,
