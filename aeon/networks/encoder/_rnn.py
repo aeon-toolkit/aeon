@@ -152,12 +152,16 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
     def _check_residual_matrix(n_layers, residual):
         # if not matrix return diagonal :
         if not isinstance(residual, np.ndarray) or residual.ndim <= 1:
+
+            # if given as a single value, remove
+            # the useless redisual between input layer and first layer
+            residual_is_a_number = isinstance(residual, (bool, int, float))
+
             residual = BaseDeepLearningNetwork._check_layer_param(
                 n_layers, residual, "residual", default=0
             )
-            # if given as a single value, remove
-            # the useless redisual between input layer and first layer
-            if isinstance(residual, (int, float)):
+
+            if residual_is_a_number:
                 residual[0] = 0
 
             return np.diag(residual)
