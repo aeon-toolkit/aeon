@@ -23,7 +23,7 @@ comment = None
 for c in pr.get_issue_comments():
     if (
         c.user.login == "aeon-actions-bot[bot]"
-        and "## Thank you for contributing to `aeon-eval`" in c.body
+        and "## Thank you for contributing to `aeon`" in c.body
     ):
         comment = c
         break
@@ -44,4 +44,5 @@ for option in label_options:
             f"- [x] {option[1]}",
         )
 
-comment.edit(comment_body)
+if comment_body != comment.body:
+    comment.edit(comment_body)

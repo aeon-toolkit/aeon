@@ -251,6 +251,8 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
                 activation=self._activation[i],
                 kernel_initializer=self._kernel_initializer[i],
             )
+            if i < self.n_layers - 1:
+                x = tf.keras.layers.Permute((1, 3, 2))(x)
 
         max_pool_layer = tf.keras.layers.MaxPooling2D(
             pool_size=(self.pool_size, 1),
@@ -304,7 +306,5 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
 
         spatial_conv = tf.keras.layers.BatchNormalization()(spatial_conv)
         spatial_conv = tf.keras.layers.Activation(activation=activation)(spatial_conv)
-
-        spatial_conv = tf.keras.layers.Permute((1, 3, 2))(spatial_conv)
 
         return spatial_conv
