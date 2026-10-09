@@ -130,10 +130,10 @@ class MultiRocket(BaseCollectionTransformer):
             np.random.seed(self.random_state_)
 
         _, n_channels, n_timepoints = X.shape
-        if n_timepoints < 9:
+        if n_timepoints < 10:
             raise ValueError(
-                f"n_timepoints must be >= 9, but found {n_timepoints};"
-                " zero pad shorter series so that n_timepoints == 9"
+                f"n_timepoints must be >= 10, but found {n_timepoints};"
+                " zero-pad shorter series to 10 timepoints before fitting"
             )
         X = X.astype(np.float32)
         if self.normalise:
