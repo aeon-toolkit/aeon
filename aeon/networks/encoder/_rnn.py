@@ -5,6 +5,7 @@ __maintainer__ = []
 import numpy as np
 
 from aeon.networks.base import BaseDeepLearningNetwork
+from aeon.typing import RNN_TYPE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
@@ -37,7 +38,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     Parameters
     ----------
-    rnn_type : str, default='lstm'
+    rnn_type : RNN_TYPE or str, default=RNN_TYPE.LSTM
         Type of RNN cell to use ('lstm', 'gru', or 'simple').
     n_layers : int, default=1
         Number of recurrent layers.
@@ -69,6 +70,10 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         or just the last output (False).
     attention : bool or list of bool, default=False
         Whether to apply self-attention mechanism after each recurrent layer (see [4]).
+    use_bias : bool or list of bool, default = True
+        Condition on whether or not to use bias values in the convolution layers in
+        one residual block, if not a list, the same kernel size is used in all
+        convolution layers.
 
     References
     ----------
@@ -92,7 +97,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        rnn_type="simple",
+        rnn_type=RNN_TYPE.SIMPLE,
         n_layers=1,
         n_units=64,
         dropout_intermediate=0.0,
@@ -102,10 +107,11 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         activation="tanh",
         return_sequence_last=False,
         attention=False,
+        use_bias=True,
         name_prefix=""
     ):
         super().__init__()
-        self.rnn_type = rnn_type.lower()
+        self.rnn_type = rnn_type
         self.n_layers = n_layers
         self.n_units = n_units
         self.dropout_intermediate = dropout_intermediate
@@ -115,15 +121,13 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.return_sequence_last = return_sequence_last
         self.attention = attention
+        self.use_bias = use_bias
         self.name_prefix = name_prefix
 
     def _check_params(self):
-        if self.rnn_type not in ["lstm", "gru", "simple"]:
-            raise ValueError(
-                f"Unknown RNN type: {self.rnn_type}. "
-                "Should be 'lstm', 'gru' or 'simple'"
-            )
-
+        self._rnn_type = RNN_TYPE._check_params(
+            self.rnn_type,
+        )
         self._n_units = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.n_units, "units", default=64
         )
@@ -139,10 +143,12 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self._attention = BaseDeepLearningNetwork._check_layer_param(
             self.n_layers, self.attention, "attention", default=False
         )
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.use_bias, "biases", default=True
+        )
         self._residual = RecurrentNetwork._check_residual_matrix(
             self.n_layers, self.residual
         )
-        self._rnn_cell = RecurrentNetwork._check_rnn_cell(self.rnn_type)
 
         self._name_prefix = self.name_prefix
         if len(self._name_prefix) > 0 and not self._name_prefix.endswith("_"):
@@ -161,7 +167,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                 n_layers, residual, "residual", default=0
             )
 
-            if (residual_is_a_number):
+            if residual_is_a_number:
                 residual[0] = 0
 
             return np.diag(residual)
@@ -184,19 +190,6 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                     )
         return residual
 
-    @staticmethod
-    def _check_rnn_cell(rnn_type):
-        if rnn_type == "lstm":
-            return tf.keras.layers.LSTM
-        elif rnn_type == "gru":
-            return tf.keras.layers.GRU
-        elif rnn_type == "simple":
-            return tf.keras.layers.SimpleRNN
-
-        raise ValueError(
-            f"Unknown RNN type: {rnn_type}. " "Should be 'lstm', 'gru' or 'simple'"
-        )
-
     def _build_dropout_layer(self, x, i):
         # if last layer, apply output dropout; otherwise, apply intermediate dropout
         if i == (self.n_layers - 1):
@@ -214,10 +207,11 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
     def _build_rnn_cell(self, x, i):
         # Create the recurrent layer
-        cell = self._rnn_cell(
+        cell = self._rnn_type(
             units=self._n_units[i],
             activation=self._activation[i],
             return_sequences=True,
+            use_bias=self._use_bias[i],
             name=f"{self._name_prefix}{self.rnn_type}_{i+1}",
         )
 
@@ -297,5 +291,4 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         """
         input_layer = tf.keras.layers.Input(shape=input_shape)
         x = self.build_base_graph(input_layer)
-
         return input_layer, x
