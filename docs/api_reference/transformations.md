@@ -25,6 +25,9 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     Centerer
     DownsampleTransformer
     DWTTransformer
+    GlobalCenterer
+    GlobalMinMaxScaler
+    GlobalNormalizer
     HOG1DTransformer
     MinMaxScaler
     Normalizer

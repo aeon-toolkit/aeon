@@ -101,6 +101,7 @@ class RecurrentRegressor(BaseDeepRegressor):
         n_units: int = 64,
         dropout_intermediate: float = 0.2,
         dropout_output: float = 0.2,
+        residual=0,
         bidirectional: bool = False,
         activation: str = "tanh",
         return_sequence_last: bool | None = None,
@@ -127,6 +128,7 @@ class RecurrentRegressor(BaseDeepRegressor):
         self.n_units = n_units
         self.dropout_intermediate = dropout_intermediate
         self.dropout_output = dropout_output
+        self.residual = residual
         self.bidirectional = bidirectional
         self.activation = activation
         self.return_sequence_last = return_sequence_last
@@ -155,6 +157,7 @@ class RecurrentRegressor(BaseDeepRegressor):
             n_units=self.n_units,
             dropout_intermediate=self.dropout_intermediate,
             dropout_output=self.dropout_output,
+            residual=self.residual,
             bidirectional=self.bidirectional,
             activation=self.activation,
             return_sequence_last=self.return_sequence_last,
