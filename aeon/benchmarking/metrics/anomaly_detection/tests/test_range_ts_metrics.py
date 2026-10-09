@@ -158,3 +158,21 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         cardinality="reciprocal",
         bias="middle",
     )
+
+
+def test_range_f_score_beta_is_the_weighted_harmonic_mean():
+    """beta=0.5 must pull toward precision and stay at most 1."""
+    y_true = np.array([0, 0, 1, 1, 1, 1, 1])
+    y_pred = np.array([0, 1, 1, 1, 1, 0, 0])
+    score = range_f_score(
+        y_true,
+        y_pred,
+        cardinality="one",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        beta=0.5,
+    )
+    # precision 0.75, recall 0.6. The old denominator returned 1.666667.
+    np.testing.assert_almost_equal(score, 0.714286, decimal=6)
