@@ -3,8 +3,10 @@ r"""Longest common subsequence (LCSS) between two time series."""
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_lcss_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove LCSS bounding parameters in v1.7.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for LCSS "
+        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "standard LCSS algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -34,10 +47,8 @@ def lcss_distance(
     LCSS finds the optimal alignment between two series by find the greatest number
     of matching pairs. The LCSS distance uses a matrix :math:`L` that records the
     sequence of matches over valid warpings. For two series :math:`a = a_1,... a_n`
-    and :math:`b = b_1,... b_m, L'` is found by iterating over all valid windows (i.e.
-    where bounding_matrix is not infinity, which by default is the constant band
-    :math:`|i-j|<w*m`, where :math:`w` is the window parameter value and :math:`m` is
-    series length), then calculating
+    and :math:`b = b_1,... b_m, L'` is found by iterating over all valid alignments,
+    then calculating
 
     :: math..
         if(|a_i - b_j| < \espilon) \\
@@ -72,12 +83,18 @@ def lcss_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
 
     Returns
     -------
@@ -103,14 +120,22 @@ def lcss_distance(
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = lcss_distance(x, y)
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _lcss_distance_unbounded(_x, _y, epsilon)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _lcss_distance(_x, _y, bounding_matrix, epsilon)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _lcss_distance_unbounded(x, y, epsilon)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -139,12 +164,18 @@ def lcss_cost_matrix(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
 
     Returns
     -------
@@ -175,6 +206,10 @@ def lcss_cost_matrix(
            [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  9.],
            [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -194,8 +229,60 @@ def lcss_cost_matrix(
 def _lcss_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
-    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1], y.shape[1]]
-    distance = 1 - (float(distance / min(x.shape[1], y.shape[1])))
+    """Compute the LCSS distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer (O(M) space)
+    instead of allocating the full O(NM) cost matrix.
+    """
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # Row 0 and column 0 of the LCSS cost matrix are zero; excluded cells also
+    # stay zero, so zero-initialised buffers reproduce the matrix exactly.
+    prev = np.zeros(y_size + 1)
+    curr = np.zeros(y_size + 1)
+
+    for i in range(1, x_size + 1):
+        curr[0] = 0.0
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
+                    curr[j] = 1 + prev[j - 1]
+                else:
+                    curr[j] = max(curr[j - 1], prev[j])
+            else:
+                curr[j] = 0.0
+        # Ping-pong the buffers instead of copying.
+        prev, curr = curr, prev
+
+    distance = prev[y_size]
+    distance = 1 - (float(distance / min(x_size, y_size)))
+    if distance < 0.0:
+        return 0.0
+    return distance
+
+
+@njit(cache=True, fastmath=True)
+def _lcss_distance_unbounded(x: np.ndarray, y: np.ndarray, epsilon: float) -> float:
+    """Compute unbounded LCSS with two rolling rows and no bounding matrix."""
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    prev = np.zeros(y_size + 1)
+    curr = np.empty(y_size + 1)
+
+    for i in range(1, x_size + 1):
+        curr[0] = 0.0
+        for j in range(1, y_size + 1):
+            if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
+                curr[j] = 1 + prev[j - 1]
+            else:
+                curr[j] = max(curr[j - 1], prev[j])
+        prev, curr = curr, prev
+
+    distance = 1 - (float(prev[y_size] / min(x_size, y_size)))
     if distance < 0.0:
         return 0.0
     return distance
@@ -246,12 +333,18 @@ def lcss_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -301,6 +394,9 @@ def lcss_pairwise_distance(
            [0.66666667, 0.        , 0.75      ],
            [1.        , 0.75      , 0.        ]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -328,6 +424,13 @@ def _lcss_pairwise_distance(
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _lcss_distance_unbounded(X[i], X[j], epsilon)
+                distances[j, i] = distances[i, j]
+        return distances
+
     if not unequal_length:
         n_timepoints = X[0].shape[1]
         bounding_matrix = create_bounding_matrix(
@@ -358,6 +461,12 @@ def _lcss_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _lcss_distance_unbounded(x[i], y[j], epsilon)
+        return distances
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
@@ -393,12 +502,18 @@ def lcss_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard LCSS algorithm.
 
     Returns
     -------
@@ -426,6 +541,10 @@ def lcss_alignment_path(
     """
     x_size = x.shape[-1]
     y_size = y.shape[-1]
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     bounding_matrix = create_bounding_matrix(x_size, y_size, window, itakura_max_slope)
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

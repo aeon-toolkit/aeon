@@ -3,8 +3,10 @@
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove EDR bounding parameters in v1.7.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for EDR "
+        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "standard EDR algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -61,6 +74,9 @@ def edr_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
     epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -68,6 +84,9 @@ def edr_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
 
     Returns
     -------
@@ -95,14 +114,22 @@ def edr_distance(
     >>> edr_distance(x, y)
     1.0
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _edr_distance_unbounded(_x, _y, epsilon)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _edr_distance(_x, _y, bounding_matrix, epsilon)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _edr_distance_unbounded(x, y, epsilon)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -128,6 +155,12 @@ def edr_cost_matrix(
     y : np.ndarray
         Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
+    window : float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
     epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -135,6 +168,9 @@ def edr_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
 
     Returns
     -------
@@ -164,6 +200,10 @@ def edr_cost_matrix(
            [1., 2., 3., 4., 4., 3., 2., 1., 0., 1.],
            [1., 2., 3., 4., 5., 4., 3., 2., 1., 0.]])
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -186,10 +226,83 @@ def _edr_distance(
     bounding_matrix: np.ndarray,
     epsilon: float | None = None,
 ) -> float:
-    distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
-    return float(distance / max(x.shape[1], y.shape[1]))
+    """Compute the EDR distance between two time series.
+
+    This is optimized for memory usage by using a two-row buffer (O(M) space)
+    instead of allocating the full O(NM) cost matrix. The buffers are sized by
+    ``y`` (no swap) so the asymmetric EDR boundary is reproduced exactly.
+    """
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    if epsilon is None:
+        epsilon = float(max(np.std(x), np.std(y))) / 4
+
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Row 0 boundary (matches _edr_cost_matrix exactly, including the j == 0 case
+    # that reads bounding_matrix[0, -1]).
+    for j in range(y_size):
+        if bounding_matrix[0, j - 1]:
+            prev[j] = 0
+    prev[0] = 0
+
+    for i in range(1, x_size + 1):
+        # Column 0 boundary: 0 if in bounds, else inf.
+        if bounding_matrix[i - 1, 0]:
+            curr[0] = 0
+        else:
+            curr[0] = np.inf
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) < epsilon:
+                    cost = 0
+                else:
+                    cost = 1
+                curr[j] = min(
+                    prev[j - 1] + cost,
+                    prev[j] + 1,
+                    curr[j - 1] + 1,
+                )
+            else:
+                curr[j] = np.inf
+        # Ping-pong the buffers instead of copying.
+        prev, curr = curr, prev
+
+    distance = prev[y_size]
+    return float(distance / max(x_size, y_size))
+
+
+@njit(cache=True, fastmath=True)
+def _edr_distance_unbounded(
+    x: np.ndarray, y: np.ndarray, epsilon: float | None = None
+) -> float:
+    """Compute unbounded EDR with two rolling rows and no bounding matrix."""
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    if epsilon is None:
+        epsilon = float(max(np.std(x), np.std(y))) / 4
+
+    # Keep y as the row width to preserve EDR's asymmetric legacy boundary.
+    prev = np.zeros(y_size + 1)
+    prev[y_size] = np.inf
+    curr = np.empty(y_size + 1)
+
+    for i in range(1, x_size + 1):
+        curr[0] = 0.0
+        for j in range(1, y_size + 1):
+            if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) < epsilon:
+                cost = 0
+            else:
+                cost = 1
+            curr[j] = min(
+                prev[j - 1] + cost,
+                prev[j] + 1,
+                curr[j - 1] + 1,
+            )
+        prev, curr = curr, prev
+
+    return float(prev[y_size] / max(x_size, y_size))
 
 
 @njit(cache=True, fastmath=True)
@@ -253,6 +366,9 @@ def edr_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
     epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -260,6 +376,9 @@ def edr_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -309,6 +428,9 @@ def edr_pairwise_distance(
            [0.75, 0.  , 0.8 ],
            [0.6 , 0.8 , 0.  ]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -338,6 +460,13 @@ def _edr_pairwise_distance(
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _edr_distance_unbounded(X[i], X[j], epsilon)
+                distances[j, i] = distances[i, j]
+        return distances
 
     if not unequal_length:
         n_timepoints = X[0].shape[1]
@@ -369,6 +498,12 @@ def _edr_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _edr_distance_unbounded(x[i], y[j], epsilon)
+        return distances
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
@@ -404,6 +539,9 @@ def edr_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
     epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -411,6 +549,9 @@ def edr_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        part of the standard EDR algorithm.
 
     Returns
     -------
