@@ -104,7 +104,9 @@ class Resizer(BaseCollectionTransformer):
 
         Xt = []
         for x in X:
-            x_new = np.zeros((x.shape[0], length))
+            out_dtype = np.float32 if x.dtype == np.float32 else np.float64
+            x_new = np.zeros((x.shape[0], length), dtype=out_dtype)
+
             x2 = np.linspace(0, 1, x.shape[1])
             x3 = np.linspace(0, 1, length)
             for i, row in enumerate(x):
