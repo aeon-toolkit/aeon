@@ -29,9 +29,9 @@ class TSFreshRegressor(BaseRegressor):
     default_fc_parameters : str, default="efficient"
         Set of TSFresh features to be extracted, options are "minimal", "efficient" or
         "comprehensive".
-    relevant_feature_extractor : bool, default=False
+    relevant_feature_extractor : bool, default=True
         Remove irrelevant features using the FRESH algorithm.
-    estimator : sklearn regressorr, default=None
+    estimator : sklearn regressor, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
     verbose : int, default=0
