@@ -133,6 +133,4 @@ def test_resnet_use_bias(use_bias):
 
     for layer in model.layers:
         if isinstance(layer, tf.keras.layers.Conv1D):
-            assert (
-                layer.use_bias == use_bias
-            ), f"Conv1D layer use_bias mismatch: expected {use_bias}, got {layer.use_bias}"
+            assert layer.use_bias == use_bias
