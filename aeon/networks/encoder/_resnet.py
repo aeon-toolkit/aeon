@@ -133,12 +133,15 @@ class ResNetNetwork(BaseDeepLearningNetwork):
                     strides=self._strides[c],
                     padding=self._padding[c],
                     dilation_rate=self._dilation_rate[c],
+                    use_bias=self._use_bias[c],
                 )(x)
                 conv = tf.keras.layers.BatchNormalization()(conv)
 
                 if c == self.n_conv_per_residual_block - 1:
                     conv = self._shortcut_layer(
-                        input_tensor=input_block_tensor, output_tensor=conv
+                        input_tensor=input_block_tensor,
+                        output_tensor=conv,
+                        use_bias=self._use_bias[c],
                     )
 
                 conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
@@ -146,15 +149,13 @@ class ResNetNetwork(BaseDeepLearningNetwork):
                 x = conv
         return x
 
-    def _shortcut_layer(
-        self, input_tensor, output_tensor, padding="same", use_bias=True
-    ):
+    def _shortcut_layer(self, input_tensor, output_tensor, use_bias=True):
         import tensorflow as tf
 
         n_out_filters = int(output_tensor.shape[-1])
 
         shortcut_layer = tf.keras.layers.Conv1D(
-            filters=n_out_filters, kernel_size=1, padding=padding, use_bias=use_bias
+            filters=n_out_filters, kernel_size=1, padding="same", use_bias=use_bias
         )(input_tensor)
         shortcut_layer = tf.keras.layers.BatchNormalization()(shortcut_layer)
 
