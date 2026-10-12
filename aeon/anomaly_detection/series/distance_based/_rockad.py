@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
+from copy import deepcopy
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -263,7 +264,9 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         for idx, bagger in enumerate(self.list_baggers_):
             # Get scores from each estimator
-            distances, _ = bagger.kneighbors(Xtp)
+            # Query a copy: sklearn's KD/Ball trees record query counters on the fitted
+            # tree, so querying the bagger itself would change state in predict.
+            distances, _ = deepcopy(bagger).kneighbors(Xtp)
 
             # Compute mean distance of nearest points in window
             scores = distances.mean(axis=1).reshape(-1, 1)
