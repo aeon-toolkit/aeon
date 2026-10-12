@@ -108,7 +108,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         return_sequence_last=False,
         attention=False,
         use_bias=True,
-        name_prefix=""
+        name_prefix="",
     ):
         super().__init__()
         self.rnn_type = rnn_type
@@ -201,7 +201,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             if self._dropout_intermediate[i] > 0:
                 return tf.keras.layers.Dropout(
                     self._dropout_intermediate[i],
-                    name=f"{self._name_prefix}dropout_intermediate_{i+1}"
+                    name=f"{self._name_prefix}dropout_intermediate_{i+1}",
                 )(x)
         return x
 
@@ -221,7 +221,9 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             x = cell(x)
 
         if self._attention[i]:
-            x = tf.keras.layers.Attention(name=f"{self._name_prefix}attention_{i+1}")([x, x])
+            x = tf.keras.layers.Attention(name=f"{self._name_prefix}attention_{i+1}")(
+                [x, x]
+            )
 
         x = self._build_dropout_layer(x, i)
         return x
@@ -245,14 +247,17 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                     # create tf constant with the weight
                     w = round(self._residual[fr, to], 2)
                     sk = ConstantMultiply(
-                        self._residual[fr, to], name=f"{self._name_prefix}multiply{fr+1}-{to+1}_x{w}"
+                        self._residual[fr, to],
+                        name=f"{self._name_prefix}multiply{fr+1}-{to+1}_x{w}",
                     )(sk)
 
                 x_skip.append(sk)
 
         if len(x_skip) > 0:
             x_skip.append(x)
-            x = tf.keras.layers.Add(name=f"{self._name_prefix}residuals_of_layer_{to+1}")(x_skip)
+            x = tf.keras.layers.Add(
+                name=f"{self._name_prefix}residuals_of_layer_{to+1}"
+            )(x_skip)
 
         return x
 
