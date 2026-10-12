@@ -23,11 +23,11 @@ Deep learning networks
     AEFCNNetwork
     AEResNetNetwork
     LITENetwork
-    AEBiGRUNetwork
     DisjointCNNNetwork
     DCNNNetwork
     AEDCNNNetwork
-    AEAttentionBiGRUNetwork
+    AEDeTSECNetwork
+    AERecurrentNetwork
     AEDRNNNetwork
     RecurrentNetwork
     NBeatsNetwork

@@ -82,18 +82,6 @@ class AEDeTSECClusterer(BaseDeepClusterer):
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
-    Examples
-    --------
-    >>> from aeon.clustering.deep_learning import AEAttentionBiGRUClusterer
-    >>> from aeon.clustering import DummyClusterer
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> _clst = DummyClusterer(n_clusters=2)
-    >>> abgruc=AEAttentionBiGRUClusterer(estimator=_clst, n_epochs=20,
-    ... batch_size=4) # doctest: +SKIP
-    >>> abgruc.fit(X_train)  # doctest: +SKIP
-    AEAttentionBiGRUClusterer(...)
 
     Notes
     -----
@@ -221,20 +209,20 @@ class AEDeTSECClusterer(BaseDeepClusterer):
         X = X.transpose(0, 2, 1)
 
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape)
+        self._training_model = self.build_model(self.input_shape)
 
         if self.save_init_model:
-            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+            self._training_model.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
-            self.training_model_.summary()
+            self._training_model.summary()
 
         if self.use_mini_batch_size:
             self._batch_size = min(self.batch_size, X.shape[0] // 10)
         else:
             self._batch_size = self.batch_size
 
-        self.history = self.training_model_.fit(
+        self.history = self._training_model.fit(
             X,
             (X, X),
             batch_size=self._batch_size,

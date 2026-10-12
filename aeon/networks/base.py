@@ -147,7 +147,7 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
         self.latent_space_type = latent_space_type
 
     def _build_latent_graph(self, x):
-        match self.latent_space_type:
+        match self._latent_space_type:
             case LATENT_SPACE.REPEATED:
                 return self._build_repeated_latent_graph(x)
             case LATENT_SPACE.TIME:
@@ -168,7 +168,7 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
 
         x = tf.keras.layers.Flatten()(x)
         x = self._build_latent_projection(x)
-        x = tf.keras.layers.Dense(units=decoder_units)(x)
+        x = tf.keras.layers.Dense(units=decoder_units, use_bias=self._use_bias[-1])(x)
         x = tf.keras.layers.Reshape(target_shape=enc_out_shape)(x)
         return x
 
@@ -193,10 +193,12 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
                     filters=self.latent_space_dim,
                     kernel_size=1,
                     padding="same",
-                    use_bias=True,
+                    use_bias=self._use_bias[-1],
                 )(x)
             else:
-                x = tf.keras.layers.Dense(self.latent_space_dim)(x)
+                x = tf.keras.layers.Dense(
+                    self.latent_space_dim, use_bias=self._use_bias[-1]
+                )(x)
 
         self._enc_out = x
         self._dec_in = x
@@ -294,3 +296,7 @@ class BaseDeepAENetwork(BaseDeepLearningNetwork):
     def get_decoder_model(self):
         """Return the decoder model."""
         return self.decoder
+
+    def get_encoder_decoder_models(self):
+        """Return the encoder and decoder models."""
+        return self.encoder, self.decoder

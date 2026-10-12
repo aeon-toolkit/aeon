@@ -3,6 +3,7 @@
 import pytest
 
 from aeon.networks import AEDCNNNetwork
+from aeon.typing import LATENT_SPACE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -18,7 +19,7 @@ def test_default_initialization():
     assert model.n_layers == 4
     assert model.dilation_rate == 1
     assert model.activation == "relu"
-    assert not model.temporal_latent_space
+    assert model.latent_space_type == LATENT_SPACE.FLAT
 
 
 @pytest.mark.skipif(
@@ -29,7 +30,7 @@ def test_custom_initialization():
     """Test whether custom kwargs are correctly set."""
     model = AEDCNNNetwork(
         latent_space_dim=64,
-        temporal_latent_space=True,
+        latent_space_type="time",
         n_layers=3,
         kernel_size=5,
         activation="sigmoid",
@@ -41,7 +42,7 @@ def test_custom_initialization():
     assert model.n_layers == 3
     assert model.dilation_rate == [1, 2, 4]
     assert model.activation == "sigmoid"
-    assert model.temporal_latent_space
+    assert model.latent_space_type == LATENT_SPACE.TIME
 
 
 @pytest.mark.skipif(
@@ -83,8 +84,12 @@ def test_build_network():
     """Test call to the build_network method."""
     model = AEDCNNNetwork()
     input_shape = (100, 10)  # Example input shape
-    encoder, decoder = model.build_network(input_shape)
-    assert encoder is not None
-    assert decoder is not None
+    input_layer, output_layer = model.build_network(input_shape)
+    encoder = model.get_encoder_model()
+    decoder = model.get_decoder_model()
+
+    assert input_layer is not None
+    assert output_layer is not None
+    assert input_layer.shape == (None, 100, 10)
     assert encoder.input_shape == (None, 100, 10)
-    assert decoder.input_shape is not None
+    assert decoder.input_shape == (None, model.latent_space_dim)

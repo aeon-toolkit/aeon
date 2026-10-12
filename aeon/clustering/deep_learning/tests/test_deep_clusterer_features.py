@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from aeon.clustering.deep_learning import (
-    AEAttentionBiGRUClusterer,
-    AEBiGRUClusterer,
     AEDCNNClusterer,
+    AEDeTSECClusterer,
     AEDRNNClusterer,
     AEFCNClusterer,
+    AERecurrentClusterer,
     AEResNetClusterer,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -45,8 +45,8 @@ def test_validation_split():
         AEResNetClusterer,
         AEDCNNClusterer,
         AEDRNNClusterer,
-        AEAttentionBiGRUClusterer,
-        AEBiGRUClusterer,
+        AEDeTSECClusterer,
+        AERecurrentClusterer,
     ]
 
     for model in models:

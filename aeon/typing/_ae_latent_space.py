@@ -14,9 +14,10 @@ class LATENT_SPACE(StrEnum):
 
     @staticmethod
     def _check_param(latent_space: str):
-        if not LATENT_SPACE.exists(latent_space):
+        res = LATENT_SPACE.__members__.get(latent_space.upper())
+        if res is None:
             raise ValueError(
                 f"Invalid value for 'latent_space' ({latent_space}). "
                 f"Valid options are: {[item.value for item in LATENT_SPACE]}"
             )
-        return LATENT_SPACE[latent_space.upper()]
+        return res

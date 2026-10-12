@@ -5,6 +5,7 @@ import random
 import pytest
 
 from aeon.networks import AEDRNNNetwork
+from aeon.typing import LATENT_SPACE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -32,12 +33,15 @@ def test_aedrnnnetwork_init(
         latent_space_dim=latent_space_dim,
         n_layers_encoder=n_layers_encoder,
         n_layers_decoder=n_layers_decoder,
-        temporal_latent_space=temporal_latent_space,
+        latent_space_type=(
+            LATENT_SPACE.TIME if temporal_latent_space else LATENT_SPACE.FLAT
+        ),
         activation_encoder=random.choice(["relu", "tanh"]),
         activation_decoder=random.choice(["relu", "tanh"]),
         n_units_encoder=[random.choice([50, 25, 100]) for _ in range(n_layers_encoder)],
     )
-    encoder, decoder = aedrnn.build_network((150, 5))
+    aedrnn.build_network((150, 5))
+    encoder, decoder = aedrnn.get_encoder_decoder_models()
     assert encoder is not None
     assert decoder is not None
 
@@ -56,12 +60,13 @@ def test_aedrnnnetwork_activations(activation_encoder, activation_decoder):
         latent_space_dim=64,
         n_layers_encoder=2,
         n_layers_decoder=2,
-        temporal_latent_space=True,
+        latent_space_type=LATENT_SPACE.TIME,
         activation_encoder=activation_encoder,
         activation_decoder=activation_decoder,
         n_units_encoder=[50, 50],
     )
-    encoder, decoder = aedrnn.build_network((150, 5))
+    aedrnn.build_network((150, 5))
+    encoder, decoder = aedrnn.get_encoder_decoder_models()
     assert encoder is not None
     assert decoder is not None
 
