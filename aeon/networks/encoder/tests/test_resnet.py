@@ -109,8 +109,6 @@ def test_resnet_shortcut_layer():
     assert shortcut.shape[-1] == 128, "Shortcut output shape mismatch"
 
 
-
-# test use_bias parameter
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
@@ -119,6 +117,7 @@ def test_resnet_shortcut_layer():
 def test_resnet_use_bias(use_bias):
     """Test the use_bias parameter in the ResNet network."""
     import tensorflow as tf
+
     model = ResNetNetwork(
         n_residual_blocks=3,
         n_conv_per_residual_block=3,
@@ -127,13 +126,13 @@ def test_resnet_use_bias(use_bias):
         activation="relu",
         strides=1,
         padding="same",
-        use_bias=use_bias
+        use_bias=use_bias,
     )
     input_layer, output_layer = model.build_network((128, 1))
     model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
     for layer in model.layers:
         if isinstance(layer, tf.keras.layers.Conv1D):
-            assert layer.use_bias == use_bias, f"Conv1D layer use_bias mismatch: expected {use_bias}, got {layer.use_bias}"
-
-
+            assert (
+                layer.use_bias == use_bias
+            ), f"Conv1D layer use_bias mismatch: expected {use_bias}, got {layer.use_bias}"
