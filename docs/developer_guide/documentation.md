@@ -3,7 +3,7 @@
 `aeon`'s documentation standards include:
 
 - Documenting code using `numpydoc` docstring conventions
-- Adding new public functionality to the [api_reference](https://www.aeon-toolkit.org/en/stable/api_reference.html).
+- Adding new public functionality to the [api_reference](../api_reference.md).
 
 More detailed information on `aeon`'s documentation format is provided below.
 
@@ -154,11 +154,11 @@ Here are a few examples of `aeon` code with good documentation.
 
 ### Estimators
 
-[BOSSEnsemble](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
+{class}`BOSSEnsemble <aeon.classification.dictionary_based.BOSSEnsemble>`
 
 ### Functions
 
-[dtw_distance](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.distances.dtw_distance.html)
+{func}`dtw_distance <aeon.distances.dtw_distance>`
 
 ## Documentation build
 

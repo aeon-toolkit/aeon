@@ -52,7 +52,7 @@ Do test:
 
 Test functions which require soft dependencies should be skipped if the dependencies
 are not installed. This can be done using the `pytest.mark.skipif` decorator. See the
-[dependencies page](#developer_guide/dependencies).
+[dependencies page](dependencies.md).
 
 ### General estimator testing
 
@@ -73,7 +73,7 @@ skip tests which require pickling the estimator.
 
 There is no list of all tests that are run on an estimator, but the code for all checks
 can be found in the [`estimator_checks` subpackage](https://github.com/aeon-toolkit/aeon/tree/main/aeon/testing/estimator_checking).
-The general tests can be run using functions found in the [`testing` API page](#api_reference/testing).,
+The general tests can be run using functions found in the [`testing` API page](../api_reference/utils.md#testing),
 with the main function being `check_estimator`. This function will collect all
 applicable tests from the various `_yield_*_checks.py` files and run them on the
 estimator.
@@ -86,7 +86,7 @@ behaviour surrounding the soft dependency skipped if the dependency is not insta
 To add a new check to the general testing, you must place it in the correct file.
 For example, if you want your check to be run on all estimators, it should be in the
 `_yield_estimator_checks.py` file. Tests relating to soft dependency checking are in
-`_yield_soft_depencency_checks.py`. Tests for all classification estimators are in
+`_yield_soft_dependency_checks.py`. Tests for all classification estimators are in
 `_yield_classification_checks.py` and so on.
 
 There are multiple types of checks which can be added to the general testing, any
@@ -189,7 +189,7 @@ The periodic tests will run all of the above.
 
 
 To check if your code passes all tests locally, you need to install the development
-version of `aeon` and all extra dependencies. See the [developer installation guide](#developer_guide/dev_installation)
+version of `aeon` and all extra dependencies. See the [developer installation guide](dev_installation.md)
 for more information.
 
 To run all unit tests, run:
@@ -221,11 +221,14 @@ pytest aeon/ -n auto
 
 Alternatively, input a number to run on that many cores i.e. `-n 4` to run on 4 cores.
 
-`aeon` also has some custom configuration options in its [conftest.py` file](https://github.com/aeon-toolkit/aeon/blob/main/conftest.py).
+`aeon` also has some custom configuration options in its [`conftest.py` file](https://github.com/aeon-toolkit/aeon/blob/main/conftest.py).
 There are:
 - `--nonumba` - Disable `numba` compilation if true
 - `--enablethreading` - Skip setting various threading options to 1 prior to tests if true
 - `--prtesting` - Set the PR_TESTING flag
+- `--check-soft-dependency-skips` - Fail the tests which are skipped by soft dependency
+checks and skip all other tests. Only use this in an environment where the soft
+dependencies are installed
 
 ## Tracking test coverage
 

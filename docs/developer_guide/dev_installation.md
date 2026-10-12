@@ -5,7 +5,7 @@ contribute to the `aeon` codebase and documentation. The following guide will wa
 through downloading the latest development source code from GitHub and installing the
 package.
 
-Prior to these steps, we highly recommend creating a [virtual environment](../installation.md#using-a-pip-venv) for
+Prior to these steps, we highly recommend creating a [virtual environment](../installation.md#step-1---create-an-environment) for
 the installation.
 
 ## Step 1 - Fork and/or clone the repository
