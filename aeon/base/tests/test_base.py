@@ -144,6 +144,7 @@ EXPECTED_MOCK_TAGS = {
     "X_inner_type": ["np-list", "numpy3D"],
     "algorithm_type": None,
     "cant_pickle": False,
+    "capability:checkpointing": False,
     "capability:contractable": False,
     "capability:missing_values": True,
     "capability:multithreading": False,
