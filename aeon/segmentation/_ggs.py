@@ -409,16 +409,6 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     random_state : int or np.random.RandomState, default=None
         Either random seed or an instance of ``np.random.RandomState``.
 
-    Attributes
-    ----------
-    change_points_: array_like, default=[]
-        Locations of change points as integer indices. By convention change points
-        include the identity segmentation, i.e. first and last index + 1 values.
-    _intermediate_change_points: List[List[int]], default=[]
-        Intermediate values of change points for each value of k = 1...k_max
-    _intermediate_ll: List[float], default=[]
-        Intermediate values for log-likelihood for each value of k = 1...k_max
-
     Notes
     -----
     Based on the work from [1]_.
@@ -463,19 +453,27 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         self.max_shuffles = max_shuffles
         self.verbose = verbose
         self.random_state = random_state
-        self.ggs = _GGS(
-            k_max=k_max,
-            lamb=lamb,
-            max_shuffles=max_shuffles,
-            verbose=verbose,
-            random_state=random_state,
-        )
         super().__init__(axis=0, n_segments=k_max + 1)
+
+    def _get_ggs(self) -> _GGS:
+        """Build the _GGS work object from the current parameters.
+
+        The work object is built fresh for each call so that ``predict`` never
+        mutates estimator state and ``set_params`` always takes effect.
+        """
+        return _GGS(
+            k_max=self.k_max,
+            lamb=self.lamb,
+            max_shuffles=self.max_shuffles,
+            verbose=self.verbose,
+            random_state=self.random_state,
+        )
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
 
-        Initialises the ggs segmenter.
+        The estimator is stateless: segmentation happens in ``_predict`` on a
+        freshly built ``_GGS`` work object, so there is nothing to fit.
 
         Parameters
         ----------
@@ -484,7 +482,6 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         y: array_like
             Placeholder for compatibility with sklearn-api, not used, default=None.
         """
-        self.ggs.initialize_intermediates()
         return self
 
     def _predict(self, X):
@@ -502,7 +499,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        change_points_ = self.ggs.find_change_points(X)
+        change_points_ = self._get_ggs().find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
         for i, (start, stop) in enumerate(zip(change_points_[:-1], change_points_[1:])):
@@ -527,4 +524,4 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""
-        return self.ggs.__repr__()
+        return self._get_ggs().__repr__()
