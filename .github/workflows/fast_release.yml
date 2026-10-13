@@ -29,6 +29,7 @@ jobs:
           retention-days: 5
 
   upload-wheels:
+    needs: build-project
     runs-on: ubuntu-24.04
 
     environment:

@@ -1017,20 +1017,8 @@ def _re_order_comparates(df_results, analysis):
             stats.append(analysis["average-statistic"][analysis["comparate-names"][i]])
 
     elif analysis["order-stats"] == "average-rank":
-        np_results = np.asarray(df_results)
-        df = pd.DataFrame(columns=["comparate-name", "values"])
-
-        for i, comparate_name in enumerate(analysis["comparate-names"]):
-            for j in range(analysis["n-datasets"]):
-                df = df.append(
-                    {"comparate-name": comparate_name, "values": np_results[j][i]},
-                    ignore_index=True,
-                )
-
-        rank_values = np.array(df["values"]).reshape(
-            analysis["n-comparates"], analysis["n-datasets"]
-        )
-        df_ranks = pd.DataFrame(data=rank_values)
+        # rows are comparates, columns are datasets
+        df_ranks = pd.DataFrame(data=np.asarray(df_results).T)
 
         average_ranks = df_ranks.rank(ascending=False).mean(axis=1)
 

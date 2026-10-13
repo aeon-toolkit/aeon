@@ -323,7 +323,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             y=y, prediction_horizon=self.horizon, exog=exog
         )
         if len(prediction) == 1:
-            prediction = float(prediction)
+            prediction = float(prediction[0])
         return prediction
 
     def _series_to_series_forecast(self, y, prediction_horizon, exog=None):
