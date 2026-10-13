@@ -14,28 +14,26 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "latent_space_dim,n_layers_encoder,n_layers_decoder,temporal_latent_space",
+    "latent_space_dim,n_layers_encoder,n_layers_decoder,latent_space_type",
     [
-        (32, 1, 1, True),
-        (128, 2, 2, False),
-        (256, 3, 1, True),
-        (64, 4, 2, False),
+        (32, 1, 1, LATENT_SPACE.TIME),
+        (128, 2, 2, LATENT_SPACE.FLAT),
+        (256, 3, 1, LATENT_SPACE.TIME),
+        (64, 4, 2, LATENT_SPACE.FLAT),
     ],
 )
 def test_aedrnnnetwork_init(
     latent_space_dim,
     n_layers_encoder,
     n_layers_decoder,
-    temporal_latent_space,
+    latent_space_type,
 ):
     """Test whether AEDRNNNetwork initializes correctly for various parameters."""
     aedrnn = AEDRNNNetwork(
         latent_space_dim=latent_space_dim,
         n_layers_encoder=n_layers_encoder,
         n_layers_decoder=n_layers_decoder,
-        latent_space_type=(
-            LATENT_SPACE.TIME if temporal_latent_space else LATENT_SPACE.FLAT
-        ),
+        latent_space_type=latent_space_type,
         activation_encoder=random.choice(["relu", "tanh"]),
         activation_decoder=random.choice(["relu", "tanh"]),
         n_units_encoder=[random.choice([50, 25, 100]) for _ in range(n_layers_encoder)],
