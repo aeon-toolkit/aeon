@@ -68,6 +68,7 @@ def _np_list(n, shape):
     p = np.prod(shape)
     return [np.arange(p).reshape(shape) + i * p for i in range(n)]
 
+
 GLOBAL_SCALER_TESTS = [
     ################################################
     # 3D arrays:
