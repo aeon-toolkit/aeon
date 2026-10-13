@@ -293,15 +293,6 @@ class InformationGainSegmenter(BaseSegmenter):
         Fox example a ``step=5`` would produce candidates [0, 5, 10, ...]. Has the same
         meaning as ``step`` in ``range`` function.
 
-    Attributes
-    ----------
-    change_points_: list of int
-        Locations of change points as integer indices. By convention change points
-        include the identity segmentation, i.e. first and last index + 1 values.
-
-    intermediate_results_: list of ``ChangePointResult``
-        Intermediate segmentation results for each k value, where k=1, 2, ..., k_max
-
     Notes
     -----
     Based on the work from [1]_.
@@ -340,11 +331,18 @@ class InformationGainSegmenter(BaseSegmenter):
     ):
         self.k_max = k_max
         self.step = step
-        self._igts = _IGTS(
-            k_max=k_max,
-            step=step,
-        )
         super().__init__(axis=0, n_segments=k_max + 1)
+
+    def _get_igts(self) -> _IGTS:
+        """Build the _IGTS work object from the current parameters.
+
+        The work object is built fresh for each call so that ``predict`` never
+        mutates estimator state and ``set_params`` always takes effect.
+        """
+        return _IGTS(
+            k_max=self.k_max,
+            step=self.step,
+        )
 
     def _predict(self, X, y=None) -> np.ndarray:
         """Perform segmentation.
@@ -361,13 +359,12 @@ class InformationGainSegmenter(BaseSegmenter):
             The numerical values represent distinct segment labels for each of the
             data points.
         """
-        change_points_ = self._igts.find_change_points(X)
-        # self.intermediate_results_ = self._igts.intermediate_results_
+        change_points_ = self._get_igts().find_change_points(X)
         return self.to_clusters(change_points_[1:-1], X.shape[0])
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""
-        return self._igts.__repr__()
+        return self._get_igts().__repr__()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
