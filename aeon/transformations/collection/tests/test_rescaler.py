@@ -82,16 +82,6 @@ GLOBAL_SCALER_TESTS = [
     (_np_array((2, 5)), 1, (1,)),  # (channels, time) = 1 multivariate
     (_np_array((2, 5)), 0, (0,)),  # (time, channels) = 1 multivariate
     (_np_array((2, 5)), None, (0, 1)),  # (samples, time)  = n univariate
-    ################ EXOTIC CASES ! ################
-    # 1D arrays: (time,) = 1 univariate
-    (_np_array((10,)), None, (-1,)),
-    ################################################
-    # 4D arrays: works thanks to generalisation but
-    # few use cases for this in practice ...
-    (_np_array((2, 3, 4, 5)), None, (0, 3)),  # (sample, channels, features, time)
-    (_np_array((2, 3, 4, 5)), 2, (0, 2)),  # (sample, channels, time, features)
-    (_np_array((2, 3, 4, 5)), 1, (0, 1)),  # (sample, time, channels, features)
-    (_np_array((2, 3, 4, 5)), (2, 3), (0, 2, 3)),  # Weird example
 ]
 
 

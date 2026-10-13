@@ -246,7 +246,7 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_type": ["numpy1D", "numpy2D", "numpy3D", "numpy4D", "np-list"],
+        "X_inner_type": ["numpy2D", "numpy3D", "np-list"],
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
@@ -351,7 +351,7 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_type": ["numpy1D", "numpy2D", "numpy3D", "numpy4D", "np-list"],
+        "X_inner_type": ["numpy2D", "numpy3D", "np-list"],
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
@@ -460,7 +460,7 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_type": ["numpy1D", "numpy2D", "numpy3D", "numpy4D", "np-list"],
+        "X_inner_type": ["numpy2D", "numpy3D", "np-list"],
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
