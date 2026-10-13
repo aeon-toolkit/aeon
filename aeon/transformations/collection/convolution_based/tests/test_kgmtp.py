@@ -239,6 +239,41 @@ def test_quantiles():
     np.testing.assert_allclose(q, expected)
 
 
+def test_sparse_scaler_fit_single_case_no_nan():
+    """`_sparse_scaler_fit` stays finite when fit on a single row."""
+    X = np.array([[1.0, 4.0, 0.0]])
+
+    mu, sigma = KGMTP._sparse_scaler_fit(X)
+
+    assert np.isfinite(mu).all()
+    assert np.isfinite(sigma).all()
+    assert (sigma > 0).all()
+
+    Xs = np.sqrt(np.clip(X, 0, None))
+    expected_epsilon = (Xs == 0).mean(axis=0) ** 4 + 1e-8
+    np.testing.assert_allclose(mu, Xs[0])
+    np.testing.assert_allclose(sigma, expected_epsilon)
+
+
+def test_kgmtp_fit_transform_single_case_no_nan():
+    """A single training case does not propagate NaNs through `fit_transform`."""
+    X = np.random.default_rng(0).random(size=(1, 1, 100))
+    kgmtp = KGMTP(random_state=0, **KGMTP._get_test_params())
+    Xt = kgmtp.fit_transform(X)
+    assert np.isfinite(Xt).all()
+
+
+def test_kgmtp_respects_numba_thread_limit(monkeypatch):
+    """`_transform_branches` caps `n_jobs` at Numba's configured thread limit."""
+    from numba import config
+
+    monkeypatch.setattr(config, "NUMBA_NUM_THREADS", 1)
+    X = np.random.default_rng(0).random(size=(10, 1, 100))
+    kgmtp = KGMTP(n_jobs=2, random_state=0, **KGMTP._get_test_params())
+    Xt = kgmtp.fit_transform(X)  # must not raise
+    assert np.isfinite(Xt).all()
+
+
 def test_sparse_scaler_fit_transform():
     """`_sparse_scaler_fit`/`_transform` match a direct NumPy reimplementation.
 

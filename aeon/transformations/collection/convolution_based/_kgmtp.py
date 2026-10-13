@@ -3,11 +3,18 @@
 __maintainer__ = ["johannfaouzi"]
 __all__ = ["KGMTP"]
 
-import multiprocessing
 from itertools import combinations
 
 import numpy as np
-from numba import float32, get_num_threads, njit, prange, set_num_threads, vectorize
+from numba import (
+    config,
+    float32,
+    get_num_threads,
+    njit,
+    prange,
+    set_num_threads,
+    vectorize,
+)
 from scipy.signal import hilbert
 
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -713,20 +720,12 @@ class KGMTP(BaseCollectionTransformer):
         return np.concatenate([features, hydra], axis=1)
 
     def _transform_branches(self, X_list, X_hilbert_list, X_diff_list):
-        """Run each channel's fitted branches and concatenate every block.
-
-        Wires `n_jobs` to the Numba-parallel `_transform` kernel via
-        `set_num_threads`/`get_num_threads`, matching `MultiRocket`'s pattern. Shared
-        by `_fit_transform` (to compute training features for scaler-fitting) and
-        `_transform`. `X_list`/`X_hilbert_list`/`X_diff_list` are per-channel 2D
-        arrays, in the same channel order `self._base`/`self._hilbert`/`self._diff`
-        were fitted in; blocks are concatenated with the three representations
-        varying fastest within a channel, then channels (see class docstring).
-        """
+        """Run each channel's fitted branches and concatenate every block."""
         prev_threads = get_num_threads()
+        max_threads = config.NUMBA_NUM_THREADS
         n_jobs = (
-            multiprocessing.cpu_count()
-            if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count()
+            max_threads
+            if self._n_jobs < 1 or self._n_jobs > max_threads
             else self._n_jobs
         )
         set_num_threads(n_jobs)
@@ -780,14 +779,18 @@ class KGMTP(BaseCollectionTransformer):
     def _sparse_scaler_fit(X, exponent=4):
         """Fit a NumPy port of the original paper's (torch-based) `SparseScaler`.
 
-        `torch.Tensor.std()` defaults to `unbiased=True` (`ddof=1`); NumPy's default is
+        `torch.Tensor.std()` defaults to `unbiased=True` (`ddof=1`). NumPy's default is
         `ddof=0`, so `ddof=1` is passed explicitly below to match the original
-        implementation.
+        implementation. With a single training case, `ddof=1` divides by zero and
+        produces NaNs no matter the `epsilon`, so `ddof` falls back to 0 in that case:
+        a lone case's deviation from its own mean is trivially 0, so `sigma` reduces
+        to `epsilon` and stays finite.
         """
         X = np.sqrt(np.clip(X, 0, None))
         epsilon = (X == 0).mean(axis=0) ** exponent + 1e-8
         mu = X.mean(axis=0)
-        sigma = X.std(axis=0, ddof=1) + epsilon
+        ddof = 1 if X.shape[0] > 1 else 0
+        sigma = X.std(axis=0, ddof=ddof) + epsilon
         return mu, sigma
 
     @staticmethod
