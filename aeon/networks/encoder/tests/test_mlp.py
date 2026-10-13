@@ -77,7 +77,7 @@ def test_mlp_initialization(n_layers, n_units, activation):
     [
         (0.2, 3),
         ([0.1, 0.2, 0.3], 3),
-        pytest.param([0.1, 0.2], 3, marks=pytest.mark.xfail(raises=AssertionError)),
+        pytest.param([0.1, 0.2], 3, marks=pytest.mark.xfail(raises=ValueError)),
     ],
 )
 def test_mlp_dropout_rate(dropout_rate, n_layers):
@@ -122,7 +122,7 @@ def test_mlp_dropout_rate(dropout_rate, n_layers):
 )
 @pytest.mark.parametrize(
     "dropout_last",
-    [0.3, 0.5, pytest.param(1.2, marks=pytest.mark.xfail(raises=AssertionError))],
+    [0.3, 0.5, pytest.param(1.2, marks=pytest.mark.xfail(raises=ValueError))],
 )
 def test_mlp_dropout_last(dropout_last):
     """Test MLPNetwork dropout_last configurations."""
