@@ -50,7 +50,7 @@ def test_deep_clusterer_load_model(cls):
         model_path = str(saved[0])
         loaded = cls(**params)
         loaded.load_model(model_path, trained_estimator)
-        assert loaded.model_ is not None, f"Loaded model_ is None for {cls.__name__}"
-        assert hasattr(loaded.model_, "predict"), f"Invalid model_ for {cls.__name__}"
+        assert loaded._model is not None, f"Loaded model_ is None for {cls.__name__}"
+        assert hasattr(loaded._model, "predict"), f"Invalid model_ for {cls.__name__}"
         preds = loaded.predict(X)
         assert preds.shape[0] == X.shape[0], f"Predict failed for {cls.__name__}"
