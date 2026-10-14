@@ -69,6 +69,58 @@ class DeepARNetwork(BaseDeepLearningNetwork):
 
         super().__init__()
 
+    def _check_params(self):
+        pass
+        # nothing to check but mandatory to override
+        # abstract method from BaseDeepLearningNetwork
+
+    def build_base_graph(self, x):
+
+        self._check_params()
+
+        # Extract number of features
+        n_features = x.shape[2]  # (n_timepoints, n_features)
+
+        # Build encoder (LSTM)
+        encoded = self._build_encoder(x, n_features)
+
+        # Build decoder (Dense + Gaussian output)
+        gaussian_outputs = self._build_decoder(encoded, n_features)
+
+        return gaussian_outputs
+
+    def build_network(self, input_shape: tuple, **kwargs) -> tuple:
+        """Build the complete DeepAR architecture.
+
+        Constructs an LSTM encoder followed by dense layers that output
+        parameters for a Gaussian distribution (mean and variance).
+
+        Parameters
+        ----------
+        input_shape : tuple
+            Shape of input data (n_timepoints, n_channels).
+        **kwargs
+            Additional keyword arguments (unused).
+
+        Returns
+        -------
+        tuple
+            A tuple containing (input_layer, gaussian_outputs) where
+            gaussian_outputs is a list [mean, sigma] representing the
+            Gaussian distribution parameters.
+
+        Notes
+        -----
+        The network outputs two tensors representing the mean and standard
+        deviation of a Gaussian distribution for probabilistic forecasting.
+        """
+        import tensorflow as tf
+
+        input_layer = tf.keras.layers.Input(shape=input_shape, name="deepar_input")
+        gaussian_outputs = self.build_base_graph(input_layer)
+
+        return input_layer, gaussian_outputs
+
     def _calculate_units(self, n_features: int) -> tuple:
         """Calculate optimal number of units based on input features.
 
@@ -223,44 +275,3 @@ class DeepARNetwork(BaseDeepLearningNetwork):
         )
 
         return gaussian_outputs
-
-    def build_network(self, input_shape: tuple, **kwargs) -> tuple:
-        """Build the complete DeepAR architecture.
-
-        Constructs an LSTM encoder followed by dense layers that output
-        parameters for a Gaussian distribution (mean and variance).
-
-        Parameters
-        ----------
-        input_shape : tuple
-            Shape of input data (n_timepoints, n_channels).
-        **kwargs
-            Additional keyword arguments (unused).
-
-        Returns
-        -------
-        tuple
-            A tuple containing (input_layer, gaussian_outputs) where
-            gaussian_outputs is a list [mean, sigma] representing the
-            Gaussian distribution parameters.
-
-        Notes
-        -----
-        The network outputs two tensors representing the mean and standard
-        deviation of a Gaussian distribution for probabilistic forecasting.
-        """
-        import tensorflow as tf
-
-        # Create input layer
-        input_layer = tf.keras.layers.Input(shape=input_shape, name="deepar_input")
-
-        # Extract number of features
-        n_features = input_shape[1]  # (n_timepoints, n_features)
-
-        # Build encoder (LSTM)
-        encoded = self._build_encoder(input_layer, n_features)
-
-        # Build decoder (Dense + Gaussian output)
-        gaussian_outputs = self._build_decoder(encoded, n_features)
-
-        return input_layer, gaussian_outputs

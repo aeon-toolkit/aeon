@@ -15,12 +15,24 @@ class DummyDeepNetwork(BaseDeepLearningNetwork):
     def __init__(self):
         super().__init__()
 
+    def _check_params(self):
+        pass  # no parameters to check for the dummy network
+
+    def build_base_graph(self, x):
+        """Build the base graph for the dummy network."""
+        import tensorflow as tf
+
+        self._check_params()
+
+        x = tf.keras.layers.Flatten()(x)
+        return x
+
     def build_network(self, input_shape, **kwargs):
         """Build a neural network."""
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
-        flatten_layer = tf.keras.layers.Flatten()(input_layer)
+        flatten_layer = self.build_base_graph(input_layer)
         output_layer = tf.keras.layers.Dense(units=10)(flatten_layer)
 
         return input_layer, output_layer
