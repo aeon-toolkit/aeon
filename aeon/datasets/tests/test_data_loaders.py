@@ -37,6 +37,19 @@ from aeon.datasets._data_loaders import (
 from aeon.testing.testing_config import PR_TESTING
 
 
+def _load_or_xfail_on_connection_error(loader, *args, **kwargs):
+    """Xfail on connection errors, which the loaders wrap in a ValueError."""
+    try:
+        return loader(*args, **kwargs)
+    except ValueError as e:
+        cause = e.__cause__
+        while cause is not None:
+            if isinstance(cause, CONNECTION_ERRORS):
+                pytest.xfail(f"Connection error while downloading: {cause!r}")
+            cause = cause.__cause__
+        raise
+
+
 def test_collection_loader_defaults():
     """Test collection loaders default to original archive data."""
     for loader in [load_classification, load_regression]:
@@ -81,7 +94,9 @@ def test_load_classification_from_repo():
         load_classification(name)
     with tempfile.TemporaryDirectory() as tmp:
         name = "SonyAIBORobotSurface1"
-        X, y, meta = load_classification(name, return_metadata=True, extract_path=tmp)
+        X, y, meta = _load_or_xfail_on_connection_error(
+            load_classification, name, return_metadata=True, extract_path=tmp
+        )
         assert isinstance(X, np.ndarray)
         assert isinstance(y, np.ndarray)
         assert isinstance(meta, dict)
@@ -112,7 +127,9 @@ def test_load_regression_from_repo():
     # name2 = "ParkingBirmingham"
     # name3 = "AcousticContaminationMadrid"
     with tempfile.TemporaryDirectory() as tmp:
-        X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
+        X, y, meta = _load_or_xfail_on_connection_error(
+            load_regression, name, extract_path=tmp, return_metadata=True
+        )
         assert isinstance(X, np.ndarray)
         assert isinstance(y, np.ndarray)
         assert isinstance(meta, dict)
