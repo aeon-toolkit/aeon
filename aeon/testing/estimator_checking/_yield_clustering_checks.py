@@ -78,14 +78,14 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
     deep_clr1 = _clone_estimator(estimator, random_state=random_state)
     deep_clr1.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
-    encoder_layers1 = deep_clr1.training_model_.layers[1].layers[1:]
-    decoder_layers1 = deep_clr1.training_model_.layers[2].layers[1:]
+    encoder_layers1 = deep_clr1._training_model.layers[1].layers[1:]
+    decoder_layers1 = deep_clr1._training_model.layers[2].layers[1:]
 
     deep_clr2 = _clone_estimator(estimator, random_state=random_state)
     deep_clr2.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
-    encoder_layers2 = deep_clr2.training_model_.layers[1].layers[1:]
-    decoder_layers2 = deep_clr2.training_model_.layers[2].layers[1:]
+    encoder_layers2 = deep_clr2._training_model.layers[1].layers[1:]
+    decoder_layers2 = deep_clr2._training_model.layers[2].layers[1:]
 
     assert len(encoder_layers1) == len(encoder_layers2)
     assert len(decoder_layers1) == len(decoder_layers2)

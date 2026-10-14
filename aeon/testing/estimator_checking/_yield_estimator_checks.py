@@ -75,6 +75,7 @@ from aeon.testing.utils.estimator_checks import (
     _snapshot_state,
 )
 from aeon.transformations.base import BaseTransformer
+from aeon.typing import LATENT_SPACE
 from aeon.utils.base import VALID_ESTIMATOR_BASES
 from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
@@ -412,6 +413,7 @@ def check_constructor(estimator_class):
             np.float64,
             np.int64,
             np.nan,
+            LATENT_SPACE,
         }
 
         assert type(param.default) in allowed_types or callable(param.default), (

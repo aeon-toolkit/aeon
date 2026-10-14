@@ -32,6 +32,9 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     padding: Union[str, List[str]], default="causal"
         Padding to be used in each DCNN Layer. Defaults to a list
         of causal paddings for `n_layers` elements.
+    transpose: bool, default=False
+        Whether or not to use transposed convolution layers instead of
+        convolution layers.
 
     References
     ----------
@@ -54,16 +57,52 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         n_filters=None,
         dilation_rate=None,
         padding="causal",
+        transpose=False,
     ):
         self.latent_space_dim = latent_space_dim
-        self.kernel_size = kernel_size
-        self.n_filters = n_filters
         self.n_layers = n_layers
-        self.dilation_rate = dilation_rate
+        self.kernel_size = kernel_size
         self.activation = activation
+        self.n_filters = n_filters
+        self.dilation_rate = dilation_rate
         self.padding = padding
+        self.transpose = transpose
 
         super().__init__()
+
+    def _check_params(self):
+        default_n_filters = [32 * (i + 1) for i in range(self.n_layers)]
+        default_dilation_rate = [2**i for i in range(self.n_layers)]
+        self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.kernel_size, "kernels", default=3
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.activation, "activations", allow_none=True
+        )
+        self._n_filters = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.n_filters, "filters", default_n_filters
+        )
+        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.dilation_rate, "dilation rates", default_dilation_rate
+        )
+        self._padding = BaseDeepLearningNetwork._check_layer_param(
+            self.n_layers, self.padding, "paddings", default="causal"
+        )
+
+    def build_base_graph(self, x):
+
+        self._check_params()
+
+        for i in range(0, self.n_layers):
+            x = self._dcnn_layer(
+                x,
+                self._n_filters[i],
+                self._dilation_rate[i],
+                _activation=self._activation[i],
+                _kernel_size=self._kernel_size[i],
+                _padding=self._padding[i],
+            )
+        return x
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -79,92 +118,53 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if self.n_filters is None:
-            self._n_filters = [32 * i for i in range(1, self.n_layers + 1)]
-        elif isinstance(self.n_filters, int):
-            self._n_filters = [self.n_filters for _ in range(self.n_layers)]
-        elif isinstance(self.n_filters, list):
-            self._n_filters = self.n_filters
-            assert len(self.n_filters) == self.n_layers
-
-        if self.dilation_rate is None:
-            self._dilation_rate = [
-                2**layer_num for layer_num in range(1, self.n_layers + 1)
-            ]
-        elif isinstance(self.dilation_rate, int):
-            self._dilation_rate = [self.dilation_rate for _ in range(self.n_layers)]
-        else:
-            self._dilation_rate = self.dilation_rate
-            assert isinstance(self.dilation_rate, list)
-            assert len(self.dilation_rate) == self.n_layers
-
-        if self.kernel_size is None:
-            self._kernel_size = [3 for _ in range(self.n_layers)]
-        elif isinstance(self.kernel_size, int):
-            self._kernel_size = [self.kernel_size for _ in range(self.n_layers)]
-        elif isinstance(self.kernel_size, list):
-            self._kernel_size = self.kernel_size
-            assert len(self.kernel_size) == self.n_layers
-
-        if self.activation is None:
-            self._activation = ["relu" for _ in range(self.n_layers)]
-        elif isinstance(self.activation, str):
-            self._activation = [self.activation for _ in range(self.n_layers)]
-        elif isinstance(self.activation, list):
-            self._activation = self.activation
-            assert len(self._activation) == self.n_layers
-
-        if self.padding is None:
-            self._padding = ["causal" for _ in range(self.n_layers)]
-        elif isinstance(self.padding, str):
-            self._padding = [self.padding for _ in range(self.n_layers)]
-        elif isinstance(self.padding, list):
-            self._padding = self.padding
-            assert len(self._padding) == self.n_layers
-
         input_layer = tf.keras.layers.Input(input_shape)
-
-        x = input_layer
-        for i in range(0, self.n_layers):
-            x = self._dcnn_layer(
-                x,
-                self._n_filters[i],
-                self._dilation_rate[i],
-                _activation=self._activation[i],
-                _kernel_size=self._kernel_size[i],
-                _padding=self._padding[i],
-            )
-
+        x = self.build_base_graph(input_layer)
         x = tf.keras.layers.GlobalMaxPool1D()(x)
         output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
 
         return input_layer, output_layer
+
+    def _dcnn_conv(self, x, _n_filters, _dilation_rate, _kernel_size, _padding):
+        import tensorflow as tf
+
+        from aeon.utils.networks.weight_norm import _WeightNormalization
+
+        if self.transpose:
+            return tf.keras.layers.Conv1DTranspose(
+                filters=_n_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding,
+                kernel_regularizer="l2",
+            )(x)
+        else:
+            return _WeightNormalization(
+                tf.keras.layers.Conv1D(
+                    filters=_n_filters,
+                    kernel_size=_kernel_size,
+                    dilation_rate=_dilation_rate,
+                    padding=_padding,
+                )
+            )(x)
 
     def _dcnn_layer(
         self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size, _padding
     ):
         import tensorflow as tf
 
-        from aeon.utils.networks.weight_norm import _WeightNormalization
+        if self.transpose:
+            _add = tf.keras.layers.Conv1DTranspose(
+                filters=_n_filters, kernel_size=1, padding=_padding
+            )(_inputs)
+        else:
+            _add = tf.keras.layers.Conv1D(
+                filters=_n_filters, kernel_size=1, padding=_padding
+            )(_inputs)
 
-        _add = tf.keras.layers.Conv1D(_n_filters, kernel_size=1)(_inputs)
-        x = _WeightNormalization(
-            tf.keras.layers.Conv1D(
-                _n_filters,
-                kernel_size=_kernel_size,
-                dilation_rate=_dilation_rate,
-                padding=_padding,
-            )
-        )(_inputs)
-        x = _WeightNormalization(
-            tf.keras.layers.Conv1D(
-                _n_filters,
-                kernel_size=_kernel_size,
-                dilation_rate=_dilation_rate,
-                padding=_padding,
-                activation=_activation,
-            )
-        )(x)
+        x = self._dcnn_conv(_inputs, _n_filters, _dilation_rate, _kernel_size, _padding)
+        x = self._dcnn_conv(x, _n_filters, _dilation_rate, _kernel_size, _padding)
+
         output = tf.keras.layers.Add()([x, _add])
         output = tf.keras.layers.Activation(_activation)(output)
         return output

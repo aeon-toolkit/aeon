@@ -3,20 +3,11 @@
 __maintainer__ = []
 __all__ = ["AEDRNNClusterer"]
 
-import gc
-import os
-import time
-from copy import deepcopy
-
-from sklearn.utils import check_random_state
 
 from aeon.clustering import DummyClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEDRNNNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-if _check_soft_dependencies(["tensorflow"], severity="none"):
-    from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
+from aeon.typing import LATENT_SPACE
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
@@ -33,8 +24,11 @@ class AEDRNNClusterer(BaseDeepClusterer):
         and mean averaging method and n_clusters set to 2.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
+    latent_space_type : LATENT_SPACE, default = LATENT_SPACE.FLAT
+        Type of latent space to use. Options are:
+        - LATENT_SPACE.FLAT: The latent space is a flattened vector.
+        - LATENT_SPACE.TIME: The latent space is a time series.
+        - LATENT_SPACE.REPEATED: The latent space is a repeated vector.
     n_layers_encoder : int, default = 3
         Number of layers in the encoder.
     n_layers_decoder : int, default = 3
@@ -134,7 +128,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self,
         estimator=None,
         latent_space_dim=128,
-        temporal_latent_space=False,
+        latent_space_type=LATENT_SPACE.REPEATED,
         n_layers_encoder=3,
         n_layers_decoder=3,
         dilation_rate_encoder=1,
@@ -161,8 +155,30 @@ class AEDRNNClusterer(BaseDeepClusterer):
         init_file_name="init_model",
         callbacks=None,
     ):
+
+        super().__init__(
+            estimator=estimator,
+            n_epochs=n_epochs,
+            batch_size=batch_size,
+            validation_split=validation_split,
+            use_mini_batch_size=use_mini_batch_size,
+            random_state=random_state,
+            verbose=verbose,
+            loss=loss,
+            metrics=metrics,
+            optimizer=optimizer,
+            file_path=file_path,
+            save_best_model=save_best_model,
+            save_last_model=save_last_model,
+            save_init_model=save_init_model,
+            best_file_name=best_file_name,
+            last_file_name=last_file_name,
+            init_file_name=init_file_name,
+            callbacks=callbacks,
+        )
+
         self.latent_space_dim = latent_space_dim
-        self.temporal_latent_space = temporal_latent_space
+        self.latent_space_type = latent_space_type
         self.n_layers_encoder = n_layers_encoder
         self.n_layers_decoder = n_layers_decoder
         self.activation_encoder = activation_encoder
@@ -171,31 +187,10 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.dilation_rate_decoder = dilation_rate_decoder
         self.n_units_encoder = n_units_encoder
         self.n_units_decoder = n_units_decoder
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metrics = metrics
-        self.verbose = verbose
-        self.use_mini_batch_size = use_mini_batch_size
-        self.callbacks = callbacks
-        self.file_path = file_path
-        self.n_epochs = n_epochs
-        self.validation_split = validation_split
-        self.save_best_model = save_best_model
-        self.save_last_model = save_last_model
-        self.save_init_model = save_init_model
-        self.best_file_name = best_file_name
-        self.init_file_name = init_file_name
-        self.random_state = random_state
-
-        super().__init__(
-            estimator=estimator,
-            batch_size=batch_size,
-            last_file_name=last_file_name,
-        )
 
         self._network = AEDRNNNetwork(
             latent_space_dim=self.latent_space_dim,
-            temporal_latent_space=self.temporal_latent_space,
+            latent_space_type=self.latent_space_type,
             n_layers_encoder=self.n_layers_encoder,
             n_layers_decoder=self.n_layers_decoder,
             dilation_rate_encoder=self.dilation_rate_encoder,
@@ -206,167 +201,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
             n_units_decoder=self.n_units_decoder,
         )
 
-    def build_model(self, input_shape, **kwargs):
-        """Construct a compiled, un-trained, keras model that is ready for training.
-
-        In aeon, time series are stored in numpy arrays of shape
-        (n_channels,n_timepoints). Keras/tensorflow assume
-        data is in shape (n_timepoints,n_channels). This method also assumes
-        (n_timepoints,n_channels). Transpose should happen in fit.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer, should be
-            (n_timepoints,n_channels).
-
-        Returns
-        -------
-        output : a compiled Keras Model.
-        """
-        import numpy as np
-        import tensorflow as tf
-
-        if self.metrics is None:
-            self._metrics = ["mean_squared_error"]
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
-            self._metrics = self.metrics
-
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
-        tf.keras.utils.set_random_seed(self.random_state_)
-        encoder, decoder = self._network.build_network(input_shape, **kwargs)
-
-        input_layer = tf.keras.layers.Input(input_shape, name="input layer")
-        encoder_output = encoder(input_layer)
-        decoder_output = decoder(encoder_output)
-        output_layer = decoder_output
-
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        self.optimizer_ = (
-            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
-        )
-
-        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
-
-        return model
-
-    def _fit(self, X):
-        """Fit the classifier on the training set (X, y).
-
-        Parameters
-        ----------
-        X : np.ndarray of shape = (n_cases (n), n_channels (d), n_timepoints (m))
-            The training input samples.
-
-        Returns
-        -------
-        self : object
-        """
-        import tensorflow as tf
-
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-
-        self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape)
-
-        if self.save_init_model:
-            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
-
-        if self.verbose:
-            self.training_model_.summary()
-
-        if self.use_mini_batch_size:
-            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
-        else:
-            mini_batch_size = self.batch_size
-
-        self.file_name_ = (
-            self.best_file_name if self.save_best_model else str(time.time_ns())
-        )
-
-        if self.callbacks is None:
-            self.callbacks_ = [
-                tf.keras.callbacks.ReduceLROnPlateau(
-                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                ),
-                tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="val_loss" if self.validation_split > 0 else "loss",
-                    save_best_only=True,
-                ),
-            ]
-        else:
-            self.callbacks_ = self._get_model_checkpoint_callback(
-                callbacks=self.callbacks,
-                file_path=self.file_path,
-                file_name=self.file_name_,
-            )
-
-        self.history = self.training_model_.fit(
-            X,
-            X,
-            batch_size=mini_batch_size,
-            epochs=self.n_epochs,
-            validation_split=self.validation_split,
-            verbose=self.verbose,
-            callbacks=self.callbacks_,
-        )
-
-        try:
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras",
-                compile=False,
-                custom_objects={"_TensorDilation": _TensorDilation},
-            )
-            if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".keras")
-        except FileNotFoundError:
-            self.model_ = deepcopy(self.training_model_)
-
-        self._fit_clustering(X=X)
-
-        if self.save_last_model:
-            self.save_last_model_to_file(file_path=self.file_path)
-
-        gc.collect()
-
-        return self
-
-    def load_model(self, model_path, estimator):
-        """Load a pre-trained keras model instead of fitting.
-
-        When calling this function, all functionalities can be used
-        such as predict, predict_proba etc. with the loaded model.
-
-        Parameters
-        ----------
-        model_path : str (path including model name and extension)
-            The directory where the model will be saved including the model
-            name with a ".keras" extension.
-            Example: model_path="path/to/file/best_model.keras"
-        estimator : estimator : aeon clusterer
-            Pre-trained clusterer needed for loading model.
-
-        Returns
-        -------
-        None
-        """
-        import tensorflow as tf
-
-        from aeon.networks.auto_encoder._ae_drnn import _TensorDilation
-
-        self.model_ = tf.keras.models.load_model(
-            model_path, custom_objects={"_TensorDilation": _TensorDilation}
-        )
-        self.is_fitted = True
-
-        # use deep copy to preserve fit state
-        self.estimator_ = deepcopy(estimator)
+        self.can_multi_rec = False
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

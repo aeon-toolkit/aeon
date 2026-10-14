@@ -14,7 +14,7 @@ def test_aefcn_default():
     """Default testing for aefcn."""
     model = AEFCNNetwork()
     assert model.latent_space_dim == 128
-    assert model.temporal_latent_space is False
+    assert model.latent_space_type == "flat"
     assert model.n_layers == 3
     assert model.n_filters is None
     assert model.kernel_size is None
@@ -35,7 +35,9 @@ def test_aefcn_latent_space(latent_space_dim):
     import tensorflow as tf
 
     aefcn = AEFCNNetwork(latent_space_dim=latent_space_dim)
-    encoder, decoder = aefcn.build_network((1000, 5))
+    aefcn.build_network((1000, 5))
+    encoder = aefcn.get_encoder_model()
+    decoder = aefcn.get_decoder_model()
     assert isinstance(encoder, tf.keras.models.Model)
     assert isinstance(decoder, tf.keras.models.Model)
 
@@ -60,12 +62,15 @@ def test_aefcnnetwork_kernel_size(kernel_size, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of kernels .* should be the same as number of layers",
+            match="Number of kernels \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(kernel_size=kernel_size, n_layers=3).build_network((1000, 5))
     else:
         aefcn = AEFCNNetwork(kernel_size=kernel_size, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
 
@@ -90,12 +95,15 @@ def test_aefcnnetwork_n_filters(n_filters, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of filters .* should be the same as number of layers",
+            match="Number of filters \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(n_filters=n_filters, n_layers=3).build_network((1000, 5))
     else:
         aefcn = AEFCNNetwork(n_filters=n_filters, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
 
@@ -120,14 +128,17 @@ def test_aefcnnetwork_dilation_rate(dilation_rate, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of dilations .* should be the same as number of layers",
+            match="Number of dilation rates \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(dilation_rate=dilation_rate, n_layers=3).build_network(
                 (1000, 5)
             )
     else:
         aefcn = AEFCNNetwork(dilation_rate=dilation_rate, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
 
@@ -152,12 +163,15 @@ def test_aefcnnetwork_strides(strides, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of strides .* should be the same as number of layers",
+            match="Number of strides \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(strides=strides, n_layers=3).build_network((1000, 5))
     else:
         aefcn = AEFCNNetwork(strides=strides, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
 
@@ -190,7 +204,9 @@ def test_aefcnnetwork_padding(padding, should_raise):
             AEFCNNetwork(padding=padding, n_layers=3).build_network((1000, 5))
     else:
         aefcn = AEFCNNetwork(padding=padding, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
 
@@ -223,7 +239,9 @@ def test_aefcnnetwork_activation(activation, should_raise):
             AEFCNNetwork(activation=activation, n_layers=3).build_network((1000, 5))
     else:
         aefcn = AEFCNNetwork(activation=activation, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
 
@@ -248,41 +266,14 @@ def test_aefcnnetwork_use_bias(use_bias, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of biases .* should be the same as number of layers",
+            match="Number of use bias \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(use_bias=use_bias, n_layers=3).build_network((1000, 5))
     else:
         aefcn = AEFCNNetwork(use_bias=use_bias, n_layers=3)
-        encoder, decoder = aefcn.build_network((1000, 5))
+        aefcn.build_network((1000, 5))
+        encoder = aefcn.get_encoder_model()
+        decoder = aefcn.get_decoder_model()
         assert isinstance(encoder, tf.keras.models.Model)
         assert isinstance(decoder, tf.keras.models.Model)
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow"], severity="none"),
-    reason="Tensorflow soft dependency unavailable.",
-)
-@pytest.mark.parametrize("temporal_latent_space", [True, False])
-def test_aefcnnetwork_temporal_latent_space(temporal_latent_space):
-    """Test for temporal latent space."""
-    import tensorflow as tf
-
-    input_shape = (1000, 5)
-
-    aefcn = AEFCNNetwork(
-        latent_space_dim=128, temporal_latent_space=temporal_latent_space
-    )
-
-    encoder, decoder = aefcn.build_network(input_shape)
-
-    assert isinstance(encoder, tf.keras.models.Model)
-    assert isinstance(decoder, tf.keras.models.Model)
-
-    if temporal_latent_space:
-        assert any(
-            isinstance(layer, tf.keras.layers.Conv1D) for layer in encoder.layers
-        ), "Expected Conv1D layer in encoder but not found."
-    else:
-        assert any(
-            isinstance(layer, tf.keras.layers.Dense) for layer in decoder.layers
-        ), "Expected Dense layer in decoder but not found."

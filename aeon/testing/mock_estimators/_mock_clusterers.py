@@ -70,11 +70,13 @@ class MockDeepClusterer(BaseDeepClusterer):
         """Build a Mock model."""
         import tensorflow as tf
 
+        self._check_params()
+
         input_layer_encoder = tf.keras.layers.Input(input_shape)
         gap = tf.keras.layers.GlobalAveragePooling1D()(input_layer_encoder)
         output_layer_encoder = tf.keras.layers.Dense(units=10)(gap)
         encoder = tf.keras.models.Model(
-            inputs=input_layer_encoder, outputs=output_layer_encoder
+            inputs=input_layer_encoder, outputs=output_layer_encoder, name="encoder"
         )
 
         input_layer_decoder = tf.keras.layers.Input((10,))
@@ -87,7 +89,7 @@ class MockDeepClusterer(BaseDeepClusterer):
         )
 
         decoder = tf.keras.models.Model(
-            inputs=input_layer_decoder, outputs=output_layer_decoder
+            inputs=input_layer_decoder, outputs=output_layer_decoder, name="decoder"
         )
 
         input_layer = tf.keras.layers.Input(input_shape)
@@ -99,22 +101,6 @@ class MockDeepClusterer(BaseDeepClusterer):
         model.compile(loss="mse")
 
         return model
-
-    def _fit(self, X, y=None):
-        X = X.transpose(0, 2, 1)
-
-        self.input_shape_ = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape_)
-
-        self.history = self.model_.fit(
-            X,
-            X,
-            batch_size=16,
-            epochs=1,
-        )
-        self._fit_clustering(X=X)
-
-        return self
 
     def _score(self, X, y=None):
         # Transpose to conform to Keras input style.
