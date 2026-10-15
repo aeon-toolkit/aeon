@@ -309,8 +309,8 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
 
     See Also
     --------
-    CanonicalIntervalForest
-    DrCIF
+    CanonicalIntervalForestClassifier
+    DrCIFClassifier
 
     Notes
     -----

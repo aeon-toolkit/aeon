@@ -1,9 +1,18 @@
 """Internal helpers for running joblib tasks."""
 
 __maintainer__ = []
-__all__ = ["_run_jobs"]
+__all__ = ["_run_jobs", "_NUMBA_PARALLEL_LOCK"]
+
+import threading
 
 from joblib import Parallel
+
+# numba's default (workqueue) threading layer terminates the process when two
+# Python threads enter parallel=True regions concurrently, and
+# get_num_threads/set_num_threads pairs race. Estimators that call numba
+# parallel functions from joblib threads must hold this lock around the
+# set-threads/launch/restore block.
+_NUMBA_PARALLEL_LOCK = threading.Lock()
 
 
 def _run_jobs(tasks, n_jobs, backend=None, prefer=None):

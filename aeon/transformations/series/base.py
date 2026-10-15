@@ -17,7 +17,7 @@ from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
-    """Transformer base class for collections."""
+    """Transformer base class for series."""
 
     # default tag values for series transformers
     _tags = {

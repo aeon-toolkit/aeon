@@ -68,8 +68,10 @@ def test_load_anomaly_detection_from_archive(mocker):
         )
         assert isinstance(X, np.ndarray)
         assert X.shape == (16220, 18)
+        assert X.flags.writeable
         assert isinstance(y, np.ndarray)
         assert y.shape == (16220,)
+        assert y.flags.writeable
         assert isinstance(meta, dict)
         assert meta["learning_type"] == "unsupervised"
         assert meta["num_anomalies"] == 3
@@ -134,8 +136,10 @@ def test_load_from_timeeval_csv_file_univariate():
     )
     assert isinstance(X, np.ndarray)
     assert X.shape == (7501,)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (7501,)
+    assert y.flags.writeable
 
 
 def test_load_from_timeeval_csv_file_multivariate():
@@ -145,8 +149,10 @@ def test_load_from_timeeval_csv_file_multivariate():
     )
     assert isinstance(X, np.ndarray)
     assert X.shape == (7040, 9)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (7040,)
+    assert y.flags.writeable
 
 
 def test_load_kdd_tsad_135():
@@ -154,14 +160,18 @@ def test_load_kdd_tsad_135():
     X, y = load_kdd_tsad_135()
     assert isinstance(X, np.ndarray)
     assert X.shape == (7501,)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (7501,)
+    assert y.flags.writeable
 
     X_train, y_train = load_kdd_tsad_135(split="train")
     assert isinstance(X_train, np.ndarray)
     assert X_train.shape == (1200,)
+    assert X_train.flags.writeable
     assert isinstance(y_train, np.ndarray)
     assert y_train.shape == (1200,)
+    assert y_train.flags.writeable
 
 
 # TODO: remove in v1.7.0
@@ -171,8 +181,10 @@ def test_load_daphnet_s06r02e0():
         X, y = load_daphnet_s06r02e0()
     assert isinstance(X, np.ndarray)
     assert X.shape == (7040, 9)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (7040,)
+    assert y.flags.writeable
 
 
 # TODO: remove in v1.7.0
@@ -190,12 +202,16 @@ def test_load_ecg_diff_count_3(learning_type):
         X, y, X_train, y_train = loaded
         assert isinstance(X_train, np.ndarray)
         assert X_train.shape == (10000,)
+        assert X_train.flags.writeable
         assert isinstance(y_train, np.ndarray)
         assert y_train.shape == (10000,)
+        assert y_train.flags.writeable
         if learning_type == "semi-supervised":
             assert np.sum(y_train) == 0
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (10000,)
+    assert X.flags.writeable
     assert isinstance(y, np.ndarray)
     assert y.shape == (10000,)
+    assert y.flags.writeable
