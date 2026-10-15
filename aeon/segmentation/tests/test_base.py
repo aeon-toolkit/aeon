@@ -3,9 +3,21 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.testing.mock_estimators import MockSegmenter, MockSegmenterRequiresY
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
+from aeon.testing.mock_estimators import (
+    MockSegmenter,
+    MockSegmenterRequiresY,
+    MockSegmenterWithScores,
+)
+
+N_TIMEPOINTS = 20
+N_CHANNELS = 3
 
 
 def test_fit_predict_correct():
@@ -82,3 +94,67 @@ def test_check_y_wrong(y_wrong):
     """Test the _check_y method with incorrect input."""
     with pytest.raises(ValueError, match="Error in input type for y"):
         BaseSegmenter._check_y(None, y_wrong)
+
+
+PREDICT_SCORES_INPUT = [
+    make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0),
+    make_example_2d_numpy_series(
+        n_timepoints=N_TIMEPOINTS, n_channels=N_CHANNELS, random_state=0
+    ),
+]
+
+
+@pytest.mark.parametrize("X", PREDICT_SCORES_INPUT)
+def test_predict_scores_returns_one_score_per_timepoint(X):
+    """Test predict_scores returns a float score for each time point of X."""
+    seg = MockSegmenterWithScores().fit(X)
+    scores = seg.predict_scores(X)
+    assert isinstance(scores, np.ndarray)
+    assert scores.shape == (N_TIMEPOINTS,)
+    assert np.issubdtype(scores.dtype, np.floating)
+
+
+def test_predict_scores_axis():
+    """Test predict_scores gives the same scores for X with axis=1 and X.T, axis=0."""
+    X = make_example_2d_numpy_series(
+        n_timepoints=N_TIMEPOINTS, n_channels=N_CHANNELS, random_state=0
+    )
+    seg = MockSegmenterWithScores().fit(X)
+    np.testing.assert_array_equal(
+        seg.predict_scores(X, axis=1), seg.predict_scores(X.T, axis=0)
+    )
+
+
+def test_predict_scores_not_fitted():
+    """Test predict_scores raises NotFittedError before fit if fit is not empty."""
+    X = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
+    seg = MockSegmenterWithScores()
+    with pytest.raises(NotFittedError):
+        seg.predict_scores(X)
+
+
+def test_predict_scores_tag_false():
+    """Test predict_scores raises NotImplementedError if the tag is False.
+
+    The segmenter implements _predict_scores, so the error can only come from the
+    tag check.
+    """
+    X = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
+    seg = MockSegmenterWithScores().fit(X)
+    seg.set_tags(**{"capability:predict_scores": False})
+    with pytest.raises(NotImplementedError):
+        seg.predict_scores(X)
+
+
+def test_predict_scores_tag_true_without_override():
+    """Test predict_scores raises NotImplementedError if _predict_scores is missing.
+
+    The tag is set to True on a segmenter that does not override _predict_scores, so
+    the call reaches the base class _predict_scores.
+    """
+    X = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
+    seg = MockSegmenter().fit(X)
+    seg.set_tags(**{"capability:predict_scores": True})
+    assert "_predict_scores" not in type(seg).__dict__
+    with pytest.raises(NotImplementedError):
+        seg.predict_scores(X)

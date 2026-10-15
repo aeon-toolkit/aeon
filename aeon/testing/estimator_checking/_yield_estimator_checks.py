@@ -530,7 +530,9 @@ def _method_is_callable(estimator, method):
 
     Clusterers with the ``capability:predict`` tag set to False do not support
     out-of-sample prediction, so ``predict`` and ``predict_proba`` deliberately
-    raise and are excluded from generic method loops.
+    raise and are excluded from generic method loops. Likewise, segmenters with the
+    ``capability:predict_scores`` tag set to False are excluded for
+    ``predict_scores``.
     """
     if not (hasattr(estimator, method) and callable(getattr(estimator, method))):
         return False
@@ -538,6 +540,12 @@ def _method_is_callable(estimator, method):
         isinstance(estimator, BaseClusterer)
         and method in ("predict", "predict_proba")
         and not estimator.get_tag("capability:predict")
+    ):
+        return False
+    if (
+        isinstance(estimator, BaseSegmenter)
+        and method == "predict_scores"
+        and not estimator.get_tag("capability:predict_scores")
     ):
         return False
     return True

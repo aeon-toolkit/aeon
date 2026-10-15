@@ -62,6 +62,22 @@ class BaseSegmenter(BaseSeriesEstimator):
         Number of segments to split the time series into. If None, then the number of
         segments needs to be found in fit.
 
+    Notes
+    -----
+    Segmenters must follow this contract:
+
+    * ``predict`` and ``predict_scores`` must not modify the estimator. There are no
+      attribute writes outside ``fit``/``_fit``.
+    * Do not build and store helper or work objects in ``__init__``. ``__init__``
+      only assigns parameters.
+    * When ``fit_is_empty`` is True the estimator holds no fitted state, so
+      ``predict`` and ``predict_scores`` depend only on the hyperparameters and X.
+    * Computation shared between ``_predict`` and ``_predict_scores`` belongs in a
+      private method that takes preprocessed X and returns results without writing
+      to ``self``.
+
+    ``predict_scores`` is optional and only available when the tag
+    ``"capability:predict_scores"`` is True.
     """
 
     _tags = {
@@ -69,6 +85,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         "fit_is_empty": True,
         "requires_y": False,
         "returns_dense": True,
+        "capability:predict_scores": False,
     }
 
     @abstractmethod
@@ -156,6 +173,49 @@ class BaseSegmenter(BaseSeriesEstimator):
         X = self._preprocess_series(X, axis, False)
         return self._predict(X)
 
+    @final
+    def predict_scores(self, X, axis=1):
+        """Return estimator-specific scores for X.
+
+        Only available if the tag ``"capability:predict_scores"`` is True. Does not
+        change the state of the estimator.
+
+        Parameters
+        ----------
+        X : One of ``VALID_SERIES_INPUT_TYPES``
+            Input time series
+        axis : int, default = None
+            Axis along which to segment if passed a multivariate series (2D input)
+            with ``n_channels`` time series. If axis is 0, it is assumed each row is
+            a time series and each column is a time point. i.e. the shape of the data
+            is ``(n_timepoints,n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
+
+        Returns
+        -------
+        scores
+            Estimator-specific scores. The type and shape are documented on each
+            segmenter that implements this method.
+
+        Raises
+        ------
+        NotImplementedError
+            If the tag ``"capability:predict_scores"`` is False.
+        """
+        if not self.get_tag("fit_is_empty"):
+            self._check_is_fitted()
+        if not self.get_tag("capability:predict_scores"):
+            raise NotImplementedError(
+                f"{self.__class__.__name__} does not implement predict_scores "
+                "(tag capability:predict_scores is False)."
+            )
+        if axis is None:
+            axis = self.axis
+        X = self._preprocess_series(X, axis, False)
+        return self._predict_scores(X)
+
     def fit_predict(self, X, y=None, axis=1):
         """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
@@ -171,6 +231,17 @@ class BaseSegmenter(BaseSeriesEstimator):
     def _predict(self, X) -> np.ndarray:
         """Create and return a segmentation of X."""
         ...
+
+    def _predict_scores(self, X):
+        """Return estimator-specific scores for X.
+
+        Segmenters that set the tag ``"capability:predict_scores"`` to True must
+        override this method.
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} sets capability:predict_scores but does not "
+            "implement _predict_scores."
+        )
 
     def _check_y(self, y: VALID_SERIES_INPUT_TYPES):
         """Check y specific to segmentation.
