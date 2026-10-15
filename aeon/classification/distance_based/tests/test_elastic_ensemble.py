@@ -26,7 +26,7 @@ PARAS = {
     "erp": {"g", "window"},
     "msm": {"c"},
     "euclidean": {},
-    "twe": {"nu", "lmbda", "window"},
+    "twe": {"nu", "lmbda"},
 }
 DATA = np.random.random((10, 1, 50))
 

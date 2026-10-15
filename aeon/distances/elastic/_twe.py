@@ -248,6 +248,7 @@ def _twe_distance_impl(
     x_size = x.shape[1]
     y_size = y.shape[1]
     del_add = nu + lmbda
+    del_y_cost = _twe_deletion_costs(y, del_add)
 
     prev = np.full(y_size, np.inf)
     curr = np.full(y_size, np.inf)
@@ -256,22 +257,16 @@ def _twe_distance_impl(
     prev[0] = 0.0
 
     for i in range(1, x_size):
+        # The cost of deleting x[i] does not depend on j.
+        del_x_cost = _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
         # Column 0 of the padded cost matrix is inf for every row i >= 1.
         curr[0] = np.inf
         for j in range(1, y_size):
             if bounding_matrix[i - 1, j - 1]:
                 # Deletion in x (from the row above)
-                del_x = (
-                    prev[j]
-                    + _univariate_euclidean_distance(x[:, i - 1], x[:, i])
-                    + del_add
-                )
+                del_x = prev[j] + del_x_cost
                 # Deletion in y (from the cell to the left)
-                del_y = (
-                    curr[j - 1]
-                    + _univariate_euclidean_distance(y[:, j - 1], y[:, j])
-                    + del_add
-                )
+                del_y = curr[j - 1] + del_y_cost[j]
                 # Match (from the diagonal)
                 match = (
                     prev[j - 1]
@@ -307,22 +302,18 @@ def _twe_distance_unbounded_impl(
     x_size = x.shape[1]
     y_size = y.shape[1]
     del_add = nu + lmbda
+    del_y_cost = _twe_deletion_costs(y, del_add)
 
     prev = np.full(y_size, np.inf)
     curr = np.empty(y_size)
     prev[0] = 0.0
 
     for i in range(1, x_size):
+        del_x_cost = _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
         curr[0] = np.inf
         for j in range(1, y_size):
-            del_x = (
-                prev[j] + _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
-            )
-            del_y = (
-                curr[j - 1]
-                + _univariate_euclidean_distance(y[:, j - 1], y[:, j])
-                + del_add
-            )
+            del_x = prev[j] + del_x_cost
+            del_y = curr[j - 1] + del_y_cost[j]
             match = (
                 prev[j - 1]
                 + _univariate_euclidean_distance(x[:, i], y[:, j])
@@ -333,6 +324,20 @@ def _twe_distance_unbounded_impl(
         prev, curr = curr, prev
 
     return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _twe_deletion_costs(x: np.ndarray, del_add: float) -> np.ndarray:
+    """Return the cost of deleting each time point of a padded series.
+
+    Entry ``j`` is the cost of deleting ``x[:, j]``, for ``j >= 1``. It does not
+    depend on the other series, so the kernels compute it once per call rather
+    than once per cost matrix cell. Entry 0 is unused.
+    """
+    costs = np.zeros(x.shape[1])
+    for j in range(1, x.shape[1]):
+        costs[j] = _univariate_euclidean_distance(x[:, j - 1], x[:, j]) + del_add
+    return costs
 
 
 @njit(cache=True, fastmath=True)
