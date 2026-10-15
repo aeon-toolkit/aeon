@@ -14,6 +14,7 @@ from sklearn.pipeline import Pipeline
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.signature_based import SignatureTransformer
+from aeon.utils.sklearn import _resolve_balanced_class_weight
 
 
 class SignatureClassifier(BaseClassifier):
@@ -61,7 +62,8 @@ class SignatureClassifier(BaseClassifier):
         Signature truncation depth.
     random_state : int, default=None
         If `int`, random_state is the seed used by the random number generator;
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
         The “balanced” mode uses the values of y to automatically adjust weights
@@ -100,7 +102,7 @@ class SignatureClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "feature",
-        "python_dependencies": "esig",
+        "python_dependencies": "roughpy",
     }
 
     def __init__(
@@ -142,12 +144,12 @@ class SignatureClassifier(BaseClassifier):
         )
         self.pipeline = None
 
-    def _setup_classification_pipeline(self):
+    def _setup_classification_pipeline(self, class_weight):
         """Set up the full signature method pipeline."""
         # Use rf if no classifier is set
         if self.estimator is None:
             classifier = RandomForestClassifier(
-                random_state=self.random_state, class_weight=self.class_weight
+                random_state=self.random_state, class_weight=class_weight
             )
         else:
             classifier = _clone_estimator(self.estimator, self.random_state)
@@ -169,11 +171,20 @@ class SignatureClassifier(BaseClassifier):
         -------
         self : object
         """
+        if self.estimator is None:
+            class_weight, fit_kwargs = _resolve_balanced_class_weight(
+                self.class_weight, y
+            )
+        else:
+            class_weight, fit_kwargs = self.class_weight, {}
+
         # Join the classifier onto the signature method pipeline
-        self._setup_classification_pipeline()
+        self._setup_classification_pipeline(class_weight)
 
         # Fit the pre-initialised classification pipeline
-        self.pipeline.fit(X, y)
+        self.pipeline.fit(
+            X, y, **{f"classifier__{k}": v for k, v in fit_kwargs.items()}
+        )
 
         return self
 

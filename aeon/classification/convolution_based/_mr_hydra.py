@@ -30,7 +30,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Number of kernels per group for the Hydra transform.
     n_groups : int, default=64
         Number of groups per dilation for the Hydra transform.
-    class_weight{None, “balanced”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
         If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights

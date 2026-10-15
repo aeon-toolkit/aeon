@@ -3,6 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["deep_equals"]
 
+import numbers
 from inspect import isclass
 
 import numpy as np
@@ -68,8 +69,12 @@ def _deep_equals(x, y, depth, ignore_index):
         eq = x == y
         msg = "" if eq else f"x ({x.__name__}) != y ({y.__name__}), depth={depth}"
         return eq, msg
-    elif np.isnan(x):
-        eq = np.isnan(y)
+    elif isinstance(x, numbers.Real):
+        if np.isnan(x):
+            eq = np.isnan(y)
+            msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
+            return eq, msg
+        eq = x == y
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
         return eq, msg
     elif isinstance(x == y, (bool, np.bool_)):
