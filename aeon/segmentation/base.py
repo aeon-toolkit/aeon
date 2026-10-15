@@ -64,19 +64,7 @@ class BaseSegmenter(BaseSeriesEstimator):
 
     Notes
     -----
-    Segmenters must follow this contract:
-
-    * ``predict`` and ``predict_scores`` must not modify the estimator. There are no
-      attribute writes outside ``fit``/``_fit``.
-    * Do not build and store helper or work objects in ``__init__``. ``__init__``
-      only assigns parameters.
-    * When ``fit_is_empty`` is True the estimator holds no fitted state, so
-      ``predict`` and ``predict_scores`` depend only on the hyperparameters and X.
-    * Computation shared between ``_predict`` and ``_predict_scores`` belongs in a
-      private method that takes preprocessed X and returns results without writing
-      to ``self``.
-
-    ``predict_scores`` is optional and only available when the tag
+     * ``predict_scores`` is optional and only available when the tag
     ``"capability:predict_scores"`` is True.
     """
 

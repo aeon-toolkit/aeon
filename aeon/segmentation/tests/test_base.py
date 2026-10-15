@@ -18,6 +18,10 @@ from aeon.testing.mock_estimators import (
 
 N_TIMEPOINTS = 20
 N_CHANNELS = 3
+X_UNIVARIATE = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
+X_MULTIVARIATE = make_example_2d_numpy_series(
+    n_timepoints=N_TIMEPOINTS, n_channels=N_CHANNELS, random_state=0
+)
 
 
 def test_fit_predict_correct():
@@ -96,15 +100,7 @@ def test_check_y_wrong(y_wrong):
         BaseSegmenter._check_y(None, y_wrong)
 
 
-PREDICT_SCORES_INPUT = [
-    make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0),
-    make_example_2d_numpy_series(
-        n_timepoints=N_TIMEPOINTS, n_channels=N_CHANNELS, random_state=0
-    ),
-]
-
-
-@pytest.mark.parametrize("X", PREDICT_SCORES_INPUT)
+@pytest.mark.parametrize("X", [X_UNIVARIATE, X_MULTIVARIATE])
 def test_predict_scores_returns_one_score_per_timepoint(X):
     """Test predict_scores returns a float score for each time point of X."""
     seg = MockSegmenterWithScores().fit(X)
@@ -116,21 +112,18 @@ def test_predict_scores_returns_one_score_per_timepoint(X):
 
 def test_predict_scores_axis():
     """Test predict_scores gives the same scores for X with axis=1 and X.T, axis=0."""
-    X = make_example_2d_numpy_series(
-        n_timepoints=N_TIMEPOINTS, n_channels=N_CHANNELS, random_state=0
-    )
-    seg = MockSegmenterWithScores().fit(X)
+    seg = MockSegmenterWithScores().fit(X_MULTIVARIATE)
     np.testing.assert_array_equal(
-        seg.predict_scores(X, axis=1), seg.predict_scores(X.T, axis=0)
+        seg.predict_scores(X_MULTIVARIATE, axis=1),
+        seg.predict_scores(X_MULTIVARIATE.T, axis=0),
     )
 
 
 def test_predict_scores_not_fitted():
     """Test predict_scores raises NotFittedError before fit if fit is not empty."""
-    X = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
     seg = MockSegmenterWithScores()
     with pytest.raises(NotFittedError):
-        seg.predict_scores(X)
+        seg.predict_scores(X_UNIVARIATE)
 
 
 def test_predict_scores_tag_false():
@@ -139,11 +132,10 @@ def test_predict_scores_tag_false():
     The segmenter implements _predict_scores, so the error can only come from the
     tag check.
     """
-    X = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
-    seg = MockSegmenterWithScores().fit(X)
+    seg = MockSegmenterWithScores().fit(X_UNIVARIATE)
     seg.set_tags(**{"capability:predict_scores": False})
     with pytest.raises(NotImplementedError):
-        seg.predict_scores(X)
+        seg.predict_scores(X_UNIVARIATE)
 
 
 def test_predict_scores_tag_true_without_override():
@@ -152,9 +144,9 @@ def test_predict_scores_tag_true_without_override():
     The tag is set to True on a segmenter that does not override _predict_scores, so
     the call reaches the base class _predict_scores.
     """
-    X = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
-    seg = MockSegmenter().fit(X)
+    seg = MockSegmenter().fit(X_UNIVARIATE)
     seg.set_tags(**{"capability:predict_scores": True})
+    # Guard the premise: the call must reach the base class _predict_scores.
     assert "_predict_scores" not in type(seg).__dict__
     with pytest.raises(NotImplementedError):
-        seg.predict_scores(X)
+        seg.predict_scores(X_UNIVARIATE)

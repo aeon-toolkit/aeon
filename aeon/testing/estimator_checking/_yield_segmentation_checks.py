@@ -65,7 +65,10 @@ def check_segmenter_instance(estimator):
             assert len(output) == length
 
     def _assert_predict_scores(X, axis=1):
-        """Assert predict_scores runs if tagged, otherwise raises."""
+        """Assert predict_scores runs if tagged, otherwise raises.
+
+        Segmenters defining their own public predict_scores are skipped.
+        """
         if estimator.get_tag(tag_name="capability:predict_scores"):
             estimator.predict_scores(X, axis=axis)
         # Segmenters that define their own public predict_scores (ClaSPSegmenter
