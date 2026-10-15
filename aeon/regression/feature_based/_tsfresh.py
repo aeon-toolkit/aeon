@@ -158,7 +158,7 @@ class TSFreshRegressor(BaseRegressor):
         if X_t.shape[1] == 0:
             warnings.warn(
                 "TSFresh has extracted no features from the data. Returning the "
-                "majority class in predictions. Setting "
+                "mean of the training targets in predictions. Setting "
                 "relevant_feature_extractor=False will keep all features.",
                 UserWarning,
                 stacklevel=2,
@@ -187,7 +187,7 @@ class TSFreshRegressor(BaseRegressor):
             Predicted labels.
         """
         if self._return_mean:
-            return np.full(X.shape[0], self._mean)
+            return np.full(len(X), self._mean)
 
         return self._estimator.predict(self._transformer.transform(X))
 
