@@ -17,11 +17,11 @@ from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
-# TODO: remove TWE bounding parameters in v1.7.0
+# TODO: remove TWE bounding parameters in v1.8.0
 def _warn_bounding_deprecated(stacklevel=2):
     warnings.warn(
         "The 'window' and 'itakura_max_slope' parameters are deprecated for TWE "
-        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "and will be removed in v1.8.0. Bounding constraints are not part of the "
         "standard TWE algorithm.",
         FutureWarning,
         stacklevel=stacklevel,
@@ -74,7 +74,7 @@ def twe_distance(
         Window size. If None, the window size is set to the length of the
         shortest time series.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant called the stiffness, which penalises moves off the
@@ -85,7 +85,7 @@ def twe_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
 
     Returns
@@ -159,7 +159,7 @@ def twe_cost_matrix(
         Window size. If None, the window size is set to the length of the
         shortest time series.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
@@ -170,7 +170,7 @@ def twe_cost_matrix(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
 
     Returns
@@ -233,11 +233,18 @@ def _twe_distance(
     # Iterate over the larger dimension to minimize the size of the row buffers.
     # TWE is symmetric (the delete/insert terms swap and the match term is
     # symmetric), so swapping x and y and transposing the bounding matrix leaves
-    # the distance unchanged.
+    # the distance unchanged. The swap is a call with swapped arguments rather
+    # than a reassignment, which Numba cannot type when x and y have different
+    # dtypes.
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
-        bounding_matrix = bounding_matrix.T
+        return _twe_distance_impl(y, x, bounding_matrix.T, nu, lmbda)
+    return _twe_distance_impl(x, y, bounding_matrix, nu, lmbda)
 
+
+@njit(cache=True, fastmath=True)
+def _twe_distance_impl(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
     del_add = nu + lmbda
@@ -287,9 +294,16 @@ def _twe_distance_unbounded(
     x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
 ) -> float:
     """Compute unbounded TWE with two rolling rows and no bounding matrix."""
+    # See _twe_distance for why this is not an in-place swap.
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
+        return _twe_distance_unbounded_impl(y, x, nu, lmbda)
+    return _twe_distance_unbounded_impl(x, y, nu, lmbda)
 
+
+@njit(cache=True, fastmath=True)
+def _twe_distance_unbounded_impl(
+    x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
     del_add = nu + lmbda
@@ -398,7 +412,7 @@ def twe_pairwise_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
@@ -409,7 +423,7 @@ def twe_pairwise_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
@@ -593,7 +607,7 @@ def twe_alignment_path(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
@@ -604,7 +618,7 @@ def twe_alignment_path(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard TWE algorithm.
 
     Returns
