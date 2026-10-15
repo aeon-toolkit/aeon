@@ -306,7 +306,9 @@ class Arsenal(BaseClassifier):
             Predicted probabilities using the ordering in classes_.
         """
         if self.rocket_transform == "rocket":
-            X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
+            X = Normalizer().fit_transform(X)
+        # every rocket transform convolves in float32; cast once, not per member
+        X = X.astype(np.float32, copy=False)
 
         y_probas = _run_jobs(
             (
@@ -383,8 +385,7 @@ class Arsenal(BaseClassifier):
 
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(n_kernels=self.n_kernels)
-            # Rocket convolves in float32; cast once, not once per member
-            X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
+            X = Normalizer().fit_transform(X)
         elif self.rocket_transform == "minirocket":
             base_rocket = MiniRocket(
                 n_kernels=self.n_kernels,
@@ -398,6 +399,8 @@ class Arsenal(BaseClassifier):
             )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
+        # every rocket transform convolves in float32; cast once, not per member
+        X = X.astype(np.float32, copy=False)
 
         rng = check_random_state(self.random_state)
         train_rng = (
