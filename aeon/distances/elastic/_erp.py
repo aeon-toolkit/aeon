@@ -17,11 +17,11 @@ from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
-# TODO: remove ERP bounding parameters in v1.7.0
+# TODO: remove ERP bounding parameters in v1.8.0
 def _warn_bounding_deprecated(stacklevel=2):
     warnings.warn(
         "The 'window' and 'itakura_max_slope' parameters are deprecated for ERP "
-        "and will be removed in v1.7.0. Bounding constraints are not part of the "
+        "and will be removed in v1.8.0. Bounding constraints are not part of the "
         "standard ERP algorithm.",
         FutureWarning,
         stacklevel=stacklevel,
@@ -73,7 +73,7 @@ def erp_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
     g : float, default=0.0
         The reference constant used to penalise moves off the diagonal. The default
@@ -86,7 +86,7 @@ def erp_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
 
     Returns
@@ -160,7 +160,7 @@ def erp_cost_matrix(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
     g :  float, default=0.0
         The reference value to penalise gaps. The default is 0.
@@ -170,7 +170,7 @@ def erp_cost_matrix(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
 
     Returns
@@ -237,11 +237,21 @@ def _erp_distance(
     # ERP is symmetric: under a swap the delete-in-x and delete-in-y terms (and
     # the x_sum/y_sum boundaries) exchange and the match term is symmetric, so
     # swapping x and y and transposing the bounding matrix leaves the distance
-    # unchanged.
+    # unchanged. The swap is a call with swapped arguments rather than a
+    # reassignment, which Numba cannot type when x and y have different dtypes.
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
-        bounding_matrix = bounding_matrix.T
+        return _erp_distance_impl(y, x, bounding_matrix.T, g, g_arr)
+    return _erp_distance_impl(x, y, bounding_matrix, g, g_arr)
 
+
+@njit(cache=True, fastmath=True)
+def _erp_distance_impl(
+    x: np.ndarray,
+    y: np.ndarray,
+    bounding_matrix: np.ndarray,
+    g: float,
+    g_arr: np.ndarray | None,
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
 
@@ -284,8 +294,17 @@ def _erp_distance_unbounded(
 ) -> float:
     """Compute unbounded ERP with two rolling rows and no bounding matrix."""
     if x.shape[1] < y.shape[1]:
-        x, y = y, x
+        return _erp_distance_unbounded_impl(y, x, g, g_arr)
+    return _erp_distance_unbounded_impl(x, y, g, g_arr)
 
+
+@njit(cache=True, fastmath=True)
+def _erp_distance_unbounded_impl(
+    x: np.ndarray,
+    y: np.ndarray,
+    g: float,
+    g_arr: np.ndarray | None,
+) -> float:
     x_size = x.shape[1]
     y_size = y.shape[1]
 
@@ -297,14 +316,31 @@ def _erp_distance_unbounded(
     prev[0] = 0.0
     prev[1:] = y_sum
 
+    # Univariate fast path: read scalars from flat 1D views instead of creating two
+    # strided column views and running the channel loop for every DP cell. With a
+    # single channel the Euclidean match cost is the absolute difference.
+    univariate = x.shape[0] == 1 and y.shape[0] == 1
+    x0 = x[0]
+    y0 = y[0]
+
     for i in range(1, x_size + 1):
         curr[0] = x_sum
-        for j in range(1, y_size + 1):
-            curr[j] = min(
-                prev[j - 1] + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]),
-                prev[j] + gx_distance[i - 1],
-                curr[j - 1] + gy_distance[j - 1],
-            )
+        if univariate:
+            xi = x0[i - 1]
+            for j in range(1, y_size + 1):
+                curr[j] = min(
+                    prev[j - 1] + abs(xi - y0[j - 1]),
+                    prev[j] + gx_distance[i - 1],
+                    curr[j - 1] + gy_distance[j - 1],
+                )
+        else:
+            for j in range(1, y_size + 1):
+                curr[j] = min(
+                    prev[j - 1]
+                    + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]),
+                    prev[j] + gx_distance[i - 1],
+                    curr[j - 1] + gy_distance[j - 1],
+                )
         prev, curr = curr, prev
 
     return prev[y_size]
@@ -393,7 +429,7 @@ def erp_pairwise_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
     g : float, default=0.0.
         The reference value to penalise gaps. The default is 0.
@@ -403,7 +439,7 @@ def erp_pairwise_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
@@ -572,7 +608,7 @@ def erp_alignment_path(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
     g : float, default=0.0.
         The reference value to penalise gaps. The default is 0.
@@ -582,7 +618,7 @@ def erp_alignment_path(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
-        Deprecated and will be removed in v1.7.0. Bounding constraints are not
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
         part of the standard ERP algorithm.
 
     Returns
