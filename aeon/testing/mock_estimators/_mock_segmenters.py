@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = [
     "MockSegmenter",
     "MockSegmenterRequiresY",
+    "MockSegmenterWithScores",
 ]
 
 import numpy as np
@@ -58,3 +59,19 @@ class MockSegmenterRequiresY(MockSegmenter):
     def _predict(self, X):
         """Generate breakpoints."""
         return np.array([1])
+
+
+class MockSegmenterWithScores(MockSegmenter):
+    """Mock segmenter implementing predict_scores for testing."""
+
+    _tags = {
+        "capability:predict_scores": True,
+    }
+
+    def _predict(self, X):
+        """Generate breakpoints."""
+        return np.array([1])
+
+    def _predict_scores(self, X):
+        """Return the mean over channels at each time point."""
+        return np.atleast_2d(X).mean(axis=0).astype(float)
