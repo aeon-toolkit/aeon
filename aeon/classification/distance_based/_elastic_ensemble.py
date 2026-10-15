@@ -22,10 +22,6 @@ from sklearn.model_selection import (
 )
 
 from aeon.classification.base import BaseClassifier
-from aeon.classification.distance_based._proximity_tree import (
-    twe_lmbda_params,
-    twe_nu_params,
-)
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
@@ -493,11 +489,18 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "euclidean":
             return {"distance_params": [{}]}  # No parameters for Euclidean distance
         elif distance_measure == "twe":
-            # The original EE grid. TWE has no window, as bounding is deprecated.
+            band_sizes = get_inclusive(0, 0.25, 5)
+            nu_values = get_inclusive(0.0001, 0.001, 10)
+            lmbda_values = get_inclusive(1.0, 2.0, 2)
+            b_and_nu_and_lmbda = list(product(band_sizes, nu_values, lmbda_values))
             return {
                 "distance_params": [
-                    {"nu": nu, "lmbda": lmbda}
-                    for nu, lmbda in product(twe_nu_params, twe_lmbda_params)
+                    {
+                        "window": b_and_nu_and_lmbda[x][0],
+                        "nu": b_and_nu_and_lmbda[x][1],
+                        "lmbda": b_and_nu_and_lmbda[x][2],
+                    }
+                    for x in range(0, len(b_and_nu_and_lmbda))
                 ]
             }
 
