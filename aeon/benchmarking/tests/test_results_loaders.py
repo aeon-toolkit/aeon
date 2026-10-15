@@ -101,6 +101,7 @@ def test_get_estimator_results(path):
     assert len(res2) == 3
     assert all(len(v) == 2 for v in res2.values())
     assert isinstance(res2["HIVECOTEV2"]["Chinatown"], np.ndarray)
+    assert res2["HIVECOTEV2"]["Chinatown"].flags.writeable
     assert len(res2["HIVECOTEV2"]["Chinatown"]) == 30
     assert res2["HIVECOTEV2"]["Chinatown"][0] == 0.9825072886297376
     assert np.average(res2["HIVECOTEV2"]["ItalyPowerDemand"]) == 0.9630385487528345

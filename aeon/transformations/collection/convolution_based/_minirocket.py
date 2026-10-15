@@ -46,7 +46,7 @@ class MiniRocket(BaseCollectionTransformer):
 
     See Also
     --------
-     Rocket, MultiRocket, Hydra
+     Rocket, MultiRocket, HydraTransformer
 
     References
     ----------

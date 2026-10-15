@@ -662,9 +662,9 @@ def load_from_tsv_file(full_file_path_and_name):
 
     """
     df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
-    y = df.pop(0).values
+    y = df.pop(0).to_numpy(copy=True)
     df.columns -= 1
-    X = df.to_numpy()
+    X = df.to_numpy(copy=True)
     X = np.expand_dims(X, axis=1)
     return X, y
 

@@ -313,7 +313,7 @@ def _roc_auc_score(y_score, y_true):
         else:
             return np.nan
 
-    area = direction * np.trapz(tpr, fpr)
+    area = direction * np.trapezoid(tpr, fpr)
     return area
 
 

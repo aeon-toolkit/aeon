@@ -431,7 +431,7 @@ def _load_to_dict(
             else list(data.iloc[:, 0])
         )
         dsets = problems if datasets is None else datasets
-        res_arr = data.iloc[:, 1:].to_numpy()
+        res_arr = data.iloc[:, 1:].to_numpy(copy=True)
 
         est_results = {}
         for data in dsets:
