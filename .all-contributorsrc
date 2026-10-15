@@ -3048,6 +3048,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "David-Wu1119",
+      "name": "Yanze (David) Wu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/133224895?v=4",
+      "profile": "https://yanzewu.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
