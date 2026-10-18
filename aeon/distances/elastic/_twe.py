@@ -299,30 +299,92 @@ def _twe_distance_unbounded(
 def _twe_distance_unbounded_impl(
     x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
 ) -> float:
-    x_size = x.shape[1]
-    y_size = y.shape[1]
-    del_add = nu + lmbda
-    del_y_cost = _twe_deletion_costs(y, del_add)
+    if x.shape[0] == 1 and y.shape[0] == 1:
+        return _twe_univariate_unbounded(x[0], y[0], nu, lmbda)
+    xt = np.ascontiguousarray(x.T)
+    yt = np.ascontiguousarray(y.T)
+    return _twe_multivariate_unbounded(xt, yt, nu, lmbda)
 
+
+@njit(cache=True, fastmath=True)
+def _twe_univariate_unbounded(
+    x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
+) -> float:
+    # Scalar differences are cheaper than maintaining another pair of rows.
+    x_size = x.shape[0]
+    y_size = y.shape[0]
+    del_add = nu + lmbda
+    two_nu = 2.0 * nu
+    del_y_cost = np.empty(y_size)
+    for j in range(1, y_size):
+        del_y_cost[j] = abs(y[j - 1] - y[j]) + del_add
     prev = np.full(y_size, np.inf)
     curr = np.empty(y_size)
     prev[0] = 0.0
-
     for i in range(1, x_size):
-        del_x_cost = _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
+        xi = x[i]
+        xim1 = x[i - 1]
+        del_x_cost = abs(xim1 - xi) + del_add
         curr[0] = np.inf
+        left = np.inf
         for j in range(1, y_size):
-            del_x = prev[j] + del_x_cost
-            del_y = curr[j - 1] + del_y_cost[j]
             match = (
                 prev[j - 1]
-                + _univariate_euclidean_distance(x[:, i], y[:, j])
-                + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
-                + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+                + abs(xi - y[j])
+                + abs(xim1 - y[j - 1])
+                + two_nu * abs(i - j)
             )
-            curr[j] = min(del_x, del_y, match)
+            del_x = prev[j] + del_x_cost
+            del_y = left + del_y_cost[j]
+            left = min(del_x, del_y, match)
+            curr[j] = left
         prev, curr = curr, prev
+    return prev[y_size - 1]
 
+
+@njit(cache=True, fastmath=True, inline="always")
+def _twe_point_distance(x: np.ndarray, i: int, y: np.ndarray, j: int) -> float:
+    # Time-major arrays keep the channel reduction contiguous without column views.
+    total = 0.0
+    for c in range(min(x.shape[1], y.shape[1])):
+        difference = x[i, c] - y[j, c]
+        total += difference * difference
+    return np.sqrt(total)
+
+
+@njit(cache=True, fastmath=True)
+def _twe_multivariate_unbounded(
+    x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
+) -> float:
+    x_size = x.shape[0]
+    y_size = y.shape[0]
+    del_add = nu + lmbda
+    two_nu = 2.0 * nu
+    del_y_cost = np.empty(y_size)
+    for j in range(1, y_size):
+        del_y_cost[j] = _twe_point_distance(y, j - 1, y, j) + del_add
+    prev = np.full(y_size, np.inf)
+    curr = np.empty(y_size)
+    dprev = np.empty(y_size)
+    dcurr = np.empty(y_size)
+    for j in range(y_size):
+        dprev[j] = _twe_point_distance(x, 0, y, j)
+    prev[0] = 0.0
+    for i in range(1, x_size):
+        del_x_cost = _twe_point_distance(x, i - 1, x, i) + del_add
+        dcurr[0] = _twe_point_distance(x, i, y, 0)
+        curr[0] = np.inf
+        left = np.inf
+        for j in range(1, y_size):
+            d = _twe_point_distance(x, i, y, j)
+            dcurr[j] = d
+            match = prev[j - 1] + d + dprev[j - 1] + two_nu * abs(i - j)
+            del_x = prev[j] + del_x_cost
+            del_y = left + del_y_cost[j]
+            left = min(del_x, del_y, match)
+            curr[j] = left
+        prev, curr = curr, prev
+        dprev, dcurr = dcurr, dprev
     return prev[y_size - 1]
 
 
@@ -350,19 +412,18 @@ def _twe_cost_matrix(
     cost_matrix[0, 0] = 0.0
 
     del_add = nu + lmbda
+    # Reuse deletion norms while preserving the original addition order.
+    del_x_costs = _twe_deletion_costs(x, 0.0)
+    del_y_costs = _twe_deletion_costs(y, 0.0)
 
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i - 1, j - 1]:
                 # Deletion in x
-                del_x_squared_dist = _univariate_euclidean_distance(
-                    x[:, i - 1], x[:, i]
-                )
+                del_x_squared_dist = del_x_costs[i]
                 del_x = cost_matrix[i - 1, j] + del_x_squared_dist + del_add
                 # Deletion in y
-                del_y_squared_dist = _univariate_euclidean_distance(
-                    y[:, j - 1], y[:, j]
-                )
+                del_y_squared_dist = del_y_costs[j]
                 del_y = cost_matrix[i, j - 1] + del_y_squared_dist + del_add
 
                 # Match
