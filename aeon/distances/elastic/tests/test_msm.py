@@ -1,13 +1,25 @@
 """Tests for MSM distance."""
 
-import warnings
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
 from aeon.distances import msm_cost_matrix, msm_distance, msm_pairwise_distance
 from aeon.distances.elastic._msm import _cost_dependent
+from aeon.testing.utils._mixed_dtypes import (
+    ITAKURA,
+    LONG_LENGTH,
+    MIXED_CHANNELS,
+    MIXED_DTYPES,
+    MIXED_LENGTHS,
+    N_CASES_X,
+    N_CASES_Y,
+    SHORT_LENGTH,
+    WINDOW,
+    _call_bounded,
+    _make_mixed,
+    _mixed_rtol,
+)
 
 
 def _reference_cost_dependent(x, y, z, c):
@@ -51,51 +63,6 @@ def test_dependent_msm_rejects_different_channel_counts():
         msm_distance(x, y, independent=False, window=0.5)
 
 
-MIXED_DTYPES = [
-    (np.float64, np.int64),
-    (np.int64, np.float64),
-    (np.float32, np.float64),
-    (np.float64, np.float32),
-]
-SHORT_LENGTH = 9
-LONG_LENGTH = 14
-# Equal lengths, then both directions of the internal swap to the longer series.
-MIXED_LENGTHS = [
-    (LONG_LENGTH, LONG_LENGTH),
-    (SHORT_LENGTH, LONG_LENGTH),
-    (LONG_LENGTH, SHORT_LENGTH),
-]
-MIXED_CHANNELS = [1, 3]
-N_CASES_X = 3
-N_CASES_Y = 2
-WINDOW = {"window": 0.5}
-ITAKURA = {"itakura_max_slope": 0.6}
-# Spread the values so that integer series are not mostly zeros.
-SCALE = 5
-RTOL_DOUBLE = 1e-12
-RTOL_SINGLE = 1e-6
-
-
-def _make_mixed(shape, dtype, rng):
-    """Random array of the given shape and dtype."""
-    return (rng.normal(size=shape) * SCALE).astype(dtype)
-
-
-def _mixed_rtol(*dtypes):
-    """Tolerance for comparing kernels, looser if any input is single precision."""
-    return RTOL_SINGLE if np.float32 in dtypes else RTOL_DOUBLE
-
-
-def _call_msm(func, x, y, independent, bounding):
-    """Call an MSM function, checking it warns only if bounding is requested."""
-    if bounding:
-        with pytest.warns(FutureWarning):
-            return func(x, y, independent=independent, **bounding)
-    with warnings.catch_warnings():
-        warnings.simplefilter("error", FutureWarning)
-        return func(x, y, independent=independent)
-
-
 @pytest.mark.parametrize("dtype_x,dtype_y", MIXED_DTYPES)
 @pytest.mark.parametrize("independent", [True, False])
 @pytest.mark.parametrize("bounding", [{}, WINDOW, ITAKURA])
@@ -112,8 +79,10 @@ def test_msm_distance_mixed_dtypes(dtype_x, dtype_y, independent, bounding):
             x = _make_mixed((n_channels, x_size), dtype_x, rng)
             y = _make_mixed((n_channels, y_size), dtype_y, rng)
 
-            dist = _call_msm(msm_distance, x, y, independent, bounding)
-            cost_matrix = _call_msm(msm_cost_matrix, x, y, independent, bounding)
+            dist = _call_bounded(msm_distance, x, y, bounding, independent=independent)
+            cost_matrix = _call_bounded(
+                msm_cost_matrix, x, y, bounding, independent=independent
+            )
 
             # An infinite distance would agree while testing nothing.
             assert np.isfinite(dist)
@@ -137,11 +106,13 @@ def test_msm_pairwise_distance_mixed_dtypes(dtype_y, independent, bounding):
     Y = _make_mixed((N_CASES_Y, n_channels, LONG_LENGTH), dtype_y, rng)
 
     for a, b in [(X, Y), (Y, X)]:
-        pw = _call_msm(msm_pairwise_distance, a, b, independent, bounding)
+        pw = _call_bounded(
+            msm_pairwise_distance, a, b, bounding, independent=independent
+        )
         expected = np.empty((len(a), len(b)))
         for i in range(len(a)):
             for j in range(len(b)):
-                expected[i, j] = _call_msm(
-                    msm_cost_matrix, a[i], b[j], independent, bounding
+                expected[i, j] = _call_bounded(
+                    msm_cost_matrix, a[i], b[j], bounding, independent=independent
                 )[-1, -1]
         assert_allclose(pw, expected, rtol=_mixed_rtol(dtype_y))
