@@ -77,13 +77,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-24.04, macOS-14, windows-2022, windows-11-arm ]
         python-version: [ "3.11", "3.12", "3.13", "3.14" ]
         # skip python versions unless the PR has the 'full pytest actions' label
         pr-testing:
           - ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: true
+            python-version: "3.11"
+          # numba has no Windows ARM64 wheels for Python 3.11
+          - os: windows-11-arm
             python-version: "3.11"
 
     steps:
