@@ -85,6 +85,12 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             transformers=transformers, _estimator=clusterer, random_state=random_state
         )
 
+        # can only predict on unseen data if the clusterer can
+        if isinstance(clusterer, BaseClusterer):
+            self.set_tags(
+                **{"capability:predict": clusterer.get_tag("capability:predict")}
+            )
+
     def _fit(self, X, y=None):
         super()._fit(X, y)
         self.labels_ = self.steps_[-1][1].labels_

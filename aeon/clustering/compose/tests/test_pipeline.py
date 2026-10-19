@@ -14,7 +14,10 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.testing.mock_estimators import MockCollectionTransformer
+from aeon.testing.mock_estimators import (
+    MockCollectionTransformer,
+    MockTransductiveCluster,
+)
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -274,3 +277,36 @@ def test_multivariate_tag_inference():
     p5 = ClustererPipeline(transformers=[t3, t1], clusterer=c3)
     assert not p5.get_tag("capability:multivariate")
     p5.fit(X, y)
+
+
+def test_predict_tag_inference():
+    """Test that ClustererPipeline infers the predict capability tag correctly."""
+    X, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+
+    p1 = ClustererPipeline(
+        transformers=Normalizer(), clusterer=TimeSeriesKMeans._create_test_instance()
+    )
+    assert p1.get_tag("capability:predict")
+
+    # transductive clusterer, the pipeline cannot predict on unseen data
+    p2 = ClustererPipeline(
+        transformers=Normalizer(), clusterer=MockTransductiveCluster()
+    )
+    assert not p2.get_tag("capability:predict")
+    p2.fit(X)
+    assert not p2.get_tag("capability:predict")
+
+    with pytest.raises(
+        NotImplementedError,
+        match="ClustererPipeline does not support out-of-sample prediction",
+    ):
+        p2.predict(X)
+    with pytest.raises(
+        NotImplementedError,
+        match="ClustererPipeline does not support out-of-sample prediction",
+    ):
+        p2.predict_proba(X)
+
+    labels = p2.fit_predict(X)
+    assert isinstance(labels, np.ndarray)
+    assert np.array_equal(labels, p2.labels_)
