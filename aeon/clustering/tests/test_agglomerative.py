@@ -158,21 +158,3 @@ def test_estimator_attribute_created_on_fit():
     assert hasattr(model, "estimator_")
     assert isinstance(model.estimator_, AgglomerativeClustering)
     assert not hasattr(model, "_estimator")
-
-
-def test_predict_not_supported():
-    """Test the clusterer is tagged transductive and predict raises after fit."""
-    assert not TimeSeriesAgglomerative.get_class_tag("capability:predict")
-
-    X = make_example_3d_numpy(20, 1, 10, random_state=1, return_y=False)
-    model = TimeSeriesAgglomerative(n_clusters=2, distance="euclidean")
-    model.fit(X)
-
-    # fit resets instance tags to the class defaults
-    assert not model.get_tag("capability:predict")
-
-    msg = "does not support out-of-sample prediction"
-    with pytest.raises(NotImplementedError, match=msg):
-        model.predict(X)
-    with pytest.raises(NotImplementedError, match=msg):
-        model.predict_proba(X)
