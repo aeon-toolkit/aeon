@@ -17,7 +17,11 @@ sub-dictionary has the following items:
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ESTIMATOR_TAGS"]
 
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
+from aeon.utils.data_types import (
+    COLLECTIONS_DATA_TYPES,
+    GLOBAL_RESCALER_DATA_TYPES,
+    SERIES_DATA_TYPES,
+)
 
 ESTIMATOR_TAGS = {
     # all estimators
@@ -48,7 +52,10 @@ ESTIMATOR_TAGS = {
     "X_inner_type": {
         "class": "estimator",
         "type": [
-            ("list||str", COLLECTIONS_DATA_TYPES + SERIES_DATA_TYPES),
+            (
+                "list||str",
+                COLLECTIONS_DATA_TYPES + SERIES_DATA_TYPES + GLOBAL_RESCALER_DATA_TYPES,
+            ),
         ],
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",

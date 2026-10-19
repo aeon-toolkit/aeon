@@ -68,10 +68,10 @@ def test_edge_case_initialization():
 )
 def test_invalid_initialization():
     """Test if the network raises valid exceptions or not."""
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         AEDCNNNetwork(n_filters=[32, 64], n_layers=3).build_network((100, 10))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         AEDCNNNetwork(dilation_rate=[1, 2], n_layers=3).build_network((100, 10))
 
 
