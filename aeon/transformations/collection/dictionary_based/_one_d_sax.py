@@ -20,14 +20,20 @@ class OneDSAX(BaseCollectionTransformer):
     - Mean symbols are derived from standard normal quantiles for
       ``alphabet_size_avg``.
     - Slope symbols are derived from normal quantiles with variance
-      ``0.03 / segment_length`` for ``alphabet_size_slope``. When the series
-      length is not divisible by ``n_segments``, segments are partitioned via
+      ``0.03 / segment_length`` for ``alphabet_size_slope``. These Gaussian
+      breakpoints assume that the input time series is z-normalized (as done
+      when ``znormalized=False``; see Notes). When the series length is not
+      divisible by ``n_segments``, segments are partitioned via
       ``numpy.array_split`` and slope breakpoints use each segment's own length.
 
     The composite symbol for each segment is computed as:
-    ``symbol = avg_symbol * alphabet_size_slope + slope_symbol``
+    ``composite_symbol = avg_symbol * alphabet_size_slope + slope_symbol``
     producing integer symbols in the range
     ``[0, alphabet_size_avg * alphabet_size_slope - 1]``.
+
+    A composite symbol can be decoded back into its mean and slope symbols via:
+    ``avg_symbol = composite_symbol // alphabet_size_slope``
+    ``slope_symbol = composite_symbol % alphabet_size_slope``
 
     Parameters
     ----------
@@ -40,12 +46,21 @@ class OneDSAX(BaseCollectionTransformer):
     znormalized : bool, default = True
         Whether the input series is already z-normalized. If False, each series
         is z-normalized independently along the time axis prior to segmentation.
+        Gaussian breakpoints for both segment average and slope assume
+        z-normalized inputs.
+
+    Notes
+    -----
+    The Gaussian breakpoints for quantizing segment slopes (variance 0.03 / l)
+    and segment averages assume that the input series is z-normalized. If the
+    input series is not already z-normalized, set ``znormalized=False`` (default
+    is True) to z-normalize each series independently prior to segmentation.
 
     References
     ----------
-    .. [1] Malinowski, A. L., Bhasin, H. S., Kawasaki, T., & Furukawa, T. (2013).
-       1d-SAX: a novel symbolic representation for time series.
-       Knowledge and Information Systems, 37(1), 175-198.
+    .. [1] Simon Malinowski, Thomas Guyet, René Quiniou, Romain Tavenard.
+       1d-SAX: A Novel Symbolic Representation for Time Series.
+       International Symposium on Intelligent Data Analysis, 2013.
 
     Examples
     --------
@@ -76,17 +91,29 @@ class OneDSAX(BaseCollectionTransformer):
         self.alphabet_size_slope = alphabet_size_slope
         self.znormalized = znormalized
 
-        if not isinstance(self.n_segments, int) or self.n_segments < 1:
+        super().__init__()
+
+    def _check_parameters(self, n_timepoints: int):
+        if (
+            not isinstance(self.n_segments, int)
+            or isinstance(self.n_segments, bool)
+            or self.n_segments < 1
+        ):
             raise ValueError(
                 f"n_segments must be an integer >= 1, but got {self.n_segments}"
             )
-        if not isinstance(self.alphabet_size_avg, int) or self.alphabet_size_avg < 2:
+        if (
+            not isinstance(self.alphabet_size_avg, int)
+            or isinstance(self.alphabet_size_avg, bool)
+            or self.alphabet_size_avg < 2
+        ):
             raise ValueError(
                 "alphabet_size_avg must be an integer >= 2, but got "
                 f"{self.alphabet_size_avg}"
             )
         if (
             not isinstance(self.alphabet_size_slope, int)
+            or isinstance(self.alphabet_size_slope, bool)
             or self.alphabet_size_slope < 2
         ):
             raise ValueError(
@@ -97,13 +124,11 @@ class OneDSAX(BaseCollectionTransformer):
             raise ValueError(
                 f"znormalized must be a boolean, but got {type(self.znormalized)}"
             )
-
-        self.breakpoints_avg = scipy.stats.norm.ppf(
-            np.arange(1, self.alphabet_size_avg, dtype=np.float64)
-            / self.alphabet_size_avg
-        )
-
-        super().__init__()
+        if self.n_segments > n_timepoints:
+            raise ValueError(
+                f"n_segments ({self.n_segments}) cannot be greater than "
+                f"the series length ({n_timepoints})."
+            )
 
     def _transform(self, X, y=None):
         """Transform input time series collection into 1d-SAX symbols.
@@ -122,11 +147,12 @@ class OneDSAX(BaseCollectionTransformer):
         """
         n_cases, n_channels, n_timepoints = X.shape
 
-        if self.n_segments > n_timepoints:
-            raise ValueError(
-                f"n_segments ({self.n_segments}) cannot be greater than "
-                f"the series length ({n_timepoints})."
-            )
+        self._check_parameters(n_timepoints)
+
+        breakpoints_avg = scipy.stats.norm.ppf(
+            np.arange(1, self.alphabet_size_avg, dtype=np.float64)
+            / self.alphabet_size_avg
+        )
 
         if not self.znormalized:
             X = SAX._z_normalize(X)
@@ -134,28 +160,9 @@ class OneDSAX(BaseCollectionTransformer):
         if n_timepoints % self.n_segments == 0:
             seg_len = n_timepoints // self.n_segments
             X_reshaped = X.reshape(n_cases, n_channels, self.n_segments, seg_len)
-
-            means = np.mean(X_reshaped, axis=-1)
-
-            if seg_len > 1:
-                # Centered coordinates ensure sum(x) == 0, separating mean and slope
-                x = np.arange(seg_len, dtype=np.float64) - (seg_len - 1.0) / 2.0
-                sum_x2 = (seg_len * (seg_len**2 - 1.0)) / 12.0
-                slopes = np.sum(X_reshaped * x, axis=-1) / sum_x2
-                scale_slope = np.sqrt(0.03 / seg_len)
-            else:
-                # When segment_length == 1, slope is undefined; 0.0 reflects flat trend
-                slopes = np.zeros_like(means)
-                scale_slope = np.sqrt(0.03)
-
-            breakpoints_slope = scipy.stats.norm.ppf(
-                np.arange(1, self.alphabet_size_slope, dtype=np.float64)
-                / self.alphabet_size_slope,
-                scale=scale_slope,
+            avg_symbols, slope_symbols = _quantize_segment(
+                X_reshaped, breakpoints_avg, self.alphabet_size_slope
             )
-
-            avg_symbols = np.digitize(means, self.breakpoints_avg, right=False)
-            slope_symbols = np.digitize(slopes, breakpoints_slope, right=False)
         else:
             split_indices = np.array_split(np.arange(n_timepoints), self.n_segments)
             avg_symbols = np.empty(
@@ -166,31 +173,11 @@ class OneDSAX(BaseCollectionTransformer):
             )
 
             for s, seg_idx in enumerate(split_indices):
-                seg_len = len(seg_idx)
-                X_s = X[:, :, seg_idx]
-                means_s = np.mean(X_s, axis=-1)
-
-                if seg_len > 1:
-                    x = np.arange(seg_len, dtype=np.float64) - (seg_len - 1.0) / 2.0
-                    sum_x2 = (seg_len * (seg_len**2 - 1.0)) / 12.0
-                    slopes_s = np.sum(X_s * x, axis=-1) / sum_x2
-                    scale_slope = np.sqrt(0.03 / seg_len)
-                else:
-                    slopes_s = np.zeros_like(means_s)
-                    scale_slope = np.sqrt(0.03)
-
-                breakpoints_slope = scipy.stats.norm.ppf(
-                    np.arange(1, self.alphabet_size_slope, dtype=np.float64)
-                    / self.alphabet_size_slope,
-                    scale=scale_slope,
+                avg_s, slope_s = _quantize_segment(
+                    X[:, :, seg_idx], breakpoints_avg, self.alphabet_size_slope
                 )
-
-                avg_symbols[:, :, s] = np.digitize(
-                    means_s, self.breakpoints_avg, right=False
-                )
-                slope_symbols[:, :, s] = np.digitize(
-                    slopes_s, breakpoints_slope, right=False
-                )
+                avg_symbols[:, :, s] = avg_s
+                slope_symbols[:, :, s] = slope_s
 
         symbols = avg_symbols * self.alphabet_size_slope + slope_symbols
         return symbols.astype(np.int64, copy=False)
@@ -213,3 +200,50 @@ class OneDSAX(BaseCollectionTransformer):
             {"n_segments": 4, "alphabet_size_avg": 3, "alphabet_size_slope": 3},
             {"n_segments": 2, "alphabet_size_avg": 2, "alphabet_size_slope": 4},
         ]
+
+
+def _quantize_segment(
+    data: np.ndarray,
+    breakpoints_avg: np.ndarray,
+    alphabet_size_slope: int,
+):
+    """Compute mean and slope quantized symbols for a segment or segments.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        Array of shape (..., seg_len) where the last dimension is time.
+    breakpoints_avg : np.ndarray
+        Gaussian breakpoints for quantizing segment averages.
+    alphabet_size_slope : int
+        Alphabet size for quantizing segment slopes.
+
+    Returns
+    -------
+    avg_symbols : np.ndarray
+        Quantized mean symbols of shape (...).
+    slope_symbols : np.ndarray
+        Quantized slope symbols of shape (...).
+    """
+    seg_len = data.shape[-1]
+    means = np.mean(data, axis=-1)
+
+    if seg_len > 1:
+        # Centered coordinates ensure sum(x) == 0, separating mean and slope
+        x = np.arange(seg_len, dtype=np.float64) - (seg_len - 1.0) / 2.0
+        sum_x2 = (seg_len * (seg_len**2 - 1.0)) / 12.0
+        slopes = np.sum(data * x, axis=-1) / sum_x2
+        scale_slope = np.sqrt(0.03 / seg_len)
+    else:
+        # When segment_length == 1, slope is undefined; 0.0 reflects flat trend
+        slopes = np.zeros_like(means)
+        scale_slope = np.sqrt(0.03)
+
+    breakpoints_slope = scipy.stats.norm.ppf(
+        np.arange(1, alphabet_size_slope, dtype=np.float64) / alphabet_size_slope,
+        scale=scale_slope,
+    )
+
+    avg_symbols = np.digitize(means, breakpoints_avg, right=False)
+    slope_symbols = np.digitize(slopes, breakpoints_slope, right=False)
+    return avg_symbols, slope_symbols

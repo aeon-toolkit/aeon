@@ -202,9 +202,57 @@ def test_one_d_sax_n_segments_greater_than_timepoints():
     ],
 )
 def test_one_d_sax_invalid_parameters(invalid_params, match):
-    """Test parameter validation in __init__."""
+    """Test parameter validation during transform / fit_transform."""
+    X = np.zeros((1, 1, 8))
+    od_sax = OneDSAX(**invalid_params)
     with pytest.raises(ValueError, match=match):
-        OneDSAX(**invalid_params)
+        od_sax.fit_transform(X)
+
+
+def test_one_d_sax_set_params_validation():
+    """Test that set_params cannot bypass parameter validation."""
+    X = np.zeros((1, 1, 8))
+    od_sax = OneDSAX(n_segments=2)
+    od_sax.set_params(n_segments=-1)
+    with pytest.raises(ValueError, match="n_segments must be an integer >= 1"):
+        od_sax.fit_transform(X)
+
+    # Verify set_params validation via separate fit() and transform() calls
+    od_sax.set_params(n_segments=2)
+    od_sax.fit(X)
+    od_sax.set_params(n_segments=-2)
+    with pytest.raises(ValueError, match="n_segments must be an integer >= 1"):
+        od_sax.transform(X)
+
+    od_sax.set_params(n_segments=2, alphabet_size_avg=1)
+    with pytest.raises(ValueError, match="alphabet_size_avg must be an integer >= 2"):
+        od_sax.fit_transform(X)
+
+    od_sax.set_params(alphabet_size_avg=4, alphabet_size_slope=1)
+    with pytest.raises(ValueError, match="alphabet_size_slope must be an integer >= 2"):
+        od_sax.fit_transform(X)
+
+
+def test_one_d_sax_decoding_symbols():
+    """Test decoding composite symbols back into avg and slope components."""
+    rng = np.random.RandomState(42)
+    X = rng.normal(size=(3, 2, 16))
+    slope_size = 4
+    avg_size = 3
+    od_sax = OneDSAX(
+        n_segments=4,
+        alphabet_size_avg=avg_size,
+        alphabet_size_slope=slope_size,
+    )
+    X_trans = od_sax.fit_transform(X)
+
+    avg_symbols = X_trans // slope_size
+    slope_symbols = X_trans % slope_size
+
+    assert np.all((avg_symbols >= 0) & (avg_symbols < avg_size))
+    assert np.all((slope_symbols >= 0) & (slope_symbols < slope_size))
+    recomposed = avg_symbols * slope_size + slope_symbols
+    np.testing.assert_array_equal(recomposed, X_trans)
 
 
 def test_one_d_sax_nan_input():
@@ -222,6 +270,51 @@ def test_one_d_sax_single_timepoint():
     res = od_sax.fit_transform(X_single)
     assert res.shape == (1, 1, 1)
     assert 0 <= res[0, 0, 0] <= 3
+
+
+def test_one_d_sax_single_segment_multiple_timepoints():
+    """Test single segment (n_segments=1) on a series with multiple timepoints."""
+    X = np.arange(1.0, 9.0).reshape(1, 1, 8)
+    od_sax = OneDSAX(
+        n_segments=1,
+        alphabet_size_avg=3,
+        alphabet_size_slope=3,
+        znormalized=False,
+    )
+    res = od_sax.fit_transform(X)
+    assert res.shape == (1, 1, 1)
+    assert 0 <= res[0, 0, 0] <= 8
+
+
+def test_one_d_sax_divisible_vs_segmented_consistency():
+    """Verify that _quantize_segment returns identical symbols for single vs batch."""
+    from aeon.transformations.collection.dictionary_based._one_d_sax import (
+        _quantize_segment,
+    )
+
+    rng = np.random.RandomState(42)
+    X = rng.normal(size=(2, 2, 12))  # 12 points, 3 segments of length 4
+    n_segments = 3
+    alphabet_size_avg = 4
+    alphabet_size_slope = 3
+
+    import scipy.stats
+
+    bp_avg = scipy.stats.norm.ppf(
+        np.arange(1, alphabet_size_avg, dtype=np.float64) / alphabet_size_avg
+    )
+
+    # Vectorized call across all segments
+    X_reshaped = X.reshape(2, 2, n_segments, 4)
+    avg_vec, slope_vec = _quantize_segment(X_reshaped, bp_avg, alphabet_size_slope)
+
+    # Segment-by-segment call
+    for s in range(n_segments):
+        avg_s, slope_s = _quantize_segment(
+            X[:, :, s * 4 : (s + 1) * 4], bp_avg, alphabet_size_slope
+        )
+        np.testing.assert_array_equal(avg_vec[:, :, s], avg_s)
+        np.testing.assert_array_equal(slope_vec[:, :, s], slope_s)
 
 
 def test_one_d_sax_check_estimator():
