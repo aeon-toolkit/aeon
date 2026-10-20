@@ -1694,7 +1694,7 @@ def _spline_fit(X):
 def _verify_features(features, catch24):
     if isinstance(features, str):
         if features == "all":
-            f_idx = [i for i in range(22)]
+            f_idx = [*range(22)]
             if catch24:
                 f_idx += [22, 23]
         elif features in feature_names_short:
