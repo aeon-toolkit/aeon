@@ -14,6 +14,8 @@ __all__ = [
 import numpy as np
 import pandas as pd
 
+from aeon.utils.validation import _is_float_or_int_dtype
+
 
 def is_series(X, include_2d=False):
     """Check X is a valid series data structure.
@@ -266,9 +268,7 @@ def get_type(X, raise_error=True):
     """
     msg = None
     if isinstance(X, pd.Series):
-        if np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
-            X.dtype, np.integer
-        ):
+        if _is_float_or_int_dtype(X.dtype):
             return "pd.Series"
         else:
             msg = "ERROR pd.Series must contain numeric values only"
@@ -279,9 +279,7 @@ def get_type(X, raise_error=True):
             and not isinstance(X.columns, pd.MultiIndex)
         ):
             for col in X:
-                if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
-                    X[col].dtype, np.integer
-                ):
+                if not _is_float_or_int_dtype(X[col].dtype):
                     msg = "ERROR pd.DataFrame must contain numeric values only"
                     break
             if msg is None:

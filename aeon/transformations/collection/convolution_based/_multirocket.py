@@ -90,7 +90,7 @@ class MultiRocket(BaseCollectionTransformer):
         "capability:multithreading": True,
     }
     # indices for the 84 kernels used by MiniRocket
-    _indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype=np.int32)
+    _indices = np.array([*combinations(np.arange(9), 3)], dtype=np.int32)
 
     def __init__(
         self,
@@ -142,10 +142,10 @@ class MultiRocket(BaseCollectionTransformer):
         param_rng = check_random_state(self.random_state_)
 
         _, n_channels, n_timepoints = X.shape
-        if n_timepoints < 9:
+        if n_timepoints < 10:
             raise ValueError(
-                f"n_timepoints must be >= 9, but found {n_timepoints};"
-                " zero pad shorter series so that n_timepoints == 9"
+                f"n_timepoints must be >= 10, but found {n_timepoints};"
+                " zero-pad shorter series to 10 timepoints before fitting"
             )
         # every one of the 84 base kernels needs at least one feature
         self.n_kernels_ = max(self.n_kernels, 84)
