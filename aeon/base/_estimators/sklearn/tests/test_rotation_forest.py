@@ -46,27 +46,6 @@ def test_rotf_input(cls):
         rotf.fit_predict(X_constant, y)
 
 
-def test_rotf_pca_solver_is_deprecated():
-    """Test setting the deprecated pca_solver warns and has no effect on output."""
-    X, y = _example_data(RotationForestClassifier)
-
-    rotf_default = RotationForestClassifier(n_estimators=5, random_state=0)
-    rotf_default.fit(X, y)
-
-    rotf_solver = RotationForestClassifier(
-        n_estimators=5,
-        pca_solver="full",
-        random_state=0,
-    )
-    with pytest.warns(DeprecationWarning, match="pca_solver"):
-        rotf_solver.fit(X, y)
-
-    np.testing.assert_array_equal(
-        rotf_default.predict_proba(X),
-        rotf_solver.predict_proba(X),
-    )
-
-
 @pytest.mark.parametrize(
     "cls,base_estimator,default_criterion",
     [
