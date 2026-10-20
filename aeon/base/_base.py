@@ -130,7 +130,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
         # delete all object attributes in self
         attrs = [attr for attr in dir(self) if "__" not in attr]
-        cls_attrs = [attr for attr in dir(type(self))]
+        cls_attrs = [*dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs)
 
         # scikit-learn 1.9+ owns this temporary attribute and removes it after fit.
