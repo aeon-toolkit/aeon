@@ -98,6 +98,12 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         self.labels_ = self.steps_[-1][1].labels_
         return self
 
+    def _predict_proba(self, X):
+        # sklearn clusterers usually have no predict_proba, use the one-hot default
+        if hasattr(self.steps_[-1][1], "predict_proba"):
+            return super()._predict_proba(X)
+        return BaseClusterer._predict_proba(self, X)
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.

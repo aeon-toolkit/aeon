@@ -93,6 +93,12 @@ def test_sklearn_clusterer_pipeline(transformers):
     y_pred = pipeline.predict(X_test)
     assert isinstance(y_pred, np.ndarray)
 
+    # KMeans has no predict_proba, the pipeline falls back to one-hot predictions
+    y_proba = pipeline.predict_proba(X_test)
+    assert isinstance(y_proba, np.ndarray)
+    assert_array_almost_equal(y_proba.sum(axis=1), 1)
+    assert np.array_equal(np.unique(y_pred)[np.argmax(y_proba, axis=1)], y_pred)
+
     if not isinstance(transformers, list):
         transformers = [transformers]
 
