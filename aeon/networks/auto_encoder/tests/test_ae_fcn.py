@@ -60,7 +60,8 @@ def test_aefcnnetwork_kernel_size(kernel_size, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of kernels .* should be the same as number of layers",
+            match="Number of kernels \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(kernel_size=kernel_size, n_layers=3).build_network((1000, 5))
     else:
@@ -90,7 +91,8 @@ def test_aefcnnetwork_n_filters(n_filters, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of filters .* should be the same as number of layers",
+            match="Number of filters \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(n_filters=n_filters, n_layers=3).build_network((1000, 5))
     else:
@@ -120,7 +122,8 @@ def test_aefcnnetwork_dilation_rate(dilation_rate, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of dilations .* should be the same as number of layers",
+            match="Number of dilation rates \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(dilation_rate=dilation_rate, n_layers=3).build_network(
                 (1000, 5)
@@ -152,7 +155,8 @@ def test_aefcnnetwork_strides(strides, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of strides .* should be the same as number of layers",
+            match="Number of strides \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(strides=strides, n_layers=3).build_network((1000, 5))
     else:
@@ -248,7 +252,8 @@ def test_aefcnnetwork_use_bias(use_bias, should_raise):
     if should_raise:
         with pytest.raises(
             ValueError,
-            match="Number of biases .* should be the same as number of layers",
+            match="Number of use bias \\(.*\\) should be "
+            "the same as number of layers \\(.*\\)",
         ):
             AEFCNNetwork(use_bias=use_bias, n_layers=3).build_network((1000, 5))
     else:

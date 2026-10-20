@@ -61,39 +61,25 @@ class EncoderNetwork(BaseDeepLearningNetwork):
     ):
         self.kernel_size = kernel_size
         self.n_filters = n_filters
-        self.padding = padding
-        self.strides = strides
+        self.dropout_proba = dropout_proba
         self.max_pool_size = max_pool_size
         self.activation = activation
-        self.dropout_proba = dropout_proba
+        self.padding = padding
+        self.strides = strides
         self.fc_units = fc_units
 
         super().__init__()
 
-    def build_network(self, input_shape, **kwargs):
-        """
-        Construct a network and return its input and output layers.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer.
-
-        Returns
-        -------
-        input_layer : a keras layer
-        output_layer : a keras layer
-        """
-        import tensorflow as tf
-
+    def _check_params(self):
         self._kernel_size = (
             [5, 11, 21] if self.kernel_size is None else self.kernel_size
         )
         self._n_filters = [128, 256, 512] if self.n_filters is None else self.n_filters
 
-        input_layer = tf.keras.layers.Input(input_shape)
+    def build_base_graph(self, x):
+        import tensorflow as tf
 
-        x = input_layer
+        self._check_params()
 
         for i in range(len(self._kernel_size)):
             conv = tf.keras.layers.Conv1D(
@@ -121,8 +107,26 @@ class EncoderNetwork(BaseDeepLearningNetwork):
         )(attention)
         hidden_fc_layer = tf.keras.layers.GroupNormalization(groups=-1)(hidden_fc_layer)
 
-        # output layer before classification layer
+        return hidden_fc_layer
 
+    def build_network(self, input_shape, **kwargs):
+        """
+        Construct a network and return its input and output layers.
+
+        Parameters
+        ----------
+        input_shape : tuple
+            The shape of the data fed into the input layer.
+
+        Returns
+        -------
+        input_layer : a keras layer
+        output_layer : a keras layer
+        """
+        import tensorflow as tf
+
+        input_layer = tf.keras.layers.Input(input_shape)
+        hidden_fc_layer = self.build_base_graph(input_layer)
         flatten_layer = tf.keras.layers.Flatten()(hidden_fc_layer)
 
         return input_layer, flatten_layer
