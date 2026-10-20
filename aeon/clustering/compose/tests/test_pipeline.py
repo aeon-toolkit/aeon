@@ -5,7 +5,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
-from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 
 from aeon.clustering import TimeSeriesKMeans
@@ -310,3 +310,28 @@ def test_predict_tag_inference():
     labels = p2.fit_predict(X)
     assert isinstance(labels, np.ndarray)
     assert np.array_equal(labels, p2.labels_)
+
+    # sklearn clusterer with a predict method
+    p3 = ClustererPipeline(
+        transformers=Tabularizer(),
+        clusterer=KMeans(n_clusters=2, max_iter=3, random_state=0),
+    )
+    assert p3.get_tag("capability:predict")
+
+    # sklearn clusterer without a predict method
+    p4 = ClustererPipeline(
+        transformers=Tabularizer(), clusterer=AgglomerativeClustering(n_clusters=2)
+    )
+    assert not p4.get_tag("capability:predict")
+    p4.fit(X)
+    assert not p4.get_tag("capability:predict")
+
+    with pytest.raises(
+        NotImplementedError,
+        match="ClustererPipeline does not support out-of-sample prediction",
+    ):
+        p4.predict(X)
+
+    labels = p4.fit_predict(X)
+    assert isinstance(labels, np.ndarray)
+    assert np.array_equal(labels, p4.labels_)

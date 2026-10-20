@@ -86,10 +86,12 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         )
 
         # can only predict on unseen data if the clusterer can
+        #   sklearn clusterers without out-of-sample prediction have no predict method
         if isinstance(clusterer, BaseClusterer):
-            self.set_tags(
-                **{"capability:predict": clusterer.get_tag("capability:predict")}
-            )
+            predict = clusterer.get_tag("capability:predict")
+        else:
+            predict = hasattr(clusterer, "predict")
+        self.set_tags(**{"capability:predict": predict})
 
     def _fit(self, X, y=None):
         super()._fit(X, y)
