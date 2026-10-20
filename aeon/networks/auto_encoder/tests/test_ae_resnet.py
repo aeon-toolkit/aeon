@@ -11,26 +11,35 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "latent_space_dim, n_residual_blocks, activation, n_filters",
+    "activation",
     [
-        (128, 3, "relu", 32),  # Test with relu activation
-        (256, 5, "sigmoid", 64),  # Test with sigmoid activation
-        (64, 2, "tanh", 16),  # Test with tanh activation
+        "relu",  # Test with relu activation
+        "sigmoid",  # Test with sigmoid activation
+        "tanh",  # Test with tanh activation
+        ["relu", "tanh", "sigmoid"],  # Test with variable activation
     ],
 )
-def test_ae_res_unit_activation(
-    latent_space_dim, n_residual_blocks, activation, n_filters
-):
+def test_ae_res_unit_activation(activation):
     """Test whether AEResNetNetwork initializes correctly with different activations."""
+    import tensorflow as tf
+
     aeres = AEResNetNetwork(
-        latent_space_dim=latent_space_dim,
-        n_residual_blocks=n_residual_blocks,
         activation=activation,
-        n_filters=n_filters,
     )
-    encoder, decoder = aeres.build_network((1000, 5))
-    assert encoder is not None
-    assert decoder is not None
+    aeres.build_network((1000, 5))
+    autoencoder = aeres.get_autoencoder_model()
+
+    if isinstance(activation, str):
+        activation = [activation] * 3
+    else:
+        activation = activation + activation[::-1]
+
+    # iterate over every activation layer and check they are right
+    i = 0
+    for layer in autoencoder.layers:
+        if isinstance(layer, tf.keras.layers.Activation):
+            assert layer.activation.__name__ == activation[i]
+            i += 1
 
 
 @pytest.mark.skipif(

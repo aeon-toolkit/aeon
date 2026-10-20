@@ -4,7 +4,8 @@ import random
 
 import pytest
 
-from aeon.networks import AEBiGRUNetwork
+from aeon.networks import AERecurrentNetwork
+from aeon.typing import LATENT_SPACE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -13,20 +14,20 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "latent_space_dim,n_layers,temporal_latent_space",
+    "latent_space_dim,n_layers,latent_space_type",
     [
-        (32, 1, True),
-        (128, 2, False),
-        (256, 3, True),
-        (64, 4, False),
+        (32, 1, LATENT_SPACE.TIME),
+        (128, 2, LATENT_SPACE.FLAT),
+        (256, 3, LATENT_SPACE.TIME),
+        (64, 4, LATENT_SPACE.REPEATED),
     ],
 )
-def test_aebigrunetwork_init(latent_space_dim, n_layers, temporal_latent_space):
-    """Test whether AEBiGRUNetwork initializes correctly for various parameters."""
-    aebigru = AEBiGRUNetwork(
+def test_ae_recurrent_network_init(latent_space_dim, n_layers, latent_space_type):
+    """Test whether AERecurrentNetwork initializes correctly for various parameters."""
+    aebigru = AERecurrentNetwork(
         latent_space_dim=latent_space_dim,
         n_layers=n_layers,
-        temporal_latent_space=temporal_latent_space,
+        latent_space_type=latent_space_type,
         activation=random.choice(["relu", "tanh"]),
         n_units=[random.choice([50, 25, 100]) for _ in range(n_layers)],
     )
@@ -40,12 +41,12 @@ def test_aebigrunetwork_init(latent_space_dim, n_layers, temporal_latent_space):
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize("activation", ["relu", "tanh"])
-def test_aebigrunetwork_activations(activation):
-    """Test whether AEBiGRUNetwork initializes correctly with different activations."""
-    aebigru = AEBiGRUNetwork(
+def test_ae_recurrent_network_activations(activation):
+    """Test AERecurrentNetwork initialization with different activations."""
+    aebigru = AERecurrentNetwork(
         latent_space_dim=64,
         n_layers=2,
-        temporal_latent_space=True,
+        latent_space_type=LATENT_SPACE.TIME,
         activation=activation,
         n_units=[50, 50],
     )

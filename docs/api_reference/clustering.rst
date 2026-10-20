@@ -44,8 +44,8 @@ Deep learning
     AEResNetClusterer
     AEDCNNClusterer
     AEDRNNClusterer
-    AEAttentionBiGRUClusterer
-    AEBiGRUClusterer
+    AERecurrentClusterer
+    AEDeTSECClusterer
 
 Feature-based
 -------------
