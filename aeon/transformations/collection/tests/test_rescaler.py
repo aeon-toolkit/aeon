@@ -58,125 +58,89 @@ def test_min_max():
         X_transformed = minmax._transform(X)
 
 
-def _np_array(shape):
+def _np_array(shape, constant=False):
     """Create a dummy numpy array with the given shape."""
+    if constant:
+        return np.ones(shape)
     return np.arange(np.prod(shape)).reshape(shape)
 
 
-def _np_list(n, shape):
+def _np_list(n, shape, constant=False):
     """Create a dummy list of numpy arrays with the given shape."""
     p = np.prod(shape)
-    return [np.arange(p).reshape(shape) + i * p for i in range(n)]
+    if constant:
+        p = 0
+    return [_np_array(shape, constant=constant) + i * p for i in range(n)]
 
 
 GLOBAL_SCALER_TESTS = [
-    ################################################
-    # 3D arrays:
-    (_np_array((2, 3, 4)), None, (0, -1)),  # (sample, channels, time)
-    (_np_array((2, 3, 4)), 1, (0, 1)),  # (sample, time, channels)
-    ################################################
-    # Unequal length series:
-    (_np_list(2, (3, 4)), None, (0, -1)),  # list of (channels, time)
-    ################################################
-    # 2D arrays:
-    (_np_array((2, 5)), 1, (1,)),  # (channels, time) = 1 multivariate
-    (_np_array((2, 5)), 0, (0,)),  # (time, channels) = 1 multivariate
-    (_np_array((2, 5)), None, (0, 1)),  # (samples, time)  = n univariate
+    [_np_array((2, 5)), (0, 1), (1, 1)],
+    [_np_array((2, 5), constant=True), (0, 1), (1, 1)],
+    [_np_array((2, 3, 4)), (0, -1), (1, 3, 1)],
+    [_np_array((2, 3, 4), constant=True), (0, -1), (1, 3, 1)],
+    [_np_list(2, (3, 4)), (0, 2), (3, 1)],
+    [_np_list(2, (3, 4), constant=True), (0, 2), (3, 1)],
 ]
 
 
-@pytest.mark.parametrize("X, scaler_axis, reduce_axis", GLOBAL_SCALER_TESTS)
-def test_global_z_norm(X, scaler_axis, reduce_axis):
+@pytest.mark.parametrize("X, reduced_axis, target_shape", GLOBAL_SCALER_TESTS)
+def test_global_z_norm(X, reduced_axis, target_shape):
     """Test GlobalNormalizer on regular array layouts."""
-    if scaler_axis is None:
-        normaliser = GlobalNormalizer(2, 3)
-    else:
-        normaliser = GlobalNormalizer(2, 3, axis=scaler_axis)
-
+    normaliser = GlobalNormalizer(2, 3)
     X_transformed = normaliser.fit_transform(X)
 
-    # check that the scaler fit on the right axis
-    if isinstance(X, list):
-        target_shape = (X[0].shape[0], 1)
-    else:
-        reduced_axis = np.zeros(X.ndim, dtype=bool)
-        reduced_axis[list(reduce_axis)] = True
-        target_shape = tuple(
-            1 if reduced_axis[i] else X.shape[i] for i in range(X.ndim)
-        )
     assert normaliser.x_means.shape == target_shape
     assert normaliser.x_stds.shape == target_shape
 
     # check that the transformed data has the desired characteristics
-    mean = np.mean(X_transformed, axis=reduce_axis)
-    std = np.std(X_transformed, axis=reduce_axis)
-
+    mean = np.mean(X_transformed, axis=reduced_axis)
+    std = np.std(X_transformed, axis=reduced_axis)
     assert np.allclose(mean, 2)
-    assert np.allclose(std, 3)
+    if np.allclose(X, 1):
+        assert np.allclose(std, 0)
+    else:
+        assert np.allclose(std, 3)
 
     # check that the inverse transform recovers the original data
     X_inv = normaliser.inverse_transform(X_transformed)
     assert np.allclose(X, X_inv)
 
 
-@pytest.mark.parametrize("X, scaler_axis, reduce_axis", GLOBAL_SCALER_TESTS)
-def test_global_minmax_norm(X, scaler_axis, reduce_axis):
-    """Test GlobalMinMaxScaler on regular array layouts."""
-    if scaler_axis is None:
-        normaliser = GlobalMinMaxScaler(-1, 2)
-    else:
-        normaliser = GlobalMinMaxScaler(-1, 2, axis=scaler_axis)
-
-    X_transformed = normaliser.fit_transform(X)
-
-    # check that the scaler fit on the right axis
-    if isinstance(X, list):
-        target_shape = (X[0].shape[0], 1)
-    else:
-        reduced_axis = np.zeros(X.ndim, dtype=bool)
-        reduced_axis[list(reduce_axis)] = True
-        target_shape = tuple(
-            1 if reduced_axis[i] else X.shape[i] for i in range(X.ndim)
-        )
-    assert normaliser.x_mins.shape == target_shape
-    assert normaliser.x_maxs.shape == target_shape
-
-    # check that the transformed data has the desired characteristics
-    mini = np.min(X_transformed, axis=reduce_axis)
-    maxi = np.max(X_transformed, axis=reduce_axis)
-    assert np.allclose(mini, -1)
-    assert np.allclose(maxi, 2)
-
-    # check that the inverse transform recovers the original data
-    X_inv = normaliser.inverse_transform(X_transformed)
-    assert np.allclose(X, X_inv)
-
-
-@pytest.mark.parametrize("X, scaler_axis, reduce_axis", GLOBAL_SCALER_TESTS)
-def test_global_center_norm(X, scaler_axis, reduce_axis):
+@pytest.mark.parametrize("X, reduced_axis, target_shape", GLOBAL_SCALER_TESTS)
+def test_global_centering(X, reduced_axis, target_shape):
     """Test GlobalCenterer on regular array layouts."""
-    if scaler_axis is None:
-        normaliser = GlobalCenterer(2)
-    else:
-        normaliser = GlobalCenterer(2, axis=scaler_axis)
+    centerer = GlobalCenterer(2)
+    X_transformed = centerer.fit_transform(X)
 
-    X_transformed = normaliser.fit_transform(X)
-
-    # check that the scaler fit on the right axis
-    if isinstance(X, list):
-        target_shape = (X[0].shape[0], 1)
-    else:
-        reduced_axis = np.zeros(X.ndim, dtype=bool)
-        reduced_axis[list(reduce_axis)] = True
-        target_shape = tuple(
-            1 if reduced_axis[i] else X.shape[i] for i in range(X.ndim)
-        )
-    assert normaliser.x_means.shape == target_shape
+    assert centerer.x_means.shape == target_shape
 
     # check that the transformed data has the desired characteristics
-    mean = np.mean(X_transformed, axis=reduce_axis)
+    mean = np.mean(X_transformed, axis=reduced_axis)
     assert np.allclose(mean, 2)
 
     # check that the inverse transform recovers the original data
-    X_inv = normaliser.inverse_transform(X_transformed)
+    X_inv = centerer.inverse_transform(X_transformed)
+    assert np.allclose(X, X_inv)
+
+
+@pytest.mark.parametrize("X, reduced_axis, target_shape", GLOBAL_SCALER_TESTS)
+def test_global_min_max(X, reduced_axis, target_shape):
+    """Test GlobalMinMaxScaler on regular array layouts."""
+    minmax = GlobalMinMaxScaler(-1, 2)
+    X_transformed = minmax.fit_transform(X)
+
+    assert minmax.x_mins.shape == target_shape
+    assert minmax.x_maxs.shape == target_shape
+
+    # check that the transformed data has the desired characteristics
+    min_val = np.min(X_transformed, axis=reduced_axis)
+    max_val = np.max(X_transformed, axis=reduced_axis)
+    assert np.allclose(min_val, -1)
+    if np.allclose(X, 1):
+        assert np.allclose(max_val, -1)
+    else:
+        assert np.allclose(max_val, 2)
+
+    # check that the inverse transform recovers the original data
+    X_inv = minmax.inverse_transform(X_transformed)
     assert np.allclose(X, X_inv)

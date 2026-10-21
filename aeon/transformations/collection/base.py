@@ -342,26 +342,11 @@ class BaseGlobalCollectionTransformer(BaseCollectionTransformer):
         """
         ...
 
-    def _convert_ax_to_tuple(self, ax, X):
-        """Convert axis to tuple for use in np.mean and np.std."""
-        # if ax is None set it to -1 by default.
-        if ax is None:
-            ax = -1
-
-            if X.ndim == 2:
-                # special case for 2D arrays :
-                # by default, 2D arrays are n univariate series :
-                return (0, 1)
-
-        # convert to tuple :
-        if isinstance(ax, int):
-            ax = (ax,)
-
-        if X.ndim >= 3:
-            # for 3D array 0 is always the sample axis,
-            # so it always needs to be reduced.
-            return (0,) + ax
-        return ax
+    def _get_axis(self, X):
+        """Get the axis along which to perform the transformation."""
+        if X.ndim == 2:
+            return (0, 1)
+        return (0, -1)
 
 
 class CollectionInverseTransformerMixin(InverseTransformerMixin):

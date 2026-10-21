@@ -44,7 +44,7 @@ class Normalizer(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
+            Collection to transform. Either a list of 2D arrays of shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
         y : None
@@ -123,7 +123,7 @@ class MinMaxScaler(BaseCollectionTransformer):
         Parameters
         ----------
         X: np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
+            Collection to transform. Either a list of 2D arrays of shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
         y: None
@@ -198,7 +198,7 @@ class Centerer(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
+            Collection to transform. Either a list of 2D arrays of shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
         y : None
@@ -237,12 +237,6 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         The mean value to which the data will be normalized.
     std: float, default=1.0
         The standard deviation value to which the data will be normalized.
-    axis: int, default=-1
-        The time axis along which the normalization is applied.
-        By default, it is the last axis ([sample, channels, time]).
-
-    When working with unequal length series, GlobalNormalizer is only able to
-    use list of 2D arrays with shape (n_channels, n_timepoints_i).
     """
 
     _tags = {
@@ -253,11 +247,10 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, mean=0.0, std=1.0, axis=None):
+    def __init__(self, mean=0.0, std=1.0):
         super().__init__()
         self.mean = mean
         self.std = std
-        self.axis = axis
 
         self.x_means = None
         self.x_stds = None
@@ -275,14 +268,13 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         unequal_length = isinstance(X, list)
         if unequal_length:
             X = np.concatenate(X, axis=1)
-            self.x_means = np.mean(X, axis=1, keepdims=True)
-            self.x_stds = np.std(X, axis=1, keepdims=True)
-            return
-
-        ax = self._convert_ax_to_tuple(self.axis, X)
+            ax = -1
+        else:
+            ax = self._get_axis(X)
 
         self.x_means = np.mean(X, axis=ax, keepdims=True)
         self.x_stds = np.std(X, axis=ax, keepdims=True)
+        self.x_stds = np.where(self.x_stds == 0, 1, self.x_stds)
 
     def _f(self, x):
         unequal_length = isinstance(x, list)
@@ -299,9 +291,9 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         ----------
         X : np.ndarray or list
             Collection to transform. Either:
-            - a list of 2D arrays with shape ``(n_channels, n_timepoints_i)``
-            - a single 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-            - a single 2D array of shape ``(n_channels, n_timepoints)``.
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : None
             Ignored.
         """
@@ -322,9 +314,9 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         ----------
         X : np.ndarray or list
             Collection to inverse transform. Either:
-            - a list of 2D arrays with shape ``(n_channels, n_timepoints_i)``
-            - a single 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-            - a single 2D array of shape ``(n_channels, n_timepoints)``.
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : Ignored.
         """
         return self._fi(X)
@@ -342,12 +334,6 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         The minimum value of the range to scale to.
     max: float, default=1.0
         The maximum value of the range to scale to.
-    axis: int, default=-1
-        The time axis along which the normalization is applied.
-        By default, it is the last axis ([sample, channels, time]).
-
-    When working with unequal length series, GlobalMinMaxScaler is only able to
-    use list of 2D arrays with shape (n_channels, n_timepoints_i).
     """
 
     _tags = {
@@ -358,13 +344,11 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, min: float = 0.0, max: float = 1.0, axis=None):
+    def __init__(self, min: float = 0.0, max: float = 1.0):
         super().__init__()
 
         self.min = min
         self.max = max
-        self.axis = axis
-
         self.x_mins = None
         self.x_maxs = None
 
@@ -381,14 +365,15 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         unequal_length = isinstance(X, list)
         if unequal_length:
             X = np.concatenate(X, axis=1)
-            self.x_mins = np.min(X, axis=1, keepdims=True)
-            self.x_maxs = np.max(X, axis=1, keepdims=True)
-            return
-
-        ax = self._convert_ax_to_tuple(self.axis, X)
+            ax = -1
+        else:
+            ax = self._get_axis(X)
 
         self.x_mins = np.min(X, axis=ax, keepdims=True)
         self.x_maxs = np.max(X, axis=ax, keepdims=True)
+        # prevent division by zero in case of constant series
+        delta = self.x_maxs - self.x_mins
+        self.x_maxs = np.where(delta == 0, self.x_mins + 1, self.x_maxs)
 
     def _f(self, x):
         unequal_length = isinstance(x, list)
@@ -405,13 +390,11 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either:
-            - a list of 2D arrays with shape ``(n_channels, n_timepoints_i)``
-            - a single 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-            - a single 2D array of shape ``(n_channels, n_timepoints)``.
-
-        y :  None
-            Ignored.
+            Collection to inverse transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
         """
         return self._f(X)
 
@@ -431,12 +414,10 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         ----------
         X : np.ndarray or list
             Collection to inverse transform. Either:
-            - a list of 2D arrays with shape ``(n_channels, n_timepoints_i)``
-            - a single 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-            - a single 2D array of shape ``(n_channels, n_timepoints)``.
-
-        y :  None
-            Ignored.
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
         """
         return self._fi(X)
 
@@ -451,12 +432,6 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
     ----------
     mean: float, default=0.0
         The mean value to which the data will be recentered.
-    axis: int, default=-1
-        The time axis along which the recentering is applied.
-        By default, it is the last axis ([sample, channels, time]).
-
-    When working with unequal length series, GlobalCenterer is only able to
-    use list of 2D arrays with shape (n_channels, n_timepoints_i).
     """
 
     _tags = {
@@ -467,11 +442,9 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, mean=0.0, axis=None):
+    def __init__(self, mean=0.0):
         super().__init__()
         self.mean = mean
-        self.axis = axis
-
         self.x_means = None
 
     def _fit(self, X, y=None):
@@ -487,11 +460,9 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         unequal_length = isinstance(X, list)
         if unequal_length:
             X = np.concatenate(X, axis=1)
-            self.x_means = np.mean(X, axis=1, keepdims=True)
-            return
-
-        ax = self._convert_ax_to_tuple(self.axis, X)
-
+            ax = -1
+        else:
+            ax = self._get_axis(X)
         self.x_means = np.mean(X, axis=ax, keepdims=True)
 
     def _f(self, x):
@@ -508,8 +479,11 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-        y :  None
-            Ignored.
+            Collection to inverse transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
         """
         return self._f(X)
 
@@ -528,10 +502,9 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         ----------
         X : np.ndarray or list
             Collection to inverse transform. Either:
-            - a list of 2D arrays with shape ``(n_channels, n_timepoints_i)``
-            - a single 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-            - a single 2D array of shape ``(n_channels, n_timepoints)``.
-        y :  None
-            Ignored.
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
         """
         return self._fi(X)
