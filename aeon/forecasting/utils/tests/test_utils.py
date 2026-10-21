@@ -16,7 +16,7 @@ from aeon.forecasting.utils._nelder_mead import dispatch_loss, nelder_mead
             np.array([0.5, -0.1, 0.1]),
             np.array([1.0, 2.0, 1.5, 1.7, 2.1]),
             np.array([1, 1, 1]),
-            20.0745,
+            23.5931,
         ),
         (np.array([0.0]), np.array([1.0, 1.0, 1.0, 1.0]), np.array([0, 0, 0]), 13.3515),
     ],
@@ -225,6 +225,7 @@ def test_ets_fit_degenerate_data_returns_large_loss():
 def test_nelder_mead_from_simplex_matches_nelder_mead(loss_id, num_params, model):
     """nelder_mead is _nelder_mead_from_simplex from its default simplex."""
     from aeon.forecasting.utils._nelder_mead import (
+        _init_arima_simplex,
         _init_ets_simplex,
         _nelder_mead_from_simplex,
     )
@@ -235,8 +236,7 @@ def test_nelder_mead_from_simplex_matches_nelder_mead(loss_id, num_params, model
     if loss_id == 1:
         _init_ets_simplex(points, model)
     else:
-        for i in range(num_params):
-            points[i + 1, i] = 0.6
+        _init_arima_simplex(points, data, model, 0.5)
     start = points.copy()
     x2, v2 = _nelder_mead_from_simplex(loss_id, points, data, model)
     assert v == v2 and np.array_equal(x, x2)

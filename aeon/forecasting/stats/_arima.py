@@ -13,7 +13,8 @@ from numba import njit
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._hypo_tests import kpss_test
-from aeon.forecasting.utils._nelder_mead import nelder_mead
+from aeon.forecasting.utils._loss_functions import _arima_css_aic, _is_stationary_ar
+from aeon.forecasting.utils._nelder_mead import _fit_arima_parameters
 from aeon.forecasting.utils._undifference import _undifference
 
 
@@ -52,9 +53,10 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         Moving average (q) order of the ARIMA model
     use_constant : bool = False,
         Presence of a constant/intercept term in the model.
-    grid : int: 0
     iterations : int, default = 200
-        Maximum number of iterations to use in the Nelder-Mead parameter search.
+        Maximum number of Nelder-Mead iterations per optimisation run. The
+        parameters are fitted with three runs, from the series mean, from
+        Hannan-Rissanen estimates and from the best of those, keeping the best.
 
     Attributes
     ----------
@@ -150,11 +152,8 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(series_for_arima, n=self.d)
-        s = 0.1 / (np.sum(self._model) + 1)  # Randomise
-        # Nelder Mead returns the parameters in a single array
-        self._parameters, self.aic_ = nelder_mead(
-            0,
-            np.sum(self._model[:3]),
+        s = 0.1 / (np.sum(self._model) + 1)
+        self._parameters, self.aic_ = _fit_arima_parameters(
             self._differenced_series,
             self._model,
             max_iter=self.iterations,
@@ -392,7 +391,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
     >>> y = load_airline()
     >>> forecaster = AutoARIMA()
     >>> forecaster.forecast(y)
-    481.87157356139943
+    432.1737591310444
     """
 
     _tags = {
@@ -535,16 +534,8 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         )
 
 
-@njit(cache=True, fastmath=True)
-def _aic(residuals, num_params):
-    """Calculate the log-likelihood of a model."""
-    variance = np.mean(residuals**2)
-    likelihood = len(residuals) * (np.log(2 * np.pi) + np.log(variance) + 1)
-    return likelihood + 2 * num_params
-
-
 # Define the ARIMA(p, d, q) likelihood function
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _arima_model(params, data, model):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
     formatted_params = _extract_arma_params(params, model)  # Extract parameters
@@ -562,7 +553,8 @@ def _arima_model(params, data, model):
         if t != num_predictions - 1:
             # Only calculate residuals for the predictions we have data for
             residuals[t] = data[t] - fitted_values[t]
-    return _aic(residuals, len(params)), residuals, fitted_values
+    aic = _arima_css_aic(residuals, max(model[1], model[2]), len(params))
+    return aic, residuals, fitted_values
 
 
 @njit(cache=True, fastmath=True)
@@ -583,7 +575,43 @@ def _in_sample_forecast(data, model, t, formatted_params, residuals):
     return c + ar_term + ma_term
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
+def _roots_clear_of_unit_circle(params, model, margin=1.01):
+    """Check that all AR and MA roots have modulus greater than ``margin``.
+
+    The roots of ``1 - sum(a_i z^i)`` all lie outside radius ``margin`` exactly
+    when ``1 - sum(a_i margin^i w^i)`` is stationary in ``w``.
+    """
+    formatted = _extract_arma_params(params, model)
+    p, q = model[1], model[2]
+    ar = np.empty(p)
+    for i in range(p):
+        ar[i] = formatted[1, i] * margin ** (i + 1)
+    ma = np.empty(q)
+    for i in range(q):
+        ma[i] = -formatted[2, i] * margin ** (i + 1)
+    return _is_stationary_ar(ar) and _is_stationary_ar(ma)
+
+
+@njit(cache=True, fastmath={"contract"})
+def _fit_candidate(differenced_data, model, max_iter):
+    """Fit one AutoARIMA candidate, rejecting near unit roots.
+
+    As in R's forecast::auto.arima, a fit with an AR or MA root within 1.01 of
+    the unit circle scores ``inf``. Such fits typically have near-cancelling AR
+    and MA roots and are not identified, but a better optimiser finds them and
+    their AIC looks deceptively good.
+    """
+    s = 0.1 / (np.sum(model) + 1)
+    points, aic = _fit_arima_parameters(
+        differenced_data, model, max_iter=max_iter, simplex_init=s
+    )
+    if not _roots_clear_of_unit_circle(points, model):
+        aic = np.inf
+    return points, aic
+
+
+@njit(cache=True, fastmath={"contract"})
 def _auto_arima(
     differenced_data,
     loss_id,
@@ -600,15 +628,7 @@ def _auto_arima(
     best_model = initial_model_parameters[0]
     best_points = None
     for model in initial_model_parameters:
-        s = 0.1 / (np.sum(model) + 1)
-        points, aic = nelder_mead(
-            loss_id,
-            np.sum(model[:num_model_params]),
-            differenced_data,
-            model,
-            max_iter=200,
-            simplex_init=s,
-        )
+        points, aic = _fit_candidate(differenced_data, model, 200)
         if (aic < best_score) or (best_score == -1):
             best_score = aic
             best_model = model
@@ -626,12 +646,7 @@ def _auto_arima(
                 model[param_no] += adjustment
                 for constant_term in [0, 1]:
                     model[0] = constant_term
-                    points, aic = nelder_mead(
-                        loss_id,
-                        np.sum(model[:num_model_params]),
-                        differenced_data,
-                        model,
-                    )
+                    points, aic = _fit_candidate(differenced_data, model, 500)
                     if aic < best_score:
                         best_model = model.copy()
                         best_points = points
