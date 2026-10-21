@@ -36,7 +36,7 @@ jobs:
 
       - name: Get changed files
         if: ${{ github.event_name == 'pull_request' }}
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96  # v47.0.6
+        uses: tj-actions/changed-files@v47.0.6
         id: changed-files
 
       # File names come from the PR, so pass them through the environment rather than
