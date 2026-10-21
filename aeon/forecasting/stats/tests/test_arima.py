@@ -648,6 +648,46 @@ def test_fit_arima_parameters_not_worse_than_single_run(seed, p, q):
     assert multi <= single
 
 
+@pytest.mark.parametrize("seed, p, q", [(19, 3, 2), (9, 3, 2), (1, 2, 2)])
+def test_fit_arima_parameters_improves_on_single_run(seed, p, q):
+    """On these series the extra starts find a clearly better fit.
+
+    A single run from the series mean stops 35 to 116 AIC above the multi-start
+    result with the same iteration budget per run, so an implementation that
+    only made the first run would fail.
+    """
+    from aeon.forecasting.utils._nelder_mead import (
+        _fit_arima_parameters,
+        _init_arima_simplex,
+        _nelder_mead_from_simplex,
+    )
+
+    data = _simulate_arma((0.6,), (0.3,), mean=50.0, n=300, seed=seed)
+    model = np.array([1, p, q], dtype=np.int32)
+    k = 1 + p + q
+    s = 0.1 / (k + 1)
+    points = np.empty((k + 1, k))
+    _init_arima_simplex(points, data, model, s)
+    _, single = _nelder_mead_from_simplex(0, points, data, model, 1e-6, 200)
+    _, multi = _fit_arima_parameters(data, model, max_iter=200, simplex_init=s)
+    assert multi < single - 10
+
+
+@pytest.mark.parametrize("seed, n", [(20, 100), (22, 300), (45, 300)])
+def test_auto_arima_final_model_is_selected_model(seed, n):
+    """The final model keeps the parameters that were scored in the search.
+
+    Refitting the selected order with fewer iterations gave a final model up to
+    3.6 AIC worse than ``fit_aic_`` on these series.
+    """
+    y = _simulate_arma((0.6,), (0.3,), mean=10.0, n=n, seed=seed)
+    forecaster = AutoARIMA().fit(y)
+    assert forecaster.final_model_.aic_ == pytest.approx(forecaster.fit_aic_)
+    assert forecaster.forecast_ == forecaster.final_model_.forecast_
+    # predict on the final model works as for a model fitted directly
+    assert np.isfinite(forecaster.final_model_.predict(y))
+
+
 def test_arima_airline_fit_is_invertible():
     """Fitted coefficients are stationary and invertible on the airline data.
 

@@ -128,6 +128,15 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self
             Fitted ARIMA.
         """
+        return self._fit_with_parameters(y, exog)
+
+    def _fit_with_parameters(self, y, exog=None, parameters=None):
+        """Fit as ``_fit``, optionally with ARMA parameters already estimated.
+
+        ``parameters``, laid out as in ``_extract_arma_params``, must have been
+        estimated on this ``y`` differenced ``d`` times, with no exogenous
+        variables. If None they are estimated here.
+        """
         self._series = np.array(y.squeeze(), dtype=np.float64)
         series_for_arima = self._series
 
@@ -152,13 +161,16 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(series_for_arima, n=self.d)
-        s = 0.1 / (np.sum(self._model) + 1)
-        self._parameters, self.aic_ = _fit_arima_parameters(
-            self._differenced_series,
-            self._model,
-            max_iter=self.iterations,
-            simplex_init=s,
-        )
+        if parameters is None:
+            s = 0.1 / (np.sum(self._model) + 1)
+            self._parameters, self.aic_ = _fit_arima_parameters(
+                self._differenced_series,
+                self._model,
+                max_iter=self.iterations,
+                simplex_init=s,
+            )
+        else:
+            self._parameters = np.asarray(parameters, dtype=np.float64)
         #
         self.aic_, self.residuals_, self.fitted_values_ = _arima_model(
             self._parameters,
@@ -448,7 +460,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         parameter_limits = np.array([self.max_p, self.max_q])
         (
             model,
-            _,
+            parameters,
             self.fit_aic_,
         ) = _auto_arima(differenced_series, 0, model_parameters, 3, parameter_limits)
         (
@@ -458,7 +470,16 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ) = model
         self.constant_term_ = constant_term_int == 1
         self.final_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
-        self.final_model_.fit(y, exog=exog)
+        if exog is None:
+            # Keep the parameters found in the search rather than refitting, so
+            # the final model is the one that was scored and checked for near
+            # unit roots. The search did not use exog, so refit when it is given.
+            self.final_model_._fit_with_parameters(y, parameters=parameters)
+            # what BaseForecaster.fit would record, for the same y
+            self.final_model_.metadata_ = self.metadata_
+            self.final_model_.is_fitted = True
+        else:
+            self.final_model_.fit(y, exog=exog)
         self.forecast_ = self.final_model_.forecast_
         return self
 
