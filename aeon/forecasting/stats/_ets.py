@@ -385,6 +385,13 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
     damped_trend : bool or None, default=None
         Which trend models to search. ``None`` considers both damped and undamped
         trends, ``True`` only damped trends and ``False`` only undamped trends.
+    restrict : bool, default=True
+        If True, leave out models with additive errors and multiplicative
+        seasonality or a multiplicative trend, as R's ``forecast::ets`` does by
+        default. Their state equations divide by the level (and trend), so a
+        series whose level approaches zero can produce an exploding seasonal
+        state and forecasts many orders of magnitude too large, without the AIC
+        showing it [2]_.
 
     Attributes
     ----------
@@ -405,6 +412,8 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
+    .. [2] R. J. Hyndman and G. Athanasopoulos, Forecasting: Principles and
+        Practice, 2nd edition, Section 7.7. OTexts, 2018.
 
     Examples
     --------
@@ -424,10 +433,12 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         seasonal_period: int | None = None,
         allow_multiplicative_trend: bool = False,
         damped_trend: bool | None = None,
+        restrict: bool = True,
     ):
         self.seasonal_period = seasonal_period
         self.allow_multiplicative_trend = allow_multiplicative_trend
         self.damped_trend = damped_trend
+        self.restrict = restrict
         self.error_type_ = 0
         self.trend_type_ = 0
         self.seasonality_type_ = 0
@@ -475,6 +486,7 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
             seasonal_period,
             require_seasonality,
             damped_option,
+            self.restrict,
         )
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
@@ -548,11 +560,13 @@ def auto_ets(
     seasonal_period=0,
     require_seasonality=False,
     damped_option=-1,
+    restrict=True,
 ):
     """Select an ETS model by AIC, fitting each candidate with Nelder-Mead.
 
     ``damped_option`` restricts trend candidates: -1 tries damped and undamped
-    trends, 1 only damped and 0 only undamped. Returns
+    trends, 1 only damped and 0 only undamped. ``restrict`` leaves out
+    additive error models with multiplicative seasonality or trend. Returns
     ``[error, trend, seasonality, period, damped]``.
     """
     if seasonal_period < 1:
@@ -594,6 +608,12 @@ def auto_ets(
                     continue
                 for seasonality_type in range(0, s_max):
                     if seasonality_type == 2 and not all_pos:
+                        continue
+                    if (
+                        restrict
+                        and error_type == 1
+                        and (seasonality_type == 2 or trend_type == 2)
+                    ):
                         continue
                     model[0] = error_type
                     model[1] = trend_type

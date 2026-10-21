@@ -562,3 +562,55 @@ def test_auto_ets_damped_trend_option(damped_trend):
         assert f.damped_trend_ == damped_trend
     if not f.damped_trend_:
         assert f.wrapped_model_.phi_ == 1.0
+
+
+# Quarterly M4 series Q5018 (training part): the level collapses from about
+# 6000 to 400 in the last six observations.
+M4_Q5018 = np.array(
+    [
+        1660.0, 2880.0, 2970.0, 2680.0, 2570.0, 3350.0, 4090.0, 3170.0, 3880.0,
+        5610.0, 4590.0, 5970.0, 5800.0, 8180.0, 6530.0, 5250.0, 5810.0, 8420.0,
+        5070.0, 4190.0, 6050.0, 6180.0, 6060.0, 4900.0, 6400.0, 5080.0, 6490.0,
+        4150.0, 6830.0, 4940.0, 7580.0, 5920.0, 5540.0, 7030.0, 4470.0, 6460.0,
+        4850.0, 5950.0, 5280.0, 4870.0, 5200.0, 7050.0, 7030.0, 3160.0, 2540.0,
+        4430.0, 4350.0, 3300.0, 5830.0, 5620.0, 4880.0, 5910.0, 6600.0, 7350.0,
+        8540.0, 4970.0, 7690.0, 6240.0, 7900.0, 6260.0, 5270.0, 6470.0, 6050.0,
+        3180.0, 380.0, 390.0, 370.0, 450.0, 430.0, 380.0,
+    ]
+)  # fmt: skip
+
+
+def test_auto_ets_restrict_avoids_exploding_forecast():
+    """Additive error with multiplicative seasonality can explode; restrict skips it.
+
+    Unrestricted, AutoETS selects ETS(A,Ad,M) on this series: as the level nears
+    zero one seasonal state reaches ~2e7, invisible to the AIC, and every fourth
+    forecast is ~4.5e9.
+    """
+    loose = AutoETS(seasonal_period=4, restrict=False).fit(M4_Q5018)
+    assert (loose.error_type_, loose.seasonality_type_) == (1, 2)
+    assert np.max(np.abs(loose.iterative_forecast(M4_Q5018, 8))) > 1e8
+
+    f = AutoETS(seasonal_period=4).fit(M4_Q5018)
+    assert not (f.error_type_ == 1 and f.seasonality_type_ == 2)
+    pred = f.iterative_forecast(M4_Q5018, 8)
+    assert np.all(np.isfinite(pred))
+    assert np.max(np.abs(pred)) < 2 * np.max(M4_Q5018)
+
+
+@pytest.mark.parametrize("seed", [1, 8])
+def test_auto_ets_restrict_excludes_additive_error_multiplicative_models(seed):
+    """Restrict removes the additive error models with a multiplicative component.
+
+    Unrestricted, AutoETS picks ETS(A,M,M) (seed 1) or ETS(A,A,M) (seed 8) on
+    these series.
+    """
+    rng = np.random.default_rng(seed)
+    t = np.arange(120.0)
+    y = (50.0 + 0.5 * t) * (1 + 0.2 * np.sin(2 * np.pi * t / 12))
+    y *= 1 + rng.normal(0, 0.02, 120)
+    kwargs = dict(seasonal_period=12, allow_multiplicative_trend=True)
+    loose = AutoETS(restrict=False, **kwargs).fit(y)
+    assert loose.error_type_ == 1 and 2 in (loose.trend_type_, loose.seasonality_type_)
+    f = AutoETS(**kwargs).fit(y)
+    assert f.error_type_ == 2 or 2 not in (f.trend_type_, f.seasonality_type_)
