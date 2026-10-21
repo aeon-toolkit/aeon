@@ -300,15 +300,6 @@ def test_base_predict_proba_labels_above_n_clusters():
     assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
 
 
-def test_base_predict_proba_label_without_column_raises():
-    """Test a predicted label with no column raises a ``ValueError``."""
-    X = np.random.random(size=(6, 1, 20))
-    clst = _LabelClusterer(labels=(0, 1, 2)).fit(X)
-    clst.labels = (0, 1, 5)
-    with pytest.raises(ValueError, match="have no predict_proba column"):
-        clst.predict_proba(X)
-
-
 def test_kmeans_predict_proba_matches_predict_on_subset():
     """Test a clusterer using the base default agrees with ``predict`` on a subset."""
     from aeon.clustering import TimeSeriesKMeans

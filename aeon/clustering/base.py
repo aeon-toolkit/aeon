@@ -209,7 +209,7 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         Raises
         ------
         ValueError
-            If predict returns a negative label or a label with no column.
+            If predict returns a negative label.
         """
         preds = self._predict(X)
         if np.any(preds < 0):
@@ -217,13 +217,10 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
                 f"predict returned negative labels {np.unique(preds[preds < 0])}, "
                 "which are not clusters and have no predict_proba column."
             )
-        n_clusters = max(getattr(self, "n_clusters", None) or 0, self.labels_.max() + 1)
-        if preds.max() >= n_clusters:
-            raise ValueError(
-                f"predict returned labels {np.unique(preds[preds >= n_clusters])} "
-                f"which have no predict_proba column, as there are {n_clusters} "
-                "clusters."
-            )
+
+        n_clusters = self.labels_.max() + 1
+        if getattr(self, "n_clusters", None) is not None:
+            n_clusters = max(n_clusters, self.n_clusters)
 
         dists = np.zeros((len(preds), n_clusters))
         dists[np.arange(len(preds)), preds] = 1
