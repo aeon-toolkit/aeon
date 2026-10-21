@@ -182,6 +182,13 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         to 1, other class probabilities to 0. Override if better estimates are
         obtainable.
 
+        Columns are fixed by the fitted clusterer, not by the clusters present in
+        ``X``. If ``n_clusters`` is set and both ``labels_`` and the predictions
+        are cluster indices in ``[0, n_clusters)``, column ``j`` is cluster ``j``
+        and there are ``n_clusters`` columns. Otherwise, such as for negative
+        noise labels, column ``j`` is the ``j``-th value of
+        ``np.unique(labels_)``.
+
         Parameters
         ----------
         X : 3D np.ndarray
@@ -200,21 +207,42 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
+
+        Raises
+        ------
+        ValueError
+            If the labels are not cluster indices and ``_predict`` returns a label
+            not present in ``labels_``.
         """
-        preds = self._predict(X)
-        unique = np.unique(preds)
-        for i, u in enumerate(unique):
-            preds[preds == u] = i
+        preds = np.asarray(self._predict(X))
         n_cases = len(preds)
-        if hasattr(self, "n_clusters"):
-            n_clusters = self.n_clusters
+        n_clusters = getattr(self, "n_clusters", None)
+        fitted = np.asarray(getattr(self, "labels_", preds))
+
+        if (
+            n_clusters is not None
+            and _is_cluster_index(fitted, n_clusters)
+            and _is_cluster_index(preds, n_clusters)
+        ):
+            cols = preds.astype(int)
+            n_cols = n_clusters
         else:
-            n_clusters = len(np.unique(preds))
-        if n_clusters is None:
-            n_clusters = int(max(preds)) + 1
-        dists = np.zeros((len(X), n_clusters))
-        for i in range(n_cases):
-            dists[i, preds[i]] = 1
+            clusters = np.unique(fitted)
+            cols = np.searchsorted(clusters, preds)
+            unseen = (cols == len(clusters)) | (
+                clusters[np.minimum(cols, len(clusters) - 1)] != preds
+            )
+            if np.any(unseen):
+                raise ValueError(
+                    f"_predict returned labels {np.unique(preds[unseen])} that are "
+                    f"not in labels_ {clusters}, so they have no predict_proba column."
+                )
+            n_cols = len(clusters)
+            if n_clusters is not None:
+                n_cols = max(n_cols, n_clusters)
+
+        dists = np.zeros((n_cases, n_cols))
+        dists[np.arange(n_cases), cols] = 1
         return dists
 
     @abstractmethod
@@ -250,3 +278,14 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
             Fitted estimator.
         """
         ...
+
+
+def _is_cluster_index(labels, n_clusters):
+    """Check whether all labels are integer values in ``[0, n_clusters)``."""
+    if not np.issubdtype(labels.dtype, np.number):
+        return False
+    return bool(
+        np.all(labels >= 0)
+        and np.all(labels < n_clusters)
+        and np.all(labels == np.floor(labels))
+    )
