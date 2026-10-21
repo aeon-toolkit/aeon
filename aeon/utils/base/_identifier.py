@@ -12,6 +12,10 @@ from aeon.utils.base._register import BASE_CLASS_REGISTER
 def get_identifier(estimator):
     """Determine identifier string of an estimator.
 
+    The identifier is the key of the most specific base class in BASE_CLASS_REGISTER
+    that the estimator inherits from, i.e. "classifier" rather than
+    "collection-estimator".
+
     Parameters
     ----------
     estimator : class or object BaseAeonEstimator
@@ -25,40 +29,29 @@ def get_identifier(estimator):
     Raises
     ------
     TypeError
-        If no identifier can be determined for estimator
+        If estimator is not a BaseAeonEstimator, or if it inherits from more than one
+        unrelated base class in BASE_CLASS_REGISTER.
     """
     if isinstance(estimator, BaseAeonEstimator):
-        identifiers = [
-            key
-            for key, value in BASE_CLASS_REGISTER.items()
-            if isinstance(estimator, value)
-        ]
-    elif isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
-        identifiers = [
-            key
-            for key, value in BASE_CLASS_REGISTER.items()
-            if isinstance(estimator, value) or issubclass(estimator, value)
-        ]
-    else:
+        estimator = type(estimator)
+    elif not (isclass(estimator) and issubclass(estimator, BaseAeonEstimator)):
         raise TypeError(
             "Estimator must be an instance or subclass of BaseAeonEstimator."
         )
 
-    if len(identifiers) == 0:
-        raise TypeError("Error, no identifiers could be determined for estimator")
-
-    if len(identifiers) > 1 and "estimator" in identifiers:
-        identifiers.remove("estimator")
-    if len(identifiers) > 1 and "collection-estimator" in identifiers:
-        identifiers.remove("collection-estimator")
-    if len(identifiers) > 1 and "series-estimator" in identifiers:
-        identifiers.remove("series-estimator")
-    if len(identifiers) > 1 and "transformer" in identifiers:
-        identifiers.remove("transformer")
-    if len(identifiers) > 1 and "anomaly-detector" in identifiers:
-        identifiers.remove("anomaly-detector")
-    if len(identifiers) > 1 and "similarity-search" in identifiers:
-        identifiers.remove("similarity-search")
+    bases = {
+        key: value
+        for key, value in BASE_CLASS_REGISTER.items()
+        if issubclass(estimator, value)
+    }
+    # keep only bases which are not a parent of another matched base
+    identifiers = [
+        key
+        for key, value in bases.items()
+        if not any(
+            other is not value and issubclass(other, value) for other in bases.values()
+        )
+    ]
 
     if len(identifiers) > 1:
         raise TypeError(
