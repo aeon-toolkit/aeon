@@ -72,6 +72,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         "python_version": None,
         "python_dependencies": None,
         "cant_pickle": False,
+        "capability:checkpointing": False,
         "non_deterministic": False,
         "algorithm_type": None,
         "capability:missing_values": False,
