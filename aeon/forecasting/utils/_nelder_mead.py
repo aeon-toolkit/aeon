@@ -19,7 +19,7 @@ def dispatch_loss(fn_id, params, data, model):
     return value
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _init_arima_simplex(points, data, model, simplex_init):
     num_params = points.shape[1]
     points[:] = simplex_init
@@ -226,7 +226,7 @@ def _nelder_mead_from_simplex(loss_id, points, data, model, tol=1e-6, max_iter=5
     return points[best], values[best]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _lstsq(X, y):
     """Least squares coefficients, NaN if the problem is underdetermined."""
     if X.shape[0] <= X.shape[1]:
@@ -279,7 +279,7 @@ def _hannan_rissanen(data, model):
     return _lstsq(X, data[start:])
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _arima_simplex_around(x0, data, model):
     """Build a starting simplex with ``x0`` as one vertex.
 

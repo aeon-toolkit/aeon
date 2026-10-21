@@ -392,6 +392,15 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         Maximum order of the moving-average (MA) component to consider when
         searching for the best ARIMA model.
 
+    Notes
+    -----
+    The order is selected on ``y`` alone. Without exogenous variables the final
+    model keeps the parameters of the selected candidate, so
+    ``final_model_.aic_`` equals ``fit_aic_``. With exogenous variables the
+    selected order is refitted by :class:`ARIMA` on the residuals of a
+    regression of ``y`` on them, so ``final_model_.aic_`` differs from
+    ``fit_aic_`` and the refit is not checked for near unit roots.
+
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -476,13 +485,14 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
             # Keep the parameters found in the search rather than refitting, so
             # the final model is the one that was scored and checked for near
             # unit roots. The search did not use exog, so refit when it is given.
+            # This mirrors BaseForecaster.fit (and its fit timer) for the final
+            # model: keep in step if fit records anything else.
             start = time.perf_counter()
             self.final_model_._fit_with_parameters(y, parameters=parameters)
             self.final_model_.fit_time_millis_ = int(
                 (time.perf_counter() - start) * 1000
             )
-            # what BaseForecaster.fit would record, for the same y
-            self.final_model_.metadata_ = self.metadata_
+            self.final_model_.metadata_ = dict(self.metadata_)
             self.final_model_.is_fitted = True
         else:
             self.final_model_.fit(y, exog=exog)
@@ -584,7 +594,7 @@ def _arima_model(params, data, model):
     return aic, residuals, fitted_values
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _in_sample_forecast(data, model, t, formatted_params, residuals):
     """Efficient ARMA one-step forecast at time t for fitted model."""
     p = model[1]

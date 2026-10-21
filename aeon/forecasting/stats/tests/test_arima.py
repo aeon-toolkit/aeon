@@ -665,6 +665,8 @@ def test_auto_arima_final_model_retains_selected_score(seed, n):
     assert forecaster.final_model_.aic_ == pytest.approx(forecaster.fit_aic_)
     assert isinstance(forecaster.final_model_.fit_time_millis_, int)
     assert forecaster.final_model_.fit_time_millis_ >= 0
+    assert forecaster.final_model_.metadata_ == forecaster.metadata_
+    assert forecaster.final_model_.metadata_ is not forecaster.metadata_
     assert np.isfinite(forecaster.final_model_.predict(y))
 
 
