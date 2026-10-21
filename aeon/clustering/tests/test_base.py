@@ -73,8 +73,8 @@ class _NClustersClusterer(BaseClusterer):
     """Clusterer exposing an ``n_clusters`` attribute, assigning cases round-robin.
 
     The base ``_predict_proba`` sizes its probability matrix from ``n_clusters``
-    when that attribute is present, and falls back to the number of distinct
-    ``labels_`` when it is ``None``. This mock lets a test drive both branches;
+    when that attribute is present, and falls back to ``max(labels_) + 1`` when
+    it is ``None``. This mock lets a test drive both branches;
     ``_predict`` returns three distinct clusters (labels 0, 1, 2).
     """
 
@@ -95,9 +95,9 @@ def test_base_predict_proba_width_from_n_clusters_attribute():
 
     When a clusterer defines ``n_clusters``, the probability matrix has exactly
     that many columns (even if wider than the number of clusters actually
-    predicted). When ``n_clusters`` is ``None`` the base falls back to the
-    number of distinct ``labels_`` (here 3, for labels 0, 1, 2). Either way each
-    row is a one-hot of the assigned cluster.
+    predicted). When ``n_clusters`` is ``None`` the base falls back to
+    ``max(labels_) + 1`` (here 3, for labels 0, 1, 2). Either way each row is a
+    one-hot of the assigned cluster.
     """
     X = np.random.random(size=(9, 1, 20))
     expected = np.arange(9) % 3
@@ -108,7 +108,7 @@ def test_base_predict_proba_width_from_n_clusters_attribute():
     assert np.all(proba.sum(axis=1) == 1)
     assert np.array_equal(np.argmax(proba, axis=1), expected)
 
-    # n_clusters is None -> fall back to len(np.unique(labels_)) == 3
+    # n_clusters is None -> fall back to max(labels_) + 1 == 3
     proba = _NClustersClusterer(n_clusters=None).fit(X)._predict_proba(X)
     assert proba.shape == (9, 3)
     assert np.array_equal(np.argmax(proba, axis=1), expected)
@@ -283,32 +283,29 @@ def test_meanshift_noise_predict_proba_matches_predict():
     assert -1 in clst.labels_
     preds = clst.predict(X)
     proba = clst.predict_proba(X)
-    assert proba.shape == (40, len(np.unique(clst.labels_)) - 1)
+    assert proba.shape == (40, clst.labels_.max() + 1)
     assert np.array_equal(proba.argmax(axis=1), preds)
 
 
-def test_base_predict_proba_non_index_labels():
-    """Test labels that are not cluster indices, such as medoid indices.
+def test_base_predict_proba_labels_above_n_clusters():
+    """Test labels at or above ``n_clusters`` widen the matrix instead of failing.
 
-    Each distinct fitted label gets a column in sorted order, and the width is
-    at least ``n_clusters``.
+    Labels are column indices, so the width is ``max(labels_) + 1`` when that is
+    larger than ``n_clusters``.
     """
     X = np.random.random(size=(8, 1, 20))
     clst = _LabelClusterer(labels=(22, 3, 32, 22), n_clusters=3).fit(X)
     proba = clst.predict_proba(X)
-    assert proba.shape == (8, 3)
-    assert np.array_equal(np.array([3, 22, 32])[proba.argmax(axis=1)], clst.predict(X))
-
-    clst = _LabelClusterer(labels=(22, 3), n_clusters=4).fit(X)
-    assert clst.predict_proba(X).shape == (8, 4)
+    assert proba.shape == (8, 33)
+    assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
 
 
-def test_base_predict_proba_unseen_label_raises():
-    """Test a predicted label absent from ``labels_`` raises a ``ValueError``."""
+def test_base_predict_proba_label_without_column_raises():
+    """Test a predicted label with no column raises a ``ValueError``."""
     X = np.random.random(size=(6, 1, 20))
     clst = _LabelClusterer(labels=(0, 1, 2)).fit(X)
     clst.labels = (0, 1, 5)
-    with pytest.raises(ValueError, match="not in labels_"):
+    with pytest.raises(ValueError, match="have no predict_proba column"):
         clst.predict_proba(X)
 
 

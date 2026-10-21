@@ -182,12 +182,10 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         to 1, other class probabilities to 0. Override if better estimates are
         obtainable.
 
-        Columns are fixed by the fitted clusterer, not by the clusters present in
-        ``X``. Negative labels in ``labels_``, such as noise, are not clusters and
-        get no column. If ``n_clusters`` is set and both the remaining ``labels_``
-        and the predictions are cluster indices in ``[0, n_clusters)``, column
-        ``j`` is cluster ``j`` and there are ``n_clusters`` columns. Otherwise,
-        column ``j`` is the ``j``-th value of ``np.unique(labels_)``.
+        Column ``j`` is cluster ``j``. There are ``n_clusters`` columns, or
+        ``max(labels_) + 1`` if that is larger or ``n_clusters`` is not set, so the
+        columns do not depend on which clusters are present in ``X``. Negative
+        labels in ``labels_``, such as noise, are not clusters and get no column.
 
         Parameters
         ----------
@@ -211,44 +209,24 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         Raises
         ------
         ValueError
-            If ``_predict`` returns a negative label, or the labels are not cluster
-            indices and ``_predict`` returns a label not present in ``labels_``.
+            If predict returns a negative label or a label with no column.
         """
-        preds = np.asarray(self._predict(X))
-        negative = _negative_labels(preds)
-        if np.any(negative):
+        preds = self._predict(X)
+        if np.any(preds < 0):
             raise ValueError(
-                f"_predict returned negative labels {np.unique(preds[negative])}, "
+                f"predict returned negative labels {np.unique(preds[preds < 0])}, "
                 "which are not clusters and have no predict_proba column."
             )
-        n_cases = len(preds)
-        n_clusters = getattr(self, "n_clusters", None)
-        fitted = np.asarray(getattr(self, "labels_", preds))
-        fitted = fitted[~_negative_labels(fitted)]
+        n_clusters = max(getattr(self, "n_clusters", None) or 0, self.labels_.max() + 1)
+        if preds.max() >= n_clusters:
+            raise ValueError(
+                f"predict returned labels {np.unique(preds[preds >= n_clusters])} "
+                f"which have no predict_proba column, as there are {n_clusters} "
+                "clusters."
+            )
 
-        if (
-            n_clusters is not None
-            and _is_cluster_index(fitted, n_clusters)
-            and _is_cluster_index(preds, n_clusters)
-        ):
-            cols = preds.astype(int)
-            n_cols = n_clusters
-        else:
-            clusters = np.unique(fitted)
-            cols = np.searchsorted(clusters, preds)
-            seen = cols < len(clusters)
-            seen[seen] = clusters[cols[seen]] == preds[seen]
-            if not np.all(seen):
-                raise ValueError(
-                    f"_predict returned labels {np.unique(preds[~seen])} that are "
-                    f"not in labels_ {clusters}, so they have no predict_proba column."
-                )
-            n_cols = len(clusters)
-            if n_clusters is not None:
-                n_cols = max(n_cols, n_clusters)
-
-        dists = np.zeros((n_cases, n_cols))
-        dists[np.arange(n_cases), cols] = 1
+        dists = np.zeros((len(preds), n_clusters))
+        dists[np.arange(len(preds)), preds] = 1
         return dists
 
     @abstractmethod
@@ -284,21 +262,3 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
             Fitted estimator.
         """
         ...
-
-
-def _negative_labels(labels):
-    """Return a mask of the negative labels, all False for non-numeric labels."""
-    if not np.issubdtype(labels.dtype, np.number):
-        return np.zeros(len(labels), dtype=bool)
-    return labels < 0
-
-
-def _is_cluster_index(labels, n_clusters):
-    """Check whether all labels are integer values in ``[0, n_clusters)``."""
-    if not np.issubdtype(labels.dtype, np.number):
-        return False
-    return bool(
-        np.all(labels >= 0)
-        and np.all(labels < n_clusters)
-        and np.all(labels == np.floor(labels))
-    )

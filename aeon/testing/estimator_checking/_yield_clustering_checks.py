@@ -25,6 +25,14 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
     # test class instances
     for i, estimator in enumerate(estimator_instances):
         # data type irrelevant
+        yield partial(
+            check_clusterer_labels, estimator=estimator, datatype=datatypes[i][0]
+        )
+        yield partial(
+            check_clusterer_uses_all_clusters,
+            estimator=estimator,
+            datatype=datatypes[i][0],
+        )
         if isinstance(estimator, BaseDeepClusterer):
             yield partial(
                 check_clustering_random_state_deep_learning,
@@ -185,6 +193,56 @@ def check_clusterer_output(estimator, datatype):
         y_proba_sub = estimator.predict_proba(X_sub)
         assert y_proba_sub.shape[1] == y_proba.shape[1]
         _assert_predict_is_max_probability(estimator.predict(X_sub), y_proba_sub)
+
+
+def check_clusterer_labels(estimator, datatype):
+    """Test clusterer labels are cluster indices.
+
+    labels_, and predict on unseen data for clusterers which support out-of-sample
+    prediction, must be non-negative integers below n_clusters if the clusterer has
+    it. Predicted labels must also appear in labels_.
+    """
+    estimator = _clone_estimator(estimator, random_state=0)
+    estimator.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
+    _assert_cluster_indices(estimator, estimator.labels_)
+
+    if estimator.get_tag("capability:predict"):
+        y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+        _assert_cluster_indices(estimator, y_pred)
+        assert np.all(np.isin(y_pred, estimator.labels_)), (
+            f"predict returned labels {np.setdiff1d(y_pred, estimator.labels_)} "
+            "which are not in labels_"
+        )
+
+
+def check_clusterer_uses_all_clusters(estimator, datatype):
+    """Test every cluster has at least one case in labels_.
+
+    labels_ must contain every value from 0 to its maximum, and exactly n_clusters
+    clusters if the clusterer has n_clusters.
+    """
+    estimator = _clone_estimator(estimator, random_state=0)
+    estimator.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
+
+    clusters = np.unique(estimator.labels_)
+    n_clusters = getattr(estimator, "n_clusters", None)
+    expected = np.arange(clusters.max() + 1 if n_clusters is None else n_clusters)
+    assert np.array_equal(
+        clusters, expected
+    ), f"labels_ contains clusters {clusters}, expected {expected}"
+
+
+def _assert_cluster_indices(estimator, labels):
+    """Assert labels are non-negative integers, below n_clusters if it is set."""
+    assert np.issubdtype(
+        labels.dtype, np.integer
+    ), f"labels must be integers, found dtype {labels.dtype}"
+    assert np.all(labels >= 0), f"labels must be non-negative, found {labels.min()}"
+    n_clusters = getattr(estimator, "n_clusters", None)
+    if n_clusters is not None:
+        assert np.all(
+            labels < n_clusters
+        ), f"labels must be below n_clusters={n_clusters}, found {labels.max()}"
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
