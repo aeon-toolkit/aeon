@@ -280,7 +280,7 @@ class REDCOMETS(BaseClassifier):
             sfa_clfs.append((rf, weight))
 
         sax_transforms = [
-            SAX(n_segments=w, alphabet_size=a, znormalized=True) for w, a in sax_lenses
+            SAX(n_segments=w, alphabet_size=a, znormalize=False) for w, a in sax_lenses
         ]
 
         sax_clfs = []
