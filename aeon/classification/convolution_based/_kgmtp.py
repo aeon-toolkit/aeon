@@ -2,7 +2,9 @@
 
 Pipeline classifier using the KGMTP transformer and a scikit-learn estimator: by
 default, a StandardScaler followed by RidgeClassifierCV, or a user-supplied
-estimator fit directly on the transform's output.
+estimator fitted directly on the transform's output. If a user-supplied estimator is
+given, it is fitted directly on the transform’s output, without scaling. Scaling can be
+performed using a scikit-learn pipeline.
 """
 
 __maintainer__ = ["johannfaouzi"]
@@ -27,7 +29,7 @@ class KGMTPClassifier(BaseClassifier):
     series (raw, its Hilbert transform, and its first difference), with the
     Hydra-style block scaled according to `scale_hydra`. If `estimator` is left as
     ``None`` (the default), a `StandardScaler` -> `RidgeClassifierCV` pipeline is
-    then fit on the full concatenated output (pooling + Hydra features) --
+    then fitted on the full concatenated output (pooling + Hydra features) --
     together with `scale_hydra`'s default of ``True``, reproducing the original
     paper's pipeline exactly. A custom `estimator` is instead fit directly on the
     concatenated output, with no `StandardScaler` applied.
@@ -47,8 +49,7 @@ class KGMTPClassifier(BaseClassifier):
     scale_hydra : bool, default=True
         Whether to scale the pooled Hydra features with `KGMTP`'s masked,
         epsilon-regularized scaler, passed straight through to the `KGMTP`
-        transform. The default, ``True``, is what the original paper's pipeline
-        uses.
+        transform.
     estimator : sklearn compatible classifier or None, default=None
         The estimator used. If None, a pipeline consisting of StandardScaler() followed
         by RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used. If not None, it is
@@ -64,17 +65,13 @@ class KGMTPClassifier(BaseClassifier):
         A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
-        Note: "balanced_subsample" is not supported as RidgeClassifierCV is not an
-        ensemble model.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`. ``-1`` means
         using all processors.
-    random_state : int, ``numpy.random.Generator``, or None, default=None
-        If ``int``, seed a new ``Generator``. If a ``Generator`` instance, use it
-        directly -- several ``KGMTP`` instances can then share one
-        continuously-advancing stream across repeated `fit` calls. If ``None``, use a
-        fresh, unseeded ``Generator``. Unlike most aeon estimators, a legacy
-        ``numpy.random.RandomState`` is not accepted.
+    random_state : int, RandomState instance, or None, default=None
+        Passed straight through to the `KGMTP` transform, and to `estimator` if not
+        None. In this case, the `random_state` value of `estimator` is overridden with
+        this `random_state` value.
 
     Attributes
     ----------

@@ -1,6 +1,7 @@
 """KGMTPClassifier tests."""
 
 import numpy as np
+import pytest
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
@@ -8,6 +9,33 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.convolution_based._kgmtp import KGMTPClassifier
 from aeon.datasets import load_italy_power_demand
+
+
+@pytest.mark.parametrize(
+    "random_state",
+    [None, 0, np.random.RandomState(0)],
+    ids=["none", "int", "randomstate"],
+)
+def test_kgmtp_classifier_random_state_accepted_types_work(random_state):
+    """None, an int, and a `RandomState` all work with the default estimator."""
+    X = np.random.default_rng(0).random(size=(10, 1, 100))
+    y = np.array([0, 1] * 5)
+    clf = KGMTPClassifier(
+        random_state=random_state, **KGMTPClassifier._get_test_params()
+    )
+    clf.fit(X, y)  # must not raise
+    assert clf.predict(X).shape == (10,)
+
+
+def test_kgmtp_classifier_random_state_rejects_generator():
+    """A raw `numpy.random.Generator` is cleanly rejected, with an error raised."""
+    X = np.random.default_rng(0).random(size=(10, 1, 100))
+    y = np.array([0, 1] * 5)
+    clf = KGMTPClassifier(
+        random_state=np.random.default_rng(0), **KGMTPClassifier._get_test_params()
+    )
+    with pytest.raises(ValueError, match="cannot be used to seed"):
+        clf.fit(X, y)
 
 
 def test_kgmtp_classifier_default_estimator():

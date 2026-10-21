@@ -6,16 +6,9 @@ __all__ = ["KGMTP"]
 from itertools import combinations
 
 import numpy as np
-from numba import (
-    config,
-    float32,
-    get_num_threads,
-    njit,
-    prange,
-    set_num_threads,
-    vectorize,
-)
+from numba import config, float32, get_num_threads, njit, prange, set_num_threads
 from scipy.signal import hilbert
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -88,16 +81,10 @@ def _build_kernel_group_tables():
 # Numba kernels behind `_KGMTPBranch.fit`/`.transform`. Each kernel's "alpha"/"gamma"
 # weighted sums are computed with a single multiplication instead of repeated addition
 # -- mathematically equivalent, though not always bit-identical, due to floating-point
-# non-associativity.
-
-
-@vectorize("float32(float32,float32)", nopython=True, cache=True)
-def _PPV(a, b):
-    """Proportion-of-positive-values indicator: 1 if a > b else 0."""
-    if a > b:
-        return 1
-    else:
-        return 0
+# non-associativity. The proportion-of-positive-values statistic below is computed
+# inline rather than through a `_PPV`-style helper (as in `_minirocket`/`_rocket`),
+# since it is one branch among several (mean, zero-crossing count, ...) written
+# directly into a shared output array inside this same parallel loop.
 
 
 @njit(fastmath=True, cache=True, inline="always")
@@ -508,12 +495,10 @@ class KGMTP(BaseCollectionTransformer):
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors. Bias-fitting during `fit` is always single-threaded.
-    random_state : int, ``numpy.random.Generator`` or None, default=None
-        If ``int``, random_state is the seed used by the random number generator.
-        If a ``Generator`` instance, random_state is the random number generator.
+    random_state : int, ``numpy.random.RandomState`` or None, default=None
+        If ``int``, seed a fresh ``numpy.random.Generator`` with it.
+        If ``RandomState`` instance, draw a fresh seed from it on every `fit`.
         If ``None``, use a fresh, unseeded ``Generator`` instance.
-        Unlike most aeon estimators, a legacy ``numpy.random.RandomState`` is not
-        accepted.
 
     Attributes
     ----------
@@ -621,6 +606,13 @@ class KGMTP(BaseCollectionTransformer):
             otherwise (see `n_pooling_features_`, `n_hydra_features_`).
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
+
+        n_timepoints = X.shape[2]
+        if n_timepoints <= _KERNEL_LENGTH:
+            raise ValueError(
+                f"n_timepoints must be > {_KERNEL_LENGTH}, but found {n_timepoints}."
+            )
+
         rng = self._check_random_state(self.random_state)
         self.random_state_ = rng
 
@@ -755,19 +747,13 @@ class KGMTP(BaseCollectionTransformer):
 
     def _check_random_state(self, random_state):
         """Coerce `random_state` into a `numpy.random.Generator`."""
-        if random_state is None:
-            return np.random.default_rng()
-        if isinstance(random_state, (int, np.integer)):
-            return np.random.default_rng(random_state)
-        if isinstance(random_state, np.random.Generator):
-            return random_state
-        raise TypeError(
-            "random_state must be None, an int, or a numpy.random.Generator "
-            f"(got {type(random_state).__name__}). A legacy "
-            "numpy.random.RandomState is not supported here, since the "
-            "Numba-jitted bias-fitting kernel only implements the modern "
-            "Generator API in nopython mode."
+        validated = check_random_state(random_state)
+        seed = (
+            validated.randint(np.iinfo(np.int32).max)
+            if isinstance(random_state, np.random.RandomState)
+            else random_state
         )
+        return np.random.default_rng(seed)
 
     @staticmethod
     def _hilbert_transform(X):
