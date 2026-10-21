@@ -120,9 +120,11 @@ def check_clusterer_output(estimator, datatype):
 
     Test fit sets labels_ and fit_predict returns it. For clusterers which support
     out-of-sample prediction, test predict produces a np.array or pd.Series with only
-    values seen in the train data, and that predict_proba probability estimates add
-    up to one. For transductive clusterers (capability:predict tag set to False),
-    test predict and predict_proba raise a NotImplementedError instead.
+    values seen in the train data, that predict_proba probability estimates add
+    up to one, and that the argmax of predict_proba matches predict, including on a
+    subset of cases missing a cluster. For transductive clusterers
+    (capability:predict tag set to False), test predict and predict_proba raise a
+    NotImplementedError instead.
     """
     import pytest
 
@@ -168,21 +170,29 @@ def check_clusterer_output(estimator, datatype):
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
     # check that the max probability cluster matches the predicted cluster
-    if estimator.__class__.__name__ in [
-        "Catch22Clusterer",
-        "ClustererPipeline",
-        "KASBA",
-        "SummaryClusterer",
-        "TimeSeriesCLARA",
-        "TSFreshClusterer",
-    ]:
-        return  # these classifiers produce non-deterministic results
     y_pred_from_proba = np.argmax(y_proba, axis=1)
     np.testing.assert_array_equal(
         y_pred,
         y_pred_from_proba,
         err_msg="Inconsistent predict() and predict_proba() outputs",
     )
+
+    # predict_proba columns must not depend on which clusters are present, so
+    # check again on the test cases not assigned to the first predicted cluster
+    X_test = FULL_TEST_DATA_DICT[datatype]["test"][0]
+    idx = np.where(y_pred != y_pred[0])[0]
+    if len(idx) > 0:
+        X_sub = (
+            X_test[idx] if isinstance(X_test, np.ndarray) else [X_test[i] for i in idx]
+        )
+        y_proba_sub = estimator.predict_proba(X_sub)
+        assert y_proba_sub.shape[1] == y_proba.shape[1]
+        np.testing.assert_array_equal(
+            estimator.predict(X_sub),
+            np.argmax(y_proba_sub, axis=1),
+            err_msg="Inconsistent predict() and predict_proba() outputs on a "
+            "subset of cases missing a cluster",
+        )
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):

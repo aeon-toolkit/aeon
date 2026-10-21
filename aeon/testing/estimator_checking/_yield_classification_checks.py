@@ -394,7 +394,7 @@ def check_classifier_output(estimator, datatype):
         "OrdinalTDE",
         "TemporalDictionaryEnsemble",
     ]:
-        return  # these clusterers produce non-deterministic results
+        return  # predict and the predict_proba argmax can differ for these
     max_proba_idx = np.argmax(y_proba, axis=1)
     y_pred_from_proba = estimator.classes_[max_proba_idx]
     assert_array_equal(
