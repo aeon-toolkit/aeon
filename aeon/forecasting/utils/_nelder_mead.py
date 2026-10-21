@@ -126,6 +126,19 @@ def nelder_mead(
     else:
         for i in range(num_params):
             points[i + 1][i] = simplex_init * 1.2
+    return _nelder_mead_from_simplex(loss_id, points, data, model, tol, max_iter)
+
+
+@njit(cache=True, fastmath={"contract"})
+def _nelder_mead_from_simplex(loss_id, points, data, model, tol=1e-6, max_iter=500):
+    """Run Nelder-Mead from the starting simplex ``points``.
+
+    ``points`` has shape ``(num_params + 1, num_params)``, one vertex per row,
+    and is not modified. Callers can use this to restart the search from their
+    own starting points. See :func:`nelder_mead` for the other parameters and
+    the return values.
+    """
+    points = points.copy()
     values = np.empty(len(points), dtype=np.float64)
     for i in range(len(points)):
         values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
