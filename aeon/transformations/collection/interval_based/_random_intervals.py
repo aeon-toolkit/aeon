@@ -459,10 +459,9 @@ class RandomIntervals(BaseCollectionTransformer):
                 ) or not hasattr(feature, "n_transformed_features"):
                     if raise_error:
                         raise ValueError(
-                            "Transformer must have one of {} as an attribute and a "
-                            "n_transformed_features attribute.".format(
-                                self.transformer_feature_skip
-                            )
+                            "Transformer must have one of "
+                            f"{self.transformer_feature_skip} as an attribute and a "
+                            "n_transformed_features attribute."
                         )
                     else:
                         return False

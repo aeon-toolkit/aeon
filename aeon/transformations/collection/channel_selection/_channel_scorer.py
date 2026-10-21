@@ -6,8 +6,6 @@ __all__ = ["ChannelScorer"]
 import math
 from collections.abc import Callable
 from typing import Any
-from typing import Dict as TypingDict
-from typing import List as TypingList
 
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -80,7 +78,7 @@ class ChannelScorer(BaseChannelSelector):
         self.score_sign = score_sign
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: np.ndarray | TypingList):
+    def _fit(self, X: np.ndarray, y: np.ndarray | list):
         """
         Fit to a specified X and y.
 
@@ -136,7 +134,7 @@ class ChannelScorer(BaseChannelSelector):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, Any]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict[str, Any]:
         """Return testing parameter settings for the estimator.
 
         Parameters
