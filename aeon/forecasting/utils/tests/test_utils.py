@@ -216,3 +216,29 @@ def test_ets_fit_degenerate_data_returns_large_loss():
     data = np.array([1e200, -1e200] * 5)
     aic2 = _ets_fit(np.array([0.5]), data, model_add)[0]
     assert aic2 >= 1e10
+
+
+@pytest.mark.parametrize(
+    "loss_id, num_params, model",
+    [(0, 3, np.array([1, 1, 1])), (1, 4, np.array([1, 1, 1, 4]))],
+)
+def test_nelder_mead_from_simplex_matches_nelder_mead(loss_id, num_params, model):
+    """nelder_mead is _nelder_mead_from_simplex from its default simplex."""
+    from aeon.forecasting.utils._nelder_mead import (
+        _init_ets_simplex,
+        _nelder_mead_from_simplex,
+    )
+
+    data = np.array([1.0, 2.0, 1.5, 1.7, 2.1, 1.9, 2.4, 2.2, 2.0, 2.6, 2.3, 2.8])
+    x, v = nelder_mead(loss_id, num_params, data, model, simplex_init=0.5)
+    points = np.full((num_params + 1, num_params), 0.5)
+    if loss_id == 1:
+        _init_ets_simplex(points, model)
+    else:
+        for i in range(num_params):
+            points[i + 1, i] = 0.6
+    start = points.copy()
+    x2, v2 = _nelder_mead_from_simplex(loss_id, points, data, model)
+    assert v == v2 and np.array_equal(x, x2)
+    # the starting simplex is not modified
+    assert np.array_equal(points, start)
