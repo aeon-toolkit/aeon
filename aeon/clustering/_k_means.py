@@ -323,31 +323,36 @@ class TimeSeriesKMeans(BaseClusterer):
         else:
             self._average_params = self.average_params.copy()
 
-        # Add the distance to average params
-        if "distance" not in self._average_params and self.averaging_method not in [
-            "mean",
-            "shift_scale",
-        ]:
-            # Must be a str and a valid distance for ba averaging
-            if isinstance(self.distance, str):
-                if (
-                    self.averaging_method == "ba"
-                    and self.distance not in VALID_BA_DISTANCE_METHODS
-                ):
-                    raise ValueError(
-                        f"Invalid distance passed for ba. "
-                        f"Valid distances are: {VALID_BA_DISTANCE_METHODS}"
-                    )
-                self._average_params["distance"] = self.distance
-            else:
-                # Invalid distance passed for ba so default to dba
-                self._average_params["distance"] = "dtw"
+        # Add distance, random_state, and n_jobs to average params for string methods
+        if isinstance(self.averaging_method, str):
+            if (
+                "distance" not in self._average_params
+                and self.averaging_method not in ["mean", "shift_scale"]
+            ):
+                # Must be a str and a valid distance for ba averaging
+                if isinstance(self.distance, str):
+                    if (
+                        self.averaging_method == "ba"
+                        and self.distance not in VALID_BA_DISTANCE_METHODS
+                    ):
+                        raise ValueError(
+                            f"Invalid distance passed for ba. "
+                            f"Valid distances are: {VALID_BA_DISTANCE_METHODS}"
+                        )
+                    self._average_params["distance"] = self.distance
+                else:
+                    # Invalid distance passed for ba so default to dba
+                    self._average_params["distance"] = "dtw"
 
-        if (
-            "random_state" not in self._average_params
-            and self.averaging_method not in ["shift_scale", "mean"]
-        ):
-            self._average_params["random_state"] = self._random_state
+            if (
+                "random_state" not in self._average_params
+                and self.averaging_method not in ["shift_scale", "mean"]
+            ):
+                self._average_params["random_state"] = self._random_state
+
+            # Mean is the only one that n_jobs doesn't support
+            if self.averaging_method != "mean":
+                self._average_params["n_jobs"] = self._n_jobs
 
         if self.averaging_method == "ba":
             self._averaging_method = elastic_barycenter_average
@@ -359,10 +364,6 @@ class TimeSeriesKMeans(BaseClusterer):
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
                 f"n_cases ({X.shape[0]})"
             )
-
-        # Mean is the only one that n_jobs doesn't support
-        if isinstance(self.averaging_method, str) and self.averaging_method != "mean":
-            self._average_params["n_jobs"] = self._n_jobs
 
     def _handle_empty_cluster(
         self,
