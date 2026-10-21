@@ -7,10 +7,9 @@ from numpy.testing import assert_almost_equal
 from aeon.distances import (
     alignment_path,
     cost_matrix,
-    get_distance_function_names,
-    pairwise_distance,
 )
 from aeon.distances import distance as compute_distance
+from aeon.distances import get_distance_function_names, pairwise_distance
 from aeon.distances._distance import (
     DISTANCES,
     MIN_DISTANCES,

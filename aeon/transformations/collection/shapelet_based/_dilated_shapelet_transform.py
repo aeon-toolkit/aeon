@@ -8,8 +8,9 @@ __maintainer__ = ["baraline"]
 __all__ = ["RandomDilatedShapeletTransform"]
 
 import warnings
-from typing import Dict, Union
+from typing import Dict
 from typing import List as TypingList
+from typing import Union
 
 import numpy as np
 from numba import njit, prange, set_num_threads
