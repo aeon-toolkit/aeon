@@ -9,7 +9,7 @@ from copy import deepcopy
 from functools import partial
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
 from sklearn.ensemble._base import _set_random_states
 
 from aeon.base._base import _clone_estimator
@@ -366,8 +366,12 @@ def check_classifier_random_state_deep_learning(estimator, datatype):
 
 
 def check_classifier_output(estimator, datatype):
-    """Test classifier outputs the correct data types and values."""
-    estimator = _clone_estimator(estimator)
+    """Test classifier outputs the correct data types and values.
+
+    Also tests that predict returns a class with the highest predict_proba
+    probability. The estimator is seeded so repeated predict calls agree.
+    """
+    estimator = _clone_estimator(estimator, random_state=0)
 
     unique_labels = np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1])
 
@@ -383,22 +387,14 @@ def check_classifier_output(estimator, datatype):
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
     _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))
 
-    # check that the max probability class matches the predicted class
-    if estimator.__class__.__name__ in [
-        "ClassifierChannelEnsemble",
-        "ContractableBOSS",
-        "EncoderClassifier",
-        "HIVECOTEV2",
-        "IndividualOrdinalTDE",
-        "IndividualTDE",
-        "OrdinalTDE",
-        "TemporalDictionaryEnsemble",
-    ]:
-        return  # predict and the predict_proba argmax can differ for these
-    max_proba_idx = np.argmax(y_proba, axis=1)
-    y_pred_from_proba = estimator.classes_[max_proba_idx]
-    assert_array_equal(
-        y_pred,
-        y_pred_from_proba,
-        err_msg="Inconsistent predict() and predict_proba() outputs",
+    # check the predicted class has the highest probability, accepting any of the
+    # tied classes as predict may break ties at random
+    class_idx = {c: i for i, c in enumerate(estimator.classes_)}
+    pred_idx = np.array([class_idx[c] for c in y_pred])
+    is_max = np.isclose(y_proba, y_proba.max(axis=1, keepdims=True))
+    bad = np.flatnonzero(~is_max[np.arange(len(y_pred)), pred_idx])
+    assert len(bad) == 0, (
+        "Inconsistent predict() and predict_proba() outputs for cases "
+        f"{bad}: predict returned {y_pred[bad]}, predict_proba returned "
+        f"{y_proba[bad]} for classes {estimator.classes_}"
     )
