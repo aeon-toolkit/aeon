@@ -42,10 +42,11 @@ class ElasticEnsemble(BaseClassifier):
     distance_measures : str or list of str, default="all"
       A ``list`` of strings identifying which distance measures to include. Valid values
       are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
-      ``lcss``, ``erp``, ``msm``, ``twe``. The default value ``all`` means that all
-      the previously listed distances are used. The special value ``ts-quad`` can be
-      used to select the distance measures for the TS-QUAD ensemble: WDTW, DDTW,
-      LCSS, and MSM.
+      ``lcss``, ``erp``, ``msm``, ``twe``, ``dtw_full``, ``ddtw_full``. The full-window
+      variants use a fixed warping window of 1.0 rather than tuning it. The default
+      value ``all`` includes all eleven distances as separate ensemble members.
+      The special value ``ts-quad`` can be used to select the distance measures for
+      the TS-QUAD ensemble: WDTW, DDTW, LCSS, and MSM.
     proportion_of_param_options : float, default=1
       The proportion of the parameter grid space to search optional.
     proportion_train_in_param_finding : float, default=1
@@ -155,6 +156,8 @@ class ElasticEnsemble(BaseClassifier):
                 "msm",
                 "euclidean",
                 "twe",
+                "dtw_full",
+                "ddtw_full",
             ]
         elif self.distance_measures == "ts-quad":
             self._distance_measures = [
@@ -252,20 +255,19 @@ class ElasticEnsemble(BaseClassifier):
             # smaller sample as per the StratifiedShuffleSplit)
             param_train_to_use = param_train_x
             full_train_to_use = X
-            if this_measure == "ddtw" or this_measure == "wddtw":
+            if this_measure in ("ddtw", "wddtw", "ddtw_full"):
                 param_train_to_use = der_param_train_x
                 full_train_to_use = der_X
-                if this_measure == "ddtw":
+                if this_measure in ("ddtw", "ddtw_full"):
                     this_measure = "dtw"
                 elif this_measure == "wddtw":
                     this_measure = "wdtw"
+            elif this_measure == "dtw_full":
+                this_measure = "dtw"
 
             start_build_time = time.time()
             if self.verbose > 0:
-                if (
-                    self._distance_measures[dm] == "ddtw"
-                    or self._distance_measures[dm] == "wddtw"
-                ):
+                if self._distance_measures[dm] in ("ddtw", "wddtw", "ddtw_full"):
                     print(  # noqa: T201
                         f"Currently evaluating {self._distance_measures[dm]} "
                         f"implemented as {this_measure} with pre-transformed "
@@ -380,10 +382,7 @@ class ElasticEnsemble(BaseClassifier):
         train_sum = 0
 
         for c in range(0, len(self.estimators_)):
-            if (
-                self._distance_measures[c] == "ddtw"
-                or self._distance_measures[c] == "wddtw"
-            ):
+            if self._distance_measures[c] in ("ddtw", "wddtw", "ddtw_full"):
                 test_X_to_use = der_X
             else:
                 test_X_to_use = X
@@ -449,6 +448,8 @@ class ElasticEnsemble(BaseClassifier):
 
         if distance_measure == "dtw" or distance_measure == "ddtw":
             return {"distance_params": [{"window": x / 100} for x in range(0, 100)]}
+        elif distance_measure in ("dtw_full", "ddtw_full"):
+            return {"distance_params": [{"window": 1.0}]}
         elif distance_measure == "wdtw" or distance_measure == "wddtw":
             return {"distance_params": [{"g": x / 100} for x in range(0, 100)]}
         elif distance_measure == "lcss":
@@ -510,7 +511,7 @@ class ElasticEnsemble(BaseClassifier):
             )
 
     def _get_derivatives(self, X):
-        if "ddtw" in self._distance_measures or "wddtw" in self._distance_measures:
+        if any(dm in self._distance_measures for dm in ("ddtw", "wddtw", "ddtw_full")):
             if isinstance(X, np.ndarray):
                 return slope_derivative_3d(X)
             else:
