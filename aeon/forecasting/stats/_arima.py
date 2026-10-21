@@ -456,7 +456,16 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         # Stop before exceeding max_d: with `<=`, the loop could enter when
         # ``self.d_ == self.max_d`` and apply one more difference, pushing the
         # selected order past the configured maximum (e.g. max_d=0 -> d_=1).
-        while not kpss_test(differenced_series)[1] and self.d_ < self.max_d:
+        # KPSS with trunc(3 sqrt(n) / 13) lags, as R's forecast::ndiffs and
+        # statsforecast. kpss_test's default of sqrt(n) lags inflates the
+        # long-run variance, so trending series were often left undifferenced.
+        while (
+            not kpss_test(
+                differenced_series,
+                lags=int(3 * np.sqrt(len(differenced_series)) / 13),
+            )[1]
+            and self.d_ < self.max_d
+        ):
             differenced_series = np.diff(differenced_series, n=1)
             self.d_ += 1
         include_constant = 1 if self.d_ == 0 else 0
@@ -671,24 +680,37 @@ def _auto_arima(
             best_model = model
             best_points = points
 
+    # Neighbours of (p, q): one order changed by one, or both, as in R's
+    # auto.arima. With single moves only, swapping an MA term for an AR term,
+    # e.g. (0, 0, 1) -> (1, 0, 0), needed two steps through a possibly worse
+    # model, and the search could stop short.
+    moves = np.array(
+        [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]
+    )
     while True:
+        # first improvement: move to the first better neighbour and search
+        # again from there, as R's auto.arima does
         better_model = False
-        for param_no in range(1, num_model_params):
-            for adjustment in [-1, 1]:
-                if (best_model[param_no] + adjustment) < 0 or (
-                    best_model[param_no] + adjustment
-                ) > parameter_limits[param_no - 1]:
-                    continue
-                model = best_model.copy()
-                model[param_no] += adjustment
-                for constant_term in [0, 1]:
-                    model[0] = constant_term
-                    points, aic = _fit_candidate(differenced_data, model, 500)
-                    if aic < best_score:
-                        best_model = model.copy()
-                        best_points = points
-                        best_score = aic
-                        better_model = True
+        centre = best_model.copy()
+        for m in range(len(moves)):
+            p = centre[1] + moves[m, 0]
+            q = centre[2] + moves[m, 1]
+            if p < 0 or q < 0 or p > parameter_limits[0] or q > parameter_limits[1]:
+                continue
+            model = centre.copy()
+            model[1] = p
+            model[2] = q
+            for constant_term in [0, 1]:
+                model[0] = constant_term
+                points, aic = _fit_candidate(differenced_data, model, 500)
+                if aic < best_score:
+                    best_model = model.copy()
+                    best_points = points
+                    best_score = aic
+                    better_model = True
+                    break
+            if better_model:
+                break
         if not better_model:
             break
     return (

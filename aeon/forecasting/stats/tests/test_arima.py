@@ -741,3 +741,27 @@ def test_auto_arima_rejects_near_unit_root_candidates():
     f = AutoARIMA(max_d=0).fit(walk)
     model = np.array([int(f.constant_term_), f.p_, f.q_], dtype=np.int32)
     assert _roots_clear_of_unit_circle(f.final_model_._parameters, model)
+
+
+@pytest.mark.parametrize("seed", [9, 28])
+def test_auto_arima_stepwise_moves_p_and_q_together(seed):
+    """The stepwise search reaches ARMA(1,1) by changing p and q together.
+
+    Changing one order at a time, the search stopped at ARIMA(2,0,0) (seed 9)
+    and ARIMA(2,0,2) (seed 28) on these series.
+    """
+    y = _simulate_arma((0.6,), (0.3,), mean=10.0, n=500, seed=seed)
+    f = AutoARIMA().fit(y)
+    assert (f.p_, f.d_, f.q_) == (1, 0, 1)
+
+
+def test_auto_arima_differences_short_trending_series():
+    """KPSS uses trunc(3 sqrt(n) / 13) lags, so a short drifting walk is differenced.
+
+    With sqrt(n) lags the long-run variance was overestimated and this series
+    of length 40 was left undifferenced.
+    """
+    rng = np.random.default_rng(0)
+    for _ in range(19):
+        y = np.cumsum(0.5 + rng.normal(0, 1, 40)) + 100
+    assert AutoARIMA().fit(y).d_ == 1
