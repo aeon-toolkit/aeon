@@ -627,10 +627,14 @@ def test_hannan_rissanen_estimates():
     assert np.all(np.isnan(est))
 
 
-@pytest.mark.parametrize("seed", range(4))
-@pytest.mark.parametrize("p, q", [(1, 1), (2, 0), (2, 2), (3, 2)])
-def test_fit_arima_parameters_not_worse_than_single_run(seed, p, q):
-    """The best of several starts never loses to a single run from the mean."""
+@pytest.mark.parametrize("seed, p, q", [(19, 3, 2), (9, 3, 2), (1, 2, 2)])
+def test_fit_arima_parameters_improves_on_single_run(seed, p, q):
+    """On these series the extra starts find a clearly better fit.
+
+    A single run from the series mean stops 35 to 116 AIC above the multi-start
+    result with the same iteration budget per run, so an implementation that
+    only made the first run would fail.
+    """
     from aeon.forecasting.utils._nelder_mead import (
         _fit_arima_parameters,
         _init_arima_simplex,
@@ -645,7 +649,21 @@ def test_fit_arima_parameters_not_worse_than_single_run(seed, p, q):
     _init_arima_simplex(points, data, model, s)
     _, single = _nelder_mead_from_simplex(0, points, data, model, 1e-6, 200)
     _, multi = _fit_arima_parameters(data, model, max_iter=200, simplex_init=s)
-    assert multi <= single
+    assert multi < single - 10
+
+
+@pytest.mark.parametrize("seed, n", [(20, 100), (22, 300), (45, 300)])
+def test_auto_arima_final_model_retains_selected_score(seed, n):
+    """The final model keeps the AIC from the selected candidate.
+
+    Refitting the selected order with fewer iterations gave a final model up to
+    3.6 AIC worse than ``fit_aic_`` on these series.
+    """
+    y = _simulate_arma((0.6,), (0.3,), mean=10.0, n=n, seed=seed)
+    forecaster = AutoARIMA().fit(y)
+    assert np.isfinite(forecaster.fit_aic_)
+    assert forecaster.final_model_.aic_ == pytest.approx(forecaster.fit_aic_)
+    assert np.isfinite(forecaster.final_model_.predict(y))
 
 
 def test_arima_airline_fit_is_invertible():
