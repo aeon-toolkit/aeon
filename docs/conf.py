@@ -5,6 +5,8 @@ import os
 import sys
 from pathlib import Path
 
+from sphinx.ext.autosummary import Autosummary
+
 import aeon
 
 # -- Project information -----------------------------------------------------
@@ -147,6 +149,9 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
+# show "fit" instead of "RocketClassifier.fit" in the page table of contents
+toc_object_entries_show_parents = "hide"
+
 # -- autosectionlabel --
 
 autosectionlabel_maxdepth = 4
@@ -168,6 +173,11 @@ intersphinx_mapping = {
 nbsphinx_execute = "never"  # whether to run notebooks
 nbsphinx_allow_errors = False
 nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
+
+# RequireJS is only needed for notebook widgets, which we do not use. The theme loads
+# scripts in the page head, so RequireJS would run before the DataTables script of the
+# estimator overview and stop it from registering as a jQuery plugin.
+nbsphinx_requirejs_path = ""
 
 # Binder launch button
 current_file = "{{ env.doc2path( env.docname, base=None) }}"
@@ -220,68 +230,61 @@ remove_from_toctrees = [
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML.
-html_theme = "furo"
+html_theme = "pydata_sphinx_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 
+# The version switcher only lists the Read the Docs "stable" and "latest" aliases, so
+# it does not need updating on release. The theme (0.16.1 and later) resolves relative
+# paths against the root of the documentation being read, so every build, including the
+# pull request previews, loads the copy it ships.
 html_theme_options = {
-    "sidebar_hide_name": True,
-    "top_of_page_button": "edit",
-    "source_repository": "https://github.com/aeon-toolkit/aeon/",
-    "source_branch": "main",
-    "source_directory": "docs/",
-    "light_css_variables": {
-        "color-brand-primary": "#005E80",
-        "color-brand-content": "#F05F05",
+    "logo": {"alt_text": "aeon - Home"},
+    "navbar_align": "left",
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    "header_links_before_dropdown": 5,
+    "switcher": {
+        "json_url": "_static/switcher.json",
+        "version_match": os.environ.get("READTHEDOCS_VERSION", "latest"),
     },
-    "dark_css_variables": {
-        "color-brand-primary": "#00ACEB",
-        "color-brand-content": "#FB9456",
-    },
-    "footer_icons": [
-        {
-            "name": "Discord",
-            "url": "https://discord.gg/D6rzqHGKRJ",  # noqa: E501
-            "html": """
-            <svg fill="currentColor" stroke="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-            """,  # noqa: E501
-            "class": "",
-        },
-        {
-            "name": "LinkedIn",
-            "url": "https://www.linkedin.com/company/aeon-toolkit/",
-            "html": """
-            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zM349.3 793.7H230.6V411.9h118.7v381.8zm-59.3-434a68.8 68.8 0 1 1 68.8-68.8c-.1 38-30.9 68.8-68.8 68.8zm503.7 434H675.1V608c0-44.3-.8-101.2-61.7-101.2-61.7 0-71.2 48.2-71.2 98v188.9H423.7V411.9h113.8v52.2h1.6c15.8-30 54.5-61.7 112.3-61.7 120.2 0 142.3 79.1 142.3 181.9v209.4z"></path>
-            </svg>
-            """,  # noqa: E501
-            "class": "",
-        },
-        {
-            "name": "Medium",
-            "url": "https://medium.com/@aeon.toolkit",
-            "html": """
-            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6.158 4h11.684C19.034 4 20 4.966 20 6.158v3.455a2.9 2.9 0 0 0-1.539 1.003c-.472.586-.758 1.377-.828 2.266q-.022.266-.017.532c.041 1.763.88 3.216 2.384 3.55v.878A2.16 2.16 0 0 1 17.842 20H6.158A2.16 2.16 0 0 1 4 17.842V6.158C4 4.966 4.966 4 6.158 4M21 6.158A3.16 3.16 0 0 0 17.842 3H6.158A3.16 3.16 0 0 0 3 6.158v11.684A3.16 3.16 0 0 0 6.158 21h11.684A3.16 3.16 0 0 0 21 17.842zm-1 4.14v1.983h-.616c.039-.867.253-1.58.616-1.983m0 2.364v2.063c-.441-.513-.699-1.25-.653-2.063zM17.697 7.3l.015-.003v-.11h-2.9l-2.69 6.326L9.43 7.187H6.306v.11l.014.003c.529.12.798.298.798.94v7.52c0 .642-.27.82-.8.94l-.013.002v.11h2.12v-.11L8.41 16.7c-.529-.12-.798-.298-.798-.94V8.676l3.458 8.137h.196l3.559-8.364v7.496c-.046.508-.312.665-.791.773l-.014.003v.109h3.692v-.11l-.015-.002c-.48-.108-.752-.265-.797-.773l-.003-7.705h.003c0-.642.269-.82.797-.94"></path>
-            </svg>
-            """,  # noqa: E501
-            "class": "",
-        },
+    "use_edit_page_button": True,
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    "show_toc_level": 2,
+    # keep the full URL of the code repositories cited in docstring references
+    "shorten_urls": False,
+    "footer_start": ["copyright"],
+    "footer_end": ["sphinx-version", "theme-version"],
+    "icon_links": [
         {
             "name": "GitHub",
             "url": "https://github.com/aeon-toolkit/aeon",
-            "html": """
-            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M511.6 76.3C264.3 76.2 64 276.4 64 523.5 64 718.9 189.3 885 363.8 946c23.5 5.9 19.9-10.8 19.9-22.2v-77.5c-135.7 15.9-141.2-73.9-150.3-88.9C215 726 171.5 718 184.5 703c30.9-15.9 62.4 4 98.9 57.9 26.4 39.1 77.9 32.5 104 26 5.7-23.5 17.9-44.5 34.7-60.8-140.6-25.2-199.2-111-199.2-213 0-49.5 16.3-95 48.3-131.7-20.4-60.5 1.9-112.3 4.9-120 58.1-5.2 118.5 41.6 123.2 45.3 33-8.9 70.7-13.6 112.9-13.6 42.4 0 80.2 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.3-43.9 2.9 7.7 24.7 58.3 5.5 118 32.4 36.8 48.9 82.7 48.9 132.3 0 102.2-59 188.1-200 212.9a127.5 127.5 0 0 1 38.1 91v112.5c.8 9 0 17.9 15 17.9 177.1-59.7 304.6-227 304.6-424.1 0-247.2-200.4-447.3-447.5-447.3z"></path>
-            </svg>
-            """,  # noqa: E501
-            "class": "",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "Discord",
+            "url": "https://discord.gg/D6rzqHGKRJ",
+            "icon": "fa-brands fa-discord",
         },
     ],
+}
+
+# used by the "edit this page" button
+html_context = {
+    "github_user": "aeon-toolkit",
+    "github_repo": "aeon",
+    "github_version": "main",
+    "doc_path": "docs",
+}
+
+# these pages have no section navigation to show
+html_sidebars = {
+    "index": [],
+    "installation": [],
+    "getting_started": [],
+    "estimator_overview": [],
+    "changelog": [],
 }
 
 # logos
@@ -494,40 +497,40 @@ href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 }
 
 .dataTables_wrapper table.dataTable tbody tr {
-    background-color: var(--color-background-primary);
-    color: var(--color-foreground-primary);
+    background-color: var(--pst-color-background);
+    color: var(--pst-color-text-base);
 }
 
 .dataTables_wrapper table.dataTable tbody tr.odd {
-    background-color: var(--color-background-secondary);
+    background-color: var(--pst-color-surface);
 }
 
 .dataTables_wrapper table.dataTable tbody tr:hover {
-    background-color: var(--color-background-hover);
+    background-color: var(--pst-color-on-background);
 }
 
 .dataTables_wrapper table.dataTable a {
-    color: var(--color-brand-content);
+    color: var(--pst-color-link);
 }
 
 .dataTables_length select {
-    background-color: var(--color-background-primary) !important;
-    color: var(--color-foreground-primary) !important;
-    border: 1px solid var(--color-background-border) !important;
+    background-color: var(--pst-color-background) !important;
+    color: var(--pst-color-text-base) !important;
+    border: 1px solid var(--pst-color-border) !important;
 }
 
 .dataTables_length select option {
-    background-color: var(--color-background-primary);
-    color: var(--color-foreground-primary);
+    background-color: var(--pst-color-background);
+    color: var(--pst-color-text-base);
 }
 
 .dataTables_length select option:checked {
-    background-color: var(--color-background-hover);
-    color: var(--color-foreground-primary);
+    background-color: var(--pst-color-on-background);
+    color: var(--pst-color-text-base);
 }
 
 .dataTables_length select:focus {
-    outline-color: var(--color-background-border);
+    outline-color: var(--pst-color-border);
 }
 </style>
 """
@@ -656,6 +659,33 @@ def _add_estimator_capabilities_table(app, pagename, templatename, context, doct
                 )
 
 
+def _add_page_assets(app, pagename, templatename, context, doctree):
+    """Add the stylesheets and scripts only some of the pages need to those pages."""
+    if pagename == "index":
+        app.add_css_file("css/landing.css")
+        app.add_js_file("js/landing.js", loading_method="defer")
+    elif pagename == "getting_started":
+        app.add_css_file("css/getting_started.css")
+    # filter box of the module pages of the API reference
+    elif pagename.startswith("api_reference/") and "auto_generated" not in pagename:
+        app.add_js_file("js/api_filter.js", loading_method="defer")
+
+
+class _ModuleAutosummary(Autosummary):
+    """Autosummary directive without signatures in the API reference module pages.
+
+    The truncated signatures add noise to the long tables of the module pages. These
+    tables are the ones with a toctree. The method tables numpydoc generates in the
+    class pages have no toctree and keep their signatures.
+    """
+
+    def run(self):
+        """Run the directive."""
+        if "toctree" in self.options:
+            self.options["nosignatures"] = None
+        return super().run()
+
+
 def setup(app):
     """Set up sphinx builder.
 
@@ -663,5 +693,7 @@ def setup(app):
     ----------
     app : Sphinx application object
     """
+    app.add_directive("autosummary", _ModuleAutosummary, override=True)
     app.connect("builder-inited", _make_estimator_overview)
     app.connect("html-page-context", _add_estimator_capabilities_table)
+    app.connect("html-page-context", _add_page_assets)

@@ -275,6 +275,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     BaseCollectionTransformer
+    CollectionInverseTransformerMixin
 
 
 .. currentmodule:: aeon.transformations.series.base
@@ -284,6 +285,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     BaseSeriesTransformer
+    SeriesInverseTransformerMixin
 
 .. currentmodule:: aeon.transformations.base
 
@@ -292,4 +294,5 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     BaseTransformer
+    InverseTransformerMixin
 ```

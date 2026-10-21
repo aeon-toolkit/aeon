@@ -1,0 +1,12 @@
+[
+  {
+    "name": "stable",
+    "version": "stable",
+    "url": "https://www.aeon-toolkit.org/en/stable/"
+  },
+  {
+    "name": "latest (dev)",
+    "version": "latest",
+    "url": "https://www.aeon-toolkit.org/en/latest/"
+  }
+]

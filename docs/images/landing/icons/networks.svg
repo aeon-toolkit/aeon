@@ -1,0 +1,16 @@
+<svg class="aeon-icon" viewBox="0 0 160 90" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+<path class="i-line i-ink i-thin" d="M22 25L62 15M22 25L62 35M22 25L62 55M22 25L62 75M22 45L62 15M22 45L62 35M22 45L62 55M22 45L62 75M22 65L62 15M22 65L62 35M22 65L62 55M22 65L62 75M62 15L102 15M62 15L102 35M62 15L102 55M62 15L102 75M62 35L102 15M62 35L102 35M62 35L102 55M62 35L102 75M62 55L102 15M62 55L102 35M62 55L102 55M62 55L102 75M62 75L102 15M62 75L102 35M62 75L102 55M62 75L102 75M102 15L140 35M102 15L140 55M102 35L140 35M102 35L140 55M102 55L140 35M102 55L140 55M102 75L140 35M102 75L140 55"/>
+<circle class="i-fill-a i-pop" style="--d:0.0s" cx="22" cy="25" r="5.5"/>
+<circle class="i-fill-a i-pop" style="--d:0.0s" cx="22" cy="45" r="5.5"/>
+<circle class="i-fill-a i-pop" style="--d:0.0s" cx="22" cy="65" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.15s" cx="62" cy="15" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.15s" cx="62" cy="35" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.15s" cx="62" cy="55" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.15s" cx="62" cy="75" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.3s" cx="102" cy="15" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.3s" cx="102" cy="35" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.3s" cx="102" cy="55" r="5.5"/>
+<circle class="i-fill-ink i-pop" style="--d:0.3s" cx="102" cy="75" r="5.5"/>
+<circle class="i-fill-b i-pop" style="--d:0.44999999999999996s" cx="140" cy="35" r="5.5"/>
+<circle class="i-fill-b i-pop" style="--d:0.44999999999999996s" cx="140" cy="55" r="5.5"/>
+</svg>
