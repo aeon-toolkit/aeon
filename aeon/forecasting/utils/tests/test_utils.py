@@ -216,3 +216,54 @@ def test_ets_fit_degenerate_data_returns_large_loss():
     data = np.array([1e200, -1e200] * 5)
     aic2 = _ets_fit(np.array([0.5]), data, model_add)[0]
     assert aic2 >= 1e10
+
+
+@pytest.mark.parametrize(
+    "loss_id, model, points",
+    [
+        (
+            0,
+            np.array([1, 1, 1]),
+            np.array(
+                [
+                    [0.2, -0.1, 0.1],
+                    [0.4, 0.0, 0.2],
+                    [0.1, 0.2, -0.2],
+                    [0.3, 0.1, 0.0],
+                ]
+            ),
+        ),
+        (
+            1,
+            np.array([1, 1, 1, 4]),
+            np.array(
+                [
+                    [0.2, 0.1, 0.9, 0.1],
+                    [0.4, 0.2, 0.95, 0.2],
+                    [0.1, 0.05, 0.8, 0.05],
+                    [0.3, 0.15, 0.85, 0.1],
+                    [0.5, 0.1, 0.98, 0.2],
+                ]
+            ),
+        ),
+    ],
+)
+def test_nelder_mead_from_custom_simplex(loss_id, model, points):
+    """With no iterations, return the best supplied vertex without changing it."""
+    from aeon.forecasting.utils._nelder_mead import _nelder_mead_from_simplex
+
+    data = np.array([1.0, 2.0, 1.5, 1.7, 2.1, 1.9, 2.4, 2.2, 2.0, 2.6, 2.3, 2.8])
+    start = points.copy()
+    values = np.array(
+        [dispatch_loss(loss_id, point.copy(), data, model) for point in points]
+    )
+    assert np.all(np.isfinite(values))
+
+    best_params, best_value = _nelder_mead_from_simplex(
+        loss_id, points, data, model, max_iter=0
+    )
+
+    best_vertex = np.argmin(values)
+    assert np.array_equal(best_params, start[best_vertex])
+    assert best_value == values[best_vertex]
+    assert np.array_equal(points, start)
