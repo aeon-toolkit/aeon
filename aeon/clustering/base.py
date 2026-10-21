@@ -183,11 +183,11 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         obtainable.
 
         Columns are fixed by the fitted clusterer, not by the clusters present in
-        ``X``. If ``n_clusters`` is set and both ``labels_`` and the predictions
-        are cluster indices in ``[0, n_clusters)``, column ``j`` is cluster ``j``
-        and there are ``n_clusters`` columns. Otherwise, such as for negative
-        noise labels, column ``j`` is the ``j``-th value of
-        ``np.unique(labels_)``.
+        ``X``. Negative labels in ``labels_``, such as noise, are not clusters and
+        get no column. If ``n_clusters`` is set and both the remaining ``labels_``
+        and the predictions are cluster indices in ``[0, n_clusters)``, column
+        ``j`` is cluster ``j`` and there are ``n_clusters`` columns. Otherwise,
+        column ``j`` is the ``j``-th value of ``np.unique(labels_)``.
 
         Parameters
         ----------
@@ -211,13 +211,20 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         Raises
         ------
         ValueError
-            If the labels are not cluster indices and ``_predict`` returns a label
-            not present in ``labels_``.
+            If ``_predict`` returns a negative label, or the labels are not cluster
+            indices and ``_predict`` returns a label not present in ``labels_``.
         """
         preds = np.asarray(self._predict(X))
+        negative = _negative_labels(preds)
+        if np.any(negative):
+            raise ValueError(
+                f"_predict returned negative labels {np.unique(preds[negative])}, "
+                "which are not clusters and have no predict_proba column."
+            )
         n_cases = len(preds)
         n_clusters = getattr(self, "n_clusters", None)
         fitted = np.asarray(getattr(self, "labels_", preds))
+        fitted = fitted[~_negative_labels(fitted)]
 
         if (
             n_clusters is not None
@@ -229,12 +236,11 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         else:
             clusters = np.unique(fitted)
             cols = np.searchsorted(clusters, preds)
-            unseen = (cols == len(clusters)) | (
-                clusters[np.minimum(cols, len(clusters) - 1)] != preds
-            )
-            if np.any(unseen):
+            seen = cols < len(clusters)
+            seen[seen] = clusters[cols[seen]] == preds[seen]
+            if not np.all(seen):
                 raise ValueError(
-                    f"_predict returned labels {np.unique(preds[unseen])} that are "
+                    f"_predict returned labels {np.unique(preds[~seen])} that are "
                     f"not in labels_ {clusters}, so they have no predict_proba column."
                 )
             n_cols = len(clusters)
@@ -278,6 +284,13 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
             Fitted estimator.
         """
         ...
+
+
+def _negative_labels(labels):
+    """Return a mask of the negative labels, all False for non-numeric labels."""
+    if not np.issubdtype(labels.dtype, np.number):
+        return np.zeros(len(labels), dtype=bool)
+    return labels < 0
 
 
 def _is_cluster_index(labels, n_clusters):

@@ -192,17 +192,22 @@ def test_predict_with_capability():
 class _LabelClusterer(BaseClusterer):
     """Clusterer whose labels cycle through a given list of label values.
 
-    ``fit`` assigns ``labels`` round-robin, and ``_predict`` does the same, so
-    slicing ``X`` controls which labels a ``predict`` call sees.
+    ``_predict`` assigns ``labels`` round-robin, so slicing ``X`` controls which
+    labels a ``predict`` call sees. ``fit`` does the same with ``fit_labels``, or
+    with ``labels`` if it is None.
     """
 
-    def __init__(self, labels=(0, 1, 2), n_clusters=3):
+    def __init__(self, labels=(0, 1, 2), n_clusters=3, fit_labels=None):
         self.labels = labels
         self.n_clusters = n_clusters
+        self.fit_labels = fit_labels
         super().__init__()
 
     def _fit(self, X, y=None):
-        self.labels_ = self._predict(X)
+        if self.fit_labels is None:
+            self.labels_ = self._predict(X)
+        else:
+            self.labels_ = np.resize(np.asarray(self.fit_labels), len(X))
         return self
 
     def _predict(self, X):
@@ -226,21 +231,60 @@ def test_base_predict_proba_columns_fixed_when_cluster_missing():
         assert clst.predict_proba(sub[:1]).shape == (1, 3)
 
 
-def test_base_predict_proba_negative_labels_get_own_column():
-    """Test a negative label such as ``-1`` noise maps to its own column.
+def test_base_predict_proba_negative_prediction_raises():
+    """Test a negative predicted label raises a ``ValueError``.
 
-    Labels that are not cluster indices map to the columns of
-    ``np.unique(labels_)``, so ``-1`` is column 0 and no clusters collapse.
+    Negative labels such as ``-1`` noise are not clusters, so they have no
+    ``predict_proba`` column.
     """
     X = np.random.random(size=(6, 1, 20))
-    clst = _LabelClusterer(labels=(-1, 0, 1), n_clusters=3).fit(X)
+    clst = _LabelClusterer(labels=(-1, 0, 1)).fit(X)
+    assert np.array_equal(clst.predict(X), [-1, 0, 1, -1, 0, 1])
+    with pytest.raises(ValueError, match="negative labels"):
+        clst.predict_proba(X)
+
+
+def test_base_predict_proba_ignores_noise_in_labels():
+    """Test negative labels in ``labels_`` get no ``predict_proba`` column.
+
+    Like ``MeanShift(cluster_all=False)``, ``labels_`` contains ``-1`` for noise
+    but ``predict`` assigns every case to a cluster, so the columns are the
+    clusters and the argmax matches ``predict``.
+    """
+    X = np.random.random(size=(8, 1, 20))
+    for n_clusters in [3, None]:
+        clst = _LabelClusterer(
+            labels=(0, 1, 2), fit_labels=(-1, 0, 1, 2), n_clusters=n_clusters
+        ).fit(X)
+        proba = clst.predict_proba(X)
+        assert proba.shape == (8, 3)
+        assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
+
+    # an empty cluster alongside noise keeps cluster indices as columns
+    clst = _LabelClusterer(labels=(0, 2), fit_labels=(-1, 0, 2)).fit(X)
+    proba = clst.predict_proba(X)
+    assert proba.shape == (8, 3)
+    assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
+
+
+def test_meanshift_noise_predict_proba_matches_predict():
+    """Test a wrapped ``MeanShift`` with noise in ``labels_`` agrees with predict."""
+    from sklearn.cluster import MeanShift
+
+    from aeon.clustering.feature_based import SummaryClusterer
+    from aeon.testing.data_generation import make_example_3d_numpy
+
+    X, _ = make_example_3d_numpy(
+        n_cases=40, n_channels=1, n_timepoints=20, random_state=0
+    )
+    clst = SummaryClusterer(estimator=MeanShift(cluster_all=False, bandwidth=0.5)).fit(
+        X
+    )
+    assert -1 in clst.labels_
     preds = clst.predict(X)
     proba = clst.predict_proba(X)
-    assert proba.shape == (6, 3)
-    assert np.array_equal(np.unique(clst.labels_)[proba.argmax(axis=1)], preds)
-    # a subset without cluster 1 keeps the same columns
-    assert np.array_equal(clst.predict_proba(X[:2]).argmax(axis=1), [0, 1])
-    assert clst.predict_proba(X[:2]).shape == (2, 3)
+    assert proba.shape == (40, len(np.unique(clst.labels_)) - 1)
+    assert np.array_equal(proba.argmax(axis=1), preds)
 
 
 def test_base_predict_proba_non_index_labels():
@@ -262,8 +306,8 @@ def test_base_predict_proba_non_index_labels():
 def test_base_predict_proba_unseen_label_raises():
     """Test a predicted label absent from ``labels_`` raises a ``ValueError``."""
     X = np.random.random(size=(6, 1, 20))
-    clst = _LabelClusterer(labels=(-1, 0, 1)).fit(X)
-    clst.labels = (-1, 0, 5)
+    clst = _LabelClusterer(labels=(0, 1, 2)).fit(X)
+    clst.labels = (0, 1, 5)
     with pytest.raises(ValueError, match="not in labels_"):
         clst.predict_proba(X)
 
