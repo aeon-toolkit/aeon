@@ -68,7 +68,7 @@ def check_forecaster_output(estimator, datatype):
         FULL_TEST_DATA_DICT[datatype]["test"][0],
     )
     assert isinstance(y_pred, float), (
-        f"predict(y) output should be float, got" f" {type(y_pred)}"
+        f"predict(y) output should be float, got {type(y_pred)}"
     )
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])

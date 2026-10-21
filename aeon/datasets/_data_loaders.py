@@ -622,7 +622,7 @@ def load_from_arff_file(
                             raise ValueError(
                                 f" Number of channels not equal in "
                                 f"dataset, first case had {n_channels} channel "
-                                f"but case number {n_cases+1} has "
+                                f"but case number {n_cases + 1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
@@ -1037,9 +1037,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
                         f" but it is not correctly formatted.",
                     )
 
-            if not os.path.exists(
-                f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
-            ):
+            if not os.path.exists(f"{local_module}/{local_dirname}/{name}/{name}.tsf"):
                 z = zipfile.ZipFile(file_save, "r")
                 z.extractall(f"{local_module}/{local_dirname}/{name}/")
     full_name = f"{local_module}/{local_dirname}/{name}/{name}.tsf"

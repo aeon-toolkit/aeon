@@ -103,9 +103,9 @@ class SAX(BaseCollectionTransformer):
         if self.alphabet_size <= 0:
             raise ValueError("alphabet_size must be greater than 0")
         self.alphabet = alphabet
-        assert (
-            self.alphabet is None or len(self.alphabet) == self.alphabet_size
-        ), "The length of the alphabet should be equal to the alphabet_size parameter"
+        assert self.alphabet is None or len(self.alphabet) == self.alphabet_size, (
+            "The length of the alphabet should be equal to the alphabet_size parameter"
+        )
 
         self.distribution = distribution
         self.n_jobs = n_jobs

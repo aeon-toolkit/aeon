@@ -632,9 +632,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 preds = clf._train_predictions
 
                 for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
+                    results[subsample[n]][self._class_dictionary[pred]] += (
+                        self.weights_[i]
+                    )
                     divisors[subsample[n]] += self.weights_[i]
         elif self.train_estimate_method.lower() == "oob":
             indices = range(self.n_cases_)

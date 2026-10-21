@@ -740,7 +740,6 @@ def random_dilated_shapelet_extraction(
     max_shapelets = values.shape[0]
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
-
         # (2, _, _): Mask is different for normalised and non-normalised shapelets
         alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):

@@ -305,7 +305,7 @@ def get_type(X, raise_error=True):
         elif X.ndim == 2:
             return "numpy2D"
         else:
-            msg = f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
+            msg = f"ERROR np.ndarray must be 2D or 3D but found {X.ndim}"
     elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):
             for a in X:
@@ -587,7 +587,7 @@ def check_collection_variance(X, threshold=1e-7, raise_error=True):
             bad_list = ", ".join(
                 [f"(case={int(i)}, ch={int(c)})" for i, c in bad_pairs[:10]]
             )
-            extra = "" if len(bad_pairs) <= 10 else f" (and {len(bad_pairs)-10} more)"
+            extra = "" if len(bad_pairs) <= 10 else f" (and {len(bad_pairs) - 10} more)"
             raise ValueError(
                 f"Input collection has too little variation: std <= {threshold} "
                 f"for {len(bad_pairs)} case/channel pair(s): {bad_list}{extra}. "

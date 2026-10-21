@@ -456,9 +456,9 @@ class OrdinalTDE(BaseClassifier):
                 preds = clf._train_predictions
 
                 for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
+                    results[subsample[n]][self._class_dictionary[pred]] += (
+                        self.weights_[i]
+                    )
                     divisors[subsample[n]] += self.weights_[i]
         elif self.train_estimate_method.lower() == "oob":
             indices = range(self.n_cases_)
@@ -848,9 +848,9 @@ class IndividualOrdinalTDE(BaseClassifier):
                                 words[n][(word, channel)] = count
                     else:
                         for word, count in channel_words[n].items():
-                            words[n][
-                                word << self._highest_channel_bit | channel
-                            ] = count
+                            words[n][word << self._highest_channel_bit | channel] = (
+                                count
+                            )
 
             self._transformed_data = words
         else:
@@ -922,9 +922,9 @@ class IndividualOrdinalTDE(BaseClassifier):
                                 words[n][(word, channel)] = count
                     else:
                         for word, count in channel_words[n].items():
-                            words[n][
-                                word << self._highest_channel_bit | channel
-                            ] = count
+                            words[n][word << self._highest_channel_bit | channel] = (
+                                count
+                            )
 
             test_bags = words
         else:
