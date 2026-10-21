@@ -28,6 +28,7 @@ from aeon.testing.expected_results.expected_classifier_results import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import (
+    _assert_predict_is_max_probability,
     _assert_predict_labels,
     _assert_predict_probabilities,
     _get_tag,
@@ -387,14 +388,5 @@ def check_classifier_output(estimator, datatype):
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
     _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))
 
-    # check the predicted class has the highest probability, accepting any of the
-    # tied classes as predict may break ties at random
-    class_idx = {c: i for i, c in enumerate(estimator.classes_)}
-    pred_idx = np.array([class_idx[c] for c in y_pred])
-    is_max = np.isclose(y_proba, y_proba.max(axis=1, keepdims=True))
-    bad = np.flatnonzero(~is_max[np.arange(len(y_pred)), pred_idx])
-    assert len(bad) == 0, (
-        "Inconsistent predict() and predict_proba() outputs for cases "
-        f"{bad}: predict returned {y_pred[bad]}, predict_proba returned "
-        f"{y_proba[bad]} for classes {estimator.classes_}"
-    )
+    # check the predicted class has the highest probability
+    _assert_predict_is_max_probability(y_pred, y_proba, labels=estimator.classes_)

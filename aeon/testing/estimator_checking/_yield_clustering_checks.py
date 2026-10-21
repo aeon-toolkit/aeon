@@ -10,6 +10,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.clustering.deep_learning import BaseDeepClusterer
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.testing.utils.estimator_checks import _assert_predict_is_max_probability
 from aeon.utils.validation.collection import get_n_cases
 
 
@@ -121,14 +122,15 @@ def check_clusterer_output(estimator, datatype):
     Test fit sets labels_ and fit_predict returns it. For clusterers which support
     out-of-sample prediction, test predict produces a np.array or pd.Series with only
     values seen in the train data, that predict_proba probability estimates add
-    up to one, and that the argmax of predict_proba matches predict, including on a
-    subset of cases missing a cluster. For transductive clusterers
-    (capability:predict tag set to False), test predict and predict_proba raise a
-    NotImplementedError instead.
+    up to one, and that predict returns a cluster with the highest predict_proba
+    probability, including on a subset of cases missing a cluster. For transductive
+    clusterers (capability:predict tag set to False), test predict and
+    predict_proba raise a NotImplementedError instead. The estimator is seeded so
+    repeated predict calls agree.
     """
     import pytest
 
-    estimator = _clone_estimator(estimator)
+    estimator = _clone_estimator(estimator, random_state=0)
 
     # run fit and check labels_
     data = FULL_TEST_DATA_DICT[datatype]["train"][0]
@@ -169,13 +171,8 @@ def check_clusterer_output(estimator, datatype):
     assert isinstance(y_proba, np.ndarray)
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
-    # check that the max probability cluster matches the predicted cluster
-    y_pred_from_proba = np.argmax(y_proba, axis=1)
-    np.testing.assert_array_equal(
-        y_pred,
-        y_pred_from_proba,
-        err_msg="Inconsistent predict() and predict_proba() outputs",
-    )
+    # check the predicted cluster has the highest probability
+    _assert_predict_is_max_probability(y_pred, y_proba)
 
     # predict_proba columns must not depend on which clusters are present, so
     # check again on the test cases not assigned to the first predicted cluster
@@ -187,12 +184,7 @@ def check_clusterer_output(estimator, datatype):
         )
         y_proba_sub = estimator.predict_proba(X_sub)
         assert y_proba_sub.shape[1] == y_proba.shape[1]
-        np.testing.assert_array_equal(
-            estimator.predict(X_sub),
-            np.argmax(y_proba_sub, axis=1),
-            err_msg="Inconsistent predict() and predict_proba() outputs on a "
-            "subset of cases missing a cluster",
-        )
+        _assert_predict_is_max_probability(estimator.predict(X_sub), y_proba_sub)
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
