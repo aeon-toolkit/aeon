@@ -211,10 +211,18 @@ class ElasticEnsemble(BaseClassifier):
                 random_state=rand,
             )
             for train_index, _ in sss.split(X, y):
-                param_train_x = X[train_index, :]
+                param_train_x = (
+                    [X[i] for i in train_index]
+                    if isinstance(X, list)
+                    else X[train_index, :]
+                )
                 param_train_y = y[train_index]
                 if der_X is not None:
-                    der_param_train_x = der_X[train_index, :]
+                    der_param_train_x = (
+                        [der_X[i] for i in train_index]
+                        if isinstance(der_X, list)
+                        else der_X[train_index, :]
+                    )
                 if self.verbose > 0:
                     print(  # noqa: T201
                         f"using{len(param_train_x)} training cases instead of "
@@ -455,7 +463,10 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "lcss":
             if train_x is None:
                 raise ValueError(f"Error need train data for {distance_measure}")
-            train_std = np.std(train_x)
+            if isinstance(train_x, list):
+                train_std = np.std(np.concatenate([x.ravel() for x in train_x]))
+            else:
+                train_std = np.std(train_x)
             epsilons = get_inclusive(train_std * 0.2, train_std, 10)
             deltas = get_inclusive(0, 0.25, 10)
             a = list(product(epsilons, deltas))
@@ -467,7 +478,10 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "erp":
             if train_x is None:
                 raise ValueError(f"Error need train data for {distance_measure}")
-            train_std = np.std(train_x)
+            if isinstance(train_x, list):
+                train_std = np.std(np.concatenate([x.ravel() for x in train_x]))
+            else:
+                train_std = np.std(train_x)
             band_sizes = get_inclusive(0, 0.25, 10)
             g_vals = get_inclusive(train_std * 0.2, train_std, 10)
             b_and_g = list(product(band_sizes, g_vals))
