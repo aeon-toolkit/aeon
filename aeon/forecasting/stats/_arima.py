@@ -7,6 +7,8 @@ including automatic hyperparameter tuning version
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
 __all__ = ["ARIMA", "AutoARIMA"]
 
+import time
+
 import numpy as np
 from numba import njit
 
@@ -474,7 +476,11 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
             # Keep the parameters found in the search rather than refitting, so
             # the final model is the one that was scored and checked for near
             # unit roots. The search did not use exog, so refit when it is given.
+            start = time.perf_counter()
             self.final_model_._fit_with_parameters(y, parameters=parameters)
+            self.final_model_.fit_time_millis_ = int(
+                (time.perf_counter() - start) * 1000
+            )
             # what BaseForecaster.fit would record, for the same y
             self.final_model_.metadata_ = self.metadata_
             self.final_model_.is_fitted = True
