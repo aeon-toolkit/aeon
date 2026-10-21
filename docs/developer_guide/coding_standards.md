@@ -19,17 +19,15 @@ Our coding standards are enforced through our CI/CD workflows via [pre-commit](h
 We adhere to the code formatting standards using the following `pre-commit` hooks:
 
 - [black](https://black.readthedocs.io/en/stable/) with default settings
-- [ruff](https://docs.astral.sh/ruff/) for linting, using the pycodestyle, Pyflakes,
-flake8-bugbear and flake8-print rules, and its [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
-rules to enforce the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
-documentation style
-- [isort](https://isort.readthedocs.io/en/latest/) to sort file imports
-- [nbQA](https://github.com/nbQA-dev/nbQA) to run `black` and `isort` on Jupyter
-notebooks
+- [ruff](https://docs.astral.sh/ruff/) for linting Python files and Jupyter notebooks,
+using the pycodestyle, Pyflakes, flake8-bugbear and flake8-print rules. It also sorts
+imports (isort rules), upgrades syntax to the minimum supported Python version
+(pyupgrade rules) and enforces the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
+documentation style using its [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
+rules
+- [nbQA](https://github.com/nbQA-dev/nbQA) to run `black` on Jupyter notebooks
 - [codespell](https://github.com/codespell-project/codespell) to check for common
 spelling mistakes
-- [pyupgrade](https://github.com/asottile/pyupgrade) to upgrade Python syntax to modern
-standards
 - Some standard [pre-commit hooks](https://pre-commit.com/hooks.html) for general code
 quality
 
