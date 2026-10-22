@@ -448,7 +448,7 @@ def load_gun_point_segmentation():
     name = "GunPoint"
     fname = name + ".csv"
 
-    period_length = int(10)
+    period_length = 10
     change_points = np.int32([900])
 
     path = os.path.join(MODULE, DIRNAME, dir, fname)
@@ -488,7 +488,7 @@ def load_electric_devices_segmentation():
     name = "ElectricDevices"
     fname = name + ".csv"
 
-    period_length = int(10)
+    period_length = 10
     change_points = np.int32([1090, 4436, 5712, 7923])
 
     path = os.path.join(MODULE, DIRNAME, dir, fname)

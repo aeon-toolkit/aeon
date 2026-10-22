@@ -170,7 +170,7 @@ ignore = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B", "T20", "D"]
+select = ["E", "F", "W", "B", "T20", "D", "I", "UP"]
 ignore = ["E203", "E741", "B904", "B905", "B028"]
 
 [tool.ruff.lint.per-file-ignores]

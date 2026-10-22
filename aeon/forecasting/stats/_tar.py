@@ -232,7 +232,9 @@ class AutoTAR(BaseForecaster, IterativeForecastingMixin):
     is **at or below** a threshold :math:`r` (below/left regime) or **above** it
     (above/right regime). The model fits separate AR(p) processes to each regime
     by OLS. If not fixed by the user, the AR orders, delay, and threshold are
-    chosen by grid search with model selection by **AIC**. By convention, ties
+    chosen by grid search with model selection by **AIC**. All candidates are
+    scored on the same observations, those after the largest order or delay in
+    the search. By convention, ties
     are split as: below/left if :math:`z_t \le r`, above/right if :math:`z_t > r`.
 
     Parameters
@@ -337,10 +339,15 @@ class AutoTAR(BaseForecaster, IterativeForecastingMixin):
         found = False
         fixed_r = self.threshold
 
-        for pL, pR in self._iter_orders():
-            base_maxlag = max(pL, pR)
-            for d in self._iter_delays():
-                maxlag = max(base_maxlag, d)
+        # Every candidate is scored on the same rows, starting after the largest
+        # lag in the search, so that AICs are comparable (as in tsDyn selectSETAR).
+        # Otherwise the AIC depends on the scale of y through n_eff * log(sigma2).
+        orders = list(self._iter_orders())
+        delays = list(self._iter_delays())
+        maxlag = max(max(max(pL, pR) for pL, pR in orders), max(delays))
+
+        for pL, pR in orders:
+            for d in delays:
                 if n <= maxlag + 1:
                     continue
 
@@ -359,6 +366,7 @@ class AutoTAR(BaseForecaster, IterativeForecastingMixin):
                         self.min_regime_frac,
                         self.min_points_offset,
                         cap,
+                        maxlag,
                     )
                 else:
                     # Evaluate a single fixed threshold with AIC.
@@ -516,12 +524,15 @@ def _numba_threshold_search(
     min_frac: float,
     min_offset: int,
     max_cands: int,  # <= 0 → use all candidates in trimmed span
+    start: int = 0,
 ) -> tuple[float, float, float, np.ndarray, float, np.ndarray, int, int]:
     """Search threshold using quantile-capped candidates + prefix/suffix stats.
 
-    Below-regime means z_t <= r, above-regime means z_t > r.
+    Below-regime means z_t <= r, above-regime means z_t > r. Rows start at
+    ``max(p_below, p_above, d, start)``, so callers comparing candidates can
+    score them all on the same rows.
     """
-    maxlag = max(p_below, p_above, d)
+    maxlag = max(p_below, p_above, d, start)
     X_full, y_resp, z = _prepare_design(y, maxlag, d)
     rows = y_resp.shape[0]
     if rows <= 0:
@@ -667,6 +678,12 @@ def _numba_threshold_search(
     prev = -1
     for j in range(m):
         cut = idx[j]
+        # The threshold z_sorted[cut] puts every row with an equal z below it, so
+        # move the cut to the end of its run of ties to fit the same split.
+        while cut + 1 < rows and z_sorted[cut + 1] == z_sorted[cut]:
+            cut += 1
+        if cut <= prev:
+            continue
         # Move rows (prev+1 .. cut) from ABOVE → BELOW
         for t in range(prev + 1, cut + 1):
             x_below_row = X_below_sorted[t]

@@ -268,7 +268,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 )
 
             if self.verbose:
-                print("%.3f" % curr_inertia, end=" --> ")  # noqa: T001, T201
+                print(f"{curr_inertia:.3f}", end=" --> ")  # noqa: T001, T201
 
             change_in_centres = np.abs(prev_inertia - curr_inertia)
             prev_inertia = curr_inertia
