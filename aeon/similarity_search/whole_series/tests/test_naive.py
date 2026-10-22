@@ -184,3 +184,25 @@ def test_naive_wss_invalid_k_raises(k):
     searcher = NaiveSeriesSearch().fit(X)
     with pytest.raises(ValueError, match="k must be a positive integer"):
         searcher.predict(X[0], k=k)
+
+
+def test_naive_wss_normalize_is_frozen_at_fit():
+    """Setting ``normalize`` on a fitted estimator does not change predictions.
+
+    Fitting with ``normalize=True`` replaces ``X_`` with the normalized
+    collection, so honouring a later change of the flag would compare a raw query
+    against it: the self-match of a fitted series would land at a large distance
+    instead of zero.
+    """
+    X = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=30, return_y=False)
+    X = 5.0 * X + 10.0  # far from zero mean, so normalizing is not a near no-op
+    searcher = NaiveSeriesSearch(normalize=True).fit(X)
+
+    before_idx, before_dist = searcher.predict(X[3], k=3)
+    searcher.set_params(normalize=False)
+    after_idx, after_dist = searcher.predict(X[3], k=3)
+
+    np.testing.assert_array_equal(before_idx, after_idx)
+    np.testing.assert_allclose(before_dist, after_dist)
+    assert after_idx[0] == 3
+    np.testing.assert_allclose(after_dist[0], 0.0, atol=1e-8)
