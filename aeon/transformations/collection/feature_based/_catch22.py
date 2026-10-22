@@ -642,7 +642,7 @@ class Catch22(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _CO_trev_1_num(X):
-        # Time-reversibility statistic, ((x_t+1 âˆ’ x_t)^3)_t.
+        # Time-reversibility statistic, ((x_{t+1} - x_t)^3)_t.
         y = np.zeros(len(X) - 1)
         for i in range(len(y)):
             y[i] = np.power(X[i + 1] - X[i], 3)
@@ -651,7 +651,7 @@ class Catch22(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _CO_HistogramAMI_even_2_5(X, smin, smax):
-        # Automutual information, m = 2, Ï„ = 5.
+        # Automutual information, m = 2, tau = 5.
         new_min = smin - 0.1
         new_max = smax + 0.1
         bin_width = (new_max - new_min) / 5
@@ -715,7 +715,7 @@ class Catch22(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _MD_hrv_classic_pnn40(X):
-        # Proportion of successive differences exceeding 0.04Ïƒ (Mietus 2002).
+        # Proportion of successive differences exceeding 0.04 σ (Mietus 2002).
         diffs = np.zeros(len(X) - 1)
         for i in range(len(diffs)):
             diffs[i] = np.abs(X[i + 1] - X[i]) * 1000
