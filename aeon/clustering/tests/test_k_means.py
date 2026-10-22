@@ -504,6 +504,19 @@ def test_invalid_params():
             n_init=1,
         ).fit(uni_data)
 
+    # Callable distances do not provide the alignment paths required for BA.
+    def callable_distance(x, y):
+        return float(np.sum(np.abs(x - y)))
+
+    with pytest.raises(ValueError, match=r"callable distance cannot be used"):
+        TimeSeriesKMeans(
+            n_clusters=2,
+            init="first",
+            averaging_method="ba",
+            distance=callable_distance,
+            n_init=1,
+        ).fit(uni_data)
+
     # Test with invalid distance for ba
     with pytest.raises(ValueError, match=r"Invalid distance passed for ba"):
         TimeSeriesKMeans(
