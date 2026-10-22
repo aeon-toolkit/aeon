@@ -3055,7 +3055,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/133224895?v=4",
       "profile": "https://yanzewu.com/",
       "contributions": [
-        "code"
+        "code",
+        "bug"
       ]
     }
   ],

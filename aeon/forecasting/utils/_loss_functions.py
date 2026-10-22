@@ -4,6 +4,7 @@ import numpy as np
 from numba import njit
 
 from aeon.forecasting.utils._extract_paras import (
+    _ets_is_damped,
     _extract_arma_params,
     _extract_ets_params,
 )
@@ -11,10 +12,42 @@ from aeon.forecasting.utils._extract_paras import (
 LOG_2PI = 1.8378770664093453
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
+def _is_stationary_ar(coefs):
+    """Check that an AR polynomial has all its roots outside the unit circle.
+
+    The polynomial is ``1 - coefs[0] z - ... - coefs[-1] z^k``. Uses the
+    Levinson-Durbin step-down recursion: the polynomial is stationary
+    if and only if every reflection coefficient has absolute value below one.
+    """
+    a = coefs.copy()
+    for k in range(len(a), 0, -1):
+        r = a[k - 1]
+        denom = 1.0 - r * r
+        # |r| < 1 can still give denom == 0 in floating point
+        if not np.abs(r) < 1.0 or not denom > 0.0:
+            return False
+        if k > 1:
+            prev = np.empty(k - 1)
+            for j in range(k - 1):
+                prev[j] = (a[j] + r * a[k - 2 - j]) / denom
+            a = prev
+    return True
+
+
+@njit(cache=True, fastmath={"contract"})
 def _arima_fit(params, data, model):
-    """Calculate the AIC of an ARIMA model given the parameters."""
+    """Calculate the AIC of an ARIMA model given the parameters.
+
+    Returns ``inf`` unless the AR part is stationary and the MA part
+    invertible. Outside that region the conditional sum of squares can be
+    spuriously small, which made larger, non-invertible models look better.
+    """
     formatted_params = _extract_arma_params(params, model)  # Extract parameters
+    if not _is_stationary_ar(formatted_params[1, : model[1]]):
+        return np.inf
+    if not _is_stationary_ar(-formatted_params[2, : model[2]]):
+        return np.inf
 
     # Initialize residuals
     n = len(data)
@@ -33,14 +66,30 @@ def _arima_fit(params, data, model):
             ma_term += formatted_params[2, j] * residuals[t - j - 1]
         y_hat = c + ar_term + ma_term
         residuals[t] = data[t] - y_hat
+    return _arima_css_aic(residuals, max(p, q), len(params))
+
+
+@njit(cache=True, fastmath={"contract"})
+def _arima_css_aic(residuals, start, num_params):
+    """AIC of an ARMA model from its conditional sum of squares residuals.
+
+    The first ``start = max(p, q)`` residuals are conditioned on and not used.
+    The variance is estimated from the remaining residuals, but the Gaussian
+    log likelihood is evaluated over all ``len(residuals)`` observations, so
+    models of different order are compared on the same number of observations.
+    Counting only the ``len(residuals) - start`` observations used made each
+    extra lag lower the AIC by about as much as an extra parameter raises it,
+    so model selection favoured overly large orders.
+    """
+    n = len(residuals)
+    if n <= start:
+        return np.inf
     sse = 0.0
-    start = max(p, q)
     for i in range(start, n):
         sse += residuals[i] * residuals[i]
     variance = sse / (n - start)
-    likelihood = (n - start) * (LOG_2PI + np.log(variance) + 1.0)
-    k = len(params)
-    return likelihood + 2 * k
+    likelihood = n * (LOG_2PI + np.log(variance) + 1.0)
+    return likelihood + 2 * num_params
 
 
 EPS = 1e-6
@@ -277,9 +326,10 @@ def _ets_fit(params, data, model):
     likelihood = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     if error_type == 2:
         likelihood -= log_fitted_sum
+    # Count phi when it is estimated, even if the estimate is exactly 1.
     k_ = (
         seasonal_period * (seasonality_type != 0)
-        + (1 + (phi != 1)) * (trend_type != 0)
+        + (1 + _ets_is_damped(model)) * (trend_type != 0)
         + 2
     )
     aic = -2 * likelihood + 2 * k_
@@ -302,42 +352,90 @@ def _ets_initialise(trend_type, seasonality_type, seasonal_period, data):
     """
     Initialize level, trend, and seasonality values for the ETS model.
 
+    The recursions in ``_ets_fit`` start at observation ``seasonal_period``, so
+    the states describe the series at time ``seasonal_period - 1``. The trend is
+    the change per time step (additive) or the growth factor per time step
+    (multiplicative), following the heuristic in Hyndman et al. [1]_.
+
+    Seasonal models use the first two seasons. The trend is the mean change
+    between corresponding points of the two seasons divided by the period, the
+    mean of the first season is taken as the level at its centre and moved
+    forward to its end, and the seasonal indices are the first season with that
+    trend line removed. Non-seasonal models with a trend use a least squares
+    line through the first ten observations (on the log scale for a
+    multiplicative trend).
+
     Parameters
     ----------
     data : array-like
         The time series data
         (should contain at least two full seasons if seasonality is specified)
+
+    References
+    ----------
+    .. [1] R. J. Hyndman, A. B. Koehler, J. K. Ord and R. D. Snyder, Forecasting
+       with Exponential Smoothing: The State Space Approach. Springer, 2008.
     """
-    # Initial Level: Mean of the first season
-    level = np.mean(data[:seasonal_period])
-    # Initial Trend
-    if trend_type == 1:
-        # Average difference between corresponding points in the first two seasons
-        trend = np.mean(
-            data[seasonal_period : 2 * seasonal_period] - data[:seasonal_period]
-        )
-    elif trend_type == 2:
-        # Average ratio between corresponding points in the first two seasons
-        trend = safe_div(
-            np.mean(data[seasonal_period : 2 * seasonal_period]),
-            np.mean(data[:seasonal_period]),
-        )
-    else:
-        # No trend
-        trend = 0
-    # Initial Seasonality
-    if seasonality_type == 1:
-        # Seasonal component is the difference
-        # from the initial level for each point in the first season
-        seasonality = data[:seasonal_period] - level
-    elif seasonality_type == 2:
-        # Seasonal component is the ratio of each point in the first season
-        # to the initial level
-        seasonality = data[:seasonal_period] / level
-    else:
-        # No seasonality
-        seasonality = np.zeros(1, dtype=np.float64)
-    return level, trend, seasonality
+    m = seasonal_period
+    if m > 1:
+        first_mean = np.mean(data[:m])
+        centre = (m - 1) / 2.0
+        if trend_type == 1:
+            trend = np.mean(data[m : 2 * m] - data[:m]) / m
+        elif trend_type == 2:
+            ratio = safe_div(np.mean(data[m : 2 * m]), first_mean)
+            trend = ratio ** (1.0 / m) if ratio > 0 else 1.0
+        else:
+            trend = 0.0
+        # Trend line through the first season, centred on its mean
+        line = np.empty(m)
+        for i in range(m):
+            if trend_type == 1:
+                line[i] = first_mean + trend * (i - centre)
+            elif trend_type == 2:
+                line[i] = first_mean * trend ** (i - centre)
+            else:
+                line[i] = first_mean
+        level = line[m - 1]
+        if seasonality_type == 1:
+            seasonality = data[:m] - line
+        elif seasonality_type == 2:
+            seasonality = np.empty(m)
+            for i in range(m):
+                seasonality[i] = safe_div(data[i], line[i])
+        else:
+            seasonality = np.zeros(m, dtype=np.float64)
+        return level, trend, seasonality
+
+    seasonality = np.zeros(1, dtype=np.float64)
+    if trend_type == 0:
+        return data[0], 0.0, seasonality
+    k = min(10, len(data))
+    if k < 2:
+        return data[0], 0.0 if trend_type == 1 else 1.0, seasonality
+    use_log = trend_type == 2
+    if use_log:
+        for i in range(k):
+            if data[i] <= 0.0:
+                # A multiplicative trend needs positive data; leave the
+                # invalid state for the validity checks in _ets_fit to reject.
+                return data[0], 1.0, seasonality
+    x_mean = (k - 1) / 2.0
+    y_mean = 0.0
+    for i in range(k):
+        y_mean += np.log(data[i]) if use_log else data[i]
+    y_mean /= k
+    sxy = 0.0
+    sxx = 0.0
+    for i in range(k):
+        yi = np.log(data[i]) if use_log else data[i]
+        sxy += (i - x_mean) * (yi - y_mean)
+        sxx += (i - x_mean) ** 2
+    slope = sxy / sxx
+    intercept = y_mean - slope * x_mean
+    if use_log:
+        return np.exp(intercept), np.exp(slope), seasonality
+    return intercept, slope, seasonality
 
 
 @njit(fastmath=True, cache=True)
