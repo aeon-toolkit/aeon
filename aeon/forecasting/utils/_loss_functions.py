@@ -11,10 +11,42 @@ from aeon.forecasting.utils._extract_paras import (
 LOG_2PI = 1.8378770664093453
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
+def _is_stationary_ar(coefs):
+    """Check that an AR polynomial has all its roots outside the unit circle.
+
+    The polynomial is ``1 - coefs[0] z - ... - coefs[-1] z^k``. Uses the
+    Levinson-Durbin step-down recursion: the polynomial is stationary
+    if and only if every reflection coefficient has absolute value below one.
+    """
+    a = coefs.copy()
+    for k in range(len(a), 0, -1):
+        r = a[k - 1]
+        denom = 1.0 - r * r
+        # |r| < 1 can still give denom == 0 in floating point
+        if not np.abs(r) < 1.0 or not denom > 0.0:
+            return False
+        if k > 1:
+            prev = np.empty(k - 1)
+            for j in range(k - 1):
+                prev[j] = (a[j] + r * a[k - 2 - j]) / denom
+            a = prev
+    return True
+
+
+@njit(cache=True, fastmath={"contract"})
 def _arima_fit(params, data, model):
-    """Calculate the AIC of an ARIMA model given the parameters."""
+    """Calculate the AIC of an ARIMA model given the parameters.
+
+    Returns ``inf`` unless the AR part is stationary and the MA part
+    invertible. Outside that region the conditional sum of squares can be
+    spuriously small, which made larger, non-invertible models look better.
+    """
     formatted_params = _extract_arma_params(params, model)  # Extract parameters
+    if not _is_stationary_ar(formatted_params[1, : model[1]]):
+        return np.inf
+    if not _is_stationary_ar(-formatted_params[2, : model[2]]):
+        return np.inf
 
     # Initialize residuals
     n = len(data)
@@ -33,14 +65,30 @@ def _arima_fit(params, data, model):
             ma_term += formatted_params[2, j] * residuals[t - j - 1]
         y_hat = c + ar_term + ma_term
         residuals[t] = data[t] - y_hat
+    return _arima_css_aic(residuals, max(p, q), len(params))
+
+
+@njit(cache=True, fastmath={"contract"})
+def _arima_css_aic(residuals, start, num_params):
+    """AIC of an ARMA model from its conditional sum of squares residuals.
+
+    The first ``start = max(p, q)`` residuals are conditioned on and not used.
+    The variance is estimated from the remaining residuals, but the Gaussian
+    log likelihood is evaluated over all ``len(residuals)`` observations, so
+    models of different order are compared on the same number of observations.
+    Counting only the ``len(residuals) - start`` observations used made each
+    extra lag lower the AIC by about as much as an extra parameter raises it,
+    so model selection favoured overly large orders.
+    """
+    n = len(residuals)
+    if n <= start:
+        return np.inf
     sse = 0.0
-    start = max(p, q)
     for i in range(start, n):
         sse += residuals[i] * residuals[i]
     variance = sse / (n - start)
-    likelihood = (n - start) * (LOG_2PI + np.log(variance) + 1.0)
-    k = len(params)
-    return likelihood + 2 * k
+    likelihood = n * (LOG_2PI + np.log(variance) + 1.0)
+    return likelihood + 2 * num_params
 
 
 EPS = 1e-6
