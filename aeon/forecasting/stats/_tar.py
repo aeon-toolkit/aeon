@@ -678,6 +678,12 @@ def _numba_threshold_search(
     prev = -1
     for j in range(m):
         cut = idx[j]
+        # The threshold z_sorted[cut] puts every row with an equal z below it, so
+        # move the cut to the end of its run of ties to fit the same split.
+        while cut + 1 < rows and z_sorted[cut + 1] == z_sorted[cut]:
+            cut += 1
+        if cut <= prev:
+            continue
         # Move rows (prev+1 .. cut) from ABOVE → BELOW
         for t in range(prev + 1, cut + 1):
             x_below_row = X_below_sorted[t]

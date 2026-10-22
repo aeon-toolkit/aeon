@@ -140,6 +140,21 @@ def test_autotar_selection_is_scale_invariant():
         assert math.isclose(s[3], selected[0][3], rel_tol=1e-9)
 
 
+def test_autotar_threshold_search_handles_ties():
+    """With tied threshold values, the fit uses the split the threshold implies.
+
+    Rows with z equal to the selected threshold belong to the lower regime, so
+    the coefficients must match a fixed-threshold TAR fit at that threshold.
+    """
+    y = np.round(_gen_tar_series(300, phi_L=0.2, phi_R=0.8, seed=4) * 2) / 2
+    f = AutoTAR(delay=1, ar_order=(1, 1)).fit(y)
+    ref = TAR(threshold=f.threshold_, delay=1, ar_order=(1, 1)).fit(y)
+    assert math.isclose(f.intercept_below_, ref.intercept_below_, abs_tol=1e-8)
+    assert math.isclose(f.intercept_above_, ref.intercept_above_, abs_tol=1e-8)
+    np.testing.assert_allclose(f.coef_below_, ref.coef_below_, atol=1e-8)
+    np.testing.assert_allclose(f.coef_above_, ref.coef_above_, atol=1e-8)
+
+
 def test_autotar_predict_matches_internal_one_step():
     """AutoTAR one-step prediction matches forecast_ from fit."""
     y = _gen_tar_series(150, seed=9)
