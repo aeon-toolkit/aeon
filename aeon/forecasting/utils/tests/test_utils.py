@@ -16,7 +16,7 @@ from aeon.forecasting.utils._nelder_mead import dispatch_loss, nelder_mead
             np.array([0.5, -0.1, 0.1]),
             np.array([1.0, 2.0, 1.5, 1.7, 2.1]),
             np.array([1, 1, 1]),
-            20.0745,
+            23.5931,
         ),
         (np.array([0.0]), np.array([1.0, 1.0, 1.0, 1.0]), np.array([0, 0, 0]), 13.3515),
     ],
@@ -216,3 +216,166 @@ def test_ets_fit_degenerate_data_returns_large_loss():
     data = np.array([1e200, -1e200] * 5)
     aic2 = _ets_fit(np.array([0.5]), data, model_add)[0]
     assert aic2 >= 1e10
+
+
+@pytest.mark.parametrize(
+    "loss_id, model, points",
+    [
+        (
+            0,
+            np.array([1, 1, 1]),
+            np.array(
+                [
+                    [0.2, -0.1, 0.1],
+                    [0.4, 0.0, 0.2],
+                    [0.1, 0.2, -0.2],
+                    [0.3, 0.1, 0.0],
+                ]
+            ),
+        ),
+        (
+            1,
+            np.array([1, 1, 1, 4]),
+            np.array(
+                [
+                    [0.2, 0.1, 0.9, 0.1],
+                    [0.4, 0.2, 0.95, 0.2],
+                    [0.1, 0.05, 0.8, 0.05],
+                    [0.3, 0.15, 0.85, 0.1],
+                    [0.5, 0.1, 0.98, 0.2],
+                ]
+            ),
+        ),
+    ],
+)
+def test_nelder_mead_from_custom_simplex(loss_id, model, points):
+    """With no iterations, return the best supplied vertex without changing it."""
+    from aeon.forecasting.utils._nelder_mead import _nelder_mead_from_simplex
+
+    data = np.array([1.0, 2.0, 1.5, 1.7, 2.1, 1.9, 2.4, 2.2, 2.0, 2.6, 2.3, 2.8])
+    start = points.copy()
+    values = np.array(
+        [dispatch_loss(loss_id, point.copy(), data, model) for point in points]
+    )
+    assert np.all(np.isfinite(values))
+
+    best_params, best_value = _nelder_mead_from_simplex(
+        loss_id, points, data, model, max_iter=0
+    )
+
+    best_vertex = np.argmin(values)
+    assert np.array_equal(best_params, start[best_vertex])
+    assert best_value == values[best_vertex]
+    assert np.array_equal(points, start)
+
+
+def _trending_seasonal(n=120, seed=0):
+    rng = np.random.default_rng(seed)
+    t = np.arange(float(n))
+    return 50.0 + 0.5 * t + 10.0 * np.sin(2 * np.pi * t / 12) + rng.normal(0, 1, n)
+
+
+def test_fit_ets_parameters_reaches_optimum():
+    """The multi-start fit escapes a local minimum a single run stops in.
+
+    For ETS(M,A,M) on this series, one Nelder-Mead run from the default simplex
+    stops ~100 AIC above the optimum. Compare against scipy's Nelder-Mead from
+    several starting points.
+    """
+    from scipy.optimize import minimize
+
+    from aeon.forecasting.utils._loss_functions import _ets_fit
+    from aeon.forecasting.utils._nelder_mead import _fit_ets_parameters
+
+    data = _trending_seasonal()
+    model = np.array([2, 1, 2, 12, 1], dtype=np.int32)
+    _, value = _fit_ets_parameters(data, model)
+
+    def loss(x):
+        v = _ets_fit(np.asarray(x, dtype=np.float64), data, model)[0]
+        return v if np.isfinite(v) else 1e300
+
+    ref = min(
+        minimize(loss, x0, method="Nelder-Mead", options={"maxiter": 20000}).fun
+        for x0 in (
+            [0.1, 0.01, 0.98, 0.05],
+            [0.3, 0.05, 0.9, 0.2],
+            [0.02, 0.001, 1.0, 0.7],
+        )
+    )
+    assert value <= ref + 0.5
+
+
+@pytest.mark.parametrize("seed", range(5))
+@pytest.mark.parametrize(
+    "model",
+    [[1, 1, 0, 1, 0], [1, 1, 0, 1, 1], [1, 0, 1, 12, 0], [2, 1, 2, 12, 1]],
+)
+def test_fit_ets_parameters_not_worse_than_single_run(seed, model):
+    """Keeping the best of several runs never loses to the single default run."""
+    from aeon.forecasting.utils._extract_paras import _ets_num_params
+    from aeon.forecasting.utils._nelder_mead import _fit_ets_parameters
+
+    data = _trending_seasonal(seed=seed)
+    model = np.array(model, dtype=np.int32)
+    _, single = nelder_mead(1, _ets_num_params(model), data, model, max_iter=200)
+    _, multi = _fit_ets_parameters(data, model, max_iter=200)
+    assert multi <= single
+
+
+@pytest.mark.parametrize(
+    "x0, model",
+    [
+        ([0.95, 0.9, 0.99, 0.04], [1, 1, 1, 12, 1]),
+        ([0.2, 0.02, 0.978, 0.04], [1, 1, 1, 12, 1]),
+        ([0.6, 0.39], [1, 0, 1, 12, 0]),
+        ([0.3, 0.29, 0.5, 0.69], [1, 1, 1, 12, 1]),
+        ([0.0, 0.0], [1, 1, 0, 1, 0]),  # invalid start on a bound
+    ],
+)
+def test_ets_simplex_around_stays_valid(x0, model):
+    """Every vertex of a restart simplex is inside the valid parameter region."""
+    from aeon.forecasting.utils._extract_paras import _extract_ets_params
+    from aeon.forecasting.utils._loss_functions import _ets_params_are_valid
+    from aeon.forecasting.utils._nelder_mead import _ets_simplex_around
+
+    model = np.array(model, dtype=np.int32)
+    x0 = np.array(x0)
+    points = _ets_simplex_around(x0, model)
+    assert points.shape == (len(x0) + 1, len(x0))
+    assert np.allclose(points[0], x0)
+    # the simplex is not degenerate: each vertex differs from x0 in one place
+    assert np.all(np.sum(points[1:] != points[0], axis=1) == 1)
+    a, b, g, phi = _extract_ets_params(x0, model)
+    if _ets_params_are_valid(a, b, g, phi, model[1], model[2]):
+        for x in points[1:]:
+            a, b, g, phi = _extract_ets_params(x, model)
+            assert _ets_params_are_valid(a, b, g, phi, model[1], model[2])
+
+
+def test_ets_r_style_start_layout():
+    """The R-style start follows the parameter layout of the model."""
+    from aeon.forecasting.utils._nelder_mead import _ets_r_style_start
+
+    assert np.allclose(
+        _ets_r_style_start(np.array([1, 1, 1, 12, 1])), [0.2, 0.02, 0.978, 0.04]
+    )
+    assert np.allclose(
+        _ets_r_style_start(np.array([1, 1, 1, 12, 0])), [0.2, 0.02, 0.04]
+    )
+    assert np.allclose(_ets_r_style_start(np.array([1, 0, 0, 1])), [0.2])
+
+
+def test_simplex_converged():
+    """Convergence needs close values and close vertices, at a finite best."""
+    from aeon.forecasting.utils._nelder_mead import _simplex_converged
+
+    tight = np.array([[1.0, 2.0], [1.0 + 1e-8, 2.0], [1.0, 2.0 - 1e-8]])
+    assert _simplex_converged(tight, np.array([5.0, 5.0 + 1e-8, 5.0 + 1e-7]), 1e-6)
+    # values close, but the vertices are spread out
+    spread = np.array([[1.0, 2.0], [1.5, 2.0], [1.0, 2.5]])
+    assert not _simplex_converged(spread, np.array([5.0, 5.0, 5.0]), 1e-6)
+    # vertices close, but the values are not
+    assert not _simplex_converged(tight, np.array([5.0, 5.1, 5.2]), 1e-6)
+    # a non-finite best value never counts as converged
+    assert not _simplex_converged(tight, np.array([np.inf, np.inf, np.inf]), 1e-6)

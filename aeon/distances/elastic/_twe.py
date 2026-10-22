@@ -3,8 +3,10 @@
 __maintainer__ = []
 
 
+import warnings
+
 import numpy as np
-from numba import njit, prange
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +15,17 @@ from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+# TODO: remove TWE bounding parameters in v1.8.0
+def _warn_bounding_deprecated(stacklevel=2):
+    warnings.warn(
+        "The 'window' and 'itakura_max_slope' parameters are deprecated for TWE "
+        "and will be removed in v1.8.0. Bounding constraints are not part of the "
+        "standard TWE algorithm.",
+        FutureWarning,
+        stacklevel=stacklevel,
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -60,6 +73,9 @@ def twe_distance(
     window : int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant called the stiffness, which penalises moves off the
         diagonal Must be > 0.
@@ -68,6 +84,9 @@ def twe_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
 
     Returns
     -------
@@ -94,14 +113,22 @@ def twe_distance(
     >>> twe_distance(x, y)
     46.017999999999994
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
+        if window is None and itakura_max_slope is None:
+            return _twe_distance_unbounded(_pad_arrs(_x), _pad_arrs(_y), nu, lmbda)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _twe_distance(_pad_arrs(_x), _pad_arrs(_y), bounding_matrix, nu, lmbda)
     if x.ndim == 2 and y.ndim == 2:
+        if window is None and itakura_max_slope is None:
+            return _twe_distance_unbounded(_pad_arrs(x), _pad_arrs(y), nu, lmbda)
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
@@ -131,6 +158,9 @@ def twe_cost_matrix(
     window: int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe method. Must be > 0.
@@ -139,6 +169,9 @@ def twe_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
 
     Returns
     -------
@@ -166,6 +199,10 @@ def twe_cost_matrix(
            [12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001],
            [14.007, 12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ]])
     """
+    if window is not None or itakura_max_slope is not None:
+        with objmode():
+            _warn_bounding_deprecated()
+
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -187,9 +224,120 @@ def twe_cost_matrix(
 def _twe_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
 ) -> float:
-    return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)[
-        x.shape[1] - 2, y.shape[1] - 2
-    ]
+    """Compute the TWE distance between two (padded) time series.
+
+    This is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
+    ``x`` and ``y`` are expected to already be padded with a leading zero.
+    """
+    # Iterate over the larger dimension to minimize the size of the row buffers.
+    # TWE is symmetric (the delete/insert terms swap and the match term is
+    # symmetric), so swapping x and y and transposing the bounding matrix leaves
+    # the distance unchanged. The swap is a call with swapped arguments rather
+    # than a reassignment, which Numba cannot type when x and y have different
+    # dtypes.
+    if x.shape[1] < y.shape[1]:
+        return _twe_distance_impl(y, x, bounding_matrix.T, nu, lmbda)
+    return _twe_distance_impl(x, y, bounding_matrix, nu, lmbda)
+
+
+@njit(cache=True, fastmath=True)
+def _twe_distance_impl(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
+) -> float:
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    del_add = nu + lmbda
+    del_y_cost = _twe_deletion_costs(y, del_add)
+
+    prev = np.full(y_size, np.inf)
+    curr = np.full(y_size, np.inf)
+
+    # Row 0 of the padded cost matrix: only [0, 0] is 0, the rest stay inf.
+    prev[0] = 0.0
+
+    for i in range(1, x_size):
+        # The cost of deleting x[i] does not depend on j.
+        del_x_cost = _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
+        # Column 0 of the padded cost matrix is inf for every row i >= 1.
+        curr[0] = np.inf
+        for j in range(1, y_size):
+            if bounding_matrix[i - 1, j - 1]:
+                # Deletion in x (from the row above)
+                del_x = prev[j] + del_x_cost
+                # Deletion in y (from the cell to the left)
+                del_y = curr[j - 1] + del_y_cost[j]
+                # Match (from the diagonal)
+                match = (
+                    prev[j - 1]
+                    + _univariate_euclidean_distance(x[:, i], y[:, j])
+                    + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
+                    + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+                )
+                curr[j] = min(del_x, del_y, match)
+            else:
+                curr[j] = np.inf
+        # Ping-pong the buffers: the row just written (curr) becomes prev, and
+        # the stale buffer is recycled (its column 0 is reset at the loop top).
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _twe_distance_unbounded(
+    x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
+) -> float:
+    """Compute unbounded TWE with two rolling rows and no bounding matrix."""
+    # See _twe_distance for why this is not an in-place swap.
+    if x.shape[1] < y.shape[1]:
+        return _twe_distance_unbounded_impl(y, x, nu, lmbda)
+    return _twe_distance_unbounded_impl(x, y, nu, lmbda)
+
+
+@njit(cache=True, fastmath=True)
+def _twe_distance_unbounded_impl(
+    x: np.ndarray, y: np.ndarray, nu: float, lmbda: float
+) -> float:
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    del_add = nu + lmbda
+    del_y_cost = _twe_deletion_costs(y, del_add)
+
+    prev = np.full(y_size, np.inf)
+    curr = np.empty(y_size)
+    prev[0] = 0.0
+
+    for i in range(1, x_size):
+        del_x_cost = _univariate_euclidean_distance(x[:, i - 1], x[:, i]) + del_add
+        curr[0] = np.inf
+        for j in range(1, y_size):
+            del_x = prev[j] + del_x_cost
+            del_y = curr[j - 1] + del_y_cost[j]
+            match = (
+                prev[j - 1]
+                + _univariate_euclidean_distance(x[:, i], y[:, j])
+                + _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
+                + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+            )
+            curr[j] = min(del_x, del_y, match)
+        prev, curr = curr, prev
+
+    return prev[y_size - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _twe_deletion_costs(x: np.ndarray, del_add: float) -> np.ndarray:
+    """Return the cost of deleting each time point of a padded series.
+
+    Entry ``j`` is the cost of deleting ``x[:, j]``, for ``j >= 1``. It does not
+    depend on the other series, so the kernels compute it once per call rather
+    than once per cost matrix cell. Entry 0 is unused.
+    """
+    costs = np.zeros(x.shape[1])
+    for j in range(1, x.shape[1]):
+        costs[j] = _univariate_euclidean_distance(x[:, j - 1], x[:, j]) + del_add
+    return costs
 
 
 @njit(cache=True, fastmath=True)
@@ -268,6 +416,9 @@ def twe_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe method. Must be > 0.
@@ -276,6 +427,9 @@ def twe_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -325,6 +479,9 @@ def twe_pairwise_distance(
            [13.005,  0.   , 18.007],
            [19.006, 18.007,  0.   ]])
     """
+    if window is not None or itakura_max_slope is not None:
+        _warn_bounding_deprecated(stacklevel=4)
+
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -354,16 +511,25 @@ def _twe_pairwise_distance(
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
+    # Pad the arrays before so that we don't have to redo every iteration
+    padded_X = NumbaList()
+    for i in range(n_cases):
+        padded_X.append(_pad_arrs(X[i]))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(i + 1, n_cases):
+                distances[i, j] = _twe_distance_unbounded(
+                    padded_X[i], padded_X[j], nu, lmbda
+                )
+                distances[j, i] = distances[i, j]
+        return distances
+
     if not unequal_length:
         n_timepoints = X[0].shape[1]
         bounding_matrix = create_bounding_matrix(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
-
-    # Pad the arrays before so that we don't have to redo every iteration
-    padded_X = NumbaList()
-    for i in range(n_cases):
-        padded_X.append(_pad_arrs(X[i]))
 
     for i in prange(n_cases):
         for j in range(i + 1, n_cases):
@@ -391,10 +557,6 @@ def _twe_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
-    if not unequal_length:
-        bounding_matrix = create_bounding_matrix(
-            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
-        )
 
     # Pad the arrays before so that we dont have to redo every iteration
     padded_x = NumbaList()
@@ -404,6 +566,19 @@ def _twe_from_multiple_to_multiple_distance(
     padded_y = NumbaList()
     for i in range(m_cases):
         padded_y.append(_pad_arrs(y[i]))
+
+    if window is None and itakura_max_slope is None:
+        for i in prange(n_cases):
+            for j in range(m_cases):
+                distances[i, j] = _twe_distance_unbounded(
+                    padded_x[i], padded_y[j], nu, lmbda
+                )
+        return distances
+
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+        )
 
     for i in prange(n_cases):
         for j in range(m_cases):
@@ -436,6 +611,9 @@ def twe_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe method. Must be > 0.
@@ -444,6 +622,9 @@ def twe_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+        Deprecated and will be removed in v1.8.0. Bounding constraints are not
+        part of the standard TWE algorithm.
 
     Returns
     -------
