@@ -110,10 +110,34 @@ def test_autotar_threshold_within_trim_band():
         threshold_trim=0.15,
     )
     f.fit(y)
-    low, high = _compute_trim_band(
-        y, delay=f.delay_, pL=f.p_below_, pR=f.p_above_, trim=0.15
-    )
+    # Candidates are all scored on rows after the largest lag searched (3).
+    low, high = _compute_trim_band(y, delay=f.delay_, pL=3, pR=3, trim=0.15)
     assert low <= f.threshold_ <= high
+
+
+def test_autotar_selection_is_scale_invariant():
+    """AutoTAR selects the same model when the series is rescaled.
+
+    Candidates with different maximum lags used to be scored on different
+    numbers of rows, so n_eff * log(sigma2) made larger lags win for large-scale
+    series and smaller lags win for small-scale series.
+    """
+    rng = np.random.default_rng(2)
+    n = 120
+    y = np.zeros(n)
+    e = rng.normal(size=n)
+    for t in range(2, n):
+        if y[t - 1] <= 0:
+            y[t] = 0.6 * y[t - 1] - 0.2 * y[t - 2] + e[t]
+        else:
+            y[t] = -0.4 * y[t - 1] + e[t]
+    selected = []
+    for scale in (1e-3, 1.0, 1e3):
+        f = AutoTAR().fit(y * scale)
+        selected.append((f.p_below_, f.p_above_, f.delay_, f.threshold_ / scale))
+    for s in selected[1:]:
+        assert s[:3] == selected[0][:3]
+        assert math.isclose(s[3], selected[0][3], rel_tol=1e-9)
 
 
 def test_autotar_predict_matches_internal_one_step():
