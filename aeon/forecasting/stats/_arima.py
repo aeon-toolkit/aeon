@@ -7,13 +7,16 @@ including automatic hyperparameter tuning version
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
 __all__ = ["ARIMA", "AutoARIMA"]
 
+import time
+
 import numpy as np
 from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._hypo_tests import kpss_test
-from aeon.forecasting.utils._nelder_mead import nelder_mead
+from aeon.forecasting.utils._loss_functions import _arima_css_aic, _is_stationary_ar
+from aeon.forecasting.utils._nelder_mead import _fit_arima_parameters
 from aeon.forecasting.utils._undifference import _undifference
 
 
@@ -52,9 +55,10 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         Moving average (q) order of the ARIMA model
     use_constant : bool = False,
         Presence of a constant/intercept term in the model.
-    grid : int: 0
     iterations : int, default = 200
-        Maximum number of iterations to use in the Nelder-Mead parameter search.
+        Maximum number of Nelder-Mead iterations per optimisation run. The
+        parameters are fitted with three runs, from the series mean, from
+        Hannan-Rissanen estimates and from the best of those, keeping the best.
 
     Attributes
     ----------
@@ -126,6 +130,15 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self
             Fitted ARIMA.
         """
+        return self._fit_with_parameters(y, exog)
+
+    def _fit_with_parameters(self, y, exog=None, parameters=None):
+        """Fit as ``_fit``, optionally with ARMA parameters already estimated.
+
+        ``parameters``, laid out as in ``_extract_arma_params``, must have been
+        estimated on this ``y`` differenced ``d`` times, with no exogenous
+        variables. If None they are estimated here.
+        """
         self._series = np.array(y.squeeze(), dtype=np.float64)
         series_for_arima = self._series
 
@@ -150,16 +163,16 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(series_for_arima, n=self.d)
-        s = 0.1 / (np.sum(self._model) + 1)  # Randomise
-        # Nelder Mead returns the parameters in a single array
-        self._parameters, self.aic_ = nelder_mead(
-            0,
-            np.sum(self._model[:3]),
-            self._differenced_series,
-            self._model,
-            max_iter=self.iterations,
-            simplex_init=s,
-        )
+        if parameters is None:
+            s = 0.1 / (np.sum(self._model) + 1)
+            self._parameters, self.aic_ = _fit_arima_parameters(
+                self._differenced_series,
+                self._model,
+                max_iter=self.iterations,
+                simplex_init=s,
+            )
+        else:
+            self._parameters = np.asarray(parameters, dtype=np.float64)
         #
         self.aic_, self.residuals_, self.fitted_values_ = _arima_model(
             self._parameters,
@@ -379,6 +392,15 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         Maximum order of the moving-average (MA) component to consider when
         searching for the best ARIMA model.
 
+    Notes
+    -----
+    The order is selected on ``y`` alone. Without exogenous variables the final
+    model keeps the parameters of the selected candidate, so
+    ``final_model_.aic_`` equals ``fit_aic_``. With exogenous variables the
+    selected order is refitted by :class:`ARIMA` on the residuals of a
+    regression of ``y`` on them, so ``final_model_.aic_`` differs from
+    ``fit_aic_`` and the refit is not checked for near unit roots.
+
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -392,7 +414,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
     >>> y = load_airline()
     >>> forecaster = AutoARIMA()
     >>> forecaster.forecast(y)
-    481.87157356139943
+    432.1737591310444
     """
 
     _tags = {
@@ -434,7 +456,16 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         # Stop before exceeding max_d: with `<=`, the loop could enter when
         # ``self.d_ == self.max_d`` and apply one more difference, pushing the
         # selected order past the configured maximum (e.g. max_d=0 -> d_=1).
-        while not kpss_test(differenced_series)[1] and self.d_ < self.max_d:
+        # KPSS with trunc(3 sqrt(n) / 13) lags, as R's forecast::ndiffs and
+        # statsforecast. kpss_test's default of sqrt(n) lags inflates the
+        # long-run variance, so trending series were often left undifferenced.
+        while (
+            not kpss_test(
+                differenced_series,
+                lags=int(3 * np.sqrt(len(differenced_series)) / 13),
+            )[1]
+            and self.d_ < self.max_d
+        ):
             differenced_series = np.diff(differenced_series, n=1)
             self.d_ += 1
         include_constant = 1 if self.d_ == 0 else 0
@@ -449,7 +480,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         parameter_limits = np.array([self.max_p, self.max_q])
         (
             model,
-            _,
+            parameters,
             self.fit_aic_,
         ) = _auto_arima(differenced_series, 0, model_parameters, 3, parameter_limits)
         (
@@ -459,7 +490,21 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ) = model
         self.constant_term_ = constant_term_int == 1
         self.final_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
-        self.final_model_.fit(y, exog=exog)
+        if exog is None:
+            # Keep the parameters found in the search rather than refitting, so
+            # the final model is the one that was scored and checked for near
+            # unit roots. The search did not use exog, so refit when it is given.
+            # This mirrors BaseForecaster.fit (and its fit timer) for the final
+            # model: keep in step if fit records anything else.
+            start = time.perf_counter()
+            self.final_model_._fit_with_parameters(y, parameters=parameters)
+            self.final_model_.fit_time_millis_ = int(
+                (time.perf_counter() - start) * 1000
+            )
+            self.final_model_.metadata_ = dict(self.metadata_)
+            self.final_model_.is_fitted = True
+        else:
+            self.final_model_.fit(y, exog=exog)
         self.forecast_ = self.final_model_.forecast_
         return self
 
@@ -535,16 +580,8 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         )
 
 
-@njit(cache=True, fastmath=True)
-def _aic(residuals, num_params):
-    """Calculate the log-likelihood of a model."""
-    variance = np.mean(residuals**2)
-    likelihood = len(residuals) * (np.log(2 * np.pi) + np.log(variance) + 1)
-    return likelihood + 2 * num_params
-
-
 # Define the ARIMA(p, d, q) likelihood function
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _arima_model(params, data, model):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
     formatted_params = _extract_arma_params(params, model)  # Extract parameters
@@ -562,10 +599,11 @@ def _arima_model(params, data, model):
         if t != num_predictions - 1:
             # Only calculate residuals for the predictions we have data for
             residuals[t] = data[t] - fitted_values[t]
-    return _aic(residuals, len(params)), residuals, fitted_values
+    aic = _arima_css_aic(residuals, max(model[1], model[2]), len(params))
+    return aic, residuals, fitted_values
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
 def _in_sample_forecast(data, model, t, formatted_params, residuals):
     """Efficient ARMA one-step forecast at time t for fitted model."""
     p = model[1]
@@ -583,7 +621,43 @@ def _in_sample_forecast(data, model, t, formatted_params, residuals):
     return c + ar_term + ma_term
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath={"contract"})
+def _roots_clear_of_unit_circle(params, model, margin=1.01):
+    """Check that all AR and MA roots have modulus greater than ``margin``.
+
+    The roots of ``1 - sum(a_i z^i)`` all lie outside radius ``margin`` exactly
+    when ``1 - sum(a_i margin^i w^i)`` is stationary in ``w``.
+    """
+    formatted = _extract_arma_params(params, model)
+    p, q = model[1], model[2]
+    ar = np.empty(p)
+    for i in range(p):
+        ar[i] = formatted[1, i] * margin ** (i + 1)
+    ma = np.empty(q)
+    for i in range(q):
+        ma[i] = -formatted[2, i] * margin ** (i + 1)
+    return _is_stationary_ar(ar) and _is_stationary_ar(ma)
+
+
+@njit(cache=True, fastmath={"contract"})
+def _fit_candidate(differenced_data, model, max_iter):
+    """Fit one AutoARIMA candidate, rejecting near unit roots.
+
+    As in R's forecast::auto.arima, a fit with an AR or MA root within 1.01 of
+    the unit circle scores ``inf``. Such fits typically have near-cancelling AR
+    and MA roots and are not identified, but a better optimiser finds them and
+    their AIC looks deceptively good.
+    """
+    s = 0.1 / (np.sum(model) + 1)
+    points, aic = _fit_arima_parameters(
+        differenced_data, model, max_iter=max_iter, simplex_init=s
+    )
+    if not _roots_clear_of_unit_circle(points, model):
+        aic = np.inf
+    return points, aic
+
+
+@njit(cache=True, fastmath={"contract"})
 def _auto_arima(
     differenced_data,
     loss_id,
@@ -600,43 +674,43 @@ def _auto_arima(
     best_model = initial_model_parameters[0]
     best_points = None
     for model in initial_model_parameters:
-        s = 0.1 / (np.sum(model) + 1)
-        points, aic = nelder_mead(
-            loss_id,
-            np.sum(model[:num_model_params]),
-            differenced_data,
-            model,
-            max_iter=200,
-            simplex_init=s,
-        )
+        points, aic = _fit_candidate(differenced_data, model, 200)
         if (aic < best_score) or (best_score == -1):
             best_score = aic
             best_model = model
             best_points = points
 
+    # Neighbours of (p, q): one order changed by one, or both, as in R's
+    # auto.arima. With single moves only, swapping an MA term for an AR term,
+    # e.g. (0, 0, 1) -> (1, 0, 0), needed two steps through a possibly worse
+    # model, and the search could stop short.
+    moves = np.array(
+        [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]
+    )
     while True:
+        # first improvement: move to the first better neighbour and search
+        # again from there, as R's auto.arima does
         better_model = False
-        for param_no in range(1, num_model_params):
-            for adjustment in [-1, 1]:
-                if (best_model[param_no] + adjustment) < 0 or (
-                    best_model[param_no] + adjustment
-                ) > parameter_limits[param_no - 1]:
-                    continue
-                model = best_model.copy()
-                model[param_no] += adjustment
-                for constant_term in [0, 1]:
-                    model[0] = constant_term
-                    points, aic = nelder_mead(
-                        loss_id,
-                        np.sum(model[:num_model_params]),
-                        differenced_data,
-                        model,
-                    )
-                    if aic < best_score:
-                        best_model = model.copy()
-                        best_points = points
-                        best_score = aic
-                        better_model = True
+        centre = best_model.copy()
+        for m in range(len(moves)):
+            p = centre[1] + moves[m, 0]
+            q = centre[2] + moves[m, 1]
+            if p < 0 or q < 0 or p > parameter_limits[0] or q > parameter_limits[1]:
+                continue
+            model = centre.copy()
+            model[1] = p
+            model[2] = q
+            for constant_term in [0, 1]:
+                model[0] = constant_term
+                points, aic = _fit_candidate(differenced_data, model, 500)
+                if aic < best_score:
+                    best_model = model.copy()
+                    best_points = points
+                    best_score = aic
+                    better_model = True
+                    break
+            if better_model:
+                break
         if not better_model:
             break
     return (

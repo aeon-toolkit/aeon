@@ -239,6 +239,26 @@ def test_arsenal_binary_weights_are_not_degenerate():
     assert all(0 < weight <= 1 for weight in clf.weights_)
 
 
+@pytest.mark.parametrize("rocket_transform", ["rocket", "minirocket"])
+def test_arsenal_zero_weight_sum_predicts_uniform(rocket_transform):
+    """All-zero member weights give uniform probabilities, not NaN."""
+    # constant series give constant features, so with balanced classes each LOO
+    # prediction falls to the other class and every member weight is 0
+    X = np.zeros((10, 1, 20))
+    y = np.array([0] * 5 + [1] * 5)
+
+    clf = Arsenal(
+        n_kernels=20,
+        n_estimators=2,
+        rocket_transform=rocket_transform,
+        random_state=0,
+    ).fit(X, y)
+    assert clf.weights_ == [0.0, 0.0]
+
+    np.testing.assert_array_equal(clf.predict_proba(X), np.full((10, 2), 0.5))
+    assert np.isin(clf.predict(X), [0, 1]).all()
+
+
 def test_arsenal_n_jobs_does_not_change_output():
     """Threaded and sequential Arsenal fits produce identical results."""
     X, y = make_example_3d_numpy(
