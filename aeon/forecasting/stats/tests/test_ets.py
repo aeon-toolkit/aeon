@@ -16,7 +16,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            11.900326351628069,
+            12.568700760318595,
         ),
         (
             dict(
@@ -25,7 +25,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            12.03610521881817,
+            12.284810596773223,
         ),
         (
             dict(
@@ -34,7 +34,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            12.116446361161152,
+            12.411954388022162,
         ),
         (
             dict(
@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            10.158588233985748,
+            11.66475129911982,
         ),
     ],
 )
@@ -434,3 +434,183 @@ def test_auto_ets_negative_data_skips_multiplicative():
     assert f.trend_type_ != 2
     assert f.seasonality_type_ != 2
     assert np.isfinite(f.forecast_)
+
+
+def test_ets_initialise_seasonal_additive_states():
+    """Seasonal start: per-step trend, level at the end of the first season."""
+    from aeon.forecasting.utils._loss_functions import _ets_initialise
+
+    t = np.arange(48.0)
+    season = np.array([3.0, -1.0, -4.0, 2.0])
+    y = 10.0 + 0.5 * t + season[t.astype(int) % 4]
+    level, trend, seasonality = _ets_initialise(1, 1, 4, y)
+    assert np.isclose(trend, 0.5)
+    assert np.isclose(level, 10.0 + 0.5 * 3)
+    assert np.allclose(seasonality, season)
+
+
+def test_ets_initialise_seasonal_multiplicative_trend_is_per_step():
+    """A multiplicative trend is the growth factor per step, not per season."""
+    from aeon.forecasting.utils._loss_functions import _ets_initialise
+
+    t = np.arange(48.0)
+    season = np.array([1.1, 0.9, 0.8, 1.2])
+    y = 100.0 * 1.02**t * season[t.astype(int) % 4]
+    level, trend, seasonality = _ets_initialise(2, 2, 4, y)
+    assert np.isclose(trend, 1.02)
+    assert np.isclose(level, 100.0 * 1.02**3, rtol=0.01)
+    assert np.allclose(seasonality, season, rtol=0.01)
+
+
+@pytest.mark.parametrize(
+    "trend_type, y, level, trend",
+    [
+        (1, 5.0 + 2.0 * np.arange(30.0), 5.0, 2.0),
+        (2, 5.0 * 1.1 ** np.arange(30.0), 5.0, 1.1),
+        (0, np.array([7.0, 1.0, 3.0]), 7.0, 0.0),
+    ],
+)
+def test_ets_initialise_non_seasonal(trend_type, y, level, trend):
+    """Non-seasonal trend starts come from a line through the first points."""
+    from aeon.forecasting.utils._loss_functions import _ets_initialise
+
+    lv, tr, seasonality = _ets_initialise(trend_type, 0, 1, y)
+    assert np.isclose(lv, level)
+    assert np.isclose(tr, trend)
+    assert seasonality.shape == (1,)
+
+
+def test_ets_initialise_non_seasonal_multiplicative_trend_non_positive():
+    """Non-positive data gives a neutral multiplicative trend, not NaN."""
+    from aeon.forecasting.utils._loss_functions import _ets_initialise
+
+    level, trend, _ = _ets_initialise(2, 0, 1, np.array([1.0, -1.0, 2.0, 3.0]))
+    assert level == 1.0 and trend == 1.0
+
+
+def test_ets_trending_seasonal_forecast_tracks_trend():
+    """ETS(A,A,A) must follow the trend of a trending seasonal series.
+
+    The initial trend used to be the change over a whole season rather than per
+    step, which left forecasts of a series like this far from the truth.
+    """
+    rng = np.random.default_rng(0)
+    t = np.arange(144.0)
+    y = 50.0 + 0.5 * t + 10.0 * np.sin(2 * np.pi * t / 12) + rng.normal(0, 1, 144)
+    f = ETS("additive", "additive", "additive", 12)
+    pred = f.iterative_forecast(y[:120], prediction_horizon=24)
+    assert np.mean(np.abs(pred - y[120:])) < 2.0
+
+
+def test_ets_damped_trend_option():
+    """damped_trend=False fixes phi at 1 and estimates one fewer parameter."""
+    y = 50.0 + 0.5 * np.arange(60.0) + np.random.default_rng(1).normal(0, 1, 60)
+    damped = ETS("additive", "additive", None, damped_trend=True).fit(y)
+    undamped = ETS("additive", "additive", None, damped_trend=False).fit(y)
+    assert len(damped.parameters_) == 3
+    assert len(undamped.parameters_) == 2
+    assert undamped.phi_ == 1.0
+    assert 0.0 < damped.phi_ <= 1.0
+    # damping is irrelevant without a trend
+    no_trend = ETS("additive", None, None, damped_trend=False).fit(y)
+    assert len(no_trend.parameters_) == 1
+
+
+def test_ets_aic_counts_phi_when_damped():
+    """A damped model counts phi in the AIC even when its estimate is 1."""
+    from aeon.forecasting.utils._loss_functions import _ets_fit
+
+    y = 50.0 + 0.5 * np.arange(60.0) + np.random.default_rng(1).normal(0, 1, 60)
+    damped = np.array([1, 1, 0, 1, 1], dtype=np.int32)
+    undamped = np.array([1, 1, 0, 1, 0], dtype=np.int32)
+    aic_damped = _ets_fit(np.array([0.3, 0.05, 1.0]), y, damped)[0]
+    aic_undamped = _ets_fit(np.array([0.3, 0.05]), y, undamped)[0]
+    assert np.isclose(aic_damped - aic_undamped, 2.0)
+
+
+@pytest.mark.parametrize(
+    "model, params, expected, n_params",
+    [
+        ([1, 1, 1, 4], [0.3, 0.1, 0.9, 0.2], (0.3, 0.1, 0.2, 0.9), 4),
+        ([1, 1, 1, 4, 1], [0.3, 0.1, 0.9, 0.2], (0.3, 0.1, 0.2, 0.9), 4),
+        ([1, 1, 1, 4, 0], [0.3, 0.1, 0.2], (0.3, 0.1, 0.2, 1.0), 3),
+        ([1, 1, 0, 1, 0], [0.3, 0.1], (0.3, 0.1, 0.0, 1.0), 2),
+        ([1, 0, 1, 4, 1], [0.3, 0.2], (0.3, 0.0, 0.2, 1.0), 2),
+    ],
+)
+def test_extract_ets_params_layout(model, params, expected, n_params):
+    """Parameter layout with and without the damped flag."""
+    from aeon.forecasting.utils._extract_paras import (
+        _ets_num_params,
+        _extract_ets_params,
+    )
+
+    model = np.array(model, dtype=np.int32)
+    assert _ets_num_params(model) == n_params
+    assert np.allclose(_extract_ets_params(np.array(params), model), expected)
+
+
+@pytest.mark.parametrize("damped_trend", [None, True, False])
+def test_auto_ets_damped_trend_option(damped_trend):
+    """AutoETS honours damped_trend and reports the selection consistently."""
+    y = 50.0 + 0.5 * np.arange(80.0) + np.random.default_rng(2).normal(0, 1, 80)
+    f = AutoETS(damped_trend=damped_trend).fit(y)
+    assert f.trend_type_ != 0
+    assert isinstance(f.damped_trend_, bool)
+    assert f.wrapped_model_.damped_trend == f.damped_trend_
+    if damped_trend is not None:
+        assert f.damped_trend_ == damped_trend
+    if not f.damped_trend_:
+        assert f.wrapped_model_.phi_ == 1.0
+
+
+# Quarterly M4 series Q5018 (training part): the level collapses from about
+# 6000 to 400 in the last six observations.
+M4_Q5018 = np.array(
+    [
+        1660.0, 2880.0, 2970.0, 2680.0, 2570.0, 3350.0, 4090.0, 3170.0, 3880.0,
+        5610.0, 4590.0, 5970.0, 5800.0, 8180.0, 6530.0, 5250.0, 5810.0, 8420.0,
+        5070.0, 4190.0, 6050.0, 6180.0, 6060.0, 4900.0, 6400.0, 5080.0, 6490.0,
+        4150.0, 6830.0, 4940.0, 7580.0, 5920.0, 5540.0, 7030.0, 4470.0, 6460.0,
+        4850.0, 5950.0, 5280.0, 4870.0, 5200.0, 7050.0, 7030.0, 3160.0, 2540.0,
+        4430.0, 4350.0, 3300.0, 5830.0, 5620.0, 4880.0, 5910.0, 6600.0, 7350.0,
+        8540.0, 4970.0, 7690.0, 6240.0, 7900.0, 6260.0, 5270.0, 6470.0, 6050.0,
+        3180.0, 380.0, 390.0, 370.0, 450.0, 430.0, 380.0,
+    ]
+)  # fmt: skip
+
+
+def test_auto_ets_restrict_avoids_exploding_forecast():
+    """Additive error with multiplicative seasonality can explode; restrict skips it.
+
+    Unrestricted, AutoETS selects ETS(A,Ad,M) on this series: as the level nears
+    zero one seasonal state reaches ~2e7, invisible to the AIC, and every fourth
+    forecast is ~4.5e9.
+    """
+    loose = AutoETS(seasonal_period=4, restrict=False).fit(M4_Q5018)
+    assert (loose.error_type_, loose.seasonality_type_) == (1, 2)
+    assert np.max(np.abs(loose.iterative_forecast(M4_Q5018, 8))) > 1e8
+
+    f = AutoETS(seasonal_period=4).fit(M4_Q5018)
+    assert not (f.error_type_ == 1 and f.seasonality_type_ == 2)
+    pred = f.iterative_forecast(M4_Q5018, 8)
+    assert np.all(np.isfinite(pred))
+    assert np.max(np.abs(pred)) < 2 * np.max(M4_Q5018)
+
+
+@pytest.mark.parametrize("seed", [1, 8])
+def test_auto_ets_restrict_excludes_additive_error_multiplicative_models(seed):
+    """Restrict removes the additive error models with a multiplicative component.
+
+    Unrestricted, AutoETS picks ETS(A,M,M) (seed 1) or ETS(A,A,M) (seed 8) on
+    these series.
+    """
+    rng = np.random.default_rng(seed)
+    t = np.arange(120.0)
+    y = (50.0 + 0.5 * t) * (1 + 0.2 * np.sin(2 * np.pi * t / 12))
+    y *= 1 + rng.normal(0, 0.02, 120)
+    kwargs = dict(seasonal_period=12, allow_multiplicative_trend=True)
+    loose = AutoETS(restrict=False, **kwargs).fit(y)
+    assert loose.error_type_ == 1 and 2 in (loose.trend_type_, loose.seasonality_type_)
+    f = AutoETS(**kwargs).fit(y)
+    assert f.error_type_ == 2 or 2 not in (f.trend_type_, f.seasonality_type_)

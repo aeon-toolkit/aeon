@@ -8,8 +8,6 @@ __maintainer__ = ["baraline"]
 __all__ = ["RandomDilatedShapeletTransform"]
 
 import warnings
-from typing import Dict, Union
-from typing import List as TypingList
 
 import numpy as np
 from numba import njit, prange, set_num_threads
@@ -154,9 +152,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     def __init__(
         self,
         max_shapelets: int = 10_000,
-        shapelet_lengths: TypingList[int] | np.ndarray | None = None,
+        shapelet_lengths: list[int] | np.ndarray | None = None,
         proba_normalization: float = 0.8,
-        threshold_percentiles: TypingList[float] | np.ndarray | None = None,
+        threshold_percentiles: list[float] | np.ndarray | None = None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
         random_state: int | None = None,
@@ -173,7 +171,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: np.ndarray | TypingList | None = None):
+    def _fit(self, X: np.ndarray, y: np.ndarray | list | None = None):
         """Fit the random dilated shapelet transform to a specified X and y.
 
         Parameters
@@ -262,7 +260,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         return self
 
-    def _transform(self, X: np.ndarray, y: np.ndarray | TypingList | None = None):
+    def _transform(self, X: np.ndarray, y: np.ndarray | list | None = None):
         """Transform X according to the extracted shapelets.
 
         Parameters
@@ -316,7 +314,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
                 raise TypeError(
                     "'shapelet_lengths' must be a list, a tuple or "
-                    "an array (got {}).".format(self.shapelet_lengths_)
+                    f"an array (got {self.shapelet_lengths_})."
                 )
 
             self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int_)
@@ -361,9 +359,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.threshold_percentiles_ = np.asarray(self.threshold_percentiles_)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> "Union[Dict, TypingList[Dict]]":
+    def _get_test_params(cls, parameter_set: str = "default") -> "dict | list[dict]":
         """Return testing parameter settings for the estimator.
 
         Parameters

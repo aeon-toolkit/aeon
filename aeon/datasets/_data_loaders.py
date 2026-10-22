@@ -465,9 +465,9 @@ def _download_and_extract(url, extract_path=None):
         with open(zip_file_name, "wb") as out_file:
             out_file.write(response.read())
     if extract_path is None:
-        extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
+        extract_path = os.path.join(MODULE, f"local_data/{file_name.split('.')[0]}/")
     else:
-        extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
+        extract_path = os.path.join(extract_path, f"{file_name.split('.')[0]}/")
     already_exists = False
     try:
         already_exists = os.path.exists(extract_path)
@@ -539,7 +539,7 @@ def _load_tsc_dataset(
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
+            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
