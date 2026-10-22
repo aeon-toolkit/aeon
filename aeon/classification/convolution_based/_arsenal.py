@@ -305,6 +305,9 @@ class Arsenal(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
+        if self._weight_sum == 0:
+            return np.full((X.shape[0], self.n_classes_), 1 / self.n_classes_)
+
         if self.rocket_transform == "rocket":
             X = Normalizer().fit_transform(X).astype(np.float32, copy=False)
 
