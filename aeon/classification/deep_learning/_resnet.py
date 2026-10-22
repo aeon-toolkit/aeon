@@ -12,6 +12,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import ResNetNetwork
+from aeon.networks.encoder._resnet import _UNSET
 
 
 class ResNetClassifier(BaseDeepClassifier):
@@ -24,34 +25,94 @@ class ResNetClassifier(BaseDeepClassifier):
     ----------
     n_residual_blocks : int, default = 3
         The number of residual blocks of ResNet's model.
-    n_conv_per_residual_block : int, default = 3
+    n_conv_per_residual_block : int or list of int, default = 3
         The number of convolution blocks in each residual block.
-    n_filters : int or list of int, default = None
-        The number of convolution filters for all the convolution layers in the same
-        residual block, if not a list, the same number of filters is used in all
-        convolutions of all residual blocks.
-        If set to None, defaults to [128, 64, 64].
-    kernel_sizes : int or list of int, default = None
-        The kernel size of all the convolution layers in one residual block, if not
-        a list, the same kernel size is used in all convolution layers.
-        If set to None, defaults to [8, 5, 3].
-    strides : int or list of int, default = 1
-        The strides of convolution kernels in each of the convolution layers in
-        one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
-    dilation_rate : int or list of int, default = 1
-        The dilation rate of the convolution layers in one residual block, if not
-        a list, the same kernel size is used in all convolution layers.
-    padding : str or list of str, default = 'padding'
-        The type of padding used in the convolution layers in one residual block, if
-        not a list, the same kernel size is used in all convolution layers.
-    activation : str or list of str, default = 'relu'
-        keras activation used in the convolution layers in one residual block,
-        if not a list, the same kernel size is used in all convolution layers.
-    use_bias : bool or list of bool, default = True
-        Condition on whether or not to use bias values in the convolution layers
-        in one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
+        If not a list, all the blocks will share the same number of convolution layers.
+    n_filters : int or list of int or list of list of int,
+        default = [[64, 64, 64], [128, 128, 128], [128, 128, 128]]
+        If int, it sets the same number of convolution filters for all the convolution
+        layers.
+        If a list of int, each value specifies the number of filters used
+        per convolutional layers (identical across each residual block).
+        If list of list of int, each value specifies the number of filters used
+        in convolutional layers for every residual block, one by one.
+    kernel_size : int or list of int or list of list of int, default = [8, 5, 3]
+        If int, it sets the same kernel size for all the convolution layers.
+        If a list of int, each value specifies the kernel size used per convolutional
+        layers (identical across each residual block).
+        If list of list of int, each value specifies the kernel size used in
+        convolutional layers for every residual block, one by one.
+    strides : int or list of int or list of list of int, default = 1
+        If int, it sets the same stride for all the convolution layers.
+        If a list of int, each value specifies the stride used per convolutional layers
+        (identical across each residual block).
+        If list of list of int, each value specifies the stride used in convolutional
+        layers for every residual block, one by one.
+    dilation_rate : int or list of int or list of list of int, default = 1
+        If int, it sets the same dilation rate for all the convolution layers.
+        If a list of int, each value specifies the dilation rate used per convolutional
+        layers (identical across each residual block).
+        If list of list of int, each value specifies the dilation rate used in
+        convolutional layers for every residual block, one by one.
+    padding : str or list of str or list of list of str, default = 'padding'
+        If str, it sets the same padding for all the convolution layers.
+        If a list of str, each value specifies the padding used per convolutional
+        layers (identical across each residual block).
+        If list of list of str, each value specifies the padding used in convolutional
+        layers for every residual block, one by one.
+    activation : str or list of str or list of list of str, default = 'relu'
+        If str, it sets the same activation function for all the convolution layers.
+        If a list of str, each value specifies the activation function used per
+        convolutional layers (identical across each residual block).
+        If list of list of str, each value specifies the activation function used in
+        convolutional layers for every residual block, one by one.
+    use_batch_norm : bool or list of bool or list of list of bool, default = True
+        If bool, it sets the same use_batch_norm for all the convolution layers.
+        If a list of bool, each value specifies the use_batch_norm used per
+        convolutional layers (identical across each residual block).
+        If list of list of bool, each value specifies the use_batch_norm used in
+        convolutional layers for every residual block, one by one.
+    dropout : float or list of float or list of list of float, default = 0
+        If float, it sets the same dropout rate for all the convolution layers.
+        If a list of float, each value specifies the dropout rate used per convolutional
+        layers (identical across each residual block).
+        If list of list of float, each value specifies the dropout rate used in
+        convolutional layers for every residual block, one by one.
+    use_residual : float or list of float, default = True
+        If float, it sets the same use_residual for all the residual blocks.
+        If a list of float, each value specifies the use_residual per residual block.
+        A value of 0 means no residual connection, a value of 1 means a standard
+        residual connection, other values indicate a weighted residual connection.
+    max_pooling : bool or list of bool, default = False
+        Whether to use max pooling after the residual blocks.
+        If a list of bool, each value specifies the use of max pooling per residual
+        block.
+    use_bias : bool or list of bool or list of list of bool, default = True
+        if bool, it sets the same use_bias for all the convolution layers.
+        If a list of bool, each value specifies if bias is used, per convolutional
+        layers (identical across each residual block).
+        If list of list of bool, each value specifies the use_bias used in convolutional
+        layers for every residual block, one by one.
+    cardinality : int or list of int or list of list of int, default = 1
+        The number of groups for grouped convolution. If cardinality > 1, the network
+        is considered a ResNeXt network.
+        if int, it sets the same cardinality for all the convolution layers.
+        If a list of int, each value specifies the cardinality used per convolutional
+        layers (identical across each residual block).
+        If list of list of int, each value specifies the cardinality used in
+        convolutional layers for every residual block, one by one.
+    se_ratio : int or list of int, default = 0
+        Whether to use Squeeze-and-Excitation (SE) blocks after the residual blocks.
+        If a list of int, each value specifies the use of SE block per residual block.
+        A value of 0 means no SE block, other values indicate
+        the reduction ratio for the SE block (generally 16).
+    resnet_type : RESNET_TYPE, default = RESNET_TYPE.V1
+        The type of ResNet to use. Options are:
+        - RESNET_TYPE.V1: The original ResNet architecture.
+        - RESNET_TYPE.V2: The pre-activation ResNet architecture.
+    preset : ResNetNetwork.Presets, default = None
+        A preset configuration for the ResNetNetwork.
+        Provided parameters will override the preset configuration.
     n_epochs : int, default = 1500
         The number of epochs to train the model.
     batch_size : int, default = 64
@@ -123,15 +184,23 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_residual_blocks: int = 3,
-        n_conv_per_residual_block: int = 3,
-        n_filters: int | list[int] = None,
-        kernel_size: int | list[int] = None,
-        strides: int | list[int] = 1,
-        dilation_rate: int | list[int] = 1,
-        padding: str | list[str] = "same",
-        activation: str | list[str] = "relu",
-        use_bias: bool | list[bool] = True,
+        n_residual_blocks=_UNSET,
+        n_conv_per_residual_block=_UNSET,
+        n_filters=_UNSET,
+        kernel_size=_UNSET,
+        strides=_UNSET,
+        dilation_rate=_UNSET,
+        padding=_UNSET,
+        activation=_UNSET,
+        use_batch_norm=_UNSET,
+        dropout=_UNSET,
+        use_residual=_UNSET,
+        max_pooling=_UNSET,
+        use_bias=_UNSET,
+        resnet_type=_UNSET,
+        cardinality=_UNSET,
+        se_ratio=_UNSET,
+        preset=None,
         n_epochs: int = 1500,
         callbacks=None,
         verbose: bool = False,
@@ -149,36 +218,44 @@ class ResNetClassifier(BaseDeepClassifier):
         init_file_name: str = "init_model",
         optimizer=None,
     ):
-        self.n_residual_blocks = n_residual_blocks
-        self.n_conv_per_residual_block = n_conv_per_residual_block
-        self.n_filters = n_filters
-        self.kernel_size = kernel_size
-        self.padding = padding
-        self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.n_epochs = n_epochs
-        self.callbacks = callbacks
-        self.verbose = verbose
-        self.loss = loss
-        self.metrics = metrics
-        self.use_mini_batch_size = use_mini_batch_size
-        self.activation = activation
-        self.use_bias = use_bias
-        self.file_path = file_path
-        self.save_best_model = save_best_model
-        self.save_last_model = save_last_model
-        self.save_init_model = save_init_model
-        self.best_file_name = best_file_name
-        self.init_file_name = init_file_name
-        self.optimizer = optimizer
-
-        self.history = None
-
         super().__init__(
             batch_size=batch_size,
             random_state=random_state,
             last_file_name=last_file_name,
         )
+
+        self.n_residual_blocks = n_residual_blocks
+        self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.padding = padding
+        self.activation = activation
+        self.use_batch_norm = use_batch_norm
+        self.dropout = dropout
+        self.use_residual = use_residual
+        self.max_pooling = max_pooling
+        self.use_bias = use_bias
+        self.resnet_type = resnet_type
+        self.cardinality = cardinality
+        self.se_ratio = se_ratio
+        self.preset = preset
+        self.n_epochs = n_epochs
+        self.callbacks = callbacks
+        self.verbose = verbose
+        self.loss = loss
+        self.metrics = metrics
+        self.file_path = file_path
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
+        self.optimizer = optimizer
+
+        self.history = None
 
         self._network = ResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,
@@ -190,6 +267,14 @@ class ResNetClassifier(BaseDeepClassifier):
             activation=self.activation,
             dilation_rate=self.dilation_rate,
             padding=self.padding,
+            use_batch_norm=self.use_batch_norm,
+            dropout=self.dropout,
+            use_residual=self.use_residual,
+            max_pooling=self.max_pooling,
+            cardinality=self.cardinality,
+            se_ratio=self.se_ratio,
+            resnet_type=self.resnet_type,
+            preset=self.preset,
         )
 
     def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):

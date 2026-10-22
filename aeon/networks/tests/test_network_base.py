@@ -53,3 +53,88 @@ def test_dummy_deep_network():
     assert input_layer is not None
     assert output_layer is not None
     assert output_layer.shape[-1] == 10
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+@pytest.mark.parametrize(
+    "blocks, depth, param, expected, expected_exception",
+    [
+        # depth is an int
+        (3, 2, 64, [[64, 64], [64, 64], [64, 64]], None),
+        (3, 2, [64, 32], [[64, 32], [64, 32], [64, 32]], None),
+        (3, 2, [[64, 32], [64, 32], [64, 32]], [[64, 32], [64, 32], [64, 32]], None),
+        # depth is a list of int
+        (3, [2, 2, 2], 64, [[64, 64], [64, 64], [64, 64]], None),
+        (3, [2, 2, 2], [64, 32], [[64, 32], [64, 32], [64, 32]], None),
+        (
+            3,
+            [1, 2, 3],
+            64,
+            [
+                [
+                    64,
+                ],
+                [64, 64],
+                [64, 64, 64],
+            ],
+            None,
+        ),
+        (
+            3,
+            [1, 2, 3],
+            [
+                [
+                    16,
+                ],
+                [16, 32],
+                [16, 32, 64],
+            ],
+            [
+                [
+                    16,
+                ],
+                [16, 32],
+                [16, 32, 64],
+            ],
+            None,
+        ),
+        # depth is an int
+        (3, 2, [64, 32, 16], None, ValueError),
+        (3, 2, [], None, ValueError),
+        # depth is a list of int
+        (3, [2, 2], 64, None, ValueError),
+        (3, [], [16, 32], None, ValueError),
+        (3, [2, 2, 2], [64, 32, 16], None, ValueError),
+        (3, [2, 2, 3], [64, 32], None, ValueError),
+        (3, [2, 3, 2], [[16, 32], [16, 32, 64]], None, ValueError),
+        (3, [2, 3, 2], [[16, 32], [16, 32, 64], [16]], None, ValueError),
+    ],
+)
+def test_check_block_param(blocks, depth, param, expected, expected_exception):
+    """Test the _check_block_param method."""
+    if expected_exception:
+        with pytest.raises(expected_exception):
+            BaseDeepLearningNetwork._check_block_param(
+                blocks=blocks,
+                depth=depth,
+                param=param,
+                param_name="filters",
+                block_name="residual block",
+                block_depth_name="conv",
+                allow_none=True,
+            )
+    else:
+        result = BaseDeepLearningNetwork._check_block_param(
+            blocks=blocks,
+            depth=depth,
+            param=param,
+            param_name="filters",
+            block_name="block",
+            block_depth_name="conv layers",
+            allow_none=True,
+        )
+
+        assert result == expected
