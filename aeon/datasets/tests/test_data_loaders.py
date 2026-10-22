@@ -579,7 +579,7 @@ def test_download_and_extract():
     with tempfile.TemporaryDirectory() as tmp:
         extract_path = os.path.join(tmp, name)
         os.makedirs(extract_path)
-        url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
         try:
             _download_and_extract(url, extract_path=extract_path)
         except BadZipFile:
