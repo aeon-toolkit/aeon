@@ -29,21 +29,8 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.1
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [ "--fix"]
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.22.0
-    hooks:
-      - id: pyupgrade
-        args: [ "--py310-plus" ]
-
-  - repo: https://github.com/pycqa/isort
-    rev: 10.0.0b1
-    hooks:
-      - id: isort
-        name: isort
-        args: [ "--profile=black", "--multi-line=3" ]
 
   - repo: https://github.com/psf/black
     rev: 26.10.1
@@ -54,11 +41,8 @@ repos:
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.9.1
     hooks:
-      - id: nbqa-isort
-        additional_dependencies: [ isort==5.13.2 ]
-        args: [ "--nbqa-dont-skip-bad-cells", "--profile=black", "--multi-line=3" ]
       - id: nbqa-black
-        additional_dependencies: [ black==24.4.2 ]
+        additional_dependencies: [ black==26.10.1 ]
         args: [ "--nbqa-dont-skip-bad-cells" ]
 
   - repo: https://github.com/mgedmin/check-manifest

@@ -36,33 +36,42 @@ jobs:
 
       - name: Get changed files
         if: ${{ github.event_name == 'pull_request' }}
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96  # v47.0.5
+        uses: tj-actions/changed-files@v47.0.6
         id: changed-files
 
+      # File names come from the PR, so pass them through the environment rather than
+      # expanding them into the shell commands
       - name: List changed files
         if: ${{ github.event_name == 'pull_request' }}
-        run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
+        run: echo "$CHANGED_FILES"
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+
+      - name: Install pre-commit
+        run: python -m pip install pre-commit
+
+      - name: Cache pre-commit environments
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       # Check the full repository on pushes to main
       - name: Full pre-commit
         if: ${{ github.event_name == 'push' }}
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
+        run: pre-commit run --show-diff-on-failure --color=always --all-files
 
       # Check the full repository on PRs that are explicitly labelled
       - name: Full pre-commit on labelled PR
         if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
+        run: pre-commit run --show-diff-on-failure --color=always --all-files
 
       # Otherwise only check changed files on PRs
       - name: Local pre-commit
         if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
+        run: pre-commit run --show-diff-on-failure --color=always --files $CHANGED_FILES
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
 
   codespell-annotations:
     runs-on: ubuntu-24.04
@@ -76,5 +85,8 @@ jobs:
       - name: Annotate locations with typos
         uses: codespell-project/codespell-problem-matcher@v1
 
+      # Annotations only, the pre-commit codespell hook is the check that fails the PR
       - name: Codespell
         uses: codespell-project/actions-codespell@v2
+        with:
+          only_warn: 1

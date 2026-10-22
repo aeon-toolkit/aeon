@@ -511,12 +511,12 @@ class AEResNetClusterer(BaseDeepClusterer):
             if verbose:
                 if validation_split and val_batches > 0:
                     sys.stdout.write(
-                        "Training loss at epoch %d: %.4f, Validation loss: %.4f\n"
-                        % (epoch, float(epoch_loss), float(val_loss))
+                        f"Training loss at epoch {epoch}: {float(epoch_loss):.4f}, "
+                        f"Validation loss: {float(val_loss):.4f}\n"
                     )
                 else:
                     sys.stdout.write(
-                        "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                        f"Training loss at epoch {epoch}: {float(epoch_loss):.4f}\n"
                     )
 
             for callback in self.callbacks_:

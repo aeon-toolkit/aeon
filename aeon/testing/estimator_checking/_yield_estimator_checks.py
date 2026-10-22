@@ -379,9 +379,9 @@ def check_constructor(estimator_class):
     init_params = signature(estimator_class.__init__).parameters
     invalid_attr = set(init_params) - set(vars(estimator)) - {"self"}
     assert not invalid_attr, (
-        "Estimator %s should store all parameters"
+        f"Estimator {estimator.__class__.__name__} should store all parameters"
         " as an attribute during init. Did not find "
-        "attributes `%s`." % (estimator.__class__.__name__, sorted(invalid_attr))
+        f"attributes `{sorted(invalid_attr)}`."
     )
 
     param_values = [
@@ -638,9 +638,9 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
         # is possible RandomState instance but in this check we explicitly
         # fixed the random_state params recursively to be integer seeds via clone.
         assert joblib.hash(new_value) == joblib.hash(original_value), (
-            "Estimator %s should not change or mutate "
-            " the parameter %s from %s to %s during fit."
-            % (estimator.__class__.__name__, param_name, original_value, new_value)
+            f"Estimator {estimator.__class__.__name__} should not change or mutate "
+            f" the parameter {param_name} from {original_value} to {new_value} "
+            "during fit."
         )
 
     # check that estimator cloned from fitted estimator is not fitted
