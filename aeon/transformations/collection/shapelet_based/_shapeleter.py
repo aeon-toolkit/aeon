@@ -151,6 +151,171 @@ def _hypergraph_prune(
     return np.array(saved_nodes, dtype=int)
 
 
+def _cosine_similarity_squared_loss(f0, f1, eps=1e-8):
+    """Compute mean squared cosine similarity across corresponding columns."""
+    dot = np.sum(f0 * f1, axis=0)
+    norm0 = np.sqrt(np.sum(f0**2, axis=0))
+    norm1 = np.sqrt(np.sum(f1**2, axis=0))
+    cos_sim = dot / (norm0 * norm1 + eps)
+    return np.mean(cos_sim**2)
+
+
+def _compute_pe_loss(w, featureX, positionX, orderX, len_map, k_min=1.0, k_max=15.0):
+    """Compute cosine similarity squared loss for given log_Ka and log_Ko."""
+    log_ka = np.clip(w[0], np.log(k_min), np.log(k_max))
+    log_ko = np.clip(w[1], np.log(k_min), np.log(k_max))
+    ka = np.exp(log_ka)
+    ko = np.exp(log_ko)
+
+    n_shapelets = positionX.shape[1]
+    base_abs = ka * len_map / (2.0 * np.pi)
+    base_ord = ko * n_shapelets / (2.0 * np.pi)
+
+    pe_abs = np.hstack([np.sin(positionX / base_abs), np.cos(positionX / base_abs)])
+    pe_ord = np.hstack([np.sin(orderX / base_ord), np.cos(orderX / base_ord)])
+
+    f_a = featureX + pe_abs
+    f_o = featureX + pe_ord
+
+    cos_ra = _cosine_similarity_squared_loss(featureX, f_a)
+    cos_ro = _cosine_similarity_squared_loss(featureX, f_o)
+    cos_ao = _cosine_similarity_squared_loss(f_a, f_o)
+    return -(cos_ra + cos_ro + cos_ao) / 3.0
+
+
+def _optimize_position_encoding_np(
+    featureX,
+    positionX,
+    orderX,
+    len_map,
+    ka0=8.0,
+    ko0=8.0,
+    k_min=1.0,
+    k_max=15.0,
+    lr=0.002,
+    max_iter=200,
+):
+    """Optimize Ka and Ko using Adam in pure NumPy."""
+    w = np.array([np.log(ka0), np.log(ko0)], dtype=np.float64)
+    m = np.zeros(2, dtype=np.float64)
+    v = np.zeros(2, dtype=np.float64)
+    beta1 = 0.9
+    beta2 = 0.999
+    eps_adam = 1e-8
+    h = 1e-5
+
+    best_ka, best_ko = ka0, ko0
+
+    for t in range(1, max_iter + 1):
+        ka = np.exp(w[0])
+        ko = np.exp(w[1])
+        if ka < k_min or ka > k_max or ko < k_min or ko > k_max:
+            break
+        best_ka, best_ko = ka, ko
+
+        grad = np.zeros(2, dtype=np.float64)
+        for i in range(2):
+            w_plus = w.copy()
+            w_plus[i] += h
+            w_minus = w.copy()
+            w_minus[i] -= h
+            l_plus = _compute_pe_loss(
+                w_plus, featureX, positionX, orderX, len_map, k_min, k_max
+            )
+            l_minus = _compute_pe_loss(
+                w_minus, featureX, positionX, orderX, len_map, k_min, k_max
+            )
+            grad[i] = (l_plus - l_minus) / (2.0 * h)
+
+        m = beta1 * m + (1.0 - beta1) * grad
+        v = beta2 * v + (1.0 - beta2) * (grad**2)
+        m_hat = m / (1.0 - beta1**t)
+        v_hat = v / (1.0 - beta2**t)
+        w = w - lr * m_hat / (np.sqrt(v_hat) + eps_adam)
+
+    return best_ka, best_ko
+
+
+def _optimize_position_encoding(
+    featureX,
+    positionX,
+    orderX,
+    len_map,
+    ka0=8.0,
+    ko0=8.0,
+    k_min=1.0,
+    k_max=15.0,
+    lr=0.002,
+    max_iter=200,
+):
+    """Optimize Ka and Ko using Adam via PyTorch if available, else NumPy."""
+    try:
+        import torch
+        import torch.nn.functional as F
+        import torch.optim as optim
+
+        n_shapelet = positionX.shape[1]
+        log_k_min = np.log(k_min)
+        log_k_max = np.log(k_max)
+
+        log_ka = torch.tensor(np.log(ka0), dtype=torch.float32, requires_grad=True)
+        log_ko = torch.tensor(np.log(ko0), dtype=torch.float32, requires_grad=True)
+
+        feat_t = torch.from_numpy(featureX).float()
+        pos_t = torch.from_numpy(positionX).float()
+        ord_t = torch.from_numpy(orderX).float()
+
+        optimizer = optim.Adam([log_ka, log_ko], lr=lr)
+        best_ka, best_ko = ka0, ko0
+
+        for _ in range(max_iter):
+            optimizer.zero_grad()
+            ka_val = torch.exp(log_ka).item()
+            ko_val = torch.exp(log_ko).item()
+            if ka_val < k_min or ka_val > k_max or ko_val < k_min or ko_val > k_max:
+                break
+            best_ka, best_ko = ka_val, ko_val
+
+            clamped_ka = torch.clamp(log_ka, min=float(log_k_min), max=float(log_k_max))
+            clamped_ko = torch.clamp(log_ko, min=float(log_k_min), max=float(log_k_max))
+
+            b_abs = torch.exp(clamped_ka) * len_map / (2.0 * np.pi)
+            b_ord = torch.exp(clamped_ko) * n_shapelet / (2.0 * np.pi)
+
+            pe_a = torch.cat(
+                [torch.sin(pos_t / b_abs), torch.cos(pos_t / b_abs)], dim=1
+            )
+            pe_o = torch.cat(
+                [torch.sin(ord_t / b_ord), torch.cos(ord_t / b_ord)], dim=1
+            )
+
+            f_a = feat_t + pe_a
+            f_o = feat_t + pe_o
+
+            c_ra = (F.cosine_similarity(feat_t, f_a, dim=0, eps=1e-8) ** 2).mean()
+            c_ro = (F.cosine_similarity(feat_t, f_o, dim=0, eps=1e-8) ** 2).mean()
+            c_ao = (F.cosine_similarity(f_a, f_o, dim=0, eps=1e-8) ** 2).mean()
+            loss = -(c_ra + c_ro + c_ao) / 3.0
+
+            loss.backward()
+            optimizer.step()
+
+        return best_ka, best_ko
+    except ImportError:
+        return _optimize_position_encoding_np(
+            featureX,
+            positionX,
+            orderX,
+            len_map,
+            ka0=ka0,
+            ko0=ko0,
+            k_min=k_min,
+            k_max=k_max,
+            lr=lr,
+            max_iter=max_iter,
+        )
+
+
 class _CombinationFusion:
     """Pairwise LDA fusion of original, absolute, and ordinal views."""
 
@@ -261,10 +426,19 @@ class ShapeleterTransform(BaseCollectionTransformer):
     ----------
     max_shapelets : int, default=1000
         Maximum number of shapelets sampled initially by RDST backbone.
-    ka : float, default=1.5
-        Absolute positional scaling parameter.
-    ko : float, default=1.5
-        Ordinal positional scaling parameter.
+    ka : float, default=8.0
+        Initial absolute positional scaling parameter (Ka0).
+    ko : float, default=8.0
+        Initial ordinal positional scaling parameter (Ko0).
+    k_min : float, default=1.0
+        Lower bound for Ka and Ko during optimization.
+    k_max : float, default=15.0
+        Upper bound for Ka and Ko during optimization.
+    lr : float, default=0.002
+        Learning rate for Adam optimization of Ka and Ko.
+    max_iter : int, default=200
+        Maximum number of iterations for Adam positional optimization per dilation.
+        If set to 0, optimization is skipped and fixed ka/ko values are used.
     save_rate : float, default=0.5
         Proportion of shapelets preserved by hypergraph selection.
     random_state : int, RandomState instance or None, default=None
@@ -281,14 +455,22 @@ class ShapeleterTransform(BaseCollectionTransformer):
     def __init__(
         self,
         max_shapelets=1000,
-        ka=1.5,
-        ko=1.5,
+        ka=8.0,
+        ko=8.0,
+        k_min=1.0,
+        k_max=15.0,
+        lr=0.002,
+        max_iter=200,
         save_rate=0.5,
         random_state=None,
     ):
         self.max_shapelets = max_shapelets
         self.ka = ka
         self.ko = ko
+        self.k_min = k_min
+        self.k_max = k_max
+        self.lr = lr
+        self.max_iter = max_iter
         self.save_rate = save_rate
         self.random_state = random_state
         super().__init__()
@@ -313,6 +495,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
             lengths = self._rdst.shapelets_[2]
             dilas = self._rdst.shapelets_[3]
             norms = self._rdst.shapelets_[5]
+            shapelet_classes = self._rdst.shapelets_[8]
             selected_idx = []
 
             for l_val in np.unique(lengths):
@@ -326,7 +509,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
                             pruned_rel = _hypergraph_prune(
                                 raw_shapelets[sub_idx],
                                 l_val,
-                                y[sub_idx % len(y)],
+                                shapelet_classes[sub_idx],
                                 save_rate=self.save_rate,
                             )
                             selected_idx.append(sub_idx[pruned_rel])
@@ -363,6 +546,41 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_min_scaled = self._scaler_min.transform(x_min)
         x_soo_scaled = self._scaler_soo.transform(x_soo)
 
+        self._unique_dilations = np.unique(self._shapelet_dilations)
+        self._base_abs = {}
+        self._base_ord = {}
+
+        for d in self._unique_dilations:
+            sub_idx = np.where(self._shapelet_dilations == d)[0]
+            sh_len = self._shapelet_lengths[sub_idx[0]]
+            len_map = max(1.0, float(self._series_len - (sh_len - 1) * d))
+            n_sub = max(1.0, float(len(sub_idx)))
+
+            if self.max_iter > 0:
+                train_feat_d = np.hstack(
+                    [x_min_scaled[:, sub_idx], x_soo_scaled[:, sub_idx]]
+                )
+                pos_abs_d = x_arg[:, sub_idx]
+                pos_ord_d = _assign_order_batch(pos_abs_d)
+
+                ka_d, ko_d = _optimize_position_encoding(
+                    train_feat_d,
+                    pos_abs_d,
+                    pos_ord_d,
+                    len_map,
+                    ka0=self.ka,
+                    ko0=self.ko,
+                    k_min=self.k_min,
+                    k_max=self.k_max,
+                    lr=self.lr,
+                    max_iter=self.max_iter,
+                )
+            else:
+                ka_d, ko_d = self.ka, self.ko
+
+            self._base_abs[d] = ka_d * len_map / (2.0 * np.pi)
+            self._base_ord[d] = ko_d * n_sub / (2.0 * np.pi)
+
         x_min_abs, x_min_ord, x_soo_abs, x_soo_ord = self._encode_positions(
             x_min_scaled, x_soo_scaled, x_arg
         )
@@ -381,25 +599,21 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_soo_abs = np.copy(x_soo)
         x_soo_ord = np.copy(x_soo)
 
-        for d in np.unique(self._shapelet_dilations):
+        for d in self._unique_dilations:
             sub_idx = np.where(self._shapelet_dilations == d)[0]
-            sh_len = self._shapelet_lengths[sub_idx[0]]
-            len_map = max(1.0, float(self._series_len - (sh_len - 1) * d))
-            n_sub = max(1.0, float(len(sub_idx)))
-
-            base_abs = self.ka * len_map / (2.0 * np.pi)
-            base_ord = self.ko * n_sub / (2.0 * np.pi)
+            base_abs = self._base_abs[d]
+            base_ord = self._base_ord[d]
 
             # Absolute
             pos_abs = x_arg[:, sub_idx]
             x_min_abs[:, sub_idx] += np.sin(pos_abs / base_abs)
-            x_soo_abs[:, sub_idx] += np.sin(pos_abs / base_abs)
+            x_soo_abs[:, sub_idx] += np.cos(pos_abs / base_abs)
 
             # Ordinal with tie-break
             pos_ord = _assign_order_batch(pos_abs)
 
             x_min_ord[:, sub_idx] += np.sin(pos_ord / base_ord)
-            x_soo_ord[:, sub_idx] += np.sin(pos_ord / base_ord)
+            x_soo_ord[:, sub_idx] += np.cos(pos_ord / base_ord)
 
         return x_min_abs, x_min_ord, x_soo_abs, x_soo_ord
 
@@ -430,6 +644,11 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
         # Concatenate all 8 multiviews
         return np.hstack([x_min, x_soo, m_oa, m_or, m_ar, s_oa, s_or, s_ar])
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter sets for the estimator."""
+        return {"max_shapelets": 10, "max_iter": 5}
 
 
 ShapeleterTransformer = ShapeleterTransform
