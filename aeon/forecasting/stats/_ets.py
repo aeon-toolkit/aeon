@@ -76,6 +76,12 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     n_timepoints_ : int
         Number of time points in the training series.
 
+    Notes
+    -----
+    ``predict`` returns the forecast computed in ``fit`` and does not use the
+    series passed to it. Use ``forecast(y)`` to fit and forecast a new series,
+    or ``iterative_forecast`` to forecast several steps ahead.
+
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -238,15 +244,15 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Parameters
         ----------
         y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+            Ignored. The forecast is computed in ``fit`` from the series seen
+            there. Use ``forecast(y)`` to fit and forecast a new series.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Not supported.
 
         Returns
         -------
         float
-            single prediction self.horizon steps ahead of y.
+            The prediction ``horizon`` steps ahead of the series seen in ``fit``.
         """
         return self.forecast_
 
@@ -408,6 +414,12 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
     wrapped_model_ : ETS
         The fitted :class:`ETS` model with the selected configuration.
 
+    Notes
+    -----
+    ``predict`` returns the forecast computed in ``fit`` and does not use the
+    series passed to it. Use ``forecast(y)`` to fit and forecast a new series,
+    or ``iterative_forecast`` to forecast several steps ahead.
+
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -511,15 +523,15 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         Parameters
         ----------
         y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+            Ignored. The forecast is computed in ``fit`` from the series seen
+            there. Use ``forecast(y)`` to fit and forecast a new series.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Not supported.
 
         Returns
         -------
         float
-            single prediction self.horizon steps ahead of y.
+            The prediction ``horizon`` steps ahead of the series seen in ``fit``.
         """
         return self.wrapped_model_.predict(y, exog)
 
