@@ -61,7 +61,7 @@ def _resolve_average_callable(
     if isinstance(averaging_method, str):
         if averaging_method not in _AVERAGE_DICT:
             raise ValueError(
-                "averaging_method string is invalid. Please use one of thefollowing",
+                "averaging_method string is invalid. Please use one of the following",
                 _AVERAGE_DICT.keys(),
             )
         return _AVERAGE_DICT[averaging_method]

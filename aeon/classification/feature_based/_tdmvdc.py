@@ -299,9 +299,8 @@ class TDMVDCClassifier(BaseClassifier):
             for j in range(n_classifiers):
                 label_ = testYList[j, i]
                 index_ = np.arange(n_classes)[uniqueY == label_]
-                testWeightArray[index_, i] += (
-                    1  # The label weight for the sample is + 1
-                )
+                # The label weight for the sample is + 1
+                testWeightArray[index_, i] += 1
         for i in range(n_cases):  # Predicting each sample label
             testVY[i] = uniqueY[
                 np.argmax(testWeightArray[:, i])

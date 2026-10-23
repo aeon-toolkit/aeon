@@ -34,28 +34,28 @@ references in type hints. See [PEP 563](https://peps.python.org/pep-0563/) for m
 information. The `pyod` `BaseDetector` class can now be used in type hints with
 these additions.
 
- ```python
- """Adapter for PyOD models"""
+```python
+"""Adapter for PyOD models"""
 
- from __future__ import annotations
+from __future__ import annotations
 
- __maintainer__ = []
- __all__ = ["PyODAdapter"]
+__maintainer__ = []
+__all__ = ["PyODAdapter"]
 
- from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
- from typing import TYPE_CHECKING
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
+from typing import TYPE_CHECKING
 
- if TYPE_CHECKING:
-     from pyod.models.base import BaseDetector
+if TYPE_CHECKING:
+    from pyod.models.base import BaseDetector
 
 
- class PyODAdapter(BaseSeriesAnomalyDetector):
-     def __init__(
-         self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
-     ):
-         self.pyod_model = pyod_model
-         self.window_size = window_size
-         self.stride = stride
+class PyODAdapter(BaseSeriesAnomalyDetector):
+    def __init__(
+        self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
+    ):
+        self.pyod_model = pyod_model
+        self.window_size = window_size
+        self.stride = stride
 
-         super().__init__(axis=0)
+        super().__init__(axis=0)
 ```
