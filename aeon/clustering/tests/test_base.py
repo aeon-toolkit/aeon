@@ -5,7 +5,11 @@ import pytest
 from sklearn.exceptions import NotFittedError
 
 from aeon.clustering.base import BaseClusterer
-from aeon.testing.mock_estimators import MockCluster, MockTransductiveCluster
+from aeon.testing.mock_estimators import (
+    MockCluster,
+    MockLabelCluster,
+    MockTransductiveCluster,
+)
 
 
 def test_correct_input():
@@ -189,31 +193,6 @@ def test_predict_with_capability():
     assert clst.predict_proba(X).shape == (10,)
 
 
-class _LabelClusterer(BaseClusterer):
-    """Clusterer whose labels cycle through a given list of label values.
-
-    ``_predict`` assigns ``labels`` round-robin, so slicing ``X`` controls which
-    labels a ``predict`` call sees. ``fit`` does the same with ``fit_labels``, or
-    with ``labels`` if it is None.
-    """
-
-    def __init__(self, labels=(0, 1, 2), n_clusters=3, fit_labels=None):
-        self.labels = labels
-        self.n_clusters = n_clusters
-        self.fit_labels = fit_labels
-        super().__init__()
-
-    def _fit(self, X, y=None):
-        if self.fit_labels is None:
-            self.labels_ = self._predict(X)
-        else:
-            self.labels_ = np.resize(np.asarray(self.fit_labels), len(X))
-        return self
-
-    def _predict(self, X):
-        return np.resize(np.asarray(self.labels), len(X))
-
-
 def test_base_predict_proba_columns_fixed_when_cluster_missing():
     """Test ``predict_proba`` columns match ``predict`` when ``X`` misses a cluster.
 
@@ -222,7 +201,7 @@ def test_base_predict_proba_columns_fixed_when_cluster_missing():
     """
     X = np.random.random(size=(9, 1, 20))
     for n_clusters in [3, None]:
-        clst = _LabelClusterer(n_clusters=n_clusters).fit(X)
+        clst = MockLabelCluster(n_clusters=n_clusters).fit(X)
         sub = X[clst.predict(X) != 0]
         preds = clst.predict(sub)
         proba = clst.predict_proba(sub)
@@ -238,7 +217,7 @@ def test_base_predict_proba_negative_prediction_raises():
     ``predict_proba`` column.
     """
     X = np.random.random(size=(6, 1, 20))
-    clst = _LabelClusterer(labels=(-1, 0, 1)).fit(X)
+    clst = MockLabelCluster(labels=(-1, 0, 1)).fit(X)
     assert np.array_equal(clst.predict(X), [-1, 0, 1, -1, 0, 1])
     with pytest.raises(ValueError, match="negative labels"):
         clst.predict_proba(X)
@@ -253,7 +232,7 @@ def test_base_predict_proba_ignores_noise_in_labels():
     """
     X = np.random.random(size=(8, 1, 20))
     for n_clusters in [3, None]:
-        clst = _LabelClusterer(
+        clst = MockLabelCluster(
             labels=(0, 1, 2), fit_labels=(-1, 0, 1, 2), n_clusters=n_clusters
         ).fit(X)
         proba = clst.predict_proba(X)
@@ -261,7 +240,7 @@ def test_base_predict_proba_ignores_noise_in_labels():
         assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
 
     # an empty cluster alongside noise keeps cluster indices as columns
-    clst = _LabelClusterer(labels=(0, 2), fit_labels=(-1, 0, 2)).fit(X)
+    clst = MockLabelCluster(labels=(0, 2), fit_labels=(-1, 0, 2)).fit(X)
     proba = clst.predict_proba(X)
     assert proba.shape == (8, 3)
     assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
@@ -294,7 +273,7 @@ def test_base_predict_proba_labels_above_n_clusters():
     larger than ``n_clusters``.
     """
     X = np.random.random(size=(8, 1, 20))
-    clst = _LabelClusterer(labels=(22, 3, 32, 22), n_clusters=3).fit(X)
+    clst = MockLabelCluster(labels=(22, 3, 32, 22), n_clusters=3).fit(X)
     proba = clst.predict_proba(X)
     assert proba.shape == (8, 33)
     assert np.array_equal(proba.argmax(axis=1), clst.predict(X))

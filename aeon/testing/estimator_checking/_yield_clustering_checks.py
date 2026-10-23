@@ -22,33 +22,34 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
         check_clusterer_does_not_override_final_methods, estimator_class=estimator_class
     )
 
+    # data type irrelevant
+    if issubclass(estimator_class, BaseDeepClusterer):
+        yield partial(
+            check_clusterer_saving_loading_deep_learning,
+            estimator_class=estimator_class,
+            datatype=datatypes[0][0],
+        )
+
     # test class instances
     for i, estimator in enumerate(estimator_instances):
         # data type irrelevant
-        yield partial(
-            check_clusterer_labels, estimator=estimator, datatype=datatypes[i][0]
-        )
         yield partial(
             check_clusterer_uses_all_clusters,
             estimator=estimator,
             datatype=datatypes[i][0],
         )
+
         if isinstance(estimator, BaseDeepClusterer):
             yield partial(
                 check_clustering_random_state_deep_learning,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
+
+        # test all data types
         for datatype in datatypes[i]:
             yield partial(
                 check_clusterer_output, estimator=estimator, datatype=datatype
-            )
-
-        if issubclass(estimator_class, BaseDeepClusterer):
-            yield partial(
-                check_clusterer_saving_loading_deep_learning,
-                estimator_class=estimator_class,
-                datatype=datatypes[i][0],
             )
 
 
@@ -127,14 +128,21 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
 def check_clusterer_output(estimator, datatype):
     """Test clusterer outputs the correct data types and values.
 
-    Test fit sets labels_ and fit_predict returns it. For clusterers which support
-    out-of-sample prediction, test predict produces a np.array or pd.Series with only
-    values seen in the train data, that predict_proba probability estimates add
-    up to one, and that predict returns a cluster with the highest predict_proba
-    probability, including on a subset of cases missing a cluster. For transductive
-    clusterers (capability:predict tag set to False), test predict and
-    predict_proba raise a NotImplementedError instead. The estimator is seeded so
-    repeated predict calls agree.
+    Tests that fit sets labels_ as cluster indices: non-negative integers, below
+    n_clusters if the clusterer has it.
+
+    For clusterers which support out-of-sample prediction, also tests that:
+
+    - predict returns cluster indices which appear in labels_.
+    - predict_proba probability estimates add up to one.
+    - predict returns a cluster with the highest predict_proba probability,
+      including on a subset of cases missing a cluster.
+
+    For transductive clusterers (capability:predict tag set to False), tests that
+    predict and predict_proba raise a NotImplementedError and fit_predict returns
+    labels_ instead.
+
+    The estimator is seeded so repeated predict calls agree.
     """
     import pytest
 
@@ -146,6 +154,7 @@ def check_clusterer_output(estimator, datatype):
     assert hasattr(estimator, "labels_")
     assert isinstance(estimator.labels_, np.ndarray)
     assert estimator.labels_.shape == (get_n_cases(data),)
+    _assert_cluster_indices(estimator, estimator.labels_)
 
     if not estimator.get_tag("capability:predict"):
         # transductive clusterers cannot assign clusters to unseen data
@@ -172,8 +181,13 @@ def check_clusterer_output(estimator, datatype):
     # check predict
     assert isinstance(y_pred, np.ndarray)
     assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
+    _assert_cluster_indices(estimator, y_pred)
+    assert np.all(np.isin(y_pred, estimator.labels_)), (
+        f"predict returned labels {np.setdiff1d(y_pred, estimator.labels_)} "
+        "which are not in labels_"
+    )
 
-    # check predict proba (all classifiers have predict_proba by default)
+    # check predict proba (all clusterers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
 
     assert isinstance(y_proba, np.ndarray)
@@ -193,26 +207,6 @@ def check_clusterer_output(estimator, datatype):
         y_proba_sub = estimator.predict_proba(X_sub)
         assert y_proba_sub.shape[1] == y_proba.shape[1]
         _assert_predict_is_max_probability(estimator.predict(X_sub), y_proba_sub)
-
-
-def check_clusterer_labels(estimator, datatype):
-    """Test clusterer labels are cluster indices.
-
-    labels_, and predict on unseen data for clusterers which support out-of-sample
-    prediction, must be non-negative integers below n_clusters if the clusterer has
-    it. Predicted labels must also appear in labels_.
-    """
-    estimator = _clone_estimator(estimator, random_state=0)
-    estimator.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    _assert_cluster_indices(estimator, estimator.labels_)
-
-    if estimator.get_tag("capability:predict"):
-        y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
-        _assert_cluster_indices(estimator, y_pred)
-        assert np.all(np.isin(y_pred, estimator.labels_)), (
-            f"predict returned labels {np.setdiff1d(y_pred, estimator.labels_)} "
-            "which are not in labels_"
-        )
 
 
 def check_clusterer_uses_all_clusters(estimator, datatype):
