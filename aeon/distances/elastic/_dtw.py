@@ -441,6 +441,39 @@ def _dtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
+def _check_dtw_parameters(x_list, window, itakura_max_slope, y_list=None):
+    """Raise the errors dtw_distance raises for these parameters.
+
+    Numba does not propagate exceptions raised inside a prange body, so the checks
+    run here, before the parallel kernels, against the shortest series that any
+    pair will use.
+    """
+    min_length = min((s.shape[1] for s in x_list), default=None)
+    if y_list is not None:
+        min_y_length = min((s.shape[1] for s in y_list), default=None)
+        if min_length is None or (
+            min_y_length is not None and min_y_length < min_length
+        ):
+            min_length = min_y_length
+    if itakura_max_slope is not None:
+        if itakura_max_slope < 0 or itakura_max_slope > 1:
+            raise ValueError("itakura_max_slope must be between 0 and 1")
+        if min_length is None:
+            return
+        if min_length < 3:
+            raise ZeroDivisionError(
+                "itakura_max_slope requires all series to have at least 3 time points"
+            )
+        if np.floor((itakura_max_slope * (min_length / 100)) * 100) == 0:
+            raise ZeroDivisionError(
+                "itakura_max_slope is too small for the series length: "
+                "floor(itakura_max_slope * min(n, m)) must be at least 1"
+            )
+    elif window is not None and window != 1.0:
+        if window < 0 or window > 1:
+            raise ValueError("window must be between 0 and 1")
+
+
 @numba_thread_handler
 def dtw_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
@@ -538,8 +571,10 @@ def dtw_pairwise_distance(
 
     if y is None:
         # To self
+        _check_dtw_parameters(_X, window, itakura_max_slope)
         return _dtw_pairwise_distance(_X, window, itakura_max_slope)
     _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
+    _check_dtw_parameters(_X, window, itakura_max_slope, _y)
     return _dtw_from_multiple_to_multiple_distance(_X, _y, window, itakura_max_slope)
 
 
