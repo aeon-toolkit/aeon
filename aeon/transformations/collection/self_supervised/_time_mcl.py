@@ -316,7 +316,7 @@ class TimeMCL(BaseCollectionTransformer):
 
             if self.verbose:
                 sys.stdout.write(
-                    "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                    f"Training loss at epoch {epoch}: {float(epoch_loss):.4f}\n"
                 )
 
             for callback in self.callbacks_:

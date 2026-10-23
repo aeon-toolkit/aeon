@@ -72,3 +72,9 @@ def check_lapack_svd_safe(n_samples: int, n_features: int, estimator_name: str) 
             "available RAM. Use an estimator or solver that does not rely "
             "on the affected SVD-based operation."
         )
+
+
+def _is_float_or_int_dtype(dtype):
+    return isinstance(dtype, np.dtype) and (
+        np.issubdtype(dtype, np.floating) or np.issubdtype(dtype, np.integer)
+    )

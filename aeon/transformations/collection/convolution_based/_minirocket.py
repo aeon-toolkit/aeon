@@ -46,7 +46,7 @@ class MiniRocket(BaseCollectionTransformer):
 
     See Also
     --------
-     Rocket, MultiRocket, Hydra
+     Rocket, MultiRocket, HydraTransformer
 
     References
     ----------
@@ -81,7 +81,7 @@ class MiniRocket(BaseCollectionTransformer):
         "capability:multithreading": True,
     }
     # indices for the 84 kernels used by MiniRocket
-    _indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype=np.int32)
+    _indices = np.array([*combinations(np.arange(9), 3)], dtype=np.int32)
 
     def __init__(
         self,

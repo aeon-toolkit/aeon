@@ -391,7 +391,7 @@ class SETARTree(BaseForecaster, IterativeForecastingMixin):
                     )
                 else:
                     if self.feature_subset is not None:
-                        candidates = [i for i in range(p)]
+                        candidates = [*range(p)]
                     else:
                         candidates = list(range(p))
 

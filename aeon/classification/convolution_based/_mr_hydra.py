@@ -34,7 +34,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
     estimator : sklearn compatible classifier or None, default=None
         The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
         is used.
-    class_weight{None, “balanced”}, dict or list of dicts, default=None
+    class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
         If None, all classes are assigned equal weights.
         The “balanced” mode uses the values of y to automatically adjust weights

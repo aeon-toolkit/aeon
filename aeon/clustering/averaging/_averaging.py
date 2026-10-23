@@ -65,4 +65,9 @@ def _resolve_average_callable(
                 _AVERAGE_DICT.keys(),
             )
         return _AVERAGE_DICT[averaging_method]
+    elif not callable(averaging_method):
+        raise ValueError(
+            f"averaging_method must be a valid string or callable, but got "
+            f"{type(averaging_method).__name__}"
+        )
     return averaging_method

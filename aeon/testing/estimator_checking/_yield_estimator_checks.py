@@ -25,7 +25,6 @@ from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
-from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -68,9 +67,14 @@ from aeon.testing.testing_config import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
+from aeon.testing.utils.estimator_checks import (
+    _changed_state,
+    _get_tag,
+    _run_estimator_method,
+    _snapshot_state,
+)
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.base import VALID_ESTIMATOR_BASES
+from aeon.utils.base import VALID_ESTIMATOR_BASES, get_identifier
 from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -250,19 +254,12 @@ def check_inheritance(estimator_class):
         estimator_class, BaseAeonEstimator
     ), f"object {estimator_class} is not a sub-class of BaseAeonEstimator."
 
-    # Usually estimators inherit only from one BaseAeonEstimator type, but in some cases
-    # they may inherit both as part of a series/collection split
-    n_base_types = sum(
-        issubclass(estimator_class, cls) for cls in VALID_ESTIMATOR_BASES.values()
+    # get_identifier raises a TypeError if the estimator has multiple base types
+    identifier = get_identifier(estimator_class)
+    assert identifier in VALID_ESTIMATOR_BASES, (
+        f"Estimator should inherit from one of {list(VALID_ESTIMATOR_BASES.keys())}, "
+        f"found {identifier}."
     )
-    assert 2 >= n_base_types >= 1, "Estimator should inherit from 1 or 2 base types."
-
-    # Only transformers can inherit from multiple base types currently
-    if n_base_types > 1:
-        assert issubclass(estimator_class, BaseTransformer) or issubclass(
-            estimator_class, BaseSimilaritySearch
-        ), "Only transformers or similarity search estimators can inherit from multiple"
-        "base types."
 
 
 def check_has_common_interface(estimator_class):
@@ -374,9 +371,9 @@ def check_constructor(estimator_class):
     init_params = signature(estimator_class.__init__).parameters
     invalid_attr = set(init_params) - set(vars(estimator)) - {"self"}
     assert not invalid_attr, (
-        "Estimator %s should store all parameters"
+        f"Estimator {estimator.__class__.__name__} should store all parameters"
         " as an attribute during init. Did not find "
-        "attributes `%s`." % (estimator.__class__.__name__, sorted(invalid_attr))
+        f"attributes `{sorted(invalid_attr)}`."
     )
 
     param_values = [
@@ -554,26 +551,32 @@ def check_non_state_changing_method(estimator, datatype):
         y, FULL_TEST_DATA_DICT[datatype]["train"][1]
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
-    # dict_before = copy of dictionary of estimator before predict, post fit
-    dict_before = estimator.__dict__.copy()
     X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
+    state_before = _snapshot_state(estimator)
     for method in NON_STATE_CHANGING_METHODS:
         if _method_is_callable(estimator, method):
             _run_estimator_method(estimator, method, datatype, "test")
 
-        assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["test"][0]) and deep_equals(
-            y, FULL_TEST_DATA_DICT[datatype]["test"][1]
-        ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
+            assert deep_equals(
+                X, FULL_TEST_DATA_DICT[datatype]["test"][0]
+            ) and deep_equals(
+                y, FULL_TEST_DATA_DICT[datatype]["test"][1]
+            ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
-        # dict_after = dictionary of estimator after predict and fit
-        is_equal, msg = deep_equals(estimator.__dict__, dict_before, return_msg=True)
-        assert is_equal, (
-            f"Estimator: {type(estimator).__name__} changes __dict__ "
-            f"during {method}, "
-            f"reason/location of discrepancy (x=after, y=before): {msg}"
-        )
+            changed = _changed_state(state_before, estimator)
+            reference_only = sorted(
+                n for n in changed if state_before.get(n, (None,))[0] == "identity"
+            )
+            msg = (
+                f"Estimator: {type(estimator).__name__} changes __dict__ "
+                f"during {method}; changed attributes: {sorted(changed)}"
+            )
+            if reference_only:
+                msg += f". Compared by reference only: {reference_only}"
+
+            assert not changed, msg
 
 
 def check_fit_updates_state_and_cloning(estimator, datatype):
@@ -627,9 +630,9 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
         # is possible RandomState instance but in this check we explicitly
         # fixed the random_state params recursively to be integer seeds via clone.
         assert joblib.hash(new_value) == joblib.hash(original_value), (
-            "Estimator %s should not change or mutate "
-            " the parameter %s from %s to %s during fit."
-            % (estimator.__class__.__name__, param_name, original_value, new_value)
+            f"Estimator {estimator.__class__.__name__} should not change or mutate "
+            f" the parameter {param_name} from {original_value} to {new_value} "
+            "during fit."
         )
 
     # check that estimator cloned from fitted estimator is not fitted
