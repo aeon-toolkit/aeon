@@ -327,7 +327,7 @@ def get_type(X, raise_error=True):
                     break
                 if not _is_pd_wide(a):
                     msg = (
-                        "ERROR df-list must contain non-multiindex pd.DataFrame with"
+                        "ERROR df-list must contain non-multiindex pd.DataFrame with "
                         "numeric values"
                     )
                     break
