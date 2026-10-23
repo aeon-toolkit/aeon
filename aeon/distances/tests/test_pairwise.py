@@ -626,9 +626,7 @@ def test_dtw_pairwise_distance_unequal_length(kwargs):
     assert self_pairwise.shape == (4, 4)
     for i in range(4):
         for j in range(4):
-            assert_almost_equal(
-                self_pairwise[i, j], dtw_distance(X[i], X[j], **kwargs)
-            )
+            assert_almost_equal(self_pairwise[i, j], dtw_distance(X[i], X[j], **kwargs))
 
     x_vs_y = dtw_pairwise_distance(X, y, **kwargs)
     assert x_vs_y.shape == (4, 3)
