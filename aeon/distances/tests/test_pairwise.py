@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
+from aeon.distances import dtw_distance, dtw_pairwise_distance
 from aeon.distances import pairwise_distance as compute_pairwise_distance
 from aeon.distances._distance import (
     DISTANCES,
@@ -580,3 +581,57 @@ def test_pairwise_distance_n_jobs_equals_serial(dist, n_jobs):
         assert isinstance(parallel, np.ndarray)
         assert serial.shape == parallel.shape
         assert_almost_equal(serial, parallel)
+
+
+@pytest.mark.parametrize("use_y", [False, True])
+@pytest.mark.parametrize(
+    "kwargs, error",
+    [
+        ({"window": -0.1}, ValueError),
+        ({"window": 1.1}, ValueError),
+        ({"itakura_max_slope": -0.1}, ValueError),
+        ({"itakura_max_slope": 1.1}, ValueError),
+        # floor(slope * min_length) == 0
+        ({"itakura_max_slope": 0.01}, ZeroDivisionError),
+    ],
+)
+def test_dtw_pairwise_distance_invalid_parameters(kwargs, error, use_y):
+    """Test dtw_pairwise_distance raises on invalid window parameters."""
+    X = make_example_2d_numpy_collection(5, 10, random_state=1, return_y=False)
+    y = make_example_2d_numpy_collection(4, 10, random_state=2, return_y=False)
+    with pytest.raises(error):
+        dtw_pairwise_distance(X, y if use_y else None, **kwargs)
+
+
+@pytest.mark.parametrize("use_y", [False, True])
+@pytest.mark.parametrize("length", [1, 2])
+def test_dtw_pairwise_distance_itakura_short_series(length, use_y):
+    """Test dtw_pairwise_distance raises for series too short for itakura bounds."""
+    X = [np.random.RandomState(i).random(10) for i in range(3)]
+    short = [np.random.RandomState(i).random(length) for i in range(3)]
+    with pytest.raises(ZeroDivisionError):
+        if use_y:
+            dtw_pairwise_distance(X, short, itakura_max_slope=1.0)
+        else:
+            dtw_pairwise_distance(X + short, itakura_max_slope=1.0)
+
+
+@pytest.mark.parametrize("kwargs", [{"window": 0.5}, {"itakura_max_slope": 0.5}])
+def test_dtw_pairwise_distance_unequal_length(kwargs):
+    """Test dtw_pairwise_distance with valid parameters matches dtw_distance."""
+    X = [np.random.RandomState(i).random(8 + i) for i in range(4)]
+    y = [np.random.RandomState(10 + i).random(9 + i) for i in range(3)]
+
+    self_pairwise = dtw_pairwise_distance(X, **kwargs)
+    assert self_pairwise.shape == (4, 4)
+    for i in range(4):
+        for j in range(4):
+            assert_almost_equal(
+                self_pairwise[i, j], dtw_distance(X[i], X[j], **kwargs)
+            )
+
+    x_vs_y = dtw_pairwise_distance(X, y, **kwargs)
+    assert x_vs_y.shape == (4, 3)
+    for i in range(4):
+        for j in range(3):
+            assert_almost_equal(x_vs_y[i, j], dtw_distance(X[i], y[j], **kwargs))
