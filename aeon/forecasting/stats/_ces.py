@@ -41,10 +41,10 @@ _MODEL_COMPONENTS = {
 }
 
 
-def _validate_season_length(value):
-    """Reject silent coercion of bad ``season_length`` values.
+def _validate_seasonal_period(value):
+    """Reject silent coercion of bad ``seasonal_period`` values.
 
-    ``season_length`` must be a strictly positive integer. Booleans
+    ``seasonal_period`` must be a strictly positive integer. Booleans
     (which Python classifies as ``int``) are rejected explicitly because
     ``True`` quietly coerces to ``1`` and is almost never user-intended.
     Floats and strings are also rejected even when they look numeric:
@@ -52,7 +52,7 @@ def _validate_season_length(value):
     that mask user typos.
     """
     if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or value < 1:
-        raise ValueError(f"season_length must be a positive integer, got {value!r}.")
+        raise ValueError(f"seasonal_period must be a positive integer, got {value!r}.")
 
 
 def _normalise_model(model):
@@ -91,13 +91,13 @@ class CES(BaseForecaster, IterativeForecastingMixin):
       matches the smooth/ADAM and StatsForecast AutoCES parameterisation
       so fitted alphas transfer directly between libraries.
     * ``model="S"`` (simple seasonal): a two-component state is updated at
-      seasonal lag ``season_length``. The one-step forecast uses the state
+      seasonal lag ``seasonal_period``. The one-step forecast uses the state
       from the same position in the previous seasonal cycle.
     * ``model="P"`` (partial seasonal): combines the non-seasonal
       two-component state with a one-component additive seasonal state
-      updated at seasonal lag ``season_length``.
+      updated at seasonal lag ``seasonal_period``.
     * ``model="F"`` (full seasonal): adds a seasonal complex-state pair
-      :math:`(l_{1,t}, c_{1,t})` lagged by ``season_length`` and a second
+      :math:`(l_{1,t}, c_{1,t})` lagged by ``seasonal_period`` and a second
       complex smoothing parameter :math:`\tilde{\beta} = \beta_0 + i\,\beta_1`.
       The observation is
       :math:`\hat{y}_t = l_{0,t-1} + l_{1,t-m}`, and the seasonal state has
@@ -112,8 +112,8 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     ----------
     model : {"N", "S", "P", "F", "none", "simple", "partial", "full"}
         Model code. ``"N"`` is the default. Seasonal models require
-        ``season_length >= 2``.
-    season_length : int, default=1
+        ``seasonal_period >= 2``.
+    seasonal_period : int, default=1
         Seasonal period. ``1`` means no seasonality. Required > 1 for any
         seasonal model.
     alpha_real, alpha_imag : float or None, default=None
@@ -132,7 +132,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         ``ell_{2,0}`` / ``c_{0,0}``. If ``None`` it is seeded
         deterministically from the data.
     initial_seasonal_real, initial_seasonal_imag : array-like or None
-        Length-``season_length`` initial seasonal state. If ``None`` the
+        Length-``seasonal_period`` initial seasonal state. If ``None`` the
         seasonal seed is computed deterministically from the data (per-
         position mean minus overall mean; correction set to zero). The
         seasonal seed is deterministic and is not optimised.
@@ -158,7 +158,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     model_ : str
         Canonical model code actually used (``"N"``, ``"S"``, ``"P"``,
         or ``"F"``).
-    season_length_ : int
+    seasonal_period_ : int
         Seasonal period used (1 for non-seasonal).
     alpha_real_, alpha_imag_ : float
         Fitted non-seasonal smoothing parameters.
@@ -171,12 +171,12 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     initial_level_, initial_level_imag_ : float
         Fitted initial non-seasonal state components.
     initial_seasonal_real_, initial_seasonal_imag_ : np.ndarray or None
-        Seasonal state seed (length ``season_length_``). ``None`` for
+        Seasonal state seed (length ``seasonal_period_``). ``None`` for
         non-seasonal.
     level_real_, level_imag_ : float
         Final non-seasonal state components after fitting.
     seasonal_real_, seasonal_imag_ : np.ndarray or None
-        Final seasonal-state buffers after fitting (length ``season_length_``).
+        Final seasonal-state buffers after fitting (length ``seasonal_period_``).
         ``None`` for non-seasonal.
     fitted_values_ : np.ndarray
         In-sample one-step-ahead fitted values.
@@ -222,7 +222,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     def __init__(
         self,
         model="N",
-        season_length=1,
+        seasonal_period=1,
         alpha_real=None,
         alpha_imag=None,
         beta_real=None,
@@ -243,7 +243,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         tol=1e-4,
     ):
         self.model = model
-        self.season_length = season_length
+        self.seasonal_period = seasonal_period
         self.alpha_real = alpha_real
         self.alpha_imag = alpha_imag
         self.beta_real = beta_real
@@ -283,7 +283,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         self._validate_ces_param_bounds(model_code)
 
         self.model_ = model_code
-        self.season_length_ = int(self.season_length) if model_code != "N" else 1
+        self.seasonal_period_ = int(self.seasonal_period) if model_code != "N" else 1
         self._fit_statsforecast_style(y)
         return self
 
@@ -353,12 +353,12 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     def _fit_statsforecast_style(self, y):
         """Fit a CES variant using StatsForecast-compatible state semantics."""
         model_code = self.model_
-        m = int(self.season_length_) if model_code != "N" else 1
+        m = int(self.seasonal_period_) if model_code != "N" else 1
         if model_code != "N" and y.shape[0] < 2 * m:
             raise ValueError(
                 f"Seasonal CES (model={model_code!r}) needs at least "
-                f"2*season_length observations; got n={y.shape[0]}, "
-                f"season_length={m}."
+                f"2*seasonal_period observations; got n={y.shape[0]}, "
+                f"seasonal_period={m}."
             )
 
         season = _MODEL_TO_SEASON[model_code]
@@ -439,11 +439,11 @@ class CES(BaseForecaster, IterativeForecastingMixin):
     # ------------------------------------------------------------------
 
     def _check_seasonal_settings(self, model_code):
-        """Cross-check ``season_length`` against ``model``."""
-        _validate_season_length(self.season_length)
-        if model_code != "N" and self.season_length < 2:
+        """Cross-check ``seasonal_period`` against ``model``."""
+        _validate_seasonal_period(self.seasonal_period)
+        if model_code != "N" and self.seasonal_period < 2:
             raise ValueError(
-                f"Seasonal CES (model={model_code!r}) requires season_length >= 2."
+                f"Seasonal CES (model={model_code!r}) requires seasonal_period >= 2."
             )
 
     def _validate_ces_param_bounds(self, model_code):
@@ -547,7 +547,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
             if real_seed.shape != (lags,):
                 raise ValueError(
                     "initial_seasonal_real must have length "
-                    f"season_length ({lags}), got shape {real_seed.shape}."
+                    f"seasonal_period ({lags}), got shape {real_seed.shape}."
                 )
             states[:, 2] = real_seed
         if model_code == "F" and self.initial_seasonal_imag is not None:
@@ -555,7 +555,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
             if imag_seed.shape != (lags,):
                 raise ValueError(
                     "initial_seasonal_imag must have length "
-                    f"season_length ({lags}), got shape {imag_seed.shape}."
+                    f"seasonal_period ({lags}), got shape {imag_seed.shape}."
                 )
             states[:, 3] = imag_seed
 
@@ -579,12 +579,12 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
 
     Fits each candidate :class:`CES` model in turn, then picks the one with
     the lowest information criterion (AICc by default). Seasonal candidates
-    are silently skipped when ``season_length <= 1`` or the series is too
+    are silently skipped when ``seasonal_period <= 1`` or the series is too
     short for the seasonal seed.
 
     Parameters
     ----------
-    season_length : int, default=1
+    seasonal_period : int, default=1
         Seasonal period passed to seasonal candidates.
     models : sequence of str, default=("N", "S", "P", "F")
         Candidate CES model codes to consider. Defaults to the StatsForecast
@@ -628,13 +628,13 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
 
     def __init__(
         self,
-        season_length=1,
+        seasonal_period=1,
         models=("N", "S", "P", "F"),
         ic="aicc",
         max_iter=1000,
         tol=1e-4,
     ):
-        self.season_length = season_length
+        self.seasonal_period = seasonal_period
         self.models = models
         self.ic = ic
         self.max_iter = max_iter
@@ -655,16 +655,16 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
         if not requested:
             raise ValueError("models must contain at least one candidate.")
 
-        # Reject silent coercion of bad season_length values (floats,
+        # Reject silent coercion of bad seasonal_period values (floats,
         # strings, booleans, non-positive ints). CES._check_seasonal_settings
         # enforces the same rule for the single-model path; this guard
         # ensures AutoCES does not bypass it on the way to building
         # candidates.
-        _validate_season_length(self.season_length)
+        _validate_seasonal_period(self.seasonal_period)
 
         y_arr = _prepare_ces_y(y)
         n = int(y_arr.shape[0])
-        m = int(self.season_length)
+        m = int(self.seasonal_period)
 
         results = {}
         fits = {}
@@ -672,20 +672,20 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
             if code != "N" and m < 2:
                 results[code] = _ic_failure(
                     "skipped",
-                    f"Seasonal model {code!r} requires season_length >= 2; got {m}.",
+                    f"Seasonal model {code!r} requires seasonal_period >= 2; got {m}.",
                 )
                 continue
             if code != "N" and n < 2 * m:
                 results[code] = _ic_failure(
                     "skipped",
-                    f"Seasonal model {code!r} needs at least 2*season_length "
+                    f"Seasonal model {code!r} needs at least 2*seasonal_period "
                     f"observations; got n={n}, m={m}.",
                 )
                 continue
             try:
                 fitted = CES(
                     model=code,
-                    season_length=m if code != "N" else 1,
+                    seasonal_period=m if code != "N" else 1,
                     max_iter=self.max_iter,
                     tol=self.tol,
                 )
@@ -761,7 +761,7 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings."""
-        return {"season_length": 1, "models": ("N",)}
+        return {"seasonal_period": 1, "models": ("N",)}
 
 
 # ---------------------------------------------------------------------------

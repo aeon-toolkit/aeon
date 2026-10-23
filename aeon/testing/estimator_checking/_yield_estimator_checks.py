@@ -25,7 +25,6 @@ from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
-from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -75,7 +74,7 @@ from aeon.testing.utils.estimator_checks import (
     _snapshot_state,
 )
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.base import VALID_ESTIMATOR_BASES
+from aeon.utils.base import VALID_ESTIMATOR_BASES, get_identifier
 from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -255,19 +254,12 @@ def check_inheritance(estimator_class):
         f"object {estimator_class} is not a sub-class of BaseAeonEstimator."
     )
 
-    # Usually estimators inherit only from one BaseAeonEstimator type, but in some cases
-    # they may inherit both as part of a series/collection split
-    n_base_types = sum(
-        issubclass(estimator_class, cls) for cls in VALID_ESTIMATOR_BASES.values()
+    # get_identifier raises a TypeError if the estimator has multiple base types
+    identifier = get_identifier(estimator_class)
+    assert identifier in VALID_ESTIMATOR_BASES, (
+        f"Estimator should inherit from one of {list(VALID_ESTIMATOR_BASES.keys())}, "
+        f"found {identifier}."
     )
-    assert 2 >= n_base_types >= 1, "Estimator should inherit from 1 or 2 base types."
-
-    # Only transformers can inherit from multiple base types currently
-    if n_base_types > 1:
-        assert issubclass(estimator_class, BaseTransformer) or issubclass(
-            estimator_class, BaseSimilaritySearch
-        ), "Only transformers or similarity search estimators can inherit from multiple"
-        "base types."
 
 
 def check_has_common_interface(estimator_class):
