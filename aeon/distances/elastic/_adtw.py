@@ -211,12 +211,6 @@ def _adtw_distance(
     This is optimized for memory usage by using a two-row buffer
     (O(min(N, M)) space) instead of allocating the full O(NM) cost matrix.
     """
-    # Iterate over the larger dimension to minimize the size of the row buffers.
-    # ADTW is symmetric (the warp penalty is applied symmetrically to the top and
-    # left moves), so swapping x and y and transposing the bounding matrix leaves
-    # the distance unchanged. The swap is a call with swapped arguments rather
-    # than a reassignment, which Numba cannot type when x and y have different
-    # dtypes.
     if x.shape[1] < y.shape[1]:
         return _adtw_distance_impl(y, x, bounding_matrix.T, warp_penalty)
     return _adtw_distance_impl(x, y, bounding_matrix, warp_penalty)
@@ -276,9 +270,6 @@ def _adtw_distance_unbounded_impl(
     prev = np.full(y_size + 1, np.inf)
     curr = np.empty(y_size + 1)
     prev[0] = 0.0
-
-    # Univariate fast path: read scalars from flat 1D views instead of creating two
-    # strided column views and running the channel loop for every DP cell.
     univariate = x.shape[0] == 1 and y.shape[0] == 1
     x0 = x[0]
     y0 = y[0]
