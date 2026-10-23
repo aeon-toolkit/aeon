@@ -6,6 +6,8 @@ __maintainer__ = []
 import pytest
 from sklearn import svm
 from sklearn.cluster import KMeans
+from sklearn.feature_selection import RFE, SelectFromModel
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.pipeline import Pipeline
@@ -13,7 +15,12 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.feature_based import SummaryClassifier
 from aeon.segmentation import RandomSegmenter
-from aeon.utils.sklearn import is_sklearn_estimator, sklearn_estimator_identifier
+from aeon.utils.sklearn import (
+    is_sklearn_classifier,
+    is_sklearn_estimator,
+    is_sklearn_transformer,
+    sklearn_estimator_identifier,
+)
 
 CORRECT_IDENTIFIERS = {
     KMeans: "clusterer",
@@ -70,3 +77,14 @@ def test_sklearn_identifiers_inputs():
     cls = GridSearchCV(svc, parameters)
     id = sklearn_estimator_identifier(cls)
     assert id == "classifier"
+
+
+@pytest.mark.parametrize(
+    "estimator",
+    [SelectFromModel(LogisticRegression()), RFE(LogisticRegression())],
+)
+def test_transformer_with_estimator_attribute_not_unwrapped(estimator):
+    """Test transformers that wrap an ``estimator`` are identified as transformers."""
+    assert sklearn_estimator_identifier(estimator) == "transformer"
+    assert is_sklearn_transformer(estimator)
+    assert not is_sklearn_classifier(estimator)
