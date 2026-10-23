@@ -708,7 +708,7 @@ def check_fit_deterministic(estimator, datatype):
             if not same:
                 raise ValueError(
                     f"Running {type(estimator)} {method} with test parameters after "
-                    f"two calls to fit gives different results."
+                    f"two calls to fit gives different results. "
                     f"Check equivalence message: {msg}"
                 )
             i += 1

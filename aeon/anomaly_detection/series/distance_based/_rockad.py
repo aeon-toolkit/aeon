@@ -156,7 +156,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         if n_windows < self.n_neighbors:
             raise ValueError(
                 f"Window count ({n_windows}) "
-                f"has to be larger than n_neighbors ({self.n_neighbors})."
+                f"has to be larger than n_neighbors ({self.n_neighbors}). "
                 "Please choose a smaller n_neighbors value or increase window count "
                 "by choosing a smaller window size or larger stride."
             )

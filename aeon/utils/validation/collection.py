@@ -351,7 +351,7 @@ def get_type(X, raise_error=True):
     else:
         msg = (
             f"ERROR passed input of type {type(X)}, must be of type "
-            f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame."
+            f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame. "
             f"See aeon.utils.data_types.COLLECTIONS_DATA_TYPES"
         )
 

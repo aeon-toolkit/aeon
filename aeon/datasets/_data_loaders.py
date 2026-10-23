@@ -199,7 +199,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             if meta_data["univariate"]:
                 if current_channels > 1:
                     raise OSError(
-                        f"Seen {current_channels} in case {n_cases}."
+                        f"Seen {current_channels} in case {n_cases}. "
                         f"Expecting univariate from metadata"
                     )
         if meta_data["equallength"]:
@@ -863,7 +863,7 @@ def load_from_tsf_file(
                         if len(series) == 0:
                             raise Exception(
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series. "
                                 "Missing values should be indicated with ? symbol"
@@ -883,7 +883,7 @@ def load_from_tsf_file(
                             raise Exception(
                                 "All series values are missing. "
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series."
                             )

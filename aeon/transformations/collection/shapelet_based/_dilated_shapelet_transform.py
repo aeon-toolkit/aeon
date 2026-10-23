@@ -320,7 +320,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int_)
             if not np.all(self.shapelet_lengths_ >= 2):
                 warnings.warn(
-                    "Some values in 'shapelet_lengths' are inferior to 2."
+                    "Some values in 'shapelet_lengths' are inferior to 2. "
                     "These values will be ignored.",
                     stacklevel=2,
                 )
