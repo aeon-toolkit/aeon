@@ -31,9 +31,6 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Number of kernels per group for the Hydra transform.
     n_groups : int, default=64
         Number of groups per dilation for the Hydra transform.
-    estimator : sklearn compatible classifier or None, default=None
-        The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-        is used.
     class_weight : {None, "balanced"}, dict or list of dicts, default=None
         From sklearn documentation:
         If None, all classes are assigned equal weights.
@@ -54,6 +51,9 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    estimator : sklearn compatible classifier or None, default=None
+        The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        is used.
 
     Attributes
     ----------
@@ -99,17 +99,17 @@ class MultiRocketHydraClassifier(BaseClassifier):
         self,
         n_kernels: int = 8,
         n_groups: int = 64,
-        estimator=None,
         class_weight=None,
         n_jobs: int = 1,
         random_state=None,
+        estimator=None,
     ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
-        self.estimator = estimator
         self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.estimator = estimator
 
         super().__init__()
 
