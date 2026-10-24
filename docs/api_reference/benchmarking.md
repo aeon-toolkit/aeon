@@ -19,6 +19,7 @@ Results loaders and loading utilities for `aeon` (and other) estimators.
     get_available_estimators
     get_estimator_results
     get_estimator_results_as_array
+    write_estimator_results
 ```
 
 ## Published results
