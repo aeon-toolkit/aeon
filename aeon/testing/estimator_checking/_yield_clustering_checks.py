@@ -30,16 +30,15 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
+            yield partial(
+                check_clusterer_saving_loading_deep_learning,
+                estimator=estimator,
+                datatype=datatypes[i][0],
+            )
+
         for datatype in datatypes[i]:
             yield partial(
                 check_clusterer_output, estimator=estimator, datatype=datatype
-            )
-
-        if issubclass(estimator_class, BaseDeepClusterer):
-            yield partial(
-                check_clusterer_saving_loading_deep_learning,
-                estimator_class=estimator_class,
-                datatype=datatypes[i][0],
             )
 
 
@@ -168,62 +167,53 @@ def check_clusterer_output(estimator, datatype):
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
 
-def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
+def check_clusterer_saving_loading_deep_learning(estimator, datatype):
     """Test Deep Clusterer saving."""
     with tempfile.TemporaryDirectory() as tmp:
-        if estimator_class.__name__ not in [
-            "BaseDeepClusterer",
-        ]:
-            if tmp[-1] != "/":
-                tmp = tmp + "/"
-            curr_time = str(time.time_ns())
-            last_file_name = curr_time + "last"
-            best_file_name = curr_time + "best"
-            init_file_name = curr_time + "init"
+        if tmp[-1] != "/":
+            tmp = tmp + "/"
+        curr_time = str(time.time_ns())
+        last_file_name = curr_time + "last"
+        best_file_name = curr_time + "best"
+        init_file_name = curr_time + "init"
 
-            deep_cltr_train = estimator_class(
-                **estimator_class._get_test_params()[0],
-                save_best_model=True,
-                save_last_model=True,
-                save_init_model=True,
-                best_file_name=best_file_name,
-                last_file_name=last_file_name,
-                init_file_name=init_file_name,
-                file_path=tmp,
-            )
-            deep_cltr_train.fit(
-                FULL_TEST_DATA_DICT[datatype]["train"][0],
-                FULL_TEST_DATA_DICT[datatype]["train"][1],
-            )
+        deep_cltr_train = _clone_estimator(estimator)
+        deep_cltr_train.set_params(
+            save_best_model=True,
+            save_last_model=True,
+            save_init_model=True,
+            best_file_name=best_file_name,
+            last_file_name=last_file_name,
+            init_file_name=init_file_name,
+            file_path=tmp,
+        )
+        deep_cltr_train.fit(
+            FULL_TEST_DATA_DICT[datatype]["train"][0],
+            FULL_TEST_DATA_DICT[datatype]["train"][1],
+        )
 
-            estimator_pre_trained = deep_cltr_train.estimator_
+        estimator_pre_trained = deep_cltr_train.estimator_
 
-            deep_cltr_best = estimator_class()
-            deep_cltr_best.load_model(
-                model_path=os.path.join(tmp, best_file_name + ".keras"),
-                estimator=estimator_pre_trained,
-            )
-            ypred_best = deep_cltr_best.predict(
-                FULL_TEST_DATA_DICT[datatype]["train"][0]
-            )
-            assert len(ypred_best) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+        deep_cltr_best = _clone_estimator(estimator)
+        deep_cltr_best.load_model(
+            model_path=os.path.join(tmp, best_file_name + ".keras"),
+            estimator=estimator_pre_trained,
+        )
+        ypred_best = deep_cltr_best.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+        assert len(ypred_best) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
 
-            deep_cltr_last = estimator_class()
-            deep_cltr_last.load_model(
-                model_path=os.path.join(tmp, last_file_name + ".keras"),
-                estimator=estimator_pre_trained,
-            )
-            ypred_last = deep_cltr_last.predict(
-                FULL_TEST_DATA_DICT[datatype]["train"][0]
-            )
-            assert len(ypred_last) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+        deep_cltr_last = _clone_estimator(estimator)
+        deep_cltr_last.load_model(
+            model_path=os.path.join(tmp, last_file_name + ".keras"),
+            estimator=estimator_pre_trained,
+        )
+        ypred_last = deep_cltr_last.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+        assert len(ypred_last) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
 
-            deep_cltr_init = estimator_class()
-            deep_cltr_init.load_model(
-                model_path=os.path.join(tmp, init_file_name + ".keras"),
-                estimator=estimator_pre_trained,
-            )
-            ypred_init = deep_cltr_init.predict(
-                FULL_TEST_DATA_DICT[datatype]["train"][0]
-            )
-            assert len(ypred_init) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+        deep_cltr_init = _clone_estimator(estimator)
+        deep_cltr_init.load_model(
+            model_path=os.path.join(tmp, init_file_name + ".keras"),
+            estimator=estimator_pre_trained,
+        )
+        ypred_init = deep_cltr_init.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+        assert len(ypred_init) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])

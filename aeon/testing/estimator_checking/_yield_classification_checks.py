@@ -67,13 +67,6 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             datatype=datatypes[0][0],
         )
 
-    if issubclass(estimator_class, BaseDeepClassifier):
-        yield partial(
-            check_classifier_saving_loading_deep_learning,
-            estimator_class=estimator_class,
-            datatype=datatypes[0][0],
-        )
-
     # test class instances
     for i, estimator in enumerate(estimator_instances):
         # data type irrelevant
@@ -87,6 +80,11 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
         if isinstance(estimator, BaseDeepClassifier):
             yield partial(
                 check_classifier_random_state_deep_learning,
+                estimator=estimator,
+                datatype=datatypes[i][0],
+            )
+            yield partial(
+                check_classifier_saving_loading_deep_learning,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
@@ -240,7 +238,7 @@ def check_contracted_classifier(estimator_class, datatype):
     )
 
 
-def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
+def check_classifier_saving_loading_deep_learning(estimator, datatype):
     """Test deep classifier saving."""
     with tempfile.TemporaryDirectory() as tmp:
         if tmp[-1] != "/":
@@ -251,8 +249,8 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
         best_file_name = curr_time + "best"
         init_file_name = curr_time + "init"
 
-        deep_cls_train = estimator_class(
-            n_epochs=2,
+        deep_cls_train = _clone_estimator(estimator)
+        deep_cls_train.set_params(
             save_best_model=True,
             save_last_model=True,
             save_init_model=True,
@@ -266,7 +264,7 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
             FULL_TEST_DATA_DICT[datatype]["train"][1],
         )
 
-        deep_cls_best = estimator_class()
+        deep_cls_best = _clone_estimator(estimator)
         deep_cls_best.load_model(
             model_path=os.path.join(tmp, best_file_name + ".keras"),
             classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
@@ -274,7 +272,7 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
         ypred_best = deep_cls_best.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred_best, datatype)
 
-        deep_cls_last = estimator_class()
+        deep_cls_last = _clone_estimator(estimator)
         deep_cls_last.load_model(
             model_path=os.path.join(tmp, last_file_name + ".keras"),
             classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
@@ -282,7 +280,7 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
         ypred_last = deep_cls_last.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred_last, datatype)
 
-        deep_cls_init = estimator_class()
+        deep_cls_init = _clone_estimator(estimator)
         deep_cls_init.load_model(
             model_path=os.path.join(tmp, init_file_name + ".keras"),
             classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
