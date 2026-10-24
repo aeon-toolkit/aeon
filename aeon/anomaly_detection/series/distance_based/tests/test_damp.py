@@ -289,7 +289,9 @@ def test_damp_incorrect_input():
     """Test DAMP with invalid parameters."""
     series = _make_series_with_anomaly()
 
-    with pytest.raises(ValueError, match="window_size must be at least 4"):
+    with pytest.raises(
+        ValueError, match="window_size must be an integer of at least 4"
+    ):
         DAMP(window_size=3).fit_predict(series)
     with pytest.raises(ValueError, match="n_discords"):
         DAMP(n_discords=0).fit_predict(series)
@@ -301,8 +303,80 @@ def test_damp_incorrect_input():
         DAMP(window_size=32, train_test_split=20).fit_predict(series)
     with pytest.raises(ValueError, match="train_test_split"):
         DAMP(window_size=32, train_test_split=590).fit_predict(series)
-    with pytest.raises(ValueError, match="univariate"):
+    with pytest.raises(ValueError, match="Multivariate data not supported"):
         DAMP(window_size=32).predict_discords(np.vstack([series, series]))
+
+
+@pytest.mark.parametrize(
+    "params, match",
+    [
+        ({"window_size": 8.9}, "window_size must be an integer"),
+        ({"window_size": 32.0}, "window_size must be an integer"),
+        ({"window_size": "32"}, "window_size must be an integer"),
+        ({"n_discords": 1.9}, "n_discords must be an integer"),
+        ({"n_discords": True}, "n_discords must be an integer"),
+        ({"lookahead": 2.5}, "lookahead must be None or an integer"),
+        ({"train_test_split": 32.9}, "train_test_split must be None"),
+        ({"train_test_split": 1.0}, "train_test_split must be None"),
+        ({"train_test_split": 0.0}, "train_test_split must be None"),
+        ({"train_test_split": "200"}, "train_test_split must be None"),
+    ],
+)
+def test_parameters_are_not_truncated(params, match):
+    """Test non-integer parameters raise instead of being silently truncated."""
+    series = _make_series_with_anomaly()
+    ad = DAMP(**{"window_size": 32, **params})
+    with pytest.raises(ValueError, match=match):
+        ad.fit_predict(series)
+    with pytest.raises(ValueError, match=match):
+        ad.predict_discords(series)
+
+
+def test_numpy_scalar_parameters():
+    """Test numpy integer and float scalars behave like Python ints and floats."""
+    series = _make_series_with_anomaly()
+    expected = DAMP(
+        window_size=32, n_discords=2, train_test_split=150, lookahead=64
+    ).fit_predict(series)
+    numpy_ints = DAMP(
+        window_size=np.int64(32),
+        n_discords=np.int32(2),
+        train_test_split=np.int64(150),
+        lookahead=np.int64(64),
+    ).fit_predict(series)
+    numpy_fraction = DAMP(
+        window_size=32, n_discords=2, train_test_split=np.float32(0.25), lookahead=64
+    ).fit_predict(series)
+
+    np.testing.assert_array_equal(numpy_ints, expected)
+    np.testing.assert_array_equal(numpy_fraction, expected)
+
+
+@pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
+def test_non_finite_input_raises(value):
+    """Test predict and predict_discords reject NaN and infinite values."""
+    series = _make_series_with_anomaly()
+    series[300] = value
+    ad = DAMP(window_size=32, train_test_split=200)
+    match = "Missing values not supported|NaN or infinite values"
+    with pytest.raises(ValueError, match=match):
+        ad.predict_discords(series)
+    with pytest.raises(ValueError, match=match):
+        ad.fit_predict(series)
+
+
+def test_predict_discords_validates_like_predict():
+    """Test predict_discords accepts the same inputs as predict."""
+    series = _make_series_with_anomaly()
+    ad = DAMP(window_size=32, n_discords=2, train_test_split=200)
+    expected = ad.predict_discords(series)
+
+    for X, axis in ((series[None, :], 1), (series[:, None], 0)):
+        out = ad.predict_discords(X, axis=axis)
+        np.testing.assert_array_equal(out["locations"], expected["locations"])
+        np.testing.assert_array_equal(out["scores"], expected["scores"])
+    with pytest.raises(ValueError, match="Input type of X"):
+        ad.predict_discords(list(series))
 
 
 def test_warns_on_short_warm_up():

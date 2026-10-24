@@ -42,13 +42,13 @@ class DAMP(BaseSeriesAnomalyDetector):
     the discords selected after it. The other entries of the profile are
     approximations.
 
-    :meth:`predict` builds pointwise scores from exactly those discords: each
-    discord paints its score onto the ``window_size`` points its subsequence covers,
-    combined with the maximum where discords overlap, and every other point scores
-    zero. Scores are raw z-normalised Euclidean distances; a single subsequence
-    length is used, so no length normalisation is applied. Higher scores indicate
-    more anomalous points. The approximate left matrix profile and the discord
-    details are available via :meth:`predict_discords`.
+    :meth:`predict` assigns each discord's score to all time points in its
+    subsequence. Where discord subsequences overlap, the maximum score is used.
+    Points outside the identified discord subsequences receive a score of zero.
+    Scores are raw z-normalised Euclidean distances; a single subsequence length is
+    used, so no length normalisation is applied. Higher scores indicate more
+    anomalous points. The approximate left matrix profile and the discord details
+    are available via :meth:`predict_discords`.
 
     Points before ``train_test_split`` form a warm-up (training) region that is only
     used as reference history and is always scored zero.
@@ -82,6 +82,31 @@ class DAMP(BaseSeriesAnomalyDetector):
     See Also
     --------
     MADRID : Runs DAMP over a range of subsequence lengths.
+
+    Notes
+    -----
+    This implementation differs from the authors' MATLAB code in the following
+    ways. The first four keep it consistent with aeon's MADRID.
+
+    - The left neighbours of the subsequence starting at ``i`` are the subsequences
+      starting in ``[0, i - window_size]``, so they end before ``i``. The MATLAB
+      code also compares against the subsequence that ends at ``i``, which shares
+      one point with it, so a score here can be higher than the MATLAB score when
+      that subsequence is the nearest neighbour.
+    - There is no separate phase that searches the first ``16 * window_size``
+      subsequences after the split exhaustively. Here the backward search is
+      exhaustive until the threshold becomes positive.
+    - The backward search starts from a window of ``window_size`` rounded up to a
+      power of two, rather than ``8 * window_size`` rounded up to a power of two.
+    - Entries skipped by forward pruning repeat the previous left matrix profile
+      value, without the MATLAB code's ``1e-5`` decrement. Only exactly computed
+      entries are considered when selecting discords.
+    - The authors' top-k code stops at the first discord with a score of zero,
+      while discords with a score of zero can be returned here, for example on
+      exactly repeating data.
+
+    The second, third and fourth differences change the speed and the approximate
+    entries of the left matrix profile, not the discords found.
 
     References
     ----------
@@ -132,18 +157,42 @@ class DAMP(BaseSeriesAnomalyDetector):
         n = X.squeeze().shape[0]
         return self._to_pointwise_scores(scores, locations, int(self.window_size), n)
 
+    def _check_params(self):
+        if not _is_integer(self.window_size) or self.window_size < 4:
+            raise ValueError(
+                "window_size must be an integer of at least 4, "
+                f"got {self.window_size!r}"
+            )
+        if not _is_integer(self.n_discords) or self.n_discords < 1:
+            raise ValueError(
+                f"n_discords must be an integer of at least 1, got {self.n_discords!r}"
+            )
+        if self.lookahead is not None and (
+            not _is_integer(self.lookahead) or self.lookahead < 0
+        ):
+            raise ValueError(
+                "lookahead must be None or an integer of at least 0, "
+                f"got {self.lookahead!r}"
+            )
+        split = self.train_test_split
+        if not (
+            split is None
+            or _is_integer(split)
+            or (isinstance(split, (float, np.floating)) and 0.0 < split < 1.0)
+        ):
+            raise ValueError(
+                "train_test_split must be None, an integer index or a float in "
+                f"(0, 1), got {split!r}"
+            )
+
     def _run_damp(self, X):
+        self._check_params()
         X = np.atleast_1d(np.asarray(X).squeeze())
         if X.ndim != 1:
             raise ValueError("DAMP only supports univariate series")
+        if not np.isfinite(X).all():
+            raise ValueError("DAMP does not support NaN or infinite values in X")
         n = X.shape[0]
-
-        if self.window_size < 4:
-            raise ValueError("window_size must be at least 4")
-        elif self.n_discords < 1:
-            raise ValueError(f"n_discords {self.n_discords} must be at least 1")
-        elif self.lookahead is not None and self.lookahead < 0:
-            raise ValueError(f"lookahead {self.lookahead} must be None or at least 0")
         m = int(self.window_size)
         if n < 2 * m:
             raise ValueError(
@@ -187,9 +236,9 @@ class DAMP(BaseSeriesAnomalyDetector):
         """Pointwise scores built only from the discords DAMP identified.
 
         Pruned and early-abandoned entries of the left matrix profile are not exact,
-        so only the top discords are used: each one paints its score onto the points
-        its subsequence covers, combined with the maximum where discords overlap.
-        Points covered by no discord score zero.
+        so only the top discords are used: each one assigns its score to every point
+        in its subsequence, taking the maximum where discords overlap. Points outside
+        every discord subsequence score zero.
         """
         point_scores = np.zeros(n)
         for score, loc in zip(scores, locations):
@@ -198,17 +247,24 @@ class DAMP(BaseSeriesAnomalyDetector):
             point_scores[start:end] = np.maximum(point_scores[start:end], score)
         return point_scores
 
-    def predict_discords(self, X):
+    def predict_discords(self, X, axis=1):
         """Run DAMP and return the discords and the approximate left matrix profile.
 
         Unlike :meth:`predict`, which reduces the result to one score per time
         point, this exposes everything the algorithm computes, mirroring the
-        reference implementation's output.
+        reference implementation's output. ``X`` is validated in the same way as in
+        :meth:`predict`.
 
         Parameters
         ----------
-        X : np.ndarray
-            One-dimensional time series.
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
+            A univariate time series without missing or infinite values.
+        axis : int, default=1
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
 
         Returns
         -------
@@ -227,6 +283,7 @@ class DAMP(BaseSeriesAnomalyDetector):
             ``best_interval``: ``(start, end)`` of the top discord, matching the
             key returned by MADRID.
         """
+        X = self._preprocess_series(X, axis, False)
         left_mp, scores, locations, pruning_rate = self._run_damp(X)
         start = int(locations[0])
         return {
@@ -242,7 +299,7 @@ class DAMP(BaseSeriesAnomalyDetector):
         if split is None:
             m = int(self.window_size)
             return min(max(4 * m, n // 5), n - m)
-        if isinstance(split, float) and 0.0 < split < 1.0:
+        if isinstance(split, (float, np.floating)):
             return int(round(n * split))
         return int(split)
 
@@ -265,6 +322,10 @@ class DAMP(BaseSeriesAnomalyDetector):
             test instance.
         """
         return {"window_size": 4, "n_discords": 2, "train_test_split": 16}
+
+
+def _is_integer(value):
+    return isinstance(value, (int, np.integer)) and not isinstance(value, bool)
 
 
 @njit(cache=True)
