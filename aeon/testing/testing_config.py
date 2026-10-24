@@ -25,7 +25,6 @@ NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 # exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
     "HydraTransformer",  # returns a pytorch Tensor
-    "TimeSeriesAgglomerative",  # awaiting #3613
 ]
 
 # Exclude specific tests for estimators here
