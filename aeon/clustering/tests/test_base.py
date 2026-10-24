@@ -7,7 +7,7 @@ from sklearn.exceptions import NotFittedError
 from aeon.clustering.base import BaseClusterer
 from aeon.testing.mock_estimators import (
     MockCluster,
-    MockLabelCluster,
+    MockCyclicLabelCluster,
     MockTransductiveCluster,
 )
 
@@ -201,7 +201,7 @@ def test_base_predict_proba_columns_fixed_when_cluster_missing():
     """
     X = np.random.random(size=(9, 1, 20))
     for n_clusters in [3, None]:
-        clst = MockLabelCluster(n_clusters=n_clusters).fit(X)
+        clst = MockCyclicLabelCluster(n_clusters=n_clusters).fit(X)
         sub = X[clst.predict(X) != 0]
         preds = clst.predict(sub)
         proba = clst.predict_proba(sub)
@@ -217,7 +217,7 @@ def test_base_predict_proba_negative_prediction_raises():
     ``predict_proba`` column.
     """
     X = np.random.random(size=(6, 1, 20))
-    clst = MockLabelCluster(labels=(-1, 0, 1)).fit(X)
+    clst = MockCyclicLabelCluster(labels=(-1, 0, 1)).fit(X)
     assert np.array_equal(clst.predict(X), [-1, 0, 1, -1, 0, 1])
     with pytest.raises(ValueError, match="negative labels"):
         clst.predict_proba(X)
@@ -232,7 +232,7 @@ def test_base_predict_proba_ignores_noise_in_labels():
     """
     X = np.random.random(size=(8, 1, 20))
     for n_clusters in [3, None]:
-        clst = MockLabelCluster(
+        clst = MockCyclicLabelCluster(
             labels=(0, 1, 2), fit_labels=(-1, 0, 1, 2), n_clusters=n_clusters
         ).fit(X)
         proba = clst.predict_proba(X)
@@ -240,7 +240,7 @@ def test_base_predict_proba_ignores_noise_in_labels():
         assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
 
     # an empty cluster alongside noise keeps cluster indices as columns
-    clst = MockLabelCluster(labels=(0, 2), fit_labels=(-1, 0, 2)).fit(X)
+    clst = MockCyclicLabelCluster(labels=(0, 2), fit_labels=(-1, 0, 2)).fit(X)
     proba = clst.predict_proba(X)
     assert proba.shape == (8, 3)
     assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
@@ -273,7 +273,7 @@ def test_base_predict_proba_labels_above_n_clusters():
     larger than ``n_clusters``.
     """
     X = np.random.random(size=(8, 1, 20))
-    clst = MockLabelCluster(labels=(22, 3, 32, 22), n_clusters=3).fit(X)
+    clst = MockCyclicLabelCluster(labels=(22, 3, 32, 22), n_clusters=3).fit(X)
     proba = clst.predict_proba(X)
     assert proba.shape == (8, 33)
     assert np.array_equal(proba.argmax(axis=1), clst.predict(X))

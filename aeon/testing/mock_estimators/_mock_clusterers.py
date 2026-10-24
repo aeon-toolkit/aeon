@@ -3,7 +3,7 @@
 __maintainer__ = []
 __all__ = [
     "MockCluster",
-    "MockLabelCluster",
+    "MockCyclicLabelCluster",
     "MockTransductiveCluster",
     "MockDeepClusterer",
 ]
@@ -35,7 +35,7 @@ class MockCluster(BaseClusterer):
         return y
 
 
-class MockLabelCluster(BaseClusterer):
+class MockCyclicLabelCluster(BaseClusterer):
     """Mock clusterer whose labels cycle through given label values.
 
     ``predict`` assigns ``labels`` round-robin, so slicing ``X`` controls which
