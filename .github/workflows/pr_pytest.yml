@@ -85,6 +85,8 @@ jobs:
         exclude:
           - pr-testing: true
             python-version: "3.11"
+          - pr-testing: true
+            python-version: "3.12"
 
     steps:
       - name: Checkout
