@@ -341,8 +341,11 @@ class TimeSeriesKMeans(BaseClusterer):
                         )
                     self._average_params["distance"] = self.distance
                 else:
-                    # Invalid distance passed for ba so default to dba
-                    self._average_params["distance"] = "dtw"
+                    raise ValueError(
+                        "A callable distance cannot be used with barycentre averaging. "
+                        "Use averaging_method='mean' or provide a string distance "
+                        "that supports barycentre averaging."
+                    )
 
             if (
                 "random_state" not in self._average_params
