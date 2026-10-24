@@ -200,10 +200,7 @@ def check_clusterer_output(estimator, datatype):
     # check again on the test cases not assigned to the first predicted cluster
     idx = np.where(y_pred != y_pred[0])[0]
     if len(idx) > 0:
-        if isinstance(FULL_TEST_DATA_DICT[datatype]["test"][0], np.ndarray):
-            X_sub = FULL_TEST_DATA_DICT[datatype]["test"][0][idx]
-        else:
-            X_sub = [FULL_TEST_DATA_DICT[datatype]["test"][0][i] for i in idx]
+        X_sub = [FULL_TEST_DATA_DICT[datatype]["test"][0][i] for i in idx]
         y_proba_sub = estimator.predict_proba(X_sub)
         assert y_proba_sub.shape[1] == y_proba.shape[1]
         _assert_predict_is_max_probability(estimator.predict(X_sub), y_proba_sub)
