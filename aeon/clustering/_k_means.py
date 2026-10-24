@@ -60,10 +60,13 @@ class TimeSeriesKMeans(BaseClusterer):
         n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance method to compute similarity between time series. A list of valid
-        strings for measures can be found in the documentation for
-        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
-        a function that takes two 2d numpy arrays as input and returns a float.
+        Distance method to compute similarity between time series. Valid distance
+        strings depend on averaging_method. With the default averaging_method='ba',
+        only distances in VALID_BA_DISTANCE_METHODS are supported. Other distances
+        require averaging_method='mean'. See
+        :func:`aeon.distances.get_distance_function` for available distances.
+        If a callable is passed, it must take two 2d numpy arrays as input
+        and return a float.
     n_init : int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -86,12 +89,14 @@ class TimeSeriesKMeans(BaseClusterer):
         by `np.random`.
     averaging_method : str or Callable, default='ba'
         Averaging method to compute the average of a cluster. Any of the following
-        strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
+        strings are valid: ['mean', 'ba', 'petitjean', 'subgradient',
+        'kasba', 'shift_scale'].
+        If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
         If you specify 'ba' then by default the distance method used will be the same
         as the distance method used for clustering. If you wish to use a different
         distance method you can specify it by passing {"distance": "dtw"} as
-        averaging_params. BA yields 'better' clustering results but is very
+        average_params. BA yields 'better' clustering results but is very
         computationally expensive so you may want to consider setting a bounding window
         or using a different averaging method if time complexity is a concern.
     distance_params : dict, default=None
