@@ -23,6 +23,8 @@ __all__ = [
     "slope_derivative_3d",
     "generate_combinations",
     "get_all_subsequences",
+    "get_dilated_subsequences",
+    "normalise_dilated_subsequences",
     "prime_up_to",
     "is_prime",
 ]
@@ -589,6 +591,104 @@ def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.n
             else:
                 X_new[i_sub, i_channel] = 0
     return X_new
+
+
+@njit(fastmath=True, cache=True)
+def get_dilated_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarray:
+    """
+    Copy all the subsequences of a time series given length and dilation values.
+
+    Unlike ``get_all_subsequences``, which returns a strided view of shape
+    (n_subsequences, n_channels, length), the copy is laid out as
+    (n_channels, length, n_subsequences): the values of the j-th point of all the
+    subsequences are contiguous, so a distance computation can loop over the
+    subsequences with a unit stride and be vectorised.
+
+    Parameters
+    ----------
+    X : array, shape = (n_channels, n_timepoints)
+        An input time series as (n_channels, n_timepoints).
+    length : int
+        Length of the subsequences to generate.
+    dilation : int
+        Dilation parameter to apply when generating the strides.
+
+    Returns
+    -------
+    array, shape = (n_channels, length, n_timepoints-(length-1)*dilation)
+        The subsequences of the input time series, ``X_subs[k, j, i]`` being the
+        j-th point of the i-th subsequence of channel k, i.e. ``X[k, i+j*dilation]``.
+    """
+    n_channels, n_timepoints = X.shape
+    n_subsequences = n_timepoints - (length - 1) * dilation
+    X_subs = np.empty((n_channels, length, n_subsequences), dtype=X.dtype)
+    for i_channel in range(n_channels):
+        for i_length in range(length):
+            i_start = i_length * dilation
+            X_subs[i_channel, i_length] = X[
+                i_channel, i_start : i_start + n_subsequences
+            ]
+    return X_subs
+
+
+@njit(fastmath=True, cache=True)
+def normalise_dilated_subsequences(
+    X: np.ndarray, X_means: np.ndarray, X_stds: np.ndarray, length: int, dilation: int
+) -> np.ndarray:
+    """
+    Copy and z-normalise all the subsequences of a time series.
+
+    The result has the layout of ``get_dilated_subsequences``, with each subsequence
+    z-normalised per channel by the given means and standard deviations, as done by
+    ``normalise_subsequences``. Subsequences with a standard deviation below
+    ``AEON_NUMBA_STD_THRESHOLD`` are set to zero.
+
+    Parameters
+    ----------
+    X : array, shape = (n_channels, n_timepoints)
+        An input time series as (n_channels, n_timepoints).
+    X_means : array, shape (n_channels, n_timepoints-(length-1)*dilation)
+        Mean of each subsequence, as given by ``sliding_mean_std_one_series``.
+    X_stds : array, shape (n_channels, n_timepoints-(length-1)*dilation)
+        Standard deviation of each subsequence.
+    length : int
+        Length of the subsequences to generate.
+    dilation : int
+        Dilation parameter to apply when generating the strides.
+
+    Returns
+    -------
+    array, shape = (n_channels, length, n_timepoints-(length-1)*dilation)
+        The z-normalised subsequences, in the float dtype ``X`` normalises to:
+        float32 stays float32 and any other dtype gives float64.
+    """
+    n_channels, n_timepoints = X.shape
+    n_subsequences = n_timepoints - (length - 1) * dilation
+    # A one element probe gives the output dtype without copying the whole series
+    dtype = _as_normalised_float(X[:1, :1]).dtype
+    X_subs = np.empty((n_channels, length, n_subsequences), dtype=dtype)
+    inv_stds = np.zeros(n_subsequences)
+    for i_channel in range(n_channels):
+        means = X_means[i_channel]
+        # Multiplying by the inverse of the std is what the fastmath division of
+        # _z_normalise_inplace compiles to, and it is much cheaper than a division
+        # per point. An inverse of zero sets the subsequences below the std threshold
+        # to zero.
+        for i_sub in range(n_subsequences):
+            if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
+                inv_stds[i_sub] = 1.0 / X_stds[i_channel, i_sub]
+            else:
+                inv_stds[i_sub] = 0.0
+        for i_length in range(length):
+            i_start = i_length * dilation
+            x = X[i_channel, i_start : i_start + n_subsequences]
+            x_norm = X_subs[i_channel, i_length]
+            for i_sub in range(n_subsequences):
+                # Two stores, so that a float32 output is rounded at the same steps
+                # as in _z_normalise_inplace
+                x_norm[i_sub] = x[i_sub] - means[i_sub]
+                x_norm[i_sub] *= inv_stds[i_sub]
+    return X_subs
 
 
 @njit(cache=True)

@@ -219,6 +219,8 @@
     slope_derivative_3d
     generate_combinations
     get_all_subsequences
+    get_dilated_subsequences
+    normalise_dilated_subsequences
     prime_up_to
     is_prime
 ```
