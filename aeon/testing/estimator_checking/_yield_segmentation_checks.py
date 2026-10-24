@@ -37,6 +37,13 @@ def check_segmenter_base_functionality(estimator_class):
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
     uni = estimator_class.get_class_tag(tag_name="capability:univariate")
     assert multi or uni
+    # Test that segmenters with predict_scores implement the private method and do
+    # not override the final public one. Gated on the tag until ClaSPSegmenter and
+    # FLUSSSegmenter are migrated (#3852, #3853), after which the predict_scores
+    # override assertion becomes unconditional.
+    if estimator_class.get_class_tag(tag_name="capability:predict_scores"):
+        assert "predict_scores" not in estimator_class.__dict__
+        assert "_predict_scores" in estimator_class.__dict__
 
 
 def check_segmenter_instance(estimator):
@@ -57,6 +64,19 @@ def check_segmenter_instance(estimator):
         else:  # Segment labels returned, must be same length sas series
             assert len(output) == length
 
+    def _assert_predict_scores(X, axis=1):
+        """Assert predict_scores runs if tagged, otherwise raises.
+
+        Segmenters defining their own public predict_scores are skipped.
+        """
+        if estimator.get_tag(tag_name="capability:predict_scores"):
+            estimator.predict_scores(X, axis=axis)
+        # Segmenters that define their own public predict_scores (ClaSPSegmenter
+        # and FLUSSSegmenter) are skipped until migrated (#3852, #3853).
+        elif "predict_scores" not in type(estimator).__dict__:
+            with pytest.raises(NotImplementedError):
+                estimator.predict_scores(X, axis=axis)
+
     multivariate = estimator.get_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))
     # Also tests does not fail if y is passed
@@ -66,6 +86,7 @@ def check_segmenter_instance(estimator):
     if multivariate:
         output = estimator.fit_predict(X, y, axis=1)
         _assert_output(output, dense, X.shape[1])
+        _assert_predict_scores(X, axis=1)
     else:
         with pytest.raises(ValueError, match="Multivariate data not supported"):
             estimator.fit_predict(X, y, axis=1)
@@ -75,6 +96,7 @@ def check_segmenter_instance(estimator):
     if uni:
         output = estimator.fit_predict(X, y=X)
         _assert_output(output, dense, len(X))
+        _assert_predict_scores(X)
     else:
         with pytest.raises(ValueError, match="Univariate data not supported"):
             estimator.fit_predict(X)
