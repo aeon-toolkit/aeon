@@ -5,7 +5,11 @@ import pytest
 from sklearn.exceptions import NotFittedError
 
 from aeon.clustering.base import BaseClusterer
-from aeon.testing.mock_estimators import MockCluster, MockTransductiveCluster
+from aeon.testing.mock_estimators import (
+    MockCluster,
+    MockCyclicLabelCluster,
+    MockTransductiveCluster,
+)
 
 
 def test_correct_input():
@@ -73,9 +77,9 @@ class _NClustersClusterer(BaseClusterer):
     """Clusterer exposing an ``n_clusters`` attribute, assigning cases round-robin.
 
     The base ``_predict_proba`` sizes its probability matrix from ``n_clusters``
-    when that attribute is present, and only falls back to ``max(_predict) + 1``
-    when it is ``None``. This mock lets a test drive both branches; ``_predict``
-    returns three distinct clusters (labels 0, 1, 2).
+    when that attribute is present, and falls back to ``max(labels_) + 1`` when
+    it is ``None``. This mock lets a test drive both branches;
+    ``_predict`` returns three distinct clusters (labels 0, 1, 2).
     """
 
     def __init__(self, n_clusters):
@@ -96,7 +100,7 @@ def test_base_predict_proba_width_from_n_clusters_attribute():
     When a clusterer defines ``n_clusters``, the probability matrix has exactly
     that many columns (even if wider than the number of clusters actually
     predicted). When ``n_clusters`` is ``None`` the base falls back to
-    ``max(_predict) + 1`` (here 3, for labels 0, 1, 2). Either way each row is a
+    ``max(labels_) + 1`` (here 3, for labels 0, 1, 2). Either way each row is a
     one-hot of the assigned cluster.
     """
     X = np.random.random(size=(9, 1, 20))
@@ -108,7 +112,7 @@ def test_base_predict_proba_width_from_n_clusters_attribute():
     assert np.all(proba.sum(axis=1) == 1)
     assert np.array_equal(np.argmax(proba, axis=1), expected)
 
-    # n_clusters is None -> fall back to max(_predict) + 1 == 3
+    # n_clusters is None -> fall back to max(labels_) + 1 == 3
     proba = _NClustersClusterer(n_clusters=None).fit(X)._predict_proba(X)
     assert proba.shape == (9, 3)
     assert np.array_equal(np.argmax(proba, axis=1), expected)
@@ -187,3 +191,104 @@ def test_predict_with_capability():
     clst.fit(X)
     assert clst.predict(X).shape == (10,)
     assert clst.predict_proba(X).shape == (10,)
+
+
+def test_base_predict_proba_columns_fixed_when_cluster_missing():
+    """Test ``predict_proba`` columns match ``predict`` when ``X`` misses a cluster.
+
+    Columns follow the fitted clusters, so the argmax of ``predict_proba`` equals
+    ``predict`` and the width stays the same on any subset of the data.
+    """
+    X = np.random.random(size=(9, 1, 20))
+    for n_clusters in [3, None]:
+        clst = MockCyclicLabelCluster(n_clusters=n_clusters).fit(X)
+        sub = X[clst.predict(X) != 0]
+        preds = clst.predict(sub)
+        proba = clst.predict_proba(sub)
+        assert proba.shape == (len(sub), 3)
+        assert np.array_equal(proba.argmax(axis=1), preds)
+        assert clst.predict_proba(sub[:1]).shape == (1, 3)
+
+
+def test_base_predict_proba_negative_prediction_raises():
+    """Test a negative predicted label raises a ``ValueError``.
+
+    Negative labels such as ``-1`` noise are not clusters, so they have no
+    ``predict_proba`` column.
+    """
+    X = np.random.random(size=(6, 1, 20))
+    clst = MockCyclicLabelCluster(labels=(-1, 0, 1)).fit(X)
+    assert np.array_equal(clst.predict(X), [-1, 0, 1, -1, 0, 1])
+    with pytest.raises(ValueError, match="negative labels"):
+        clst.predict_proba(X)
+
+
+def test_base_predict_proba_ignores_noise_in_labels():
+    """Test negative labels in ``labels_`` get no ``predict_proba`` column.
+
+    Like ``MeanShift(cluster_all=False)``, ``labels_`` contains ``-1`` for noise
+    but ``predict`` assigns every case to a cluster, so the columns are the
+    clusters and the argmax matches ``predict``.
+    """
+    X = np.random.random(size=(8, 1, 20))
+    for n_clusters in [3, None]:
+        clst = MockCyclicLabelCluster(
+            labels=(0, 1, 2), fit_labels=(-1, 0, 1, 2), n_clusters=n_clusters
+        ).fit(X)
+        proba = clst.predict_proba(X)
+        assert proba.shape == (8, 3)
+        assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
+
+    # an empty cluster alongside noise keeps cluster indices as columns
+    clst = MockCyclicLabelCluster(labels=(0, 2), fit_labels=(-1, 0, 2)).fit(X)
+    proba = clst.predict_proba(X)
+    assert proba.shape == (8, 3)
+    assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
+
+
+def test_meanshift_noise_predict_proba_matches_predict():
+    """Test a wrapped ``MeanShift`` with noise in ``labels_`` agrees with predict."""
+    from sklearn.cluster import MeanShift
+
+    from aeon.clustering.feature_based import SummaryClusterer
+    from aeon.testing.data_generation import make_example_3d_numpy
+
+    X, _ = make_example_3d_numpy(
+        n_cases=40, n_channels=1, n_timepoints=20, random_state=0
+    )
+    clst = SummaryClusterer(estimator=MeanShift(cluster_all=False, bandwidth=0.5)).fit(
+        X
+    )
+    assert -1 in clst.labels_
+    preds = clst.predict(X)
+    proba = clst.predict_proba(X)
+    assert proba.shape == (40, clst.labels_.max() + 1)
+    assert np.array_equal(proba.argmax(axis=1), preds)
+
+
+def test_base_predict_proba_labels_above_n_clusters():
+    """Test labels at or above ``n_clusters`` widen the matrix instead of failing.
+
+    Labels are column indices, so the width is ``max(labels_) + 1`` when that is
+    larger than ``n_clusters``.
+    """
+    X = np.random.random(size=(8, 1, 20))
+    clst = MockCyclicLabelCluster(labels=(22, 3, 32, 22), n_clusters=3).fit(X)
+    proba = clst.predict_proba(X)
+    assert proba.shape == (8, 33)
+    assert np.array_equal(proba.argmax(axis=1), clst.predict(X))
+
+
+def test_kmeans_predict_proba_matches_predict_on_subset():
+    """Test a clusterer using the base default agrees with ``predict`` on a subset."""
+    from aeon.clustering import TimeSeriesKMeans
+    from aeon.testing.data_generation import make_example_3d_numpy
+
+    X, _ = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=10, random_state=0
+    )
+    km = TimeSeriesKMeans(n_clusters=3, random_state=0).fit(X)
+    sub = X[km.predict(X) != 0]
+    proba = km.predict_proba(sub)
+    assert proba.shape == (len(sub), 3)
+    assert np.array_equal(proba.argmax(axis=1), km.predict(sub))
