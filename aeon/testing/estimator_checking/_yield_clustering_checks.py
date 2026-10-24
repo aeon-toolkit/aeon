@@ -148,13 +148,25 @@ def check_clusterer_output(estimator, datatype):
 
     estimator = _clone_estimator(estimator, random_state=0)
 
+    def _assert_cluster_indices(labels):
+        """Assert labels are non-negative integers, below n_clusters if it is set."""
+        assert np.issubdtype(
+            labels.dtype, np.integer
+        ), f"labels must be integers, found dtype {labels.dtype}"
+        assert np.all(labels >= 0), f"labels must be non-negative, found {labels.min()}"
+        n_clusters = getattr(estimator, "n_clusters", None)
+        if n_clusters is not None:
+            assert np.all(
+                labels < n_clusters
+            ), f"labels must be below n_clusters={n_clusters}, found {labels.max()}"
+
     # run fit and check labels_
     data = FULL_TEST_DATA_DICT[datatype]["train"][0]
     estimator.fit(data)
     assert hasattr(estimator, "labels_")
     assert isinstance(estimator.labels_, np.ndarray)
     assert estimator.labels_.shape == (get_n_cases(data),)
-    _assert_cluster_indices(estimator, estimator.labels_)
+    _assert_cluster_indices(estimator.labels_)
 
     if not estimator.get_tag("capability:predict"):
         # transductive clusterers cannot assign clusters to unseen data
@@ -181,7 +193,7 @@ def check_clusterer_output(estimator, datatype):
     # check predict
     assert isinstance(y_pred, np.ndarray)
     assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
-    _assert_cluster_indices(estimator, y_pred)
+    _assert_cluster_indices(y_pred)
     assert np.all(np.isin(y_pred, estimator.labels_)), (
         f"predict returned labels {np.setdiff1d(y_pred, estimator.labels_)} "
         "which are not in labels_"
@@ -221,19 +233,6 @@ def check_clusterer_uses_all_clusters(estimator, datatype):
     assert np.array_equal(
         clusters, expected
     ), f"labels_ contains clusters {clusters}, expected {expected}"
-
-
-def _assert_cluster_indices(estimator, labels):
-    """Assert labels are non-negative integers, below n_clusters if it is set."""
-    assert np.issubdtype(
-        labels.dtype, np.integer
-    ), f"labels must be integers, found dtype {labels.dtype}"
-    assert np.all(labels >= 0), f"labels must be non-negative, found {labels.min()}"
-    n_clusters = getattr(estimator, "n_clusters", None)
-    if n_clusters is not None:
-        assert np.all(
-            labels < n_clusters
-        ), f"labels must be below n_clusters={n_clusters}, found {labels.max()}"
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
