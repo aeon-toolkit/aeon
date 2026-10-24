@@ -89,31 +89,48 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
     ):
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
-        self.n_filters = n_filters
-        self.kernel_size = kernel_size
-        self.activation = activation
-        self.padding = padding
-        self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.use_bias = use_bias
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.padding = padding
+        self.activation = activation
+        self.use_bias = use_bias
 
         super().__init__()
 
-    def _shortcut_layer(
-        self, input_tensor, output_tensor, padding="same", use_bias=True
-    ):
-        import tensorflow as tf
+    def _check_params(self):
+        n_conv = self.n_conv_per_residual_block
+        n_res = self.n_residual_blocks
+        res = "number of residual blocks"
+        conv = "number of convolution layers per residual block"
+        self._n_filters = BaseDeepLearningNetwork._check_layer_param(
+            n_res, self.n_filters, "filters", default=[64, 128, 128], same_as=res
+        )
+        self._kernel_size = BaseDeepLearningNetwork._check_layer_param(
+            n_conv, self.kernel_size, "kernels", default=[8, 5, 3], same_as=conv
+        )
+        self._strides = BaseDeepLearningNetwork._check_layer_param(
+            n_conv, self.strides, "strides", default=1, same_as=conv
+        )
+        self._dilation_rate = BaseDeepLearningNetwork._check_layer_param(
+            n_conv, self.dilation_rate, "dilations", default=1, same_as=conv
+        )
+        self._padding = BaseDeepLearningNetwork._check_layer_param(
+            n_conv, self.padding, "paddings", default="same", same_as=conv
+        )
+        self._activation = BaseDeepLearningNetwork._check_layer_param(
+            n_conv, self.activation, "activations", allow_none=True, same_as=conv
+        )
+        self._use_bias = BaseDeepLearningNetwork._check_layer_param(
+            n_conv, self.use_bias, "biases", default=True, same_as=conv
+        )
 
-        n_out_filters = int(output_tensor.shape[-1])
-
-        shortcut_layer = tf.keras.layers.Conv1D(
-            filters=n_out_filters, kernel_size=1, padding=padding, use_bias=use_bias
-        )(input_tensor)
-        shortcut_layer = tf.keras.layers.BatchNormalization()(shortcut_layer)
-
-        return tf.keras.layers.Add()([output_tensor, shortcut_layer])
+    def build_base_graph(self, x):
+        self._check_params()
+        return x
 
     def build_network(self, input_shape, **kwargs):
         """
@@ -133,89 +150,9 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        self._n_filters_ = [64, 128, 128] if self.n_filters is None else self.n_filters
-        self._kernel_size_ = [8, 5, 3] if self.kernel_size is None else self.kernel_size
-
-        if isinstance(self._n_filters_, list):
-            if len(self._n_filters_) != self.n_residual_blocks:
-                raise ValueError(
-                    f"Number of filters {len(self._n_filters_)} should be"
-                    f" the same as number of residual blocks but is"
-                    f" not: {self.n_residual_blocks}."
-                )
-            self._n_filters = self._n_filters_
-        else:
-            self._n_filters = [self._n_filters_] * self.n_residual_blocks
-
-        if isinstance(self._kernel_size_, list):
-            if len(self._kernel_size_) != self.n_conv_per_residual_block:
-                raise ValueError(
-                    f"Number of kernel sizes {len(self._kernel_size_)} should be"
-                    f" the same as number of convolution layers per block but is"
-                    f" not: {self.n_conv_per_residual_block}."
-                )
-            self._kernel_size = self._kernel_size_
-        else:
-            self._kernel_size = [self._kernel_size_] * self.n_conv_per_residual_block
-
-        if isinstance(self.strides, list):
-            if len(self.strides) != self.n_conv_per_residual_block:
-                raise ValueError(
-                    f"Number of strides {len(self.strides)} should be"
-                    f" the same as number of convolution layers per block but is"
-                    f" not: {self.n_conv_per_residual_block}."
-                )
-            self._strides = self.strides
-        else:
-            self._strides = [self.strides] * self.n_conv_per_residual_block
-
-        if isinstance(self.dilation_rate, list):
-            if len(self.dilation_rate) != self.n_conv_per_residual_block:
-                raise ValueError(
-                    f"Number of dilation rates {len(self.dilation_rate)} should be"
-                    f" the same as number of convolution layers per block but is"
-                    f" not: {self.n_conv_per_residual_block}."
-                )
-            self._dilation_rate = self.dilation_rate
-        else:
-            self._dilation_rate = [self.dilation_rate] * self.n_conv_per_residual_block
-
-        if isinstance(self.padding, list):
-            if len(self.padding) != self.n_conv_per_residual_block:
-                raise ValueError(
-                    f"Number of paddings {len(self.padding)} should be"
-                    f" the same as number of convolution layers per block but is"
-                    f" not: {self.n_conv_per_residual_block}."
-                )
-            self._padding = self.padding
-        else:
-            self._padding = [self.padding] * self.n_conv_per_residual_block
-
-        if isinstance(self.activation, list):
-            if len(self.activation) != self.n_conv_per_residual_block:
-                raise ValueError(
-                    f"Number of activations {len(self.activation)} should be"
-                    f" the same as number of convolution layers per block but is"
-                    f" not: {self.n_conv_per_residual_block}."
-                )
-            self._activation = self.activation
-        else:
-            self._activation = [self.activation] * self.n_conv_per_residual_block
-
-        if isinstance(self.use_bias, list):
-            if len(self.use_bias) != self.n_conv_per_residual_block:
-                raise ValueError(
-                    f"Number of use biases {len(self.use_bias)} should be"
-                    f" the same as number of convolution layers per block but is"
-                    f" not: {self.n_conv_per_residual_block}."
-                )
-            self._use_bias = self.use_bias
-        else:
-            self._use_bias = [self.use_bias] * self.n_conv_per_residual_block
-
         input_layer_encoder = tf.keras.layers.Input(input_shape)
-
         x = input_layer_encoder
+        x = self.build_base_graph(x)
 
         for d in range(self.n_residual_blocks):
             input_block_tensor = x
@@ -326,3 +263,17 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
         )
 
         return encoder, decoder
+
+    def _shortcut_layer(
+        self, input_tensor, output_tensor, padding="same", use_bias=True
+    ):
+        import tensorflow as tf
+
+        n_out_filters = int(output_tensor.shape[-1])
+
+        shortcut_layer = tf.keras.layers.Conv1D(
+            filters=n_out_filters, kernel_size=1, padding=padding, use_bias=use_bias
+        )(input_tensor)
+        shortcut_layer = tf.keras.layers.BatchNormalization()(shortcut_layer)
+
+        return tf.keras.layers.Add()([output_tensor, shortcut_layer])
