@@ -290,7 +290,12 @@ def check_classifier_saving_loading_deep_learning(estimator, datatype):
 
         ypred = deep_cls_train.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred, datatype)
-        assert_array_almost_equal(ypred, ypred_best)
+
+        # compare probabilities, predict breaks ties randomly
+        assert_array_almost_equal(
+            deep_cls_train.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0]),
+            deep_cls_best.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0]),
+        )
 
 
 def check_classifier_train_estimate(estimator, datatype):
