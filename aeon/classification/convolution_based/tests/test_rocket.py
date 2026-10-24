@@ -2,7 +2,9 @@
 
 from unittest.mock import patch
 
+import numpy as np
 from sklearn.linear_model import RidgeClassifier
+from sklearn.pipeline import Pipeline
 
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -34,3 +36,16 @@ def test_rocket_skips_lapack_check_with_custom_estimator():
         clf.fit(X, y)
 
     mock_check.assert_not_called()
+
+
+def test_rocket_pipeline_attribute_preserved():
+    """RocketClassifier should still expose a fitted ``pipeline_`` after fit."""
+    X, y = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=12, random_state=0
+    )
+    clf = RocketClassifier(n_kernels=20, random_state=0)
+    clf.fit(X, y)
+
+    assert isinstance(clf.pipeline_, Pipeline)
+    assert clf.pipeline_.steps[-1][1] is clf.estimator_
+    assert np.array_equal(clf.pipeline_.predict(X), clf.predict(X))

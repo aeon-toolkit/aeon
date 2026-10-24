@@ -8,6 +8,7 @@ __all__ = ["RocketClassifier"]
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
@@ -162,6 +163,12 @@ class RocketClassifier(BaseClassifier):
 
         self.estimator_.fit(X_t, y)
 
+        self.pipeline_ = make_pipeline(
+            self._transformer,
+            self._scaler,
+            self.estimator_,
+        )
+
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -177,10 +184,7 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases,)
             Predicted class labels.
         """
-        X_t = self._transformer.transform(X)
-        X_t = self._scaler.transform(X_t)
-
-        return self.estimator_.predict(X_t)
+        return self.pipeline_.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -195,15 +199,12 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        X_t = self._transformer.transform(X)
-        X_t = self._scaler.transform(X_t)
-
         m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self.estimator_.predict_proba(X_t)
+            return self.pipeline_.predict_proba(X)
         else:
             dists = np.zeros((len(X), self.n_classes_))
-            preds = self.estimator_.predict(X_t)
+            preds = self.pipeline_.predict(X)
             for i in range(0, len(X)):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
