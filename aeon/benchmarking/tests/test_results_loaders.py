@@ -8,13 +8,16 @@ import pytest
 from pytest import raises
 
 import aeon
-from aeon.benchmarking.results_loaders import (CONNECTION_ERRORS, NAME_ALIASES,
-                                               VALID_RESULT_MEASURES,
-                                               estimator_alias,
-                                               get_available_estimators,
-                                               get_estimator_results,
-                                               get_estimator_results_as_array,
-                                               write_estimator_results)
+from aeon.benchmarking.results_loaders import (
+    CONNECTION_ERRORS,
+    NAME_ALIASES,
+    VALID_RESULT_MEASURES,
+    estimator_alias,
+    get_available_estimators,
+    get_estimator_results,
+    get_estimator_results_as_array,
+    write_estimator_results,
+)
 from aeon.testing.testing_config import PR_TESTING
 from aeon.testing.utils.deep_equals import deep_equals
 
