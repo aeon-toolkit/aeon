@@ -60,8 +60,8 @@ def check_y(
         and np.issubdtype(y_pred.dtype, np.integer)
     ):
         warnings.warn(
-            "Assuming that y_true and y_score where permuted, because their"
-            "dtypes indicate so. y_true should be an integer array and"
+            "Assuming that y_true and y_score were permuted, because their "
+            "dtypes indicate so. y_true should be an integer array and "
             "y_score a float array!",
             stacklevel=2,
         )

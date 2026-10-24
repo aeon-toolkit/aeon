@@ -9,7 +9,7 @@ being:
 
 - The [PEP8](https://www.python.org/dev/peps/pep-0008/) coding guidelines. A good
 example can be found [here](https://gist.github.com/nateGeorge/5455d2c57fb33c1ae04706f2dc4fee01)
-- Code formatting according to [black](https://black.readthedocs.io/) and linting with [ruff](https://docs.astral.sh/ruff/)
+- Code formatting and linting with [ruff](https://docs.astral.sh/ruff/)
 - Documentation formatting using the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html)
 style
 
@@ -18,14 +18,15 @@ style
 Our coding standards are enforced through our CI/CD workflows via [pre-commit](https://pre-commit.com/).
 We adhere to the code formatting standards using the following `pre-commit` hooks:
 
-- [black](https://black.readthedocs.io/en/stable/) with default settings
+- [ruff](https://docs.astral.sh/ruff/formatter/)'s formatter with default settings,
+which follows the [black](https://black.readthedocs.io/en/stable/) code style, for
+Python files, Jupyter notebooks and Python code blocks in Markdown files
 - [ruff](https://docs.astral.sh/ruff/) for linting Python files and Jupyter notebooks,
 using the pycodestyle, Pyflakes, flake8-bugbear and flake8-print rules. It also sorts
 imports (isort rules), upgrades syntax to the minimum supported Python version
 (pyupgrade rules) and enforces the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
 documentation style using its [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
 rules
-- [nbQA](https://github.com/nbQA-dev/nbQA) to run `black` on Jupyter notebooks
 - [codespell](https://github.com/codespell-project/codespell) to check for common
 spelling mistakes
 - Some standard [pre-commit hooks](https://pre-commit.com/hooks.html) for general code

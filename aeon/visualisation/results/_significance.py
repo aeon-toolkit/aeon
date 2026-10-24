@@ -106,8 +106,7 @@ def plot_significance(
 
     if return_p_values and test != "wilcoxon":
         raise ValueError(
-            f"Cannot return p values for {test}, since it does "
-            "not calculate p-values."
+            f"Cannot return p values for {test}, since it does not calculate p-values."
         )
 
     # Step 2: calculate average rank per estimator
