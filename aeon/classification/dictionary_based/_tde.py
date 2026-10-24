@@ -98,20 +98,12 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Channel accuracy threshold for multivariate data, must be between 0 and 1.
     max_channels : int, default=20
         Max number of channels per classifier for multivariate data.
-    dim_threshold : float, default="deprecated"
-        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
-    max_dims : int, default="deprecated"
-        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    typed_dict : bool, default="deprecated"
-        Has no effect: word counts are now stored as sorted arrays.
-
-        Deprecated and will be removed in v1.7.0.
     train_estimate_method : str, default="loocv"
         Method used to generate train estimates in `fit_predict` and
         `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
@@ -190,7 +182,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         "algorithm_type": "dictionary",
     }
 
-    # TODO remove 'dim_threshold', 'max_dims' and 'typed_dict' in v1.7.0
     def __init__(
         self,
         n_parameter_samples=250,
@@ -201,11 +192,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         bigrams=None,
         channel_threshold=0.85,
         max_channels=20,
-        dim_threshold="deprecated",
-        max_dims="deprecated",
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        typed_dict="deprecated",
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
@@ -219,37 +207,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.bigrams = bigrams
 
         # multivariate
-        self.dim_threshold = dim_threshold
         self.channel_threshold = channel_threshold
-        if dim_threshold != "deprecated":
-            warnings.warn(
-                "The 'dim_threshold' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'channel_threshold' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.channel_threshold = dim_threshold
-        self.max_dims = max_dims
         self.max_channels = max_channels
-        if max_dims != "deprecated":
-            warnings.warn(
-                "The 'max_dims' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'max_channels' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.max_channels = max_dims
-
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
-        self.typed_dict = typed_dict
-        if typed_dict != "deprecated":
-            warnings.warn(
-                "The 'typed_dict' parameter has no effect and will be removed "
-                "in v1.7.0. Word counts are now stored as sorted arrays.",
-                FutureWarning,
-                stacklevel=2,
-            )
         self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -799,20 +760,8 @@ class IndividualTDE(BaseClassifier):
     igb : bool, default=False
         Whether to use Information Gain Binning (IGB) or
         Multiple Coefficient Binning (MCB) for the SFA transform.
-    alphabet_size : int, default="deprecated"
-        Has no effect: the alphabet size is fixed to 4.
-
-        Deprecated and will be removed in v1.7.0.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
-    dim_threshold : float, default="deprecated"
-        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
-    max_dims : int, default="deprecated"
-        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
-    typed_dict : bool, default="deprecated"
-        Has no effect: word counts are now stored as sorted arrays.
-
-        Deprecated and will be removed in v1.7.0.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `predict`. `fit` is
         single threaded. ``-1`` means using all processors.
@@ -873,8 +822,6 @@ class IndividualTDE(BaseClassifier):
         "capability:multithreading": True,
     }
 
-    # TODO remove 'dim_threshold', 'alphabet_size', 'max_dims' and 'typed_dict'
-    # in v1.7.0
     def __init__(
         self,
         window_size=10,
@@ -882,11 +829,7 @@ class IndividualTDE(BaseClassifier):
         norm=False,
         levels=1,
         igb=False,
-        alphabet_size="deprecated",
         bigrams=True,
-        dim_threshold="deprecated",
-        max_dims="deprecated",
-        typed_dict="deprecated",
         n_jobs=1,
         random_state=None,
         max_channels=20,
@@ -897,46 +840,11 @@ class IndividualTDE(BaseClassifier):
         self.norm = norm
         self.levels = levels
         self.igb = igb
-        self.alphabet_size = alphabet_size
-        if alphabet_size != "deprecated":
-            warnings.warn(
-                "The 'alphabet_size' parameter has no effect and will be "
-                "removed in v1.7.0. The alphabet size is fixed to 4.",
-                FutureWarning,
-                stacklevel=2,
-            )
         self.bigrams = bigrams
 
         # multivariate
-        self.dim_threshold = dim_threshold
         self.channel_threshold = channel_threshold
-        if dim_threshold != "deprecated":
-            warnings.warn(
-                "The 'dim_threshold' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'channel_threshold' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.channel_threshold = dim_threshold
-        self.max_dims = max_dims
         self.max_channels = max_channels
-        if max_dims != "deprecated":
-            warnings.warn(
-                "The 'max_dims' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'max_channels' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.max_channels = max_dims
-
-        self.typed_dict = typed_dict
-        if typed_dict != "deprecated":
-            warnings.warn(
-                "The 'typed_dict' parameter has no effect and will be removed "
-                "in v1.7.0. Word counts are now stored as sorted arrays.",
-                FutureWarning,
-                stacklevel=2,
-            )
         self.n_jobs = n_jobs
         self.random_state = random_state
 

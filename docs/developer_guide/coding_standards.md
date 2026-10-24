@@ -9,7 +9,7 @@ being:
 
 - The [PEP8](https://www.python.org/dev/peps/pep-0008/) coding guidelines. A good
 example can be found [here](https://gist.github.com/nateGeorge/5455d2c57fb33c1ae04706f2dc4fee01)
-- Code formatting according to [black](https://black.readthedocs.io/) and [flake8](https://flake8.pycqa.org/en/)
+- Code formatting according to [black](https://black.readthedocs.io/) and linting with [ruff](https://docs.astral.sh/ruff/)
 - Documentation formatting using the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html)
 style
 
@@ -19,16 +19,15 @@ Our coding standards are enforced through our CI/CD workflows via [pre-commit](h
 We adhere to the code formatting standards using the following `pre-commit` hooks:
 
 - [black](https://black.readthedocs.io/en/stable/) with default settings
-- [flake8](https://flake8.pycqa.org/en/latest/) with a `max_line_length=88` and the
-`flake8-bugbear` and `flake8-print` plugins
-- [isort](https://isort.readthedocs.io/en/latest/) to sort file imports
-- [nbQA](https://github.com/nbQA-dev/nbQA) to lint and format Jupyter notebooks using
-the above hooks
-- [ruff](https://docs.astral.sh/ruff/)'s [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
-module to enforce the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
-documentation style
-- [pyupgrade](https://github.com/asottile/pyupgrade) to upgrade Python syntax to modern
-standards
+- [ruff](https://docs.astral.sh/ruff/) for linting Python files and Jupyter notebooks,
+using the pycodestyle, Pyflakes, flake8-bugbear and flake8-print rules. It also sorts
+imports (isort rules), upgrades syntax to the minimum supported Python version
+(pyupgrade rules) and enforces the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
+documentation style using its [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
+rules
+- [nbQA](https://github.com/nbQA-dev/nbQA) to run `black` on Jupyter notebooks
+- [codespell](https://github.com/codespell-project/codespell) to check for common
+spelling mistakes
 - Some standard [pre-commit hooks](https://pre-commit.com/hooks.html) for general code
 quality
 
@@ -68,6 +67,18 @@ pre-commit install
 
 Once installed, pre-commit will automatically run all `aeon` code quality checks on
 the files you changed whenever you make a new commit.
+
+To run the checks without committing, i.e. on a branch created before installing the
+hooks, use:
+
+```{code-block} powershell
+pre-commit run --all-files
+```
+
+On pull requests, our CI runs the same `pre-commit` checks on the files changed in
+the PR. Adding the `full pre-commit` label runs them on all files instead. The CI
+does not push fixes to your branch. If the check fails, run `pre-commit` locally and
+push the changes it makes.
 
 If you want to exclude some line of code from being checked, you can add a `# noqa`
 (no quality assurance) comment at the end of that line. This should only be used
