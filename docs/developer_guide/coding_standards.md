@@ -22,7 +22,7 @@ We adhere to the code formatting standards using the following `pre-commit` hook
 - [ruff](https://docs.astral.sh/ruff/) for linting Python files and Jupyter notebooks,
 using the pycodestyle, Pyflakes, flake8-bugbear and flake8-print rules. It also sorts
 imports (isort rules), upgrades syntax to the minimum supported Python version
-(pyupgrade rules) and enforces the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>)
+(pyupgrade rules) and enforces the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard)
 documentation style using its [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
 rules
 - [nbQA](https://github.com/nbQA-dev/nbQA) to run `black` on Jupyter notebooks
