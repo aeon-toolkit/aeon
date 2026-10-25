@@ -37,8 +37,9 @@ def load_time_series_segmentation_benchmark(
     """Load the Time Series Segmentation Benchmark (TSSB).
 
     This function loads the Time Series Segmentation Benchmark (TSSB) into memory,
-    downloading from GitHub (https://github.com/ermshaua/time-series-segmentation
-    -benchmark) [1] if the data is not available at the specified ``extract_path``.
+    downloading from GitHub
+    (https://github.com/ermshaua/time-series-segmentation-benchmark) [1] if the data
+    is not available at the specified ``extract_path``.
     The benchmark contains 75 annotated TS with 1-9 segments. Each TS is constructed
     from one of the UEA & UCR time series classification datasets. TS are grouped by
     label and concatenated to create segments with distinctive temporal patterns and
