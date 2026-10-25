@@ -10,6 +10,7 @@ in the annotations:
 ```python
 from typing import List
 
+
 def sum_ints_return_str(int_list: List[int]) -> str:
     return str(sum(int_list))
 ```
@@ -33,7 +34,7 @@ references in type hints. See [PEP 563](https://peps.python.org/pep-0563/) for m
 information. The `pyod` `BaseDetector` class can now be used in type hints with
 these additions.
 
- ```python
+```python
 """Adapter for PyOD models"""
 
 from __future__ import annotations
@@ -50,7 +51,7 @@ if TYPE_CHECKING:
 
 class PyODAdapter(BaseSeriesAnomalyDetector):
     def __init__(
-            self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
+        self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
     ):
         self.pyod_model = pyod_model
         self.window_size = window_size
