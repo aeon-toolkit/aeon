@@ -145,7 +145,7 @@
 
 .aeon-fig .f-chip-text {
   fill: var(--pst-color-background);
-  font-family: var(--pst-font-family-heading);
+  font-family: var(--pst-font-family-base);
   font-size: 14px;
   font-weight: 800;
 }

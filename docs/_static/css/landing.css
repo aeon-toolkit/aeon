@@ -62,8 +62,6 @@ section:has(> .aeon-lead) > section {
 section:has(> .aeon-lead) > section > h2 {
   margin-top: 0;
   font-size: clamp(1.7rem, 1.3rem + 1.4vw, 2.3rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
 }
 
 section:has(> .aeon-lead) > section > h2 + p {
@@ -99,9 +97,7 @@ section:has(> .aeon-lead) > h1 {
   grid-row: 1;
   margin: 2.5rem 0 1.25rem;
   font-size: clamp(2.3rem, 1.5rem + 2.6vw, 3.6rem);
-  font-weight: 800;
   line-height: 1.06;
-  letter-spacing: -0.02em;
 }
 
 section:has(> .aeon-lead) > .aeon-lead {
@@ -142,7 +138,7 @@ section:has(> .aeon-lead) > .aeon-hero-actions {
 .aeon-hero-actions .sd-btn {
   padding: 0.6rem 1.2rem;
   border-radius: 10px;
-  font-family: var(--pst-font-family-heading);
+  font-family: var(--pst-font-family-base);
   font-weight: 700;
 }
 
@@ -200,7 +196,7 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
   border-radius: 11px;
   background-color: transparent;
   color: var(--pst-color-text-muted);
-  font-family: var(--pst-font-family-heading);
+  font-family: var(--pst-font-family-base);
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
@@ -307,7 +303,7 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 }
 
 .aeon-hero-label {
-  font-family: var(--pst-font-family-heading);
+  font-family: var(--pst-font-family-base);
   font-size: 16px;
   font-weight: 700;
 }
@@ -443,7 +439,6 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
   color: var(--pst-color-primary);
   font-family: var(--pst-font-family-heading);
   font-size: 1.12rem;
-  font-weight: 800;
 }
 
 .aeon-tasks .sd-card-title .sd-badge {
@@ -552,7 +547,7 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 
 .aeon-icon .i-chip-text {
   fill: var(--pst-color-background);
-  font-family: var(--pst-font-family-heading);
+  font-family: var(--pst-font-family-base);
   font-size: 12px;
   font-weight: 800;
   text-anchor: middle;
@@ -598,7 +593,7 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
   margin-bottom: 0.3rem;
   font-family: var(--pst-font-family-heading);
   font-size: 1.12rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .aeon-reasons p {
@@ -635,7 +630,6 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 
 .aeon-code-example .aeon-steps li::marker {
   color: var(--aeon-b-text);
-  font-family: var(--pst-font-family-heading);
   font-weight: 800;
 }
 
@@ -670,7 +664,7 @@ section:has(> .aeon-lead) > .aeon-hero-panel {
 .aeon-community strong {
   display: block;
   font-family: var(--pst-font-family-heading);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .aeon-community .aeon-community-text {

@@ -48,31 +48,70 @@ html[data-theme="dark"] {
 }
 
 /* typography */
-/* Nunito has rounded terminals like the lettering of the aeon logo. It is only used */
-/* for headings and navigation, body text and code keep the theme fonts. */
+/* Source Serif 4 for headings, Nunito Sans for text and labels, Source Code Pro for */
+/* code. Self-hosting them gives every platform the same fonts, where the theme default */
+/* is the system font (Segoe UI, San Francisco, ...). The files are the Latin subsets */
+/* served by Google Fonts. Headings only use one weight, so the serif file is pinned at */
+/* 600 (with its optical size axis kept), less than half the size of the variable file. */
+/* Bolder requests, like the 700 sphinx-design puts on card titles, render at 600. */
 
 @font-face {
-  font-family: "Nunito";
+  font-family: "Source Serif 4";
   font-style: normal;
-  font-weight: 500 800;
+  font-weight: 600;
   font-display: swap;
-  src: url("../fonts/nunito-latin-variable.woff2") format("woff2");
+  src: url("../fonts/source-serif-4-latin-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Nunito Sans";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("../fonts/nunito-sans-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Nunito Sans";
+  font-style: italic;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("../fonts/nunito-sans-latin-italic-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Code Pro";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/source-code-pro-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Code Pro";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/source-code-pro-latin-italic-variable.woff2") format("woff2");
 }
 
 html {
-  --pst-font-family-heading: "Nunito", var(--pst-font-family-base-system);
+  --pst-font-family-base: "Nunito Sans", var(--pst-font-family-base-system);
+  --pst-font-family-heading: "Source Serif 4", Georgia, serif;
+  --pst-font-family-monospace: "Source Code Pro", var(--pst-font-family-monospace-system);
 }
 
-h1,
-h2,
-h3,
-h4 {
-  font-weight: 700;
+/* The theme sets figure captions in the heading font at a light weight, which the */
+/* pinned serif does not have. */
+figure figcaption {
+  font-family: var(--pst-font-family-base);
 }
 
-.bd-header .navbar-nav .nav-link,
+.bd-header .navbar-nav .nav-link {
+  font-weight: 500;
+}
+
 .bd-sidebar-primary .caption-text {
-  font-family: var(--pst-font-family-heading);
   font-weight: 600;
 }
 
