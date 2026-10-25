@@ -132,11 +132,12 @@ img.avatar {
 
 .table.autosummary tbody tr {
   background-color: transparent;
-  border-bottom: 1px solid var(--pst-color-border);
 }
 
-.table.autosummary tbody tr:last-child {
-  border-bottom: none;
+/* the line goes above the rows which follow a shown row, so that the rows hidden */
+/* by the filter box leave no line behind */
+.table.autosummary tbody tr:not([hidden]) ~ tr {
+  border-top: 1px solid var(--pst-color-border);
 }
 
 .table.autosummary tbody tr:hover {
@@ -153,8 +154,9 @@ img.avatar {
   margin: 0;
 }
 
-/* tables which follow each other without a heading in between read as one list */
-.pst-scrollable-table-container:has(+ .pst-scrollable-table-container)
+/* tables which follow each other without a heading in between read as one list, */
+/* the tables hidden by the filter box left out */
+.pst-scrollable-table-container:has(~ .pst-scrollable-table-container:not([hidden]))
   > .table.autosummary {
   margin-bottom: 0;
   border-bottom: 1px solid var(--pst-color-border);

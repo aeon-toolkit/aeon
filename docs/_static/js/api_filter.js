@@ -1,7 +1,8 @@
 // Filter box of the API reference module pages.
 // A search input is added above the first summary table of the page. Typing in it
-// hides the rows whose name and description do not contain every typed word, then the
-// tables and sections left without any row. Short pages do not get a filter box.
+// hides the rows where some typed word is neither in the name and description nor in a
+// heading above the row, then the tables, sections and "On this page" entries left
+// without any row. Short pages do not get a filter box.
 (function () {
   const MIN_ROWS = 10;
   const article = document.querySelector("article.bd-article");
@@ -15,12 +16,36 @@
   const texts = rows.map(function (row) {
     return row.textContent.toLowerCase();
   });
+  // the words of the headings above each row, so that a section can be found by its
+  // title. "based" is left out: it is in most category headings ("Shapelet-based"), and
+  // a search for the base classes would show all of these sections.
+  const headingWords = rows.map(function (row) {
+    let words = [];
+    let section = row.closest("section section");
+    while (section) {
+      const heading = section.querySelector(":scope > :is(h2, h3, h4, h5, h6)");
+      if (heading) {
+        words = words.concat(heading.textContent.toLowerCase().split(/[^a-z0-9]+/));
+      }
+      section = section.parentElement.closest("section section");
+    }
+    return words.filter(function (word) {
+      return word && word !== "based";
+    });
+  });
   // what gets hidden when all of its rows are: the wrapper the theme puts around each
   // table, and the sections below the page title
   const groups = Array.from(
     article.querySelectorAll(".pst-scrollable-table-container, section section"),
   ).filter(function (group) {
     return group.querySelector("table.autosummary");
+  });
+  // the "On this page" entries of the sections, hidden with them
+  const toc = document.getElementById("pst-page-toc-nav");
+  const tocEntries = groups.map(function (group) {
+    const link =
+      toc && group.id && toc.querySelector('a[href="#' + CSS.escape(group.id) + '"]');
+    return link ? link.closest("li") : null;
   });
 
   const box = document.createElement("div");
@@ -44,18 +69,35 @@
   }
   anchor.before(box);
 
+  // a typed word is in the headings when each of its parts starts a heading word, so
+  // that "warp" and "soft-dtw" find "Soft Dynamic Time Warping (soft-DTW)"
+  function inHeadings(word, headings) {
+    const parts = word.split(/[^a-z0-9]+/).filter(Boolean);
+    return (
+      parts.length > 0 &&
+      parts.every(function (part) {
+        return headings.some(function (heading) {
+          return heading.startsWith(part);
+        });
+      })
+    );
+  }
+
   function apply() {
     const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
     let shown = 0;
     rows.forEach(function (row, i) {
       const match = words.every(function (word) {
-        return texts[i].includes(word);
+        return texts[i].includes(word) || inHeadings(word, headingWords[i]);
       });
       row.hidden = !match;
       shown += match ? 1 : 0;
     });
-    groups.forEach(function (group) {
+    groups.forEach(function (group, i) {
       group.hidden = !group.querySelector("table.autosummary tbody tr:not([hidden])");
+      if (tocEntries[i]) {
+        tocEntries[i].hidden = group.hidden;
+      }
     });
     if (words.length === 0) {
       count.textContent = "";
