@@ -189,9 +189,9 @@ def test_refit_resets_state():
     assert len(hc2.component_names_) == 4
 
     hc2.fit(X, y)
-    assert (
-        len(hc2.fitted_estimators_) == 4
-    ), f"fitted_estimators_ accumulated on re-fit: got {len(hc2.fitted_estimators_)}"
+    assert len(hc2.fitted_estimators_) == 4, (
+        f"fitted_estimators_ accumulated on re-fit: got {len(hc2.fitted_estimators_)}"
+    )
     assert len(hc2.weights_) == 4
     assert len(hc2.component_names_) == 4
 
