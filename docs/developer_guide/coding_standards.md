@@ -19,18 +19,15 @@ Our coding standards are enforced through our CI/CD workflows via [pre-commit](h
 We adhere to the code formatting standards using the following `pre-commit` hooks:
 
 - [black](https://black.readthedocs.io/en/stable/) with default settings
-- [ruff](https://docs.astral.sh/ruff/) for linting, with a line length of 88 and the
-`pycodestyle`, `Pyflakes`, `flake8-bugbear` and `flake8-print` rule sets. Its
-[pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d) rule set enforces the
-[numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard)
-documentation style
-- [isort](https://isort.readthedocs.io/en/latest/) to sort file imports
-- [nbQA](https://github.com/nbQA-dev/nbQA) to format Jupyter notebooks with `black`
-and `isort`
-- [pyupgrade](https://github.com/asottile/pyupgrade) to upgrade Python syntax to modern
-standards
-- [codespell](https://github.com/codespell-project/codespell) to catch common
-misspellings
+- [ruff](https://docs.astral.sh/ruff/) for linting Python files and Jupyter notebooks,
+using the pycodestyle, Pyflakes, flake8-bugbear and flake8-print rules. It also sorts
+imports (isort rules), upgrades syntax to the minimum supported Python version
+(pyupgrade rules) and enforces the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard)
+documentation style using its [pydocstyle](https://docs.astral.sh/ruff/rules/#pydocstyle-d)
+rules
+- [nbQA](https://github.com/nbQA-dev/nbQA) to run `black` on Jupyter notebooks
+- [codespell](https://github.com/codespell-project/codespell) to check for common
+spelling mistakes
 - Some standard [pre-commit hooks](https://pre-commit.com/hooks.html) for general code
 quality
 
@@ -70,6 +67,18 @@ pre-commit install
 
 Once installed, pre-commit will automatically run all `aeon` code quality checks on
 the files you changed whenever you make a new commit.
+
+To run the checks without committing, i.e. on a branch created before installing the
+hooks, use:
+
+```{code-block} powershell
+pre-commit run --all-files
+```
+
+On pull requests, our CI runs the same `pre-commit` checks on the files changed in
+the PR. Adding the `full pre-commit` label runs them on all files instead. The CI
+does not push fixes to your branch. If the check fails, run `pre-commit` locally and
+push the changes it makes.
 
 If you want to exclude some line of code from being checked, you can add a `# noqa`
 (no quality assurance) comment at the end of that line. This should only be used

@@ -5,7 +5,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
-from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 
 from aeon.clustering import TimeSeriesKMeans
@@ -14,7 +14,10 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.testing.mock_estimators import MockCollectionTransformer
+from aeon.testing.mock_estimators import (
+    MockCollectionTransformer,
+    MockTransductiveCluster,
+)
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -89,6 +92,12 @@ def test_sklearn_clusterer_pipeline(transformers):
 
     y_pred = pipeline.predict(X_test)
     assert isinstance(y_pred, np.ndarray)
+
+    # KMeans has no predict_proba, the pipeline falls back to one-hot predictions
+    y_proba = pipeline.predict_proba(X_test)
+    assert isinstance(y_proba, np.ndarray)
+    assert_array_almost_equal(y_proba.sum(axis=1), 1)
+    assert np.array_equal(np.unique(y_pred)[np.argmax(y_proba, axis=1)], y_pred)
 
     if not isinstance(transformers, list):
         transformers = [transformers]
@@ -274,3 +283,61 @@ def test_multivariate_tag_inference():
     p5 = ClustererPipeline(transformers=[t3, t1], clusterer=c3)
     assert not p5.get_tag("capability:multivariate")
     p5.fit(X, y)
+
+
+def test_predict_tag_inference():
+    """Test that ClustererPipeline infers the predict capability tag correctly."""
+    X, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+
+    p1 = ClustererPipeline(
+        transformers=Normalizer(), clusterer=TimeSeriesKMeans._create_test_instance()
+    )
+    assert p1.get_tag("capability:predict")
+
+    # transductive clusterer, the pipeline cannot predict on unseen data
+    p2 = ClustererPipeline(
+        transformers=Normalizer(), clusterer=MockTransductiveCluster()
+    )
+    assert not p2.get_tag("capability:predict")
+    p2.fit(X)
+    assert not p2.get_tag("capability:predict")
+
+    with pytest.raises(
+        NotImplementedError,
+        match="ClustererPipeline does not support out-of-sample prediction",
+    ):
+        p2.predict(X)
+    with pytest.raises(
+        NotImplementedError,
+        match="ClustererPipeline does not support out-of-sample prediction",
+    ):
+        p2.predict_proba(X)
+
+    labels = p2.fit_predict(X)
+    assert isinstance(labels, np.ndarray)
+    assert np.array_equal(labels, p2.labels_)
+
+    # sklearn clusterer with a predict method
+    p3 = ClustererPipeline(
+        transformers=Tabularizer(),
+        clusterer=KMeans(n_clusters=2, max_iter=3, random_state=0),
+    )
+    assert p3.get_tag("capability:predict")
+
+    # sklearn clusterer without a predict method
+    p4 = ClustererPipeline(
+        transformers=Tabularizer(), clusterer=AgglomerativeClustering(n_clusters=2)
+    )
+    assert not p4.get_tag("capability:predict")
+    p4.fit(X)
+    assert not p4.get_tag("capability:predict")
+
+    with pytest.raises(
+        NotImplementedError,
+        match="ClustererPipeline does not support out-of-sample prediction",
+    ):
+        p4.predict(X)
+
+    labels = p4.fit_predict(X)
+    assert isinstance(labels, np.ndarray)
+    assert np.array_equal(labels, p4.labels_)

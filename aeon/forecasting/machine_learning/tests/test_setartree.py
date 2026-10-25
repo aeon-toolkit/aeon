@@ -265,7 +265,7 @@ def test_predict_uses_full_lags_when_feature_indices_unset():
 
 def test_build_from_embedded_empty_raises_and_flags_and_public_api():
     """Test _build_from_embedded error, build flags, and public API behaviours."""
-    y = np.array([[i for i in range(40)]], dtype=float)
+    y = np.array([[*range(40)]], dtype=float)
 
     # empty embedded -> ValueError
     st = SETARTree(lag=2)
