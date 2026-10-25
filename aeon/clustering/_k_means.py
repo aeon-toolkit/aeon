@@ -325,10 +325,8 @@ class TimeSeriesKMeans(BaseClusterer):
 
         # Add distance, random_state, and n_jobs to average params for string methods
         if isinstance(self.averaging_method, str):
-            if (
-                "distance" not in self._average_params
-                and self.averaging_method not in ["mean", "shift_scale"]
-            ):
+            needs_distance = self.averaging_method not in ["mean", "shift_scale"]
+            if "distance" not in self._average_params and needs_distance:
                 # Must be a str and a valid distance for ba averaging
                 if isinstance(self.distance, str):
                     if (

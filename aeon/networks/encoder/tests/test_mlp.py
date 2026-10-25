@@ -39,9 +39,9 @@ def test_mlp_initialization(n_layers, n_units, activation):
         dropout_layer = layers[2 + 2 * i]  # Dropout before Dense
         dense_layer = layers[3 + 2 * i]  # Dense comes after Dropout
 
-        assert isinstance(
-            dropout_layer, Dropout
-        ), f"Expected Dropout at index {2 + 2 * i}"
+        assert isinstance(dropout_layer, Dropout), (
+            f"Expected Dropout at index {2 + 2 * i}"
+        )
         assert isinstance(dense_layer, Dense), f"Expected Dense at index {3 + 2 * i}"
 
         # Assert activation function
@@ -55,9 +55,9 @@ def test_mlp_initialization(n_layers, n_units, activation):
 
         # Assert number of units
         expected_units = n_units[i] if isinstance(n_units, list) else n_units
-        assert (
-            dense_layer.units == expected_units
-        ), f"Expected {expected_units} units, got {dense_layer.units}"
+        assert dense_layer.units == expected_units, (
+            f"Expected {expected_units} units, got {dense_layer.units}"
+        )
 
     # Check last layer is Dropout
     assert isinstance(layers[-1], Dropout), "Expected final layer to be Dropout"
@@ -101,18 +101,18 @@ def test_mlp_dropout_rate(dropout_rate, n_layers):
         dropout_layer = layers[2 + 2 * i]
         dense_layer = layers[3 + 2 * i]
 
-        assert isinstance(
-            dropout_layer, Dropout
-        ), f"Expected Dropout at index {2 + 2 * i}"
+        assert isinstance(dropout_layer, Dropout), (
+            f"Expected Dropout at index {2 + 2 * i}"
+        )
         assert isinstance(dense_layer, Dense), f"Expected Dense at index {3 + 2 * i}"
 
         # Assert dropout rates match expected values
         expected_dropout = (
             dropout_rate[i] if isinstance(dropout_rate, list) else dropout_rate
         )
-        assert (
-            dropout_layer.rate == expected_dropout
-        ), f"Expected {expected_dropout},got {dropout_layer.rate}"
+        assert dropout_layer.rate == expected_dropout, (
+            f"Expected {expected_dropout},got {dropout_layer.rate}"
+        )
     assert isinstance(layers[-1], Dropout), "Expected final layer to be Dropout"
 
 
@@ -140,9 +140,9 @@ def test_mlp_dropout_last(dropout_last):
     assert isinstance(layers[1], Flatten), "Expected second layer to be Flatten"
     assert isinstance(layers[-1], Dropout), "Expected final layer to be Dropout"
 
-    assert (
-        layers[-1].rate == dropout_last
-    ), f"Expected {dropout_last}, got {layers[-1].rate}"
+    assert layers[-1].rate == dropout_last, (
+        f"Expected {dropout_last}, got {layers[-1].rate}"
+    )
 
 
 @pytest.mark.skipif(
@@ -174,6 +174,6 @@ def test_mlp_use_bias(use_bias):
     assert last_dense_layer is not None, "No Dense layer found before final Dropout"
     assert isinstance(last_dense_layer, Dense), "Expected last layer to be Dense"
 
-    assert (
-        last_dense_layer.use_bias == use_bias
-    ), f"Expected use_bias {use_bias}, got {last_dense_layer.use_bias}"
+    assert last_dense_layer.use_bias == use_bias, (
+        f"Expected use_bias {use_bias}, got {last_dense_layer.use_bias}"
+    )
