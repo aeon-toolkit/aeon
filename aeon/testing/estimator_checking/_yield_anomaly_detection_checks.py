@@ -59,6 +59,6 @@ def check_anomaly_detector_learning_types(estimator, datatype):
     semisup = estimator.get_tag("learning_type:semi_supervised")
     supervised = estimator.get_tag("learning_type:supervised")
 
-    assert (
-        unsupervised or semisup or supervised
-    ), "At least one learning type must be True"
+    assert unsupervised or semisup or supervised, (
+        "At least one learning type must be True"
+    )

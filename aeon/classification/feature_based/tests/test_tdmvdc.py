@@ -60,7 +60,7 @@ def check_tdmvdc_results(dataset_name, expected_accuracy):
     cls.fit(trainSignalX, trainY)
     preds = cls.predict(testSignalX)
     acc = accuracy_score(testY, preds)
-    assert np.isclose(
-        acc, expected_accuracy, atol=0.02
-    ), f"Accuracy {acc:.2f} not close to expected \
+    assert np.isclose(acc, expected_accuracy, atol=0.02), (
+        f"Accuracy {acc:.2f} not close to expected \
     {expected_accuracy:.2f} for {dataset_name}"
+    )

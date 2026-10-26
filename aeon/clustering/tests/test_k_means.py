@@ -524,6 +524,17 @@ def test_invalid_params():
             n_init=1,
         ).fit(uni_data)
 
+    with pytest.raises(
+        ValueError, match="averaging_method must be a valid string or callable"
+    ):
+        TimeSeriesKMeans(
+            n_clusters=2,
+            init="first",
+            averaging_method=123,
+            distance="euclidean",
+            n_init=1,
+        ).fit(uni_data)
+
     with pytest.raises(ValueError, match=r"n_clusters .* cannot be larger"):
         TimeSeriesKMeans(n_clusters=20, init="first").fit(uni_data)
 
@@ -585,3 +596,40 @@ def test_k_means_threaded(distance, n_jobs):
     _run_kmeans_test(
         kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
     )
+
+
+def test_k_means_callable_averaging_method():
+    """Test TimeSeriesKMeans with a callable averaging_method."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(10, 1, 15))
+
+    def simple_average(x):
+        return x.mean(axis=0)
+
+    km = TimeSeriesKMeans(
+        n_clusters=2,
+        averaging_method=simple_average,
+        random_state=42,
+        n_init=1,
+        max_iter=5,
+    )
+    km.fit(X)
+    assert km.cluster_centers_.shape == (2, 1, 15)
+    assert len(km.labels_) == 10
+
+    def weighted_average(x, weights=None):
+        if weights is not None:
+            return np.average(x, axis=0, weights=weights[: len(x)])
+        return x.mean(axis=0)
+
+    weights = np.ones(10)
+    km_custom = TimeSeriesKMeans(
+        n_clusters=2,
+        averaging_method=weighted_average,
+        average_params={"weights": weights},
+        random_state=42,
+        n_init=1,
+        max_iter=5,
+    )
+    km_custom.fit(X)
+    assert km_custom.cluster_centers_.shape == (2, 1, 15)

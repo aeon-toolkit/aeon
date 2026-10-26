@@ -26,27 +26,20 @@ __all__ = [
     "load_arrow_head",
     "load_gunpoint",
     "load_basic_motions",
-    "load_osuleaf",
     "load_italy_power_demand",
     "load_japanese_vowels",
     "load_pickup_gesture_wiimoteZ",
     "load_longley",
-    "load_lynx",
-    "load_shampoo_sales",
     "load_unit_test",
     "load_uschange",
-    "load_PBS_dataset",
     "load_japanese_vowels",
     "load_gun_point_segmentation",
     "load_electric_devices_segmentation",
-    "load_acsf1",
     "load_unit_test_tsf",
     "load_solar",
     "load_cardano_sentiment",
     "load_covid_3month",
     "load_kdd_tsad_135",
-    "load_daphnet_s06r02e0",
-    "load_ecg_diff_count_3",
     "get_dataset_meta_data",
     # Monster datasets
     "load_monster_dataset_names",
@@ -65,11 +58,8 @@ from aeon.datasets._data_loaders import (
     load_from_tsv_file,
     load_regression,
 )
-from aeon.datasets._data_writers import (
-    save_to_ts_file,
-)
+from aeon.datasets._data_writers import save_to_ts_file
 from aeon.datasets._single_problem_loaders import (
-    load_acsf1,
     load_airline,
     load_arrow_head,
     load_basic_motions,
@@ -81,11 +71,7 @@ from aeon.datasets._single_problem_loaders import (
     load_italy_power_demand,
     load_japanese_vowels,
     load_longley,
-    load_lynx,
-    load_osuleaf,
-    load_PBS_dataset,
     load_pickup_gesture_wiimoteZ,
-    load_shampoo_sales,
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
@@ -93,8 +79,6 @@ from aeon.datasets._single_problem_loaders import (
 )
 from aeon.datasets._tsad_data_loaders import (
     load_anomaly_detection,
-    load_daphnet_s06r02e0,
-    load_ecg_diff_count_3,
     load_from_timeeval_csv_file,
     load_kdd_tsad_135,
 )

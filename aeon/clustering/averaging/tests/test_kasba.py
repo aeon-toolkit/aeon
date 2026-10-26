@@ -257,7 +257,7 @@ def test_kasba_ba_incorrect_input():
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "init_barycenter shape is invalid. Expected (1, 10) but " "got (1, 9)"
+            "init_barycenter shape is invalid. Expected (1, 10) but got (1, 9)"
         ),
     ):
         kasba_average(X, init_barycenter=make_example_1d_numpy(9))

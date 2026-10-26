@@ -32,9 +32,9 @@ def test_fixed_lag():
     f = SETARTree(lag=2, fixed_lag=True, external_lag=1)
     f.fit(y)
     pred = f.predict(y)
-    assert np.isclose(
-        pred, 21.0, atol=0.01
-    ), f"Fixed lag prediction {pred} not close to 21.0"
+    assert np.isclose(pred, 21.0, atol=0.01), (
+        f"Fixed lag prediction {pred} not close to 21.0"
+    )
 
 
 def test_different_stopping_criteria():
@@ -44,9 +44,9 @@ def test_different_stopping_criteria():
         f = SETARTree(lag=2, stopping_criteria=criteria)
         f.fit(y)
         pred = f.predict(y)
-        assert np.isclose(
-            pred, 21.0, atol=0.01
-        ), f"Prediction with {criteria} {pred} not close to 21.0"
+        assert np.isclose(pred, 21.0, atol=0.01), (
+            f"Prediction with {criteria} {pred} not close to 21.0"
+        )
 
 
 def test_forecast_linear_sets_attribute():
@@ -265,7 +265,7 @@ def test_predict_uses_full_lags_when_feature_indices_unset():
 
 def test_build_from_embedded_empty_raises_and_flags_and_public_api():
     """Test _build_from_embedded error, build flags, and public API behaviours."""
-    y = np.array([[i for i in range(40)]], dtype=float)
+    y = np.array([[*range(40)]], dtype=float)
 
     # empty embedded -> ValueError
     st = SETARTree(lag=2)

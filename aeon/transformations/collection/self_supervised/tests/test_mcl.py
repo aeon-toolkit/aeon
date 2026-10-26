@@ -20,7 +20,6 @@ def test_time_mcl_latent_space_dim(latent_space_dim):
     """Test TimeMCL with possible latent_space_dim setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TimeMCL(
             latent_space_dim=latent_space_dim,
             backbone_network=DummyDeepNetwork(),
@@ -45,7 +44,6 @@ def test_time_mcl_latent_space_activation(latent_space_activation):
     """Test file_path with possible latent_space_activation setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TimeMCL(
             latent_space_activation=latent_space_activation,
             backbone_network=DummyDeepNetwork(),
@@ -71,7 +69,6 @@ def test_time_mcl_backbone_network(backbone_network):
     """Test TimeMCL with possible backbone_network setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         if backbone_network is not None:
             ssl = TimeMCL(
                 backbone_network=backbone_network(),

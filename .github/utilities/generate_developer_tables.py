@@ -109,7 +109,7 @@ def get_profile(login, auth):
     """Get the GitHub profile from login."""
     print(f"get profile for {login}")  # noqa: T201
     try:
-        profile = get("https://api.github.com/users/%s" % login, auth).json()
+        profile = get(f"https://api.github.com/users/{login}", auth).json()
     except requests.exceptions.HTTPError:
         return dict(name=login, avatar_url=LOGO_URL, html_url="")
 
@@ -134,12 +134,11 @@ def generate_table(contributors):
     for contributor in contributors:
         lines.append("<div>")
         lines.append(
-            "<a href='%s'><img src='%s' class='avatar' /></a> <br />"
-            % (contributor["html_url"], contributor["avatar_url"])
+            f"<a href='{contributor['html_url']}'>"
+            f"<img src='{contributor['avatar_url']}' class='avatar' /></a> <br />"
         )
         lines.append(
-            "<p><a href='%s'>%s</a></p>"
-            % (contributor["html_url"], contributor["name"])
+            f"<p><a href='{contributor['html_url']}'>{contributor['name']}</a></p>"
         )
         lines.append("</div>")
     lines.append("</div>")

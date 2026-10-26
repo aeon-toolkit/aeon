@@ -34,12 +34,6 @@ class FreshPRINCEClassifier(BaseClassifier):
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
         `DecisionTreeClassifier` using entropy as a splitting measure.
-    pca_solver : str, default="deprecated"
-        Has no effect, the rotation forest group PCA is always computed with an
-        exact eigendecomposition.
-
-        .. deprecated:: 1.6.0
-            ``pca_solver`` has no effect and will be removed in v1.7.0.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
@@ -93,7 +87,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         default_fc_parameters="comprehensive",
         n_estimators=200,
         base_estimator=None,
-        pca_solver="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -102,8 +95,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
         self.base_estimator = base_estimator
-        self.pca_solver = pca_solver
-
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.chunksize = chunksize
@@ -190,7 +181,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
             base_estimator=self.base_estimator,
-            pca_solver=self.pca_solver,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )

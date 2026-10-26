@@ -273,7 +273,7 @@ def plot_pairwise_scatter(
         if np.all(results_a == results_b):
             # raise warning
             warnings.warn(
-                f"Estimators {method_a} and {method_b} have the same performance"
+                f"Estimators {method_a} and {method_b} have the same performance "
                 "on all datasets. This may cause problems when forming cliques.",
                 stacklevel=2,
             )
