@@ -150,7 +150,6 @@ class REDCOMETS(BaseClassifier):
                 self.sax_clfs,
             ) = self._build_univariate_ensemble(np.squeeze(X, 1), y)
         else:  # Multivariate
-
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
                 (

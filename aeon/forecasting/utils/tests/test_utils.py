@@ -24,9 +24,9 @@ from aeon.forecasting.utils._nelder_mead import dispatch_loss, nelder_mead
 def test_arima_fit(params, data, model, expected_aic):
     """Test ARIMA model fitting and AIC calculation."""
     result = _arima_fit(params, data, model)
-    assert np.isclose(
-        result, expected_aic, atol=1e-4
-    ), f"AIC mismatch. Got {result}, expected {expected_aic}"
+    assert np.isclose(result, expected_aic, atol=1e-4), (
+        f"AIC mismatch. Got {result}, expected {expected_aic}"
+    )
 
 
 # @pytest.mark.parametrize(
