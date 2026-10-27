@@ -80,49 +80,49 @@ class MLPNetwork(BaseDeepLearningNetwork):
         if isinstance(self.activation, str):
             self._activation = [self.activation] * self.n_layers
         elif isinstance(self.activation, list):
-            assert (
-                len(self.activation) == self.n_layers
-            ), "There should be an `activation` function associated with each layer."
-            assert all(
-                isinstance(a, str) for a in self.activation
-            ), "Activation must be a list of strings."
+            assert len(self.activation) == self.n_layers, (
+                "There should be an `activation` function associated with each layer."
+            )
+            assert all(isinstance(a, str) for a in self.activation), (
+                "Activation must be a list of strings."
+            )
             self._activation = self.activation
 
         if self.dropout_rate is None:
             self._dropout_rate = [0.1]
             self._dropout_rate.extend([0.2] * (self.n_layers - 1))
-            assert np.all(
-                np.array(self._dropout_rate) - 1 <= 0
-            ), "Dropout rate(s) should be in the interval [0, 1]."
+            assert np.all(np.array(self._dropout_rate) - 1 <= 0), (
+                "Dropout rate(s) should be in the interval [0, 1]."
+            )
         elif isinstance(self.dropout_rate, (int, float)):
             self._dropout_rate = [float(self.dropout_rate)] * self.n_layers
-            assert np.all(
-                np.array(self._dropout_rate) - 1 <= 0
-            ), "Dropout rate(s) should be in the interval [0, 1]."
+            assert np.all(np.array(self._dropout_rate) - 1 <= 0), (
+                "Dropout rate(s) should be in the interval [0, 1]."
+            )
         elif isinstance(self.dropout_rate, list):
-            assert (
-                len(self.dropout_rate) == self.n_layers
-            ), "There should be a `dropout_rate` associated with each layer."
-            assert all(
-                isinstance(d, (int, float)) for d in self.dropout_rate
-            ), "Dropout rates must be int or float."
-            assert (
-                len(self.dropout_rate) == self.n_layers
-            ), "Dropout list length must match number of layers."
+            assert len(self.dropout_rate) == self.n_layers, (
+                "There should be a `dropout_rate` associated with each layer."
+            )
+            assert all(isinstance(d, (int, float)) for d in self.dropout_rate), (
+                "Dropout rates must be int or float."
+            )
+            assert len(self.dropout_rate) == self.n_layers, (
+                "Dropout list length must match number of layers."
+            )
             self._dropout_rate = [float(d) for d in self.dropout_rate]
-            assert np.all(
-                np.array(self._dropout_rate) - 1 <= 0
-            ), "Dropout rate(s) should be in the interval [0, 1]."
+            assert np.all(np.array(self._dropout_rate) - 1 <= 0), (
+                "Dropout rate(s) should be in the interval [0, 1]."
+            )
 
         if isinstance(self.n_units, int):
             self._n_units = [self.n_units] * self.n_layers
         elif isinstance(self.n_units, list):
-            assert all(
-                isinstance(u, int) for u in self.n_units
-            ), "`n_units` must be int for all layers."
-            assert (
-                len(self.n_units) == self.n_layers
-            ), "`n_units` length must match number of layers."
+            assert all(isinstance(u, int) for u in self.n_units), (
+                "`n_units` must be int for all layers."
+            )
+            assert len(self.n_units) == self.n_layers, (
+                "`n_units` length must match number of layers."
+            )
             self._n_units = self.n_units
 
         if self.dropout_last is None:
@@ -131,9 +131,9 @@ class MLPNetwork(BaseDeepLearningNetwork):
             assert isinstance(self.dropout_last, float) or (
                 int(self.dropout_last // 1) in [0, 1]
             ), "a float is expected in the `dropout_last` argument."
-            assert (
-                self.dropout_last - 1 <= 0
-            ), "`dropout_last` argument must be a number in the interval [0, 1]"
+            assert self.dropout_last - 1 <= 0, (
+                "`dropout_last` argument must be a number in the interval [0, 1]"
+            )
             self._dropout_last = self.dropout_last
 
         from tensorflow import keras

@@ -28,12 +28,12 @@ def test_rnn_network_rnn_type(rnn_type):
         input_layer, output_layer = rnn_network.build_network(input_shape)
 
         # Check that layers are created correctly
-        assert hasattr(
-            input_layer, "shape"
-        ), "Input layer should have a shape attribute"
-        assert hasattr(
-            output_layer, "shape"
-        ), "Output layer should have a shape attribute"
+        assert hasattr(input_layer, "shape"), (
+            "Input layer should have a shape attribute"
+        )
+        assert hasattr(output_layer, "shape"), (
+            "Output layer should have a shape attribute"
+        )
         assert input_layer.dtype == tf.float32
         assert input_layer.dtype == tf.float32
 
@@ -51,9 +51,9 @@ def test_rnn_network_rnn_type(rnn_type):
                 rnn_layer_found = True
                 break
 
-        assert (
-            rnn_layer_found
-        ), f"Expected {expected_type.upper()} layer not found in model"
+        assert rnn_layer_found, (
+            f"Expected {expected_type.upper()} layer not found in model"
+        )
 
 
 @pytest.mark.skipif(
@@ -75,9 +75,9 @@ def test_rnn_network_n_layers_valid(n_layers):
 
     # Count RNN layers by name pattern (simple by default in new implementation)
     rnn_layers = [layer for layer in model.layers if "simple" in layer.name]
-    assert (
-        len(rnn_layers) == n_layers
-    ), f"Expected {n_layers} SimpleRNN layers, found {len(rnn_layers)}"
+    assert len(rnn_layers) == n_layers, (
+        f"Expected {n_layers} SimpleRNN layers, found {len(rnn_layers)}"
+    )
 
 
 @pytest.mark.skipif(
@@ -184,16 +184,16 @@ def test_rnn_network_dropout_intermediate_nonzero(dropout_intermediate):
         if isinstance(layer, tf.keras.layers.Dropout) and "intermediate" in layer.name
     ]
     expected_intermediate_dropouts = n_layers - 1  # All layers except the last
-    assert (
-        len(intermediate_dropout_layers) == expected_intermediate_dropouts
-    ), f"Expected {expected_intermediate_dropouts} \
+    assert len(intermediate_dropout_layers) == expected_intermediate_dropouts, (
+        f"Expected {expected_intermediate_dropouts} \
         found {len(intermediate_dropout_layers)}"
+    )
 
     # Check dropout rate
     for layer in intermediate_dropout_layers:
-        assert (
-            layer.rate == dropout_intermediate
-        ), f"Got {layer.rate}, expected {dropout_intermediate}"
+        assert layer.rate == dropout_intermediate, (
+            f"Got {layer.rate}, expected {dropout_intermediate}"
+        )
 
 
 @pytest.mark.skipif(
@@ -222,14 +222,14 @@ def test_rnn_network_dropout_output_nonzero(dropout_output):
         for layer in model.layers
         if isinstance(layer, tf.keras.layers.Dropout) and "dropout_output" in layer.name
     ]
-    assert (
-        len(output_dropout_layers) == 1
-    ), f"Expected 1 output Dropout layer, found {len(output_dropout_layers)}"
+    assert len(output_dropout_layers) == 1, (
+        f"Expected 1 output Dropout layer, found {len(output_dropout_layers)}"
+    )
 
     # Check dropout rate
-    assert (
-        output_dropout_layers[0].rate == dropout_output
-    ), f"Got {output_dropout_layers[0].rate}, expected {dropout_output}"
+    assert output_dropout_layers[0].rate == dropout_output, (
+        f"Got {output_dropout_layers[0].rate}, expected {dropout_output}"
+    )
 
 
 @pytest.mark.skipif(
@@ -260,9 +260,10 @@ def test_rnn_network_dropout_zero():
     dropout_layers = [
         layer for layer in model.layers if isinstance(layer, tf.keras.layers.Dropout)
     ]
-    assert (
-        len(dropout_layers) == 0
-    ), f"Expected 0 Dropout layers with zero dropout rates, found {len(dropout_layers)}"
+    assert len(dropout_layers) == 0, (
+        "Expected 0 Dropout layers with zero dropout rates, found "
+        f"{len(dropout_layers)}"
+    )
 
 
 @pytest.mark.skipif(
@@ -292,9 +293,9 @@ def test_rnn_network_bidirectional(bidirectional):
             for layer in model.layers
             if isinstance(layer, tf.keras.layers.Bidirectional)
         ]
-        assert (
-            len(bidirectional_layers) == n_layers
-        ), f"Expected {n_layers} Bidirectional layers"
+        assert len(bidirectional_layers) == n_layers, (
+            f"Expected {n_layers} Bidirectional layers"
+        )
     else:
         # Check for regular SimpleRNN layers by name
         simple_layers = [
@@ -303,9 +304,9 @@ def test_rnn_network_bidirectional(bidirectional):
             if "simple" in layer.name
             and not isinstance(layer, tf.keras.layers.Bidirectional)
         ]
-        assert (
-            len(simple_layers) == n_layers
-        ), f"Expected {n_layers} SimpleRNN layers, found {len(simple_layers)}"
+        assert len(simple_layers) == n_layers, (
+            f"Expected {n_layers} SimpleRNN layers, found {len(simple_layers)}"
+        )
 
         # Ensure no Bidirectional layers
         bidirectional_layers = [
@@ -313,9 +314,9 @@ def test_rnn_network_bidirectional(bidirectional):
             for layer in model.layers
             if isinstance(layer, tf.keras.layers.Bidirectional)
         ]
-        assert (
-            len(bidirectional_layers) == 0
-        ), "Should not have Bidirectional layers when bidirectional=False"
+        assert len(bidirectional_layers) == 0, (
+            "Should not have Bidirectional layers when bidirectional=False"
+        )
 
 
 @pytest.mark.skipif(
@@ -342,9 +343,9 @@ def test_rnn_network_activation(activation):
     ]
     assert len(simple_layers) == 1
 
-    assert (
-        simple_layers[0].activation.__name__ == activation
-    ), f"Got {simple_layers[0].activation.__name__}, expected {activation}"
+    assert simple_layers[0].activation.__name__ == activation, (
+        f"Got {simple_layers[0].activation.__name__}, expected {activation}"
+    )
 
 
 @pytest.mark.skipif(
@@ -380,10 +381,10 @@ def test_rnn_network_return_sequence_last(return_sequence_last):
         is_last_layer = i == n_layers - 1
         expected_return_sequences = not is_last_layer or return_sequence_last
 
-        assert (
-            layer.return_sequences == expected_return_sequences
-        ), f"Layer {i} got {layer.return_sequences},\
+        assert layer.return_sequences == expected_return_sequences, (
+            f"Layer {i} got {layer.return_sequences},\
               expected {expected_return_sequences}"
+        )
 
 
 @pytest.mark.skipif(
@@ -458,16 +459,16 @@ def test_rnn_network_layer_names():
     ]
 
     for i, layer in enumerate(simple_layers):
-        expected_name = f"simple_{i+1}"
-        assert (
-            layer.name == expected_name
-        ), f"SimpleRNN layer {i} has name {layer.name}, expected {expected_name}"
+        expected_name = f"simple_{i + 1}"
+        assert layer.name == expected_name, (
+            f"SimpleRNN layer {i} has name {layer.name}, expected {expected_name}"
+        )
 
     for i, layer in enumerate(intermediate_dropout_layers):
-        expected_name = f"dropout_intermediate_{i+1}"
-        assert (
-            layer.name == expected_name
-        ), f"layer {i} got {layer.name}, expected {expected_name}"
+        expected_name = f"dropout_intermediate_{i + 1}"
+        assert layer.name == expected_name, (
+            f"layer {i} got {layer.name}, expected {expected_name}"
+        )
 
 
 @pytest.mark.skipif(
@@ -528,33 +529,33 @@ def test_rnn_network_complex_configuration():
     ]
 
     assert len(bidirectional_layers) == 4, "Should have 4 Bidirectional layers"
-    assert (
-        len(intermediate_dropout_layers) == 3
-    ), "Should have 3 intermediate Dropout layers"
+    assert len(intermediate_dropout_layers) == 3, (
+        "Should have 3 intermediate Dropout layers"
+    )
     assert len(output_dropout_layers) == 1, "Should have 1 output Dropout layer"
 
     # Check units in each layer
     expected_units = [128, 64, 32, 16]
     for i, layer in enumerate(bidirectional_layers):
-        assert (
-            layer.forward_layer.units == expected_units[i]
-        ), f"Layer {i} has {layer.forward_layer.units} units"
+        assert layer.forward_layer.units == expected_units[i], (
+            f"Layer {i} has {layer.forward_layer.units} units"
+        )
 
     for i, layer in enumerate(bidirectional_layers):
         is_last_layer = i == len(bidirectional_layers) - 1
         expected_return_sequences = (
             not is_last_layer or True
         )  # return_sequence_last=True
-        assert (
-            layer.forward_layer.return_sequences == expected_return_sequences
-        ), f"Layer {i} got {layer.forward_layer.return_sequences}, \
+        assert layer.forward_layer.return_sequences == expected_return_sequences, (
+            f"Layer {i} got {layer.forward_layer.return_sequences}, \
              expected {expected_return_sequences}"
+        )
 
     # Check activation
     for layer in bidirectional_layers:
-        assert (
-            layer.forward_layer.activation.__name__ == "relu"
-        ), f"Layer activation is {layer.forward_layer.activation.__name__}"
+        assert layer.forward_layer.activation.__name__ == "relu", (
+            f"Layer activation is {layer.forward_layer.activation.__name__}"
+        )
 
 
 @pytest.mark.skipif(
@@ -587,10 +588,10 @@ def test_rnn_network_activation_list(activation):
 
     for i, layer in enumerate(simple_layers):
         expected_activation = activation[i]
-        assert (
-            layer.activation.__name__ == expected_activation
-        ), f"Layer {i} got {layer.activation.__name__}, \
+        assert layer.activation.__name__ == expected_activation, (
+            f"Layer {i} got {layer.activation.__name__}, \
         expected {expected_activation}"
+        )
 
 
 @pytest.mark.skipif(

@@ -162,7 +162,7 @@ class HMMSegmenter(BaseSegmenter):
             or tran_mat_len != self.transition_prob_mat.shape[1]
         ):
             raise ValueError(
-                "Transition Probability must be 2D square, but got an"
+                "Transition Probability must be 2D square, but got an "
                 f"object of size {self.transition_prob_mat.shape}"
             )
         # number of states should be consistent!

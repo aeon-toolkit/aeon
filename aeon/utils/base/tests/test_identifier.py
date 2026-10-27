@@ -16,9 +16,9 @@ def test_base_type_inference(item):
     """Check that get_identifier returns the correct key for base classes."""
     identifier = get_identifier(item[1])
 
-    assert (
-        identifier == item[0]
-    ), f"get_identifier returned {identifier} for {item[1]}, expected {item[0]}"
+    assert identifier == item[0], (
+        f"get_identifier returned {identifier} for {item[1]}, expected {item[0]}"
+    )
 
 
 def test_get_identifier():
@@ -41,3 +41,13 @@ def test_get_identifier():
         == get_identifier(MockSeriesTransformer())
         == "series-transformer"
     )
+
+
+def test_get_identifier_multiple_raises():
+    """An estimator with more than one base type is ambiguous and must raise."""
+
+    class MockClassifierRegressor(MockClassifier, MockRegressor):
+        pass
+
+    with pytest.raises(TypeError, match="multiple identifiers"):
+        get_identifier(MockClassifierRegressor)

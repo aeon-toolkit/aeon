@@ -400,12 +400,10 @@ class AEResNetClusterer(BaseDeepClusterer):
                 # Calculate MSE for each layer in the encoder and decoder
                 mse = 0
 
-                _encoder_intermediate_outputs = (
-                    []
-                )  # Store embeddings of each layer in the Encoder
-                _decoder_intermediate_outputs = (
-                    []
-                )  # Store embeddings of each layer in the Decoder
+                # Store embeddings of each layer in the Encoder
+                _encoder_intermediate_outputs = []
+                # Store embeddings of each layer in the Decoder
+                _decoder_intermediate_outputs = []
 
                 encoder = autoencoder.layers[1]  # Returns Functional API Models.
                 decoder = autoencoder.layers[2]  # Returns Functional API Models.
@@ -511,12 +509,12 @@ class AEResNetClusterer(BaseDeepClusterer):
             if verbose:
                 if validation_split and val_batches > 0:
                     sys.stdout.write(
-                        "Training loss at epoch %d: %.4f, Validation loss: %.4f\n"
-                        % (epoch, float(epoch_loss), float(val_loss))
+                        f"Training loss at epoch {epoch}: {float(epoch_loss):.4f}, "
+                        f"Validation loss: {float(val_loss):.4f}\n"
                     )
                 else:
                     sys.stdout.write(
-                        "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                        f"Training loss at epoch {epoch}: {float(epoch_loss):.4f}\n"
                     )
 
             for callback in self.callbacks_:

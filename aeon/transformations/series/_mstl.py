@@ -5,14 +5,13 @@ from __future__ import annotations
 __all__ = ["MSTLSeriesTransformer"]
 
 from collections.abc import Iterable, Sequence
-from typing import Union
 
 import numpy as np
 
 from aeon.transformations.series._stl import STLSeriesTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
 
-Number = Union[int, float]
+Number = int | float
 
 
 class MSTLSeriesTransformer(BaseSeriesTransformer):

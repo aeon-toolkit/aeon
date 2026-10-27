@@ -170,7 +170,6 @@ class TimeSeriesCLARA(BaseClusterer):
         best_pam = None
         best_labels = None
         for _ in range(self.n_sampling_iters):
-
             if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
                     np.arange(n_cases),
