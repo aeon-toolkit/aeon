@@ -275,7 +275,6 @@ class TimeMCL(BaseCollectionTransformer):
             num_batches = 0
 
             for step, (x_batch_train, _) in enumerate(train_dataset):
-
                 x_batch_train2 = tf.random.shuffle(x_batch_train)
 
                 _contrastive_weight = np.random.beta(self.alpha, self.alpha)
@@ -316,7 +315,7 @@ class TimeMCL(BaseCollectionTransformer):
 
             if self.verbose:
                 sys.stdout.write(
-                    "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                    f"Training loss at epoch {epoch}: {float(epoch_loss):.4f}\n"
                 )
 
             for callback in self.callbacks_:

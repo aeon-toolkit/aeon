@@ -186,14 +186,14 @@ class BaseSegmenter(BaseSeriesEstimator):
             # Check valid shape
             if y.ndim > 1:
                 raise ValueError(
-                    "Error in input type for y: y input as np.ndarray " "should be 1D"
+                    "Error in input type for y: y input as np.ndarray should be 1D"
                 )
             if not (
                 issubclass(y.dtype.type, np.integer)
                 or issubclass(y.dtype.type, np.floating)
             ):
                 raise ValueError(
-                    "Error in input type for y: y input must contain " "floats or ints"
+                    "Error in input type for y: y input must contain floats or ints"
                 )
         elif isinstance(y, pd.Series):
             if not pd.api.types.is_numeric_dtype(y):
@@ -210,8 +210,7 @@ class BaseSegmenter(BaseSeriesEstimator):
 
             if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
                 raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame "
-                    "must be numeric"
+                    "Error in input type for y: y input as pd.DataFrame must be numeric"
                 )
 
     @classmethod

@@ -268,7 +268,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 )
 
             if self.verbose:
-                print("%.3f" % curr_inertia, end=" --> ")  # noqa: T001, T201
+                print(f"{curr_inertia:.3f}", end=" --> ")  # noqa: T001, T201
 
             change_in_centres = np.abs(prev_inertia - curr_inertia)
             prev_inertia = curr_inertia
@@ -325,10 +325,8 @@ class TimeSeriesKMeans(BaseClusterer):
 
         # Add distance, random_state, and n_jobs to average params for string methods
         if isinstance(self.averaging_method, str):
-            if (
-                "distance" not in self._average_params
-                and self.averaging_method not in ["mean", "shift_scale"]
-            ):
+            needs_distance = self.averaging_method not in ["mean", "shift_scale"]
+            if "distance" not in self._average_params and needs_distance:
                 # Must be a str and a valid distance for ba averaging
                 if isinstance(self.distance, str):
                     if (
