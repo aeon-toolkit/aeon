@@ -164,16 +164,22 @@ def burg(y, order):
         coefficients), with ``pacf[0] = 1``.
     """
     n = y.shape[0]
-    x = y - np.mean(y)
+    mean = np.mean(y)
     # After stage m, f[i] and b[i] hold the order m forward error at time
     # i + m and backward error at time i, for i < n - m.
-    f = x.copy()  # forward prediction errors
-    b = x.copy()  # backward prediction errors
+    f = np.empty(n)  # forward prediction errors
+    b = np.empty(n)  # backward prediction errors
+    ss = 0.0
+    for t in range(n):
+        v = y[t] - mean
+        f[t] = v
+        b[t] = v
+        ss += v * v
     coefs = np.zeros((order + 1, order))
     sigma2 = np.zeros(order + 1)
     pacf = np.zeros(order + 1)
     pacf[0] = 1.0
-    sigma2[0] = np.dot(x, x) / n
+    sigma2[0] = ss / n
     length = n
     for m in range(1, order + 1):
         num = 0.0
