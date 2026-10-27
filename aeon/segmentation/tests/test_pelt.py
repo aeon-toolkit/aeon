@@ -153,11 +153,21 @@ def test_pelt_invalid_penalty_string():
 
 
 def test_pelt_invalid_penalty_value():
-    """Non-positive penalty raises ValueError."""
+    """Negative penalty raises ValueError."""
     pelt = PELTSegmenter(penalty=-1.0)
     X = np.random.default_rng(0).normal(size=100)
-    with pytest.raises(ValueError, match="positive number"):
+    with pytest.raises(ValueError, match="non-negative number"):
         pelt.fit_predict(X)
+
+
+def test_pelt_none_and_zero_penalty():
+    """penalty=None and penalty=0.0 run without error and return identical CPs."""
+    X = np.array([1.0, 1.0, 5.0, 5.0, 1.0, 1.0])
+    pelt_none = PELTSegmenter(cost="l2", penalty=None, min_size=2)
+    pelt_zero = PELTSegmenter(cost="l2", penalty=0.0, min_size=2)
+    cps_none = pelt_none.fit_predict(X)
+    cps_zero = pelt_zero.fit_predict(X)
+    np.testing.assert_array_equal(cps_none, cps_zero)
 
 
 def test_pelt_invalid_min_size():

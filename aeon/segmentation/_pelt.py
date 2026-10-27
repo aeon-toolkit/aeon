@@ -45,7 +45,7 @@ class PELTSegmenter(BaseSegmenter):
         - ``"normal"`` : Negative Gaussian log-likelihood (mean + variance).
           Detects changes in mean and/or variance.
 
-    penalty : str or float, default="bic"
+    penalty : str, float, int, or None, default="bic"
         Penalty added for each additional changepoint.
 
         - ``"bic"`` : Bayesian Information Criterion,
@@ -53,7 +53,8 @@ class PELTSegmenter(BaseSegmenter):
           free parameters per segment (``n_channels`` for L2,
           ``2 * n_channels`` for normal).
         - ``"aic"`` : Akaike Information Criterion, ``penalty = 2 * p``.
-        - ``float`` : Manual penalty value (must be > 0).
+        - ``float`` or ``int`` : Manual penalty value (must be >= 0).
+        - ``None`` : No penalty (equivalent to 0).
 
     min_size : int, default=2
         Minimum number of observations between consecutive changepoints.
@@ -291,6 +292,8 @@ class PELTSegmenter(BaseSegmenter):
         params_per_channel = 1 if self.cost == "l2" else 2
         p = n_channels * params_per_channel
 
+        if self.penalty is None:
+            return 0.0
         if isinstance(self.penalty, str):
             if self.penalty == "bic":
                 return p * np.log(n_timepoints)
@@ -316,16 +319,24 @@ class PELTSegmenter(BaseSegmenter):
                 f"Invalid cost '{self.cost}'. Must be one of {valid_costs}."
             )
 
-        if isinstance(self.penalty, str):
+        if self.penalty is None:
+            pass
+        elif isinstance(self.penalty, str):
             valid_penalties = ("bic", "aic")
             if self.penalty not in valid_penalties:
                 raise ValueError(
                     f"Invalid penalty '{self.penalty}'. "
-                    f"Must be one of {valid_penalties} or a positive float."
+                    f"Must be one of {valid_penalties}, None, or a non-negative number."
                 )
-        elif not (isinstance(self.penalty, (int, float)) and self.penalty > 0):
+        elif isinstance(self.penalty, (int, float, np.number)):
+            if self.penalty < 0:
+                raise ValueError(
+                    f"Manual penalty must be a non-negative number, got {self.penalty}."
+                )
+        else:
             raise ValueError(
-                f"Manual penalty must be a positive number, " f"got {self.penalty}."
+                f"Manual penalty must be a non-negative number, string, or None, "
+                f"got {self.penalty}."
             )
 
         if not isinstance(self.min_size, int) or self.min_size < 2:
