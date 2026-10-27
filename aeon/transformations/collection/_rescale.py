@@ -347,6 +347,11 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
     def __init__(self, min: float = 0.0, max: float = 1.0):
         super().__init__()
 
+        if min >= max:
+            raise ValueError(
+                f"min value {min} should be strictly less than max value {max}"
+            )
+
         self.min = min
         self.max = max
         self.x_mins = None
