@@ -10,6 +10,7 @@ from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._ar import ar_forecast, ar_ols, burg, yule_walker
 
 _METHODS = {"burg": 0, "yule_walker": 1, "ols": 2}
+_CRITERIA = {"aic": 0, "bic": 1, "aicc": 2}
 
 
 class ARForecaster(BaseForecaster, IterativeForecastingMixin):
@@ -21,8 +22,8 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
         y_t = c + \phi_1 y_{t-1} + \dots + \phi_p y_{t-p} + \varepsilon_t
 
     and forecasts by running the fitted recursion forward from the end of the
-    series. If ``p`` is ``None``, the order is chosen by AIC over
-    ``0..max_p``, as in R's ``ar``.
+    series. If ``p`` is ``None``, the order is chosen by an information
+    criterion (AIC by default, as in R's ``ar``) over ``0..max_p``.
 
     Three estimators are available:
 
@@ -48,7 +49,8 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
     Parameters
     ----------
     p : int or None, default=None
-        AR order. If ``None``, the order is selected by AIC over ``0..max_p``.
+        AR order. If ``None``, the order is selected by ``criterion`` over
+        ``0..max_p``.
     max_p : int or None, default=None
         Largest order considered when ``p`` is ``None``. If ``None``, it is
         ``min(n - 1, floor(10 * log10(n)))`` for a series of length ``n``, as in
@@ -56,6 +58,16 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
         ``"ols"``, to ``(n - 2) // 2``.
     method : {"burg", "yule_walker", "ols"}, default="burg"
         Estimation method.
+    criterion : {"aic", "bic", "aicc"}, default="aic"
+        Information criterion used to select the order when ``p`` is ``None``.
+        With :math:`k = p + 1` parameters (the coefficients and the mean or
+        intercept) and :math:`n_{eff}` observations:
+
+        - ``"aic"``: :math:`n_{eff} \log \hat\sigma^2 + 2k`;
+        - ``"bic"``: :math:`n_{eff} \log \hat\sigma^2 + k \log n_{eff}`, which
+          penalises larger orders more and picks smaller models;
+        - ``"aicc"``: AIC plus :math:`2k(k + 1) / (n_{eff} - k - 1)`, a small
+          sample correction.
     horizon : int, default=1
         Number of steps ahead to forecast. Forecasts more than one step ahead
         run the fitted recursion forward on its own forecasts.
@@ -74,6 +86,7 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
         Estimated innovation variance.
     aic_ : float
         AIC of the fitted model, :math:`n_{eff} \log \hat\sigma^2 + 2(p + 1)`,
+        whichever ``criterion`` selected the order,
         where :math:`n_{eff}` is ``n`` for ``"burg"`` and ``"yule_walker"`` and
         ``n - p`` for ``"ols"``.
     forecast_ : float
@@ -105,10 +118,11 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
         "capability:horizon": True,
     }
 
-    def __init__(self, p=None, max_p=None, method="burg", horizon=1):
+    def __init__(self, p=None, max_p=None, method="burg", criterion="aic", horizon=1):
         self.p = p
         self.max_p = max_p
         self.method = method
+        self.criterion = criterion
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
@@ -119,6 +133,11 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
                 f"method must be one of {list(_METHODS)}, got {self.method!r}."
             )
         method = _METHODS[self.method]
+        if self.criterion not in _CRITERIA:
+            raise ValueError(
+                f"criterion must be one of {list(_CRITERIA)}, got {self.criterion!r}."
+            )
+        criterion = _CRITERIA[self.criterion]
         if self.p is None:
             max_p = (
                 min(n - 1, int(np.floor(10 * np.log10(n))))
@@ -141,7 +160,7 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
                     f"with method={self.method!r}."
                 )
             max_p = p
-        order, intercept, coef, sigma2, aic = _fit_ar(y, p, max_p, method)
+        order, intercept, coef, sigma2, aic = _fit_ar(y, p, max_p, method, criterion)
         self.p_ = int(order)
         self.intercept_ = float(intercept)
         self.coef_ = coef
@@ -224,22 +243,33 @@ class ARForecaster(BaseForecaster, IterativeForecastingMixin):
         return [
             {},
             {"p": 2, "method": "ols"},
-            {"max_p": 3, "method": "yule_walker", "horizon": 2},
+            {"max_p": 3, "method": "yule_walker", "criterion": "bic", "horizon": 2},
         ]
 
 
 @njit(cache=True)
-def _aic(n_eff, sigma2, k):
+def _ic(n_eff, sigma2, p, criterion):
+    """Information criterion of an AR(p) model; criterion 0 AIC, 1 BIC, 2 AICc."""
     if sigma2 < 1e-300:
         sigma2 = 1e-300
-    return n_eff * np.log(sigma2) + 2.0 * (k + 1)
+    k = p + 1
+    fit = n_eff * np.log(sigma2)
+    if criterion == 1:
+        return fit + k * np.log(n_eff)
+    aic = fit + 2.0 * k
+    if criterion == 2:
+        if n_eff - k - 1 <= 0:
+            return np.inf
+        return aic + 2.0 * k * (k + 1) / (n_eff - k - 1)
+    return aic
 
 
 @njit(cache=True)
-def _fit_ar(y, p, max_p, method):
-    """Fit an AR model of order ``p``, or select the order by AIC if ``p < 0``.
+def _fit_ar(y, p, max_p, method, criterion):
+    """Fit an AR model of order ``p``, or select the order if ``p < 0``.
 
     ``method`` is 0 for Burg, 1 for Yule-Walker and 2 for least squares.
+    ``criterion`` selects the order: 0 for AIC, 1 for BIC and 2 for AICc.
     Returns ``(order, intercept, coef, sigma2, aic)``.
     """
     n = y.shape[0]
@@ -248,9 +278,11 @@ def _fit_ar(y, p, max_p, method):
         rows = n - max_p
         order = max_p
         if p < 0:
-            best = np.inf
-            for k in range(max_p + 1):
-                a = _aic(rows, rss[k] / rows, k)
+            # Start from order 0, whose criterion is always finite.
+            order = 0
+            best = _ic(rows, rss[0] / rows, 0, criterion)
+            for k in range(1, max_p + 1):
+                a = _ic(rows, rss[k] / rows, k, criterion)
                 if a < best:
                     best = a
                     order = k
@@ -264,7 +296,7 @@ def _fit_ar(y, p, max_p, method):
             intercepts[order],
             coefs[order, :order].copy(),
             sigma2,
-            _aic(rows, sigma2, order),
+            _ic(rows, sigma2, order, 0),
         )
     if method == 0:
         coefs, sigma2s, _ = burg(y, max_p)
@@ -272,12 +304,13 @@ def _fit_ar(y, p, max_p, method):
         coefs, sigma2s, _ = yule_walker(y, max_p)
     order = max_p
     if p < 0:
-        best = np.inf
-        for k in range(max_p + 1):
-            a = _aic(n, sigma2s[k], k)
+        order = 0
+        best = _ic(n, sigma2s[0], 0, criterion)
+        for k in range(1, max_p + 1):
+            a = _ic(n, sigma2s[k], k, criterion)
             if a < best:
                 best = a
                 order = k
     coef = coefs[order, :order].copy()
     intercept = np.mean(y) * (1.0 - np.sum(coef))
-    return order, intercept, coef, sigma2s[order], _aic(n, sigma2s[order], order)
+    return order, intercept, coef, sigma2s[order], _ic(n, sigma2s[order], order, 0)

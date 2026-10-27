@@ -107,11 +107,34 @@ def test_ar_max_p_reduced_for_short_series():
     assert ARForecaster(max_p=50).fit(y).p_ <= 11
 
 
+@pytest.mark.parametrize("method", METHODS)
+def test_ar_bic_selects_smaller_orders(method):
+    """BIC never selects a larger order than AIC and finds AR(2) on a long series."""
+    for seed in range(20):
+        y = np.random.default_rng(seed).normal(size=300)
+        p_aic = ARForecaster(method=method).fit(y).p_
+        p_bic = ARForecaster(method=method, criterion="bic").fit(y).p_
+        p_aicc = ARForecaster(method=method, criterion="aicc").fit(y).p_
+        assert p_bic <= p_aicc <= p_aic
+    y = _simulate_ar([0.6, -0.3], 2000)
+    assert ARForecaster(method=method, criterion="bic").fit(y).p_ == 2
+
+
+def test_ar_aicc_on_short_series():
+    """AICc stays finite for the orders a short series supports."""
+    y = np.random.default_rng(5).normal(size=8)
+    f = ARForecaster(max_p=7, criterion="aicc").fit(y)
+    assert np.isfinite(f.aic_)
+    assert f.p_ < 7
+
+
 def test_ar_invalid_parameters():
     """Invalid parameters and inputs raise informative errors."""
     y = np.random.default_rng(4).normal(size=20)
     with pytest.raises(ValueError, match="method"):
         ARForecaster(method="mle").fit(y)
+    with pytest.raises(ValueError, match="criterion"):
+        ARForecaster(criterion="hqic").fit(y)
     with pytest.raises(ValueError, match="p must be"):
         ARForecaster(p=-1).fit(y)
     with pytest.raises(ValueError, match="too short"):
