@@ -6,6 +6,7 @@ from inspect import isclass, signature
 
 import joblib
 import numpy as np
+from sklearn.neighbors import BallTree, KDTree
 
 from aeon.similarity_search import BaseSimilaritySearch
 from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
@@ -110,9 +111,14 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
     assert np.allclose(np.sum(y_proba, axis=1), 1)
 
 
-def _holds_deep_learning_state(value, depth=0):
-    """Whether a value is, or holds within a container or object, a keras object."""
-    if type(value).__module__.split(".")[0] == "keras":
+def _holds_state(value, is_state, depth=0):
+    """Whether a value is, or holds within a container or object, framework state.
+
+    ``is_state`` identifies the objects to look for. The search stops at a depth
+    of two, which is enough to reach state held in an object, or in a container
+    of objects, on a fitted estimator.
+    """
+    if is_state(value):
         return True
     if depth >= 2:
         return False
@@ -126,7 +132,27 @@ def _holds_deep_learning_state(value, depth=0):
     else:
         return False
 
-    return any(_holds_deep_learning_state(item, depth + 1) for item in items)
+    return any(_holds_state(item, is_state, depth + 1) for item in items)
+
+
+def _is_deep_learning_state(value):
+    """Whether a value is a keras object."""
+    return type(value).__module__.split(".")[0] == "keras"
+
+
+def _is_sklearn_neighbors_state(value):
+    """Whether a value is a fitted sklearn neighbour tree."""
+    return isinstance(value, (BallTree, KDTree))
+
+
+def _holds_deep_learning_state(value, depth=0):
+    """Whether a value is, or holds within a container or object, a keras object."""
+    return _holds_state(value, _is_deep_learning_state, depth)
+
+
+def _holds_sklearn_neighbors_state(value, depth=0):
+    """Whether a value is, or holds within a container or object, a neighbour tree."""
+    return _holds_state(value, _is_sklearn_neighbors_state, depth)
 
 
 def _snapshot_state(estimator):
@@ -146,7 +172,10 @@ def _snapshot_state(estimator):
         cannot be detected.
 
         ``keras`` changes its own state during predict, so its objects are
-        compared by reference.
+        compared by reference. sklearn's ``BallTree`` and ``KDTree`` record
+        query counters on the fitted tree, so they are compared by reference
+        too: querying a tree changes it without affecting the fit or the
+        prediction.
     """
     state = {}
     deep_learning = (
@@ -154,7 +183,11 @@ def _snapshot_state(estimator):
     )
 
     for name, value in vars(estimator).items():
-        if not (deep_learning and _holds_deep_learning_state(value)):
+        exempt = (
+            deep_learning and _holds_deep_learning_state(value)
+        ) or _holds_sklearn_neighbors_state(value)
+
+        if not exempt:
             try:
                 state[name] = ("hash", joblib.hash(value))
                 continue
