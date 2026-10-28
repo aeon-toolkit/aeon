@@ -1,4 +1,4 @@
-"""Shapelet based classifiers."""
+"""Shapelet based time series classifiers."""
 
 __all__ = [
     "RDSTClassifier",

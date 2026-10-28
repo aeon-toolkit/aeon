@@ -1,4 +1,4 @@
-"""Shapelet based collection transformers."""
+"""Shapelet based transformers."""
 
 __all__ = [
     "RandomDilatedShapeletTransform",

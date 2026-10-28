@@ -9,38 +9,73 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.shapelet_based import ShapeleterTransform
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ShapeleterClassifier(BaseClassifier):
     """Shapeleter shapelet enhancer with dual positional embedding classifier.
 
+    ShapeleterClassifier [1]_ pairs the ShapeleterTransform feature extractor with
+    a classification pipeline composed of a standard scaler (without centering) and
+    RidgeClassifierCV with cross-validated regularisation penalties.
+
     Parameters
     ----------
     max_shapelets : int, default=1000
-        Maximum number of shapelets sampled by the backbone transform.
+        Maximum number of candidate shapelets sampled initially by the RDST backbone.
     ka : float, default=8.0
-        Initial absolute positional scaling parameter (Ka0).
+        Initial absolute positional scaling parameter (:math:`K_{a0}`).
     ko : float, default=8.0
-        Initial ordinal positional scaling parameter (Ko0).
+        Initial ordinal positional scaling parameter (:math:`K_{o0}`).
     k_min : float, default=1.0
-        Lower bound for Ka and Ko during optimization.
+        Lower bound for :math:`K_a` and :math:`K_o` during Adam optimization.
     k_max : float, default=15.0
-        Upper bound for Ka and Ko during optimization.
+        Upper bound for :math:`K_a` and :math:`K_o` during Adam optimization.
     lr : float, default=0.002
-        Learning rate for Adam optimization of Ka and Ko.
+        Learning rate for Adam optimization of :math:`K_a` and :math:`K_o`.
     max_iter : int, default=200
         Maximum number of iterations for Adam positional optimization per dilation.
-        If set to 0, optimization is skipped and fixed ka/ko values are used.
+        If set to 0, optimization is skipped and fixed `ka` and `ko` values are used.
     save_rate : float, default=0.5
-        Proportion of shapelets preserved by hypergraph selection.
+        Proportion of candidate shapelets preserved by hypergraph selection.
     random_state : int, RandomState instance or None, default=None
-        Controls the randomness.
+        Seed for random number generation.
+
+    Attributes
+    ----------
+    _transformer : ShapeleterTransform
+        The fitted underlying ShapeleterTransform instance.
+    _clf : sklearn.pipeline.Pipeline
+        The fitted pipeline consisting of StandardScaler(with_mean=False) and
+        RidgeClassifierCV.
+    classes_ : np.ndarray
+        Class labels extracted from training data during `fit`.
+
+    References
+    ----------
+    .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet enhancer via multiview
+       positional embedding for time series classification and extrinsic regression",
+       Information Fusion, 2024.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.classification.shapelet_based import ShapeleterClassifier
+    >>> X = np.random.RandomState(42).normal(size=(10, 1, 50))
+    >>> y = np.array([0, 1] * 5)
+    >>> clf = ShapeleterClassifier(max_shapelets=50, max_iter=5, random_state=42)
+    >>> clf.fit(X, y)
+    ShapeleterClassifier(...)
+    >>> y_pred = clf.predict(X)
+    >>> len(y_pred)
+    10
     """
 
     _tags = {
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "algorithm_type": "shapelet",
+        "python_dependencies": "torch",
     }
 
     def __init__(
@@ -68,6 +103,8 @@ class ShapeleterClassifier(BaseClassifier):
 
     def _fit(self, X, y):
         """Fit Shapeleter classifier on training series."""
+        _check_soft_dependencies("torch", severity="error", object=self)
+
         self._transformer = ShapeleterTransform(
             max_shapelets=self.max_shapelets,
             ka=self.ka,

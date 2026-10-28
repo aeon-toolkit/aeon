@@ -1,12 +1,18 @@
 """Tests for Shapeleter transformer."""
 
 import numpy as np
+import pytest
 
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch is not available",
+)
 def test_shapeleter_transformer_features():
     """Test fit and transform output dimensions with positional embeddings."""
     X = np.random.RandomState(42).normal(size=(5, 1, 30))
@@ -28,6 +34,10 @@ def test_shapeleter_transformer_features():
     assert len(st._base_ord) > 0
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch is not available",
+)
 def test_shapeleter_fixed_k_max_iter_zero():
     """Test that max_iter=0 uses fixed ka and ko without optimization."""
     X = np.random.RandomState(42).normal(size=(5, 1, 30))
@@ -97,3 +107,36 @@ def test_cosine_similarity_squared_loss():
 
     f2 = np.array([[0.0, 1.0], [1.0, 0.0]])
     np.testing.assert_allclose(_cosine_similarity_squared_loss(f0, f2), 0.0)
+
+
+def test_combination_fusion_lda_shape_guard():
+    """Test that _CombinationFusion guards 1D/single component output shapes."""
+    from aeon.transformations.collection.shapelet_based._shapeleter import (
+        _CombinationFusion,
+    )
+
+    fusion = _CombinationFusion()
+    v1 = np.ones((10, 2))
+    v2 = np.ones((10, 2))
+    y = np.array([0, 1] * 5)
+    lda, trans = fusion._fit_single_pair(v1, v2, y)
+    assert trans.shape == (10, 1)
+
+
+def test_hypergraph_neighborhood_self_inclusion():
+    """Test that hypergraph prune includes shapelet i itself in its hyperedge."""
+    from aeon.transformations.collection.shapelet_based._shapeleter import (
+        _hypergraph_prune,
+    )
+
+    shapelets = np.random.RandomState(42).normal(size=(10, 1, 15))
+    labels = np.array([0, 1] * 5)
+    selected = _hypergraph_prune(
+        shapelets,
+        shapelet_len=15,
+        labels=labels,
+        neighbor_k=(3, 5),
+        save_rate=0.5,
+    )
+    assert len(selected) > 0
+    assert len(selected) <= 10
