@@ -50,7 +50,7 @@ dependencies = [
     "numba>=0.68.0; sys_platform == 'win32' and platform_machine == 'ARM64'",
     "numpy>=2.0.0,<2.5.0",
     "packaging>=20.0",
-    "pandas>=2.0.0,<3.1.0",
+    "pandas>=2.0.0,<3.2.0",
     "scikit-learn>=1.6.0,<1.10.0",
     "scipy>=1.9.0,<1.18.0",
     "threadpoolctl>=3.2.0",
@@ -74,7 +74,7 @@ all_extras = [
     "keras>=3.6.0; python_version < '3.14'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
-    "tslearn>=0.5.2,<0.10.0",
+    "tslearn>=0.5.2,<0.11.0",
 ]
 dl = [
     "tensorflow>=2.14; python_version < '3.14'",
