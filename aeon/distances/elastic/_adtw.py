@@ -101,8 +101,8 @@ def adtw_distance(
             _warn_bounding_deprecated()
 
     if x.ndim == 1 and y.ndim == 1:
-        _x = x.reshape((1, x.shape[0]))
-        _y = y.reshape((1, y.shape[0]))
+        _x = x.reshape((1, -1))
+        _y = y.reshape((1, -1))
         if window is None and itakura_max_slope is None:
             return _adtw_distance_unbounded(_x, _y, warp_penalty)
         bounding_matrix = create_bounding_matrix(
@@ -188,8 +188,8 @@ def adtw_cost_matrix(
             _warn_bounding_deprecated()
 
     if x.ndim == 1 and y.ndim == 1:
-        _x = x.reshape((1, x.shape[0]))
-        _y = y.reshape((1, y.shape[0]))
+        _x = x.reshape((1, -1))
+        _y = y.reshape((1, -1))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
