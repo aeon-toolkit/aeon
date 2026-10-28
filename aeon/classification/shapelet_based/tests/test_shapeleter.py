@@ -39,3 +39,20 @@ def test_shapeleter_classifier_parameter_routing():
 def test_shapeleter_classifier_torch_dependency():
     """Test that ShapeleterClassifier declares torch dependency in its tags."""
     assert ShapeleterClassifier.get_class_tag("python_dependencies") == "torch"
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch is not available",
+)
+def test_shapeleter_classifier_fit_predict():
+    """Test that ShapeleterClassifier fits and predicts correctly."""
+    import numpy as np
+
+    X = np.random.RandomState(42).normal(size=(10, 1, 30))
+    y = np.array([0, 1] * 5)
+    clf = ShapeleterClassifier(max_shapelets=20, max_iter=5, random_state=42)
+    clf.fit(X, y)
+    y_pred = clf.predict(X)
+    assert len(y_pred) == 10
+    assert set(y_pred).issubset({0, 1})

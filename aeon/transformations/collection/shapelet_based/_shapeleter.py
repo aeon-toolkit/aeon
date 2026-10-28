@@ -515,7 +515,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     def _fit(self, X, y=None):
         """Fit RDST backbone, apply hypergraph pruning, and initialize fusions."""
-        _check_soft_dependencies("torch", severity="error", object=self)
+        _check_soft_dependencies("torch", severity="error", obj=self)
 
         if y is None:
             y = np.zeros(X.shape[0], dtype=int)

@@ -103,7 +103,7 @@ class ShapeleterClassifier(BaseClassifier):
 
     def _fit(self, X, y):
         """Fit Shapeleter classifier on training series."""
-        _check_soft_dependencies("torch", severity="error", object=self)
+        _check_soft_dependencies("torch", severity="error", obj=self)
 
         self._transformer = ShapeleterTransform(
             max_shapelets=self.max_shapelets,
