@@ -49,6 +49,10 @@ EXCLUDED_TESTS = {
     ],
     "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
     "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
+    # LOF's in-sample and novelty scores intentionally differ; see #2865.
+    "LOF": ["check_anomaly_detector_fit_predict_equality"],
+    # Equivalence depends on the wrapped model; the default test model is LOF.
+    "PyODAdapter": ["check_anomaly_detector_fit_predict_equality"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],

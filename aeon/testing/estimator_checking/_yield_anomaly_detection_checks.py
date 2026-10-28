@@ -8,6 +8,7 @@ from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base._base import _clone_estimator
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.utils.data_types import ALL_TIME_SERIES_TYPES
 from aeon.utils.validation.collection import get_n_cases
 
@@ -42,6 +43,12 @@ def _yield_anomaly_detection_checks(estimator_class, estimator_instances, dataty
                     estimator=estimator,
                     datatype=datatype,
                     method=method,
+                )
+            if "_fit_predict" in estimator_class.__dict__:
+                yield partial(
+                    check_anomaly_detector_fit_predict_equality,
+                    estimator=estimator,
+                    datatype=datatype,
                 )
 
 
@@ -123,3 +130,16 @@ def check_anomaly_detector_output(estimator, datatype, method):
         ), "y_pred must contain only 0s, 1s, True, or False"
     else:
         raise ValueError(f"Unknown anomaly output type: {out_type}")
+
+
+def check_anomaly_detector_fit_predict_equality(estimator, datatype):
+    """Compare fit_predict with fit followed by predict on the same data."""
+    estimator_fit_predict = _clone_estimator(estimator, random_state=42)
+    estimator = _clone_estimator(estimator, random_state=42)
+    X, y = FULL_TEST_DATA_DICT[datatype]["train"]
+
+    y_pred_fit_predict = estimator_fit_predict.fit_predict(X, y)
+    y_pred = estimator.fit(X, y).predict(X)
+
+    equal, msg = deep_equals(y_pred_fit_predict, y_pred, return_msg=True)
+    assert equal, msg
