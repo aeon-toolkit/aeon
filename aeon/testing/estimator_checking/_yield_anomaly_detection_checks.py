@@ -89,9 +89,9 @@ def check_anomaly_detector_learning_types(estimator, datatype):
     semisup = estimator.get_tag("learning_type:semi_supervised")
     supervised = estimator.get_tag("learning_type:supervised")
 
-    assert (
-        unsupervised or semisup or supervised
-    ), "At least one learning type must be True"
+    assert unsupervised or semisup or supervised, (
+        "At least one learning type must be True"
+    )
 
 
 def check_anomaly_detector_output(estimator, datatype, method):
@@ -118,16 +118,16 @@ def check_anomaly_detector_output(estimator, datatype, method):
         assert np.issubdtype(y_pred.dtype, np.floating) or np.issubdtype(
             y_pred.dtype, np.integer
         ), "y_pred must be of floating point or int type"
-        assert not np.array_equal(
-            np.unique(y_pred), [0, 1]
-        ), "y_pred cannot contain only 0s and 1s"
+        assert not np.array_equal(np.unique(y_pred), [0, 1]), (
+            "y_pred cannot contain only 0s and 1s"
+        )
     elif out_type == "binary":
         assert np.issubdtype(y_pred.dtype, np.integer) or np.issubdtype(
             y_pred.dtype, np.bool_
         ), "y_pred must be of int or bool type for binary output"
-        assert all(
-            val in [0, 1] for val in np.unique(y_pred)
-        ), "y_pred must contain only 0s, 1s, True, or False"
+        assert all(val in [0, 1] for val in np.unique(y_pred)), (
+            "y_pred must contain only 0s, 1s, True, or False"
+        )
     else:
         raise ValueError(f"Unknown anomaly output type: {out_type}")
 

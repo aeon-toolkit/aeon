@@ -68,12 +68,12 @@ def check_forecaster_output(estimator, datatype):
         FULL_TEST_DATA_DICT[datatype]["test"][0],
     )
     assert isinstance(y_pred, float), (
-        f"predict(y) output should be float, got" f" {type(y_pred)}"
+        f"predict(y) output should be float, got {type(y_pred)}"
     )
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
     assert y_pred2 == y_pred3, (
-        f"fit(y).predict(y) and forecast(y) should be the same, but"
-        f"output differ: {y_pred2} != {y_pred3}"
+        "fit(y).predict(y) and forecast(y) should be the same, but "
+        f"outputs differ: {y_pred2} != {y_pred3}"
     )

@@ -125,9 +125,9 @@ def test_tcn_network_output_shape():
 
     # Output should have the same number of channels as input
     expected_shape = (batch_size, input_shape[1])  # (batch_size, n_channels)
-    assert (
-        output.shape == expected_shape
-    ), f"Expected shape {expected_shape}, got {output.shape}"
+    assert output.shape == expected_shape, (
+        f"Expected shape {expected_shape}, got {output.shape}"
+    )
 
 
 @pytest.mark.skipif(
@@ -218,9 +218,9 @@ def test_tcn_final_dense_weights_shape():
 
     # Directly access last layer (assuming it's Dense)
     dense_layer = model.layers[-1]
-    assert isinstance(
-        dense_layer, tf.keras.layers.Dense
-    ), f"Expected last layer to be Dense, got {type(dense_layer)}"
+    assert isinstance(dense_layer, tf.keras.layers.Dense), (
+        f"Expected last layer to be Dense, got {type(dense_layer)}"
+    )
 
     weight_shape = dense_layer.kernel.shape
     input_dim, output_dim = weight_shape
@@ -228,9 +228,9 @@ def test_tcn_final_dense_weights_shape():
     expected_input_dim = n_blocks[-1]
     expected_output_dim = input_shape[1]
 
-    assert (
-        input_dim == expected_input_dim
-    ), f"Expected input dim {expected_input_dim}, got {input_dim}"
-    assert (
-        output_dim == expected_output_dim
-    ), f"Expected output dim {expected_output_dim}, got {output_dim}"
+    assert input_dim == expected_input_dim, (
+        f"Expected input dim {expected_input_dim}, got {input_dim}"
+    )
+    assert output_dim == expected_output_dim, (
+        f"Expected output dim {expected_output_dim}, got {output_dim}"
+    )
