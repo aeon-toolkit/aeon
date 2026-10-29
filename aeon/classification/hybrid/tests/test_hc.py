@@ -236,3 +236,62 @@ def test_hivecote_estimator_attribute_lifecycle():
         clf.fit(X, y)
 
         assert hasattr(clf, "fitted_estimators_")
+
+
+def test_base_equal_weights_when_all_train_accuracies_are_zero():
+    """Components are weighted equally if every train accuracy is 0."""
+    from aeon.classification import BaseClassifier
+    from aeon.classification.hybrid._base_hive_cote import _BaseHIVECOTE
+
+    class _WrongTrainPredictions(BaseClassifier):
+        def __init__(self, proba=0.9):
+            self.proba = proba
+            super().__init__()
+
+        def _fit(self, X, y):
+            return self
+
+        def _fit_predict(self, X, y):
+            self._fit(X, y)
+            # every train prediction is a different class to the true one
+            return np.where(y == self.classes_[0], self.classes_[1], self.classes_[0])
+
+        def _predict(self, X):
+            return np.full(len(X), self.classes_[0])
+
+        def _predict_proba(self, X):
+            return np.tile([self.proba, 1 - self.proba], (len(X), 1))
+
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, n_labels=2)
+    clf = _BaseHIVECOTE(
+        estimators=[
+            ("a", _WrongTrainPredictions(0.9)),
+            ("b", _WrongTrainPredictions(0.3)),
+        ]
+    )
+    with pytest.warns(UserWarning, match="weights are all 0"):
+        clf.fit(X, y)
+
+    assert clf.weights_ == [1.0, 1.0]
+    probas = clf.predict_proba(X)
+    np.testing.assert_allclose(probas, np.tile([0.6, 0.4], (len(X), 1)))
+
+
+@pytest.mark.skipif(PR_TESTING, reason="slow test, run overnight only")
+def test_hc2_one_training_case_per_class():
+    """HC2 gives valid probabilities with one training case per class."""
+    X, y = make_example_3d_numpy(n_cases=6, n_timepoints=24, n_labels=6, random_state=0)
+    hc2 = HIVECOTEV2(
+        stc_params={"n_shapelet_samples": 20},
+        drcif_params={"n_estimators": 5},
+        arsenal_params={"n_kernels": 20, "n_estimators": 2},
+        tde_params={"n_parameter_samples": 5, "max_ensemble_size": 2},
+        random_state=0,
+    )
+    with pytest.warns(UserWarning, match="weights are all 0"):
+        hc2.fit(X, y)
+
+    probas, components = hc2.predict_proba_with_components(X)
+    np.testing.assert_allclose(probas.sum(axis=1), 1.0)
+    np.testing.assert_allclose(probas, np.mean(list(components.values()), axis=0))
+    np.testing.assert_allclose(hc2.predict_proba(X), probas)

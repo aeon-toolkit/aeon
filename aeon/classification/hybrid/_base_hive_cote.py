@@ -1,5 +1,6 @@
 """Base class for Hierarchical Vote Collective of Transformation-based Ensembles."""
 
+import warnings
 from time import perf_counter
 
 import numpy as np
@@ -136,6 +137,18 @@ class _BaseHIVECOTE(BaseClassifier):
             self.fitted_estimators_.append(est)
             self.weights_.append(weight)
             self.component_names_.append(name)
+
+        # if no component has a correct train prediction, for example with one
+        # training case per class, all weights are 0 and the ensemble would predict
+        # all-zero probabilities. Weight the components equally instead.
+        if not any(w > 0 for w in self.weights_):
+            warnings.warn(
+                f"All {verbose_name} components have a train accuracy of 0, so their "
+                "weights are all 0. Weighting the components equally instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self.weights_ = [1.0] * len(self.weights_)
 
         if logging_enabled:
             total_elapsed = perf_counter() - total_start
