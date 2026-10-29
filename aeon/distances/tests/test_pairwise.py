@@ -605,15 +605,25 @@ def test_dtw_pairwise_distance_invalid_parameters(kwargs, error, use_y):
 
 @pytest.mark.parametrize("use_y", [False, True])
 @pytest.mark.parametrize("length", [1, 2])
-def test_dtw_pairwise_distance_itakura_short_series(length, use_y):
-    """Test dtw_pairwise_distance raises for series too short for itakura bounds."""
-    X = [np.random.RandomState(i).random(10) for i in range(3)]
+def test_dtw_pairwise_distance_itakura_short_first_series(length, use_y):
+    """Test dtw_pairwise_distance raises when a series in X is too short."""
+    long = [np.random.RandomState(i).random(10) for i in range(3)]
     short = [np.random.RandomState(i).random(length) for i in range(3)]
     with pytest.raises(ZeroDivisionError):
         if use_y:
-            dtw_pairwise_distance(X, short, itakura_max_slope=1.0)
+            dtw_pairwise_distance(short, long, itakura_max_slope=1.0)
         else:
-            dtw_pairwise_distance(X + short, itakura_max_slope=1.0)
+            dtw_pairwise_distance(long + short, itakura_max_slope=1.0)
+
+
+def test_dtw_pairwise_distance_itakura_short_second_series():
+    """Test dtw_pairwise_distance allows a short series in y, as dtw_distance does."""
+    x = np.arange(10, dtype=float)
+    y = np.arange(2, dtype=float)
+    expected = dtw_distance(x, y, itakura_max_slope=1.0)
+    assert_almost_equal(
+        dtw_pairwise_distance([x], [y], itakura_max_slope=1.0), [[expected]]
+    )
 
 
 @pytest.mark.parametrize("kwargs", [{"window": 0.5}, {"itakura_max_slope": 0.5}])

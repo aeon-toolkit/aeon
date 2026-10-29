@@ -445,10 +445,13 @@ def _check_dtw_parameters(x_list, window, itakura_max_slope, y_list=None):
     """Raise the errors dtw_distance raises for these parameters.
 
     Numba does not propagate exceptions raised inside a prange body, so the checks
-    run here, before the parallel kernels, against the shortest series that any
-    pair will use.
+    run here, before the parallel kernels. The Itakura bounds divide by the length of
+    the first series of a pair minus one and minus two, so the series in X need at
+    least 3 time points. The slope check depends on the shorter series of each pair,
+    so it uses the shortest series across X and y.
     """
-    min_length = min((s.shape[1] for s in x_list), default=None)
+    min_x_length = min((s.shape[1] for s in x_list), default=None)
+    min_length = min_x_length
     if y_list is not None:
         min_y_length = min((s.shape[1] for s in y_list), default=None)
         if min_length is None or (
@@ -458,11 +461,12 @@ def _check_dtw_parameters(x_list, window, itakura_max_slope, y_list=None):
     if itakura_max_slope is not None:
         if itakura_max_slope < 0 or itakura_max_slope > 1:
             raise ValueError("itakura_max_slope must be between 0 and 1")
-        if min_length is None:
+        if min_x_length is None or min_length is None:
             return
-        if min_length < 3:
+        if min_x_length < 3:
             raise ZeroDivisionError(
-                "itakura_max_slope requires all series to have at least 3 time points"
+                "itakura_max_slope requires the series in X to have at least 3 "
+                "time points"
             )
         if np.floor((itakura_max_slope * (min_length / 100)) * 100) == 0:
             raise ZeroDivisionError(
