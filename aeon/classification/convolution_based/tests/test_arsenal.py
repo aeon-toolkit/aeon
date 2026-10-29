@@ -240,8 +240,8 @@ def test_arsenal_binary_weights_are_not_degenerate():
 
 
 @pytest.mark.parametrize("rocket_transform", ["rocket", "minirocket"])
-def test_arsenal_zero_weight_sum_predicts_uniform(rocket_transform):
-    """All-zero member weights give uniform probabilities, not NaN."""
+def test_arsenal_zero_weight_sum_uses_equal_weights(rocket_transform):
+    """All-zero member weights fall back to equal weights, not NaN."""
     # constant series give constant features, so with balanced classes each LOO
     # prediction falls to the other class and every member weight is 0
     X = np.zeros((10, 1, 20))
@@ -252,10 +252,14 @@ def test_arsenal_zero_weight_sum_predicts_uniform(rocket_transform):
         n_estimators=2,
         rocket_transform=rocket_transform,
         random_state=0,
-    ).fit(X, y)
-    assert clf.weights_ == [0.0, 0.0]
+    )
+    with pytest.warns(UserWarning, match="weights are all 0"):
+        clf.fit(X, y)
+    assert clf.weights_ == [1.0, 1.0]
 
-    np.testing.assert_array_equal(clf.predict_proba(X), np.full((10, 2), 0.5))
+    probas = clf.predict_proba(X)
+    assert np.isfinite(probas).all()
+    np.testing.assert_allclose(probas.sum(axis=1), 1.0)
     assert np.isin(clf.predict(X), [0, 1]).all()
 
 
@@ -416,3 +420,22 @@ def test_parallel_verbose_fit_preserves_predictions(capsys):
     output = capsys.readouterr().out
     assert "[Arsenal] Estimator 1/4:" in output
     assert "[Arsenal] Estimator 4/4:" in output
+
+
+def test_arsenal_one_training_case_per_class():
+    """Members are weighted equally if every LOO CV accuracy is 0."""
+    X, y = make_example_3d_numpy(n_cases=6, n_timepoints=30, n_labels=6, random_state=0)
+    arsenal = Arsenal(n_kernels=50, n_estimators=3, random_state=0)
+    with pytest.warns(UserWarning, match="weights are all 0"):
+        arsenal.fit(X, y)
+
+    assert arsenal.weights_ == [1.0, 1.0, 1.0]
+    probas = arsenal.predict_proba(X)
+    np.testing.assert_allclose(probas.sum(axis=1), 1.0)
+    # the members' votes are used rather than discarded for uniform probabilities
+    assert not np.allclose(probas, 1 / 6)
+    np.testing.assert_array_equal(arsenal.predict(X), y)
+
+    with pytest.warns(UserWarning, match="weights are all 0"):
+        train_probas = arsenal.fit_predict_proba(X, y)
+    np.testing.assert_allclose(train_probas.sum(axis=1), 1.0)

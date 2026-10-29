@@ -7,6 +7,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["Arsenal"]
 
 import time
+import warnings
 
 import numpy as np
 from joblib import delayed
@@ -344,6 +345,10 @@ class Arsenal(BaseClassifier):
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         train_estimates = self._fit_arsenal(X, y, return_train_estimates=True)
         class_indices, weights, oobs = zip(*train_estimates)
+        if not any(w > 0 for w in weights):
+            # as in fit, weight the members equally, but only those with
+            # out-of-bag cases
+            weights = [1.0 if oob.size > 0 else 0.0 for oob in oobs]
 
         results = _aggregate_class_votes(
             class_indices,
@@ -565,6 +570,19 @@ class Arsenal(BaseClassifier):
 
             self.estimators_, weights, train_estimates = zip(*fit)
             self.n_estimators_ = self.n_estimators
+
+        # if every member has a LOO CV accuracy of 0, for example with one training
+        # case per class, all weights are 0 and predict_proba would ignore the
+        # members. Weight the members equally instead.
+        if not any(w > 0 for w in weights):
+            warnings.warn(
+                f"All {type(self).__name__} members have a cross-validation accuracy "
+                "of 0, so their weights are all 0. Weighting the members equally "
+                "instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+            weights = [1.0] * len(weights)
 
         self.weights_ = list(weights)
         self._weight_sum = float(np.sum(weights))
