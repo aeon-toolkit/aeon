@@ -60,7 +60,7 @@ def kasba_average(
     distance : str, default="msm"
         Distance function used during averaging. Supported distance strings are
         defined in
-        ``aeon.clustering.averaging.ba_utils.VALID_BA_DISTANCE_METHODS``.
+        ``aeon.clustering.averaging.VALID_BA_DISTANCE_METHODS``.
     max_iters : int, default=30
         Maximum number of iterations to update the barycenter.
     tol : float, default=1e-5

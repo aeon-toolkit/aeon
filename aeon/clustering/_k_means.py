@@ -60,11 +60,17 @@ class TimeSeriesKMeans(BaseClusterer):
         n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance method to compute similarity between time series. Valid distance
-        strings depend on averaging_method. With the default averaging_method='ba',
-        only distances in VALID_BA_DISTANCE_METHODS are supported. Other distances
-        require averaging_method='mean'. See
-        :func:`aeon.distances.get_distance_function` for available distances.
+        Distance method used to assign time series to clusters. For barycentre
+        averaging methods ('ba', 'petitjean', 'subgradient', 'kasba'),
+        the averaging distance must be one of the distances listed in
+        ``aeon.clustering.averaging.VALID_BA_DISTANCE_METHODS``.
+        By default, these methods use the clustering distance for averaging
+        if it's a string. If the clustering distance is callable, the barycentre
+        averaging methods use 'dtw' for averaging by default. You can override
+        the averaging distance using ``average_params={"distance": "dtw"}``.
+        The 'mean' and 'shift_scale' averaging methods don't have this
+        restriction. See :func:`aeon.distances.get_distance_function`
+        for available clustering distances.
         If a callable is passed, it must take two 2d numpy arrays as input
         and return a float.
     n_init : int, default=10
