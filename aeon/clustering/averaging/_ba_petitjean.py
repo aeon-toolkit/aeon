@@ -42,8 +42,9 @@ def petitjean_barycenter_average(
         Collection of time series to average. If 2D, it is internally reshaped to
         (n_cases, 1, n_timepoints).
     distance : str, default="dtw"
-        Distance function used during averaging. See
-        :func:`aeon.distances.get_distance_function` for valid options.
+        Distance function used during averaging. Supported distance strings are
+        defined in
+        ``aeon.clustering.averaging.VALID_BA_DISTANCE_METHODS``.
     max_iters : int, default=30
         Maximum number of DBA update iterations.
     tol : float, default=1e-5

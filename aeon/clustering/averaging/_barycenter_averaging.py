@@ -54,8 +54,9 @@ def elastic_barycenter_average(
         n_timepoints)
         Collection of time series instances to average.
     distance : str, default="dtw"
-        Distance function to use for averaging. See
-        :func:`aeon.distances.get_distance_function` for valid options.
+        Distance function to use for averaging. Supported distance strings are
+        defined in
+        ``aeon.clustering.averaging.VALID_BA_DISTANCE_METHODS``.
     max_iters : int, default=30
         Maximum number of update iterations.
     tol : float, default=1e-5
