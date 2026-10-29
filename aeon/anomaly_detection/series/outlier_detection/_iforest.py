@@ -21,7 +21,7 @@ class IsolationForest(PyODAdapter):
     which are used to construct the sliding windows.
 
     The documentation for parameters has been adapted from the
-    [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id405).
+    [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.tabular.html#pyod.models.iforest.IForest).
     Here, ``X`` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
     ``window_size`` and ``stride``. The internal ``X`` has the shape

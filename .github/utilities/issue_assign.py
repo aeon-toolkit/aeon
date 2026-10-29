@@ -80,7 +80,7 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
                     ]
 
                     issue.create_comment(
-                        f"@{user}, already has {assigned_count} open issues assigned."
+                        f"@{user}, already has {assigned_count} open issues assigned. "
                         "Users without write access are limited to self-assigning "
                         "three issues.\n\n"
                         "Here are the open issues assigned:\n"
