@@ -63,7 +63,9 @@ class TimeSeriesKMeans(BaseClusterer):
         Distance method to compute similarity between time series. A list of valid
         strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
-        a function that takes two 2d numpy arrays as input and returns a float.
+        a function that takes two 2d numpy arrays as input and returns a float. With a
+        callable distance, built-in string averaging methods must be 'mean' or
+        'shift_scale'; callable averaging methods are also supported.
     n_init : int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -85,8 +87,9 @@ class TimeSeriesKMeans(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     averaging_method : str or Callable, default='ba'
-        Averaging method to compute the average of a cluster. Any of the following
-        strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
+        Averaging method to compute the average of a cluster. Supported strings are
+        ['mean', 'shift_scale', 'ba', 'subgradient', 'kasba', 'petitjean'].
+        If a Callable is provided it must take the form
         Callable[[np.ndarray], np.ndarray].
         If you specify 'ba' then by default the distance method used will be the same
         as the distance method used for clustering. If you wish to use a different
@@ -323,6 +326,13 @@ class TimeSeriesKMeans(BaseClusterer):
         else:
             self._average_params = self.average_params.copy()
 
+        # Resolve the averaging method before distance-specific validation so an
+        # invalid method is not masked by a callable-distance restriction.
+        if self.averaging_method == "ba":
+            self._averaging_method = elastic_barycenter_average
+        else:
+            self._averaging_method = _resolve_average_callable(self.averaging_method)
+
         # Add distance, random_state, and n_jobs to average params for string methods
         if isinstance(self.averaging_method, str):
             needs_distance = self.averaging_method not in ["mean", "shift_scale"]
@@ -339,8 +349,11 @@ class TimeSeriesKMeans(BaseClusterer):
                         )
                     self._average_params["distance"] = self.distance
                 else:
-                    # Invalid distance passed for ba so default to dba
-                    self._average_params["distance"] = "dtw"
+                    raise ValueError(
+                        "A callable distance cannot be used with barycentre averaging. "
+                        "Use averaging_method='mean' or provide a string distance "
+                        "that supports barycentre averaging."
+                    )
 
             if (
                 "random_state" not in self._average_params
@@ -351,11 +364,6 @@ class TimeSeriesKMeans(BaseClusterer):
             # Mean is the only one that n_jobs doesn't support
             if self.averaging_method != "mean":
                 self._average_params["n_jobs"] = self._n_jobs
-
-        if self.averaging_method == "ba":
-            self._averaging_method = elastic_barycenter_average
-        else:
-            self._averaging_method = _resolve_average_callable(self.averaging_method)
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
