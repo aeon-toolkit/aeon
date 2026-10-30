@@ -10,10 +10,12 @@
 </p>
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
-It covers classification, regression, clustering, forecasting, anomaly detection, distances,
-segmentation, similarity search, transformations and benchmarking.
+It covers classification, regression, clustering, forecasting, anomaly detection,
+distances, segmentation, similarity search, transformations and benchmarking.
 
-Many implementations in `aeon` are contributed and maintained by the researchers who developed the original methods. These include state-of-the-art models for forecasting, classification, regression, and clustering, including deep learning approaches.
+Many implementations in `aeon` are contributed and maintained by the researchers who
+developed the original methods. These include state-of-the-art models for forecasting,
+classification, regression, and clustering, including deep learning approaches.
 
 [Documentation](https://www.aeon-toolkit.org/) ·
 [Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
@@ -28,7 +30,7 @@ Many implementations in `aeon` are contributed and maintained by the researchers
 | Overview        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **CI/CD**       | [![github-actions-release](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/release.yml?logo=github&label=build%20%28release%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/release.yml) [![github-actions-main](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/pr_pytest.yml?logo=github&branch=main&label=build%20%28main%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/pr_pytest.yml) [![github-actions-nightly](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/periodic_tests.yml?logo=github&label=build%20%28nightly%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/periodic_tests.yml) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/stable?logo=readthedocs&label=docs%20%28stable%29)](https://www.aeon-toolkit.org/en/stable/) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/latest?logo=readthedocs&label=docs%20%28latest%29)](https://www.aeon-toolkit.org/en/latest/) [![codecov](https://codecov.io/gh/aeon-toolkit/aeon/graph/badge.svg?token=I2eve2HzSF)](https://codecov.io/gh/aeon-toolkit/aeon) [![openssf-scorecard](https://api.scorecard.dev/projects/github.com/aeon-toolkit/aeon/badge)](https://scorecard.dev/viewer/?uri=github.com/aeon-toolkit/aeon) |
-| **Code**        | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!conda](https://img.shields.io/conda/vn/conda-forge/aeon?logo=anaconda&color=blue)](https://anaconda.org/conda-forge/aeon) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE) [![binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aeon-toolkit/aeon/main?filepath=examples)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Code**        | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!conda](https://img.shields.io/conda/vn/conda-forge/aeon?logo=anaconda&color=blue)](https://anaconda.org/conda-forge/aeon) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE) [![binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aeon-toolkit/aeon/main?filepath=examples)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | **Community**   | [![!discord](https://img.shields.io/static/v1?logo=discord&label=discord&message=chat&color=lightgreen)](https://discord.gg/D6rzqHGKRJ) [![!linkedin](https://img.shields.io/static/v1?logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIGZpbGw9IiNmZmZmZmYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+TGlua2VkSW48L3RpdGxlPjxwYXRoIGQ9Ik0yMC40NDcgMjAuNDUyaC0zLjU1NHYtNS41NjljMC0xLjMyOC0uMDI3LTMuMDM3LTEuODUyLTMuMDM3LTEuODUzIDAtMi4xMzYgMS40NDUtMi4xMzYgMi45Mzl2NS42NjdIOS4zNTFWOWgzLjQxNHYxLjU2MWguMDQ2Yy40NzctLjkgMS42MzctMS44NSAzLjM3LTEuODUgMy42MDEgMCA0LjI2NyAyLjM3IDQuMjY3IDUuNDU1djYuMjg2ek01LjMzNyA3LjQzM2MtMS4xNDQgMC0yLjA2My0uOTI2LTIuMDYzLTIuMDY1IDAtMS4xMzguOTItMi4wNjMgMi4wNjMtMi4wNjMgMS4xNCAwIDIuMDY0LjkyNSAyLjA2NCAyLjA2MyAwIDEuMTM5LS45MjUgMi4wNjUtMi4wNjQgMi4wNjV6bTEuNzgyIDEzLjAxOUgzLjU1NVY5aDMuNTY0djExLjQ1MnpNMjIuMjI1IDBIMS43NzFDLjc5MiAwIDAgLjc3NCAwIDEuNzI5djIwLjU0MkMwIDIzLjIyNy43OTIgMjQgMS43NzEgMjRoMjAuNDUxQzIzLjIgMjQgMjQgMjMuMjI3IDI0IDIyLjI3MVYxLjcyOUMyNCAuNzc0IDIzLjIgMCAyMi4yMjIgMGguMDAzeiIvPjwvc3ZnPgo=&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!medium](https://img.shields.io/static/v1?logo=medium&label=Medium&message=blog&color=darkblue)](https://medium.com/@aeon.toolkit)   |
 | **Affiliation** | [![numfocus](https://img.shields.io/badge/NumFOCUS-Affiliated%20Project-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org/sponsored-projects/affiliated-projects)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
@@ -54,7 +56,6 @@ evaluate new methods. That means:
 - **State of the art, sooner.** New methods often land in `aeon` alongside publication.
 - **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
 
-
 A selection of algorithms available in `aeon` written by `aeon` core developers or contributors:
 
 | Method                | Reference                                                                                 | Task                   |
@@ -69,7 +70,6 @@ A selection of algorithms available in `aeon` written by `aeon` core developers 
 | **TDE**               | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
 
 Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies:
-
 
 | Study                             | Reference                                                                                 | Area         |
 |-----------------------------------|-------------------------------------------------------------------------------------------|--------------|
@@ -102,8 +102,12 @@ pip install aeon[all_extras]
 For development installs and platform-specific notes, see the
 [installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
 
+The latest version of `aeon` is v1.6.0.
+
 ## Quick start
+
 Fit a classifier on a standard UCR dataset:
+
 ```python
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.datasets import load_gunpoint
@@ -136,35 +140,42 @@ Ten task areas, one consistent API:
 
 ## Getting started examples
 
+For more examples across tasks, visit the
+[examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
+
 ### Classification
 
-Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series.
+Time series classification predicts class labels for unseen series using a model fitted
+on a collection of labelled time series.
 
 ```python
 import numpy as np
 from aeon.classification.convolution_based import MultiRocketHydraClassifier
 
-X = np.array([
-    [[1, 2, 3, 4, 5, 5]],
-    [[1, 2, 3, 4, 4, 2]],
-    [[8, 7, 6, 5, 4, 4]],
-])
+X = np.array(
+    [
+        [[1, 2, 3, 4, 5, 5]],
+        [[1, 2, 3, 4, 4, 2]],
+        [[8, 7, 6, 5, 4, 4]],
+    ]
+)
 y = np.array(["low", "low", "high"])
 
 clf = MultiRocketHydraClassifier(n_kernels=100)
 clf.fit(X, y)
 
-X_test = np.array([
-    [[2, 2, 2, 2, 2, 2]],
-    [[5, 5, 5, 5, 5, 5]],
-    [[6, 6, 6, 6, 6, 6]],
-])
+X_test = np.array(
+    [
+        [[2, 2, 2, 2, 2, 2]],
+        [[5, 5, 5, 5, 5, 5]],
+        [[6, 6, 6, 6, 6, 6]],
+    ]
+)
 
 y_pred = clf.predict(X_test)
 print(y_pred)
 # ['low' 'low' 'high']
 ```
-
 
 ### Clustering
 
@@ -197,7 +208,8 @@ pred = forecaster.forecast(y)
 
 print(pred)
 ```
-For more advanced forecasting, `aeon` also includes deep learning and machine learning methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
+For more advanced forecasting, `aeon` also includes deep learning and machine learning
+methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
 
 ### Deep learning
 
@@ -227,9 +239,6 @@ print(clf.score(X_test, y_test))
 See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
 for GPU usage, custom architectures, and benchmarking against classical methods.
 
-For more examples across tasks, visit the
-[examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
-
 ## Support aeon
 
 There are several ways to engage with the project:
@@ -255,7 +264,8 @@ Useful links:
 - [Governance](https://github.com/aeon-toolkit/aeon/blob/main/GOVERNANCE.md)
 - [Project website](https://www.aeon-toolkit.org/)
 
-The `aeon` developers are volunteers, so please be patient with issue triage and pull request review.
+The `aeon` developers are volunteers, so please be patient with issue triage and
+pull request review.
 
 ## Citation
 
@@ -274,16 +284,26 @@ If you use `aeon` in academic work, please cite the project:
 }
 ```
 
-If you let us know about your paper using `aeon`, we will happily list it on the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
+If you let us know about your paper using `aeon`, we will happily list it on
+the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
 
 ## Project history
 
-`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core developers, and has since been substantially rewritten and extended.
-Our core development team of 13 spans academia and industry, representing seven nationalities across the globe.
-You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
+developers, and has since been substantially rewritten and extended.
+Our core development team of 13 spans academia and industry, representing seven
+nationalities across the globe.
+You can read more about the project's history, values, and governance on the
+[About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
 
 ## Project status
 
-`aeon` is under active development. The core package is stable and widely used. The following modules are currently considered in development, and the deprecation policy does not necessarily apply (although we only rarely make non-compatible changes): `anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`, `visualisation`, `transformations.collection.self_supervised`, `transformations.collection.imbalance`.
+`aeon` is under active development. The core package is stable and widely used.
+The following modules are currently considered in development, and the deprecation
+policy does not necessarily apply (although we only rarely make non-compatible changes):
+`anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`,
+`visualisation`, `transformations.collection.self_supervised`,
+`transformations.collection.imbalance`.
 
-Please check the documentation for task-specific capabilities, limitations, and current status.
+Please check the documentation for task-specific capabilities, limitations, and
+current status.

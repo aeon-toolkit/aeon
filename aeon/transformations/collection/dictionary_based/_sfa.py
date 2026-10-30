@@ -244,7 +244,7 @@ class SFA(BaseCollectionTransformer):
             raise ValueError(
                 "Typed Dictionaries can only handle 64 bit words. "
                 "ceil(log2(alphabet_size)) * word_length must be less than or equal "
-                "to 64."
+                "to 64. "
                 "With bi-grams or skip-grams enabled, this bit limit is 32."
             )
 
@@ -589,7 +589,7 @@ class SFA(BaseCollectionTransformer):
     def _igb_mae(self, dft, y):
         breakpoints = np.zeros((self.word_length, self.alphabet_size))
         clf = DecisionTreeRegressor(
-            criterion="friedman_mse",
+            criterion="squared_error",
             max_depth=int(np.floor(np.log2(self.alphabet_size))),
             max_leaf_nodes=self.alphabet_size,
             random_state=self.random_state,

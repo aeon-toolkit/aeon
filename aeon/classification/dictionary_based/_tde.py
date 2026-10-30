@@ -98,20 +98,12 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Channel accuracy threshold for multivariate data, must be between 0 and 1.
     max_channels : int, default=20
         Max number of channels per classifier for multivariate data.
-    dim_threshold : float, default="deprecated"
-        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
-    max_dims : int, default="deprecated"
-        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    typed_dict : bool, default="deprecated"
-        Has no effect: word counts are now stored as sorted arrays.
-
-        Deprecated and will be removed in v1.7.0.
     train_estimate_method : str, default="loocv"
         Method used to generate train estimates in `fit_predict` and
         `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
@@ -124,6 +116,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    verbose : int, default=0
+        Level of output printed during fit. Level 1 reports the fit configuration,
+        periodic progress and a final summary. Level 2 and above additionally report
+        every evaluated parameter combination and estimated remaining time.
 
     Attributes
     ----------
@@ -186,7 +182,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         "algorithm_type": "dictionary",
     }
 
-    # TODO remove 'dim_threshold', 'max_dims' and 'typed_dict' in v1.7.0
     def __init__(
         self,
         n_parameter_samples=250,
@@ -197,14 +192,12 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         bigrams=None,
         channel_threshold=0.85,
         max_channels=20,
-        dim_threshold="deprecated",
-        max_dims="deprecated",
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        typed_dict="deprecated",
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
+        verbose=0,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -214,40 +207,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.bigrams = bigrams
 
         # multivariate
-        self.dim_threshold = dim_threshold
         self.channel_threshold = channel_threshold
-        if dim_threshold != "deprecated":
-            warnings.warn(
-                "The 'dim_threshold' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'channel_threshold' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.channel_threshold = dim_threshold
-        self.max_dims = max_dims
         self.max_channels = max_channels
-        if max_dims != "deprecated":
-            warnings.warn(
-                "The 'max_dims' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'max_channels' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.max_channels = max_dims
-
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
-        self.typed_dict = typed_dict
-        if typed_dict != "deprecated":
-            warnings.warn(
-                "The 'typed_dict' parameter has no effect and will be removed "
-                "in v1.7.0. Word counts are now stored as sorted arrays.",
-                FutureWarning,
-                stacklevel=2,
-            )
         self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.verbose = verbose
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -333,7 +300,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         lowest_acc_idx = 0
 
         time_limit = self.time_limit_in_minutes * 60
-        start_time = time.time()
+        start_time = time.perf_counter()
         train_time = 0
         if time_limit > 0:
             n_parameter_samples = 0
@@ -341,6 +308,32 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         else:
             n_parameter_samples = self.n_parameter_samples
             contract_max_n_parameter_samples = np.inf
+
+        log_each_candidate = self.verbose >= 2
+        log_progress = self.verbose == 1
+        if log_each_candidate:
+            previous_train_time = 0.0
+            candidate_duration_ema = 0.0
+
+        if self.verbose > 0:
+            if time_limit > 0:
+                fit_limit = (
+                    f"time_limit={time_limit:.2f}s, "
+                    f"max_parameter_samples={contract_max_n_parameter_samples}"
+                )
+                progress_interval = time_limit / 10
+                next_progress = progress_interval
+            else:
+                parameter_target = min(n_parameter_samples, len(possible_parameters))
+                fit_limit = f"parameter_samples={parameter_target}"
+                progress_interval = max(1, math.ceil(parameter_target / 10))
+                next_progress = progress_interval
+
+            self._log(
+                f"[{type(self).__name__}] Starting fit: n_cases={self.n_cases_}, "
+                f"n_channels={self.n_channels_}, n_timepoints={self.n_timepoints_}, "
+                f"{fit_limit}, max_ensemble_size={self.max_ensemble_size}"
+            )
 
         rng = check_random_state(self.random_state)
 
@@ -414,6 +407,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             else:
                 weight = 0.000000001
 
+            if log_each_candidate:
+                if num_classifiers < self.max_ensemble_size:
+                    candidate_status = "retained"
+                elif tde._accuracy > lowest_acc:
+                    candidate_status = "replaced"
+                else:
+                    candidate_status = "discarded"
+
             if num_classifiers < self.max_ensemble_size:
                 if tde._accuracy < lowest_acc:
                     lowest_acc = tde._accuracy
@@ -429,12 +430,88 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             self._prev_parameters_y.append(tde._accuracy)
 
             num_classifiers += 1
-            train_time = time.time() - start_time
+            train_time = time.perf_counter() - start_time
+
+            if log_each_candidate:
+                candidate_duration = train_time - previous_train_time
+                previous_train_time = train_time
+                if num_classifiers == 1:
+                    candidate_duration_ema = candidate_duration
+                else:
+                    candidate_duration_ema = (
+                        0.3 * candidate_duration + 0.7 * candidate_duration_ema
+                    )
+
+                if time_limit > 0:
+                    time_estimate = (
+                        "contract_remaining="
+                        f"{self._format_duration(max(0.0, time_limit - train_time))}"
+                    )
+                elif num_classifiers == 1:
+                    time_estimate = "estimated_remaining=estimating"
+                else:
+                    remaining_candidates = max(0, parameter_target - num_classifiers)
+                    estimated_remaining = candidate_duration_ema * remaining_candidates
+                    time_estimate = (
+                        "estimated_remaining="
+                        f"{self._format_duration(estimated_remaining)}"
+                    )
+
+                self._log(
+                    f"[{type(self).__name__}] Candidate {num_classifiers}: "
+                    f"window_size={parameters[0]}, word_length={parameters[1]}, "
+                    f"norm={parameters[2]}, levels={parameters[3]}, "
+                    f"igb={parameters[4]}, accuracy={tde._accuracy:.4f}, "
+                    f"status={candidate_status}, retained={len(self.estimators_)}, "
+                    f"elapsed={train_time:.2f}s, {time_estimate}"
+                )
+            elif log_progress:
+                if time_limit > 0:
+                    report_progress = train_time >= next_progress
+                else:
+                    report_progress = num_classifiers >= next_progress
+
+                if report_progress:
+                    self._log(
+                        f"[{type(self).__name__}] "
+                        f"Progress: evaluated={num_classifiers}, "
+                        f"retained={len(self.estimators_)}, elapsed={train_time:.2f}s"
+                    )
+                    if time_limit > 0:
+                        next_progress = train_time + progress_interval
+                    else:
+                        next_progress += progress_interval
 
         self.n_estimators_ = len(self.estimators_)
         self._weight_sum = np.sum(self.weights_)
 
+        if self.verbose > 0:
+            self._log(
+                f"[{type(self).__name__}] Finished fit: evaluated={num_classifiers}, "
+                f"retained={self.n_estimators_}, elapsed={train_time:.2f}s"
+            )
+
         return self
+
+    @staticmethod
+    def _log(message):
+        """Print a fit progress message after the caller checks verbosity."""
+        print(message, flush=True)  # noqa: T201
+
+    @staticmethod
+    def _format_duration(seconds):
+        """Format a duration for concise progress output."""
+        if seconds < 10:
+            return f"{seconds:.2f}s"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            minutes, remaining_seconds = divmod(seconds, 60)
+            return f"{int(minutes)}m {remaining_seconds:.0f}s"
+
+        hours, remaining_seconds = divmod(seconds, 3600)
+        minutes = remaining_seconds // 60
+        return f"{int(hours)}h {int(minutes)}m"
 
     def _predict(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -516,9 +593,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 preds = clf._train_predictions
 
                 for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
+                    results[subsample[n]][self._class_dictionary[pred]] += (
+                        self.weights_[i]
+                    )
                     divisors[subsample[n]] += self.weights_[i]
         elif self.train_estimate_method.lower() == "oob":
             indices = range(self.n_cases_)
@@ -683,20 +760,8 @@ class IndividualTDE(BaseClassifier):
     igb : bool, default=False
         Whether to use Information Gain Binning (IGB) or
         Multiple Coefficient Binning (MCB) for the SFA transform.
-    alphabet_size : int, default="deprecated"
-        Has no effect: the alphabet size is fixed to 4.
-
-        Deprecated and will be removed in v1.7.0.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
-    dim_threshold : float, default="deprecated"
-        Deprecated alias for ``channel_threshold``. Will be removed in v1.7.0.
-    max_dims : int, default="deprecated"
-        Deprecated alias for ``max_channels``. Will be removed in v1.7.0.
-    typed_dict : bool, default="deprecated"
-        Has no effect: word counts are now stored as sorted arrays.
-
-        Deprecated and will be removed in v1.7.0.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `predict`. `fit` is
         single threaded. ``-1`` means using all processors.
@@ -757,8 +822,6 @@ class IndividualTDE(BaseClassifier):
         "capability:multithreading": True,
     }
 
-    # TODO remove 'dim_threshold', 'alphabet_size', 'max_dims' and 'typed_dict'
-    # in v1.7.0
     def __init__(
         self,
         window_size=10,
@@ -766,11 +829,7 @@ class IndividualTDE(BaseClassifier):
         norm=False,
         levels=1,
         igb=False,
-        alphabet_size="deprecated",
         bigrams=True,
-        dim_threshold="deprecated",
-        max_dims="deprecated",
-        typed_dict="deprecated",
         n_jobs=1,
         random_state=None,
         max_channels=20,
@@ -781,46 +840,11 @@ class IndividualTDE(BaseClassifier):
         self.norm = norm
         self.levels = levels
         self.igb = igb
-        self.alphabet_size = alphabet_size
-        if alphabet_size != "deprecated":
-            warnings.warn(
-                "The 'alphabet_size' parameter has no effect and will be "
-                "removed in v1.7.0. The alphabet size is fixed to 4.",
-                FutureWarning,
-                stacklevel=2,
-            )
         self.bigrams = bigrams
 
         # multivariate
-        self.dim_threshold = dim_threshold
         self.channel_threshold = channel_threshold
-        if dim_threshold != "deprecated":
-            warnings.warn(
-                "The 'dim_threshold' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'channel_threshold' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.channel_threshold = dim_threshold
-        self.max_dims = max_dims
         self.max_channels = max_channels
-        if max_dims != "deprecated":
-            warnings.warn(
-                "The 'max_dims' parameter is deprecated and will be removed "
-                "in v1.7.0. Use 'max_channels' instead.",
-                FutureWarning,
-                stacklevel=2,
-            )
-            self.max_channels = max_dims
-
-        self.typed_dict = typed_dict
-        if typed_dict != "deprecated":
-            warnings.warn(
-                "The 'typed_dict' parameter has no effect and will be removed "
-                "in v1.7.0. Word counts are now stored as sorted arrays.",
-                FutureWarning,
-                stacklevel=2,
-            )
         self.n_jobs = n_jobs
         self.random_state = random_state
 

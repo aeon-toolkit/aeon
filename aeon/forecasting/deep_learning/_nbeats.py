@@ -253,15 +253,11 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
 
         X_train = np.lib.stride_tricks.sliding_window_view(
             series_1d, window_shape=self.window
-        )[
-            :num_sequences
-        ]  # (num_sequences, window)
+        )[:num_sequences]  # (num_sequences, window)
 
         y_forecast = np.lib.stride_tricks.sliding_window_view(
             series_1d[self.window :], window_shape=self.horizon
-        )[
-            :num_sequences
-        ]  # (num_sequences, horizon)
+        )[:num_sequences]  # (num_sequences, horizon)
 
         # Backcast target is the input window itself (reconstruction objective)
         y_train_dict = {"forecast": y_forecast, "backcast": X_train}
@@ -323,7 +319,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             y=y, prediction_horizon=self.horizon, exog=exog
         )
         if len(prediction) == 1:
-            prediction = float(prediction)
+            prediction = float(prediction[0])
         return prediction
 
     def _series_to_series_forecast(self, y, prediction_horizon, exog=None):

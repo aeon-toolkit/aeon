@@ -54,7 +54,7 @@ def test_load_forecasting_from_repo():
     """Test load forecasting from repo."""
     name = "FOO"
     with pytest.raises(
-        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+        ValueError, match=f"File name {name} is not in the list of valid files"
     ):
         load_forecasting(name)
     name = "m1_quarterly_dataset"
@@ -105,7 +105,7 @@ def test_load_regression_from_repo():
     """Test load regression from repo."""
     name = "FOO"
     with pytest.raises(
-        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+        ValueError, match=f"File name {name} is not in the list of valid files"
     ):
         load_regression(name)
     name = "FloodModeling1"
@@ -451,6 +451,8 @@ def test_load_from_ucr_tsv():
         "datasets/data/GunPoint/GunPoint_TRAIN.tsv",
     )
     X2, y2 = load_from_tsv_file(data_path)
+    assert X2.flags.writeable
+    assert y2.flags.writeable
     y = y.astype(float)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
@@ -577,7 +579,7 @@ def test_download_and_extract():
     with tempfile.TemporaryDirectory() as tmp:
         extract_path = os.path.join(tmp, name)
         os.makedirs(extract_path)
-        url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
         try:
             _download_and_extract(url, extract_path=extract_path)
         except BadZipFile:

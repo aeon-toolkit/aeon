@@ -1,5 +1,7 @@
 """Tests for the windowing module."""
 
+import sys
+
 import numpy as np
 import pytest
 
@@ -305,9 +307,21 @@ def test_all_reverse_windowing_implementations_equal(ws):
     np.testing.assert_array_equal(res_strided, res_iter)
 
 
+def test_reverse_windowing_without_psutil(monkeypatch):
+    """Test reverse windowing uses the iterative function when psutil is missing."""
+    monkeypatch.setitem(sys.modules, "psutil", None)
+
+    scores = reverse_windowing(_DATA[:9], window_size=2)
+
+    np.testing.assert_array_equal(
+        scores,
+        _reverse_windowing_iterative(_DATA[:9], window_size=2, reduction=np.nanmean),
+    )
+
+
 def test_wrong_input():
     """Test error raises."""
     with pytest.raises(
-        ValueError, match="padding_length must be provided when stride " "is not 1"
+        ValueError, match="padding_length must be provided when stride is not 1"
     ):
         reverse_windowing(_DATA[:9], window_size=2, stride=2)
