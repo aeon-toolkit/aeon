@@ -182,6 +182,11 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
         to 1, other class probabilities to 0. Override if better estimates are
         obtainable.
 
+        Column ``j`` is cluster ``j``. There are ``n_clusters`` columns, or
+        ``max(labels_) + 1`` if that is larger or ``n_clusters`` is not set, so the
+        columns do not depend on which clusters are present in ``X``. Negative
+        labels in ``labels_``, such as noise, are not clusters and get no column.
+
         Parameters
         ----------
         X : 3D np.ndarray
@@ -200,21 +205,25 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
+
+        Raises
+        ------
+        ValueError
+            If predict returns a negative label.
         """
         preds = self._predict(X)
-        unique = np.unique(preds)
-        for i, u in enumerate(unique):
-            preds[preds == u] = i
-        n_cases = len(preds)
-        if hasattr(self, "n_clusters"):
-            n_clusters = self.n_clusters
-        else:
-            n_clusters = len(np.unique(preds))
-        if n_clusters is None:
-            n_clusters = int(max(preds)) + 1
-        dists = np.zeros((len(X), n_clusters))
-        for i in range(n_cases):
-            dists[i, preds[i]] = 1
+        if np.any(preds < 0):
+            raise ValueError(
+                f"predict returned negative labels {np.unique(preds[preds < 0])}, "
+                "which are not clusters and have no predict_proba column."
+            )
+
+        n_clusters = self.labels_.max() + 1
+        if getattr(self, "n_clusters", None) is not None:
+            n_clusters = max(n_clusters, self.n_clusters)
+
+        dists = np.zeros((len(preds), n_clusters))
+        dists[np.arange(len(preds)), preds] = 1
         return dists
 
     @abstractmethod

@@ -75,6 +75,8 @@
     MockClassifierParams
     MockClassifierComposite
     MockCluster
+    MockCyclicLabelCluster
+    MockTransductiveCluster
     MockDeepClusterer
     MockCollectionTransformer
     MockForecaster
