@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
+from aeon.datasets import load_airline
+from aeon.forecasting.stats import ARIMA
 from aeon.forecasting.stats._sarima import (
     SARIMA,
     _difference,
@@ -11,6 +13,9 @@ from aeon.forecasting.stats._sarima import (
     _get_diff_poly,
     _undifference_sarima,
 )
+from aeon.forecasting.utils._extract_paras import _sarima_coefficients, _sarima_lags
+from aeon.forecasting.utils._loss_functions import _arima_css_aic, _sarima_fit
+from aeon.forecasting.utils._nelder_mead import _sarima_hannan_rissanen
 
 
 def test_active_lags():
@@ -93,3 +98,144 @@ def test_sarima_too_short_series_errors():
     model.fit(np.arange(10.0))
     with pytest.raises(ValueError, match="Series too short for differencing"):
         model._predict(y_input)
+
+
+def test_sarima_series_shorter_than_seasonal_lags_errors():
+    """Test fit and predict raise when no residual can be estimated."""
+    period = 12
+    y = load_airline()
+    model = SARIMA(p=1, d=0, q=0, P=1, seasonal_period=period)
+    with pytest.raises(ValueError):
+        model.fit(y[: period + 1])
+    model.fit(y)
+    with pytest.raises(ValueError):
+        model.predict(y[: period + 1])
+
+
+@pytest.mark.parametrize(
+    "params", [{"seasonal_period": 0}, {"P": -1}, {"d": -1}, {"Q": -1}]
+)
+def test_sarima_invalid_parameters_error(params):
+    """Test fit rejects a non-positive period and negative orders."""
+    with pytest.raises(ValueError):
+        SARIMA(**params).fit(load_airline())
+
+
+def test_sarima_rejects_exog():
+    """Test exogenous variables are not accepted."""
+    y = load_airline()
+    with pytest.raises(ValueError):
+        SARIMA().fit(y, exog=y)
+
+
+@pytest.mark.parametrize(
+    "p, d, q, use_constant", [(1, 0, 0, True), (1, 1, 1, False), (2, 1, 2, True)]
+)
+def test_sarima_without_seasonal_terms_matches_arima(p, d, q, use_constant):
+    """Test SARIMA with no seasonal terms gives the same fit as ARIMA."""
+    y = load_airline()
+    arima = ARIMA(p=p, d=d, q=q, use_constant=use_constant).fit(y)
+    sarima = SARIMA(p=p, d=d, q=q, use_constant=use_constant).fit(y)
+    assert_allclose(sarima._parameters, arima._parameters)
+    assert_allclose(sarima.aic_, arima.aic_)
+    assert_allclose(sarima.forecast_, arima.forecast_)
+
+
+def test_sarima_aic_counts_all_observations():
+    """Test the AIC uses the ARIMA likelihood over the whole differenced series."""
+    y = load_airline()
+    model = SARIMA(p=1, q=1, P=1, seasonal_period=12).fit(y)
+    assert_allclose(
+        model.aic_,
+        _arima_css_aic(
+            model.residuals_, _sarima_lags(model._model)[2], len(model._parameters)
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        [1.1, 0.1, 0.1, 0.1],  # phi
+        [0.1, 1.1, 0.1, 0.1],  # theta
+        [0.1, 0.1, 1.1, 0.1],  # Phi
+        [0.1, 0.1, 0.1, 1.1],  # Theta
+    ],
+)
+def test_sarima_fit_rejects_non_stationary_or_non_invertible(params):
+    """Test the loss is infinite if any polynomial has a root in the unit circle."""
+    p, q, P, Q, m = 1, 1, 1, 1, 4
+    ar_lags, ma_lags = _get_active_lags(p, q, P, Q, m)
+    model = np.array(
+        [0, p, q, P, Q, m, len(ar_lags), len(ma_lags), *ar_lags, *ma_lags],
+        dtype=np.int32,
+    )
+    data = np.random.default_rng(0).normal(size=50)
+    assert np.isinf(_sarima_fit(np.array(params), data, model))
+
+
+def test_sarima_coefficients_expand_multiplicative_polynomials():
+    """Test the sparse lag coefficients are the product of the polynomials."""
+    phi, theta, Phi, Theta = 0.5, 0.25, 0.4, 0.2
+    p, q, P, Q, m = 1, 1, 1, 1, 4
+    ar_lags, ma_lags = _get_active_lags(p, q, P, Q, m)
+    model = np.array(
+        [0, p, q, P, Q, m, len(ar_lags), len(ma_lags), *ar_lags, *ma_lags],
+        dtype=np.int32,
+    )
+    params = np.array([phi, theta, Phi, Theta])
+    _, ar_values, ma_values = _sarima_coefficients(params, model)
+    assert_allclose(ar_values, [phi, Phi, -phi * Phi])
+    assert_allclose(ma_values, [theta, Theta, theta * Theta])
+
+
+def test_sarima_hannan_rissanen_recovers_seasonal_ar():
+    """Test the starting values use the parameter layout of the model."""
+    period, phi, Phi = 4, 0.5, -0.4
+    rng = np.random.default_rng(0)
+    e = rng.normal(size=5000)
+    y = np.zeros(len(e))
+    for t in range(period + 1, len(e)):
+        y[t] = phi * y[t - 1] + Phi * y[t - period]
+        y[t] += -phi * Phi * y[t - period - 1] + e[t]
+    p, q, P, Q = 1, 0, 1, 0
+    ar_lags, ma_lags = _get_active_lags(p, q, P, Q, period)
+    model = np.array(
+        [0, p, q, P, Q, period, len(ar_lags), len(ma_lags), *ar_lags, *ma_lags],
+        dtype=np.int32,
+    )
+    assert_allclose(_sarima_hannan_rissanen(y, model), [phi, Phi], atol=0.1)
+
+
+def test_sarima_predict_matches_forecast_on_fitted_series():
+    """Test predict on the training series gives the forecast from fit."""
+    y = load_airline()
+    model = SARIMA(p=0, d=1, q=1, D=1, Q=1, seasonal_period=12).fit(y)
+    assert_allclose(model.predict(y), model.forecast_)
+
+
+def test_sarima_iterative_forecast_uses_fitted_state():
+    """Test iterative forecasts continue the fitted model with a single fit."""
+    y = load_airline()
+    model = SARIMA(p=0, d=1, q=1, D=1, Q=1, seasonal_period=12)
+    horizon = 4
+    forecasts = model.iterative_forecast(y, horizon)
+    assert forecasts.shape == (horizon,)
+    assert_allclose(forecasts[0], model.forecast_)
+    # the second step is the prediction from y extended by the first, with no refit
+    assert_allclose(forecasts[1], model.predict(np.append(y, forecasts[0])))
+
+
+def test_sarima_airline_model_vs_statsmodels():
+    """Verify the seasonal fit on airline is close to the exact likelihood fit."""
+    try:
+        from statsmodels.tsa.statespace.sarimax import SARIMAX
+    except ImportError:
+        pytest.skip("statsmodels not installed, skipping comparison tests.")
+
+    y = load_airline()
+    horizon = 4
+    sm_fit = SARIMAX(y, order=(0, 1, 1), seasonal_order=(0, 1, 1, 12)).fit(disp=False)
+    model = SARIMA(p=0, d=1, q=1, D=1, Q=1, seasonal_period=12)
+    forecasts = model.iterative_forecast(y, horizon)
+    assert_allclose(forecasts, sm_fit.forecast(steps=horizon), rtol=0.01)
