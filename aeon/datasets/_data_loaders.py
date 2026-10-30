@@ -199,7 +199,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             if meta_data["univariate"]:
                 if current_channels > 1:
                     raise OSError(
-                        f"Seen {current_channels} in case {n_cases}."
+                        f"Seen {current_channels} in case {n_cases}. "
                         f"Expecting univariate from metadata"
                     )
         if meta_data["equallength"]:
@@ -465,9 +465,9 @@ def _download_and_extract(url, extract_path=None):
         with open(zip_file_name, "wb") as out_file:
             out_file.write(response.read())
     if extract_path is None:
-        extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
+        extract_path = os.path.join(MODULE, f"local_data/{file_name.split('.')[0]}/")
     else:
-        extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
+        extract_path = os.path.join(extract_path, f"{file_name.split('.')[0]}/")
     already_exists = False
     try:
         already_exists = os.path.exists(extract_path)
@@ -539,7 +539,7 @@ def _load_tsc_dataset(
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
+            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
@@ -622,7 +622,7 @@ def load_from_arff_file(
                             raise ValueError(
                                 f" Number of channels not equal in "
                                 f"dataset, first case had {n_channels} channel "
-                                f"but case number {n_cases+1} has "
+                                f"but case number {n_cases + 1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
@@ -662,9 +662,9 @@ def load_from_tsv_file(full_file_path_and_name):
 
     """
     df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
-    y = df.pop(0).values
+    y = df.pop(0).to_numpy(copy=True)
     df.columns -= 1
-    X = df.to_numpy()
+    X = df.to_numpy(copy=True)
     X = np.expand_dims(X, axis=1)
     return X, y
 
@@ -863,7 +863,7 @@ def load_from_tsf_file(
                         if len(series) == 0:
                             raise Exception(
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series. "
                                 "Missing values should be indicated with ? symbol"
@@ -883,7 +883,7 @@ def load_from_tsf_file(
                             raise Exception(
                                 "All series values are missing. "
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series."
                             )
@@ -1037,9 +1037,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
                         f" but it is not correctly formatted.",
                     )
 
-            if not os.path.exists(
-                f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
-            ):
+            if not os.path.exists(f"{local_module}/{local_dirname}/{name}/{name}.tsf"):
                 z = zipfile.ZipFile(file_save, "r")
                 z.extractall(f"{local_module}/{local_dirname}/{name}/")
     full_name = f"{local_module}/{local_dirname}/{name}/{name}.tsf"

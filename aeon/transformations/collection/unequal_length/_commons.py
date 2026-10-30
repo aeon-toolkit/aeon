@@ -28,6 +28,20 @@ def _validate_positive_integer_length(value, parameter_name):
 
 
 def _get_min_length(X):
+    """Return the length of the shortest series in a collection.
+
+    Parameters
+    ----------
+    X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints) or list of
+        [n_cases] 2D np.ndarray of shape (n_channels, length_i)
+        Collection of time series. A 3D array is equal length, so its series
+        length is returned directly.
+
+    Returns
+    -------
+    int
+        The length of the shortest series in ``X``.
+    """
     if isinstance(X, np.ndarray):
         return X.shape[2]
     else:
@@ -35,6 +49,20 @@ def _get_min_length(X):
 
 
 def _get_max_length(X):
+    """Return the length of the longest series in a collection.
+
+    Parameters
+    ----------
+    X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints) or list of
+        [n_cases] 2D np.ndarray of shape (n_channels, length_i)
+        Collection of time series. A 3D array is equal length, so its series
+        length is returned directly.
+
+    Returns
+    -------
+    int
+        The length of the longest series in ``X``.
+    """
     if isinstance(X, np.ndarray):
         return X.shape[2]
     else:

@@ -18,7 +18,8 @@ class DiscreteFourierApproximation(BaseSeriesTransformer):
     Parameters
     ----------
     r : float, default=0.5
-        Proportion of Fourier terms to retain [0, 1]
+        Proportion of the ``n_timepoints // 2 + 1`` Fourier terms to retain [0, 1].
+        ``r=1`` reconstructs the series exactly.
     sort : bool, default=False
         Sort the Fourier terms by amplitude to keep most important terms
 
@@ -62,8 +63,11 @@ class DiscreteFourierApproximation(BaseSeriesTransformer):
         -------
         transformed version of X
         """
-        # Compute DFT
-        dft = np.fft.fft(X)
+        # Compute the DFT. X is real, so its spectrum is conjugate symmetric and
+        # rfft returns the n_timepoints // 2 + 1 non-redundant terms. Masking the
+        # two-sided fft instead drops the conjugate partner of every retained
+        # term, which halves its amplitude in the reconstruction.
+        dft = np.fft.rfft(X)
 
         # Mask array of terms to keep and number of terms to keep
         mask = np.zeros_like(dft, dtype=bool)
@@ -79,6 +83,6 @@ class DiscreteFourierApproximation(BaseSeriesTransformer):
             mask[:, 0:keep] = True
 
         # Invert DFT with masked terms
-        X_ = np.fft.ifft(dft * mask).real
+        X_ = np.fft.irfft(dft * mask, n=X.shape[1])
 
         return X_

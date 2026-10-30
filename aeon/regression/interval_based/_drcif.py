@@ -10,7 +10,9 @@ from sklearn.preprocessing import FunctionTransformer
 from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import PeriodogramTransformer
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    Catch22,
+)
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
     row_iqr,
@@ -31,11 +33,11 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     intervals on the base series, periodogram representation and differences
     representation described in the HIVE-COTE 2.0 paper Middlehurst et al (2021). [1]_
 
-    Overview: Input "n" series with "d" dimensions of length "m".
+    Overview: Input "n" series with "d" channels of length "m".
     For each tree
         - Sample n_intervals intervals per representation of random position and length
         - Subsample att_subsample_size catch22 or summary statistic attributes randomly
-        - Randomly select dimension for each interval
+        - Randomly select channel for each interval
         - Calculate attributes for each interval from its representation, concatenate
           to form new data set
         - Build a decision tree on new data set
@@ -45,7 +47,11 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     ----------
     base_estimator : BaseEstimator or None, default=None
         scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
+        simple decision tree, i.e.
+        ``DecisionTreeRegressor(criterion="squared_error")``. Versions prior to and
+        including 1.5.0 used ``DecisionTreeRegressor(criterion="absolute_error")``
+        by default, which scales poorly with the number of cases. Pass such an
+        estimator explicitly to restore the old behaviour.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
     n_intervals : int, str, list or tuple, default="sqrt"
@@ -95,10 +101,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, optional, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -118,7 +120,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     total_intervals_ : int
@@ -172,13 +174,10 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         att_subsample_size=10,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pycatch22=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
-        self.use_pycatch22 = use_pycatch22
-
         series_transformers = [
             None,
             FunctionTransformer(func=first_order_differences_3d, validate=False),
@@ -186,7 +185,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         ]
 
         interval_features = [
-            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            Catch22(outlier_norm=True),
             row_mean,
             row_std,
             row_slope,
@@ -214,9 +213,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             parallel_backend=parallel_backend,
         )
 
-        if use_pycatch22:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
-
     def _fit(self, X, y):
         return super()._fit(X, y)
 
@@ -240,7 +236,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
                 "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
+                    "capability:contractable" tag to True to test contracting
                     functionality
 
         Returns

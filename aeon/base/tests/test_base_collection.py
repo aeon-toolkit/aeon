@@ -230,6 +230,20 @@ def test_preprocess_collection(data):
     assert meta == cls.metadata_
 
 
+def test_check_X_univariate_capability():
+    """Test univariate input is rejected when capability:univariate is False."""
+    dummy = MockClassifier()
+    dummy.set_tags(**{"capability:univariate": False, "capability:multivariate": True})
+
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"][0]
+    with pytest.raises(ValueError, match=r"has univariate series, but"):
+        dummy._check_X(X)
+
+    assert dummy._check_X(
+        EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["numpy3D"]["train"][0]
+    )
+
+
 def test_check_X_low_variance_warns():
     """Test near-constant data warns rather than raises in _check_X.
 

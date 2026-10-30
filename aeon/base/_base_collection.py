@@ -175,6 +175,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
 
         metadata = self._get_X_metadata(X)
         # Check classifier capabilities for X
+        allow_univariate = self.get_tag("capability:univariate")
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_missing = self.get_tag("capability:missing_values")
         allow_unequal = self.get_tag("capability:unequal_length")
@@ -185,6 +186,8 @@ class BaseCollectionEstimator(BaseAeonEstimator):
             problems += ["missing values"]
         if metadata["multivariate"] and not allow_multivariate:
             problems += ["multivariate series"]
+        if not metadata["multivariate"] and not allow_univariate:
+            problems += ["univariate series"]
         if metadata["unequal_length"] and not allow_unequal:
             problems += ["unequal length series"]
 
@@ -301,7 +304,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
                 if nt != self.metadata_["n_timepoints"]:
                     raise ValueError(
                         "X has different length to the data seen in fit but "
-                        "this classifier cannot handle unequal length series."
+                        "this classifier cannot handle unequal length series. "
                         f"length of train set was {self.metadata_['n_timepoints']}",
                         f" length in predict is {nt}.",
                     )

@@ -30,6 +30,11 @@ def plot_temporal_importance_curves(
     fig : plt.Figure
     ax : plt.Axis
     """
+    if curves is None or len(curves) == 0:
+        raise ValueError("No temporal importance curves are available to plot.")
+    if curve_names is None or len(curve_names) == 0:
+        raise ValueError("No temporal importance curves are available to plot.")
+
     # find attributes to display by max information gain for any time point.
     _check_soft_dependencies("matplotlib")
 

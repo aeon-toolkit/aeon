@@ -11,7 +11,7 @@ from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import Catch22
 from aeon.utils.validation import check_n_jobs
 
 
@@ -51,10 +51,6 @@ class Catch22Clusterer(BaseClusterer):
             time series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
     estimator : sklearn clusterer, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn KMeans().
@@ -71,6 +67,12 @@ class Catch22Clusterer(BaseClusterer):
         if None a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+
+    Attributes
+    ----------
+    estimator_ : sklearn clusterer
+        The fitted sklearn clusterer used to compute cluster labels from the
+        Catch22-transformed data.
 
     See Also
     --------
@@ -109,7 +111,6 @@ class Catch22Clusterer(BaseClusterer):
         catch24=True,
         outlier_norm=True,
         replace_nans=True,
-        use_pycatch22=False,
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -119,7 +120,6 @@ class Catch22Clusterer(BaseClusterer):
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
-        self.use_pycatch22 = use_pycatch22
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -148,29 +148,27 @@ class Catch22Clusterer(BaseClusterer):
             Reference to self.
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
             replace_nans=self.replace_nans,
-            use_pycatch22=self.use_pycatch22,
             n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (KMeans() if self.estimator is None else self.estimator),
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
-        self.labels_ = self._estimator.labels_
+        self.estimator_.fit(X_t, y)
+        self.labels_ = self.estimator_.labels_
 
         return self
 
@@ -187,7 +185,7 @@ class Catch22Clusterer(BaseClusterer):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -204,9 +202,9 @@ class Catch22Clusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
             return super()._predict_proba(X)
 

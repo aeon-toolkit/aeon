@@ -39,7 +39,7 @@ class OrdinalTDE(BaseClassifier):
     Ensemble as described in [1]_. This method is an ordinal adaptation
     of the Temporal Dictionary Ensemble (TDE) presented in [2]_.
 
-    Overview: Input "n" series length "m" with "d" dimensions.
+    Overview: Input "n" series length "m" with "d" channels.
     O-TDE performs parameter selection to build the ensemble members
     based on a Gaussian process which is intended to predict Mean
     Absolute Error (MAE) values for specific O-TDE parameters configurations.
@@ -67,10 +67,10 @@ class OrdinalTDE(BaseClassifier):
     bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
-    dim_threshold : float, default=0.85
-        Dimension accuracy threshold for multivariate data, must be between 0 and 1.
-    max_dims : int, default=20
-        Max number of dimensions per classifier for multivariate data.
+    channel_threshold : float, default=0.85
+        Channel accuracy threshold for multivariate data, must be between 0 and 1.
+    max_channels : int, default=20
+        Max number of channels per classifier for multivariate data.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_parameter_samples.
         Default of 0 means n_parameter_samples is used.
@@ -104,7 +104,7 @@ class OrdinalTDE(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
     estimators_ : list of shape (n_estimators) of IndividualOrdinalTDE
@@ -116,7 +116,7 @@ class OrdinalTDE(BaseClassifier):
 
     See Also
     --------
-    IndividualOrdinalTDE, TDE, WEASEL
+    IndividualOrdinalTDE, TemporalDictionaryEnsemble, WEASEL
         Normal versions of TDE.
 
     References
@@ -162,14 +162,14 @@ class OrdinalTDE(BaseClassifier):
         min_window=10,
         randomly_selected_params=50,
         bigrams=None,
-        dim_threshold=0.85,
-        max_dims=20,
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
         typed_dict=True,
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
+        max_channels=20,
+        channel_threshold=0.85,
     ):
         self.n_parameter_samples = n_parameter_samples
         self.max_ensemble_size = max_ensemble_size
@@ -179,8 +179,8 @@ class OrdinalTDE(BaseClassifier):
         self.bigrams = bigrams
 
         # multivariate
-        self.dim_threshold = dim_threshold
-        self.max_dims = max_dims
+        self.channel_threshold = channel_threshold
+        self.max_channels = max_channels
 
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
@@ -321,8 +321,8 @@ class OrdinalTDE(BaseClassifier):
                 *parameters,
                 alphabet_size=self._alphabet_size,
                 bigrams=use_bigrams,
-                dim_threshold=self.dim_threshold,
-                max_dims=self.max_dims,
+                channel_threshold=self.channel_threshold,
+                max_channels=self.max_channels,
                 typed_dict=self.typed_dict,
                 n_jobs=self._n_jobs,
                 random_state=self.random_state,
@@ -431,9 +431,9 @@ class OrdinalTDE(BaseClassifier):
                 preds = clf._train_predictions
 
                 for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
+                    results[subsample[n]][self._class_dictionary[pred]] += (
+                        self.weights_[i]
+                    )
                     divisors[subsample[n]] += self.weights_[i]
         elif self.train_estimate_method.lower() == "oob":
             indices = range(self.n_cases_)
@@ -591,11 +591,11 @@ class IndividualOrdinalTDE(BaseClassifier):
         Number of possible letters (values) for each word.
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
-    dim_threshold : float, default=0.85
-        Accuracy threshold as a proportion of the highest accuracy dimension for words
-        extracted from each dimensions. Only applicable for multivariate data.
-    max_dims : int, default=20
-        Maximum number of dimensions words are extracted from. Only applicable for
+    channel_threshold : float, default=0.85
+        Accuracy threshold as a proportion of the highest accuracy channel for words
+        extracted from each channel. Only applicable for multivariate data.
+    max_channels : int, default=20
+        Maximum number of channels words are extracted from. Only applicable for
         multivariate data.
     typed_dict : bool, default=True
         Use a numba TypedDict to store word counts. May increase memory usage, but will
@@ -615,13 +615,13 @@ class IndividualOrdinalTDE(BaseClassifier):
     n_cases_ : int
         The number of train cases.
     n_channels_ : int
-        The number of dimensions per case.
+        The number of channels per case.
     n_timepoints_ : int
         The length of each series.
 
     See Also
     --------
-    TemporalDictinaryEnsemble, SFA
+    TemporalDictionaryEnsemble, SFA
 
     Notes
     -----
@@ -666,11 +666,11 @@ class IndividualOrdinalTDE(BaseClassifier):
         igb=False,
         alphabet_size=4,
         bigrams=True,
-        dim_threshold=0.85,
-        max_dims=20,
         typed_dict=True,
         n_jobs=1,
         random_state=None,
+        max_channels=20,
+        channel_threshold=0.85,
     ):
         self.window_size = window_size
         self.word_length = word_length
@@ -681,8 +681,8 @@ class IndividualOrdinalTDE(BaseClassifier):
         self.bigrams = bigrams
 
         # multivariate
-        self.dim_threshold = dim_threshold
-        self.max_dims = max_dims
+        self.channel_threshold = channel_threshold
+        self.max_channels = max_channels
 
         self.typed_dict = typed_dict
         self.n_jobs = n_jobs
@@ -698,8 +698,8 @@ class IndividualOrdinalTDE(BaseClassifier):
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
-        self._dims = []
-        self._highest_dim_bit = 0
+        self._channels = []
+        self._highest_channel_bit = 0
         self._accuracy = 0
         self._subsample = []
         self._train_predictions = []
@@ -762,9 +762,9 @@ class IndividualOrdinalTDE(BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
-        # select dimensions using accuracy estimate if multivariate
+        # select channels using accuracy estimate if multivariate
         if self.n_channels_ > 1:
-            self._dims, self._transformers = self._select_dims(X, y)
+            self._channels, self._transformers = self._select_channels(X, y)
 
             words = (
                 [
@@ -777,23 +777,30 @@ class IndividualOrdinalTDE(BaseClassifier):
                 else [defaultdict(int) for _ in range(self.n_cases_)]
             )
 
-            for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(self.n_cases_, 1, self.n_timepoints_)
-                dim_words = self._transformers[i].transform(X_dim, y)
-                dim_words = dim_words[0]
+            for i, channel in enumerate(self._channels):
+                X_channel = X[:, channel, :].reshape(
+                    self.n_cases_, 1, self.n_timepoints_
+                )
+                channel_words = self._transformers[i].transform(X_channel, y)
+                channel_words = channel_words[0]
 
                 for n in range(self.n_cases_):
                     if self._typed_dict:
-                        for word, count in dim_words[n].items():
+                        for word, count in channel_words[n].items():
                             if self.levels > 1:
                                 words[n][
-                                    (word[0], word[1] << self._highest_dim_bit | dim)
+                                    (
+                                        word[0],
+                                        word[1] << self._highest_channel_bit | channel,
+                                    )
                                 ] = count
                             else:
-                                words[n][(word, dim)] = count
+                                words[n][(word, channel)] = count
                     else:
-                        for word, count in dim_words[n].items():
-                            words[n][word << self._highest_dim_bit | dim] = count
+                        for word, count in channel_words[n].items():
+                            words[n][word << self._highest_channel_bit | channel] = (
+                                count
+                            )
 
             self._transformed_data = words
         else:
@@ -846,23 +853,28 @@ class IndividualOrdinalTDE(BaseClassifier):
                 else [defaultdict(int) for _ in range(n_cases)]
             )
 
-            for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(n_cases, 1, self.n_timepoints_)
-                dim_words = self._transformers[i].transform(X_dim)
-                dim_words = dim_words[0]
+            for i, channel in enumerate(self._channels):
+                X_channel = X[:, channel, :].reshape(n_cases, 1, self.n_timepoints_)
+                channel_words = self._transformers[i].transform(X_channel)
+                channel_words = channel_words[0]
 
                 for n in range(n_cases):
                     if self._typed_dict:
-                        for word, count in dim_words[n].items():
+                        for word, count in channel_words[n].items():
                             if self.levels > 1:
                                 words[n][
-                                    (word[0], word[1] << self._highest_dim_bit | dim)
+                                    (
+                                        word[0],
+                                        word[1] << self._highest_channel_bit | channel,
+                                    )
                                 ] = count
                             else:
-                                words[n][(word, dim)] = count
+                                words[n][(word, channel)] = count
                     else:
-                        for word, count in dim_words[n].items():
-                            words[n][word << self._highest_dim_bit | dim] = count
+                        for word, count in channel_words[n].items():
+                            words[n][word << self._highest_channel_bit | channel] = (
+                                count
+                            )
 
             test_bags = words
         else:
@@ -893,14 +905,14 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         return nn
 
-    def _select_dims(self, X, y):
-        self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
+    def _select_channels(self, X, y):
+        self._highest_channel_bit = (math.ceil(math.log2(self.n_channels_))) + 1
         maes = []
         transformers = []
 
-        # select dimensions based on reduced bag size accuracy
-        for i in range(self.n_channels_):
-            self._dims.append(i)
+        # select channels based on reduced bag size accuracy
+        for channel in range(self.n_channels_):
+            self._channels.append(channel)
             transformers.append(
                 SFA(
                     word_length=self.word_length,
@@ -920,15 +932,15 @@ class IndividualOrdinalTDE(BaseClassifier):
                 )
             )
 
-            X_dim = X[:, i, :].reshape(self.n_cases_, 1, self.n_timepoints_)
+            X_channel = X[:, channel, :].reshape(self.n_cases_, 1, self.n_timepoints_)
 
-            transformers[i].fit(X_dim, y)
-            sfa = transformers[i].transform(
-                X_dim,
+            transformers[channel].fit(X_channel, y)
+            sfa = transformers[channel].transform(
+                X_channel,
                 y,
             )
-            transformers[i].keep_binning_dft = False
-            transformers[i].binning_dft = None
+            transformers[channel].keep_binning_dft = False
+            transformers[channel].binning_dft = None
 
             total_absolute_err = 0
             for i in range(self.n_cases_):
@@ -939,21 +951,21 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         min_mae = min(maes)
 
-        dims = []
+        channels = []
         fin_transformers = []
-        mae_min_threshold = 1 + (1 - self.dim_threshold)
-        for i in range(self.n_channels_):
-            if maes[i] <= min_mae * mae_min_threshold:
-                dims.append(i)
-                fin_transformers.append(transformers[i])
+        mae_min_threshold = 1 + (1 - self.channel_threshold)
+        for channel in range(self.n_channels_):
+            if maes[channel] <= min_mae * mae_min_threshold:
+                channels.append(channel)
+                fin_transformers.append(transformers[channel])
 
-        if len(dims) > self.max_dims:
+        if len(channels) > self.max_channels:
             rng = check_random_state(self.random_state)
-            idx = rng.choice(len(dims), self.max_dims, replace=False).tolist()
-            dims = [dims[i] for i in idx]
+            idx = rng.choice(len(channels), self.max_channels, replace=False).tolist()
+            channels = [channels[i] for i in idx]
             fin_transformers = [fin_transformers[i] for i in idx]
 
-        return dims, fin_transformers
+        return channels, fin_transformers
 
     def _train_predict(self, train_num, bags=None):
         if bags is None:

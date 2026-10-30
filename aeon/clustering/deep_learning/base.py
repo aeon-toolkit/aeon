@@ -26,6 +26,11 @@ class BaseDeepClusterer(BaseClusterer):
         only if save_last_model_to_file is used in
         child class.
 
+    Attributes
+    ----------
+    estimator_ : aeon clusterer
+        The fitted clustering estimator used to assign cluster labels
+        from the model's latent space representation.
     """
 
     _tags = {
@@ -101,7 +106,7 @@ class BaseDeepClusterer(BaseClusterer):
         X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
-        self._estimator = (
+        self.estimator_ = (
             TimeSeriesKMeans(
                 n_clusters=2, distance="euclidean", averaging_method="mean"
             )
@@ -110,11 +115,11 @@ class BaseDeepClusterer(BaseClusterer):
         )
 
         latent_space = self.model_.layers[1].predict(X)
-        self._estimator.fit(X=latent_space)
-        if hasattr(self._estimator, "labels_"):
-            self.labels_ = self._estimator.labels_
+        self.estimator_.fit(X=latent_space)
+        if hasattr(self.estimator_, "labels_"):
+            self.labels_ = self.estimator_.labels_
         else:
-            self.labels_ = self._estimator.predict(X=latent_space)
+            self.labels_ = self.estimator_.predict(X=latent_space)
 
         return self
 
@@ -122,7 +127,7 @@ class BaseDeepClusterer(BaseClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        clusters = self._estimator.predict(latent_space)
+        clusters = self.estimator_.predict(latent_space)
 
         return clusters
 
@@ -130,7 +135,7 @@ class BaseDeepClusterer(BaseClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        clusters_proba = self._estimator.predict_proba(latent_space)
+        clusters_proba = self.estimator_.predict_proba(latent_space)
 
         return clusters_proba
 
@@ -159,7 +164,7 @@ class BaseDeepClusterer(BaseClusterer):
         self.is_fitted = True
 
         # use deep copy to preserve fit state
-        self._estimator = deepcopy(estimator)
+        self.estimator_ = deepcopy(estimator)
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf

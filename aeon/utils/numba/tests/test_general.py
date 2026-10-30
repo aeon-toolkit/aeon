@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.utils.numba.general import (
     combinations_1d,
     get_all_subsequences,
@@ -13,8 +14,15 @@ from aeon.utils.numba.general import (
     normalise_subsequences,
     prime_up_to,
     sliding_mean_std_one_series,
+    slope_derivative,
+    slope_derivative_2d,
+    slope_derivative_3d,
     unique_count,
     z_normalise_series,
+    z_normalise_series_2d,
+    z_normalise_series_2d_with_mean_std,
+    z_normalise_series_3d,
+    z_normalise_series_with_mean,
     z_normalise_series_with_mean_std,
 )
 
@@ -48,6 +56,81 @@ def test_z_normalise_series(type):
     a_expected = np.array([0, 0, 0], dtype=type)
     a_result = z_normalise_series(a)
     assert_array_equal(a_result, a_expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    a = np.array([1, 2, 2, 3, 3, 3], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series(a).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_with_mean_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    a = np.array([1, 2, 2, 3, 3, 3], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_with_mean(a, a.mean()).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_with_mean_std_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    a = np.array([1, 2, 2, 3, 3, 3], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_with_mean_std(a, a.mean(), a.std()).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_constant_input_preserves_float_precision(dtype):
+    """The below-threshold std branch must return the same dtype as the main one."""
+    a = np.full(6, 2, dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series(a).dtype == expected
+    assert z_normalise_series_with_mean(a, a.mean()).dtype == expected
+    assert z_normalise_series_with_mean_std(a, a.mean(), a.std()).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_2d_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.array([[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_2d(X).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_3d_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.array([[[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]]], dtype=dtype)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_3d(X).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_2d_with_mean_std_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.array([[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]], dtype=dtype)
+    mean = X.mean(axis=1).astype(np.float64)
+    std = X.std(axis=1).astype(np.float64)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert z_normalise_series_2d_with_mean_std(X, mean, std).dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_z_normalise_series_3d_values_unchanged(dtype):
+    """Preserving the input precision must not change the normalised values."""
+    X = np.array(
+        [
+            [[1, 2, 2, 3, 3, 3], [5, 6, 6, 7, 7, 7]],
+            [[4, 4, 4, 3, 3, 1], [8, 8, 8, 7, 7, 5]],
+        ],
+        dtype=dtype,
+    )
+    result = z_normalise_series_3d(X)
+    expected = (X - X.mean(axis=-1, keepdims=True)) / X.std(axis=-1, keepdims=True)
+    assert_array_almost_equal(result, expected, decimal=5)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
@@ -107,6 +190,29 @@ def test_sliding_mean_std_one_series(dtype):
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
+def test_float_output_dtype_follows_input_precision(dtype):
+    """Test helpers preserve float precision and promote integer input."""
+    X = make_example_2d_numpy_series(n_channels=2, random_state=0).astype(dtype)
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
+
+    subsequence = get_subsequence(X, 1, 4, 2)
+    subsequence_with_stats = get_subsequence_with_mean_std(X, 1, 4, 2)
+    sliding_stats = sliding_mean_std_one_series(X, 4, 2)
+    outputs = {
+        "get_subsequence": (subsequence,),
+        "get_subsequence_with_mean_std": subsequence_with_stats,
+        "sliding_mean_std_one_series": sliding_stats,
+        "slope_derivative": (slope_derivative(X[0]),),
+        "slope_derivative_2d": (slope_derivative_2d(X),),
+        "slope_derivative_3d": (slope_derivative_3d(X[np.newaxis]),),
+    }
+
+    for function_name, function_outputs in outputs.items():
+        for output in function_outputs:
+            assert output.dtype == expected_dtype, function_name
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
 def test_combinations_1d(dtype):
     """Test combinations of elements from two 1D arrays."""
     x = np.array([1, 1, 2, 2, 3, 3, 9, 4, 7, 9, 9], dtype=dtype)
@@ -127,6 +233,33 @@ def test_normalise_subsequences(dtype):
     X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
     assert np.all(X_norm == 0)
     assert np.all(X.shape == X_norm.shape)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_subsequences_preserves_float_precision(dtype):
+    """float32 input stays float32, integer input is promoted to float64."""
+    X = np.asarray([[[1, 2, 3, 4]], [[4, 5, 6, 8]]], dtype=dtype)
+    X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
+    expected = np.float32 if dtype == "float32" else np.float64
+    assert X_norm.dtype == expected
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_subsequences_values_unchanged(dtype):
+    """Preserving the input precision must not change the normalised values."""
+    X = np.asarray([[[1, 2, 3, 4]], [[4, 5, 6, 8]]], dtype=dtype)
+    X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
+    expected = (X - X.mean(axis=2, keepdims=True)) / X.std(axis=2, keepdims=True)
+    assert_array_almost_equal(X_norm, expected, decimal=5)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalise_subsequences_zeroes_below_std_threshold(dtype):
+    """Constant subsequences must still fall back to the zero-filled default."""
+    X = np.asarray([[[2, 2, 2, 2]], [[1, 2, 3, 4]]], dtype=dtype)
+    X_norm = normalise_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
+    assert np.all(X_norm[0] == 0)
+    assert not np.all(X_norm[1] == 0)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

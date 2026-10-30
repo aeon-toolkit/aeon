@@ -11,7 +11,7 @@ import numpy as np
 from aeon.base._estimators.interval_based import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
@@ -22,11 +22,11 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     Implementation of the interval-based forest making use of the catch22 feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_
 
-    Overview: Input "n" series with "d" dimensions of length "m".
+    Overview: Input "n" series with "d" channels of length "m".
     For each tree
         - Sample n_intervals intervals of random position and length
         - Subsample att_subsample_size catch22 or summary statistic attributes randomly
-        - Randomly select dimension for each interval
+        - Randomly select channel for each interval
         - Calculate attributes for each interval, concatenate to form new
           data set
         - Build a decision tree on new data set
@@ -92,10 +92,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, optional, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -115,7 +111,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
-        The number of dimensions per case in the training set.
+        The number of channels per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
     n_classes_ : int
@@ -177,20 +173,17 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         att_subsample_size=8,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pycatch22=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
-        self.use_pycatch22 = use_pycatch22
-
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
         else:
             replace_nan = 0
 
         interval_features = [
-            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            Catch22(outlier_norm=True),
             row_mean,
             row_std,
             row_slope,
@@ -213,9 +206,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
-
-        if use_pycatch22:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

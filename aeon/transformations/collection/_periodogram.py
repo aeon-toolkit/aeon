@@ -86,6 +86,9 @@ class PeriodogramTransformer(BaseCollectionTransformer):
             Xt = np.abs(np.fft.fft(X)[:, :, : int(X.shape[2] / 2)])
         else:
             Xt = []
+            kwargs = {"mode": self.pad_with}
+            if self.pad_with == "constant":
+                kwargs["constant_values"] = self.constant_value
             for x in X:
                 if self.pad_series:
                     len = int(
@@ -100,8 +103,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
                                 len,
                             ),
                         ),
-                        mode=self.pad_with,
-                        constant_values=self.constant_value,
+                        **kwargs,
                     )
                 Xt.append(np.abs(np.fft.fft(x)[:, : int(x.shape[1] / 2)]))
 

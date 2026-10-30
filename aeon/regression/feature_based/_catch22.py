@@ -11,7 +11,9 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import (
+    Catch22,
+)
 from aeon.utils.validation import check_n_jobs
 
 
@@ -51,10 +53,6 @@ class Catch22Regressor(BaseRegressor):
         series that were already normalized.
     replace_nans : bool, optional, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
     estimator : sklearn regressor, optional, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn RandomForestRegressor(n_estimators=200)
@@ -116,7 +114,6 @@ class Catch22Regressor(BaseRegressor):
         catch24=True,
         outlier_norm=True,
         replace_nans=True,
-        use_pycatch22=False,
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -126,7 +123,6 @@ class Catch22Regressor(BaseRegressor):
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
-        self.use_pycatch22 = use_pycatch22
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -153,13 +149,11 @@ class Catch22Regressor(BaseRegressor):
             Reference to self.
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
             replace_nans=self.replace_nans,
-            use_pycatch22=self.use_pycatch22,
             n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )

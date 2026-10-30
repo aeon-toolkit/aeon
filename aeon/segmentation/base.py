@@ -19,7 +19,7 @@ class BaseSegmenter(BaseSeriesEstimator):
 
     Segmenters take a single time series of length ``n_timepoints`` and returns a
     segmentation. Series can be univariate (single series) or multivariate,
-    with ``n_channels`` dimensions. If the segmenter can handle multivariate series,
+    with ``n_channels`` channels. If the segmenter can handle multivariate series,
     if will have the tag ``"capability:multivariate"`` set to True. Multivariate
     series are segmented along a the axis of time determined by ``self.axis``.
 
@@ -78,7 +78,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         super().__init__(axis=axis)
 
     @final
-    @method_timer("fit_time_millis_")
+    @method_timer("fit_time_millis_", overwrite=False, remove_on_start=True)
     def fit(self, X, y=None, axis=1):
         """Fit time series segmenter to X.
 
@@ -145,7 +145,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         Returns
         -------
         List
-            Either a list of indexes of X indicating where each segment begins or a
+            Either a list of indices of X indicating where each segment begins or a
             list of integers of ``len(X)`` indicating which segment each time point
             belongs to.
         """
@@ -186,14 +186,14 @@ class BaseSegmenter(BaseSeriesEstimator):
             # Check valid shape
             if y.ndim > 1:
                 raise ValueError(
-                    "Error in input type for y: y input as np.ndarray " "should be 1D"
+                    "Error in input type for y: y input as np.ndarray should be 1D"
                 )
             if not (
                 issubclass(y.dtype.type, np.integer)
                 or issubclass(y.dtype.type, np.floating)
             ):
                 raise ValueError(
-                    "Error in input type for y: y input must contain " "floats or ints"
+                    "Error in input type for y: y input must contain floats or ints"
                 )
         elif isinstance(y, pd.Series):
             if not pd.api.types.is_numeric_dtype(y):
@@ -210,8 +210,7 @@ class BaseSegmenter(BaseSeriesEstimator):
 
             if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
                 raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame "
-                    "must be numeric"
+                    "Error in input type for y: y input as pd.DataFrame must be numeric"
                 )
 
     @classmethod

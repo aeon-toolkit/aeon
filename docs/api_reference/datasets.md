@@ -32,27 +32,20 @@ used by `aeon`.
     load_arrow_head
     load_gunpoint
     load_basic_motions
-    load_osuleaf
     load_italy_power_demand
     load_japanese_vowels
     load_plaid
     load_longley
-    load_lynx
-    load_shampoo_sales
     load_unit_test
     load_uschange
-    load_PBS_dataset
     load_japanese_vowels
     load_gun_point_segmentation
     load_electric_devices_segmentation
-    load_acsf1
     load_unit_test_tsf
     load_solar
     load_cardano_sentiment
     load_covid_3month
     load_kdd_tsad_135
-    load_daphnet_s06r02e0
-    load_ecg_diff_count_3
     get_dataset_meta_data
 ```
 

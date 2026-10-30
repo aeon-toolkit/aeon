@@ -86,8 +86,9 @@
     MockUnivariateSeriesTransformer
     MockMultivariateSeriesTransformer
     MockSeriesTransformerNoFit
-    MockSeriesSimilaritySearch
-    MockCollectionSimilaritySearch
+    MockSubsequenceSearch
+    MockDistanceProfileSearch
+    MockWholeSeriesSearch
 ```
 
 ### Utilities
@@ -218,7 +219,6 @@
     slope_derivative_3d
     generate_combinations
     get_all_subsequences
-    compute_mean_stds_collection_parallel
     prime_up_to
     is_prime
 ```

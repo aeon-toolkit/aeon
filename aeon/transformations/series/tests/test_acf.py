@@ -4,7 +4,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
+from aeon.transformations.series._acf import (
+    AutoCorrelationSeriesTransformer,
+)
 
 
 def test_acf():
@@ -71,3 +73,28 @@ def test_multivariate():
     combined = np.vstack([x1, x2, x3])
     c3 = acf.fit_transform(combined)
     assert np.allclose(c2, c3)
+
+
+def test_acf_one_zero_variance_window_gives_zero_correlation():
+    """Test a lag with one constant window returns correlation 0, not nan."""
+    x = np.array([5.0, 5.0, 5.0, 5.0, 5.0, 1.0, 9.0, 3.0, 7.0, 2.0])
+    acf = AutoCorrelationSeriesTransformer(n_lags=5)
+    y = acf.fit_transform(x)
+    assert y[0, -1] == 0.0
+
+
+def test_acf_default_n_lags_is_quarter_series_length():
+    """Test default ``n_lags`` is ``max(1, n_timepoints // 4)``."""
+    n_timepoints = 20
+    expected_n_lags = max(1, n_timepoints // 4)
+    x = np.arange(n_timepoints, dtype=float)
+    acf = AutoCorrelationSeriesTransformer()
+    y = acf.fit_transform(x)
+    assert y.shape == (1, expected_n_lags)
+
+
+def test_acf_default_lags_error_reports_remaining_observations():
+    """Default lags raise the intended error for a series that is too short."""
+    x = np.array([1.0])
+    with pytest.raises(ValueError, match="0 observations"):
+        AutoCorrelationSeriesTransformer().fit_transform(x)

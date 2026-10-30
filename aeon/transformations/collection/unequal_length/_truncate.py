@@ -28,10 +28,12 @@ class Truncator(BaseCollectionTransformer):
         longest series seen in ``fit``. If an integer, will truncate to that length.
         Calling ``fit`` is not required if ``truncated_length`` is an int.
     error_on_short : bool, default=True
-        If True, raise an error if a series is shorter than truncated_length.
-        If False, will ignore series shorter than truncated_length. As the series
-        collection could remain unequal length, a list of numpy arrays will be returned
-        instead of a 3D numpy array.
+        If True, raise an error if a series is shorter than ``truncated_length``.
+        If False, series shorter than ``truncated_length`` are returned unchanged
+        rather than raising. The collection could therefore remain unequal length, so a
+        list of numpy arrays is returned instead of a 3D numpy array. This is the case
+        for ``truncated_length="max"`` whenever the collection is unequal length, as
+        every series shorter than the longest one is left as it is.
 
     Examples
     --------
@@ -68,7 +70,10 @@ class Truncator(BaseCollectionTransformer):
         )
 
     def _fit(self, X, y=None):
-        """Fit transformer to X and y.
+        """Fit truncation transformer to X and y.
+
+        Calculates the max/min length in X unless the truncation length was passed as
+        an integer.
 
         Parameters
         ----------

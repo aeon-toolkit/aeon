@@ -8,7 +8,6 @@ import pytest
 
 import aeon
 from aeon.datasets import (  # Univariate; Unequal length; Multivariate
-    load_acsf1,
     load_airline,
     load_arrow_head,
     load_basic_motions,
@@ -17,11 +16,7 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_italy_power_demand,
     load_japanese_vowels,
     load_longley,
-    load_lynx,
-    load_osuleaf,
-    load_PBS_dataset,
     load_pickup_gesture_wiimoteZ,
-    load_shampoo_sales,
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
@@ -29,10 +24,8 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
 )
 
 UNIVARIATE_PROBLEMS = [
-    load_acsf1,
     load_arrow_head,
     load_italy_power_demand,
-    load_osuleaf,
     load_unit_test,
 ]
 MULTIVARIATE_PROBLEMS = [
@@ -112,11 +105,8 @@ def test_load_covid_3month():
 
 
 FORECASTING_DATA = {
-    "shampoo_sales": [load_shampoo_sales, (36,)],
-    "lynx": [load_lynx, (114,)],
     "airline": [load_airline, (144,)],
     "solar": [load_solar, (289,)],
-    "PBS": [load_PBS_dataset, (204,)],
 }
 
 
@@ -125,6 +115,7 @@ def test_univariate_forecasting_loaders(data):
     """Test baked in loaders of univariate forecasting data."""
     y = FORECASTING_DATA[data][0]()
     assert isinstance(y, np.ndarray)
+    assert y.flags.writeable
     y2 = FORECASTING_DATA[data][0](return_array=False)
     assert isinstance(y2, pd.Series)
     assert y2.shape == FORECASTING_DATA[data][1]
@@ -135,6 +126,7 @@ def test_uschange():
     """Test if multivariate uschange dataset is loaded correctly."""
     data = load_uschange()
     assert isinstance(data, np.ndarray)
+    assert data.flags.writeable
     assert data.shape == (5, 187)
     X = load_uschange(return_array=False)
     assert isinstance(X, pd.DataFrame)
@@ -145,6 +137,7 @@ def test_longley():
     """Test if multivariate longley dataset is loaded correctly."""
     data = load_longley()
     assert isinstance(data, np.ndarray)
+    assert data.flags.writeable
     assert data.shape == (6, 16)
     X = load_longley(return_array=False)
 

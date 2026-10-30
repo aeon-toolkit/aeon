@@ -6,6 +6,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.interval_based import QUANTTransformer
+from aeon.utils.sklearn import _resolve_balanced_class_weight
 
 
 class QUANTClassifier(BaseClassifier):
@@ -36,7 +37,8 @@ class QUANTClassifier(BaseClassifier):
     estimator : sklearn estimator, default=None
         The estimator to use for classification. If None, an ExtraTreesClassifier
         with 200 estimators is used.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         Only applies if estimator is None, and the default ExtraTreesClassifier is used.
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
@@ -53,6 +55,13 @@ class QUANTClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+
+    Attributes
+    ----------
+    estimator_ : BaseEstimator
+        The fitted estimator for the classifier.
+    transformer_ : QUANTTransformer
+        The fitted transformer for the classifier.
 
     See Also
     --------
@@ -116,28 +125,30 @@ class QUANTClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self._transformer = QUANTTransformer(
+        self.transformer_ = QUANTTransformer(
             interval_depth=self.interval_depth,
             quantile_divisor=self.quantile_divisor,
         )
 
-        self._estimator = _clone_estimator(
-            (
-                ExtraTreesClassifier(
-                    n_estimators=200,
-                    max_features=0.1,
-                    criterion="entropy",
-                    class_weight=self.class_weight,
-                    random_state=self.random_state,
-                )
-                if self.estimator is None
-                else self.estimator
-            ),
-            self.random_state,
-        )
+        if self.estimator is None:
+            class_weight, fit_kwargs = _resolve_balanced_class_weight(
+                self.class_weight, y
+            )
+            estimator = ExtraTreesClassifier(
+                n_estimators=200,
+                max_features=0.1,
+                criterion="entropy",
+                class_weight=class_weight,
+                random_state=self.random_state,
+            )
+        else:
+            fit_kwargs = {}
+            estimator = self.estimator
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_ = _clone_estimator(estimator, self.random_state)
+
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y, **fit_kwargs)
 
         return self
 
@@ -154,7 +165,7 @@ class QUANTClassifier(BaseClassifier):
         y : array-like of shape (n_cases)
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X):
         """Predicts labels probabilities for sequences in X.
@@ -169,12 +180,12 @@ class QUANTClassifier(BaseClassifier):
         y : array-like of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

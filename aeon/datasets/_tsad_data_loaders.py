@@ -5,8 +5,6 @@ __all__ = [
     "load_anomaly_detection",
     "load_from_timeeval_csv_file",
     "load_kdd_tsad_135",
-    "load_daphnet_s06r02e0",
-    "load_ecg_diff_count_3",
 ]
 
 import tempfile
@@ -258,10 +256,10 @@ def load_from_timeeval_csv_file(path: Path) -> tuple[np.ndarray, np.ndarray]:
         The binary anomaly labels with shape (n_instances,).
     """
     df = pd.read_csv(path, index_col=0)
-    X = df.iloc[:, :-1].values
+    X = df.iloc[:, :-1].to_numpy(copy=True)
     if X.ndim == 2 and X.shape[1] == 1:
         X = X.ravel()
-    y = df.iloc[:, -1].values
+    y = df.iloc[:, -1].to_numpy(copy=True)
     return X, y
 
 
@@ -310,117 +308,3 @@ def load_kdd_tsad_135(
     )
     X, y = load_from_timeeval_csv_file(dataset_path)
     return X, y
-
-
-def load_daphnet_s06r02e0() -> tuple[np.ndarray, np.ndarray]:
-    """Load the Daphnet S06R02E0 multivariate time series dataset.
-
-    Returns
-    -------
-    X : np.ndarray
-        Multivariate time series with shape (28800,9).
-    y : np.ndarray
-        Binary anomaly labels with shape (28800,).
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_daphnet_s06r02e0
-    >>> X, y = load_daphnet_s06r02e0()
-
-    Notes
-    -----
-    The Daphnet collection [1] contains unsupervised datasets with multivariate time
-    series. Each dataset contains the annotated readings of 3 acceleration sensors at
-    the hip and leg of Parkinson's disease patients that experience freezing of gait
-    (FoG) during walking tasks. FoG occureances are annotated as anomalies.
-
-        Dimensionality:     multivariate (9 channels)
-        Series length:      7040
-        Frequency:          around 256 Hz
-        Learning Type:      unsupervised (no training data)
-
-
-    References
-    ----------
-    .. [1] Roggen, Daniel, Plotnik, Meir, and Hausdorff,Jeff. (2013). Daphnet Freezing
-           of Gait. UCI Machine Learning Repository. https://doi.org/10.24432/C56K78.
-    """
-    # name = ("Daphnet", "S06R02E0")
-    dataset_path = (
-        Path(aeon.__file__).parent
-        / "datasets"
-        / "data"
-        / "Daphnet_S06R02E0"
-        / "S06R02E0.csv"
-    )
-    X, y = load_from_timeeval_csv_file(dataset_path)
-    return X, y
-
-
-def load_ecg_diff_count_3(
-    learning_type: Literal[
-        "unsupervised", "semi-supervised", "supervised"
-    ] = "unsupervised",
-) -> (
-    tuple[np.ndarray, np.ndarray]
-    | tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
-):
-    """Load the synthetic ECG dataset 'ecg-diff-count-3'.
-
-    The dataset contains three different kind of anomalies. The dataset was generated
-    using `GutenTAG <https://github.com/TimeEval/gutentag>`_ [1]
-
-    Parameters
-    ----------
-    learning_type : str, default = "unsupervised"
-        The learning type of the dataset. Must be one of "unsupervised",
-        "semi-supervised", or "supervised". If "unsupervised", only the test partition
-        is loaded. If "semi-supervised", the test partition and the training partition
-        **without** anomalies is returned. If "supervised", the training partition
-        **with** anomalies is returned instead.
-
-    Returns
-    -------
-    X_test : np.ndarray
-        Multivariate test time series with shape (10000,2).
-    y_test : np.ndarray
-        Binary anomaly labels for the test time series with shape (10000,).
-    X_train : np.ndarray, optional
-        Multivariate train time series with shape (10000,2). Omitted if
-        ``learning_type`` is "unsupervised".
-    y_train : np.ndarray, optional
-        Binary anomaly labels for the train time series with shape (10000,). Omitted if
-        ``learning_type`` is "unsupervised".
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_ecg_diff_count_3
-    >>> X_test, y_test, X_train, y_train = load_ecg_diff_count_3("supervised")
-
-    Notes
-    -----
-        Dimensionality:     univariate
-        Series length:      10000
-        Frequency:          unknown
-        Learning Type:      all supported
-
-    References
-    ----------
-    .. [1] Phillip Wenig, Sebastian Schmidl, and Thorsten Papenbrock. TimeEval: A
-           Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB,
-           15(12): 3678 - 3681, 2022. doi:10.14778/3554821.3554873.
-    """
-    # name = ("correlation-anomalies", "ecg-diff-count-3")
-    base_path = Path(aeon.__file__).parent / "datasets" / "data" / "UnitTest"
-    test_file = base_path / "ecg-diff-count-3_TEST.csv"
-    train_semi_file = base_path / "ecg-diff-count-3_TRAIN_NA.csv"
-    train_super_file = base_path / "ecg-diff-count-3_TRAIN_A.csv"
-
-    X_test, y_test = load_from_timeeval_csv_file(test_file)
-    if learning_type == "semi-supervised":
-        X_train, y_train = load_from_timeeval_csv_file(train_semi_file)
-        return X_test, y_test, X_train, y_train
-    if learning_type == "supervised":
-        X_train, y_train = load_from_timeeval_csv_file(train_super_file)
-        return X_test, y_test, X_train, y_train
-    return X_test, y_test

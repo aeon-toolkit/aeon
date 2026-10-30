@@ -22,6 +22,11 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
 
     LeftSTAMPi supports univariate time series only.
 
+    This estimator is unsupervised and ``fit`` is a no-op. Calls to ``predict(X)``
+    and ``fit_predict(X)`` treat ``X`` as an independent stream: the initial
+    matrix profile is seeded from the first ``n_init_train`` points in ``X`` and
+    then updated with the remaining points in ``X``. State is not carried between
+    separate series passed to ``predict``.
 
     Parameters
     ----------
@@ -66,7 +71,7 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
-        "fit_is_empty": False,
+        "fit_is_empty": True,
         "cant_pickle": True,
         "python_dependencies": ["stumpy"],
         "anomaly_output_type": "anomaly_scores",
@@ -81,7 +86,6 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
         p: float = 2.0,
         k: int = 1,
     ):
-        self.mp_: np.ndarray | None = None
         self.window_size = window_size
         self.n_init_train = n_init_train
         self.normalize = normalize
@@ -109,41 +113,29 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
                 "the time series minus the window size."
             )
 
-    def _fit(self, X: np.ndarray, y=None) -> "LeftSTAMPi":
-        if X.ndim > 1:
-            X = X.squeeze()
-        self._check_params(X)
-
-        self._call_stumpi(X)
-
-        return self
-
     def _predict(self, X: np.ndarray) -> np.ndarray:
         if X.ndim > 1:
             X = X.squeeze()
         self._check_params(X)
 
-        for x in X:
-            self.mp_.update(x)
+        init = X[: self.n_init_train]
+        stream = X[self.n_init_train :]
 
-        lmp = self.mp_._left_P
+        mp = self._call_stumpi(init)
+
+        for x in stream:
+            mp.update(x)
+
+        lmp = mp._left_P
         lmp[: self.n_init_train] = 0
         point_anomaly_scores = reverse_windowing(lmp, self.window_size)
 
         return point_anomaly_scores
 
-    def _fit_predict(self, X: np.ndarray, y=None) -> np.ndarray:
-        if X.ndim > 1:
-            X = X.squeeze()
-
-        self.fit(X[: self.n_init_train])
-
-        return self.predict(X[self.n_init_train :])
-
     def _call_stumpi(self, X: np.ndarray):
         import stumpy
 
-        self.mp_ = stumpy.stumpi(
+        return stumpy.stumpi(
             X,
             m=self.window_size,
             egress=False,

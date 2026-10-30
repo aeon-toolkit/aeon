@@ -41,3 +41,26 @@ def test_base_deep_clusterer(estimator):
         ypred_proba = dummy_deep_clr.predict_proba(X)
         assert ypred_proba is not None
         assert len(ypred_proba[0]) == len(np.unique(y))
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_deep_clusterer_estimator_attribute():
+    """Test estimator_ attribute lifecycle for Deep Clusterers."""
+    import numpy as np
+
+    from aeon.testing.mock_estimators import MockDeepClusterer
+
+    X = np.random.rand(5, 1, 15)
+    clusterer = MockDeepClusterer()
+
+    assert not hasattr(clusterer, "estimator_")
+    assert not hasattr(clusterer, "_estimator")
+
+    clusterer.fit(X)
+
+    assert hasattr(clusterer, "estimator_")
+    assert clusterer.estimator_ is not None
+    assert not hasattr(clusterer, "_estimator")

@@ -85,7 +85,7 @@ def test_get_best_splitter():
 def test_get_derivatives_and_std():
     """Test the methods to get derivatives and standard deviation."""
     X, y = make_example_3d_numpy()
-    X_list = [x for x in X]
+    X_list = [*X]
 
     clf = ProximityTree()
     assert_array_equal(clf._get_derivatives(X_list), clf._get_derivatives(X_list))

@@ -1,6 +1,6 @@
 """ClassifierChannelEnsemble for multivariate time series classification.
 
-Builds classifiers on each channel (dimension) independently.
+Builds classifiers on each channel independently.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]

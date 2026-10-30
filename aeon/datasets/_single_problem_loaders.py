@@ -5,18 +5,13 @@ __all__ = [
     "load_airline",
     "load_arrow_head",
     "load_gunpoint",
-    "load_osuleaf",
     "load_italy_power_demand",
     "load_basic_motions",
     "load_japanese_vowels",
     "load_solar",
-    "load_shampoo_sales",
     "load_longley",
-    "load_lynx",
-    "load_acsf1",
     "load_unit_test",
     "load_uschange",
-    "load_PBS_dataset",
     "load_gun_point_segmentation",
     "load_electric_devices_segmentation",
     "load_unit_test_tsf",
@@ -75,48 +70,6 @@ def load_gunpoint(split=None, return_type="numpy3d"):
     Details: https://timeseriesclassification.com/description.php?Dataset=GunPoint
     """
     return _load_tsc_dataset("GunPoint", split, return_type=return_type)
-
-
-def load_osuleaf(split=None, return_type="numpy3d"):
-    """Load the OSULeaf univariate time series classification problem.
-
-    Parameters
-    ----------
-    split: None or one of "TRAIN", "TEST", default=None
-        Whether to load the train or test instances of the problem. By default it
-        loads both train and test instances into a single array.
-    return_type: string, default="numpy3d"
-        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
-
-    Raises
-    ------
-    ValueError is raised if the data cannot be stored in the requested return_type.
-
-    Returns
-    -------
-    X: np.ndarray
-        shape (n_cases, 1, 427) (return_type="numpy3d") or shape (n_cases,
-        427) (return_type="numpy2d"), where n_cases where n_cases is either 200
-        (split = "train") 242 (split="test") or 442.
-    y: np.ndarray
-        1D array of length 200, 242 or 542. The class labels for each time series
-        instance in X.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_osuleaf
-    >>> X, y = load_osuleaf()
-
-    Notes
-    -----
-    Dimensionality:     univariate
-    Series length:      427
-    Train cases:        200
-    Test cases:         242
-    Number of classes:  6
-    Details: https://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
-    """
-    return _load_tsc_dataset("OSULeaf", split, return_type=return_type)
 
 
 def load_italy_power_demand(split=None, return_type="numpy3d"):
@@ -252,48 +205,6 @@ def load_arrow_head(split=None, return_type="numpy3d"):
     Details: https://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
     return _load_saved_dataset(name="ArrowHead", split=split, return_type=return_type)
-
-
-def load_acsf1(split=None, return_type="numpy3d"):
-    """Load the ACSF1 univariate dataset on power consumption of typical appliances.
-
-    Parameters
-    ----------
-    split: None or one of "TRAIN", "TEST", default=None
-        Whether to load the train or test instances of the problem. By default it
-        loads both train and test instances into a single array.
-    return_type: string, default="numpy3d"
-        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
-
-    Raises
-    ------
-    ValueError is raised if the data cannot be stored in the requested return_type.
-
-    Returns
-    -------
-    X: np.ndarray
-        shape (n_cases, 1, 1460) (if return_type="numpy3d") or shape (n_cases,
-        1460) (return_type="numpy2d"), where n_cases where n_cases is either 100
-        (split = "train" or split="test") or 200.
-    y: np.ndarray
-        1D array of length 100 or 200. The class labels for each time series instance
-        in X.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_acsf1
-    >>> X, y = load_acsf1()
-
-    Notes
-    -----
-    Dimensionality:     univariate
-    Series length:      1460
-    Train cases:        100
-    Test cases:         100
-    Number of classes:  10
-    Details: https://www.timeseriesclassification.com/description.php?Dataset=ACSF1
-    """
-    return _load_tsc_dataset("ACSF1", split, return_type=return_type)
 
 
 def load_basic_motions(split=None, return_type="numpy3d"):
@@ -537,7 +448,7 @@ def load_gun_point_segmentation():
     name = "GunPoint"
     fname = name + ".csv"
 
-    period_length = int(10)
+    period_length = 10
     change_points = np.int32([900])
 
     path = os.path.join(MODULE, DIRNAME, dir, fname)
@@ -577,7 +488,7 @@ def load_electric_devices_segmentation():
     name = "ElectricDevices"
     fname = name + ".csv"
 
-    period_length = int(10)
+    period_length = 10
     change_points = np.int32([1090, 4436, 5712, 7923])
 
     path = os.path.join(MODULE, DIRNAME, dir, fname)
@@ -622,116 +533,6 @@ def load_unit_test_tsf(return_type="tsf_default"):
 
 
 # forecasting data sets
-def load_shampoo_sales(return_array=True):
-    """Load the shampoo sales univariate time series dataset for forecasting.
-
-    Parameters
-    ----------
-    return_array : bool, default=True
-        return series as an np.ndarray if True, else as a pd.Series.
-
-    Returns
-    -------
-    np.ndarray or pd.Series
-        Shampoo sales dataset
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_shampoo_sales
-    >>> y = load_shampoo_sales()
-    >>> type(y)
-    <class 'numpy.ndarray'>
-    >>> y = load_shampoo_sales(return_array=False)
-    >>> type(y)
-    <class 'pandas.core.series.Series'>
-
-    Notes
-    -----
-    This dataset describes the monthly number of sales of shampoo over a 3
-    year period. The units are a sales count.
-
-    Dimensionality:     univariate
-    Series length:      36
-    Frequency:          Monthly
-    Number of cases:    1
-
-    References
-    ----------
-    .. [1] Makridakis, Wheelwright and Hyndman (1998) Forecasting: methods
-    and applications,
-        John Wiley & Sons: New York. Chapter 3.
-    """
-    name = "ShampooSales"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-    if return_array:
-        return y.values
-    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
-    y.name = "Number of shampoo sales"
-    return y
-
-
-def load_lynx(return_array=True):
-    """Load the lynx univariate time series dataset for forecasting.
-
-    Parameters
-    ----------
-    return_array : bool, default=True
-        return series as an np.ndarray if True, else as a pd.Series.
-
-    Returns
-    -------
-    np.ndarray or pd.Series/DataFrame
-        Lynx sales dataset
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_lynx
-    >>> y = load_lynx()
-    >>> type(y)
-    <class 'numpy.ndarray'>
-    >>> y = load_lynx(return_array=False)
-    >>> type(y)
-    <class 'pandas.core.series.Series'>
-
-    Notes
-    -----
-    The annual numbers of lynx trappings for 1821–1934 in Canada. This
-    time-series records the number of skins of
-    predators (lynx) that were collected over several years by the Hudson's
-    Bay Company. The dataset was
-    taken from Brockwell & Davis (1991) and appears to be the series
-    considered by Campbell & Walker (1977).
-
-    Dimensionality:     univariate
-    Series length:      114
-    Frequency:          Yearly
-    Number of cases:    1
-
-    This data shows aperiodic, cyclical patterns, as opposed to periodic,
-    seasonal patterns.
-
-    References
-    ----------
-    .. [1] Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988). The New S
-    Language. Wadsworth & Brooks/Cole.
-
-    .. [2] Campbell, M. J. and Walker, A. M. (1977). A Survey of statistical
-    work on the Mackenzie River series of
-    annual Canadian lynx trappings for the years 1821–1934 and a new
-    analysis. Journal of the Royal Statistical Society
-    series A, 140, 411–431.
-    """
-    name = "Lynx"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-    if return_array:
-        return y.values
-    y.index = pd.PeriodIndex(y.index, freq="Y", name="Period")
-    y.name = "Number of Lynx trappings"
-    return y
 
 
 def load_airline(return_array=True):
@@ -754,8 +555,8 @@ def load_airline(return_array=True):
     >>> type(y)
     <class 'numpy.ndarray'>
     >>> y = load_airline(return_array=False)
-    >>> type(y)
-    <class 'pandas.core.series.Series'>
+    >>> type(y).__name__
+    'Series'
 
     Notes
     -----
@@ -781,7 +582,7 @@ def load_airline(return_array=True):
     path = os.path.join(MODULE, DIRNAME, name, fname)
     y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
     if return_array:
-        return y.values
+        return y.to_numpy(copy=True)
     # make sure time index is properly formatted
     y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
     y.name = "Number of airline passengers"
@@ -825,58 +626,7 @@ def load_solar(return_array=True):
     y = y.asfreq("30min")
     y = y.squeeze("columns")
     if return_array:
-        return y.values
-    return y
-
-
-def load_PBS_dataset(return_array=True):
-    """Load the Pharmaceutical Benefit Scheme univariate time series dataset [1]_.
-
-    Parameters
-    ----------
-    return_array : bool, default=True
-        return series as an np.ndarray if True, else as a pd.Series.
-
-    Returns
-    -------
-    np.ndarray or pd.Series
-        PBS time series
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_PBS_dataset
-    >>> y = load_PBS_dataset()
-
-    Notes
-    -----
-    The Pharmaceutical Benefits Scheme (PBS) is the Australian government drugs
-    subsidy scheme.
-    Data comprises of the numbers of scripts sold each month for immune sera
-    and immunoglobulin products in Australia.
-
-
-    Dimensionality:     univariate
-    Series length:      204
-    Frequency:          Monthly
-    Number of cases:    1
-
-    The time series is intermittent, i.e contains small counts,
-    with many months registering no sales at all,
-    and only small numbers of items sold in other months.
-
-    References
-    ----------
-    .. [1] Data for "Forecasting: Principles and Practice" (3rd Edition)
-    """
-    name = "PBS_dataset"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-    if return_array:
-        return y.values
-    # make sure time index is properly formatted
-    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
-    y.name = "Number of scripts"
+        return y.to_numpy(copy=True)
     return y
 
 
@@ -929,7 +679,7 @@ def load_uschange(return_array=True):
     data.name = name
     data = data.drop("Quarter", axis=1)
     if return_array:
-        return data.to_numpy().T
+        return data.to_numpy(copy=True).T
     return data.T
 
 
@@ -988,5 +738,5 @@ def load_longley(return_array=True):
     data.index = pd.PeriodIndex(data.index, freq="Y", name="Period")
     data = data.astype(float)
     if return_array:
-        return data.to_numpy().T
+        return data.to_numpy(copy=True).T
     return data.T

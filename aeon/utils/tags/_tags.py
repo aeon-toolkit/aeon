@@ -139,6 +139,15 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Can the transformer carrying out an inverse transform?",
     },
+    "capability:predict": {
+        "class": "clusterer",
+        "type": "bool",
+        "description": "Can the clusterer assign previously unseen cases to clusters "
+        "after fitting, i.e. does it support out-of-sample prediction? If True, "
+        "``fit(X_train)`` followed by ``predict(X_new)`` is supported. If False, the "
+        "clusterer is transductive: only ``fit(X)``/``labels_`` and "
+        "``fit_predict(X)`` are supported, and ``predict`` raises an error.",
+    },
     # other
     "returns_dense": {
         "class": "segmenter",
@@ -183,7 +192,7 @@ ESTIMATOR_TAGS = {
         "class": "anomaly-detector",
         "type": ("str", ["anomaly_scores", "binary"]),
         "description": "The format of the anomaly detector output. anomaly_scores "
-        "estimators provide a numeric score on how anomalous the point/case is. binary"
+        "estimators provide a numeric score on how anomalous the point/case is. binary "
         "estimators provide a binary classification of whether the point/case is "
         "anomalous or not.",
     },

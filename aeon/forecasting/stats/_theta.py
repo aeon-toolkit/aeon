@@ -52,6 +52,9 @@ class Theta(BaseForecaster, IterativeForecastingMixin):
       :math:`\\theta=2` and an SES fit on the theta line.
     - This is a *local* method: parameters are estimated per series; the model
       is not intended to generalise to unseen series without re-fitting.
+    - ``predict`` returns the forecast computed in ``fit`` and does not use the
+      series passed to it. Use ``forecast(y)`` to fit and forecast a new series,
+      or ``iterative_forecast`` to forecast several steps ahead.
 
     References
     ----------
@@ -83,6 +86,7 @@ class Theta(BaseForecaster, IterativeForecastingMixin):
         return self
 
     def _predict(self, y, exog=None):
+        """Return the one-step forecast computed in ``fit``; ``y`` is ignored."""
         return self.forecast_
 
     def iterative_forecast(

@@ -23,7 +23,6 @@ __all__ = [
     "slope_derivative_3d",
     "generate_combinations",
     "get_all_subsequences",
-    "compute_mean_stds_collection_parallel",
     "prime_up_to",
     "is_prime",
 ]
@@ -154,6 +153,34 @@ def first_order_differences_3d(X: np.ndarray) -> np.ndarray:
     return X[:, :, 1:] - X[:, :, :-1]
 
 
+@njit(fastmath=True, cache=True, nogil=True)
+def _as_normalised_float(X: np.ndarray) -> np.ndarray:
+    """Return a float copy of ``X``, in the dtype its z-normalisation should output.
+
+    ``np.zeros(X.shape)`` always returns float64, which silently doubles the memory
+    of a float32 input. Dividing by one is the operation the normalisation performs,
+    so numpy's promotion rules give the intended output dtype: float32 stays float32,
+    and every integer or boolean dtype normalises in float64. Numba supports neither
+    ``np.promote_types`` nor ``np.result_type``, so it is also the simplest way to
+    ask numpy for that rule from a jitted function.
+    """
+    return X / 1
+
+
+@njit(fastmath=True, cache=True, nogil=True)
+def _z_normalise_inplace(arr: np.ndarray, series_mean: float, series_std: float):
+    """Z-normalise a 1d float array in place, dividing only above the std threshold.
+
+    ``arr`` keeps its own dtype. An in-place operation writes back into the buffer it
+    already has, so even if ``series_mean`` and ``series_std``are float64, they cannot
+    widen a float32 ``arr`` to float64. In such case, each element is computed in
+    float64, then rounded once when it is stored.
+    """
+    arr -= series_mean
+    if series_std > AEON_NUMBA_STD_THRESHOLD:
+        arr /= series_std
+
+
 @njit(fastmath=True, cache=True)
 def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array with mean.
@@ -178,15 +205,12 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_norm = z_normalise_series_with_mean(X, mean(X))
     """
-    s = stats.std(X)
-    if s > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - series_mean) / s
-    else:
-        arr = X - series_mean
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, series_mean, stats.std(X))
     return arr
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, nogil=True)
 def z_normalise_series(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array.
 
@@ -207,11 +231,8 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_norm = z_normalise_series(X)
     """
-    s = stats.std(X)
-    if s > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - stats.mean(X)) / s
-    else:
-        arr = X - stats.mean(X)
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, stats.mean(X), stats.std(X))
     return arr
 
 
@@ -236,10 +257,8 @@ def z_normalise_series_with_mean_std(
     arr :  1d numpy array
         The normalised series
     """
-    if series_std > AEON_NUMBA_STD_THRESHOLD:
-        arr = (X - series_mean) / series_std
-    else:
-        return X - series_mean
+    arr = _as_normalised_float(X)
+    _z_normalise_inplace(arr, series_mean, series_std)
     return arr
 
 
@@ -264,9 +283,9 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_norm = z_normalise_series_2d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        arr[i] = z_normalise_series(X[i])
+        _z_normalise_inplace(arr[i], stats.mean(X[i]), stats.std(X[i]))
     return arr
 
 
@@ -291,9 +310,9 @@ def z_normalise_series_2d_with_mean_std(
     arr : array, shape = (n_channels, n_timepoints)
         The normalised array
     """
-    arr = np.zeros(X.shape)
-    for i in range(X.shape[0]):
-        arr[i] = z_normalise_series_with_mean_std(X[i], series_mean[i], series_std[i])
+    arr = _as_normalised_float(X)
+    for i in range(arr.shape[0]):
+        _z_normalise_inplace(arr[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -321,9 +340,10 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_norm = z_normalise_series_3d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        arr[i] = z_normalise_series_2d(X[i])
+        for j in range(X.shape[1]):
+            _z_normalise_inplace(arr[i, j], stats.mean(X[i, j]), stats.std(X[i, j]))
     return arr
 
 
@@ -397,7 +417,7 @@ def get_subsequence(
         The resulting subsequence.
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length))
+    values = np.zeros((n_channels, length), dtype=_as_normalised_float(X[:0]).dtype)
     idx = i_start
     for i_length in prange(length):
         values[:, i_length] = X[:, idx]
@@ -433,9 +453,10 @@ def get_subsequence_with_mean_std(
         The std of each channel
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length), dtype=np.float64)
-    means = np.zeros(n_channels, dtype=np.float64)
-    stds = np.zeros(n_channels, dtype=np.float64)
+    output_dtype = _as_normalised_float(X[:0]).dtype
+    values = np.zeros((n_channels, length), dtype=output_dtype)
+    means = np.zeros(n_channels, dtype=output_dtype)
+    stds = np.zeros(n_channels, dtype=output_dtype)
     for i_channel in prange(n_channels):
         _sum = 0
         _sum2 = 0
@@ -455,46 +476,6 @@ def get_subsequence_with_mean_std(
             stds[i_channel] = _s**0.5
 
     return values, means, stds
-
-
-@njit(cache=True, fastmath=True, parallel=True)
-def compute_mean_stds_collection_parallel(X):
-    """
-    Return the mean and standard deviation for each channel of all series in X.
-
-    Parameters
-    ----------
-    X : array, shape (n_cases, n_channels, n_timepoints)
-        A time series collection
-
-    Returns
-    -------
-    means : array, shape (n_cases, n_channels)
-        The mean of each channel of each time series in X.
-    stds : array, shape (n_cases, n_channels)
-        The std of each channel of each time series in X.
-
-    """
-    n_channels = X[0].shape[0]
-    n_cases = len(X)
-    means = np.zeros((n_cases, n_channels))
-    stds = np.zeros((n_cases, n_channels))
-    for i_x in prange(n_cases):
-        n_timepoints = X[i_x].shape[1]
-        _s = np.zeros(n_channels)
-        _s2 = np.zeros(n_channels)
-        for i_t in range(n_timepoints):
-            for i_c in range(n_channels):
-                _s += X[i_x][i_c, i_t]
-                _s2 += X[i_x][i_c, i_t] ** 2
-
-        for i_c in range(n_channels):
-            means[i_x, i_c] = _s / n_timepoints
-            _std = _s2 / n_timepoints - means[i_x, i_c] ** 2
-            if _s > AEON_NUMBA_STD_THRESHOLD:
-                stds[i_x, i_c] = _std**0.5
-
-    return means, stds
 
 
 @njit(fastmath=True, cache=True)
@@ -527,11 +508,12 @@ def sliding_mean_std_one_series(
         raise ValueError(
             "Invalid input parameter for sliding mean and std computations"
         )
-    mean = np.zeros((n_channels, n_subs))
-    std = np.zeros((n_channels, n_subs))
+    output_dtype = _as_normalised_float(X[:0]).dtype
+    mean = np.zeros((n_channels, n_subs), dtype=output_dtype)
+    std = np.zeros((n_channels, n_subs), dtype=output_dtype)
 
     for i_mod_dil in prange(dilation):
-        # Array mainting indexes of a dilated subsequence
+        # Array maintaining indices of a dilated subsequence
         _idx_sub = np.zeros(length, dtype=np.intp)
         for i_length in prange(length):
             _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
@@ -594,15 +576,18 @@ def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.n
     array, shape = (n_timepoints-(length-1)*dilation, n_channels, length)
         Z-normalised subsequences.
     """
-    n_subsequences, n_channels, length = X_subs.shape
-    X_new = np.zeros((n_subsequences, n_channels, length))
+    n_subsequences, n_channels, _ = X_subs.shape
+    X_new = _as_normalised_float(X_subs)
     for i_sub in prange(n_subsequences):
         for i_channel in prange(n_channels):
             if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
-                X_new[i_sub, i_channel] = (
-                    X_subs[i_sub, i_channel] - X_means[i_channel, i_sub]
-                ) / X_stds[i_channel, i_sub]
-            # else it gives 0, the default value
+                _z_normalise_inplace(
+                    X_new[i_sub, i_channel],
+                    X_means[i_channel, i_sub],
+                    X_stds[i_channel, i_sub],
+                )
+            else:
+                X_new[i_sub, i_channel] = 0
     return X_new
 
 
@@ -684,7 +669,7 @@ def slope_derivative(X: np.ndarray) -> np.ndarray:
     """
     if X.shape[0] < 3:
         raise ValueError("Time series must have at least 3 points.")
-    result = np.zeros(X.shape[0] - 2)
+    result = np.zeros(X.shape[0] - 2, dtype=_as_normalised_float(X[:0]).dtype)
     for i in range(1, X.shape[0] - 1):
         result[i - 1] = ((X[i] - X[i - 1]) + (X[i + 1] - X[i - 1]) / 2.0) / 2.0
     return result
@@ -731,7 +716,9 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_der = slope_derivative_2d(X)
     """
-    arr = np.zeros((X.shape[0], X.shape[1] - 2))
+    arr = np.zeros(
+        (X.shape[0], X.shape[1] - 2), dtype=_as_normalised_float(X[:0]).dtype
+    )
     for i in range(X.shape[0]):
         arr[i] = slope_derivative(X[i])
     return arr
@@ -781,7 +768,10 @@ def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_der = slope_derivative_3d(X)
     """
-    arr = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
+    arr = np.zeros(
+        (X.shape[0], X.shape[1], X.shape[2] - 2),
+        dtype=_as_normalised_float(X[:0]).dtype,
+    )
     for i in range(X.shape[0]):
         arr[i] = slope_derivative_2d(X[i])
     return arr

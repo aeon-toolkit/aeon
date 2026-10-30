@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.collection.feature_based import Catch22
+from aeon.transformations.collection.feature_based._catch22 import Catch22
+from aeon.utils.sklearn import _resolve_balanced_class_weight
 from aeon.utils.validation import check_n_jobs
 
 
@@ -51,10 +52,6 @@ class Catch22Classifier(BaseClassifier):
         series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
     estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn RandomForestClassifier(n_estimators=200).
@@ -71,7 +68,8 @@ class Catch22Classifier(BaseClassifier):
         if None a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight : {"balanced", "balanced_subsample"}, dict or list of dicts, \
+            default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
         The “balanced” mode uses the values of y to automatically adjust weights
@@ -142,7 +140,6 @@ class Catch22Classifier(BaseClassifier):
         catch24=True,
         outlier_norm=True,
         replace_nans=True,
-        use_pycatch22=False,
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -153,7 +150,6 @@ class Catch22Classifier(BaseClassifier):
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
-        self.use_pycatch22 = use_pycatch22
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -186,26 +182,29 @@ class Catch22Classifier(BaseClassifier):
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
             replace_nans=self.replace_nans,
-            use_pycatch22=self.use_pycatch22,
             n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 
-        self.estimator_ = _clone_estimator(
-            (
-                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
-                if self.estimator is None
-                else self.estimator
-            ),
-            self.random_state,
-        )
+        if self.estimator is None:
+            class_weight, fit_kwargs = _resolve_balanced_class_weight(
+                self.class_weight, y
+            )
+            estimator = RandomForestClassifier(
+                n_estimators=200, class_weight=class_weight
+            )
+        else:
+            fit_kwargs = {}
+            estimator = self.estimator
+
+        self.estimator_ = _clone_estimator(estimator, self.random_state)
 
         m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
             self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self.estimator_.fit(X_t, y)
+        self.estimator_.fit(X_t, y, **fit_kwargs)
 
         return self
 

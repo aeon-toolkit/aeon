@@ -34,9 +34,6 @@ class FreshPRINCERegressor(BaseRegressor):
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
         `DecisionTreeRegressor` using MSE as a splitting measure.
-    pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter in rotation forest. See the
-        scikit-learn PCA implementation for options.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -92,7 +89,6 @@ class FreshPRINCERegressor(BaseRegressor):
         default_fc_parameters="comprehensive",
         n_estimators=200,
         base_estimator=None,
-        pca_solver="auto",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -101,17 +97,13 @@ class FreshPRINCERegressor(BaseRegressor):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
         self.base_estimator = base_estimator
-        self.pca_solver = pca_solver
-
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.chunksize = chunksize
         self.random_state = random_state
-
         self.n_cases_ = 0
         self.n_channels_ = 0
         self.n_timepoints_ = 0
-
         self._rotf = None
         self._tsfresh = None
 
@@ -163,11 +155,9 @@ class FreshPRINCERegressor(BaseRegressor):
     def _fit_fp_shared(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
-
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
             base_estimator=self.base_estimator,
-            pca_solver=self.pca_solver,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
@@ -209,7 +199,6 @@ class FreshPRINCERegressor(BaseRegressor):
             return {
                 "n_estimators": 10,
                 "base_estimator": DecisionTreeRegressor(max_depth=3),
-                "pca_solver": "randomized",
                 "default_fc_parameters": "minimal",
             }
         else:

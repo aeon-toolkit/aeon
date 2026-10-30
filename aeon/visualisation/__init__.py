@@ -11,6 +11,7 @@ __all__ = [
     # Learning task plotting
     "plot_series_windows",
     "plot_series_with_change_points",
+    "plot_sax_representation",
     # Results plotting
     "plot_critical_difference",
     "plot_significance",
@@ -46,6 +47,7 @@ from aeon.visualisation.estimator._temporal_importance_curves import (
     plot_temporal_importance_curves,
 )
 from aeon.visualisation.learning_task._forecasting import plot_series_windows
+from aeon.visualisation.learning_task._sax import plot_sax_representation
 from aeon.visualisation.learning_task._segmentation import (
     plot_series_with_change_points,
 )

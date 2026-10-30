@@ -14,34 +14,34 @@ classical techniques for the following learning tasks:
 
 - [**Classification**](api_reference/classification), where a collection of time series
   labelled with  a discrete value is used to train a model to predict unseen cases
-  ([more details](examples/classification/classification.ipynb)).
+  ([more details](examples/classification/classification)).
 - [**Regression**](api_reference/regression), where a collection of time series
   labelled with a continuous value is used to train a model to predict unseen cases
-  ([more details](examples/regression/regression.ipynb)).
+  ([more details](examples/regression/regression)).
 - [**Clustering**](api_reference/clustering), where a collection of time series without
   any labels are used to train a model to label cases
-  ([more details](examples/clustering/clustering.ipynb)).
+  ([more details](examples/clustering/clustering)).
 - [**Similarity search**](api_reference/similarity_search), where the goal is to find
-  time series motifs or nearest neighbors in an efficient way for either single series
-  or collections.
-  ([more details](examples/similarity_search/similarity_search.ipynb)).
+  nearest neighbors among subsequences or whole series within a collection of time
+  series in an efficient way.
+  ([more details](examples/similarity_search/similarity_search)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
 - [**Forecasting**](api_reference/forecasting.rst), where the goal is to predict future values
   of a single time series
-  ([more details](examples/forecasting/forecasting.ipynb)).
+  ([more details](examples/forecasting/forecasting)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
   series into regions that are dissimilar to each other
-  ([more details](examples/segmentation/segmentation.ipynb)).
+  ([more details](examples/segmentation/segmentation)).
 
 `aeon` also provides core modules that are used by the modules above:
 
 - [**Transformations**](api_reference/transformations), where either a single series or collection is
-  transformed into a different representation or domain. ([more details](examples/transformations/transformations.ipynb)).
+  transformed into a different representation or domain. ([more details](examples/transformations/transformations)).
 - [**Distances**](api_reference/distances), which measure the dissimilarity between two time series or
-  collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
+  collections of series and include functions to align series ([more details](examples/distances/distances)).
 - [**Networks**](api_reference/networks), provides core models for deep learning for all time series tasks
-  ([more details](examples/networks/deep_learning.ipynb)).
+  ([more details](examples/networks/deep_learning)).
 
 There are dedicated notebooks going into more detail for each of these modules. This
 guide is meant to give you the briefest of introductions to the main concepts and
@@ -97,7 +97,7 @@ If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`. So
 the US Change data loaded above has five channels and 187 time points. For more
 details on our provided datasets and on how to load data into aeon compatible data
-structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
+structures, see our [datasets](examples/datasets/datasets) notebooks.
 
 ## Single Series Modules
 
@@ -314,35 +314,55 @@ related to time series similarity search. The estimators can be used standalone 
 data analysis purposes or as parts of pipelines, to perform other tasks such as
 classification or clustering.
 
-Similarly to the transformation module, similarity search estimators are either defined
-for single series or for collection of series. The estimators are inheriting from the
-[BaseSimilaritySearch](similarity_search._base.BaseSimilaritySearch) class, which
-both [BaseSeriesSimilaritySearch](similarity_search.series._base.BaseSeriesSimilaritySearch)
-and [BaseCollectionSimilaritySearch](similarity_search.collection._base.BaseCollectionSimilaritySearch)
-inherit from.
+The module is organized into two main categories:
+- **Subsequence search**: Finding nearest neighbors among subsequences of time series
+- **Whole series search**: Finding nearest neighbors among complete time series
+
+The estimators inherit from [BaseSimilaritySearch](similarity_search.BaseSimilaritySearch),
+with specific base classes for [BaseSubsequenceSearch](similarity_search.subsequence.BaseSubsequenceSearch)
+and [BaseWholeSeriesSearch](similarity_search.whole_series.BaseWholeSeriesSearch).
+The subsequence family includes `NaiveSubsequenceSearch` and `MASS` in
+`aeon.similarity_search.subsequence`, while the whole-series family includes
+`NaiveSeriesSearch` and the approximate `SimHashIndexANN` in
+`aeon.similarity_search.whole_series`.
 
 All estimators use a `fit` `predict` interface, where `predict` outputs both the
-indexes of the neighbors or motifs and a distance or similarity measure linked to them.
-For example, using `StompMotif` to compute the matrix profile between two series :
+indexes of the neighbors and a distance or similarity measure linked to them.
+For example, using `MASS` to find nearest neighbor subsequences:
 
 ```{code-block} python
 >>> import numpy as np
->>> from aeon.similarity_search.series import StompMotif
->>> X1 = np.array([1, 1, 2, 4, 6, 6, 7])  # single series (univariate)
->>> X2 = np.array([0, 1, 2, 2, 4, 5, 7, 9, 4, 6])  # single series (univariate)
->>> top_k = StompMotif(4).fit(X1) # 4 is length of the motif to search
->>> distances, indexes = top_k.predict(X2, k=1)
+>>> from aeon.similarity_search.subsequence import MASS
+>>> X = np.array([[[1, 1, 2, 4, 6, 6, 7, 5, 3, 2]]])  # collection to search in
+>>> q = np.array([[0, 1, 2, 2]])  # query subsequence of length 4
+>>> snn = MASS(length=4).fit(X)  # 4 is the length of the subsequences
+>>> indexes, distances = snn.predict(q, k=1)  # find best match
 ```
 
 Some things to note on this example :
 
-- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimator
-will use a `2D` representation as `(n_channels, n_timepoints)`.
-- The output of predict gives a two lists of size `k` (the number of motifs to extract)
-which can be read as follows : `distances[i] = d(X1[:, indexes[i][0]],X2[:, indexes[i][1]])`
+- The database passed to `fit` is a collection of shape
+`(n_cases, n_channels, n_timepoints)`, while the query passed to `predict` is a single
+series of shape `(n_channels, length)`.
+- The output of predict gives the `(case, timestamp)` indexes of the best matching
+subsequences in the fitted collection and their distances to the query.
+
+To search over whole series rather than subsequences, use an estimator from
+`aeon.similarity_search.whole_series` such as `NaiveSeriesSearch`. Here the query is a
+complete series and `predict` returns the indexes of the nearest whole series in the
+collection:
+
+```{code-block} python
+>>> import numpy as np
+>>> from aeon.similarity_search.whole_series import NaiveSeriesSearch
+>>> X = np.array([[[1, 2, 3, 4, 5]], [[1, 1, 2, 4, 6]], [[5, 4, 3, 2, 1]]])
+>>> q = np.array([[1, 2, 3, 4, 5]])  # query series of the same length
+>>> wnn = NaiveSeriesSearch().fit(X)
+>>> indexes, distances = wnn.predict(q, k=1)  # find the closest whole series
+```
 
 For more examples and use cases you can check the example section of the module,
-starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)
+starting with the general [similarity search notebook](examples/similarity_search/similarity_search)
 
 ## Transformers
 

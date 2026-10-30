@@ -18,7 +18,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["statsmodels", "pycatch22"], severity="none"),
+    not _check_soft_dependencies(["statsmodels"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_rist_soft_dependencies():
@@ -26,13 +26,9 @@ def test_rist_soft_dependencies():
     rist = RISTClassifier()
     assert rist.get_tag("python_dependencies") == "statsmodels"
 
-    rist = RISTClassifier(use_pycatch22=True)
-    assert rist.get_tag("python_dependencies") == ["statsmodels", "pycatch22"]
-
     X, y = make_example_3d_numpy()
     rist.fit(X, y)
     preds = rist.predict(X)
-
     assert isinstance(preds, np.ndarray)
     assert preds.shape[0] == 10
 
@@ -47,11 +43,11 @@ def test_rist_estimator_input():
 
     rist = RISTClassifier(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
-    assert isinstance(rist._estimator, ExtraTreesClassifier)
+    assert isinstance(rist.estimator_, ExtraTreesClassifier)
 
     rist = RISTRegressor(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
-    assert isinstance(rist._estimator, ExtraTreesRegressor)
+    assert isinstance(rist.estimator_, ExtraTreesRegressor)
 
     with pytest.raises(
         ValueError, match="base_estimator must be a scikit-learn BaseEstimator"
@@ -85,11 +81,11 @@ def test_rist_series_transform_input():
     )
     rist.fit(X, y)
 
-    assert len(rist._series_transformers) == 4
-    assert rist._series_transformers[0] is None
-    assert isinstance(rist._series_transformers[1], FunctionTransformer)
-    assert isinstance(rist._series_transformers[2], PeriodogramTransformer)
-    assert isinstance(rist._series_transformers[3], ARCoefficientTransformer)
+    assert len(rist.series_transformers_) == 4
+    assert rist.series_transformers_[0] is None
+    assert isinstance(rist.series_transformers_[1], FunctionTransformer)
+    assert isinstance(rist.series_transformers_[2], PeriodogramTransformer)
+    assert isinstance(rist.series_transformers_[3], ARCoefficientTransformer)
 
     rist = RISTClassifier(
         series_transformers=[
@@ -102,9 +98,9 @@ def test_rist_series_transform_input():
     )
     rist.fit(X, y)
 
-    assert len(rist._series_transformers) == 2
-    assert rist._series_transformers[0] is None
-    assert isinstance(rist._series_transformers[1], FunctionTransformer)
+    assert len(rist.series_transformers_) == 2
+    assert rist.series_transformers_[0] is None
+    assert isinstance(rist.series_transformers_[1], FunctionTransformer)
 
     rist = RISTClassifier(
         series_transformers=None,
@@ -114,7 +110,7 @@ def test_rist_series_transform_input():
     )
     rist.fit(X, y)
 
-    assert rist._series_transformers == [None]
+    assert rist.series_transformers_ == [None]
 
 
 @pytest.mark.skipif(

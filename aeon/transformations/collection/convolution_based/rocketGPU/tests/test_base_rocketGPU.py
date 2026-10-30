@@ -25,7 +25,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class DummyROCKETGPU(BaseROCKETGPU):
-
     def __init__(self, n_kernels=1):
         super().__init__(n_kernels)
 

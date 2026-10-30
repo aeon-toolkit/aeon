@@ -24,9 +24,9 @@ def shift_invariant_average(
 
     Parameters
     ----------
-    X: np.ndarray of shape (n_instances, n_dims, n_timepoints)
+    X: np.ndarray of shape (n_instances, n_channels, n_timepoints)
         Collection of time series to average.
-    initial_center : np.ndarray of shape (n_dims, n_timepoints), default=None
+    initial_center : np.ndarray of shape (n_channels, n_timepoints), default=None
         Initial center used for alignment. If None, the arithmetic mean of `X`
         over the first axis is used.
     max_shift : int or None, default=None
@@ -40,7 +40,7 @@ def shift_invariant_average(
 
     Returns
     -------
-    np.ndarray of shape (n_dims, n_timepoints)
+    np.ndarray of shape (n_channels, n_timepoints)
         The shift-invariant barycenter.
     """
     n_jobs = check_n_jobs(n_jobs)
@@ -51,7 +51,7 @@ def shift_invariant_average(
         max_shift = np.min(X.shape[-1])
     optimal_shifts = np.zeros_like(X)
 
-    n_instances, n_dims, n_timepoints = X.shape
+    n_instances, n_channels, n_timepoints = X.shape
 
     def compute_shift(x_instance):
         if not initial_center.any():
@@ -69,23 +69,23 @@ def shift_invariant_average(
         optimal_shifts[i] = temp_shifts[i]
 
     if optimal_shifts.shape[0] == 0:
-        return np.zeros((n_dims, n_timepoints))
+        return np.zeros((n_channels, n_timepoints))
 
     normalised_shifts = optimal_shifts / np.sqrt(
         np.sum(optimal_shifts**2, axis=2)
-    ).reshape(n_instances, n_dims, 1)
+    ).reshape(n_instances, n_channels, 1)
 
-    M = np.zeros((n_dims, n_timepoints, n_timepoints))
-    new_center = np.zeros((n_dims, n_timepoints))
-    for d in range(n_dims):
-        M[d] = np.dot(
-            normalised_shifts[:, d, :].T, normalised_shifts[:, d, :]
+    M = np.zeros((n_channels, n_timepoints, n_timepoints))
+    new_center = np.zeros((n_channels, n_timepoints))
+    for channel in range(n_channels):
+        M[channel] = np.dot(
+            normalised_shifts[:, channel, :].T, normalised_shifts[:, channel, :]
         ) - n_instances * np.eye(n_timepoints)
 
-        eigvals, eigvecs = np.linalg.eig(M[d])
-        new_center[d] = np.real(eigvecs[:, np.argmax(eigvals)])
+        eigvals, eigvecs = np.linalg.eig(M[channel])
+        new_center[channel] = np.real(eigvecs[:, np.argmax(eigvals)])
 
-        if np.sum(new_center[d]) < 0:
-            new_center[d] = -new_center[d]
+        if np.sum(new_center[channel]) < 0:
+            new_center[channel] = -new_center[channel]
 
     return new_center

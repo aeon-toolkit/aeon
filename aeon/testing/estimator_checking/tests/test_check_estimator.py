@@ -12,6 +12,7 @@ from aeon.testing.mock_estimators import (
     MockClassifierParams,
     MockRegressor,
     MockSegmenter,
+    MockTransductiveCluster,
 )
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
 from aeon.testing.utils.deep_equals import deep_equals
@@ -21,6 +22,7 @@ test_classes = [
     MockClassifier,
     MockRegressor,
     TimeSeriesKMeans,
+    MockTransductiveCluster,
     MockSegmenter,
     MockAnomalyDetector,
     # MockMultivariateSeriesTransformer,
@@ -119,6 +121,6 @@ def test_check_estimator_subset_tests():
         checks_to_run=tests_to_run,
         checks_to_exclude=tests_to_exclude,
     )
-    results_tests = [x for x in results.keys()]
+    results_tests = [*results.keys()]
 
     assert results_tests == expected_tests
