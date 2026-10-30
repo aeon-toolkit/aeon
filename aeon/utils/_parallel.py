@@ -1,18 +1,54 @@
-"""Internal helpers for running joblib tasks."""
+"""Internal helpers for running joblib tasks and numba parallel code."""
 
 __maintainer__ = []
-__all__ = ["_run_jobs", "_NUMBA_PARALLEL_LOCK"]
+__all__ = [
+    "_run_jobs",
+    "_numba_threads",
+    "_NUMBA_PARALLEL_LOCK",
+    "_NUMBA_RANDOM_LOCK",
+]
 
 import threading
+from contextlib import contextmanager
 
 from joblib import Parallel
+from numba import config, get_num_threads, set_num_threads
 
-# numba's default (workqueue) threading layer terminates the process when two
-# Python threads enter parallel=True regions concurrently, and
-# get_num_threads/set_num_threads pairs race. Estimators that call numba
-# parallel functions from joblib threads must hold this lock around the
-# set-threads/launch/restore block.
+# numba's workqueue threading layer terminates the process when two Python
+# threads enter parallel=True regions concurrently. Estimators that call numba
+# parallel functions from joblib threads can hold this lock around the launch
+# to prevent that, at the cost of running those launches one at a time.
 _NUMBA_PARALLEL_LOCK = threading.Lock()
+
+# np.random in compiled numba code uses a thread-local generator, but with
+# NUMBA_DISABLE_JIT=1 the same functions run on numpy's global RandomState,
+# which all Python threads share. Estimators that call a numba function which
+# seeds np.random and then draws from it, from joblib threads, must hold this
+# lock around the call so concurrent draws do not interleave.
+_NUMBA_RANDOM_LOCK = threading.Lock()
+
+
+@contextmanager
+def _numba_threads(n_jobs):
+    """Run numba parallel code on ``n_jobs`` threads, restoring the count after.
+
+    numba's thread count is per Python thread, so this is safe to use from
+    joblib threads. ``n_jobs`` is capped at numba's thread pool size, above
+    which ``set_num_threads`` raises. It does not stop parallel launches from
+    different threads overlapping, see ``_NUMBA_PARALLEL_LOCK``.
+
+    Parameters
+    ----------
+    n_jobs : int
+        The number of threads to use. Must already be resolved to a positive
+        number, e.g. with ``check_n_jobs``.
+    """
+    prev_threads = get_num_threads()
+    try:
+        set_num_threads(min(n_jobs, config.NUMBA_NUM_THREADS))
+        yield
+    finally:
+        set_num_threads(prev_threads)
 
 
 def _run_jobs(tasks, n_jobs, backend=None, prefer=None):

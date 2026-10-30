@@ -4,11 +4,15 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["Rocket"]
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads
+from numba import njit, prange
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer, Normalizer
-from aeon.utils._parallel import _NUMBA_PARALLEL_LOCK
+from aeon.utils._parallel import (
+    _NUMBA_PARALLEL_LOCK,
+    _NUMBA_RANDOM_LOCK,
+    _numba_threads,
+)
 from aeon.utils.validation import check_n_jobs
 
 
@@ -121,9 +125,13 @@ class Rocket(BaseCollectionTransformer):
 
         # The only use of n_timepoints is to set the maximum dilation
         n_timepoints = X[0].shape[1]
-        self.kernels = _generate_kernels(
-            n_timepoints, self.n_kernels, n_channels, self._random_state
-        )
+        # generation seeds and draws from np.random, which is global state
+        # shared across threads when JIT is disabled. Compiled, the call holds
+        # the GIL throughout, so the lock costs nothing in parallelism.
+        with _NUMBA_RANDOM_LOCK:
+            self.kernels = _generate_kernels(
+                n_timepoints, self.n_kernels, n_channels, self._random_state
+            )
         return self
 
     def _transform(self, X, y=None):
@@ -159,17 +167,12 @@ class Rocket(BaseCollectionTransformer):
         # is already float32.
         X = np.asarray(X, dtype=np.float32)
 
-        # the lock serialises parallel launches and the global thread-count
-        # swap across Python threads, so ensemble members transforming in
-        # joblib threads never enter numba's threading layer concurrently
-        # (concurrent entry aborts the default workqueue layer)
-        with _NUMBA_PARALLEL_LOCK:
-            prev_threads = get_num_threads()
-            try:
-                set_num_threads(self._n_jobs)
-                X_ = _apply_kernels(X, self.kernels)
-            finally:
-                set_num_threads(prev_threads)
+        # the lock serialises parallel launches across Python threads, so
+        # ensemble members transforming in joblib threads never enter numba's
+        # threading layer concurrently (concurrent entry aborts the workqueue
+        # layer)
+        with _NUMBA_PARALLEL_LOCK, _numba_threads(self._n_jobs):
+            X_ = _apply_kernels(X, self.kernels)
         return X_
 
 
