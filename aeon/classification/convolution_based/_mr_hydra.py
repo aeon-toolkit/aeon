@@ -8,11 +8,12 @@ import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.preprocessing import StandardScaler
 
+from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.convolution_based._hydra import _SparseScaler
 from aeon.transformations.collection.convolution_based import MultiRocket
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
-from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation import check_lapack_svd_safe, check_n_jobs
 
 
 class MultiRocketHydraClassifier(BaseClassifier):
@@ -50,6 +51,9 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    estimator : sklearn compatible classifier or None, default=None
+        The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        is used.
 
     Attributes
     ----------
@@ -57,6 +61,8 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
+    estimator_ : sklearn classifier
+        The fitted estimator.
 
     See Also
     --------
@@ -96,12 +102,14 @@ class MultiRocketHydraClassifier(BaseClassifier):
         class_weight=None,
         n_jobs: int = 1,
         random_state=None,
+        estimator=None,
     ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
         self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.estimator = estimator
 
         super().__init__()
 
@@ -130,10 +138,24 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
-        self.classifier = RidgeClassifierCV(
-            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+        _using_default_estimator = self.estimator is None
+
+        self.estimator_ = _clone_estimator(
+            (
+                RidgeClassifierCV(
+                    alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+                )
+                if _using_default_estimator
+                else self.estimator
+            ),
+            self.random_state,
         )
-        self.classifier.fit(Xt, y)
+
+        if _using_default_estimator:
+            n_samples, n_features = Xt.shape
+            check_lapack_svd_safe(n_samples, n_features, "MultiRocketHydraClassifier")
+
+        self.estimator_.fit(Xt, y)
 
         return self
 
@@ -146,4 +168,20 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
-        return self.classifier.predict(Xt)
+        return self.estimator_.predict(Xt)
+
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default") -> dict:
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests.
+
+        Returns
+        -------
+        params : dict
+            Parameters to create testing instances of the class.
+        """
+        return {"n_kernels": 2, "n_groups": 2}
