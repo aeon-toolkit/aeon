@@ -120,6 +120,38 @@ def test_damp_matches_brute_force_topk(seed, kind, window_size):
             np.testing.assert_array_equal(out["locations"], expected_locations)
 
 
+@pytest.mark.parametrize(
+    "kind, seed, window_size, expected_location, expected_score",
+    [
+        ("walk", 0, 16, 129, 4.028034012),
+        ("walk", 2, 32, 1091, 6.382101837),
+        ("walk", 5, 24, 157, 5.453336246),
+        ("sine", 1, 16, 1006, 4.260667077),
+        ("sine", 4, 32, 826, 6.561990295),
+        ("sine", 6, 24, 1137, 5.117911918),
+    ],
+)
+def test_damp_matches_authors_implementation(
+    kind, seed, window_size, expected_location, expected_score
+):
+    """Test the top discord equals the one found by the authors' DAMP code.
+
+    The expected values come from the authors' MATLAB ``DAMP_2_0`` (version 2.0
+    from https://sites.google.com/view/discord-aware-matrix-profile), translated
+    line by line to Python and run with its default lookahead on these series.
+    The MATLAB code also compares each subsequence with the one ending at its
+    first point (see the class Notes); on these series that subsequence is never
+    the nearest neighbour of the top discord, so the scores agree to
+    floating-point precision.
+    """
+    series = _make_series_with_anomalies(kind, 1200, seed % 3 + 1, seed)
+    ad = DAMP(window_size=window_size, train_test_split=4 * window_size)
+    out = ad.predict_discords(series)
+
+    assert out["locations"][0] == expected_location
+    np.testing.assert_allclose(out["scores"][0], expected_score, rtol=1e-8)
+
+
 def test_damp_returns_fewer_discords_on_short_test_region():
     """Test fewer discords are returned when the test region cannot hold them."""
     series = _make_series_with_anomalies("walk", 120, 1, 3)
