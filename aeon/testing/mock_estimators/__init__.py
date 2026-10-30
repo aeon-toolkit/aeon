@@ -25,6 +25,7 @@ __all__ = [
     # segmentation
     "MockSegmenter",
     "MockSegmenterRequiresY",
+    "MockSegmenterWithScores",
     # series transformation
     "MockSeriesTransformer",
     "MockUnivariateSeriesTransformer",
@@ -64,6 +65,7 @@ from aeon.testing.mock_estimators._mock_regressors import (
 from aeon.testing.mock_estimators._mock_segmenters import (
     MockSegmenter,
     MockSegmenterRequiresY,
+    MockSegmenterWithScores,
 )
 from aeon.testing.mock_estimators._mock_series_transformers import (
     MockMultivariateSeriesTransformer,
