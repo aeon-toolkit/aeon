@@ -7,6 +7,9 @@ from aeon.forecasting.utils._extract_paras import (
     _ets_is_damped,
     _extract_arma_params,
     _extract_ets_params,
+    _extract_sarima_params,
+    _sarima_coefficients,
+    _sarima_lags,
 )
 
 LOG_2PI = 1.8378770664093453
@@ -90,6 +93,49 @@ def _arima_css_aic(residuals, start, num_params):
     variance = sse / (n - start)
     likelihood = n * (LOG_2PI + np.log(variance) + 1.0)
     return likelihood + 2 * num_params
+
+
+@njit(cache=True, fastmath={"contract"})
+def _sarima_fit(params, data, model):
+    """Calculate the AIC of a SARIMA model given the parameters.
+
+    As ``_arima_fit``, returns ``inf`` unless the seasonal and non-seasonal AR
+    parts are stationary and the MA parts invertible. A seasonal polynomial is
+    a polynomial in ``B^m``, and its roots are outside the unit circle exactly
+    when those of the same polynomial in ``B`` are.
+    """
+    _, phi, theta, Phi, Theta = _extract_sarima_params(params, model)
+    if not (_is_stationary_ar(phi) and _is_stationary_ar(Phi)):
+        return np.inf
+    if not (_is_stationary_ar(-theta) and _is_stationary_ar(-Theta)):
+        return np.inf
+    return _sarima_model(params, data, model)[0]
+
+
+@njit(cache=True, fastmath={"contract"})
+def _sarima_model(params, data, model):
+    """Calculate the AIC, residuals and fitted values of a SARIMA model.
+
+    ``fitted_values`` has one more element than ``data``, the last being the
+    one step ahead forecast.
+    """
+    ar_lags, ma_lags, start = _sarima_lags(model)
+    c, ar_values, ma_values = _sarima_coefficients(params, model)
+    n = len(data)
+    residuals = np.zeros(n)
+    fitted_values = np.zeros(n + 1)
+    # Leave first start residuals and fitted as zero.
+    for t in range(start, n + 1):
+        ar_term = 0.0
+        for j in range(len(ar_lags)):
+            ar_term += ar_values[j] * data[t - ar_lags[j]]
+        ma_term = 0.0
+        for j in range(len(ma_lags)):
+            ma_term += ma_values[j] * residuals[t - ma_lags[j]]
+        fitted_values[t] = c + ar_term + ma_term
+        if t != n:
+            residuals[t] = data[t] - fitted_values[t]
+    return _arima_css_aic(residuals, start, len(params)), residuals, fitted_values
 
 
 EPS = 1e-6
