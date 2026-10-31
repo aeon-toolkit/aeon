@@ -50,7 +50,6 @@ EXCLUDED_TESTS = {
     "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
     "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
-    "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
     "ROCKAD": ["check_non_state_changing_method"],
