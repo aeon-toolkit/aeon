@@ -493,6 +493,8 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         steps = [(a, b, 0, 0) for a, b in moves]
         if self.seasonal_period > 1:
             steps += [(0, 0, a, b) for a, b in moves]
+        # a repeated neighbour cannot improve, as the best AIC only falls
+        tried = set()
         while True:
             # first improvement: move to the first better neighbour and search
             # again from there, as AutoARIMA does
@@ -502,8 +504,9 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
                 orders = tuple(int(o + s) for o, s in zip(centre[1:], step))
                 for constant_term in [0, 1]:
                     order = (constant_term, *orders)
-                    if not self._valid(order, data):
+                    if order in tried or not self._valid(order, data):
                         continue
+                    tried.add(order)
                     params, aic = self._score(order, data, 500)
                     if aic < best_aic:
                         best, best_params, best_aic = order, params, aic
