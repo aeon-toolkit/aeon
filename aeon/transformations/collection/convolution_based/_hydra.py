@@ -102,6 +102,12 @@ class HydraTransformer(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y=None):
+        n_timepoints = X.shape[2]
+        if n_timepoints < 6:
+            raise ValueError(
+                f"n_timepoints must be >= 6, but found {n_timepoints};"
+                " zero-pad shorter series to 6 timepoints before fitting"
+            )
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         import torch

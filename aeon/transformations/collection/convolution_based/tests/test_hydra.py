@@ -184,3 +184,29 @@ def test_hydra_random_state_instance():
     Xt2 = hydra2.fit_transform(X)
 
     np.testing.assert_array_equal(Xt1, Xt2)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
+@pytest.mark.parametrize("n_timepoints", [1, 2, 3, 4, 5])
+def test_hydra_too_short_series_raises(n_timepoints):
+    """Series shorter than the minimum length raise an informative error."""
+    X = np.random.default_rng(0).random(size=(10, 2, n_timepoints))
+
+    with pytest.raises(ValueError, match="n_timepoints must be >= 6"):
+        HydraTransformer(random_state=42).fit(X)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
+def test_hydra_minimum_length_series_fits():
+    """A series at the minimum length still fits and transforms."""
+    X = np.random.default_rng(0).random(size=(10, 2, 6))
+
+    Xt = HydraTransformer(random_state=42).fit_transform(X)
+
+    assert Xt.shape[0] == 10
