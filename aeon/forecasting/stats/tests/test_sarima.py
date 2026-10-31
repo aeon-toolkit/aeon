@@ -322,6 +322,22 @@ def test_auto_sarima_aicc_adds_small_sample_correction():
     assert aicc == np.inf
 
 
+@pytest.mark.parametrize("max_order", [2, 3])
+def test_auto_sarima_max_order_limits_neighbours(max_order):
+    """Test no neighbour with p + q + P + Q above max_order is fitted."""
+    scored = []
+
+    class Recording(AutoSARIMA):
+        def _score(self, order, data, max_iter):
+            if max_iter == 500:  # neighbours; starting models use 200
+                scored.append(order)
+            return super()._score(order, data, max_iter)
+
+    Recording(seasonal_period=12, max_order=max_order).fit(load_airline())
+    assert scored
+    assert max(sum(order[1:]) for order in scored) <= max_order
+
+
 def test_auto_sarima_invalid_information_criterion():
     """Test an unknown information criterion raises."""
     with pytest.raises(ValueError, match="information_criterion"):

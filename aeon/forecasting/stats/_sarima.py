@@ -412,6 +412,10 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         Maximum seasonal differencing order.
     max_Q : int, default=2
         Maximum seasonal moving average order.
+    max_order : int or None, default=5
+        Maximum ``p + q + P + Q`` of a neighbour in the stepwise search, as
+        ``max.order`` in R's ``auto.arima``. The starting models are always
+        fitted. None for no limit.
     information_criterion : {"aicc", "aic"}, default="aicc"
         Criterion used to compare models. ``"aicc"``, the AIC with the small
         sample correction ``2 k (k + 1) / (n - k - 1)``, is the default of R's
@@ -450,6 +454,7 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         max_P: int = 2,
         max_D: int = 1,
         max_Q: int = 2,
+        max_order: int | None = 5,
         information_criterion: str = "aicc",
     ):
         self.seasonal_period = seasonal_period
@@ -459,6 +464,7 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         self.max_P = max_P
         self.max_D = max_D
         self.max_Q = max_Q
+        self.max_order = max_order
         self.information_criterion = information_criterion
         self.p_ = 0
         self.d_ = 0
@@ -530,7 +536,14 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
                 orders = tuple(int(o + s) for o, s in zip(centre[1:], step))
                 for constant_term in [0, 1] if allow_constant else [0]:
                     order = (constant_term, *orders)
-                    if order in tried or not self._valid(order, data):
+                    if (
+                        order in tried
+                        or not self._valid(order, data)
+                        or (
+                            self.max_order is not None
+                            and sum(order[1:]) > self.max_order
+                        )
+                    ):
                         continue
                     tried.add(order)
                     params, aic = self._score(order, data, 500)
