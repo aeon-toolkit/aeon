@@ -389,10 +389,12 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
     ``d + D <= 1``; with ``d + D == 2`` it would put a quadratic trend into the
     forecasts.
 
-    Models are compared by the AIC of the conditional sum of squares likelihood
-    and a fit with an AR or MA root within 1.01 of the unit circle is rejected.
-    With ``seasonal_period=1`` this is the search of :class:`AutoARIMA`, except
-    that :class:`AutoARIMA` also tries a constant when ``d >= 2``.
+    Models are compared by the AICc (by default, as in R) or the AIC of the
+    conditional sum of squares likelihood, and a fit with an AR or MA root within
+    1.01 of the unit circle is rejected.
+    With ``seasonal_period=1`` and ``information_criterion="aic"`` this is the
+    search of :class:`AutoARIMA`, except that :class:`AutoARIMA` also tries a
+    constant when ``d >= 2``.
 
     Parameters
     ----------
@@ -410,6 +412,12 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         Maximum seasonal differencing order.
     max_Q : int, default=2
         Maximum seasonal moving average order.
+    information_criterion : {"aicc", "aic"}, default="aicc"
+        Criterion used to compare models. ``"aicc"``, the AIC with the small
+        sample correction ``2 k (k + 1) / (n - k - 1)``, is the default of R's
+        ``auto.arima``; ``k`` counts the variance as well as the coefficients and
+        ``n`` is the length of the differenced series. A model with
+        ``n <= k + 1`` is not considered under AICc.
 
     Attributes
     ----------
@@ -420,7 +428,8 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
     final_model_ : SARIMA
         The selected model, fitted to the series.
     fit_aic_ : float
-        AIC of the selected model.
+        Information criterion of the selected model, as set by
+        ``information_criterion``.
 
     References
     ----------
@@ -441,6 +450,7 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         max_P: int = 2,
         max_D: int = 1,
         max_Q: int = 2,
+        information_criterion: str = "aicc",
     ):
         self.seasonal_period = seasonal_period
         self.max_p = max_p
@@ -449,6 +459,7 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         self.max_P = max_P
         self.max_D = max_D
         self.max_Q = max_Q
+        self.information_criterion = information_criterion
         self.p_ = 0
         self.d_ = 0
         self.q_ = 0
@@ -472,12 +483,19 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         return len(data) > max(p + P * m, q + Q * m) + c + p + q + P + Q
 
     def _score(self, order, data, max_iter):
-        """Fit a candidate, returning its parameters and AIC, inf if rejected."""
+        """Fit a candidate, returning its parameters and criterion, inf if rejected.
+
+        The AICc correction is the same for every parameter value of a model, so
+        the parameters minimising the AIC also minimise the AICc.
+        """
         c, p, q, P, Q = order
         model = _build_model(c == 1, p, q, P, Q, self.seasonal_period)
         params, aic = _fit_candidate(data, model, max_iter)
         if not _roots_clear_of_unit_circle(params, model):
             aic = np.inf
+        if self.information_criterion == "aicc":
+            k, n = len(params) + 1, len(data)
+            aic = aic + 2 * k * (k + 1) / (n - k - 1) if n - k - 1 > 0 else np.inf
         return params, aic
 
     def _search(self, data, constant, allow_constant):
@@ -529,6 +547,11 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
     def _fit(self, y, exog=None):
         if self.seasonal_period < 1:
             raise ValueError("seasonal_period must be at least 1.")
+        if self.information_criterion not in ("aicc", "aic"):
+            raise ValueError(
+                "information_criterion must be 'aicc' or 'aic', got "
+                f"{self.information_criterion!r}."
+            )
         series = np.array(y.squeeze(), dtype=np.float64)
         m = self.seasonal_period
         self.d_, self.D_ = _select_differencing(series, m, self.max_d, self.max_D)

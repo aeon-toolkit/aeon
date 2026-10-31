@@ -282,7 +282,7 @@ def test_auto_sarima_non_seasonal_matches_auto_arima():
     """Test that with a period of one the search is that of AutoARIMA."""
     y = load_airline()
     auto_arima = AutoARIMA().fit(y)
-    auto_sarima = AutoSARIMA().fit(y)
+    auto_sarima = AutoSARIMA(information_criterion="aic").fit(y)
     assert (auto_sarima.p_, auto_sarima.d_, auto_sarima.q_) == (
         auto_arima.p_,
         auto_arima.d_,
@@ -309,6 +309,25 @@ def test_auto_sarima_no_constant_when_differenced_twice():
     assert best[0] == 0
 
 
+def test_auto_sarima_aicc_adds_small_sample_correction():
+    """Test the AICc is the AIC plus 2 k (k + 1) / (n - k - 1), k counting sigma2."""
+    data = np.diff(load_airline())
+    order = (1, 1, 0, 0, 0)
+    _, aic = AutoSARIMA(information_criterion="aic")._score(order, data, 200)
+    _, aicc = AutoSARIMA(information_criterion="aicc")._score(order, data, 200)
+    k, n = 3, len(data)
+    assert_allclose(aicc, aic + 2 * k * (k + 1) / (n - k - 1))
+    # too few observations for the correction
+    _, aicc = AutoSARIMA()._score(order, data[:4], 200)
+    assert aicc == np.inf
+
+
+def test_auto_sarima_invalid_information_criterion():
+    """Test an unknown information criterion raises."""
+    with pytest.raises(ValueError, match="information_criterion"):
+        AutoSARIMA(information_criterion="bic").fit(load_airline())
+
+
 def test_auto_sarima_selects_seasonal_difference():
     """Test a strongly seasonal series is seasonally differenced."""
     period = 12
@@ -316,7 +335,12 @@ def test_auto_sarima_selects_seasonal_difference():
     model = AutoSARIMA(seasonal_period=period).fit(y)
     assert model.D_ == 1
     assert model.final_model_.seasonal_period == period
-    assert_allclose(model.fit_aic_, model.final_model_.aic_)
+    # fit_aic_ is the AICc of the final model
+    k = len(model.final_model_._parameters) + 1
+    n = len(model.final_model_._differenced_series)
+    assert_allclose(
+        model.fit_aic_, model.final_model_.aic_ + 2 * k * (k + 1) / (n - k - 1)
+    )
     assert_allclose(model.predict(y), model.forecast_)
 
 
