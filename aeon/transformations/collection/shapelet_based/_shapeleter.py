@@ -14,7 +14,6 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
 )
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @njit(fastmath=True, cache=True)
@@ -487,7 +486,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "algorithm_type": "shapelet",
-        "python_dependencies": "torch",
     }
 
     def __init__(
@@ -515,27 +513,26 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     def _fit(self, X, y=None):
         """Fit RDST backbone, apply hypergraph pruning, and initialize fusions."""
-        _check_soft_dependencies("torch", severity="error", obj=self)
 
         if y is None:
             y = np.zeros(X.shape[0], dtype=int)
 
-        self._series_len = X.shape[-1]
-        self._rdst = RandomDilatedShapeletTransform(
+        self.series_len_ = X.shape[-1]
+        self.rdst_ = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
             random_state=self.random_state,
         )
-        self._rdst.fit(X, y)
+        self.rdst_.fit(X, y)
 
-        raw_shapelets = self._rdst.shapelets_[0]
+        raw_shapelets = self.rdst_.shapelets_[0]
         n_candidates = len(raw_shapelets)
 
         # Multi-scale hypergraph pruning grouped by (length, dilation, normalization)
         if n_candidates > 0 and len(np.unique(y)) > 1:
-            lengths = self._rdst.shapelets_[2]
-            dilas = self._rdst.shapelets_[3]
-            norms = self._rdst.shapelets_[5]
-            shapelet_classes = self._rdst.shapelets_[8]
+            lengths = self.rdst_.shapelets_[2]
+            dilas = self.rdst_.shapelets_[3]
+            norms = self.rdst_.shapelets_[5]
+            shapelet_classes = self.rdst_.shapelets_[8]
             selected_idx = []
 
             for l_val in np.unique(lengths):
@@ -556,23 +553,23 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
             if len(selected_idx) > 0:
                 selected_idx = np.hstack(selected_idx)
-                self._rdst.shapelets_ = tuple(
-                    attr[selected_idx] for attr in self._rdst.shapelets_
+                self.rdst_.shapelets_ = tuple(
+                    attr[selected_idx] for attr in self.rdst_.shapelets_
                 )
 
-        self._shapelet_lengths = self._rdst.shapelets_[2]
-        self._shapelet_dilations = self._rdst.shapelets_[3]
+        self.shapelet_lengths_ = self.rdst_.shapelets_[2]
+        self.shapelet_dilations_ = self.rdst_.shapelets_[3]
 
         # Extract features to initialize scalers & fusion
-        raw_feats = self._rdst.transform(X)
+        raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
 
         # Scale SOO features
-        n_shapelets = len(self._shapelet_lengths)
+        n_shapelets = len(self.shapelet_lengths_)
         for i in range(n_shapelets):
             denom = (
-                self._series_len
-                - (self._shapelet_lengths[i] - 1) * self._shapelet_dilations[i]
+                self.series_len_
+                - (self.shapelet_lengths_[i] - 1) * self.shapelet_dilations_[i]
             )
             denom = max(1.0, float(denom))
             raw_feats[:, 2 + 3 * i] = raw_feats[:, 2 + 3 * i] / denom
@@ -581,19 +578,19 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_arg = raw_feats[:, 1::3]
         x_soo = raw_feats[:, 2::3]
 
-        self._scaler_min = MinMaxScaler((-1, 1)).fit(x_min)
-        self._scaler_soo = MinMaxScaler((-1, 1)).fit(x_soo)
-        x_min_scaled = self._scaler_min.transform(x_min)
-        x_soo_scaled = self._scaler_soo.transform(x_soo)
+        self.scaler_min_ = MinMaxScaler((-1, 1)).fit(x_min)
+        self.scaler_soo_ = MinMaxScaler((-1, 1)).fit(x_soo)
+        x_min_scaled = self.scaler_min_.transform(x_min)
+        x_soo_scaled = self.scaler_soo_.transform(x_soo)
 
-        self._unique_dilations = np.unique(self._shapelet_dilations)
+        self._unique_dilations = np.unique(self.shapelet_dilations_)
         self._base_abs = {}
         self._base_ord = {}
 
         for d in self._unique_dilations:
-            sub_idx = np.where(self._shapelet_dilations == d)[0]
-            sh_len = self._shapelet_lengths[sub_idx[0]]
-            len_map = max(1.0, float(self._series_len - (sh_len - 1) * d))
+            sub_idx = np.where(self.shapelet_dilations_ == d)[0]
+            sh_len = self.shapelet_lengths_[sub_idx[0]]
+            len_map = max(1.0, float(self.series_len_ - (sh_len - 1) * d))
             n_sub = max(1.0, float(len(sub_idx)))
 
             if self.max_iter > 0:
@@ -603,7 +600,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
                 pos_abs_d = x_arg[:, sub_idx]
                 pos_ord_d = _assign_order_batch(pos_abs_d)
 
-                ka_d, ko_d = _optimize_position_encoding(
+                ka_d, ko_d = _optimize_position_encoding_np(
                     train_feat_d,
                     pos_abs_d,
                     pos_ord_d,
@@ -625,11 +622,11 @@ class ShapeleterTransform(BaseCollectionTransformer):
             x_min_scaled, x_soo_scaled, x_arg
         )
 
-        self._fusion_min = _CombinationFusion()
-        self._fusion_soo = _CombinationFusion()
+        self.fusion_min_ = _CombinationFusion()
+        self.fusion_soo_ = _CombinationFusion()
 
-        self._fusion_min.fit_transform(x_min_scaled, x_min_abs, x_min_ord, y)
-        self._fusion_soo.fit_transform(x_soo_scaled, x_soo_abs, x_soo_ord, y)
+        self.fusion_min_.fit_transform(x_min_scaled, x_min_abs, x_min_ord, y)
+        self.fusion_soo_.fit_transform(x_soo_scaled, x_soo_abs, x_soo_ord, y)
         return self
 
     def _encode_positions(self, x_min, x_soo, x_arg):
@@ -640,7 +637,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_soo_ord = np.copy(x_soo)
 
         for d in self._unique_dilations:
-            sub_idx = np.where(self._shapelet_dilations == d)[0]
+            sub_idx = np.where(self.shapelet_dilations_ == d)[0]
             base_abs = self._base_abs[d]
             base_ord = self._base_ord[d]
 
@@ -659,28 +656,28 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     def _transform(self, X, y=None):
         """Transform time series into concatenated multi-view shapelet features."""
-        raw_feats = self._rdst.transform(X)
+        raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
 
-        n_shapelets = len(self._shapelet_lengths)
+        n_shapelets = len(self.shapelet_lengths_)
         for i in range(n_shapelets):
             denom = (
-                self._series_len
-                - (self._shapelet_lengths[i] - 1) * self._shapelet_dilations[i]
+                self.series_len_
+                - (self.shapelet_lengths_[i] - 1) * self.shapelet_dilations_[i]
             )
             denom = max(1.0, float(denom))
             raw_feats[:, 2 + 3 * i] = raw_feats[:, 2 + 3 * i] / denom
 
-        x_min = self._scaler_min.transform(raw_feats[:, 0::3])
-        x_soo = self._scaler_soo.transform(raw_feats[:, 2::3])
+        x_min = self.scaler_min_.transform(raw_feats[:, 0::3])
+        x_soo = self.scaler_soo_.transform(raw_feats[:, 2::3])
         x_arg = raw_feats[:, 1::3]
 
         x_min_abs, x_min_ord, x_soo_abs, x_soo_ord = self._encode_positions(
             x_min, x_soo, x_arg
         )
 
-        m_oa, m_or, m_ar = self._fusion_min.transform(x_min, x_min_abs, x_min_ord)
-        s_oa, s_or, s_ar = self._fusion_soo.transform(x_soo, x_soo_abs, x_soo_ord)
+        m_oa, m_or, m_ar = self.fusion_min_.transform(x_min, x_min_abs, x_min_ord)
+        s_oa, s_or, s_ar = self.fusion_soo_.transform(x_soo, x_soo_abs, x_soo_ord)
 
         # Concatenate all 8 multiviews
         return np.hstack([x_min, x_soo, m_oa, m_or, m_ar, s_oa, s_or, s_ar])
