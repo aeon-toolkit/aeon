@@ -483,7 +483,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
-        "capability:multivariate": False,
+        "capability:multivariate": True,
         "capability:unequal_length": False,
         "algorithm_type": "shapelet",
     }
@@ -513,7 +513,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     def _fit(self, X, y=None):
         """Fit RDST backbone, apply hypergraph pruning, and initialize fusions."""
-
         if y is None:
             y = np.zeros(X.shape[0], dtype=int)
 
