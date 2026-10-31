@@ -338,6 +338,34 @@ def test_auto_sarima_max_order_limits_neighbours(max_order):
     assert max(sum(order[1:]) for order in scored) <= max_order
 
 
+@pytest.mark.parametrize(
+    "kwargs, expected",
+    [
+        ({}, {(0, 0, 0, 0), (1, 0, 0, 0), (0, 1, 0, 0), (2, 2, 0, 0)}),
+        (
+            {"seasonal_period": 4},
+            {(0, 0, 0, 0), (1, 0, 1, 0), (0, 1, 0, 1), (2, 2, 1, 1)},
+        ),
+        (
+            {"seasonal_period": 4, "max_q": 1, "max_P": 0},
+            {(0, 0, 0, 0), (1, 0, 0, 0), (0, 1, 0, 1), (2, 1, 0, 1)},
+        ),
+    ],
+)
+def test_auto_sarima_starting_models(kwargs, expected):
+    """Test the starts drop seasonal terms with period 1 and respect the limits."""
+    started = set()
+
+    class Recording(AutoSARIMA):
+        def _score(self, order, data, max_iter):
+            if max_iter == 200:  # starting models; neighbours use 500
+                started.add(order[1:])
+            return super()._score(order, data, max_iter)
+
+    Recording(**kwargs).fit(np.diff(load_airline()))
+    assert started == expected
+
+
 def test_auto_sarima_invalid_information_criterion():
     """Test an unknown information criterion raises."""
     with pytest.raises(ValueError, match="information_criterion"):

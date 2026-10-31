@@ -511,7 +511,21 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         with and without one only if ``allow_constant``.
         """
         best, best_params, best_aic = None, None, np.inf
-        for start in [(0, 0, 0, 0), (1, 0, 1, 0), (0, 1, 0, 1), (2, 2, 1, 1)]:
+        # As in R, the starting orders are capped at the limits, and have no
+        # seasonal terms if the series is not seasonal. Otherwise, with period 1,
+        # every start but (0, 0)(0, 0) was invalid and was skipped.
+        seasonal = self.seasonal_period > 1
+        starts = []
+        for p, q, P, Q in [(0, 0, 0, 0), (1, 0, 1, 0), (0, 1, 0, 1), (2, 2, 1, 1)]:
+            start = (
+                min(p, self.max_p),
+                min(q, self.max_q),
+                min(P, self.max_P) if seasonal else 0,
+                min(Q, self.max_Q) if seasonal else 0,
+            )
+            if start not in starts:
+                starts.append(start)
+        for start in starts:
             order = (constant, *start)
             if self._valid(order, data):
                 params, aic = self._score(order, data, 200)
