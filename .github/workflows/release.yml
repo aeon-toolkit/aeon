@@ -65,8 +65,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-24.04, macOS-14, windows-2022, windows-11-arm ]
         python-version: [ "3.11", "3.12", "3.13", "3.14" ]
+        exclude:
+          # numba has no Windows ARM64 wheels for Python 3.11
+          - os: windows-11-arm
+            python-version: "3.11"
 
     steps:
       - name: Checkout
@@ -110,13 +114,29 @@ jobs:
             python_version: ${{ matrix.python-version }}
             restore_cache: "false"
 
-      - if: runner.os == 'Windows'
+      - if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+        name: Install numba dev build (Windows ARM64)
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install --pre --extra-index-url https://pypi.anaconda.org/numba/label/dev/simple numba
+
+      - if: ${{ runner.os == 'Windows' && runner.arch != 'ARM64' }}
         name: Windows install
         uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
           command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
+      # not all soft dependencies (e.g. ruptures, roughpy, pycatch22) have Windows ARM64 wheels
+      - if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+        name: Windows ARM64 install
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${env:WHEELNAME}[dev]"
       - if: runner.os != 'Windows'
         name: Unix install
         uses: nick-fields/retry@v4
