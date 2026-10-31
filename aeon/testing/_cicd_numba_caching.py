@@ -87,6 +87,27 @@ if os.environ.get("CACHING_CICD_RUNNING") == "1":  # pragma: no cover
         else:
             return overloads
 
+    original_load = numba.core.caching.IndexDataCacheFile.load
+
+    def custom_load(self, *args, **kwargs):
+        """Treat an unloadable cached overload as a cache miss, not a crash.
+
+        A function cached on a previous run may bake a reference to another
+        module into its compiled data (numba environment). If that module has
+        since been moved/renamed/deleted, unpickling the cached data raises
+        ``ModuleNotFoundError`` (or similar) while rebuilding the environment.
+        The custom file-name invalidation in ``custom_load_index`` only covers
+        functions whose *own* source file changed, so a function in an
+        unchanged file that referenced the moved module would still crash here.
+        Returning ``None`` makes numba recompile instead.
+        """
+        try:
+            return original_load(self, *args, **kwargs)
+        except Exception:
+            return None
+
+    numba.core.caching.IndexDataCacheFile.load = custom_load
+
     original_load_index = numba.core.caching.IndexDataCacheFile._load_index
     numba.core.caching.IndexDataCacheFile._load_index = custom_load_index
 
