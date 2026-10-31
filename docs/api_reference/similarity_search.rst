@@ -34,6 +34,7 @@ Whole Series Search Estimators
 
     NaiveSeriesSearch
     SimHashIndexANN
+    SSHIndexANN
 
 
 Base Estimators

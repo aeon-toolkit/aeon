@@ -413,6 +413,17 @@ Deep dive into SimHash and the LSH index
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/comparing_indexes.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/comparing_indexes.ipynb
+:link-type: ref
+:text-align: center
+
+Choosing between the two approximate indexes
+
+:::
+
 ::::
 
 ## Forecasting
