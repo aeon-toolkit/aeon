@@ -294,6 +294,21 @@ def test_auto_sarima_non_seasonal_matches_auto_arima():
     assert_allclose(auto_sarima.forecast_, auto_arima.forecast_)
 
 
+def test_auto_sarima_no_constant_when_differenced_twice():
+    """Test no constant is considered when ``d + D == 2``, as in R.
+
+    A constant then gives a quadratic trend in the forecasts.
+    """
+    rng = np.random.default_rng(0)
+    t = np.arange(120)
+    y = 0.05 * t**2 + np.cumsum(np.cumsum(rng.normal(size=120)))
+    model = AutoSARIMA().fit(y)
+    assert model.d_ + model.D_ == 2
+    assert not model.constant_term_
+    best, _, _ = model._search(np.diff(y, n=2), 0, False)
+    assert best[0] == 0
+
+
 def test_auto_sarima_selects_seasonal_difference():
     """Test a strongly seasonal series is seasonally differenced."""
     period = 12

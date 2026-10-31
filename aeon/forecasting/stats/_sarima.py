@@ -384,11 +384,15 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
     ``(0, 0)(0, 0)``, ``(1, 0)(1, 0)``, ``(0, 1)(0, 1)`` and ``(2, 2)(1, 1)``, with
     a constant if ``d + D == 0``. It then moves to the first better neighbour
     until there is none. Neighbours change ``P`` and ``Q``, or ``p`` and ``q``, by
-    at most one each, with and without a constant.
+    at most one each, with and without a constant. As in R's ``auto.arima``, a
+    constant (a mean, or a drift once differenced) is only considered if
+    ``d + D <= 1``; with ``d + D == 2`` it would put a quadratic trend into the
+    forecasts.
 
     Models are compared by the AIC of the conditional sum of squares likelihood
     and a fit with an AR or MA root within 1.01 of the unit circle is rejected.
-    With ``seasonal_period=1`` this is the search of :class:`AutoARIMA`.
+    With ``seasonal_period=1`` this is the search of :class:`AutoARIMA`, except
+    that :class:`AutoARIMA` also tries a constant when ``d >= 2``.
 
     Parameters
     ----------
@@ -476,8 +480,12 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
             aic = np.inf
         return params, aic
 
-    def _search(self, data, constant):
-        """Stepwise search for the best ``(constant, p, q, P, Q)``."""
+    def _search(self, data, constant, allow_constant):
+        """Stepwise search for the best ``(constant, p, q, P, Q)``.
+
+        ``constant`` is used for the starting models, and neighbours are tried
+        with and without one only if ``allow_constant``.
+        """
         best, best_params, best_aic = None, None, np.inf
         for start in [(0, 0, 0, 0), (1, 0, 1, 0), (0, 1, 0, 1), (2, 2, 1, 1)]:
             order = (constant, *start)
@@ -502,7 +510,7 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
             centre = best
             for step in steps:
                 orders = tuple(int(o + s) for o, s in zip(centre[1:], step))
-                for constant_term in [0, 1]:
+                for constant_term in [0, 1] if allow_constant else [0]:
                     order = (constant_term, *orders)
                     if order in tried or not self._valid(order, data):
                         continue
@@ -526,7 +534,9 @@ class AutoSARIMA(BaseForecaster, IterativeForecastingMixin):
         self.d_, self.D_ = _select_differencing(series, m, self.max_d, self.max_D)
         data = _difference(series, _get_diff_poly(self.d_, self.D_, m))
         constant = 1 if self.d_ + self.D_ == 0 else 0
-        best, parameters, self.fit_aic_ = self._search(data, constant)
+        best, parameters, self.fit_aic_ = self._search(
+            data, constant, self.d_ + self.D_ <= 1
+        )
         if best is None or not np.isfinite(self.fit_aic_):
             # Nothing could be fitted, for example a constant differenced series
             best, parameters = (0, 0, 0, 0, 0), np.empty(0)
