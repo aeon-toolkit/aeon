@@ -185,6 +185,12 @@ Ordinal classification
     IndividualOrdinalTDE
     OrdinalTDE
 
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    histogram_intersection
+
 Composition
 -----------
 
