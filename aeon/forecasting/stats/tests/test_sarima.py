@@ -5,12 +5,15 @@ import pytest
 from numpy.testing import assert_allclose
 
 from aeon.datasets import load_airline
-from aeon.forecasting.stats import ARIMA
+from aeon.forecasting.stats import ARIMA, AutoARIMA, AutoSARIMA
 from aeon.forecasting.stats._sarima import (
     SARIMA,
+    _build_model,
     _difference,
     _get_active_lags,
     _get_diff_poly,
+    _roots_clear_of_unit_circle,
+    _seasonal_strength,
     _undifference_sarima,
 )
 from aeon.forecasting.utils._extract_paras import _sarima_coefficients, _sarima_lags
@@ -239,3 +242,89 @@ def test_sarima_airline_model_vs_statsmodels():
     model = SARIMA(p=0, d=1, q=1, D=1, Q=1, seasonal_period=12)
     forecasts = model.iterative_forecast(y, horizon)
     assert_allclose(forecasts, sm_fit.forecast(steps=horizon), rtol=0.01)
+
+
+def test_auto_sarima_non_seasonal_matches_auto_arima():
+    """Test that with a period of one the search is that of AutoARIMA."""
+    y = load_airline()
+    auto_arima = AutoARIMA().fit(y)
+    auto_sarima = AutoSARIMA().fit(y)
+    assert (auto_sarima.p_, auto_sarima.d_, auto_sarima.q_) == (
+        auto_arima.p_,
+        auto_arima.d_,
+        auto_arima.q_,
+    )
+    assert auto_sarima.P_ == auto_sarima.D_ == auto_sarima.Q_ == 0
+    assert auto_sarima.constant_term_ == auto_arima.constant_term_
+    assert_allclose(auto_sarima.fit_aic_, auto_arima.fit_aic_)
+    assert_allclose(auto_sarima.forecast_, auto_arima.forecast_)
+
+
+def test_auto_sarima_selects_seasonal_difference():
+    """Test a strongly seasonal series is seasonally differenced."""
+    period = 12
+    y = load_airline()
+    model = AutoSARIMA(seasonal_period=period).fit(y)
+    assert model.D_ == 1
+    assert model.final_model_.seasonal_period == period
+    assert_allclose(model.fit_aic_, model.final_model_.aic_)
+    assert_allclose(model.predict(y), model.forecast_)
+
+
+def test_auto_sarima_improves_on_non_seasonal_search():
+    """Test seasonal terms reduce the error on a simulated seasonal series."""
+    period, n, horizon = 4, 200, 8
+    rng = np.random.default_rng(0)
+    e = rng.normal(size=n + horizon)
+    y = 10.0 * np.sin(2 * np.pi * np.arange(n + horizon) / period) + e
+    train, test = y[:n], y[n:]
+    seasonal = AutoSARIMA(seasonal_period=period).iterative_forecast(train, horizon)
+    plain = AutoSARIMA().iterative_forecast(train, horizon)
+    assert np.mean(np.abs(seasonal - test)) < np.mean(np.abs(plain - test))
+
+
+@pytest.mark.parametrize(
+    "limits",
+    [
+        {"max_p": 1, "max_q": 1, "max_P": 0, "max_Q": 1},
+        {"max_p": 0, "max_q": 0, "max_P": 1, "max_Q": 0},
+    ],
+)
+def test_auto_sarima_respects_limits(limits):
+    """Test the selected orders are within the limits."""
+    model = AutoSARIMA(seasonal_period=12, **limits).fit(load_airline())
+    assert model.p_ <= limits["max_p"]
+    assert model.q_ <= limits["max_q"]
+    assert model.P_ <= limits["max_P"]
+    assert model.Q_ <= limits["max_Q"]
+
+
+def test_auto_sarima_max_D_zero_skips_seasonal_difference():
+    """Test seasonal differencing can be switched off."""
+    assert AutoSARIMA(seasonal_period=12, max_D=0).fit(load_airline()).D_ == 0
+
+
+def test_seasonal_strength_short_series_is_zero():
+    """Test a series of at most two seasons cannot be decomposed."""
+    period = 12
+    assert _seasonal_strength(load_airline()[: 2 * period], period) == 0.0
+
+
+def test_auto_sarima_short_seasonal_series():
+    """Test a series shorter than a season falls back to non-seasonal terms."""
+    period = 12
+    model = AutoSARIMA(seasonal_period=period).fit(load_airline()[: period - 2])
+    assert model.P_ == model.D_ == model.Q_ == 0
+
+
+def test_seasonal_root_margin_applies_at_seasonal_lags():
+    """Test a seasonal root clears 1.01 at the seasonal lag, not at lag one."""
+    period = 12
+    # root of 1 - Phi B^m has modulus (1 / Phi)^(1 / m) in B, inside 1.01
+    Phi = 0.95
+    assert 1.01 > (1 / Phi) ** (1 / period)
+    model = _build_model(False, 0, 0, 1, 0, period)
+    assert not _roots_clear_of_unit_circle(np.array([Phi]), model)
+    # the same coefficient on a non-seasonal lag is clear
+    model = _build_model(False, 1, 0, 0, 0, period)
+    assert _roots_clear_of_unit_circle(np.array([Phi]), model)
