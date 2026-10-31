@@ -1,6 +1,7 @@
 """Stats based forecasters."""
 
 __all__ = [
+    "ARForecaster",
     "ARIMA",
     "AutoARIMA",
     "AutoCES",
@@ -15,6 +16,7 @@ __all__ = [
     "TVP",
 ]
 
+from aeon.forecasting.stats._ar import ARForecaster
 from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
 from aeon.forecasting.stats._ces import CES, AutoCES
 from aeon.forecasting.stats._dotm import DOTM
