@@ -17,7 +17,11 @@ from aeon.forecasting.stats._sarima import (
     _undifference_sarima,
 )
 from aeon.forecasting.utils._extract_paras import _sarima_coefficients, _sarima_lags
-from aeon.forecasting.utils._loss_functions import _arima_css_aic, _sarima_fit
+from aeon.forecasting.utils._loss_functions import (
+    _arima_css_aic,
+    _sarima_fit,
+    _sarima_model,
+)
 from aeon.forecasting.utils._nelder_mead import _sarima_hannan_rissanen
 
 
@@ -135,7 +139,11 @@ def test_sarima_rejects_exog():
     "p, d, q, use_constant", [(1, 0, 0, True), (1, 1, 1, False), (2, 1, 2, True)]
 )
 def test_sarima_without_seasonal_terms_matches_arima(p, d, q, use_constant):
-    """Test SARIMA with no seasonal terms gives the same fit as ARIMA."""
+    """Test SARIMA with no seasonal terms gives the same fit as ARIMA.
+
+    With ``q > p`` they differ: ARIMA conditions on ``max(p, q)`` observations,
+    SARIMA on ``p``, as R does.
+    """
     y = load_airline()
     arima = ARIMA(p=p, d=d, q=q, use_constant=use_constant).fit(y)
     sarima = SARIMA(p=p, d=d, q=q, use_constant=use_constant).fit(y)
@@ -154,6 +162,32 @@ def test_sarima_aic_counts_all_observations():
             model.residuals_, _sarima_lags(model._model)[2], len(model._parameters)
         ),
     )
+
+
+def test_sarima_conditions_on_ar_lags_only():
+    """Test the residuals start after the AR lags, not the MA lags, as in R's CSS.
+
+    Residuals before the first are taken as zero in the MA recursion.
+    """
+    data = load_airline()[:60] - 280.0
+    theta, Theta, m = 0.3, -0.4, 12
+    model = _build_model(False, 0, 1, 0, 1, m)
+    aic, residuals, _ = _sarima_model(np.array([theta, Theta]), data, model)
+    expected = np.zeros(len(data))
+    for t in range(len(data)):
+        pred = 0.0
+        for lag, coef in [(1, theta), (m, Theta), (m + 1, theta * Theta)]:
+            if t >= lag:
+                pred += coef * expected[t - lag]
+        expected[t] = data[t] - pred
+    assert_allclose(residuals, expected)
+    assert_allclose(aic, _arima_css_aic(expected, 0, 2))
+
+    # with an AR term the first p + P m residuals are conditioned on
+    model = _build_model(False, 1, 1, 1, 1, m)
+    _, residuals, _ = _sarima_model(np.array([0.2, theta, 0.3, Theta]), data, model)
+    assert np.all(residuals[: 1 + m] == 0.0)
+    assert residuals[1 + m] != 0.0
 
 
 @pytest.mark.parametrize(

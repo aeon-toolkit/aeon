@@ -124,14 +124,15 @@ def _sarima_model(params, data, model):
     n = len(data)
     residuals = np.zeros(n)
     fitted_values = np.zeros(n + 1)
-    # Leave first start residuals and fitted as zero.
+    # Leave the first start residuals and fitted values as zero
     for t in range(start, n + 1):
         ar_term = 0.0
         for j in range(len(ar_lags)):
             ar_term += ar_values[j] * data[t - ar_lags[j]]
         ma_term = 0.0
         for j in range(len(ma_lags)):
-            ma_term += ma_values[j] * residuals[t - ma_lags[j]]
+            if t >= ma_lags[j]:
+                ma_term += ma_values[j] * residuals[t - ma_lags[j]]
         fitted_values[t] = c + ar_term + ma_term
         if t != n:
             residuals[t] = data[t] - fitted_values[t]

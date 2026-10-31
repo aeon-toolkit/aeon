@@ -49,15 +49,16 @@ def _extract_sarima_params(params, model):
 
 @njit(cache=True, fastmath={"contract"})
 def _sarima_lags(model):
-    """Return the sparse AR lags, MA lags and first residual time of ``model``."""
+    """Return the sparse AR lags, MA lags and first residual time of ``model``.
+
+    As in R's ``arima(method = "CSS")``, the conditional sum of squares
+    conditions on the largest AR lag only, ``p + P m``. Residuals before it are
+    taken as zero in the MA recursion.
+    """
     n_ar_lags, n_ma_lags = model[6], model[7]
     ar_lags = model[8 : 8 + n_ar_lags]
     ma_lags = model[8 + n_ar_lags : 8 + n_ar_lags + n_ma_lags]
-    start = 0
-    if n_ar_lags > 0:
-        start = max(start, ar_lags[-1])
-    if n_ma_lags > 0:
-        start = max(start, ma_lags[-1])
+    start = ar_lags[-1] if n_ar_lags > 0 else 0
     return ar_lags, ma_lags, start
 
 
