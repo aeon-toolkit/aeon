@@ -10,11 +10,7 @@ class DummySeriesForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     """
     A dummy forecaster used to test the SeriesToSeriesForecastingMixin.
 
-    This forecaster always predicts a series of ones (or the last observed value)
-    for the entire forecast horizon in a single step, demonstrating the mixin's
-    functionality. The implementation ensures the new mixin's abstract method
-    (_series_to_series_forecast) is implemented, proving the architecture
-    is functional.
+    Predicts ``value_to_return`` at every step of the forecast horizon.
     """
 
     def __init__(

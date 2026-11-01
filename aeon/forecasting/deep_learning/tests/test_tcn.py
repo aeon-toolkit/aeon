@@ -18,19 +18,15 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 @pytest.mark.parametrize("horizon,window,epochs", [(1, 10, 2), (1, 12, 3), (1, 15, 2)])
 def test_tcn_forecaster(horizon, window, epochs):
     """Test TCNForecaster with different parameter combinations."""
-    # Load airline dataset
     y = load_airline()
 
-    # Initialize TCNForecaster
     forecaster = TCNForecaster(
         horizon=horizon, window=window, n_epochs=epochs, batch_size=16, verbose=0
     )
 
-    # Fit and predict
     forecaster.fit(y)
     prediction = forecaster.predict(y)
 
-    # Basic assertions
     assert prediction.shape == (1,)
     assert np.isfinite(prediction).all()
 
@@ -58,18 +54,14 @@ def test_tcn_forecaster_uni_mutli(loader, is_univariate):
         verbose=0,
     )
 
-    # fit
     forecaster.fit(y)
 
-    # predict
     prediction = forecaster.predict(y)
     assert prediction.shape == (1,)
 
-    # forecast
     prediction = forecaster.forecast(y)
     assert prediction.shape == (1,)
 
-    # iterative forecasting
     prediction = forecaster.iterative_forecast(y, 3)
     assert prediction is not None
     assert len(prediction) == 3
