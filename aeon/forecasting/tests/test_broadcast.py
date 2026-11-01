@@ -4,26 +4,12 @@ import numpy as np
 import pytest
 from sklearn.base import clone
 
-from aeon.forecasting import BroadcastForecaster, NaiveForecaster
+from aeon.forecasting import (
+    BroadcastForecaster,
+    NaiveForecaster,
+    RegressionForecaster,
+)
 from aeon.forecasting.base import BaseForecaster
-
-
-class _ExogRecorderForecaster(BaseForecaster):
-    """Small forecaster that records exog and adds it to the last value."""
-
-    _tags = {"capability:exogenous": True}
-
-    def __init__(self, horizon=1):
-        super().__init__(horizon=horizon, axis=1)
-
-    def _fit(self, y, exog=None):
-        self.fit_exog_shape_ = None if exog is None else exog.shape
-        self.forecast_ = float(y.squeeze()[-1] + np.asarray(exog).sum())
-        return self
-
-    def _predict(self, y, exog=None):
-        self.predict_exog_shape_ = None if exog is None else exog.shape
-        return float(y.squeeze()[-1] + np.asarray(exog).sum())
 
 
 class _VectorForecaster(BaseForecaster):
@@ -85,22 +71,39 @@ def test_broadcast_forecaster_respects_input_axis():
     np.testing.assert_array_equal(pred, np.array([3.0, 30.0]))
 
 
-def test_broadcast_forecaster_forwards_exog_to_channel_forecasters():
-    """Forward fit and predict exog to each wrapped channel forecaster."""
-    y_train = np.array([[1.0, 2.0, 3.0], [10.0, 20.0, 30.0]])
-    y_predict = np.array([[4.0, 5.0], [40.0, 50.0]])
-    fit_exog = np.array([[1.0, 2.0, 3.0]])
-    predict_exog = np.array([[10.0]])
+@pytest.mark.parametrize("replace_forecaster", [False, True])
+def test_broadcast_forecaster_forwards_exog_to_channel_forecasters(replace_forecaster):
+    """Exogenous predictions match separate fits, including after replacement."""
+    n_timepoints = 12
+    time = np.arange(n_timepoints, dtype=float)
+    y_train = np.array([time**2 + time, time**2 - time])
+    fit_exog = (time**2)[None, :]
+    predict_exog = np.array([[float(n_timepoints**2)]])
+    model = RegressionForecaster(window=2)
+    forecaster = BroadcastForecaster(NaiveForecaster() if replace_forecaster else model)
+    if replace_forecaster:
+        forecaster.set_params(forecaster=model)
+    forecaster.fit(y_train, exog=fit_exog)
 
-    forecaster = BroadcastForecaster(_ExogRecorderForecaster()).fit(
-        y_train, exog=fit_exog
-    )
-    pred = forecaster.predict(y_predict, exog=predict_exog)
+    expected = [
+        clone(model).fit(channel, exog=fit_exog).predict(channel, exog=predict_exog)
+        for channel in y_train
+    ]
+    np.testing.assert_allclose(forecaster.predict(y_train, exog=predict_exog), expected)
 
-    np.testing.assert_array_equal(pred, np.array([15.0, 60.0]))
-    for channel_forecaster in forecaster.forecasters_:
-        assert channel_forecaster.fit_exog_shape_ == fit_exog.shape
-        assert channel_forecaster.predict_exog_shape_ == predict_exog.shape
+
+@pytest.mark.parametrize("method", ["fit", "forecast"])
+def test_broadcast_forecaster_uses_updated_horizon(method):
+    """Nested horizon updates determine the forecast for each channel."""
+    y = np.array([[1.0, 2.0, 3.0], [10.0, 20.0, 30.0]])
+    horizon = 3
+    forecaster = BroadcastForecaster(NaiveForecaster(strategy="drift"))
+    forecaster.set_params(forecaster__horizon=horizon)
+    getattr(forecaster, method)(y)
+
+    expected = y[:, -1] + horizon * (y[:, -1] - y[:, 0]) / (y.shape[1] - 1)
+    np.testing.assert_allclose(forecaster.forecast_, expected)
+    np.testing.assert_allclose(forecaster.predict(y), expected)
 
 
 def test_broadcast_forecaster_rejects_invalid_forecaster():

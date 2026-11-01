@@ -22,14 +22,16 @@ class BroadcastForecaster(BaseForecaster):
     ----------
     forecaster : BaseForecaster
         Aeon-compatible forecaster to clone and fit independently per channel.
+        Its horizon and capabilities are used when validating input, including
+        after updating or replacing it with ``set_params``.
 
     Attributes
     ----------
     forecasters_ : list of BaseForecaster
         Fitted channel-specific clones of ``forecaster``.
     forecast_ : float or np.ndarray
-        In-sample one-step forecast after fitting. A scalar for univariate data and
-        an array of shape ``(n_channels,)`` for multivariate data.
+        Forecast at the wrapped forecaster's horizon after fitting. A scalar for
+        univariate data and an array of shape ``(n_channels,)`` for multivariate data.
 
     Examples
     --------
@@ -57,15 +59,25 @@ class BroadcastForecaster(BaseForecaster):
             raise TypeError("forecaster must be an instance of BaseForecaster.")
         self.forecaster = forecaster
         super().__init__(horizon=forecaster.horizon, axis=1)
+        self._sync_forecaster_settings()
+
+    def _sync_forecaster_settings(self):
+        """Refresh settings derived from the wrapped forecaster."""
+        self.horizon = self.forecaster.horizon
         self.set_tags(
             **{
-                "capability:exogenous": forecaster.get_tag("capability:exogenous"),
-                "capability:horizon": forecaster.get_tag("capability:horizon"),
-                "capability:missing_values": forecaster.get_tag(
+                "capability:exogenous": self.forecaster.get_tag("capability:exogenous"),
+                "capability:horizon": self.forecaster.get_tag("capability:horizon"),
+                "capability:missing_values": self.forecaster.get_tag(
                     "capability:missing_values"
                 ),
             }
         )
+
+    def _preprocess_forecasting_input(self, y, exog, axis, store_meta):
+        """Synchronise wrapped settings before validating forecasting input."""
+        self._sync_forecaster_settings()
+        return super()._preprocess_forecasting_input(y, exog, axis, store_meta)
 
     def _fit(self, y, exog=None):
         """Fit one clone of the wrapped forecaster per channel."""
@@ -74,7 +86,6 @@ class BroadcastForecaster(BaseForecaster):
 
         for i in range(y.shape[0]):
             forecaster = _clone_estimator(self.forecaster)
-            forecaster.horizon = self.horizon
             channel_forecast = forecaster.forecast(y[i], exog=exog)
             self.forecasters_.append(forecaster)
             forecasts[i] = self._as_scalar_prediction(channel_forecast)
