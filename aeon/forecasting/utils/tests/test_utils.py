@@ -4,9 +4,35 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
+from aeon.forecasting.utils._brent import FX, NEXT, X, brent_start, brent_update
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._loss_functions import _arima_fit
 from aeon.forecasting.utils._nelder_mead import dispatch_loss, nelder_mead
+from aeon.forecasting.utils._seasonality import acf_seasonal_test
+
+R_OPTIMIZE_POINTS = [
+    1.1458980337503153,
+    1.8541019662496843,
+    0.70820393249936897,
+    1.2263121051203179,
+    1.1590048825571158,
+    1.1802017575983195,
+    1.1978143431186534,
+    1.2086995195999839,
+    1.1936876640755554,
+    1.2019721105609806,
+    1.1980274731820906,
+    1.1990033464947745,
+    1.2001373134634858,
+    1.2007776833807271,
+    1.1997041766235579,
+    1.199818802150562,
+    1.1998920981149448,
+    1.1999857620435244,
+    1.2000436495349063,
+    1.1999524108290098,
+]
+R_OPTIMIZE_MINIMUM = 1.1999857620435244
 
 
 @pytest.mark.parametrize(
@@ -379,3 +405,44 @@ def test_simplex_converged():
     assert not _simplex_converged(tight, np.array([5.0, 5.1, 5.2]), 1e-6)
     # a non-finite best value never counts as converged
     assert not _simplex_converged(tight, np.array([np.inf, np.inf, np.inf]), 1e-6)
+
+
+def _run_brent(fun, lower, upper, tol):
+    """Drive Brent's method and record the evaluated points."""
+    state = brent_start(lower, upper)
+    points = []
+    for _ in range(200):
+        x = state[NEXT]
+        points.append(x)
+        if brent_update(state, fun(x), tol):
+            break
+    return state[X], state[FX], np.array(points)
+
+
+def test_brent_matches_r_optimize():
+    """The evaluation sequence is that of R's optimize.
+
+    From ``optimize(f, c(0, 3), tol=1e-4)`` with
+    ``f <- function(x) abs(x - 1.2) + 0.1 * sin(5 * x)``, recording each ``x``.
+    """
+    x, fx, points = _run_brent(
+        lambda v: abs(v - 1.2) + 0.1 * np.sin(5 * v), 0.0, 3.0, 1e-4
+    )
+    np.testing.assert_allclose(points, R_OPTIMIZE_POINTS, rtol=1e-12)
+    assert x == pytest.approx(R_OPTIMIZE_MINIMUM, rel=1e-12)
+
+
+def test_brent_finds_interior_minimum():
+    """Quadratic minima are found to within the tolerance, boundary minima near it."""
+    x, fx, _ = _run_brent(lambda v: (v - 2.0) ** 2, 1.0, 3.0, 1e-8)
+    assert x == pytest.approx(2.0, abs=1e-6)
+    x, _, _ = _run_brent(lambda v: v, 1.0, 3.0, 1e-4)
+    assert x == pytest.approx(1.0, abs=1e-3)
+
+
+def test_acf_seasonal_test():
+    """Seasonal series are detected and the degenerate cases return False."""
+    t = np.arange(48.0)
+    assert acf_seasonal_test(np.sin(2 * np.pi * t / 12), 12, 1.645)
+    assert not acf_seasonal_test(np.ones(48), 12, 1.645)
+    assert not acf_seasonal_test(np.arange(5.0), 5, 1.645)
