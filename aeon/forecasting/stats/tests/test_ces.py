@@ -251,9 +251,9 @@ def _synthetic_seasonal(seed=0):
 def test_ces_full_fits_seasonal_series():
     """CES with model='F' fits a clean seasonal series and stores all attrs."""
     y = _synthetic_seasonal()
-    f = CES(model="F", season_length=4).fit(y)
+    f = CES(model="F", seasonal_period=4).fit(y)
     assert f.model_ == "F"
-    assert f.season_length_ == 4
+    assert f.seasonal_period_ == 4
     assert 0.01 <= f.alpha_real_ <= 1.8
     assert 0.01 <= f.beta_real_ <= 1.5
     assert f.seasonal_real_.shape == (4,)
@@ -269,7 +269,7 @@ def test_ces_full_iterative_forecast_shape_and_finite():
     """Seasonal ``iterative_forecast`` returns ``(h,)`` finite values."""
     y = _synthetic_seasonal()
     h = 8
-    pred = CES(model="F", season_length=4).iterative_forecast(y, prediction_horizon=h)
+    pred = CES(model="F", seasonal_period=4).iterative_forecast(y, prediction_horizon=h)
     assert pred.shape == (h,)
     assert np.all(np.isfinite(pred))
 
@@ -277,7 +277,7 @@ def test_ces_full_iterative_forecast_shape_and_finite():
 def test_ces_full_predict_matches_iterative_h1():
     """``forecast_``, ``predict(y)``, and ``iterative_forecast(y,1)[0]`` agree."""
     y = _synthetic_seasonal()
-    f = CES(model="F", season_length=4).fit(y)
+    f = CES(model="F", seasonal_period=4).fit(y)
     stored = f.forecast_
     predicted = f.predict(y)
     iterative = f.iterative_forecast(y, prediction_horizon=1)[0]
@@ -290,7 +290,7 @@ def test_ces_full_fixed_seasonal_parameters_honoured():
     y = _synthetic_seasonal()
     f = CES(
         model="F",
-        season_length=4,
+        seasonal_period=4,
         alpha_real=0.5,
         alpha_imag=0.5,
         beta_real=0.3,
@@ -307,27 +307,27 @@ def test_ces_full_optimised_sse_no_worse_than_fixed():
     y = _synthetic_seasonal()
     fixed = CES(
         model="F",
-        season_length=4,
+        seasonal_period=4,
         alpha_real=0.5,
         alpha_imag=0.5,
         beta_real=0.5,
         beta_imag=0.5,
     ).fit(y)
-    optimised = CES(model="F", season_length=4).fit(y)
+    optimised = CES(model="F", seasonal_period=4).fit(y)
     assert optimised.sse_ <= fixed.sse_ + 1e-9
 
 
 def test_ces_full_rejects_short_series():
-    """Seasonal fit must reject ``n < 2 * season_length``."""
+    """Seasonal fit must reject ``n < 2 * seasonal_period``."""
     y = np.arange(5, dtype=float)
     with pytest.raises(ValueError):
-        CES(model="F", season_length=4).fit(y)
+        CES(model="F", seasonal_period=4).fit(y)
 
 
-def test_ces_rejects_season_length_one_for_seasonal_model():
-    """Seasonal model requires ``season_length >= 2``."""
-    with pytest.raises(ValueError, match="season_length"):
-        CES(model="F", season_length=1).fit(Y_EXAMPLE)
+def test_ces_rejects_seasonal_period_one_for_seasonal_model():
+    """Seasonal model requires ``seasonal_period >= 2``."""
+    with pytest.raises(ValueError, match="seasonal_period"):
+        CES(model="F", seasonal_period=1).fit(Y_EXAMPLE)
 
 
 def test_ces_invalid_model_raises():
@@ -340,9 +340,9 @@ def test_ces_invalid_model_raises():
 def test_ces_simple_and_partial_fit(model):
     """``S`` and ``P`` seasonal recurrences fit and forecast finite values."""
     y = _synthetic_seasonal()
-    f = CES(model=model, season_length=4).fit(y)
+    f = CES(model=model, seasonal_period=4).fit(y)
     assert f.model_ in ("S", "P")
-    assert f.season_length_ == 4
+    assert f.seasonal_period_ == 4
     assert np.isfinite(f.forecast_)
     assert np.all(np.isfinite(f.fitted_values_))
     assert f.iterative_forecast(y, prediction_horizon=4).shape == (4,)
@@ -355,7 +355,7 @@ def test_ces_simple_and_partial_fit(model):
 def test_ces_long_form_aliases(alias, expected):
     """Long-form aliases resolve to their canonical model codes."""
     y = _synthetic_seasonal()
-    f = CES(model=alias, season_length=4 if expected != "N" else 1).fit(y)
+    f = CES(model=alias, seasonal_period=4 if expected != "N" else 1).fit(y)
     assert f.model_ == expected
 
 
@@ -364,7 +364,7 @@ def test_ces_matches_statsforecast_reference_forecasts(model):
     """Aeon CES forecasts should broadly match StatsForecast for each model."""
     y = np.arange(1, 41, dtype=float) + np.tile([2.0, -1.0, -3.0, 2.0], 10)
     h = 6
-    season_length = 1 if model == "N" else 4
+    seasonal_period = 1 if model == "N" else 4
     expected = {
         "N": np.array(
             [
@@ -408,7 +408,7 @@ def test_ces_matches_statsforecast_reference_forecasts(model):
         ),
     }
 
-    aeon_pred = CES(model=model, season_length=season_length).iterative_forecast(
+    aeon_pred = CES(model=model, seasonal_period=seasonal_period).iterative_forecast(
         y, prediction_horizon=h
     )
 
@@ -430,7 +430,7 @@ def test_autoces_matches_statsforecast_auto_reference():
         ]
     )
 
-    aeon_auto = AutoCES(season_length=4)
+    aeon_auto = AutoCES(seasonal_period=4)
     aeon_pred = aeon_auto.iterative_forecast(y, prediction_horizon=h)
 
     assert aeon_auto.best_model_name_ == "P"
@@ -445,14 +445,14 @@ def test_autoces_matches_statsforecast_auto_reference():
 def test_autoces_constant_series_prefers_non_seasonal():
     """On a flat series ``AutoCES`` should pick ``"N"`` over a seasonal model."""
     y = np.full(8, 4.0)
-    auto = AutoCES(season_length=4, models=("N", "F")).fit(y)
+    auto = AutoCES(seasonal_period=4, models=("N", "F")).fit(y)
     assert auto.best_model_name_ == "N"
 
 
 def test_autoces_seasonal_series_tries_all_models():
     """On seasonal data ``AutoCES`` evaluates the full StatsForecast search set."""
     y = _synthetic_seasonal()
-    auto = AutoCES(season_length=4).fit(y)
+    auto = AutoCES(seasonal_period=4).fit(y)
     assert auto.best_model_name_ in {"S", "P", "F"}
     assert set(auto.model_results_.keys()) == {"N", "S", "P", "F"}
     for code in ("N", "S", "P", "F"):
@@ -465,17 +465,17 @@ def test_autoces_seasonal_series_tries_all_models():
 def test_autoces_records_candidate_results_cleanly():
     """``AutoCES`` records successful IC results for every viable candidate."""
     y = _synthetic_seasonal()
-    auto = AutoCES(season_length=4, models=("N", "S", "P", "F")).fit(y)
+    auto = AutoCES(seasonal_period=4, models=("N", "S", "P", "F")).fit(y)
     for code in ("N", "S", "P", "F"):
         assert auto.model_results_[code]["status"] == "ok"
         assert np.isfinite(auto.model_results_[code]["sse"])
     assert auto.best_model_name_ in ("N", "S", "P", "F")
 
 
-def test_autoces_skips_seasonal_when_season_length_is_one():
-    """With ``season_length=1`` seasonal candidates are skipped, ``N`` wins."""
+def test_autoces_skips_seasonal_when_seasonal_period_is_one():
+    """With ``seasonal_period=1`` seasonal candidates are skipped, ``N`` wins."""
     y = _synthetic_seasonal()
-    auto = AutoCES(season_length=1, models=("N", "F")).fit(y)
+    auto = AutoCES(seasonal_period=1, models=("N", "F")).fit(y)
     assert auto.best_model_name_ == "N"
     assert auto.model_results_["F"]["status"] == "skipped"
 
@@ -484,7 +484,7 @@ def test_autoces_iterative_forecast_passes_through():
     """``AutoCES.iterative_forecast`` returns the selected model's forecasts."""
     y = _synthetic_seasonal()
     h = 6
-    auto = AutoCES(season_length=4)
+    auto = AutoCES(seasonal_period=4)
     auto_pred = auto.iterative_forecast(y, prediction_horizon=h)
     direct = auto.best_model_.iterative_forecast(y, prediction_horizon=h)
     np.testing.assert_allclose(auto_pred, direct)
@@ -494,29 +494,29 @@ def test_autoces_invalid_ic_raises():
     """An unknown information criterion must raise ``ValueError``."""
     y = _synthetic_seasonal()
     with pytest.raises(ValueError, match="ic must be one of"):
-        AutoCES(season_length=4, ic="nonsense").fit(y)
+        AutoCES(seasonal_period=4, ic="nonsense").fit(y)
 
 
 @pytest.mark.parametrize("bad", [0, -1, 4.9, True, False, "4"])
-def test_autoces_invalid_season_length_raises(bad):
-    """AutoCES must reject the same bad season_length values as CES.
+def test_autoces_invalid_seasonal_period_raises(bad):
+    """AutoCES must reject the same bad seasonal_period values as CES.
 
     Regression for a Codex review point: ``AutoCES._fit`` previously
-    called ``int(self.season_length)`` without validation, so floats,
+    called ``int(self.seasonal_period)`` without validation, so floats,
     strings, booleans and non-positive ints all silently coerced into a
     valid-looking ``m`` and the seasonal candidates were quietly skipped.
     """
     y = _synthetic_seasonal()
-    with pytest.raises(ValueError, match="season_length"):
-        AutoCES(season_length=bad).fit(y)
+    with pytest.raises(ValueError, match="seasonal_period"):
+        AutoCES(seasonal_period=bad).fit(y)
 
 
 def test_autoces_all_candidates_failing_raises():
     """If every candidate is skipped or errors, fitting must raise."""
     y = _synthetic_seasonal()
-    # season_length=1 → F skipped; only "S" requested → also skipped → all fail
+    # seasonal_period=1 → F skipped; only "S" requested → also skipped → all fail
     with pytest.raises(ValueError, match="All AutoCES candidates failed"):
-        AutoCES(season_length=1, models=("S",)).fit(y)
+        AutoCES(seasonal_period=1, models=("S",)).fit(y)
 
 
 def test_autoces_rejects_exog_and_future_exog():
@@ -524,9 +524,11 @@ def test_autoces_rejects_exog_and_future_exog():
     y = _synthetic_seasonal()
     exog = np.arange(y.shape[0], dtype=float)
     with pytest.raises(NotImplementedError, match="exogenous"):
-        AutoCES(season_length=4).iterative_forecast(y, prediction_horizon=3, exog=exog)
+        AutoCES(seasonal_period=4).iterative_forecast(
+            y, prediction_horizon=3, exog=exog
+        )
     with pytest.raises(NotImplementedError, match="exogenous"):
-        AutoCES(season_length=4).iterative_forecast(
+        AutoCES(seasonal_period=4).iterative_forecast(
             y, prediction_horizon=3, future_exog=np.arange(3.0)
         )
 
@@ -557,18 +559,18 @@ def test_ces_initial_state_seeds_and_validation():
     assert np.isfinite(f.forecast_)
 
     with pytest.raises(ValueError, match="initial_seasonal_real must have length"):
-        CES(model="P", season_length=4, initial_seasonal_real=np.ones(3)).fit(y)
-    f = CES(model="P", season_length=4, initial_seasonal_real=np.zeros(4)).fit(y)
+        CES(model="P", seasonal_period=4, initial_seasonal_real=np.ones(3)).fit(y)
+    f = CES(model="P", seasonal_period=4, initial_seasonal_real=np.zeros(4)).fit(y)
     assert np.isfinite(f.forecast_)
 
     with pytest.raises(ValueError, match="initial_seasonal_imag must have length"):
-        CES(model="F", season_length=4, initial_seasonal_imag=np.ones(2)).fit(y)
-    f = CES(model="F", season_length=4, initial_seasonal_imag=np.zeros(4)).fit(y)
+        CES(model="F", seasonal_period=4, initial_seasonal_imag=np.ones(2)).fit(y)
+    f = CES(model="F", seasonal_period=4, initial_seasonal_imag=np.zeros(4)).fit(y)
     assert np.isfinite(f.forecast_)
 
     seed = np.array([np.inf, 0.0, 0.0, 0.0])
     with pytest.raises(ValueError, match="non-finite values"):
-        CES(model="P", season_length=4, initial_seasonal_real=seed).fit(y)
+        CES(model="P", seasonal_period=4, initial_seasonal_real=seed).fit(y)
 
 
 def test_ces_fixed_alpha_real_optimises_remaining():
@@ -589,8 +591,8 @@ def test_autoces_validation_and_skips():
     with pytest.raises(ValueError, match="at least one candidate"):
         AutoCES(models=()).fit(y)
 
-    # season_length too large for n -> seasonal candidate skipped
-    f = AutoCES(season_length=6, models=("N", "S")).fit(y)
+    # seasonal_period too large for n -> seasonal candidate skipped
+    f = AutoCES(seasonal_period=6, models=("N", "S")).fit(y)
     assert f.model_results_["S"]["status"] == "skipped"
     assert f.best_model_name_ == "N"
 

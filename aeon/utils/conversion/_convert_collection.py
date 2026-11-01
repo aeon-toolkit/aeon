@@ -58,7 +58,7 @@ def _from_numpy3d_to_np_list(X):
     """
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
-    return [x for x in X]
+    return [*X]
 
 
 def _from_numpy3d_to_df_list(X):
@@ -198,7 +198,7 @@ def _from_df_list_to_numpy3d(X):
 def _from_df_list_to_numpy2d(X):
     if not is_equal_length(X):
         raise TypeError(
-            f"{type(X)} does not store equal length series."
+            f"{type(X)} does not store equal length series. "
             f"Cannot convert unequal length to numpy flat"
         )
     np_list = _from_df_list_to_np_list(X)
@@ -249,7 +249,7 @@ def _from_numpy2d_to_np_list(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         raise TypeError(NUMPY2D_INPUT_ERROR)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
-    X_list = [x for x in X_3d]
+    X_list = [*X_3d]
     return X_list
 
 
