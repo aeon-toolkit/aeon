@@ -7,6 +7,11 @@ import numpy as np
 from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
+from aeon.forecasting.utils._seasonality import (
+    _seasonal_decompose_numba,
+    _seasonal_forecast,
+    acf_seasonal_test,
+)
 
 # 95% one-sided normal quantile used by the ACF seasonal test (StatsForecast).
 _ACF_TEST_QUANTILE = 1.6448536269514722
@@ -460,220 +465,15 @@ def _seasonal_decompose(y, seasonal_period, requested_type):
     return factors, adjusted, "multiplicative"
 
 
-def _seasonal_forecast(seasonal_factors, h, seasonal_period, n_train):
-    """Repeat the learned seasonal cycle in phase for ``h`` future steps."""
-    return seasonal_factors[(int(n_train) + np.arange(int(h))) % int(seasonal_period)]
-
-
-@njit(cache=True, fastmath={"contract"})
 def _acf_seasonal_test_numba(y, seasonal_period, threshold):
-    """Single-pass ACF seasonal significance test on first-differenced ``y``.
+    """ACF seasonal significance test on first-differenced ``y``.
 
-    Equivalent to the previous numpy implementation: compute ``dy = diff(y)``,
-    centre it, then compare the Bartlett-corrected ACF at lag ``seasonal_period``
-    against ``threshold``. Implemented as one numba routine to avoid the
-    per-call numpy roundtrip overhead seen on short series.
+    First differencing removes a constant trend, so monotone series do not
+    trigger spurious seasonal detection.
     """
-    n = y.shape[0]
-    if n <= seasonal_period + 1:
+    if y.shape[0] <= seasonal_period + 1:
         return False
-
-    dy_len = n - 1
-    mean_dy = 0.0
-    for i in range(dy_len):
-        mean_dy += y[i + 1] - y[i]
-    mean_dy /= dy_len
-
-    dy_centred = np.empty(dy_len, dtype=np.float64)
-    denom = 0.0
-    for i in range(dy_len):
-        c = (y[i + 1] - y[i]) - mean_dy
-        dy_centred[i] = c
-        denom += c * c
-    if denom <= 1e-12:
-        return False
-
-    m = seasonal_period
-    prior_sq = 0.0
-    acf_at_m = 0.0
-    for lag in range(1, m + 1):
-        s = 0.0
-        for i in range(dy_len - lag):
-            s += dy_centred[i] * dy_centred[i + lag]
-        acf = s / denom
-        if lag < m:
-            prior_sq += acf * acf
-        else:
-            acf_at_m = acf
-
-    se_sq = (1.0 + 2.0 * prior_sq) / dy_len
-    if se_sq <= 0.0 or not np.isfinite(se_sq):
-        return False
-    se = se_sq**0.5
-    return abs(acf_at_m) / se > threshold
-
-
-@njit(cache=True, fastmath={"contract"})
-def _seasonal_decompose_numba(y, seasonal_period, requested_mult, mult_floor):
-    """Classical seasonal decomposition with centred-MA detrending in one pass.
-
-    Steps mirror the previous numpy version:
-
-    1. Estimate a trend via the centred moving average of period
-       ``seasonal_period`` (odd ``m``: uniform window; even ``m``: 2*m smoothing
-       with ``[0.5, 1, ..., 1, 0.5] / m`` weights).
-    2. Detrend additively or multiplicatively.
-    3. Estimate seasonal indices as the per-position mean of the detrended
-       series, ignoring positions where the MA is undefined.
-    4. Normalise (sum-zero for additive, mean-one for multiplicative).
-
-    Multiplicative falls back to additive when ``y`` contains non-positive
-    values, when the MA contains non-positive values, or when factors are
-    non-finite or below ``mult_floor``.
-
-    Returns
-    -------
-    type_code : int
-        ``0`` for "none" (no decomposition applied), ``1`` for additive,
-        ``2`` for multiplicative.
-    factors : np.ndarray
-        Seasonal factors of length ``seasonal_period``. All zeros when
-        ``type_code == 0``; the caller should ignore the array in that case.
-    adjusted : np.ndarray
-        Seasonally adjusted series of the same length as ``y``. Equal to a
-        copy of ``y`` when ``type_code == 0``.
-    """
-    n = y.shape[0]
-    m = seasonal_period
-    half = m // 2
-
-    factors = np.zeros(m, dtype=np.float64)
-
-    # Centred MA requires at least m points (odd m) or m + 1 points (even m).
-    if m % 2 == 1:
-        if n < m:
-            return 0, factors, y.copy()
-    else:
-        if n < m + 1:
-            return 0, factors, y.copy()
-
-    inv_m = 1.0 / m
-    ma = np.empty(n, dtype=np.float64)
-    for i in range(n):
-        ma[i] = np.nan
-
-    if m % 2 == 1:
-        for t in range(half, n - half):
-            s = 0.0
-            for k in range(t - half, t + half + 1):
-                s += y[k]
-            ma[t] = s * inv_m
-    else:
-        for t in range(half, n - half):
-            s = 0.5 * (y[t - half] + y[t + half])
-            for k in range(t - half + 1, t + half):
-                s += y[k]
-            ma[t] = s * inv_m
-
-    # Multiplicative viability check.
-    use_mult = requested_mult
-    if use_mult:
-        for i in range(n):
-            if y[i] <= 0.0:
-                use_mult = False
-                break
-    if use_mult:
-        for t in range(half, n - half):
-            if ma[t] <= 0.0:
-                use_mult = False
-                break
-
-    sums = np.empty(m, dtype=np.float64)
-    counts = np.empty(m, dtype=np.int64)
-
-    if use_mult:
-        for p in range(m):
-            sums[p] = 0.0
-            counts[p] = 0
-        for t in range(half, n - half):
-            d = y[t] / ma[t]
-            if np.isfinite(d):
-                pos = t % m
-                sums[pos] += d
-                counts[pos] += 1
-
-        valid = True
-        for p in range(m):
-            if counts[p] == 0:
-                valid = False
-                break
-            factors[p] = sums[p] / counts[p]
-
-        if valid:
-            factor_sum = 0.0
-            for p in range(m):
-                factor_sum += factors[p]
-            factor_mean = factor_sum / m
-            if np.isfinite(factor_mean) and factor_mean > mult_floor:
-                ok = True
-                min_factor = 1e300
-                for p in range(m):
-                    f = factors[p] / factor_mean
-                    factors[p] = f
-                    if not np.isfinite(f):
-                        ok = False
-                        break
-                    if f < min_factor:
-                        min_factor = f
-                if ok and min_factor >= mult_floor:
-                    adjusted = np.empty(n, dtype=np.float64)
-                    all_finite = True
-                    for i in range(n):
-                        rep = factors[i % m]
-                        v = y[i] / rep
-                        adjusted[i] = v
-                        if not np.isfinite(v):
-                            all_finite = False
-                            break
-                    if all_finite:
-                        return 2, factors, adjusted
-        # Fall through to additive on any multiplicative failure.
-
-    # Additive path (also the multiplicative fallback).
-    for p in range(m):
-        sums[p] = 0.0
-        counts[p] = 0
-    for t in range(half, n - half):
-        d = y[t] - ma[t]
-        if np.isfinite(d):
-            pos = t % m
-            sums[pos] += d
-            counts[pos] += 1
-
-    for p in range(m):
-        if counts[p] == 0:
-            zeros = np.zeros(m, dtype=np.float64)
-            return 0, zeros, y.copy()
-        factors[p] = sums[p] / counts[p]
-
-    factor_sum = 0.0
-    for p in range(m):
-        factor_sum += factors[p]
-    factor_mean = factor_sum / m
-    for p in range(m):
-        factors[p] -= factor_mean
-        if not np.isfinite(factors[p]):
-            zeros = np.zeros(m, dtype=np.float64)
-            return 0, zeros, y.copy()
-
-    adjusted = np.empty(n, dtype=np.float64)
-    for i in range(n):
-        v = y[i] - factors[i % m]
-        adjusted[i] = v
-        if not np.isfinite(v):
-            zeros = np.zeros(m, dtype=np.float64)
-            return 0, zeros, y.copy()
-    return 1, factors, adjusted
+    return acf_seasonal_test(np.diff(y), seasonal_period, threshold)
 
 
 # ---------------------------------------------------------------------------
