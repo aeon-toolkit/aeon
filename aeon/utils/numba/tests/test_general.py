@@ -2,7 +2,11 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import (
+    assert_allclose,
+    assert_array_almost_equal,
+    assert_array_equal,
+)
 
 from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.utils.numba.general import (
@@ -418,6 +422,9 @@ def test_normalise_dilated_subsequences(dtype):
     """Matches normalise_subsequences on the transposed layout."""
     X = make_example_2d_numpy_series(n_timepoints=50, n_channels=3, random_state=0)
     X = (X * 100).astype(dtype)
+    # Whether the fastmath division becomes a multiplication by the inverse depends
+    # on the compiler, so the two can differ by a few ulp.
+    tol = 1e-6 if dtype == "float32" else 1e-12
     for length in [3, 5]:
         for dilation in [1, 3, 5]:
             X_means, X_stds = sliding_mean_std_one_series(X, length, dilation)
@@ -428,7 +435,8 @@ def test_normalise_dilated_subsequences(dtype):
                 get_all_subsequences(X, length, dilation), X_means, X_stds
             ).transpose(1, 2, 0)
             assert X_norm.shape == expected.shape
-            assert_array_equal(X_norm, expected)
+            assert X_norm.dtype == expected.dtype
+            assert_allclose(X_norm, expected, rtol=tol, atol=tol)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

@@ -667,7 +667,7 @@ def normalise_dilated_subsequences(
     # A one element probe gives the output dtype without copying the whole series
     dtype = _as_normalised_float(X[:1, :1]).dtype
     X_subs = np.empty((n_channels, length, n_subsequences), dtype=dtype)
-    inv_stds = np.zeros(n_subsequences)
+    inv_stds = np.zeros(n_subsequences, dtype=dtype)
     for i_channel in range(n_channels):
         means = X_means[i_channel]
         # Multiplying by the inverse of the std is what the fastmath division of

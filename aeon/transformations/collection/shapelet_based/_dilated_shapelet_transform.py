@@ -791,24 +791,25 @@ def random_dilated_shapelet_extraction(
     Returns
     -------
     Shapelets : tuple
-    The returned tuple contains 7 arrays describing the shapelets parameters:
-        - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
+    The returned tuple contains 9 arrays describing the shapelets parameters. Only the
+    n_shapelets <= max_shapelets shapelets which could be sampled are returned:
+        - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
-        - startpoints : array, shape (max_shapelets)
+        - startpoints : array, shape (n_shapelets)
             Start points parameter of the shapelets
-        - lengths : array, shape (max_shapelets)
+        - lengths : array, shape (n_shapelets)
             Length parameter of the shapelets
-        - dilations : array, shape (max_shapelets)
+        - dilations : array, shape (n_shapelets)
             Dilation parameter of the shapelets
-        - threshold : array, shape (max_shapelets)
+        - thresholds : array, shape (n_shapelets)
             Threshold parameter of the shapelets
-        - normalises : array, shape (max_shapelets)
+        - normalises : array, shape (n_shapelets)
             Normalization indicator of the shapelets
-        - means : array, shape (max_shapelets, n_channels)
+        - means : array, shape (n_shapelets, n_channels)
             Means of the shapelets
-        - stds : array, shape (max_shapelets, n_channels)
+        - stds : array, shape (n_shapelets, n_channels)
             Standard deviation of the shapelets
-        - classes : array, shape (max_shapelets)
+        - classes : array, shape (n_shapelets)
             Class from which the shapelet was extracted
     """
     n_cases = len(X)
@@ -967,7 +968,7 @@ def dilated_shapelet_transform(
         The returned tuple contains 9 arrays describing the shapelets parameters:
         - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
-        - startpoints : array, shape (max_shapelets)
+        - startpoints : array, shape (n_shapelets)
             Start points parameter of the shapelets
         - lengths : array, shape (n_shapelets)
             Length parameter of the shapelets
@@ -981,7 +982,7 @@ def dilated_shapelet_transform(
             Means of the shapelets
         - stds : array, shape (n_shapelets, n_channels)
             Standard deviation of the shapelets
-        - classes : array, shape (max_shapelets)
+        - classes : array, shape (n_shapelets)
             Class from which the shapelet was extracted
 
     Returns
@@ -1017,7 +1018,8 @@ def dilated_shapelet_transform(
 
     X_new = np.zeros((n_cases, n_ft * n_shapelets))
     # One parallel iteration per (series, pair), ordered by series so that the work
-    # is balanced between threads and each row of X_new is written by one thread
+    # is balanced between threads. Each iteration writes the columns of the shapelets
+    # of its pair in the row of its series, which no other iteration writes.
     for i_iter in prange(n_cases * n_params):
         i_x = i_iter // n_params
         i_params = i_iter % n_params
