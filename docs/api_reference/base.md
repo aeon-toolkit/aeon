@@ -15,7 +15,6 @@ The `aeon.base` module contains abstract base classes.
     BaseCollectionEstimator
     BaseSeriesEstimator
     CheckpointableMixin
-    CheckpointVersionWarning
     ComposableEstimatorMixin
 ```
 
@@ -92,7 +91,7 @@ checked before unpickling; estimator class and parameter-signature checks happen
 after unpickling. `CheckpointableMixin.read_checkpoint_metadata(path)` returns that
 header without loading the estimator, so a checkpoint can be identified even
 when it cannot be restored. An unsupported format version is rejected; a
-checkpoint written by a different aeon version raises `CheckpointVersionWarning`
+checkpoint written by a different aeon version raises `UserWarning`
 and is still loaded, since refusing it would discard the fit. Use the same
 Python and dependency environment when resuming; cross-version compatibility is
 not guaranteed, including between development revisions with the same version

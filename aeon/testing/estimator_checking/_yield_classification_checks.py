@@ -239,7 +239,18 @@ def check_checkpointing_classifier(estimator_class, datatype):
         bad_y[0] = y[np.flatnonzero(y != y[0])[0]]
         with pytest.raises(ValueError, match="Unable to resume fitting: X and y"):
             restored.resume_fit(X, bad_y)
-        restored.resume_fit(X, y)
+        with patch.object(
+            estimator_class,
+            "_checkpoint_if_due",
+            autospec=True,
+            side_effect=estimator_class._checkpoint_if_due,
+        ) as checkpoint:
+            restored.resume_fit(X, y)
+        # Resuming must reach a training boundary, not just the final forced save.
+        assert any(
+            not call.kwargs.get("force", call.args[1] if len(call.args) > 1 else False)
+            for call in checkpoint.call_args_list
+        )
         assert restored.is_fitted
         assert_array_almost_equal(
             uninterrupted.predict_proba(X_test), restored.predict_proba(X_test)
