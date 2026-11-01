@@ -19,6 +19,7 @@ from aeon.testing.data_generation import (
 )
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
+    _features_from_dist_vector,
     _get_admissible_sampling_point,
     _update_alpha_mask,
     compute_shapelet_dist_vector,
@@ -372,6 +373,24 @@ def test_compute_shapelet_features(dtype):
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 3.0
     assert SO == 3.0
+
+
+def test_features_from_dist_vector():
+    """Test the min, argmin and SO features against numpy."""
+    rng = np.random.default_rng(0)
+    for n in [1, 2, 7, 50]:
+        for scale in [1e-300, 1.0, 1e300]:
+            dist_vector = rng.random(n) * scale
+            threshold = np.median(dist_vector)
+            assert _features_from_dist_vector(dist_vector, threshold) == (
+                dist_vector.min(),
+                dist_vector.argmin(),
+                np.sum(dist_vector < threshold),
+            )
+    # The first minimum is kept on ties
+    assert _features_from_dist_vector(np.array([2.0, 1.0, 1.0]), 1.5) == (1, 1, 2)
+    # An empty distance vector, which the transform sets to zero
+    assert _features_from_dist_vector(np.zeros(0), 1.5) == (np.inf, np.inf, 0)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

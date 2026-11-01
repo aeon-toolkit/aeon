@@ -1153,10 +1153,16 @@ def _features_from_dist_vector(dist_vector: np.ndarray, threshold: float):
     min, argmin, shapelet occurrence
         The three computed features as float dtypes
     """
-    _min = np.inf
-    _argmin = np.inf
+    n_subsequences = dist_vector.shape[0]
+    if n_subsequences == 0:
+        # Features of an empty distance vector, set to zero by the transform
+        return np.inf, np.inf, 0.0
+    # Start from the first distance rather than from an inf sentinel, as fastmath
+    # lets the compiler assume that no value is infinite
+    _min = dist_vector[0]
+    _argmin = 0
     _SO = 0
-    for i_sub in range(dist_vector.shape[0]):
+    for i_sub in range(n_subsequences):
         _dist = dist_vector[i_sub]
         if _dist < _min:
             _min = _dist
