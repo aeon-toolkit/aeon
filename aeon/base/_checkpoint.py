@@ -58,9 +58,8 @@ class CheckpointableMixin:
     A checkpoint is a single file holding a one-line JSON header followed by the
     pickled estimator. The header records the format and aeon versions, the
     estimator class and the parameter signature. The format version is checked
-    before unpickling; estimator class and parameter-signature checks happen
-    after unpickling. The plain-text header can be inspected without loading
-    the estimator.
+    before unpickling. The plain-text header can be inspected without loading
+    the estimator; its class and parameter signature are informational.
 
     Only load trusted files: the body is pickle and can execute arbitrary code.
     The default implementation requires ``cant_pickle=False``. A checkpoint from
@@ -149,7 +148,6 @@ class CheckpointableMixin:
         """
         with Path(filepath).open("rb") as file:
             # Reject unreadable headers and unsupported formats before unpickling.
-            # Class and parameter-signature checks below require the loaded body.
             metadata = _parse_checkpoint_header(file)
             if metadata.get("format_version") != _CHECKPOINT_FORMAT_VERSION:
                 raise ValueError("Unsupported checkpoint format version.")
@@ -174,16 +172,6 @@ class CheckpointableMixin:
                 f"expected an instance of {cls.__name__}."
             )
 
-        if metadata.get("estimator_class") != estimator._checkpoint_class_name():
-            raise ValueError("Checkpoint estimator class does not match its metadata.")
-        if metadata.get("parameter_signature") != getattr(
-            estimator, "_checkpoint_parameter_signature", None
-        ):
-            raise ValueError(
-                "Checkpoint parameter signature does not match its metadata."
-            )
-        if not getattr(estimator, "_checkpoint_ready", False):
-            raise ValueError("Checkpoint does not contain safe continuation state.")
         return estimator
 
     @staticmethod

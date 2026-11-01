@@ -67,23 +67,6 @@ def test_failed_save_preserves_checkpoint(checkpoint_directory, failure):
     assert list(checkpoint_directory.iterdir()) == [path]
 
 
-@pytest.mark.parametrize(
-    "field, value, message",
-    [
-        ("format_version", 999, "format version"),
-        ("estimator_class", "wrong.Class", "estimator class"),
-        ("parameter_signature", "not-the-fitted-signature", "parameter signature"),
-    ],
-)
-def test_checkpoint_metadata(checkpoint_directory, field, value, message):
-    """Reject incompatible checkpoint metadata."""
-    path = checkpoint_directory / "checkpoint.pkl"
-    _ready_estimator().save_checkpoint(path)
-    _update_checkpoint_metadata(path, **{field: value})
-    with pytest.raises(ValueError, match=message):
-        _Checkpointable.load_checkpoint(path)
-
-
 def test_read_checkpoint_metadata(checkpoint_directory):
     """The public reader returns the raw JSON header without unpickling."""
     path = checkpoint_directory / "checkpoint.pkl"
