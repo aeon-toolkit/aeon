@@ -3,6 +3,7 @@
 __maintainer__ = []
 __all__ = []
 
+import numpy as np
 import pytest
 
 from aeon.datasets import load_airline
@@ -17,8 +18,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 @pytest.mark.parametrize("horizon,window,epochs", [(1, 10, 2), (1, 12, 3), (1, 15, 2)])
 def test_tcn_forecaster(horizon, window, epochs):
     """Test TCNForecaster with different parameter combinations."""
-    import tensorflow as tf
-
     # Load airline dataset
     y = load_airline()
 
@@ -32,9 +31,8 @@ def test_tcn_forecaster(horizon, window, epochs):
     prediction = forecaster.predict(y)
 
     # Basic assertions
-    assert isinstance(prediction, float)
-    if isinstance(prediction, tf.Tensor):
-        assert not tf.math.is_nan(prediction).numpy()
+    assert prediction.shape == (1,)
+    assert np.isfinite(prediction).all()
 
 
 @pytest.mark.skipif(
@@ -65,11 +63,11 @@ def test_tcn_forecaster_uni_mutli(loader, is_univariate):
 
     # predict
     prediction = forecaster.predict(y)
-    assert isinstance(prediction, float)
+    assert prediction.shape == (1,)
 
     # forecast
     prediction = forecaster.forecast(y)
-    assert isinstance(prediction, float)
+    assert prediction.shape == (1,)
 
     # iterative forecasting
     prediction = forecaster.iterative_forecast(y, 3)

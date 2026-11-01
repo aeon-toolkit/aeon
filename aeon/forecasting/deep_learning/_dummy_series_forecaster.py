@@ -31,8 +31,8 @@ class DummySeriesForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         return self
 
     def _predict(self, y, exog=None):
-        """Just predict the simple constant value."""
-        return self.value_to_return
+        """Predict a constant series over the configured horizon."""
+        return self._series_to_series_forecast(y, self.horizon, exog)
 
     def _series_to_series_forecast(
         self, y, prediction_horizon, exog=None

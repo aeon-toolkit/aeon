@@ -149,7 +149,7 @@ class EnsembleForecaster(
 
     def _predict(self, y, exog=None):
         """Return the combined one-step-ahead prediction."""
-        preds = np.array([f.predict(y) for _, f in self.forecasters_])
+        preds = np.array([f.predict(y).item() for _, f in self.forecasters_])
         return self._combine(preds)
 
     def iterative_forecast(
@@ -241,7 +241,10 @@ class EnsembleForecaster(
         predictions = np.zeros(prediction_horizon, dtype=float)
         for i in range(prediction_horizon):
             component_preds = np.array(
-                [forecaster.predict(y_extended) for _, forecaster in self.forecasters_],
+                [
+                    forecaster.predict(y_extended).item()
+                    for _, forecaster in self.forecasters_
+                ],
                 dtype=float,
             )
             ensemble_pred = self._combine(component_preds)

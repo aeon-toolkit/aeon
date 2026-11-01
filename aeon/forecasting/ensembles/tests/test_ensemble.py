@@ -143,15 +143,6 @@ def test_callable_averaging_method_rejects_wrong_multi_step_shape():
         ens.iterative_forecast(y, prediction_horizon=3)
 
 
-def test_predict_returns_python_float():
-    """``predict`` must return a Python float, not a numpy scalar."""
-    y = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    ens = EnsembleForecaster(forecasters=_default_forecasters())
-    ens.fit(y)
-    result = ens.predict(y)
-    assert isinstance(result, float)
-
-
 # ---------------------------------------------------------------------------
 # Multi-step iterative forecasting
 # ---------------------------------------------------------------------------
