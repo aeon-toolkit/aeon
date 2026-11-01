@@ -102,8 +102,7 @@ class FourTheta(BaseForecaster, IterativeForecastingMixin):
 
     - SES is estimated by Brent's method on the smoothing parameter, with the
       initial level found in closed form, rather than by Nelder-Mead over both.
-      The objective is the same SSE. On a sample of M4 series the SSE was never
-      materially higher than R's, and was lower where Nelder-Mead stopped early.
+      The objective is the same SSE.
     - Decomposition and trend are estimated once for each candidate rather than
       for every evaluation of :math:`\theta`.
     - Forecasts are floored at zero only if all the training data are

@@ -178,8 +178,6 @@ def _seasonal_forecast(seasonal_factors, h, seasonal_period, n_train):
 def _seasonal_decompose_numba(y, seasonal_period, requested_mult, mult_floor):
     """Classical seasonal decomposition with centred-MA detrending in one pass.
 
-    Steps mirror the previous numpy version:
-
     1. Estimate a trend via the centred moving average of period
        ``seasonal_period`` (odd ``m``: uniform window; even ``m``: 2*m smoothing
        with ``[0.5, 1, ..., 1, 0.5] / m`` weights).
@@ -236,7 +234,6 @@ def _seasonal_decompose_numba(y, seasonal_period, requested_mult, mult_floor):
                 s += y[k]
             ma[t] = s * inv_m
 
-    # Multiplicative viability check.
     use_mult = requested_mult
     if use_mult:
         for i in range(n):
@@ -298,9 +295,7 @@ def _seasonal_decompose_numba(y, seasonal_period, requested_mult, mult_floor):
                             break
                     if all_finite:
                         return 2, factors, adjusted
-        # Fall through to additive on any multiplicative failure.
 
-    # Additive path (also the multiplicative fallback).
     for p in range(m):
         sums[p] = 0.0
         counts[p] = 0
