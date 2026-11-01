@@ -32,7 +32,7 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
         _x = np.reshape(x, (shape[0], 1, shape[1]))
     elif n_channels > 3:
         raise ValueError(
-            "The matrix provided has more than 3 dimensions. This is not"
+            "The matrix provided has more than 3 dimensions. This is not "
             "supported. Please provide a matrix with less than "
             "3 dimensions"
         )

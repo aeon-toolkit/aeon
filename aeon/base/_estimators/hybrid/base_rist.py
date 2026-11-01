@@ -14,7 +14,7 @@ from aeon.transformations.collection import (
     ARCoefficientTransformer,
     PeriodogramTransformer,
 )
-from aeon.transformations.collection.feature_based._catch22 import _InternalCatch22
+from aeon.transformations.collection.feature_based._catch22 import Catch22
 from aeon.transformations.collection.interval_based import RandomIntervals
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
@@ -65,14 +65,6 @@ class BaseRIST(ABC):
         A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
-    use_pycatch22 : bool, default="deprecated"
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
-
-        Deprecated and will be removed in v1.7.0. Setting ``use_pycatch22=True``
-        continues to use pycatch22 until removal. Omit this parameter to use aeon's
-        faster implementation.
     estimator : sklearn estimator, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         extra trees forest with 200 trees.
@@ -101,14 +93,12 @@ class BaseRIST(ABC):
         The list of fitted series transformers used in the RIST pipeline.
     """
 
-    # TODO remove 'use_pycatch22' in v1.7.0
     @abstractmethod
     def __init__(
         self,
         n_intervals=None,
         n_shapelets=None,
         series_transformers="default",
-        use_pycatch22="deprecated",
         estimator=None,
         n_jobs=1,
         random_state=None,
@@ -116,7 +106,6 @@ class BaseRIST(ABC):
         self.n_intervals = n_intervals
         self.n_shapelets = n_shapelets
         self.series_transformers = series_transformers
-        self.use_pycatch22 = use_pycatch22
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -195,10 +184,9 @@ class BaseRIST(ABC):
             ct = RandomIntervals(
                 n_intervals=n_intervals,
                 features=[
-                    _InternalCatch22(
+                    Catch22(
                         outlier_norm=True,
                         replace_nans=True,
-                        use_pycatch22=self.use_pycatch22,
                     ),
                     row_mean,
                     row_std,

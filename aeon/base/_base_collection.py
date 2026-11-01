@@ -304,7 +304,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
                 if nt != self.metadata_["n_timepoints"]:
                     raise ValueError(
                         "X has different length to the data seen in fit but "
-                        "this classifier cannot handle unequal length series."
+                        "this classifier cannot handle unequal length series. "
                         f"length of train set was {self.metadata_['n_timepoints']}",
                         f" length in predict is {nt}.",
                     )

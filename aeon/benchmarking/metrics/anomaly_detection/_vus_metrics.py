@@ -123,7 +123,7 @@ def range_pr_roc_auc_support(
        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
     if not skip_check:
-        y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+        y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     y_true_cont, anomalies = _extend_anomaly_labels(y_true, buffer_size)
     thresholds = _uniform_threshold_sampling(y_score)
     p = np.average([np.sum(y_true), np.sum(y_true_cont)])
@@ -202,7 +202,7 @@ def range_roc_auc_score(
        2774 - 2787, 2022.
        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -257,7 +257,7 @@ def range_pr_auc_score(
        2774 - 2787, 2022.
        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -309,7 +309,7 @@ def range_pr_vus_score(
        2774 - 2787, 2022.
        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -365,7 +365,7 @@ def range_roc_vus_score(
        2774 - 2787, 2022.
        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
