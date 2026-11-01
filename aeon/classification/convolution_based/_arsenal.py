@@ -497,11 +497,12 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         periodic_checkpoints = (
             self.checkpoint_path is not None and self.checkpoint_interval is not None
         )
-        batch_size = (
-            self._n_jobs
-            if time_limit > 0 or periodic_checkpoints
-            else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
-        )
+        if time_limit > 0 or periodic_checkpoints:
+            batch_size = self._n_jobs
+        elif self.verbose > 0:
+            batch_size = max(self._n_jobs, (target + 9) // 10)
+        else:
+            batch_size = target
         # the contract bounds total training time, so an interrupted fit resumes
         # with whatever budget the earlier calls left rather than a fresh one
         while self.n_estimators_ < target and (
@@ -551,14 +552,13 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
                 if time_limit > 0:
                     contract_left = max(0.0, time_limit - self.fit_elapsed_time_)
                     remaining = (
-                        "contract_remaining=" f"{self._format_duration(contract_left)}"
+                        f"contract_remaining={self._format_duration(contract_left)}"
                     )
                 else:
                     estimate = train_time / (self.n_estimators_ - initial_count)
                     remaining_time = estimate * (target - self.n_estimators_)
                     remaining = (
-                        "estimated_remaining="
-                        f"{self._format_duration(remaining_time)}"
+                        f"estimated_remaining={self._format_duration(remaining_time)}"
                     )
                 for estimator_idx in range(
                     self.n_estimators_ - current_batch_size + 1, self.n_estimators_ + 1
