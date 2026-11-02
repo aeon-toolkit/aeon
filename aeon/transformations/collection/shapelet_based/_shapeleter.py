@@ -1,7 +1,12 @@
 """Shapeleter transformation."""
 
 __maintainer__ = []
-__all__ = ["ShapeleterTransform"]
+__all__ = [
+    "ShapeleterTransform",
+    "_hilbert_transform",
+    "_series_transform",
+    "_cosine_similarity_squared_loss",
+]
 
 import numpy as np
 from numba import njit, prange
@@ -74,6 +79,7 @@ def _hypergraph_prune(
     labels,
     neighbor_k=(3, 5),
     save_rate=0.5,
+    per_shapelets=None,
     jaccard_threshold=0.9,
 ):
     """Prune candidate shapelets using hypergraph purity and Jaccard diversity."""
@@ -118,6 +124,8 @@ def _hypergraph_prune(
 
     # 4. Greedy diversity selection
     save_n = max(1, int(np.ceil(save_rate * n_shapelets)))
+    if per_shapelets is not None:
+        save_n = min(save_n, int(per_shapelets))
     unique_labels = np.unique(labels)
     top_node = int(np.argmax(purity))
     saved_nodes = [top_node]
@@ -234,62 +242,68 @@ def _optimize_position_encoding_np(
     return float(np.exp(w[0])), float(np.exp(w[1]))
 
 
-def _optimize_position_encoding(
-    featureX,
-    positionX,
-    orderX,
-    len_map,
-    ka0=8.0,
-    ko0=8.0,
-    k_min=1.0,
-    k_max=15.0,
-    lr=0.002,
-    max_iter=200,
-):
-    """Optimize Ka and Ko using Adam via PyTorch."""
-    import torch
-    import torch.nn.functional as F
-    import torch.optim as optim
+def _hilbert_transform(signal):
+    """Compute discrete Hilbert transform (envelope of analytic signal) via FFT.
 
-    n_shapelet = positionX.shape[1]
+    Parameters
+    ----------
+    signal : np.ndarray
+        Input signal array with time along the last axis.
 
-    ka_param = torch.tensor(float(ka0), dtype=torch.float32, requires_grad=True)
-    ko_param = torch.tensor(float(ko0), dtype=torch.float32, requires_grad=True)
+    Returns
+    -------
+    envelope : np.ndarray
+        Analytic signal envelope (magnitude).
+    """
+    n = signal.shape[-1]
+    if n <= 1:
+        return np.abs(signal)
 
-    feat_t = torch.from_numpy(featureX).float()
-    pos_t = torch.from_numpy(positionX).float()
-    ord_t = torch.from_numpy(orderX).float()
+    f = np.fft.fft(signal, axis=-1)
+    h = np.zeros(n, dtype=np.float64)
+    h[0] = 1.0
+    if n % 2 == 0:
+        h[1 : n // 2] = 2.0
+        h[n // 2] = 1.0
+    else:
+        h[1 : (n + 1) // 2] = 2.0
 
-    optimizer = optim.Adam([ka_param, ko_param], lr=lr)
+    analytic = np.fft.ifft(f * h, axis=-1)
+    return np.abs(analytic)
 
-    for _ in range(max_iter):
-        optimizer.zero_grad()
 
-        b_abs = ka_param * len_map / (2.0 * np.pi)
-        b_ord = ko_param * n_shapelet / (2.0 * np.pi)
+def _series_transform(X, mode):
+    """Transform time series collection into alternative representation.
 
-        pe_a = torch.cat([torch.sin(pos_t / b_abs), torch.cos(pos_t / b_abs)], dim=1)
-        pe_o = torch.cat([torch.sin(ord_t / b_ord), torch.cos(ord_t / b_ord)], dim=1)
+    Parameters
+    ----------
+    X : np.ndarray, shape (n_cases, n_channels, n_timepoints)
+        Input time series collection.
+    mode : {"F", "H", "HF"}
+        Transformation mode:
+        - "F": First-order difference series.
+        - "H": Hilbert transform (amplitude envelope).
+        - "HF": Hilbert transform of first-order difference series.
 
-        f_a = feat_t + pe_a
-        f_o = feat_t + pe_o
+    Returns
+    -------
+    X_trans : np.ndarray
+        Z-normalized transformed time series collection.
+    """
+    if mode == "F":
+        s = np.diff(X, axis=-1)
+    elif mode == "H":
+        s = _hilbert_transform(X)
+    elif mode == "HF":
+        s = _hilbert_transform(np.diff(X, axis=-1))
+    else:
+        raise ValueError(
+            f"Unknown transformation mode: {mode}. Expected 'F', 'H', or 'HF'."
+        )
 
-        c_ra = (F.cosine_similarity(feat_t, f_a, dim=0, eps=1e-8) ** 2).mean()
-        c_ro = (F.cosine_similarity(feat_t, f_o, dim=0, eps=1e-8) ** 2).mean()
-        c_ao = (F.cosine_similarity(f_a, f_o, dim=0, eps=1e-8) ** 2).mean()
-        loss = -(c_ra + c_ro + c_ao) / 3.0
-
-        loss.backward()
-        optimizer.step()
-
-        with torch.no_grad():
-            ka_param.clamp_(k_min, k_max)
-            ko_param.clamp_(k_min, k_max)
-
-    ka_opt = float(ka_param.detach().cpu().item())
-    ko_opt = float(ko_param.detach().cpu().item())
-
-    return ka_opt, ko_opt
+    mean = np.mean(s, axis=-1, keepdims=True)
+    std = np.std(s, axis=-1, keepdims=True)
+    return (s - mean) / (std + 1e-8)
 
 
 class _CombinationFusion:
@@ -423,6 +437,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
     ----------
     max_shapelets : int, default=1000
         Maximum number of candidate shapelets sampled initially by the RDST backbone.
+    per_shapelets : int or None, default=None
+        Maximum number of shapelets preserved per group after hypergraph pruning.
+        If None, selection is governed solely by `save_rate`.
     ka : float, default=8.0
         Initial absolute positional scaling parameter (:math:`K_{a0}`).
     ko : float, default=8.0
@@ -444,23 +461,31 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     Attributes
     ----------
-    _rdst : RandomDilatedShapeletTransform
+    rdst_ : RandomDilatedShapeletTransform
         The underlying fitted RDST shapelet backbone.
-    _shapelet_lengths : np.ndarray
+    shapelet_lengths_ : np.ndarray
         Array of shapelet lengths for all preserved shapelets.
-    _shapelet_dilations : np.ndarray
+    shapelet_dilations_ : np.ndarray
         Array of shapelet dilations for all preserved shapelets.
-    _base_abs : dict
+    series_len_ : int
+        Length of the input time series.
+    unique_dilations_ : np.ndarray
+        Array of unique dilations among preserved shapelets.
+    ka_opt_ : dict
+        Mapping from dilation to optimized absolute positional scaling factor Ka.
+    ko_opt_ : dict
+        Mapping from dilation to optimized ordinal positional scaling factor Ko.
+    base_abs_ : dict
         Mapping from dilation to optimized absolute positional base scaling factor.
-    _base_ord : dict
+    base_ord_ : dict
         Mapping from dilation to optimized ordinal positional base scaling factor.
-    _scaler_min : MinMaxScaler
+    scaler_min_ : MinMaxScaler
         Fitted scaler for minimum shapelet distance features.
-    _scaler_soo : MinMaxScaler
+    scaler_soo_ : MinMaxScaler
         Fitted scaler for shapelet occurrence (SOO) features.
-    _fusion_min : _CombinationFusion
+    fusion_min_ : _CombinationFusion
         Fitted pairwise LDA fusion model for minimum distance views.
-    _fusion_soo : _CombinationFusion
+    fusion_soo_ : _CombinationFusion
         Fitted pairwise LDA fusion model for SOO views.
 
     References
@@ -485,12 +510,15 @@ class ShapeleterTransform(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": False,
+        "X_inner_type": "numpy3D",
+        "python_dependencies": None,
         "algorithm_type": "shapelet",
     }
 
     def __init__(
         self,
         max_shapelets=1000,
+        per_shapelets=None,
         ka=8.0,
         ko=8.0,
         k_min=1.0,
@@ -501,6 +529,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
         random_state=None,
     ):
         self.max_shapelets = max_shapelets
+        self.per_shapelets = per_shapelets
         self.ka = ka
         self.ko = ko
         self.k_min = k_min
@@ -547,6 +576,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
                                 l_val,
                                 shapelet_classes[sub_idx],
                                 save_rate=self.save_rate,
+                                per_shapelets=self.per_shapelets,
                             )
                             selected_idx.append(sub_idx[pruned_rel])
 
@@ -582,11 +612,14 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_min_scaled = self.scaler_min_.transform(x_min)
         x_soo_scaled = self.scaler_soo_.transform(x_soo)
 
-        self._unique_dilations = np.unique(self.shapelet_dilations_)
-        self._base_abs = {}
-        self._base_ord = {}
+        self.unique_dilations_ = np.unique(self.shapelet_dilations_)
+        self._unique_dilations = self.unique_dilations_
+        self.base_abs_ = {}
+        self.base_ord_ = {}
+        self.ka_opt_ = {}
+        self.ko_opt_ = {}
 
-        for d in self._unique_dilations:
+        for d in self.unique_dilations_:
             sub_idx = np.where(self.shapelet_dilations_ == d)[0]
             sh_len = self.shapelet_lengths_[sub_idx[0]]
             len_map = max(1.0, float(self.series_len_ - (sh_len - 1) * d))
@@ -614,8 +647,13 @@ class ShapeleterTransform(BaseCollectionTransformer):
             else:
                 ka_d, ko_d = self.ka, self.ko
 
-            self._base_abs[d] = ka_d * len_map / (2.0 * np.pi)
-            self._base_ord[d] = ko_d * n_sub / (2.0 * np.pi)
+            self.ka_opt_[d] = ka_d
+            self.ko_opt_[d] = ko_d
+            self.base_abs_[d] = ka_d * len_map / (2.0 * np.pi)
+            self.base_ord_[d] = ko_d * n_sub / (2.0 * np.pi)
+
+        self._base_abs = self.base_abs_
+        self._base_ord = self.base_ord_
 
         x_min_abs, x_min_ord, x_soo_abs, x_soo_ord = self._encode_positions(
             x_min_scaled, x_soo_scaled, x_arg
@@ -635,10 +673,10 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_soo_abs = np.copy(x_soo)
         x_soo_ord = np.copy(x_soo)
 
-        for d in self._unique_dilations:
+        for d in self.unique_dilations_:
             sub_idx = np.where(self.shapelet_dilations_ == d)[0]
-            base_abs = self._base_abs[d]
-            base_ord = self._base_ord[d]
+            base_abs = self.base_abs_[d]
+            base_ord = self.base_ord_[d]
 
             # Absolute
             pos_abs = x_arg[:, sub_idx]
@@ -684,4 +722,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter sets for the estimator."""
-        return {"max_shapelets": 10, "max_iter": 5}
+        return {
+            "max_shapelets": 20,
+            "per_shapelets": 5,
+            "max_iter": 2,
+            "random_state": 42,
+        }
