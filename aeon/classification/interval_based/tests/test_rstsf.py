@@ -28,3 +28,18 @@ def test_rstsf_string_class_labels():
     predictions = clf.predict(X)
     assert len(predictions) == len(y)
     assert set(predictions).issubset(set(y))
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency statsmodels not available",
+)
+def test_rstsf_series_get_different_seeds():
+    """Each representation samples its intervals from its own random stream."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+
+    clf = RSTSF(n_estimators=10, n_intervals=2, random_state=0)
+    clf.fit(X, y)
+
+    seeds = [t.random_state for t in clf.transformers_]
+    assert len(set(seeds)) == len(seeds)

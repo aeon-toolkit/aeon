@@ -6,6 +6,7 @@ __all__ = ["RSTSF"]
 import numpy as np
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.utils import check_random_state
 from sklearn.utils.class_weight import compute_sample_weight
 
 from aeon.classification import BaseClassifier
@@ -120,12 +121,17 @@ class RSTSF(BaseClassifier):
         Xt = np.empty((X.shape[0], 0))
         self.transformers_ = []
         transform_data_lengths = []
-        for t in transforms:
+        rng = check_random_state(self.random_state)
+        for i, t in enumerate(transforms):
+            # each series after the first gets its own seed, so that its intervals
+            # are not drawn from the same random stream as the first series
             si = SupervisedIntervals(
                 n_intervals=self.n_intervals,
                 min_interval_length=self.min_interval_length,
                 n_jobs=self._n_jobs,
-                random_state=self.random_state,
+                random_state=(
+                    self.random_state if i == 0 else rng.randint(np.iinfo(np.int32).max)
+                ),
                 randomised_split_point=True,
             )
             features = si.fit_transform(t, y)

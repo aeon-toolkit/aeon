@@ -1015,6 +1015,10 @@ class BaseIntervalForest(ABC):
 
         # for each transformed series
         for r in range(len(Xt)):
+            # each series after the first gets its own seed, so that its intervals
+            # are not drawn from the same random stream as the first series
+            series_seed = seed if r == 0 else rng.randint(np.iinfo(np.int32).max)
+
             # subsample attributes if enabled
             if self._att_subsample_size[r] is not None:
                 # separate transformers and functions in separate lists
@@ -1078,7 +1082,7 @@ class BaseIntervalForest(ABC):
 
                         # tell this transformer to only transform the selected features
                         if len(t_features) > 0:
-                            new_transformer = _clone_estimator(transformer, seed)
+                            new_transformer = _clone_estimator(transformer, series_seed)
                             setattr(
                                 new_transformer,
                                 self._transformer_feature_selection[r][n],
@@ -1103,7 +1107,7 @@ class BaseIntervalForest(ABC):
 
                     for feature in self._interval_features[r]:
                         if isinstance(feature, BaseTransformer):
-                            features.append(_clone_estimator(feature, seed))
+                            features.append(_clone_estimator(feature, series_seed))
                         else:
                             features.append(feature)
             # add all features while cloning estimators if not subsampling
@@ -1111,7 +1115,7 @@ class BaseIntervalForest(ABC):
                 features = []
                 for feature in self._interval_features[r]:
                     if isinstance(feature, BaseTransformer):
-                        features.append(_clone_estimator(feature, seed))
+                        features.append(_clone_estimator(feature, series_seed))
                     else:
                         features.append(feature)
 
@@ -1122,7 +1126,7 @@ class BaseIntervalForest(ABC):
                     min_interval_length=self._min_interval_length[r],
                     max_interval_length=self._max_interval_length[r],
                     features=features,
-                    random_state=seed,
+                    random_state=series_seed,
                 )
             elif self.interval_selection_method == "supervised":
                 selector = SupervisedIntervals(
@@ -1130,7 +1134,7 @@ class BaseIntervalForest(ABC):
                     min_interval_length=self._min_interval_length[r],
                     features=features,
                     randomised_split_point=False,
-                    random_state=seed,
+                    random_state=series_seed,
                 )
             elif self.interval_selection_method == "random-supervised":
                 selector = SupervisedIntervals(
@@ -1138,7 +1142,7 @@ class BaseIntervalForest(ABC):
                     min_interval_length=self._min_interval_length[r],
                     features=features,
                     randomised_split_point=True,
-                    random_state=seed,
+                    random_state=series_seed,
                 )
 
             # fit the interval selector, transform the current series using it and save
