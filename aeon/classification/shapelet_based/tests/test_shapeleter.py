@@ -10,6 +10,8 @@ def test_shapeleter_classifier_parameter_routing():
     clf = ShapeleterClassifier(
         max_shapelets=25,
         per_shapelets=5,
+        alpha_similarity=0.1,
+        proba_normalization=0.7,
         ka=6.0,
         ko=7.0,
         max_iter=10,
@@ -17,6 +19,8 @@ def test_shapeleter_classifier_parameter_routing():
     )
     assert clf.max_shapelets == 25
     assert clf.per_shapelets == 5
+    assert clf.alpha_similarity == 0.1
+    assert clf.proba_normalization == 0.7
     assert clf.ka == 6.0
     assert clf.ko == 7.0
     assert clf.max_iter == 10

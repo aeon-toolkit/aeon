@@ -88,11 +88,9 @@ def _hypergraph_prune(
     if len(valid_k) == 0 or n_shapelets <= 1:
         return np.arange(n_shapelets)
 
-    # Slice strictly to the known shapelet length to eliminate inf padding
     raw_sub = shapelets[:, 0, :shapelet_len]
     cleaned_sub = np.nan_to_num(raw_sub, nan=0.0, posinf=0.0, neginf=0.0)
 
-    # 1. Hyperedges based on nearest shapelet Euclidean distances (including self)
     dist_mat = euclidean_distances(cleaned_sub)
     np.fill_diagonal(dist_mat, 0.0)
 
@@ -104,7 +102,6 @@ def _hypergraph_prune(
                 nn_indices[-1] = i
             edges.append(nn_indices)
 
-    # 2. Node purity calculation
     purity = np.zeros(n_shapelets)
     degree = np.zeros(n_shapelets)
     for edge in edges:
@@ -117,12 +114,10 @@ def _hypergraph_prune(
     with np.errstate(divide="ignore", invalid="ignore"):
         purity = np.where(degree > 0, purity / degree, 0.0)
 
-    # 3. Jaccard similarity matrix
     j_matrix = _compute_jaccard_matrix(edges, n_shapelets)
     j_matrix_bin = np.where(j_matrix >= jaccard_threshold, 1, 0)
     np.fill_diagonal(j_matrix_bin, -1)
 
-    # 4. Greedy diversity selection
     save_n = max(1, int(np.ceil(save_rate * n_shapelets)))
     if per_shapelets is not None:
         save_n = min(save_n, int(per_shapelets))
@@ -207,7 +202,7 @@ def _optimize_position_encoding_np(
     lr=0.002,
     max_iter=200,
 ):
-    """Optimize Ka and Ko using Adam in pure NumPy."""
+    """Optimize Ka and Ko using Adam in pure NumPy with bounds checking."""
     w = np.array([np.log(ka0), np.log(ko0)], dtype=np.float64)
     m = np.zeros(2, dtype=np.float64)
     v = np.zeros(2, dtype=np.float64)
@@ -215,6 +210,9 @@ def _optimize_position_encoding_np(
     beta2 = 0.999
     eps_adam = 1e-8
     h = 1e-5
+
+    last_valid_ka = float(ka0)
+    last_valid_ko = float(ko0)
 
     for t in range(1, max_iter + 1):
         grad = np.zeros(2, dtype=np.float64)
@@ -235,15 +233,39 @@ def _optimize_position_encoding_np(
         v = beta2 * v + (1.0 - beta2) * (grad**2)
         m_hat = m / (1.0 - beta1**t)
         v_hat = v / (1.0 - beta2**t)
-        w = w - lr * m_hat / (np.sqrt(v_hat) + eps_adam)
-        w[0] = np.clip(w[0], np.log(k_min), np.log(k_max))
-        w[1] = np.clip(w[1], np.log(k_min), np.log(k_max))
+        w_next = w - lr * m_hat / (np.sqrt(v_hat) + eps_adam)
 
-    return float(np.exp(w[0])), float(np.exp(w[1]))
+        ka_next = float(np.exp(w_next[0]))
+        ko_next = float(np.exp(w_next[1]))
+
+        if not (k_min <= ka_next <= k_max and k_min <= ko_next <= k_max):
+            break
+
+        w = w_next
+        last_valid_ka = ka_next
+        last_valid_ko = ko_next
+
+    return last_valid_ka, last_valid_ko
+
+
+@njit(parallel=True, fastmath=True, cache=True)
+def _hilbert_transform_3d(X):
+    """Compute exact discrete Hilbert transform via direct sum."""
+    n_cases, n_channels, n_timepoints = X.shape
+    out = np.zeros((n_cases, n_channels, n_timepoints), dtype=np.float64)
+    for c in prange(n_cases):
+        for ch in range(n_channels):
+            for k in range(n_timepoints):
+                val = 0.0
+                for j in range(n_timepoints):
+                    if j != k:
+                        val += X[c, ch, j] / (k - j)
+                out[c, ch, k] = val
+    return out
 
 
 def _hilbert_transform(signal):
-    """Compute discrete Hilbert transform (envelope of analytic signal) via FFT.
+    """Compute exact direct-sum discrete Hilbert transform.
 
     Parameters
     ----------
@@ -252,24 +274,26 @@ def _hilbert_transform(signal):
 
     Returns
     -------
-    envelope : np.ndarray
-        Analytic signal envelope (magnitude).
+    ht : np.ndarray
+        Direct-sum discrete Hilbert transformed signal.
     """
-    n = signal.shape[-1]
-    if n <= 1:
-        return np.abs(signal)
-
-    f = np.fft.fft(signal, axis=-1)
-    h = np.zeros(n, dtype=np.float64)
-    h[0] = 1.0
-    if n % 2 == 0:
-        h[1 : n // 2] = 2.0
-        h[n // 2] = 1.0
+    orig_ndim = signal.ndim
+    if orig_ndim == 1:
+        X = signal.reshape(1, 1, -1)
+    elif orig_ndim == 2:
+        X = signal.reshape(signal.shape[0], 1, -1)
+    elif orig_ndim == 3:
+        X = signal
     else:
-        h[1 : (n + 1) // 2] = 2.0
+        raise ValueError(f"Expected 1D, 2D, or 3D signal, got {orig_ndim}D.")
 
-    analytic = np.fft.ifft(f * h, axis=-1)
-    return np.abs(analytic)
+    out = _hilbert_transform_3d(np.ascontiguousarray(X, dtype=np.float64))
+
+    if orig_ndim == 1:
+        return out[0, 0]
+    elif orig_ndim == 2:
+        return out[:, 0]
+    return out
 
 
 def _series_transform(X, mode):
@@ -281,9 +305,9 @@ def _series_transform(X, mode):
         Input time series collection.
     mode : {"F", "H", "HF"}
         Transformation mode:
-        - "F": First-order difference series.
-        - "H": Hilbert transform (amplitude envelope).
-        - "HF": Hilbert transform of first-order difference series.
+        - "F": First-order difference series (T0).
+        - "H": Exact discrete Hilbert transform (T1).
+        - "HF": Difference of Hilbert transform (T2 = diff(HT)).
 
     Returns
     -------
@@ -295,7 +319,7 @@ def _series_transform(X, mode):
     elif mode == "H":
         s = _hilbert_transform(X)
     elif mode == "HF":
-        s = _hilbert_transform(np.diff(X, axis=-1))
+        s = np.diff(_hilbert_transform(X), axis=-1)
     else:
         raise ValueError(
             f"Unknown transformation mode: {mode}. Expected 'F', 'H', or 'HF'."
@@ -327,7 +351,7 @@ class _CombinationFusion:
                 trans = lda.transform(feat)
                 if trans.ndim == 2 and trans.shape[1] == 1:
                     return lda, trans
-            except Exception:
+            except (np.linalg.LinAlgError, ValueError):
                 pass
         return None, np.mean(feat, axis=1, keepdims=True)
 
@@ -338,7 +362,7 @@ class _CombinationFusion:
                 trans = lda.transform(feat)
                 if trans.ndim == 2 and trans.shape[1] == 1:
                     return trans
-            except Exception:
+            except (np.linalg.LinAlgError, ValueError):
                 pass
         return np.mean(feat, axis=1, keepdims=True)
 
@@ -371,9 +395,9 @@ class _CombinationFusion:
             self.lda_ar.append(lda)
             out_ar[:, i : i + 1] = trans
 
-        np.clip(out_oa, -self.threshold, self.threshold, out=out_oa)
-        np.clip(out_or, -self.threshold, self.threshold, out=out_or)
-        np.clip(out_ar, -self.threshold, self.threshold, out=out_ar)
+        out_oa[out_oa > self.threshold] = self.threshold
+        out_or[out_or > self.threshold] = self.threshold
+        out_ar[out_ar > self.threshold] = self.threshold
 
         return (
             self.scaler_oa.fit_transform(out_oa),
@@ -398,9 +422,9 @@ class _CombinationFusion:
                 x_abs[:, i : i + 1], x_ord[:, i : i + 1], self.lda_ar[i]
             )
 
-        np.clip(out_oa, -self.threshold, self.threshold, out=out_oa)
-        np.clip(out_or, -self.threshold, self.threshold, out=out_or)
-        np.clip(out_ar, -self.threshold, self.threshold, out=out_ar)
+        out_oa[out_oa > self.threshold] = self.threshold
+        out_or[out_or > self.threshold] = self.threshold
+        out_ar[out_ar > self.threshold] = self.threshold
 
         return (
             self.scaler_oa.transform(out_oa),
@@ -416,34 +440,20 @@ class ShapeleterTransform(BaseCollectionTransformer):
     dilated shapelet transform (RDST) backbone with multi-scale hypergraph pruning
     and dual positional embeddings (absolute positions and ordinal ranks).
 
-    The transformation pipeline consists of four main phases:
-    1. **Candidate Shapelet Extraction**: Random shapelet candidates are extracted
-       using the RandomDilatedShapeletTransform (RDST) backbone.
-    2. **Multi-Scale Hypergraph Pruning**: Candidates are grouped by length, dilation,
-       and normalization. For each group, a hypergraph is constructed based on
-       nearest-neighbor distances (including the shapelet itself). Shapelets are
-       ranked by neighborhood purity and filtered greedily using Jaccard similarity
-       to retain informative, diverse shapelets.
-    3. **Dual Positional Embeddings**: For each preserved shapelet, both absolute
-       temporal occurrence positions (argmin) and tie-aware ordinal ranks are
-       encoded via sinusoidal transformations. Scaling parameters :math:`K_a`
-       (absolute) and :math:`K_o` (ordinal) are optimized per dilation using Adam
-       on a cosine-similarity loss function.
-    4. **Multi-View Fusion**: Original features and position-enhanced features are
-       fused using pairwise Linear Discriminant Analysis (LDA), producing 8
-       complementary feature views.
-
     Parameters
     ----------
-    max_shapelets : int, default=1000
+    max_shapelets : int, default=20000
         Maximum number of candidate shapelets sampled initially by the RDST backbone.
-    per_shapelets : int or None, default=None
+    per_shapelets : int, default=2500
         Maximum number of shapelets preserved per group after hypergraph pruning.
-        If None, selection is governed solely by `save_rate`.
+    alpha_similarity : float, default=0.0
+        The minimum similarity between shapelets for self-similarity pruning in RDST.
+    proba_normalization : float, default=0.8
+        Probability of normalizing shapelets during extraction in RDST.
     ka : float, default=8.0
         Initial absolute positional scaling parameter (:math:`K_{a0}`).
     ko : float, default=8.0
-        Initial ordinal positional scaling parameter (:math:`K_{o0}`).
+        Initial ordinal positional scaling parameter (:math:`K_{o0}` / :math:`K_{r0}`).
     k_min : float, default=1.0
         Lower bound for :math:`K_a` and :math:`K_o` during Adam optimization.
     k_max : float, default=15.0
@@ -455,7 +465,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
         If set to 0, optimization is skipped and fixed `ka` and `ko` values are used.
     save_rate : float, default=0.5
         Proportion of candidate shapelets preserved by hypergraph selection in each
-        (length, dilation, normalization) group.
+        group.
     random_state : int, RandomState instance or None, default=None
         Seed for random number generation.
 
@@ -500,7 +510,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
     >>> from aeon.transformations.collection.shapelet_based import ShapeleterTransform
     >>> X = np.random.RandomState(42).normal(size=(10, 1, 50))
     >>> y = np.array([0, 1] * 5)
-    >>> st = ShapeleterTransform(max_shapelets=50, max_iter=5, random_state=42)
+    >>> st = ShapeleterTransform(
+    ...     max_shapelets=50, per_shapelets=5, max_iter=2, random_state=42
+    ... )
     >>> Xt = st.fit_transform(X, y)
     >>> Xt.shape[0] == 10
     True
@@ -513,12 +525,15 @@ class ShapeleterTransform(BaseCollectionTransformer):
         "X_inner_type": "numpy3D",
         "python_dependencies": None,
         "algorithm_type": "shapelet",
+        "requires_y": True,
     }
 
     def __init__(
         self,
-        max_shapelets=1000,
-        per_shapelets=None,
+        max_shapelets=20000,
+        per_shapelets=2500,
+        alpha_similarity=0.0,
+        proba_normalization=0.8,
         ka=8.0,
         ko=8.0,
         k_min=1.0,
@@ -530,6 +545,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
     ):
         self.max_shapelets = max_shapelets
         self.per_shapelets = per_shapelets
+        self.alpha_similarity = alpha_similarity
+        self.proba_normalization = proba_normalization
         self.ka = ka
         self.ko = ko
         self.k_min = k_min
@@ -543,11 +560,15 @@ class ShapeleterTransform(BaseCollectionTransformer):
     def _fit(self, X, y=None):
         """Fit RDST backbone, apply hypergraph pruning, and initialize fusions."""
         if y is None:
-            y = np.zeros(X.shape[0], dtype=int)
+            raise ValueError(
+                "ShapeleterTransform requires y for hypergraph pruning and LDA fusion."
+            )
 
         self.series_len_ = X.shape[-1]
         self.rdst_ = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
+            alpha_similarity=self.alpha_similarity,
+            proba_normalization=self.proba_normalization,
             random_state=self.random_state,
         )
         self.rdst_.fit(X, y)
@@ -555,7 +576,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
         raw_shapelets = self.rdst_.shapelets_[0]
         n_candidates = len(raw_shapelets)
 
-        # Multi-scale hypergraph pruning grouped by (length, dilation, normalization)
         if n_candidates > 0 and len(np.unique(y)) > 1:
             lengths = self.rdst_.shapelets_[2]
             dilas = self.rdst_.shapelets_[3]
@@ -589,11 +609,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
         self.shapelet_lengths_ = self.rdst_.shapelets_[2]
         self.shapelet_dilations_ = self.rdst_.shapelets_[3]
 
-        # Extract features to initialize scalers & fusion
         raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
 
-        # Scale SOO features
         n_shapelets = len(self.shapelet_lengths_)
         for i in range(n_shapelets):
             denom = (
@@ -678,12 +696,10 @@ class ShapeleterTransform(BaseCollectionTransformer):
             base_abs = self.base_abs_[d]
             base_ord = self.base_ord_[d]
 
-            # Absolute
             pos_abs = x_arg[:, sub_idx]
             x_min_abs[:, sub_idx] += np.sin(pos_abs / base_abs)
             x_soo_abs[:, sub_idx] += np.cos(pos_abs / base_abs)
 
-            # Ordinal with tie-break
             pos_ord = _assign_order_batch(pos_abs)
 
             x_min_ord[:, sub_idx] += np.sin(pos_ord / base_ord)
@@ -691,8 +707,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
         return x_min_abs, x_min_ord, x_soo_abs, x_soo_ord
 
-    def _transform(self, X, y=None):
-        """Transform time series into concatenated multi-view shapelet features."""
+    def _transform_groups(self, X):
+        """Transform time series into 8 distinct shapelet feature groups."""
         raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
 
@@ -716,8 +732,12 @@ class ShapeleterTransform(BaseCollectionTransformer):
         m_oa, m_or, m_ar = self.fusion_min_.transform(x_min, x_min_abs, x_min_ord)
         s_oa, s_or, s_ar = self.fusion_soo_.transform(x_soo, x_soo_abs, x_soo_ord)
 
-        # Concatenate all 8 multiviews
-        return np.hstack([x_min, x_soo, m_oa, m_or, m_ar, s_oa, s_or, s_ar])
+        return x_min, x_soo, m_oa, s_oa, m_or, s_or, m_ar, s_ar
+
+    def _transform(self, X, y=None):
+        """Transform time series into concatenated multi-view shapelet features."""
+        groups = self._transform_groups(X)
+        return np.hstack(groups)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
