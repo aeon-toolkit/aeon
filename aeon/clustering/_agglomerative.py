@@ -118,6 +118,7 @@ class TimeSeriesAgglomerative(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "distance",
+        "capability:predict": False,
     }
 
     def __init__(

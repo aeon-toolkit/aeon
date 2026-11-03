@@ -110,7 +110,7 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
                     activation=self._activation[i],
                     return_sequences=return_sequences,
                 ),
-                name=f"encoder_bgru_{i+1}",
+                name=f"encoder_bgru_{i + 1}",
             )(x)
 
         latent_space = tf.keras.layers.Dense(
@@ -140,7 +140,7 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
                     activation=self._activation[i],
                     return_sequences=True,
                 ),
-                name=f"decoder_bgru_{i+1}",
+                name=f"decoder_bgru_{i + 1}",
             )(x)
         decoder_outputs = tf.keras.layers.TimeDistributed(
             tf.keras.layers.Dense(input_shape[1]), name="decoder_output"

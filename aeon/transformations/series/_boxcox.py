@@ -241,7 +241,7 @@ def _boxcox_normmax(
 
     methods = {"pearsonr": _pearsonr, "mle": _mle, "all": _all}
     if method not in methods.keys():
-        raise ValueError("Method %s not recognized." % method)
+        raise ValueError(f"Method {method} not recognized.")
 
     optimfunc = methods[method]
     return optimfunc(x)

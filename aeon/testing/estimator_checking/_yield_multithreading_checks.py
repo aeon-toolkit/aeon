@@ -96,7 +96,7 @@ def check_estimator_multithreading(estimator, datatype):
         )
         assert st_estimator._n_jobs == 1, (
             f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
-            f"attribute correctly. Expected 1, got {mt_estimator._n_jobs}."
+            f"attribute correctly. Expected 1, got {mt_estimator._n_jobs}. "
             f"It is recommended to use the aeon.utils.validation.check_n_jobs function "
             f"to set _n_jobs and use this for any multithreading."
         )
@@ -120,7 +120,7 @@ def check_estimator_multithreading(estimator, datatype):
         )
         assert mt_estimator._n_jobs == n_jobs, (
             f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
-            f"attribute correctly. Expected {n_jobs}, got {mt_estimator._n_jobs}."
+            f"attribute correctly. Expected {n_jobs}, got {mt_estimator._n_jobs}. "
             f"It is recommended to use the aeon.utils.validation.check_n_jobs function "
             f"to set _n_jobs and use this for any multithreading."
         )

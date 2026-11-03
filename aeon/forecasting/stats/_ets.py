@@ -19,7 +19,7 @@ from aeon.forecasting.utils._loss_functions import (
     _ets_initialise,
     _ets_predict_value,
 )
-from aeon.forecasting.utils._nelder_mead import nelder_mead
+from aeon.forecasting.utils._nelder_mead import _fit_ets_parameters
 from aeon.forecasting.utils._seasonality import calc_seasonal_period
 
 ADDITIVE = "additive"
@@ -37,21 +37,21 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     Parameters
     ----------
     error_type : string or int, default=1
-        Type of error model: 'additive' (0) or 'multiplicative' (1)
+        Type of error model: 'additive' (1) or 'multiplicative' (2)
     trend_type : string, int or None, default=0
         Type of trend component: None (0), `additive' (1) or 'multiplicative' (2)
     seasonality_type : string or None, default=0
         Type of seasonal component: None (0), `additive' (1) or 'multiplicative' (2)
     seasonal_period : int, default=1
         Number of time points in a seasonal cycle.
-    alpha : float, default=0.1
-        Level smoothing parameter.
-    beta : float, default=0.01
-        Trend smoothing parameter.
-    gamma : float, default=0.01
-        Seasonal smoothing parameter.
-    phi : float, default=0.99
-        Trend damping parameter (used only for damped trend models).
+    iterations : int, default=200
+        Maximum number of Nelder-Mead iterations per optimisation run. The
+        smoothing parameters are fitted with three runs from different starting
+        points, keeping the best.
+    damped_trend : bool, default=True
+        If True, a trend is damped and the damping parameter ``phi`` is estimated.
+        If False, the trend is undamped (``phi`` fixed at 1). Ignored when there
+        is no trend.
 
     Attributes
     ----------
@@ -76,6 +76,12 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     n_timepoints_ : int
         Number of time points in the training series.
 
+    Notes
+    -----
+    ``predict`` returns the forecast computed in ``fit`` and does not use the
+    series passed to it. Use ``forecast(y)`` to fit and forecast a new series,
+    or ``iterative_forecast`` to forecast several steps ahead.
+
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -92,7 +98,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    403.0835274629169
+    407.0178847629523
     """
 
     _tags = {
@@ -106,6 +112,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         seasonality_type: int | str | None = 0,
         seasonal_period: int = 1,
         iterations: int = 200,
+        damped_trend: bool = True,
     ):
         self.forecast_val_ = 0.0
         self.level_ = 0.0
@@ -116,6 +123,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
         self.iterations = iterations
+        self.damped_trend = damped_trend
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
         self.likelihood_ = 0
@@ -175,16 +183,13 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
                 self._trend_type,
                 self._seasonality_type,
                 self._seasonal_period,
+                1 if self.damped_trend else 0,
             ],
             dtype=np.int32,
         )
         data = np.asarray(y.squeeze(), dtype=np.float64)
-        self.parameters_, self.aic_ = nelder_mead(
-            1,
-            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
-            data,
-            self._model,
-            max_iter=self.iterations,
+        self.parameters_, self.aic_ = _fit_ets_parameters(
+            data, self._model, max_iter=self.iterations
         )
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
             self.parameters_, self._model
@@ -239,15 +244,15 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Parameters
         ----------
         y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+            Ignored. The forecast is computed in ``fit`` from the series seen
+            there. Use ``forecast(y)`` to fit and forecast a new series.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Not supported.
 
         Returns
         -------
         float
-            single prediction self.horizon steps ahead of y.
+            The prediction ``horizon`` steps ahead of the series seen in ``fit``.
         """
         return self.forecast_
 
@@ -364,10 +369,10 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
     """Automatic Exponential Smoothing forecaster.
 
     An implementation of the exponential smoothing statistics forecasting algorithm.
-    Chooses between additive and multiplicative error models, None and additive trend,
-    and None, additive and multiplicative seasonality [1]_. Multiplicative trend is
-    supported by :class:`ETS`, but is excluded from the automatic search by default
-    because it is numerically fragile.
+    Chooses between additive and multiplicative error models, None and additive
+    (damped or undamped) trend, and None, additive and multiplicative seasonality
+    [1]_. Multiplicative trend is supported by :class:`ETS`, but is excluded from
+    the automatic search by default because it is numerically fragile.
 
     There are issues relating to stability
     and efficiency discussed here https://github.com/aeon-toolkit/aeon/issues/3294.
@@ -383,11 +388,44 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         a lower AIC. Otherwise, AutoETS falls back to non-seasonal candidates.
     allow_multiplicative_trend : bool, default=False
         Whether to include multiplicative trend models in the automatic model search.
+    damped_trend : bool or None, default=None
+        Which trend models to search. ``None`` considers both damped and undamped
+        trends, ``True`` only damped trends and ``False`` only undamped trends.
+    restrict : bool, default=True
+        If True, leave out models with additive errors and multiplicative
+        seasonality or a multiplicative trend, as R's ``forecast::ets`` does by
+        default. Their state equations divide by the level (and trend), so a
+        series whose level approaches zero can produce an exploding seasonal
+        state and forecasts many orders of magnitude too large, without the AIC
+        showing it [2]_.
+
+    Attributes
+    ----------
+    error_type_ : int
+        Selected error type: additive (1) or multiplicative (2).
+    trend_type_ : int
+        Selected trend type: none (0), additive (1) or multiplicative (2).
+    seasonality_type_ : int
+        Selected seasonality type: none (0), additive (1) or multiplicative (2).
+    seasonal_period_ : int
+        Seasonal period of the selected model, 1 if non-seasonal.
+    damped_trend_ : bool
+        Whether the selected trend is damped. False if there is no trend.
+    wrapped_model_ : ETS
+        The fitted :class:`ETS` model with the selected configuration.
+
+    Notes
+    -----
+    ``predict`` returns the forecast computed in ``fit`` and does not use the
+    series passed to it. Use ``forecast(y)`` to fit and forecast a new series,
+    or ``iterative_forecast`` to forecast several steps ahead.
 
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
+    .. [2] R. J. Hyndman and G. Athanasopoulos, Forecasting: Principles and
+        Practice, 2nd edition, Section 7.7. OTexts, 2018.
 
     Examples
     --------
@@ -406,13 +444,18 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         self,
         seasonal_period: int | None = None,
         allow_multiplicative_trend: bool = False,
+        damped_trend: bool | None = None,
+        restrict: bool = True,
     ):
         self.seasonal_period = seasonal_period
         self.allow_multiplicative_trend = allow_multiplicative_trend
+        self.damped_trend = damped_trend
+        self.restrict = restrict
         self.error_type_ = 0
         self.trend_type_ = 0
         self.seasonality_type_ = 0
         self.seasonal_period_ = 0
+        self.damped_trend_ = False
         self.wrapped_model_ = None
         super().__init__(horizon=1, axis=1)
 
@@ -445,21 +488,29 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         else:
             seasonal_period = self.seasonal_period
             require_seasonality = True
+        if self.damped_trend is None:
+            damped_option = -1
+        else:
+            damped_option = 1 if self.damped_trend else 0
         best_model = auto_ets(
             data,
             self.allow_multiplicative_trend,
             seasonal_period,
             require_seasonality,
+            damped_option,
+            self.restrict,
         )
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
         self.seasonality_type_ = int(best_model[2])
         self.seasonal_period_ = int(best_model[3])
+        self.damped_trend_ = self.trend_type_ != 0 and bool(best_model[4])
         self.wrapped_model_ = ETS(
             self.error_type_,
             self.trend_type_,
             self.seasonality_type_,
             self.seasonal_period_,
+            damped_trend=self.damped_trend_,
         )
         self.wrapped_model_.fit(y, exog)
         self.forecast_ = self.wrapped_model_.forecast_
@@ -472,15 +523,15 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         Parameters
         ----------
         y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+            Ignored. The forecast is computed in ``fit`` from the series seen
+            there. Use ``forecast(y)`` to fit and forecast a new series.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Not supported.
 
         Returns
         -------
         float
-            single prediction self.horizon steps ahead of y.
+            The prediction ``horizon`` steps ahead of the series seen in ``fit``.
         """
         return self.wrapped_model_.predict(y, exog)
 
@@ -514,14 +565,22 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         return self.wrapped_model_._iterative_forecast_from_fitted(prediction_horizon)
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True, fastmath={"contract"})
 def auto_ets(
     data,
     allow_multiplicative_trend=False,
     seasonal_period=0,
     require_seasonality=False,
+    damped_option=-1,
+    restrict=True,
 ):
-    """Calculate model parameters based on the internal nelder-mead implementation."""
+    """Select an ETS model by AIC, fitting each candidate with Nelder-Mead.
+
+    ``damped_option`` restricts trend candidates: -1 tries damped and undamped
+    trends, 1 only damped and 0 only undamped. ``restrict`` leaves out
+    additive error models with multiplicative seasonality or trend. Returns
+    ``[error, trend, seasonality, period, damped]``.
+    """
     if seasonal_period < 1:
         seasonal_period = calc_seasonal_period(data)
         require_seasonality = False
@@ -535,13 +594,14 @@ def auto_ets(
         if data[i] <= 0.0:
             all_pos = False
             break
-    model = np.empty(4, dtype=np.int32)
-    best_model = np.empty(4, dtype=np.int32)
+    model = np.empty(5, dtype=np.int32)
+    best_model = np.empty(5, dtype=np.int32)
     best_model[0] = 1
     best_model[1] = 0
     best_model[2] = 0
     best_model[3] = 1
-    best_seasonal_model = np.empty(4, dtype=np.int32)
+    best_model[4] = 0
+    best_seasonal_model = np.empty(5, dtype=np.int32)
     best_aic = np.inf
     best_seasonal_aic = np.inf
     t_max = 3 if allow_multiplicative_trend else 2
@@ -551,22 +611,34 @@ def auto_ets(
         for trend_type in range(0, t_max):
             if trend_type == 2 and not all_pos:
                 continue
-            k_base = 1 + (2 if (trend_type != 0) else 0)
-            for seasonality_type in range(0, s_max):
-                if seasonality_type == 2 and not all_pos:
+            for damped in range(0, 2):
+                if trend_type == 0:
+                    # without a trend, damping is irrelevant: one candidate
+                    if damped == 1:
+                        continue
+                elif damped_option != -1 and damped != damped_option:
                     continue
-                model[0] = error_type
-                model[1] = trend_type
-                model[2] = seasonality_type
-                model[3] = seasonal_period if (seasonality_type != 0) else 1
-                k = k_base + (1 if seasonality_type != 0 else 0)
-                _, aic = nelder_mead(1, k, data, model)
-                if aic < best_aic:
-                    best_aic = aic
-                    best_model[:] = model
-                if seasonality_type != 0 and aic < best_seasonal_aic:
-                    best_seasonal_aic = aic
-                    best_seasonal_model[:] = model
+                for seasonality_type in range(0, s_max):
+                    if seasonality_type == 2 and not all_pos:
+                        continue
+                    if (
+                        restrict
+                        and error_type == 1
+                        and (seasonality_type == 2 or trend_type == 2)
+                    ):
+                        continue
+                    model[0] = error_type
+                    model[1] = trend_type
+                    model[2] = seasonality_type
+                    model[3] = seasonal_period if (seasonality_type != 0) else 1
+                    model[4] = damped
+                    _, aic = _fit_ets_parameters(data, model, max_iter=500)
+                    if aic < best_aic:
+                        best_aic = aic
+                        best_model[:] = model
+                    if seasonality_type != 0 and aic < best_seasonal_aic:
+                        best_seasonal_aic = aic
+                        best_seasonal_model[:] = model
     if require_seasonality and seasonal_enabled and best_seasonal_aic < np.inf:
         return best_seasonal_model
     return best_model
