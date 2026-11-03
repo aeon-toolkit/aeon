@@ -31,6 +31,18 @@ def test_top_k_ranges_thresholding():
     np.testing.assert_almost_equal(threshold, 0.60, decimal=2)
 
 
+def test_top_k_ranges_thresholding_not_reachable():
+    """Test top k ranges thresholding when no threshold gives k ranges."""
+    # increasing scores always give a single range
+    y_true_two = np.array([1, 0, 0, 1, 0, 0])
+    threshold = top_k_ranges_threshold(y_true_two, np.arange(6, dtype=float))
+    assert isinstance(threshold, float)
+    np.testing.assert_almost_equal(threshold, 1.0)
+    # constant scores
+    threshold = top_k_ranges_threshold(y_true_two, np.full(6, 0.3))
+    np.testing.assert_almost_equal(threshold, 0.3)
+
+
 def test_sigma_thresholding():
     """Test sigma thresholding."""
     threshold = sigma_threshold(y_score, factor=1)

@@ -119,7 +119,9 @@ def top_k_ranges_threshold(
     Returns
     -------
     float
-        Threshold such that there are at least ``k`` anomalous ranges.
+        Threshold such that there are at least ``k`` anomalous ranges. If no
+        threshold gives ``k`` ranges, the lowest threshold that was tried (the second
+        lowest score, or the only score if all scores are equal) is returned.
     """
     if k is None:
         k = _count_anomaly_ranges(y_true)
@@ -131,6 +133,7 @@ def top_k_ranges_threshold(
         detected_n = _count_anomaly_ranges(y_pred)
         if detected_n >= k:
             return t
+    return thresholds[-2] if len(thresholds) > 1 else thresholds[0]
 
 
 def _count_anomaly_ranges(y: np.ndarray) -> int:
