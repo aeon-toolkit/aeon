@@ -3,20 +3,19 @@
 __all__ = [
     # base class
     "BaseCollectionTransformer",
-    "BaseGlobalCollectionTransformer",
     "CollectionInverseTransformerMixin",
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
+    "Centerer",
     "DownsampleTransformer",
     "DWTTransformer",
-    "HOG1DTransformer",
-    "Centerer",
-    "MinMaxScaler",
-    "Normalizer",
     "GlobalCenterer",
     "GlobalMinMaxScaler",
     "GlobalNormalizer",
+    "HOG1DTransformer",
+    "MinMaxScaler",
+    "Normalizer",
     "PeriodogramTransformer",
     "SeriesToCollectionBroadcaster",
     "SlopeTransformer",
@@ -46,6 +45,5 @@ from aeon.transformations.collection._series_broadcaster import (
 from aeon.transformations.collection._slope import SlopeTransformer
 from aeon.transformations.collection.base import (
     BaseCollectionTransformer,
-    BaseGlobalCollectionTransformer,
     CollectionInverseTransformerMixin,
 )

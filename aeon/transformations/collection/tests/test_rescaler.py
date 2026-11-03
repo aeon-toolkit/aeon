@@ -67,30 +67,19 @@ def _np_array(shape, constant=False):
 
 
 GLOBAL_SCALER_TESTS = [
-    [_np_array((2, 5)), (0, 1), (1, 1)],
-    [_np_array((2, 5), constant=True), (0, 1), (1, 1)],
-    [_np_array((2, 3, 4)), (0, -1), (1, 3, 1)],
-    [_np_array((2, 3, 4), constant=True), (0, -1), (1, 3, 1)],
-    [
-        make_example_3d_numpy_list(
-            2,
-            3,
-            return_y=False,
-        ),
-        (1,),
-        (3, 1),
-    ],
+    [_np_array((2, 5)), (0, 1)],
+    [_np_array((2, 5), constant=True), (0, 1)],
+    [_np_array((2, 3, 4)), (0, -1)],
+    [_np_array((2, 3, 4), constant=True), (0, -1)],
+    [make_example_3d_numpy_list(2, 3, return_y=False), 1],
 ]
 
 
-@pytest.mark.parametrize("X, reduced_axis, target_shape", GLOBAL_SCALER_TESTS)
-def test_global_z_norm(X, reduced_axis, target_shape):
+@pytest.mark.parametrize("X, reduced_axis", GLOBAL_SCALER_TESTS)
+def test_global_z_norm(X, reduced_axis):
     """Test GlobalNormalizer on regular array layouts."""
     normaliser = GlobalNormalizer(2, 3)
     X_transformed = normaliser.fit_transform(X)
-
-    assert normaliser.x_means.shape == target_shape
-    assert normaliser.x_stds.shape == target_shape
 
     # check that the transformed data has the desired characteristics
     X_transformed_ = X_transformed
@@ -114,13 +103,11 @@ def test_global_z_norm(X, reduced_axis, target_shape):
     assert np.allclose(X_, X_inv)
 
 
-@pytest.mark.parametrize("X, reduced_axis, target_shape", GLOBAL_SCALER_TESTS)
-def test_global_centering(X, reduced_axis, target_shape):
+@pytest.mark.parametrize("X, reduced_axis", GLOBAL_SCALER_TESTS)
+def test_global_centering(X, reduced_axis):
     """Test GlobalCenterer on regular array layouts."""
     centerer = GlobalCenterer(2)
     X_transformed = centerer.fit_transform(X)
-
-    assert centerer.x_means.shape == target_shape
 
     X_transformed_ = X_transformed
     X_ = X
@@ -139,14 +126,11 @@ def test_global_centering(X, reduced_axis, target_shape):
     assert np.allclose(X_, X_inv)
 
 
-@pytest.mark.parametrize("X, reduced_axis, target_shape", GLOBAL_SCALER_TESTS)
-def test_global_min_max(X, reduced_axis, target_shape):
+@pytest.mark.parametrize("X, reduced_axis", GLOBAL_SCALER_TESTS)
+def test_global_min_max(X, reduced_axis):
     """Test GlobalMinMaxScaler on regular array layouts."""
     minmax = GlobalMinMaxScaler(-1, 2)
     X_transformed = minmax.fit_transform(X)
-
-    assert minmax.x_mins.shape == target_shape
-    assert minmax.x_maxs.shape == target_shape
 
     X_transformed_ = X_transformed
     X_ = X
@@ -168,3 +152,45 @@ def test_global_min_max(X, reduced_axis, target_shape):
     if isinstance(X_inv, list):
         X_inv = np.concatenate(X_inv, axis=1)
     assert np.allclose(X_, X_inv)
+
+
+@pytest.mark.parametrize(
+    "Scaler", [GlobalCenterer, GlobalMinMaxScaler, GlobalNormalizer]
+)
+def test_global_scaler_variable_input_layout(Scaler):
+    """Test GlobalCenterer on variable-dim input."""
+    X3 = np.random.normal(size=(6, 2, 20))
+    Xl = [np.random.normal(size=(2, n)) for n in (15, 20, 25)]
+
+    scaler_X3 = Scaler().fit(X3)
+    out = scaler_X3.transform(Xl)
+    assert isinstance(out, list)
+    assert all(isinstance(x, np.ndarray) for x in out)
+    assert all(out[i].shape == Xl[i].shape for i in range(len(out)))
+
+    out = scaler_X3.inverse_transform(Xl)
+    assert isinstance(out, list)
+    assert all(isinstance(x, np.ndarray) for x in out)
+    assert all(out[i].shape == Xl[i].shape for i in range(len(out)))
+
+    scaler_Xl = Scaler().fit(Xl)
+    out = scaler_Xl.transform(X3)
+    assert isinstance(out, np.ndarray)
+    assert out.shape == X3.shape
+
+    out = scaler_Xl.inverse_transform(X3)
+    assert isinstance(out, np.ndarray)
+    assert out.shape == X3.shape
+
+    X2 = np.random.normal(size=(6, 20))
+    X3 = np.random.normal(size=(6, 1, 20))
+
+    scaler_X2 = Scaler().fit(X2)
+    out = scaler_X2.transform(X3)
+    assert isinstance(out, np.ndarray)
+    assert out.shape == X3.shape
+
+    scaler_X3 = Scaler().fit(X3)
+    out = scaler_X3.transform(X2)
+    assert isinstance(out, np.ndarray)
+    assert out.shape == X2.shape

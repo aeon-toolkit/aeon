@@ -4,14 +4,14 @@ import numpy as np
 
 from aeon.transformations.collection.base import (
     BaseCollectionTransformer,
-    BaseGlobalCollectionTransformer,
+    CollectionInverseTransformerMixin,
 )
 
 
 class Normalizer(BaseCollectionTransformer):
     """Normaliser transformer for collections.
 
-    This transformer applies z-normalization  applied along the timepoints axis (the
+    This transformer applies z-normalization applied along the timepoints axis (the
     last axis). For multivariate data, it normalizes each channel independently.
 
     Examples
@@ -225,11 +225,11 @@ class Centerer(BaseCollectionTransformer):
             return Xt
 
 
-class GlobalNormalizer(BaseGlobalCollectionTransformer):
-    """Global Normaliser transformer for collections.
+class GlobalNormalizer(BaseCollectionTransformer, CollectionInverseTransformerMixin):
+    """Global z-normalization transformer for time series collections.
 
-    This transformer applies z-normalization applied along the timepoints axis.
-    For multivariate data, it normalizes each channel independently.
+    Z-normalizes each channel using the mean and standard deviation
+    computed across all cases and timepoints during fit.
 
     Parameters
     ----------
@@ -252,12 +252,9 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         self.mean = mean
         self.std = std
 
-        self.x_means = None
-        self.x_stds = None
-
     def _fit(self, X, y=None):
         """
-        Fit method to compute per-feature means and stds for the z-normalization.
+        Fit method to compute per-channel means and stds for the z-normalization.
 
         Parameters
         ----------
@@ -265,23 +262,17 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         y : None
             Ignored.
         """
-        unequal_length = isinstance(X, list)
-        if unequal_length:
+        if isinstance(X, list):
             X = np.concatenate(X, axis=1)
-            ax = -1
-        else:
-            ax = self._get_axis(X)
+            ax = 1
+        elif X.ndim == 2:
+            ax = (0, 1)
+        elif X.ndim == 3:
+            ax = (0, 2)
 
-        self.x_means = np.mean(X, axis=ax, keepdims=True)
-        self.x_stds = np.std(X, axis=ax, keepdims=True)
-        self.x_stds = np.where(self.x_stds == 0, 1, self.x_stds)
-
-    def _f(self, x):
-        unequal_length = isinstance(x, list)
-        if unequal_length:
-            return [self._f(x_i) for x_i in x]
-        else:
-            return (x - self.x_means) / self.x_stds * self.std + self.mean
+        self._means = np.nanmean(X, axis=ax)
+        self._stds = np.nanstd(X, axis=ax)
+        self._stds = np.where(self._stds == 0, 1, self._stds)
 
     def _transform(self, X, y=None):
         """
@@ -297,14 +288,15 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
         y : None
             Ignored.
         """
-        return self._f(X)
-
-    def _fi(self, x):
-        unequal_length = isinstance(x, list)
-        if unequal_length:
-            return [self._fi(x_i) for x_i in x]
-        else:
-            return (x - self.mean) / self.std * self.x_stds + self.x_means
+        if isinstance(X, list):
+            return [self._transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+            s = self._stds.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+            s = self._stds.reshape((1, -1, 1))
+        return (X - m) / s * self.std + self.mean
 
     def _inverse_transform(self, X, y=None):
         """
@@ -319,14 +311,22 @@ class GlobalNormalizer(BaseGlobalCollectionTransformer):
             - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : Ignored.
         """
-        return self._fi(X)
+        if isinstance(X, list):
+            return [self._inverse_transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+            s = self._stds.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+            s = self._stds.reshape((1, -1, 1))
+        return (X - self.mean) / self.std * s + m
 
 
-class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
+class GlobalMinMaxScaler(BaseCollectionTransformer, CollectionInverseTransformerMixin):
     """Global MinMaxScaler transformer for collections.
 
-    This transformer scales a collection of time series data to a specified range
-    For multivariate data, it scales each channel independently.
+    Normalizes collection bounds for each channel using the minimum and maximum
+    computed across all cases and timepoints during fit.
 
     Parameters
     ----------
@@ -347,19 +347,12 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
     def __init__(self, min: float = 0.0, max: float = 1.0):
         super().__init__()
 
-        if min >= max:
-            raise ValueError(
-                f"min value {min} should be strictly less than max value {max}"
-            )
-
         self.min = min
         self.max = max
-        self.x_mins = None
-        self.x_maxs = None
 
     def _fit(self, X, y=None):
         """
-        Fit method to compute per-feature mins and maxs for the min-max scaling.
+        Fit method to compute per-channel mins and maxs for the min-max scaling.
 
         Parameters
         ----------
@@ -367,26 +360,23 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
         y :  None
             Ignored.
         """
-        unequal_length = isinstance(X, list)
-        if unequal_length:
+        if self.min >= self.max:
+            raise ValueError(
+                f"min value {self.min} should be less than max value {self.max}"
+            )
+        if isinstance(X, list):
             X = np.concatenate(X, axis=1)
-            ax = -1
-        else:
-            ax = self._get_axis(X)
+            ax = 1
+        elif X.ndim == 2:
+            ax = (0, 1)
+        elif X.ndim == 3:
+            ax = (0, 2)
 
-        self.x_mins = np.min(X, axis=ax, keepdims=True)
-        self.x_maxs = np.max(X, axis=ax, keepdims=True)
+        self._mins = np.nanmin(X, axis=ax)
+        self._maxs = np.nanmax(X, axis=ax)
         # prevent division by zero in case of constant series
-        delta = self.x_maxs - self.x_mins
-        self.x_maxs = np.where(delta == 0, self.x_mins + 1, self.x_maxs)
-
-    def _f(self, x):
-        unequal_length = isinstance(x, list)
-        if unequal_length:
-            return [self._f(x_i) for x_i in x]
-        else:
-            x = (x - self.x_mins) / (self.x_maxs - self.x_mins)
-            return x * (self.max - self.min) + self.min
+        delta = self._maxs - self._mins
+        self._maxs = np.where(delta == 0, self._mins + 1, self._maxs)
 
     def _transform(self, X, y=None):
         """
@@ -401,15 +391,15 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : Ignored.
         """
-        return self._f(X)
-
-    def _fi(self, x):
-        unequal_length = isinstance(x, list)
-        if unequal_length:
-            return [self._fi(x_i) for x_i in x]
-        else:
-            x = (x - self.min) / (self.max - self.min)
-            return x * (self.x_maxs - self.x_mins) + self.x_mins
+        if isinstance(X, list):
+            return [self._transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._mins.reshape((-1, 1))
+            M = self._maxs.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._mins.reshape((1, -1, 1))
+            M = self._maxs.reshape((1, -1, 1))
+        return (X - m) / (M - m) * (self.max - self.min) + self.min
 
     def _inverse_transform(self, X, y=None):
         """
@@ -424,14 +414,23 @@ class GlobalMinMaxScaler(BaseGlobalCollectionTransformer):
             - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : Ignored.
         """
-        return self._fi(X)
+        if isinstance(X, list):
+            return [self._inverse_transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._mins.reshape((-1, 1))
+            M = self._maxs.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._mins.reshape((1, -1, 1))
+            M = self._maxs.reshape((1, -1, 1))
+        X = (X - self.min) / (self.max - self.min)
+        return X * (M - m) + m
 
 
-class GlobalCenterer(BaseGlobalCollectionTransformer):
+class GlobalCenterer(BaseCollectionTransformer, CollectionInverseTransformerMixin):
     """Global Centerer transformer for collections.
 
-    This transformer recentres series to have constant mean, but does not change the
-    variance. For multivariate data, it recenters each channel independently.
+    Centers each channel using the mean computed across all cases and timepoints during
+    fit.
 
     Parameters
     ----------
@@ -450,11 +449,10 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
     def __init__(self, mean=0.0):
         super().__init__()
         self.mean = mean
-        self.x_means = None
 
     def _fit(self, X, y=None):
         """
-        Fit method to compute per-feature means for centering.
+        Fit method to compute per-channel means for centering.
 
         Parameters
         ----------
@@ -462,20 +460,15 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         y :  None
             Ignored.
         """
-        unequal_length = isinstance(X, list)
-        if unequal_length:
+        if isinstance(X, list):
             X = np.concatenate(X, axis=1)
-            ax = -1
-        else:
-            ax = self._get_axis(X)
-        self.x_means = np.mean(X, axis=ax, keepdims=True)
+            ax = 1
+        elif X.ndim == 2:
+            ax = (0, 1)
+        elif X.ndim == 3:
+            ax = (0, 2)
 
-    def _f(self, x):
-        unequal_length = isinstance(x, list)
-        if unequal_length:
-            return [self._f(x_i) for x_i in x]
-        else:
-            return x - self.x_means + self.mean
+        self._means = np.nanmean(X, axis=ax, keepdims=True)
 
     def _transform(self, X, y=None):
         """
@@ -484,20 +477,19 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to inverse transform. Either:
+            Collection to transform. Either:
             - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
             - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
             - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : Ignored.
         """
-        return self._f(X)
-
-    def _fi(self, x):
-        unequal_length = isinstance(x, list)
-        if unequal_length:
-            return [self._fi(x_i) for x_i in x]
-        else:
-            return x - self.mean + self.x_means
+        if isinstance(X, list):
+            return [self._transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+        return X - m + self.mean
 
     def _inverse_transform(self, X, y=None):
         """
@@ -512,4 +504,10 @@ class GlobalCenterer(BaseGlobalCollectionTransformer):
             - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
         y : Ignored.
         """
-        return self._fi(X)
+        if isinstance(X, list):
+            return [self._inverse_transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+        return X + m - self.mean
