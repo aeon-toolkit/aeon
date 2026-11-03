@@ -11,6 +11,8 @@ __all__ = [
 ]
 
 
+import warnings
+
 import numpy as np
 
 
@@ -120,20 +122,27 @@ def top_k_ranges_threshold(
     -------
     float
         Threshold such that there are at least ``k`` anomalous ranges. If no
-        threshold gives ``k`` ranges, the lowest threshold that was tried (the second
-        lowest score, or the only score if all scores are equal) is returned.
+        threshold gives ``k`` ranges, a warning is raised and the lowest threshold
+        that was tried (the second lowest score, or the only score if all scores are
+        equal) is returned.
     """
     if k is None:
         k = _count_anomaly_ranges(y_true)
     thresholds = np.unique(y_score)[::-1]
 
     # exclude minimum from thresholds, because all points are >= minimum!
-    for t in thresholds[:-1]:
+    candidates = thresholds[:-1] if len(thresholds) > 1 else thresholds
+    for t in candidates:
         y_pred = np.array(y_score >= t, dtype=np.int_)
         detected_n = _count_anomaly_ranges(y_pred)
         if detected_n >= k:
             return t
-    return thresholds[-2] if len(thresholds) > 1 else thresholds[0]
+    warnings.warn(
+        f"No threshold gives at least {k} anomalous ranges, returning the lowest "
+        "threshold that was tried.",
+        stacklevel=2,
+    )
+    return candidates[-1]
 
 
 def _count_anomaly_ranges(y: np.ndarray) -> int:
