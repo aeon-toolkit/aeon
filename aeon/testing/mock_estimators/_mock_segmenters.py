@@ -9,7 +9,7 @@ __all__ = [
 
 import numpy as np
 
-from aeon.segmentation import BaseSegmenter
+from aeon.segmentation import BaseSegmenter, SegmenterScoresMixin
 
 
 class MockSegmenter(BaseSegmenter):
@@ -61,12 +61,8 @@ class MockSegmenterRequiresY(MockSegmenter):
         return np.array([1])
 
 
-class MockSegmenterWithScores(MockSegmenter):
+class MockSegmenterWithScores(SegmenterScoresMixin, MockSegmenter):
     """Mock segmenter implementing predict_scores for testing."""
-
-    _tags = {
-        "capability:predict_scores": True,
-    }
 
     def _predict(self, X):
         """Generate breakpoints."""

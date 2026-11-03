@@ -24,7 +24,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.segmentation import BaseSegmenter
+from aeon.segmentation import BaseSegmenter, SegmenterScoresMixin
 from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
@@ -530,9 +530,11 @@ def _method_is_callable(estimator, method):
 
     Clusterers with the ``capability:predict`` tag set to False do not support
     out-of-sample prediction, so ``predict`` and ``predict_proba`` deliberately
-    raise and are excluded from generic method loops. Likewise, segmenters with the
-    ``capability:predict_scores`` tag set to False are excluded for
-    ``predict_scores``.
+    raise and are excluded from generic method loops.
+
+    Segmenters that define ``predict_scores`` without ``SegmenterScoresMixin``
+    (ClaSPSegmenter and FLUSSSegmenter) are excluded for ``predict_scores`` until
+    they are migrated (#3852, #3853), after which this condition can be removed.
     """
     if not (hasattr(estimator, method) and callable(getattr(estimator, method))):
         return False
@@ -545,7 +547,7 @@ def _method_is_callable(estimator, method):
     if (
         isinstance(estimator, BaseSegmenter)
         and method == "predict_scores"
-        and not estimator.get_tag("capability:predict_scores")
+        and not isinstance(estimator, SegmenterScoresMixin)
     ):
         return False
     return True

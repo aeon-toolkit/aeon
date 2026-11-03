@@ -98,12 +98,12 @@ NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
     "predict",
     "predict_proba",
     "transform",
+    "predict_scores",
 )
 
 # all non-state-changing methods
 NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
     "get_fitted_params",
-    "predict_scores",
 )
 
 

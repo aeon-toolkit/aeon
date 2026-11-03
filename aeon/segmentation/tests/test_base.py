@@ -124,29 +124,3 @@ def test_predict_scores_not_fitted():
     seg = MockSegmenterWithScores()
     with pytest.raises(NotFittedError):
         seg.predict_scores(X_UNIVARIATE)
-
-
-def test_predict_scores_tag_false():
-    """Test predict_scores raises NotImplementedError if the tag is False.
-
-    The segmenter implements _predict_scores, so the error can only come from the
-    tag check.
-    """
-    seg = MockSegmenterWithScores().fit(X_UNIVARIATE)
-    seg.set_tags(**{"capability:predict_scores": False})
-    with pytest.raises(NotImplementedError):
-        seg.predict_scores(X_UNIVARIATE)
-
-
-def test_predict_scores_tag_true_without_override():
-    """Test predict_scores raises NotImplementedError if _predict_scores is missing.
-
-    The tag is set to True on a segmenter that does not override _predict_scores, so
-    the call reaches the base class _predict_scores.
-    """
-    seg = MockSegmenter().fit(X_UNIVARIATE)
-    seg.set_tags(**{"capability:predict_scores": True})
-    # Guard the premise: the call must reach the base class _predict_scores.
-    assert "_predict_scores" not in type(seg).__dict__
-    with pytest.raises(NotImplementedError):
-        seg.predict_scores(X_UNIVARIATE)
