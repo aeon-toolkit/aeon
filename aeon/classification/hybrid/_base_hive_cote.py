@@ -113,8 +113,7 @@ class _BaseHIVECOTE(BaseClassifier):
                 self._log(f"[{verbose_name}] Starting {name}...")
                 if self.verbose >= 2:
                     self._log(
-                        f"[{verbose_name}] {name} params: "
-                        f"{est.get_params(deep=False)}",
+                        f"[{verbose_name}] {name} params: {est.get_params(deep=False)}",
                         level=2,
                     )
 

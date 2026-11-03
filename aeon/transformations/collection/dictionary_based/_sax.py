@@ -8,7 +8,7 @@ import scipy.stats
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.dictionary_based import PAA
+from aeon.transformations.collection.dictionary_based._paa import PAA
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.validation import check_n_jobs
 
@@ -103,9 +103,9 @@ class SAX(BaseCollectionTransformer):
         if self.alphabet_size <= 0:
             raise ValueError("alphabet_size must be greater than 0")
         self.alphabet = alphabet
-        assert (
-            self.alphabet is None or len(self.alphabet) == self.alphabet_size
-        ), "The length of the alphabet should be equal to the alphabet_size parameter"
+        assert self.alphabet is None or len(self.alphabet) == self.alphabet_size, (
+            "The length of the alphabet should be equal to the alphabet_size parameter"
+        )
 
         self.distribution = distribution
         self.n_jobs = n_jobs

@@ -42,13 +42,6 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         `DecisionTreeRegressor` using MSE as a splitting measure. Pass a
         configured estimator to change tree parameters such as the criterion
         or depth.
-    pca_solver : str, default="deprecated"
-        Has no effect. The group PCA is always computed with an exact
-        eigendecomposition of the covariance matrix, equivalent to the
-        scikit-learn PCA "full" solver.
-
-        .. deprecated:: 1.6.0
-            ``pca_solver`` has no effect and will be removed in v1.7.0.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -113,7 +106,6 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
         max_group: int = 3,
         remove_proportion: float = 0.5,
         base_estimator: BaseEstimator | None = None,
-        pca_solver: str = "deprecated",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
@@ -125,7 +117,6 @@ class RotationForestRegressor(RegressorMixin, BaseRotationForest):
             max_group=max_group,
             remove_proportion=remove_proportion,
             base_estimator=base_estimator,
-            pca_solver=pca_solver,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
             n_jobs=n_jobs,

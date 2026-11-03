@@ -122,8 +122,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
             or issubclass(X.dtype.type, np.floating)
         ):
             raise ValueError(
-                "dtype for the query np.ndarray must be float or int, got "
-                f"{X.dtype}."
+                f"dtype for the query np.ndarray must be float or int, got {X.dtype}."
             )
 
         # Reject missing values unless the estimator declares support for them, so

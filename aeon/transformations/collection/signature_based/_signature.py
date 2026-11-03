@@ -264,9 +264,7 @@ def _window_getter(
 
     if window_name not in window_dict.keys():
         raise ValueError(
-            "Window name must be one of: {}. Got: {}.".format(
-                window_dict.keys(), window_name
-            )
+            f"Window name must be one of: {window_dict.keys()}. Got: {window_name}."
         )
 
     window_cls, window_kwargs = window_dict[window_name]
@@ -399,8 +397,8 @@ class _Dyadic(_Window):
         if self.depth > max_depth:
             raise ValueError(
                 "Chosen dyadic depth is too high for the data length. "
-                "We require depth <= {} for length {}. "
-                "Depth given is: {}.".format(max_depth, length, self.depth)
+                f"We require depth <= {max_depth} for length {length}. "
+                f"Depth given is: {self.depth}."
             )
         return self.call(float(length))
 
@@ -433,11 +431,9 @@ def _rescale_signature(signature, channels, depth):
     # Verify shape
     if sigdim != signature.shape[-1]:
         raise ValueError(
-            "A path with {} channels to depth {} should yield a "
-            "signature with {} features. Input signature has {} "
-            "features which is inconsistent.".format(
-                channels, depth, sigdim, signature.shape[-1]
-            )
+            f"A path with {channels} channels to depth {depth} should yield a "
+            f"signature with {sigdim} features. Input signature has "
+            f"{signature.shape[-1]} features which is inconsistent."
         )
 
     end = 0

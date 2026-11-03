@@ -106,8 +106,7 @@ def plot_significance(
 
     if return_p_values and test != "wilcoxon":
         raise ValueError(
-            f"Cannot return p values for {test}, since it does "
-            "not calculate p-values."
+            f"Cannot return p values for {test}, since it does not calculate p-values."
         )
 
     # Step 2: calculate average rank per estimator
@@ -119,10 +118,10 @@ def plot_significance(
     ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
     ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)
 
-    indices = [np.where(np.array(labels) == r)[0] for r in ordered_labels]
+    indices = [np.where(np.array(labels) == r)[0][0] for r in ordered_labels]
 
     ordered_scores = scores[:, indices]
-    ordered_avg_scores = ordered_scores.mean(axis=0).flatten()
+    ordered_avg_scores = ordered_scores.mean(axis=0)
 
     # Step 3 : check whether Friedman test is significant
     p_value_friedman = check_friedman(ranks)

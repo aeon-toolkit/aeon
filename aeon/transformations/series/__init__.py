@@ -13,8 +13,6 @@ __all__ = [
     "LogTransformer",
     "PLASeriesTransformer",
     "MSTLSeriesTransformer",
-    "StatsModelsACF",
-    "StatsModelsPACF",
     "BKFilter",
     "BoxCoxTransformer",
     "YeoJohnsonTransformer",
@@ -25,11 +23,7 @@ __all__ = [
     "DifferenceTransformer",
 ]
 
-from aeon.transformations.series._acf import (
-    AutoCorrelationSeriesTransformer,
-    StatsModelsACF,
-    StatsModelsPACF,
-)
+from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
 from aeon.transformations.series._bkfilter import BKFilter
 from aeon.transformations.series._boxcox import BoxCoxTransformer
 from aeon.transformations.series._clasp import ClaSPTransformer
