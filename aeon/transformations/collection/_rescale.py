@@ -8,8 +8,10 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 class Normalizer(BaseCollectionTransformer):
     """Normaliser transformer for collections.
 
-    This transformer applies z-normalization  applied along the timepoints axis (the
-    last axis). For multivariate data, it normalizes each channel independently.
+    This transformer applies z-normalization applied along the specified timepoints axis
+    (by default, the last axis). For multivariate data, normalization is performed
+    independently for each channel. When working with unequal length series axis,
+    is relative to the numpy arrays dimensions and could be either 0 or 1.
 
     Parameters
     ----------
@@ -20,9 +22,6 @@ class Normalizer(BaseCollectionTransformer):
     axis: int, default=-1
         Axis along which to compute the mean and standard deviation. Default is -1,
         which corresponds to the last axis (timepoints axis).
-
-    When working with unequal length series, Normalizer is only able to
-    use list of 2D arrays with shape (n_channels, n_timepoints_i).
 
     Examples
     --------
@@ -57,9 +56,17 @@ class Normalizer(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+            Collection to transform. Either:
+            - a 3D array of shape :
+                + if axis = -1: ``(n_cases, n_channels, n_timepoints)``
+                + if axis = 1: ``(n_cases, n_timepoints, n_channels)``
+            - a list of ``n_cases`` 2D arrays
+                + if axis = -1: ``(n_channels, n_timepoints_i)``
+                + if axis = 0: ``(n_timepoints_i, n_channels)``
+            - a 2D array of shape :
+                + if axis = -1: ``(n_channels, n_timepoints)``
+                    or ``(n_cases, n_timepoints)``
+                + if axis = 0: ``(n_timepoints, n_channels)``
         y : None
             Ignored.
 
@@ -70,22 +77,13 @@ class Normalizer(BaseCollectionTransformer):
         """
         if isinstance(X, np.ndarray):
             # Case 1: X is a single 3D array
-            mean_val = np.mean(X, axis=self.axis, keepdims=True)
-            std_val = np.std(X, axis=self.axis, keepdims=True)
+            mean_val = np.nanmean(X, axis=self.axis, keepdims=True)
+            std_val = np.nanstd(X, axis=self.axis, keepdims=True)
             std_val = np.where(std_val == 0, 1, std_val)  # Prevent division by zero
-            X_standardized = (X - mean_val) / std_val * self.std + self.mean
-            return X_standardized
-
+            return (X - mean_val) / std_val * self.std + self.mean
         else:
             # Case 2: X is a list of 2D arrays
-            Xt = []
-            for x in X:
-                mean_val = np.mean(x, axis=-1, keepdims=True)
-                std_val = np.std(x, axis=-1, keepdims=True)
-                std_val = np.where(std_val == 0, 1, std_val)  # Prevent division by zero
-                x_standardized = (x - mean_val) / std_val * self.std + self.mean
-                Xt.append(x_standardized)
-            return Xt
+            return [self._transform(x) for x in X]
 
 
 class MinMaxScaler(BaseCollectionTransformer):
@@ -93,7 +91,8 @@ class MinMaxScaler(BaseCollectionTransformer):
 
     This transformer scales a collection of time series data to a specified range
     [min,max] along the time axis. The default is to [0,1]. For multivariate,
-    it scales each channel independently.
+    it scales each channel independently. When working with unequal length series, axis
+    is relative to the numpy arrays dimensions and could be either 0 or 1.
 
 
     Parameters
@@ -105,9 +104,6 @@ class MinMaxScaler(BaseCollectionTransformer):
     axis: int, default=-1
         Axis along which to compute the min and max. Default is -1, which corresponds to
         the last axis (timepoints axis).
-
-    When working with unequal length series, MinMaxScaler is only able to
-    use list of 2D arrays with shape (n_channels, n_timepoints_i).
 
     Examples
     --------
@@ -143,9 +139,17 @@ class MinMaxScaler(BaseCollectionTransformer):
         Parameters
         ----------
         X: np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+            Collection to transform. Either:
+            - a 3D array of shape :
+                + if axis = -1: ``(n_cases, n_channels, n_timepoints)``
+                + if axis = 1: ``(n_cases, n_timepoints, n_channels)``
+            - a list of ``n_cases`` 2D arrays
+                + if axis = -1: ``(n_channels, n_timepoints_i)``
+                + if axis = 0: ``(n_timepoints_i, n_channels)``
+            - a 2D array of shape :
+                + if axis = -1: ``(n_channels, n_timepoints)``
+                    or ``(n_cases, n_timepoints)``
+                + if axis = 0: ``(n_timepoints, n_channels)``
         y: None
            Ignored.
 
@@ -161,27 +165,15 @@ class MinMaxScaler(BaseCollectionTransformer):
 
         if isinstance(X, np.ndarray):
             # Case 1: Equal length series, X is a single 3D array
-            min_val = np.min(X, axis=self.axis, keepdims=True)
-            max_val = np.max(X, axis=self.axis, keepdims=True)
-            range_val = np.where(
-                max_val - min_val == 0, 1, max_val - min_val
-            )  # Prevent division by zero
-            X_scaled = (X - min_val) / range_val
-            X_scaled = self.min + X_scaled * (self.max - self.min)
-            return X_scaled
+            min_val = np.nanmin(X, axis=self.axis, keepdims=True)
+            max_val = np.nanmax(X, axis=self.axis, keepdims=True)
+            # Prevent division by zero
+            delta = max_val - min_val
+            delta = np.where(delta == 0, 1, delta)
+            return (X - min_val) / delta * (self.max - self.min) + self.min
         else:
             # Case 2: Unequal length series, X is a list of 2D arrays
-            Xt = []
-            for x in X:
-                min_val = np.min(x, axis=-1, keepdims=True)
-                max_val = np.max(x, axis=-1, keepdims=True)
-                range_val = np.where(
-                    max_val - min_val == 0, 1, max_val - min_val
-                )  # Prevent division by zero
-                x_scaled = (x - min_val) / range_val
-                x_scaled = self.min + x_scaled * (self.max - self.min)
-                Xt.append(x_scaled)
-            return Xt
+            return [self._transform(x) for x in X]
 
 
 class Centerer(BaseCollectionTransformer):
@@ -189,6 +181,8 @@ class Centerer(BaseCollectionTransformer):
 
     This transformer recentres series to have zero mean, but does not change the
     variance. For multivariate data, it normalizes each channel independently.
+    When working with unequal length series, axis is relative to the numpy arrays
+    dimensions and could be either 0 or 1.
 
     Parameters
     ----------
@@ -197,9 +191,6 @@ class Centerer(BaseCollectionTransformer):
     axis: int, default=-1
         Axis along which to compute the mean. Default is -1, which corresponds to the
         last axis (timepoints axis).
-
-    When working with unequal length series, Centerer is only able to
-    use list of 2D arrays with shape (n_channels, n_timepoints_i).
 
     Examples
     --------
@@ -231,9 +222,17 @@ class Centerer(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
-            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
-            ``(n_cases, n_channels, n_timepoints)``.
+            Collection to transform. Either:
+            - a 3D array of shape :
+                + if axis = -1: ``(n_cases, n_channels, n_timepoints)``
+                + if axis = 1: ``(n_cases, n_timepoints, n_channels)``
+            - a list of ``n_cases`` 2D arrays
+                + if axis = -1: ``(n_channels, n_timepoints_i)``
+                + if axis = 0: ``(n_timepoints_i, n_channels)``
+            - a 2D array of shape :
+                + if axis = -1: ``(n_channels, n_timepoints)``
+                    or ``(n_cases, n_timepoints)``
+                + if axis = 0: ``(n_timepoints, n_channels)``
         y : None
             Ignored.
 
@@ -244,15 +243,8 @@ class Centerer(BaseCollectionTransformer):
         """
         if isinstance(X, np.ndarray):
             # Case 1: X is a single 3D array
-            mean_val = np.mean(X, axis=self.axis, keepdims=True)
-            Xt = X - mean_val + self.mean
-            return Xt
+            mean_val = np.nanmean(X, axis=self.axis, keepdims=True)
+            return X - mean_val + self.mean
 
         else:
-            # Case 2: X is a list of 2D arrays
-            Xt = []
-            for x in X:
-                mean_val = np.mean(x, axis=-1, keepdims=True)
-                xt = x - mean_val + self.mean
-                Xt.append(xt)
-            return Xt
+            return [self._transform(x) for x in X]
