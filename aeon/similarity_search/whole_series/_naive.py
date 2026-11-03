@@ -186,8 +186,7 @@ class NaiveSeriesSearch(BaseWholeSeriesSearch):
         if X_index is not None:
             if X_index < 0 or X_index >= self.n_cases_:
                 raise ValueError(
-                    f"X_index must be between 0 and {self.n_cases_ - 1}, "
-                    f"got {X_index}"
+                    f"X_index must be between 0 and {self.n_cases_ - 1}, got {X_index}"
                 )
             dist_profile[X_index] = np.inf
 

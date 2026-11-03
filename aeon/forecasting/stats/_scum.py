@@ -30,7 +30,7 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
 
     Parameters
     ----------
-    season_length : int, default=1
+    seasonal_period : int, default=1
         Seasonal period/frequency passed to seasonal-capable component models.
     forecasters : sequence or None, default=None
         Optional custom forecaster pool. Each entry can be either a forecaster
@@ -61,7 +61,7 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
     - **ARIMA is non-seasonal.** The paper uses the seasonal ``auto.arima`` from
       the R *forecast* package (non-seasonal orders up to 5, seasonal AR/MA up to
       2). aeon's :class:`AutoARIMA` has no seasonal capability and a narrower
-      order search, so the ARIMA member ignores seasonality and ``season_length``
+      order search, so the ARIMA member ignores seasonality and ``seasonal_period``
       is not passed to it.
     - **No ETS frequency switch.** The paper selects the ETS model with
       ``forecast::ets`` for frequencies <= 24 and ``smooth::es`` (which supports
@@ -89,12 +89,12 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
 
     def __init__(
         self,
-        season_length=1,
+        seasonal_period=1,
         forecasters=None,
         clip_negative=True,
         dotm_max_length=5000,
     ):
-        self.season_length = season_length
+        self.seasonal_period = seasonal_period
         self.forecasters = forecasters
         self.clip_negative = clip_negative
         self.dotm_max_length = dotm_max_length
@@ -165,10 +165,10 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
             return self.forecasters
 
         forecasters = [
-            ("ets", AutoETS(seasonal_period=int(self.season_length))),
-            ("ces", AutoCES(season_length=int(self.season_length))),
+            ("ets", AutoETS(seasonal_period=int(self.seasonal_period))),
+            ("ces", AutoCES(seasonal_period=int(self.seasonal_period))),
             ("arima", AutoARIMA()),
-            ("dotm", DOTM(season_length=int(self.season_length))),
+            ("dotm", DOTM(seasonal_period=int(self.seasonal_period))),
         ]
         if self.dotm_max_length is not None:
             forecasters[-1] = (
@@ -182,11 +182,11 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
     def _validate_parameters(self):
         """Validate SCUM configuration."""
         if (
-            isinstance(self.season_length, bool)
-            or not isinstance(self.season_length, (int, np.integer))
-            or self.season_length < 1
+            isinstance(self.seasonal_period, bool)
+            or not isinstance(self.seasonal_period, (int, np.integer))
+            or self.seasonal_period < 1
         ):
-            raise ValueError("season_length must be a positive integer.")
+            raise ValueError("seasonal_period must be a positive integer.")
         if self.dotm_max_length is not None and (
             isinstance(self.dotm_max_length, bool)
             or not isinstance(self.dotm_max_length, (int, np.integer))

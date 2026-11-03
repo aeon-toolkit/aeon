@@ -129,7 +129,7 @@ def test_scum_default_pool_uses_all_four_components(monkeypatch):
     monkeypatch.setattr(
         scum_module,
         "AutoCES",
-        lambda season_length: NaiveForecaster(strategy="mean"),
+        lambda seasonal_period: NaiveForecaster(strategy="mean"),
     )
     monkeypatch.setattr(
         scum_module,
@@ -139,13 +139,13 @@ def test_scum_default_pool_uses_all_four_components(monkeypatch):
     monkeypatch.setattr(
         scum_module,
         "DOTM",
-        lambda season_length: NaiveForecaster(
+        lambda seasonal_period: NaiveForecaster(
             strategy="seasonal_last", seasonal_period=2
         ),
     )
     y = np.array([1.0, 2.0, 3.0, 4.0])
 
-    scum = SCUM(season_length=4)
+    scum = SCUM(seasonal_period=4)
     pred = scum.iterative_forecast(y, prediction_horizon=4)
 
     assert pred.shape == (4,)
@@ -215,11 +215,11 @@ def test_scum_accepts_named_custom_pool():
         scum.iterative_forecast(y, 1, exog=y, future_exog=np.array([1.0]))
 
 
-@pytest.mark.parametrize("season_length", [0, -1, True, 1.5])
-def test_scum_invalid_season_length_raises(season_length):
+@pytest.mark.parametrize("seasonal_period", [0, -1, True, 1.5])
+def test_scum_invalid_seasonal_period_raises(seasonal_period):
     """SCUM validates the seasonal period."""
-    with pytest.raises(ValueError, match="season_length"):
-        SCUM(season_length=season_length).fit(np.arange(5, dtype=np.float64))
+    with pytest.raises(ValueError, match="seasonal_period"):
+        SCUM(seasonal_period=seasonal_period).fit(np.arange(5, dtype=np.float64))
 
 
 def test_scum_invalid_dotm_max_length_raises():

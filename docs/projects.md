@@ -236,7 +236,7 @@ compare performance against partitional clustering for time series clustering.
    based on grid screening and mutual neighborhood degree for network anomaly detection.
    Sci Rep 12, 1409 (2022) [DOI](https://doi.org/10.1038/s41598-021-02038-z)
 3. Begum et al. A General Framework for Density Based  Time Series Clustering
-   Exploiting a Novel Admissible Pruning Strategy, [arXiv](https://arxiv.org/ftp/arxiv/papers/1612/1612.00637.pdf)
+   Exploiting a Novel Admissible Pruning Strategy, [arXiv](https://arxiv.org/abs/1612.00637)
 
 ### 2. Hierarchical clustering for time series
 

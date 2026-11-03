@@ -65,7 +65,7 @@ class _Dummy(CollectionInverseTransformerMixin, BaseCollectionTransformer):
     def _transform(self, X, y=None):
         assert isinstance(X, np.ndarray) or isinstance(X, list)
         if isinstance(X, np.ndarray):
-            return [x for x in X]
+            return [*X]
         return X
 
     def _inverse_transform(self, X, y=None):

@@ -152,10 +152,11 @@ class ROCKAD(BaseSeriesAnomalyDetector):
                 "The stride must be at least 1 and at most the window size."
             )
 
-        if int((X.shape[0] - self.window_size) / self.stride + 1) < self.n_neighbors:
+        n_windows = int((X.shape[0] - self.window_size) / self.stride + 1)
+        if n_windows < self.n_neighbors:
             raise ValueError(
-                f"Window count ({int((X.shape[0]-self.window_size)/self.stride+1)}) "
-                f"has to be larger than n_neighbors ({self.n_neighbors})."
+                f"Window count ({n_windows}) "
+                f"has to be larger than n_neighbors ({self.n_neighbors}). "
                 "Please choose a smaller n_neighbors value or increase window count "
                 "by choosing a smaller window size or larger stride."
             )
