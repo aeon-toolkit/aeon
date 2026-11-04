@@ -16,6 +16,7 @@ from aeon.benchmarking.results_loaders import (
     get_available_estimators,
     get_estimator_results,
     get_estimator_results_as_array,
+    write_estimator_results,
 )
 from aeon.testing.testing_config import PR_TESTING
 from aeon.testing.utils.deep_equals import deep_equals
@@ -199,3 +200,51 @@ def test_load_all_estimator_results(task):
             )
             assert res.shape[0] > 25
             assert res.shape[1] == 1
+
+
+def test_write_estimator_results_round_trip(tmp_path):
+    """Results written by write_estimator_results are read back unchanged."""
+    results = {
+        "Chinatown": [0.98, 0.97, 0.99],
+        "ItalyPowerDemand": [0.95, 0.96, 0.94],
+    }
+    write_estimator_results(
+        results, "ROCKET", str(tmp_path), task="classification", measure="accuracy"
+    )
+
+    loaded = get_estimator_results(["ROCKET"], num_resamples=3, path=str(tmp_path))
+    for dataset, values in results.items():
+        np.testing.assert_allclose(loaded["ROCKET"][dataset], values)
+
+    array, datasets = get_estimator_results_as_array(
+        ["ROCKET"],
+        datasets=["Chinatown", "ItalyPowerDemand"],
+        num_resamples=1,
+        path=str(tmp_path),
+        include_missing=True,
+    )
+    assert array.shape == (2, 1)
+    assert set(datasets) == {"Chinatown", "ItalyPowerDemand"}
+
+
+def test_write_estimator_results_single_resample(tmp_path):
+    """A scalar per dataset is written and read back as a single resample."""
+    results = {"Chinatown": 0.9, "ItalyPowerDemand": 0.8}
+    write_estimator_results(results, "ROCKET", str(tmp_path))
+
+    loaded = get_estimator_results(["ROCKET"], num_resamples=1, path=str(tmp_path))
+    assert loaded["ROCKET"]["Chinatown"] == 0.9
+    assert loaded["ROCKET"]["ItalyPowerDemand"] == 0.8
+
+
+def test_write_estimator_results_invalid_arguments(tmp_path):
+    """Invalid task, measure, ragged resamples and empty results raise."""
+    results = {"Chinatown": [0.9, 0.8]}
+    with raises(ValueError, match="valid task"):
+        write_estimator_results(results, "ROCKET", str(tmp_path), task="nope")
+    with raises(ValueError, match="valid measure"):
+        write_estimator_results(results, "ROCKET", str(tmp_path), measure="nope")
+    with raises(ValueError, match="same number"):
+        write_estimator_results({"A": [0.9, 0.8], "B": [0.9]}, "ROCKET", str(tmp_path))
+    with raises(ValueError, match="empty"):
+        write_estimator_results({}, "ROCKET", str(tmp_path))

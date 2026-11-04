@@ -6,9 +6,11 @@ __all__ = [
     "get_available_estimators",
     "get_estimator_results",
     "get_estimator_results_as_array",
+    "write_estimator_results",
 ]
 
 
+import os
 from http.client import IncompleteRead, RemoteDisconnected
 from urllib.error import HTTPError, URLError
 
@@ -471,3 +473,105 @@ def _results_dict_to_array(res_dict, estimators, datasets, include_missing):
             results.append(r)
             names.append(data)
     return np.array(results), names
+
+
+def write_estimator_results(
+    results,
+    estimator,
+    path,
+    task="classification",
+    measure="accuracy",
+    write_header=True,
+):
+    """Write estimator results to a CSV in the format ``get_estimator_results`` reads.
+
+    This is the inverse of :func:`get_estimator_results`. It writes a single CSV
+    file per estimator, with one row per dataset and one column per resample, so
+    results produced locally can be read back with :func:`get_estimator_results`
+    (or :func:`get_estimator_results_as_array`) without any manual conversion.
+
+    The file is written to
+    ``{path}/{task}/{measure}/{estimator}_{measure}.csv``, matching the directory
+    layout used by the loader.
+
+    Parameters
+    ----------
+    results : dict
+        Mapping of dataset name to results. Each value is either a single number
+        (one resample) or a sequence of numbers (one per resample). All datasets
+        must provide the same number of resamples.
+    estimator : str
+        Name of the estimator the results belong to. Used for the file name.
+    path : str
+        Base directory to write to. The ``task`` and ``measure`` subdirectories
+        are created if they do not exist.
+    task : str, default="classification"
+        One of :data:`VALID_TASK_TYPES`.
+    measure : str, default="accuracy"
+        One of ``VALID_RESULT_MEASURES[task]``.
+    write_header : bool, default=True
+        If True, write a header row (dataset name column followed by the resample
+        indices). ``get_estimator_results`` infers the header either way.
+
+    Returns
+    -------
+    str
+        The full path of the written file.
+
+    See Also
+    --------
+    get_estimator_results : Read results written in this format.
+
+    Examples
+    --------
+    >>> import tempfile
+    >>> from aeon.benchmarking.results_loaders import (
+    ...     write_estimator_results,
+    ...     get_estimator_results,
+    ... )
+    >>> results = {"Chinatown": [0.98, 0.97], "ItalyPowerDemand": [0.95, 0.96]}
+    >>> with tempfile.TemporaryDirectory() as tmp:  # doctest: +SKIP
+    ...     written = write_estimator_results(results, "MyClassifier", tmp)
+    ...     loaded = get_estimator_results(
+    ...         ["MyClassifier"], num_resamples=2, path=tmp
+    ...     )
+    """
+    task = task.lower()
+    measure = measure.lower()
+    if task not in VALID_TASK_TYPES:
+        raise ValueError(
+            f"Error in write_estimator_results, {task} is not a valid task. It "
+            f"must be one of {VALID_TASK_TYPES}"
+        )
+    if measure not in VALID_RESULT_MEASURES[task]:
+        raise ValueError(
+            f"Error in write_estimator_results, {measure} is not a valid measure "
+            f"for task {task}. It must be one of {VALID_RESULT_MEASURES[task]}"
+        )
+    if len(results) == 0:
+        raise ValueError("Error in write_estimator_results, results is empty.")
+
+    rows = {}
+    n_resamples = None
+    for dataset, values in results.items():
+        values = np.atleast_1d(np.asarray(values, dtype=float)).ravel()
+        if n_resamples is None:
+            n_resamples = len(values)
+        elif len(values) != n_resamples:
+            raise ValueError(
+                "Error in write_estimator_results, all datasets must have the "
+                f"same number of resamples. {dataset} has {len(values)}, "
+                f"expected {n_resamples}."
+            )
+        rows[dataset] = values
+
+    frame = pd.DataFrame.from_dict(rows, orient="index")
+    frame.index.name = "dataset"
+    frame.columns = list(range(n_resamples))
+
+    directory = os.path.join(path, task, measure)
+    os.makedirs(directory, exist_ok=True)
+    file_path = os.path.join(directory, f"{estimator}_{measure}.csv")
+    frame.to_csv(file_path, header=write_header, index=True)
+
+    return file_path
