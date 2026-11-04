@@ -93,6 +93,20 @@ def _get_init_barycenter(
         return init_barycenter
 
 
+@njit(cache=True)
+def _derivative_path_to_original(
+    path: list[tuple[int, int]], n_timepoints: int, center_timepoints: int
+) -> list[tuple[int, int]]:
+    # The derivative of a series is centred on the inner points, so derivative point j
+    # sits on original point j + 1. The two end points have no derivative and are
+    # aligned with each other.
+    shifted = [(0, 0)]
+    for j, k in path:
+        shifted.append((j + 1, k + 1))
+    shifted.append((n_timepoints - 1, center_timepoints - 1))
+    return shifted
+
+
 @njit(cache=True, fastmath=True)
 def _get_alignment_path(
     center: np.ndarray,
@@ -116,11 +130,13 @@ def _get_alignment_path(
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)
     elif distance == "ddtw":
-        return ddtw_alignment_path(ts, center, window)
+        path, cost = ddtw_alignment_path(ts, center, window)
+        return _derivative_path_to_original(path, ts.shape[1], center.shape[1]), cost
     elif distance == "wdtw":
         return wdtw_alignment_path(ts, center, window, g)
     elif distance == "wddtw":
-        return wddtw_alignment_path(ts, center, window, g)
+        path, cost = wddtw_alignment_path(ts, center, window, g)
+        return _derivative_path_to_original(path, ts.shape[1], center.shape[1]), cost
     elif distance == "edr":
         return edr_alignment_path(ts, center, window, epsilon)
     elif distance == "twe":
