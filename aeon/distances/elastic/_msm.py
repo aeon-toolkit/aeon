@@ -348,29 +348,83 @@ def _msm_dependent_distance_unbounded(x: np.ndarray, y: np.ndarray, c: float) ->
     return _msm_dependent_distance_unbounded_impl(x, y, c)
 
 
+@njit(cache=True, fastmath=True, inline="always")
+def _msm_squared_point(x: np.ndarray, i: int, y: np.ndarray, j: int) -> float:
+    """Squared distance between points in time-major arrays."""
+    distance = 0.0
+    for channel in range(x.shape[1]):
+        difference = x[i, channel] - y[j, channel]
+        distance += difference * difference
+    return distance
+
+
 @njit(cache=True, fastmath=True)
 def _msm_dependent_distance_unbounded_impl(
     x: np.ndarray, y: np.ndarray, c: float
 ) -> float:
-    x_size = x.shape[1]
-    y_size = y.shape[1]
+    # Each cell needs d1 = sq(x_i, y_j) plus the split cost
+    # _cost_dependent(x_i, x_{i-1}, y_j) and the merge cost
+    # _cost_dependent(y_j, x_i, y_{j-1}), where sq is the squared distance between
+    # time points. Most of the sums inside those costs are already known:
+    # sq(x_{i-1}, y_j) is the previous row's d1 (sprev[j]), sq(x_i, y_{j-1}) is the
+    # previous column's d1 (sleft), sq(x_{i-1}, x_i) is constant along the row and
+    # sq(y_{j-1}, y_j) depends only on y. Only d1 and the two midpoint distances
+    # are summed per cell, in one pass over time-major (contiguous) copies.
+    xt = np.ascontiguousarray(x.T)
+    yt = np.ascontiguousarray(y.T)
+    x_size = xt.shape[0]
+    y_size = yt.shape[0]
+    n_channels = xt.shape[1]
 
+    y_steps = np.empty(y_size)
+    for j in range(1, y_size):
+        y_steps[j] = _msm_squared_point(yt, j - 1, yt, j)
     prev = np.empty(y_size)
     curr = np.empty(y_size)
-
-    prev[0] = _univariate_squared_distance(x[:, 0], y[:, 0])
+    sprev = np.empty(y_size)
+    scurr = np.empty(y_size)
+    for j in range(y_size):
+        sprev[j] = _msm_squared_point(xt, 0, yt, j)
+    prev[0] = sprev[0]
     for j in range(1, y_size):
         prev[j] = prev[j - 1] + _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
 
     for i in range(1, x_size):
-        curr[0] = prev[0] + _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
+        x_step = _msm_squared_point(xt, i - 1, xt, i)
+        sleft = _msm_squared_point(xt, i, yt, 0)
+        scurr[0] = sleft
+        left = prev[0] + _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
+        curr[0] = left
         for j in range(1, y_size):
-            d1 = prev[j - 1] + _univariate_squared_distance(x[:, i], y[:, j])
-            d2 = prev[j] + _cost_dependent(x[:, i], x[:, i - 1], y[:, j], c)
-            d3 = curr[j - 1] + _cost_dependent(y[:, j], x[:, i], y[:, j - 1], c)
-            curr[j] = min(d1, d2, d3)
+            distance = 0.0
+            mid2 = 0.0
+            mid3 = 0.0
+            for channel in range(n_channels):
+                xi = xt[i, channel]
+                xim1 = xt[i - 1, channel]
+                yj = yt[j, channel]
+                yjm1 = yt[j - 1, channel]
+                difference = xi - yj
+                distance += difference * difference
+                difference = (xim1 + yj) / 2.0 - xi
+                mid2 += difference * difference
+                difference = (xi + yjm1) / 2.0 - yj
+                mid3 += difference * difference
+            scurr[j] = distance
+            # Conditional expressions, not if/else: these comparisons are data
+            # dependent and compile to selects rather than mispredicted branches.
+            split = c + min(x_step, distance)
+            split = c if mid2 <= sprev[j] / 4.0 else split
+            merge = c + min(distance, y_steps[j])
+            merge = c if mid3 <= sleft / 4.0 else merge
+            d1 = prev[j - 1] + distance
+            d2 = prev[j] + split
+            d3 = left + merge
+            left = min(d1, d2, d3)
+            curr[j] = left
+            sleft = distance
         prev, curr = curr, prev
-
+        sprev, scurr = scurr, sprev
     return prev[y_size - 1]
 
 
