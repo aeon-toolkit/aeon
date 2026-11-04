@@ -36,6 +36,8 @@ def load_monster_dataset_names() -> list[str]:
     return sorted(dataset_names)
 
 
+# TODO: remove dataset_name in v1.8.0 and change the signature to
+#  load_monster_dataset(name: str, fold: int = 0)
 def load_monster_dataset(
     name: str | None = None, fold: int = 0, dataset_name: str = "deprecated"
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -100,7 +102,8 @@ def load_monster_dataset(
             )
         warnings.warn(
             "The 'dataset_name' parameter is deprecated and will be removed in "
-            "v1.8.0. Use 'name' instead.",
+            "v1.8.0. Use 'name' instead.  From v1.8.0 the signature will be "
+            "load_monster_dataset(name: str, fold: int = 0).",
             FutureWarning,
             stacklevel=2,
         )
