@@ -754,7 +754,19 @@ class TemporalDictionaryEnsemble(CheckpointableMixin, BaseClassifier):
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         self._fit(X, y, keep_train_preds=True)
+        return self._train_estimate_proba(X)
 
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        if not getattr(self, "_keep_train_preds", False):
+            raise ValueError(
+                "This fit began with fit, not fit_predict_proba, so it has no "
+                "train estimates to continue; use resume_fit."
+            )
+        self._continue_tde(X, y)
+        return self._train_estimate_proba(X)
+
+    def _train_estimate_proba(self, X) -> np.ndarray:
+        """Combine the members' retained train predictions into estimates."""
         results = np.zeros((self.n_cases_, self.n_classes_))
         divisors = np.zeros(self.n_cases_)
 

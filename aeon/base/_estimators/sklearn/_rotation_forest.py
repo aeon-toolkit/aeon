@@ -688,7 +688,26 @@ class BaseRotationForest(CheckpointableMixin, BaseEstimator):
         regressors.
         """
         X_t = self._fit_rotf(X, y, save_transformed_data=True)
+        return self._oob_train_estimates(X_t, y)
 
+    def _resume_fit_predict_rotf(self, X, y):
+        """Continue a forest begun with fit_predict and return its OOB estimates.
+
+        Returns class probabilities for classifiers and predicted values for
+        regressors, as ``_fit_predict_rotf`` does.
+        """
+        if not getattr(self, "_save_transformed_data", False):
+            raise ValueError(
+                "This forest was fitted with fit, not fit_predict or "
+                "fit_predict_proba, so it has no train estimates to continue; "
+                "use resume_fit."
+            )
+        self.resume_fit(X, y)
+        X, y = validate_data(self, X=self._check_X(X), y=y, reset=False)
+        return self._oob_train_estimates(self._transformed_data, y)
+
+    def _oob_train_estimates(self, X_t, y):
+        """Out-of-bag train estimates from each tree's transformed train data."""
         # copy, so out of bag estimates never advance a generator shared with
         # the continuation state or with the trees
         rng = deepcopy(check_random_state(self.random_state))
