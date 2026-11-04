@@ -12,6 +12,7 @@ from aeon.testing.mock_estimators import (
     MockClassifierParams,
     MockRegressor,
     MockSegmenter,
+    MockSegmenterWithScores,
     MockTransductiveCluster,
 )
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
@@ -24,6 +25,7 @@ test_classes = [
     TimeSeriesKMeans,
     MockTransductiveCluster,
     MockSegmenter,
+    MockSegmenterWithScores,
     MockAnomalyDetector,
     # MockMultivariateSeriesTransformer,
     Normalizer,

@@ -97,6 +97,7 @@ NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
     "predict",
     "predict_proba",
     "transform",
+    "predict_scores",
 )
 
 # all non-state-changing methods

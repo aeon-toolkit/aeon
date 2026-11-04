@@ -33,3 +33,4 @@ Base
     :template: class.rst
 
     BaseSegmenter
+    SegmenterScoresMixin
