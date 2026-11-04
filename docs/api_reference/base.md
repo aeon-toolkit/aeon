@@ -21,8 +21,8 @@ The `aeon.base` module contains abstract base classes.
 ## Checkpointing
 
 Estimators declaring `capability:checkpointing=True` can save training state
-and explicitly continue it. Arsenal, ShapeletTransformClassifier and
-TemporalDictionaryEnsemble support this capability. The scikit-learn facing
+and explicitly continue it. Arsenal, DrCIFClassifier, ShapeletTransformClassifier
+and TemporalDictionaryEnsemble support this capability. The scikit-learn facing
 Rotation Forest estimators, `RotationForestClassifier` and
 `RotationForestRegressor`, support it too, through the same `save_checkpoint`,
 `load_checkpoint` and `resume_fit` methods; they carry no tags, so the
@@ -47,22 +47,22 @@ clf.resume_fit(X_train, y_train)
 
 The interval is in minutes, and checkpoint timing is approximate. Periodic writes
 occur at the next algorithm-specific safe boundary after the interval has elapsed.
-For Arsenal and Rotation Forest, this is after a complete batch has joined and
-its results and RNG state have been committed; for TemporalDictionaryEnsemble,
-after an evaluated parameter combination has been retained or discarded. A
-long-running batch or evaluation can therefore delay checkpoints beyond the
-requested interval. A TDE checkpoint holds the fitted ensemble members, each
-keeping the word counts for its training subsample, so files are as large as
-the fitted model. A successful fit also writes a
+For Arsenal, DrCIFClassifier and Rotation Forest, this is after a complete batch
+has joined and its results and RNG state have been committed; for
+TemporalDictionaryEnsemble, after an evaluated parameter combination has been
+retained or discarded. A long-running batch or evaluation can therefore delay
+checkpoints beyond the requested interval. A TDE checkpoint holds the fitted
+ensemble members, each keeping the word counts for its training subsample, so
+files are as large as the fitted model. A successful fit also writes a
 final checkpoint. With `checkpoint_interval=None`, only the final automatic
 write occurs; with `checkpoint_path=None`, automatic writes are disabled.
 Manual `clf.save_checkpoint(path)` is available after fitting. A killed job
 loses work since the last completed write, and no checkpoint exists until the
 first write. Set the interval shorter than the job's wall-time allowance.
 
-For contracted Arsenal fits, `time_limit_in_minutes` bounds total training time
-across calls, measured by `fit_elapsed_time_`. A fit interrupted after 10 hours
-of a 12 hour contract resumes with 2 hours remaining; raise
+For contracted Arsenal and DrCIFClassifier fits, `time_limit_in_minutes` bounds
+total training time across calls, measured by `fit_elapsed_time_`. A fit
+interrupted after 10 hours of a 12 hour contract resumes with 2 hours remaining; raise
 `time_limit_in_minutes` above the time already spent to grant more. `fit` always
 starts the budget afresh. `contract_max_n_estimators` remains a limit on the
 total ensemble size; increase it if it has already been reached. A batch may
@@ -70,7 +70,7 @@ overrun the time budget.
 
 `fit_time_millis_` records the initial fit call and is not updated by
 `resume_fit`. Automatic checkpoints may omit it because they are saved before
-the fit timer is assigned. Use Arsenal's `fit_elapsed_time_` for cumulative
+the fit timer is assigned. Use `fit_elapsed_time_` for cumulative
 contract timing across fit and resume calls.
 
 Rotation Forest behaves as Arsenal does, at batches of `n_jobs` trees, with
@@ -168,3 +168,12 @@ The classifier base handles data signatures and final writes. Provide a small
 deterministic `checkpointing` test parameter set that reaches multiple safe
 boundaries for the generic interruption/recovery estimator check. Add specific
 tests for algorithmic counters, random state and retained training estimates.
+
+Interval forests inherit checkpoint persistence and continuation from
+`BaseIntervalForest`. DrCIFClassifier enables this through its capability tag
+and constructor parameters. Other interval forests do not yet expose this
+capability. DrCIF checkpoints retain fitted representation transformers, trees,
+interval selectors and RNG state. When fitting requests training estimates,
+each batch also commits its OOB predictions before saving; transformed training
+matrices are not retained for this purpose. Changing `parallel_backend` between
+calls is allowed, as is changing `n_jobs`.
