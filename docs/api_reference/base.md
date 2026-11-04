@@ -21,11 +21,12 @@ The `aeon.base` module contains abstract base classes.
 ## Checkpointing
 
 Estimators declaring `capability:checkpointing=True` can save training state
-and explicitly continue it. Arsenal and ShapeletTransformClassifier support this
-capability. The scikit-learn facing Rotation Forest estimators,
-`RotationForestClassifier` and `RotationForestRegressor`, support it too,
-through the same `save_checkpoint`, `load_checkpoint` and `resume_fit` methods;
-they carry no tags, so the capability is documented rather than declared.
+and explicitly continue it. Arsenal, ShapeletTransformClassifier and
+TemporalDictionaryEnsemble support this capability. The scikit-learn facing
+Rotation Forest estimators, `RotationForestClassifier` and
+`RotationForestRegressor`, support it too, through the same `save_checkpoint`,
+`load_checkpoint` and `resume_fit` methods; they carry no tags, so the
+capability is documented rather than declared.
 `fit` always starts a fresh fit; use `resume_fit` to continue a loaded checkpoint.
 
 ```python
@@ -47,8 +48,12 @@ clf.resume_fit(X_train, y_train)
 The interval is in minutes, and checkpoint timing is approximate. Periodic writes
 occur at the next algorithm-specific safe boundary after the interval has elapsed.
 For Arsenal and Rotation Forest, this is after a complete batch has joined and
-its results and RNG state have been committed. Long-running batches can
-therefore delay checkpoints beyond the requested interval. A successful fit also writes a
+its results and RNG state have been committed; for TemporalDictionaryEnsemble,
+after an evaluated parameter combination has been retained or discarded. A
+long-running batch or evaluation can therefore delay checkpoints beyond the
+requested interval. A TDE checkpoint holds the fitted ensemble members, each
+keeping the word counts for its training subsample, so files are as large as
+the fitted model. A successful fit also writes a
 final checkpoint. With `checkpoint_interval=None`, only the final automatic
 write occurs; with `checkpoint_path=None`, automatic writes are disabled.
 Manual `clf.save_checkpoint(path)` is available after fitting. A killed job
@@ -104,6 +109,19 @@ A `random_state` holding a `RandomState` instance is identified in that
 signature by its type rather than its value, because fitting consumes it, either
 directly or through components sharing it, and a generator that has moved on is
 not a change of model configuration.
+
+TemporalDictionaryEnsemble continues its guided parameter search instead, so the
+mutable limits are `n_parameter_samples` and `contract_max_n_parameter_samples`,
+counting every combination evaluated across calls. `max_ensemble_size` cannot
+change: members are retained and replaced against it as each candidate is
+evaluated, so a later value would neither recover discarded candidates nor
+reproduce an uninterrupted fit. A candidate whose evaluation fails is repeated
+on resuming rather than skipped, since its parameters stay in the search space
+and the random state is committed only once it has been evaluated. TDE gives its
+members `random_state` itself, so with a `RandomState` instance the members built
+after resuming depend on anything that consumed that generator in between,
+predictions from the checkpoint included; pass an integer seed where a resumed
+fit must match an uninterrupted one exactly.
 
 Continuation validates a joblib hash of the converted training data and labels,
 including values, order and dtypes. This reads the dataset once per fit/resume
