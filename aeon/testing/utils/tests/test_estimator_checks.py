@@ -6,6 +6,7 @@ import pytest
 from aeon.testing.mock_estimators import MockClassifier, MockClassifierPredictProba
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import (
+    _assert_predict_is_max_probability,
     _assert_predict_labels,
     _assert_predict_probabilities,
     _changed_state,
@@ -139,6 +140,25 @@ def test_assert_predict_probabilities_requires_n_classes():
             np.full((N_CASES, N_CLASSES), 0.5),
             FULL_TEST_DATA_DICT[DATATYPE]["test"][0],
         )
+
+
+def test_assert_predict_is_max_probability():
+    """Test predictions must have the highest probability, allowing ties."""
+    y_proba = np.array([[0.8, 0.2], [0.5, 0.5], [0.1, 0.9]])
+
+    # column indices, any tied class is accepted
+    _assert_predict_is_max_probability(np.array([0, 0, 1]), y_proba)
+    _assert_predict_is_max_probability(np.array([0, 1, 1]), y_proba)
+    with pytest.raises(AssertionError, match=r"cases \[2\]"):
+        _assert_predict_is_max_probability(np.array([0, 1, 0]), y_proba)
+    with pytest.raises(AssertionError, match="has no column"):
+        _assert_predict_is_max_probability(np.array([0, 1, 2]), y_proba)
+
+    # labels mapped to columns
+    labels = np.array(["a", "b"])
+    _assert_predict_is_max_probability(np.array(["a", "b", "b"]), y_proba, labels)
+    with pytest.raises(AssertionError, match=r"cases \[0\]"):
+        _assert_predict_is_max_probability(np.array(["b", "a", "b"]), y_proba, labels)
 
 
 def test_holds_deep_learning_state_finds_nested_objects():

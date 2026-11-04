@@ -110,6 +110,32 @@ def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=Non
     assert np.allclose(np.sum(y_proba, axis=1), 1)
 
 
+def _assert_predict_is_max_probability(y_pred, y_proba, labels=None):
+    """Assert each prediction has the highest predict_proba probability.
+
+    Any label tied for the highest probability is accepted, as predict may break
+    ties at random. ``labels`` gives the label of each ``y_proba`` column, such as
+    ``classes_``. If None, predictions are column indices.
+    """
+    if labels is None:
+        pred_idx = np.asarray(y_pred).astype(int)
+    else:
+        label_idx = {c: i for i, c in enumerate(labels)}
+        pred_idx = np.array([label_idx[c] for c in y_pred])
+    assert np.all((pred_idx >= 0) & (pred_idx < y_proba.shape[1])), (
+        f"predict returned {y_pred}, which has no column in predict_proba of shape "
+        f"{y_proba.shape}"
+    )
+
+    is_max = np.isclose(y_proba, y_proba.max(axis=1, keepdims=True))
+    bad = np.flatnonzero(~is_max[np.arange(len(pred_idx)), pred_idx])
+    assert len(bad) == 0, (
+        f"Inconsistent predict() and predict_proba() outputs for cases {bad}: "
+        f"predict returned {np.asarray(y_pred)[bad]}, predict_proba returned "
+        f"{y_proba[bad]}" + ("" if labels is None else f" for labels {labels}")
+    )
+
+
 def _holds_deep_learning_state(value, depth=0):
     """Whether a value is, or holds within a container or object, a keras object."""
     if type(value).__module__.split(".")[0] == "keras":

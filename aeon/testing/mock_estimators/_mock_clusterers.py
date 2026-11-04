@@ -3,6 +3,7 @@
 __maintainer__ = []
 __all__ = [
     "MockCluster",
+    "MockCyclicLabelCluster",
     "MockTransductiveCluster",
     "MockDeepClusterer",
 ]
@@ -32,6 +33,41 @@ class MockCluster(BaseClusterer):
         """Mock predict proba."""
         y = np.random.rand(len(X))
         return y
+
+
+class MockCyclicLabelCluster(BaseClusterer):
+    """Mock clusterer whose labels cycle through given label values.
+
+    ``predict`` assigns ``labels`` round-robin, so slicing ``X`` controls which
+    labels a call sees. ``fit`` does the same with ``fit_labels``, or with
+    ``labels`` if it is None.
+
+    Parameters
+    ----------
+    labels : tuple, default=(0, 1, 2)
+        Labels assigned round-robin by ``predict``.
+    n_clusters : int or None, default=3
+        Number of clusters.
+    fit_labels : tuple or None, default=None
+        Labels assigned round-robin to ``labels_`` in ``fit``. If None, uses
+        ``labels``.
+    """
+
+    def __init__(self, labels=(0, 1, 2), n_clusters=3, fit_labels=None):
+        self.labels = labels
+        self.n_clusters = n_clusters
+        self.fit_labels = fit_labels
+        super().__init__()
+
+    def _fit(self, X, y=None):
+        """Mock fit."""
+        labels = self.labels if self.fit_labels is None else self.fit_labels
+        self.labels_ = np.resize(np.asarray(labels), len(X))
+        return self
+
+    def _predict(self, X):
+        """Mock predict."""
+        return np.resize(np.asarray(self.labels), len(X))
 
 
 class MockTransductiveCluster(BaseClusterer):

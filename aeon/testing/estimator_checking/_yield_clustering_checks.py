@@ -10,6 +10,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.clustering.deep_learning import BaseDeepClusterer
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.testing.utils.estimator_checks import _assert_predict_is_max_probability
 from aeon.utils.validation.collection import get_n_cases
 
 
@@ -21,25 +22,34 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
         check_clusterer_does_not_override_final_methods, estimator_class=estimator_class
     )
 
+    # data type irrelevant
+    if issubclass(estimator_class, BaseDeepClusterer):
+        yield partial(
+            check_clusterer_saving_loading_deep_learning,
+            estimator_class=estimator_class,
+            datatype=datatypes[0][0],
+        )
+
     # test class instances
     for i, estimator in enumerate(estimator_instances):
         # data type irrelevant
+        yield partial(
+            check_clusterer_uses_all_clusters,
+            estimator=estimator,
+            datatype=datatypes[i][0],
+        )
+
         if isinstance(estimator, BaseDeepClusterer):
             yield partial(
                 check_clustering_random_state_deep_learning,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
+
+        # test all data types
         for datatype in datatypes[i]:
             yield partial(
                 check_clusterer_output, estimator=estimator, datatype=datatype
-            )
-
-        if issubclass(estimator_class, BaseDeepClusterer):
-            yield partial(
-                check_clusterer_saving_loading_deep_learning,
-                estimator_class=estimator_class,
-                datatype=datatypes[i][0],
             )
 
 
@@ -118,15 +128,37 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
 def check_clusterer_output(estimator, datatype):
     """Test clusterer outputs the correct data types and values.
 
-    Test fit sets labels_ and fit_predict returns it. For clusterers which support
-    out-of-sample prediction, test predict produces a np.array or pd.Series with only
-    values seen in the train data, and that predict_proba probability estimates add
-    up to one. For transductive clusterers (capability:predict tag set to False),
-    test predict and predict_proba raise a NotImplementedError instead.
+    Tests that fit sets labels_ as cluster indices: non-negative integers, below
+    n_clusters if the clusterer has it.
+
+    For clusterers which support out-of-sample prediction, also tests that:
+
+    - predict returns cluster indices which appear in labels_.
+    - predict_proba probability estimates add up to one.
+    - predict returns a cluster with the highest predict_proba probability,
+      including on a subset of cases missing a cluster.
+
+    For transductive clusterers (capability:predict tag set to False), tests that
+    predict and predict_proba raise a NotImplementedError and fit_predict returns
+    labels_ instead.
+
+    The estimator is seeded so repeated predict calls agree.
     """
     import pytest
 
-    estimator = _clone_estimator(estimator)
+    estimator = _clone_estimator(estimator, random_state=0)
+
+    def _assert_cluster_indices(labels):
+        """Assert labels are non-negative integers, below n_clusters if it is set."""
+        assert np.issubdtype(
+            labels.dtype, np.integer
+        ), f"labels must be integers, found dtype {labels.dtype}"
+        assert np.all(labels >= 0), f"labels must be non-negative, found {labels.min()}"
+        n_clusters = getattr(estimator, "n_clusters", None)
+        if n_clusters is not None:
+            assert np.all(
+                labels < n_clusters
+            ), f"labels must be below n_clusters={n_clusters}, found {labels.max()}"
 
     # run fit and check labels_
     data = FULL_TEST_DATA_DICT[datatype]["train"][0]
@@ -134,6 +166,7 @@ def check_clusterer_output(estimator, datatype):
     assert hasattr(estimator, "labels_")
     assert isinstance(estimator.labels_, np.ndarray)
     assert estimator.labels_.shape == (get_n_cases(data),)
+    _assert_cluster_indices(estimator.labels_)
 
     if not estimator.get_tag("capability:predict"):
         # transductive clusterers cannot assign clusters to unseen data
@@ -160,12 +193,46 @@ def check_clusterer_output(estimator, datatype):
     # check predict
     assert isinstance(y_pred, np.ndarray)
     assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
+    _assert_cluster_indices(y_pred)
+    assert np.all(np.isin(y_pred, estimator.labels_)), (
+        f"predict returned labels {np.setdiff1d(y_pred, estimator.labels_)} "
+        "which are not in labels_"
+    )
 
-    # check predict proba (all classifiers have predict_proba by default)
+    # check predict proba (all clusterers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
 
     assert isinstance(y_proba, np.ndarray)
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
+
+    # check the predicted cluster has the highest probability
+    _assert_predict_is_max_probability(y_pred, y_proba)
+
+    # predict_proba columns must not depend on which clusters are present, so
+    # check again on the test cases not assigned to the first predicted cluster
+    idx = np.where(y_pred != y_pred[0])[0]
+    if len(idx) > 0:
+        X_sub = [FULL_TEST_DATA_DICT[datatype]["test"][0][i] for i in idx]
+        y_proba_sub = estimator.predict_proba(X_sub)
+        assert y_proba_sub.shape[1] == y_proba.shape[1]
+        _assert_predict_is_max_probability(estimator.predict(X_sub), y_proba_sub)
+
+
+def check_clusterer_uses_all_clusters(estimator, datatype):
+    """Test every cluster has at least one case in labels_.
+
+    labels_ must contain every value from 0 to its maximum, and exactly n_clusters
+    clusters if the clusterer has n_clusters.
+    """
+    estimator = _clone_estimator(estimator, random_state=0)
+    estimator.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
+
+    clusters = np.unique(estimator.labels_)
+    n_clusters = getattr(estimator, "n_clusters", None)
+    expected = np.arange(clusters.max() + 1 if n_clusters is None else n_clusters)
+    assert np.array_equal(
+        clusters, expected
+    ), f"labels_ contains clusters {clusters}, expected {expected}"
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
