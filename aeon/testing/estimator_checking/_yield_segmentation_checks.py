@@ -29,7 +29,9 @@ def check_segmenter_base_functionality(estimator_class):
     assert "_predict" in estimator_class.__dict__
     # Test that fit_is_empty is correctly set
     fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
-    assert not fit_is_empty == "_fit" not in estimator_class.__dict__
+    assert fit_is_empty == (
+        "_fit" not in estimator_class.__dict__
+    ), "fit_is_empty must match whether the segmenter implements _fit."
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     assert X_inner_type in VALID_SERIES_INNER_TYPES
