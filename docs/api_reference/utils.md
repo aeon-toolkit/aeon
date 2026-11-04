@@ -42,6 +42,7 @@
     make_example_2d_numpy_series
     make_example_pandas_series
     make_example_dataframe_series
+    make_anomaly_detection_labels
 ```
 
 ### Estimator Checking
@@ -75,6 +76,7 @@
     MockClassifierParams
     MockClassifierComposite
     MockCluster
+    MockTransductiveCluster
     MockDeepClusterer
     MockCollectionTransformer
     MockForecaster
@@ -170,23 +172,54 @@
     :toctree: auto_generated/
     :template: function.rst
 
-    is_int
-    is_float
-    is_timedelta
-    is_date_offset
-    is_timedelta_or_date_offset
     check_n_jobs
-    check_window_length
+```
+
+```{eval-rst}
+.. currentmodule:: aeon.utils.validation.collection
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    is_tabular
+    is_collection
     get_n_cases
-    get_type
+    get_n_timepoints
+    get_n_channels
     is_equal_length
     has_missing
     is_univariate
-    is_univariate_series
-    is_single_series
-    is_collection
-    is_tabular
-    is_hierarchical
+    get_type
+    check_collection_variance
+```
+
+```{eval-rst}
+.. currentmodule:: aeon.utils.validation.series
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    is_series
+    get_n_timepoints
+    get_n_channels
+    has_missing
+    is_univariate
+    get_type
+    check_series_variance
+```
+
+```{eval-rst}
+.. currentmodule:: aeon.utils.validation.labels
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    check_classification_y
+    check_regression_y
+    check_anomaly_detection_y
 ```
 
 ### Numba
@@ -283,26 +316,6 @@
     :template: function.rst
 
     z_normalization
-```
-
-```{eval-rst}
-.. currentmodule:: aeon.utils.repr
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    show_versions
-```
-
-```{eval-rst}
-.. currentmodule:: aeon.utils.repr
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    show_versions
 ```
 
 ```{eval-rst}

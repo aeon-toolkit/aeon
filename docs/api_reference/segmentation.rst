@@ -23,6 +23,18 @@ contains algorithms and tools for time series segmentation.
     HidalgoSegmenter
     RandomSegmenter
 
+Utilities
+---------
+
+.. currentmodule:: aeon.segmentation
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    find_dominant_window_sizes
+    entropy
+
 Base
 ----
 

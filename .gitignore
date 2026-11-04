@@ -156,6 +156,8 @@ build_doc_site/
 # dev files
 envs/
 *.html
+# the landing page hero panel is a generated file which is included by docs/index.md
+!docs/images/landing/hero.html
 
 # example run output
 examples/local/
