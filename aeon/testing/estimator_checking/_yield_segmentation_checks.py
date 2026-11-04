@@ -50,10 +50,11 @@ def check_segmenter_instance(estimator):
         assert isinstance(output, np.ndarray)
         if dense:  # Change points returned
             assert len(output) < length
-            assert max(output) < length
-            assert min(output) >= 0
-            # Test in ascending order
-            assert all(output[i] <= output[i + 1] for i in range(len(output) - 1))
+            if len(output) > 0:
+                assert max(output) < length
+                assert min(output) >= 0
+                # Test in ascending order
+                assert all(output[i] <= output[i + 1] for i in range(len(output) - 1))
         else:  # Segment labels returned, must be same length sas series
             assert len(output) == length
 
