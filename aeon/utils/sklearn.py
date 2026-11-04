@@ -79,6 +79,12 @@ def sklearn_estimator_identifier(obj, var_name="obj"):
     """
     if not is_sklearn_estimator(obj):
         raise TypeError(f"{var_name} is not an sklearn estimator, has type {type(obj)}")
+    # an object that inherits a sklearn mixin has a definite type and is not unwrapped,
+    # e.g. SelectFromModel has an ``estimator`` attribute but is a transformer
+    own_class = obj if isclass(obj) else type(obj)
+    for mx, identifier in mixin_to_identifier.items():
+        if issubclass(own_class, mx):
+            return identifier
     # deal with sklearn pipelines: type is determined by the last element
     if isinstance(obj, Pipeline) or hasattr(obj, "steps"):
         obj = obj.steps[-1][1]
