@@ -4,12 +4,11 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from aeon.datasets._tsad_data_loaders import (
     load_anomaly_detection,
-    load_daphnet_s06r02e0,
-    load_ecg_diff_count_3,
     load_from_timeeval_csv_file,
     load_kdd_tsad_135,
 )
@@ -97,7 +96,7 @@ def test_load_anomaly_detection_unavailable(mocker):
     PR_TESTING,
     reason="Only run on overnights because of read from internet.",
 )
-def test_load_anomaly_detection_custom_file(mocker):
+def test_load_anomaly_detection_custom_file(mocker, tmp_path):
     """Test load anomaly detection dataset from custom file."""
     name = ("correlation-anomalies", "rmj-2-short-2-diff-channel")
     with tempfile.TemporaryDirectory() as tmp:
@@ -110,20 +109,25 @@ def test_load_anomaly_detection_custom_file(mocker):
         ):
             load_anomaly_detection(name, extract_path=tmp)
 
-    def _test(filename: str, learning_type: str) -> None:
+    for learning_type in ["unsupervised", "semi-supervised", "supervised"]:
+        path = tmp_path / f"{learning_type}.csv"
+        labels = [0, 0, 0, 0] if learning_type == "semi-supervised" else [0, 1, 0, 1]
+        pd.DataFrame(
+            {
+                "timestamp": range(4),
+                "value": [1.0, 2.0, 3.0, 4.0],
+                "is_anomaly": labels,
+            }
+        ).to_csv(path, index=False)
         X, y, meta = load_anomaly_detection(
             name,
-            extract_path=Path(__file__).parent.parent / "data" / "UnitTest" / filename,
+            extract_path=path,
             split="test" if learning_type == "unsupervised" else "train",
             return_metadata=True,
         )
-        assert X.shape[0] == y.shape[0]
+        assert X.shape[0] == y.shape[0] == 4
         assert meta["learning_type"] == learning_type
-        assert meta["num_anomalies"] == 0 if learning_type == "semi-supervised" else 3
-
-    _test("ecg-diff-count-3_TEST.csv", "unsupervised")
-    _test("ecg-diff-count-3_TRAIN_NA.csv", "semi-supervised")
-    _test("ecg-diff-count-3_TRAIN_A.csv", "supervised")
+        assert meta["num_anomalies"] == sum(labels)
 
 
 def test_load_from_timeeval_csv_file_univariate():
@@ -142,16 +146,18 @@ def test_load_from_timeeval_csv_file_univariate():
     assert y.flags.writeable
 
 
-def test_load_from_timeeval_csv_file_multivariate():
-    """Test load multivariate dataset from file."""
-    X, y = load_from_timeeval_csv_file(
-        Path(__file__).parent.parent / "data" / "Daphnet_S06R02E0" / "S06R02E0.csv"
-    )
-    assert isinstance(X, np.ndarray)
-    assert X.shape == (7040, 9)
+def test_load_from_timeeval_csv_file_multivariate(tmp_path):
+    """Test multivariate CSV loading without a bundled dataset."""
+    path = tmp_path / "multivariate.csv"
+    values = np.arange(36).reshape(4, 9)
+    frame = pd.DataFrame(values, columns=[f"channel_{i}" for i in range(9)])
+    frame.insert(0, "timestamp", range(4))
+    frame["is_anomaly"] = [0, 1, 0, 0]
+    frame.to_csv(path, index=False)
+    X, y = load_from_timeeval_csv_file(path)
+    np.testing.assert_array_equal(X, values)
+    np.testing.assert_array_equal(y, [0, 1, 0, 0])
     assert X.flags.writeable
-    assert isinstance(y, np.ndarray)
-    assert y.shape == (7040,)
     assert y.flags.writeable
 
 
@@ -172,46 +178,3 @@ def test_load_kdd_tsad_135():
     assert isinstance(y_train, np.ndarray)
     assert y_train.shape == (1200,)
     assert y_train.flags.writeable
-
-
-# TODO: remove in v1.7.0
-def test_load_daphnet_s06r02e0():
-    """Deprecated Daphnet loader warns on use but still loads until removal."""
-    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
-        X, y = load_daphnet_s06r02e0()
-    assert isinstance(X, np.ndarray)
-    assert X.shape == (7040, 9)
-    assert X.flags.writeable
-    assert isinstance(y, np.ndarray)
-    assert y.shape == (7040,)
-    assert y.flags.writeable
-
-
-# TODO: remove in v1.7.0
-@pytest.mark.parametrize(
-    "learning_type", ["unsupervised", "semi-supervised", "supervised"]
-)
-def test_load_ecg_diff_count_3(learning_type):
-    """Deprecated ecg-diff-count-3 loader warns but still loads until removal."""
-    with pytest.warns(FutureWarning, match="removed in v1.7.0"):
-        loaded = load_ecg_diff_count_3(learning_type)
-
-    if learning_type == "unsupervised":
-        X, y = loaded
-    else:
-        X, y, X_train, y_train = loaded
-        assert isinstance(X_train, np.ndarray)
-        assert X_train.shape == (10000,)
-        assert X_train.flags.writeable
-        assert isinstance(y_train, np.ndarray)
-        assert y_train.shape == (10000,)
-        assert y_train.flags.writeable
-        if learning_type == "semi-supervised":
-            assert np.sum(y_train) == 0
-
-    assert isinstance(X, np.ndarray)
-    assert X.shape == (10000,)
-    assert X.flags.writeable
-    assert isinstance(y, np.ndarray)
-    assert y.shape == (10000,)
-    assert y.flags.writeable

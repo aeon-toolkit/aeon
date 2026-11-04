@@ -326,7 +326,11 @@ class Arsenal(BaseClassifier):
             X.shape[0],
             self.n_classes_,
         )
-        return probabilities / self._weight_sum
+        if self._weight_sum == 0:
+            probabilities[:] = 1 / self.n_classes_
+        else:
+            probabilities /= self._weight_sum
+        return probabilities
 
     def _fit_predict(self, X, y) -> np.ndarray:
         rng = check_random_state(self.random_state)

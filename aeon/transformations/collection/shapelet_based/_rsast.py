@@ -167,9 +167,9 @@ class RSAST(BaseCollectionTransformer):
         for i in range(X_.shape[1]):
             statistic_per_class = {}
             for c in classes:
-                assert (
-                    len(X_[np.where(y == c)[0]][:, i]) > 0
-                ), "Time t without values in TS"
+                assert len(X_[np.where(y == c)[0]][:, i]) > 0, (
+                    "Time t without values in TS"
+                )
                 statistic_per_class[c] = X_[np.where(y == c)[0]][:, i]
 
             statistic_per_class = pd.Series(statistic_per_class)

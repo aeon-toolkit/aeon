@@ -64,9 +64,7 @@ class BaseSeriesPipeline(ComposableEstimatorMixin, BaseSeriesEstimator):
         self.random_state = random_state
 
         self._steps = (
-            [t for t in transformers]
-            if isinstance(transformers, list)
-            else [transformers]
+            [*transformers] if isinstance(transformers, list) else [transformers]
         )
         if _estimator is not None:
             self._steps.append(_estimator)

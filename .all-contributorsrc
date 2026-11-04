@@ -3055,7 +3055,17 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/133224895?v=4",
       "profile": "https://yanzewu.com/",
       "contributions": [
-        "code"
+        "code",
+        "bug"
+      ]
+    },
+    {
+      "login": "SashaMIT",
+      "name": "Sash",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33847880?v=4",
+      "profile": "https://github.com/SashaMIT",
+      "contributions": [
+        "bug"
       ]
     }
   ],
