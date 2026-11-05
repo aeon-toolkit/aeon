@@ -115,7 +115,7 @@ class SCUM(BaseForecaster, IterativeForecastingMixin):
         """Predict one step ahead from the supplied context."""
         self._validate_parameters()
         y = _as_1d_float(y)
-        pred = float(self.ensemble_.predict(y, exog))
+        pred = self.ensemble_.predict(y, exog).item()
         if self.clip_negative:
             pred = max(pred, 0.0)
         return pred
@@ -227,7 +227,7 @@ class _RecentWindowForecaster(BaseForecaster, IterativeForecastingMixin):
         return self
 
     def _predict(self, y, exog=None):
-        return float(self.forecaster_.predict(_tail(y, self.max_length)))
+        return self.forecaster_.predict(_tail(y, self.max_length)).item()
 
     def iterative_forecast(
         self,

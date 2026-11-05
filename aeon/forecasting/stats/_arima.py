@@ -413,7 +413,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = AutoARIMA()
-    >>> forecaster.forecast(y)
+    >>> forecaster.forecast(y).item()
     432.1737591310444
     """
 
@@ -525,7 +525,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         float
             Prediction 1 step ahead of the last value in y.
         """
-        return self.final_model_.predict(y, exog=exog)
+        return self.final_model_.predict(y, exog=exog).item()
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""

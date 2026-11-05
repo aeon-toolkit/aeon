@@ -2,7 +2,10 @@
 
 from functools import partial
 
+import numpy as np
+
 from aeon.base._base import _clone_estimator
+from aeon.forecasting.base import SeriesToSeriesForecastingMixin
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
@@ -64,16 +67,21 @@ def check_forecaster_output(estimator, datatype):
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
     )
-    y_pred = estimator.predict(
-        FULL_TEST_DATA_DICT[datatype]["test"][0],
+    y_test = FULL_TEST_DATA_DICT[datatype]["test"][0]
+    y_pred = estimator.predict(y_test)
+    n_channels = y_test.shape[0] if y_test.ndim > 1 else 1
+    n_predictions = (
+        estimator.horizon
+        if isinstance(estimator, SeriesToSeriesForecastingMixin)
+        else 1
     )
-    assert isinstance(y_pred, float), (
-        f"predict(y) output should be float, got {type(y_pred)}"
+    expected_shape = (
+        (n_predictions,) if n_channels == 1 else (n_channels, n_predictions)
     )
+    assert isinstance(y_pred, np.ndarray)
+    assert y_pred.shape == expected_shape
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    assert y_pred2 == y_pred3, (
-        "fit(y).predict(y) and forecast(y) should be the same, but "
-        f"outputs differ: {y_pred2} != {y_pred3}"
-    )
+    np.testing.assert_array_equal(y_pred2, y_pred3)
+    assert y_pred2.shape == expected_shape

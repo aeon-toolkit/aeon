@@ -329,8 +329,8 @@ def test_autoarima_predict_matches_wrapped_predict():
     forecaster.fit(y)
     a = forecaster._predict(y)
     b = forecaster.final_model_.predict(y)
-    # both are floats and close
-    assert isinstance(a, float) and isinstance(b, float)
+    assert isinstance(a, float)
+    assert b.shape == (1,)
     assert np.isfinite(a) and np.isfinite(b)
     assert np.isclose(a, b)
 
@@ -349,7 +349,7 @@ def test_arima_with_exog_basic_fit_predict():
     model = ARIMA(p=1, d=0, q=1)
     model.fit(y_local, exog=exog)
     pred = model.predict(y_local, exog=exog[-1:].copy())
-    assert isinstance(pred, float)
+    assert pred.shape == (1,)
     assert np.isfinite(pred)
 
 
@@ -389,7 +389,7 @@ def test_arima_no_exog_backward_compatibility():
     model = ARIMA(p=1, d=1, q=1)
     model.fit(y_local)
     pred = model.predict(y_local)
-    assert isinstance(pred, float)
+    assert pred.shape == (1,)
     assert np.isfinite(pred)
 
 

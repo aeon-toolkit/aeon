@@ -1,8 +1,4 @@
-"""BaseForecaster class.
-
-A simplified first base class for forecasting models.
-
-"""
+"""Base classes and strategies for time series forecasting."""
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = [
@@ -32,11 +28,18 @@ class BaseForecaster(BaseSeriesEstimator):
     forecasters have to implement. Attributes with an underscore suffix are set in the
     method fit.
 
+    Forecast outputs always have a final time axis. For univariate input they
+    have shape ``(n_predictions,)``; for multivariate input they have shape
+    ``(n_channels, n_predictions)``. A single prediction retains a length-one
+    time axis. Output axes do not depend on the input ``axis``.
+
     Parameters
     ----------
     horizon : int
-        The number of time steps ahead to forecast. If ``horizon`` is one, the
-        forecaster will learn to predict one point ahead.
+        For point forecasters, the lead time of the single target prediction.
+        For series-to-series forecasters, the number of consecutive future
+        values predicted. Thus horizon=3 means one value three steps ahead for
+        a point forecaster, or the next three values for a series forecaster.
     axis : int
         The axis of time the forecaster uses internally. If ``axis`` is 0, the series
         are internally assumed to be ``(n_timepoints, n_channels)`` and if ``axis`` is
@@ -64,7 +67,8 @@ class BaseForecaster(BaseSeriesEstimator):
     def fit(self, y, exog=None, axis=1):
         """Fit forecaster to series y.
 
-        Fit a forecaster to predict self.horizon steps ahead using y.
+        Learn either a point at lead time ``self.horizon`` or a sequence of
+        ``self.horizon`` future values, depending on the forecaster.
 
         Parameters
         ----------
@@ -72,6 +76,8 @@ class BaseForecaster(BaseSeriesEstimator):
             A time series on which to learn a forecaster to predict horizon ahead.
         exog : np.ndarray, default =None
             Optional target-time exogenous values aligned with ``y``.
+        axis : int, default=1
+            Time axis of two-dimensional input.
 
         Returns
         -------
@@ -87,51 +93,76 @@ class BaseForecaster(BaseSeriesEstimator):
         return self
 
     @final
-    def predict(self, y, exog=None, axis=1) -> float:
-        """Predict the next horizon steps ahead.
+    def predict(self, y, exog=None, axis=1) -> np.ndarray:
+        """Predict a future point or series from the supplied history.
 
         Parameters
         ----------
         y : np.ndarray
-            A time series to predict the next horizon value for.
+            History from which to predict a future point or sequence.
         exog : np.ndarray, default =None
             Optional exogenous values for the prediction target. For models fitted
             with exogenous variables, this should contain the exogenous values needed
             to make the next prediction.
+        axis : int, default=1
+            Time axis of two-dimensional input. Outputs always put time last.
 
         Returns
         -------
-        float
-            single prediction self.horizon steps ahead of y.
+        np.ndarray
+            Shape ``(1,)`` for a univariate point forecast, or
+            ``(n_channels, 1)`` for a multivariate point forecast, at lead time
+            ``self.horizon``. Series-to-series forecasters instead return
+            ``(self.horizon,)`` or ``(n_channels, self.horizon)`` consecutive
+            predictions. Singleton time axes are retained.
         """
         if not self.get_tag("fit_is_empty"):
             self._check_is_fitted()
         y, exog = self._preprocess_forecasting_input(y, exog, axis, False)
-        return self._predict(y, exog)
+        n_channels = y.shape[1 - self.axis] if y.ndim > 1 else 1
+        return self._format_forecast_output(self._predict(y, exog), n_channels)
 
     @final
-    def forecast(self, y, exog=None, axis=1) -> float:
-        """Forecast the next horizon steps ahead of ``y``.
+    def forecast(self, y, exog=None, axis=1) -> np.ndarray:
+        """Fit on ``y`` and forecast a future point or series.
 
         By default this is simply fit followed by predict.
 
         Parameters
         ----------
         y : np.ndarray
-            A time series to predict the next horizon value for. Must be of shape
-            ``(n_channels, n_timepoints)`` if a multivariate time series.
+            History from which to predict a future point or sequence. Multivariate
+            input has shape ``(n_channels, n_timepoints)`` when ``axis=1``, or
+            ``(n_timepoints, n_channels)`` when ``axis=0``.
         exog : np.ndarray, default =None
             Optional target-time exogenous values aligned with ``y``.
+        axis : int, default=1
+            Time axis of two-dimensional input. Outputs always put time last.
 
         Returns
         -------
-        float
-            single prediction self.horizon steps ahead of y.
+        np.ndarray
+            The same output convention as ``predict``: ``(1,)`` or
+            ``(n_channels, 1)`` for point forecasters; ``(self.horizon,)`` or
+            ``(n_channels, self.horizon)`` for series-to-series forecasters.
         """
         y, exog = self._preprocess_forecasting_input(y, exog, axis, True)
         y_pred = self._forecast(y, exog)
         self.is_fitted = True
-        return y_pred
+        n_channels = y.shape[1 - self.axis] if y.ndim > 1 else 1
+        return self._format_forecast_output(y_pred, n_channels)
+
+    @staticmethod
+    def _format_forecast_output(prediction, n_channels):
+        """Retain a time axis and use channels first for multivariate outputs.
+
+        Private forecasting methods may return scalars for point predictions;
+        multivariate series predictions must already have channels first.
+        """
+        prediction = np.asarray(prediction)
+        if n_channels == 1:
+            return prediction.reshape(-1)
+        return prediction.reshape(n_channels, -1)
 
     def _fit(self, y, exog):
         return self
@@ -224,8 +255,9 @@ class DirectForecastingMixin:
         Returns
         -------
         np.ndarray
-            An array of shape `(prediction_horizon,)` containing the forecasts for
-            each horizon.
+            Shape ``(prediction_horizon,)`` for univariate input or
+            ``(n_channels, prediction_horizon)`` for multivariate input. The
+            time axis is retained even when ``prediction_horizon=1``.
 
         Raises
         ------
@@ -251,12 +283,12 @@ class DirectForecastingMixin:
                 "The `prediction_horizon` must be greater than or equal to 1."
             )
 
-        preds = np.zeros(prediction_horizon)
+        forecasts = []
         for i in range(0, prediction_horizon):
             f = _clone_estimator(self)
             f.horizon = i + 1
-            preds[i] = f.forecast(y, exog)
-        return preds
+            forecasts.append(f.forecast(y, exog))
+        return np.concatenate(forecasts, axis=-1)
 
 
 class IterativeForecastingMixin:
@@ -281,6 +313,8 @@ class IterativeForecastingMixin:
         The basic contract of `iterative_forecast` is that `fit` is only ever called
         once.
 
+        Parameters
+        ----------
         y : np.ndarray
             The time series to make forecasts about.  Must be of shape
             ``(n_channels, n_timepoints)`` if a multivariate time series.
@@ -297,8 +331,9 @@ class IterativeForecastingMixin:
         Returns
         -------
         np.ndarray
-            An array of shape `(prediction_horizon,)` containing the forecasts for
-            each horizon.
+            Shape ``(prediction_horizon,)`` for univariate input or
+            ``(n_channels, prediction_horizon)`` for multivariate input. The
+            time axis is retained even when ``prediction_horizon=1``.
 
         Raises
         ------
@@ -334,15 +369,18 @@ class IterativeForecastingMixin:
         y, exog, future_exog = self._check_iterative_forecast_inputs(
             y, prediction_horizon, exog, future_exog
         )
-        preds = np.zeros(prediction_horizon)
+        forecasts = []
         self.fit(y, exog=exog)
         for i in range(prediction_horizon):
             step_exog = None
             if future_exog is not None:
                 step_exog = future_exog[i : i + 1]
-            preds[i] = self.predict(y, exog=step_exog)
-            y = np.append(y, preds[i])
-        return preds
+            prediction = self.predict(y, exog=step_exog)
+            forecasts.append(prediction)
+            # The public input convention here is channels first, time last.
+            # Preserve each channel's history when feeding predictions back.
+            y = np.concatenate((y, prediction.reshape(y.shape[:-1] + (1,))), axis=-1)
+        return np.concatenate(forecasts, axis=-1)
 
     @staticmethod
     def _check_iterative_forecast_inputs(
@@ -422,16 +460,19 @@ class SeriesToSeriesForecastingMixin(ABC):
     @final
     def series_to_series_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
         """
-        Forecast ``prediction_horizon`` using a series iterative approach.
+        Forecast ``prediction_horizon`` values using a series-to-series model.
 
         This function implements a series-to-series forecasting strategy.
         The forecaster is trained to predict multiple steps ahead in one go,
-        returning a series of predictions. This is done by fitting the model
-        once and then predicting a series of length `prediction_horizon`.
+        returning a series of predictions. The estimator-specific implementation
+        determines whether fitting is required first and how forecast blocks are
+        extended or trimmed to ``prediction_horizon`` values.
 
-        y : np.ndarray
-            The time series to make forecasts about.  Must be of shape
-            ``(n_channels, n_timepoints)`` if a multivariate time series.
+        Parameters
+        ----------
+        y : np.ndarray or None
+            Context series in the format expected by the estimator. Some
+            implementations accept None to use context stored during fitting.
         prediction_horizon : int
             The number of future time steps to forecast.
         exog : np.ndarray, default =None
@@ -440,8 +481,9 @@ class SeriesToSeriesForecastingMixin(ABC):
         Returns
         -------
         np.ndarray
-            An array of shape `(prediction_horizon,)` containing the forecasts for
-            each horizon.
+            Shape ``(prediction_horizon,)`` for univariate input or
+            ``(n_channels, prediction_horizon)`` for multivariate input. The
+            time axis is retained even when ``prediction_horizon=1``.
 
         Raises
         ------
@@ -454,7 +496,11 @@ class SeriesToSeriesForecastingMixin(ABC):
                 "The `prediction_horizon` must be greater than or equal to 1."
             )
 
-        return self._series_to_series_forecast(y, prediction_horizon, exog)
+        prediction = self._series_to_series_forecast(y, prediction_horizon, exog)
+        n_channels = self.metadata_.get("n_channels")
+        if n_channels is None:
+            n_channels = np.shape(y)[0] if np.ndim(y) > 1 else 1
+        return self._format_forecast_output(prediction, n_channels)
 
     @abstractmethod
     def _series_to_series_forecast(self, y, prediction_horizon, exog): ...

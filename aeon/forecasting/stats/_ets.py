@@ -97,7 +97,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
-    >>> forecaster.forecast(y)
+    >>> forecaster.forecast(y).item()
     407.0178847629523
     """
 
@@ -533,7 +533,7 @@ class AutoETS(BaseForecaster, IterativeForecastingMixin):
         float
             The prediction ``horizon`` steps ahead of the series seen in ``fit``.
         """
-        return self.wrapped_model_.predict(y, exog)
+        return self.wrapped_model_.predict(y, exog).item()
 
     def _forecast(self, y, exog=None, axis=1):
         self.fit(y, exog=exog)
