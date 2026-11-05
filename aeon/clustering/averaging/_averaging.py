@@ -9,6 +9,7 @@ import numpy as np
 from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
 from aeon.clustering.averaging._kasba_average import kasba_average
+from aeon.clustering.averaging._msm_average import msm_barycenter_average
 from aeon.clustering.averaging._shift_scale_invariant_averaging import (
     shift_invariant_average,
 )
@@ -38,6 +39,7 @@ _AVERAGE_DICT = {
     "subgradient": subgradient_barycenter_average,
     "kasba": kasba_average,
     "petitjean": petitjean_barycenter_average,
+    "msm": msm_barycenter_average,
 }
 
 
@@ -50,7 +52,8 @@ def _resolve_average_callable(
     ----------
     averaging_method: str or Callable, default='mean'
         Averaging method to compute the average of a cluster. Any of the following
-        strings are valid: ['mean', 'shift_scale', 'subgradient', 'kasba', 'petitjean'].
+        strings are valid: ['mean', 'shift_scale', 'subgradient', 'kasba',
+        'petitjean', 'msm'].
         If a Callable is provided must take the form Callable[[np.ndarray], np.ndarray].
 
     Returns

@@ -8,6 +8,7 @@ from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
 from aeon.clustering.averaging._ba_utils import VALID_BA_METHODS
 from aeon.clustering.averaging._kasba_average import kasba_average
+from aeon.clustering.averaging._msm_average import msm_barycenter_average
 
 
 def elastic_barycenter_average(
@@ -43,10 +44,13 @@ def elastic_barycenter_average(
     - "subgradient": Stochastic subgradient DBA algorithm [2]_.
     - "kasba": KASBA algorithm [3]_, a fast stochastic variant that samples subsets
       of time series during each iteration.
+    - "msm": Exact Move-Split-Merge (MSM) Mean algorithm [4]_.
 
     Petitjean is slower but more reliable at converging to the optimal solution.
     Subgradient is faster but not guaranteed to converge optimally. KASBA is
     designed for large datasets, trading off some accuracy for a much faster runtime.
+    MSM Exact Mean is mathematically optimal for the MSM distance but scales
+    exponentially with N, suitable only for small batches.
 
     Parameters
     ----------
@@ -69,7 +73,7 @@ def elastic_barycenter_average(
         - "mean": Uses the mean of the time series.
         - "medoids": Uses the medoid of the time series.
         - "random": Uses a randomly selected time series instance.
-    method : {"petitjean", "subgradient", "kasba"}, default="petitjean"
+    method : {"petitjean", "subgradient", "kasba", "msm"}, default="petitjean"
         The algorithm to use for barycenter averaging.
     initial_step_size : float, default=0.05
         Initial step size for gradient-based methods ("subgradient" and "kasba").
@@ -112,6 +116,8 @@ def elastic_barycenter_average(
     .. [3] C. Holder & A. Bagnall.
            "Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering."
            arXiv:2411.17838, 2024.
+    .. [4] J. Holznigenkemper. "msm_mean" Implementation.
+           https://github.com/JanaHolznigenkemper/msm_mean
     """
     if method == "petitjean":
         return petitjean_barycenter_average(
@@ -167,6 +173,19 @@ def elastic_barycenter_average(
             verbose=verbose,
             n_jobs=n_jobs,
             random_state=random_state,
+            return_cost=return_cost,
+            return_distances_to_center=return_distances_to_center,
+            **kwargs,
+        )
+    elif method == "msm":
+        return msm_barycenter_average(
+            X,
+            init_barycenter=init_barycenter,
+            weights=weights,
+            precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+            verbose=verbose,
+            random_state=random_state,
+            n_jobs=n_jobs,
             return_cost=return_cost,
             return_distances_to_center=return_distances_to_center,
             **kwargs,
