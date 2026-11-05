@@ -2,13 +2,16 @@
 
 import numpy as np
 
-from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.collection.base import (
+    BaseCollectionTransformer,
+    CollectionInverseTransformerMixin,
+)
 
 
 class Normalizer(BaseCollectionTransformer):
     """Normaliser transformer for collections.
 
-    This transformer applies z-normalization  applied along the timepoints axis (the
+    This transformer applies z-normalization applied along the timepoints axis (the
     last axis). For multivariate data, it normalizes each channel independently.
 
     Examples
@@ -41,7 +44,7 @@ class Normalizer(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
+            Collection to transform. Either a list of 2D arrays of shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
         y : None
@@ -120,7 +123,7 @@ class MinMaxScaler(BaseCollectionTransformer):
         Parameters
         ----------
         X: np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
+            Collection to transform. Either a list of 2D arrays of shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
         y: None
@@ -195,7 +198,7 @@ class Centerer(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Collection to transform. Either a list of 2D arrays with shape
+            Collection to transform. Either a list of 2D arrays of shape
             ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
             ``(n_cases, n_channels, n_timepoints)``.
         y : None
@@ -220,3 +223,291 @@ class Centerer(BaseCollectionTransformer):
                 xt = x - mean_val
                 Xt.append(xt)
             return Xt
+
+
+class GlobalNormalizer(BaseCollectionTransformer, CollectionInverseTransformerMixin):
+    """Global z-normalization transformer for time series collections.
+
+    Z-normalizes each channel using the mean and standard deviation
+    computed across all cases and timepoints during fit.
+
+    Parameters
+    ----------
+    mean: float, default=0.0
+        The mean value to which the data will be normalized.
+    std: float, default=1.0
+        The standard deviation value to which the data will be normalized.
+    """
+
+    _tags = {
+        "X_inner_type": ["numpy2D", "numpy3D", "np-list"],
+        "fit_is_empty": False,
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "capability:inverse_transform": True,
+    }
+
+    def __init__(self, mean=0.0, std=1.0):
+        super().__init__()
+        self.mean = mean
+        self.std = std
+
+    def _fit(self, X, y=None):
+        """
+        Fit method to compute per-channel means and stds for the z-normalization.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+        y : None
+            Ignored.
+        """
+        if isinstance(X, list):
+            X = np.concatenate(X, axis=1)
+            ax = 1
+        elif X.ndim == 2:
+            ax = (0, 1)
+        elif X.ndim == 3:
+            ax = (0, 2)
+
+        self._means = np.nanmean(X, axis=ax)
+        self._stds = np.nanstd(X, axis=ax)
+        self._stds = np.where(self._stds == 0, 1, self._stds)
+
+    def _transform(self, X, y=None):
+        """
+        Transform method to apply the z-normalization.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : None
+            Ignored.
+        """
+        if isinstance(X, list):
+            return [self._transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+            s = self._stds.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+            s = self._stds.reshape((1, -1, 1))
+        return (X - m) / s * self.std + self.mean
+
+    def _inverse_transform(self, X, y=None):
+        """
+        Inverse transform method to revert the z-normalization.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to inverse transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
+        """
+        if isinstance(X, list):
+            return [self._inverse_transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+            s = self._stds.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+            s = self._stds.reshape((1, -1, 1))
+        return (X - self.mean) / self.std * s + m
+
+
+class GlobalMinMaxScaler(BaseCollectionTransformer, CollectionInverseTransformerMixin):
+    """Global MinMaxScaler transformer for collections.
+
+    Normalizes collection bounds for each channel using the minimum and maximum
+    computed across all cases and timepoints during fit.
+
+    Parameters
+    ----------
+    min: float, default=0.0
+        The minimum value of the range to scale to.
+    max: float, default=1.0
+        The maximum value of the range to scale to.
+    """
+
+    _tags = {
+        "X_inner_type": ["numpy2D", "numpy3D", "np-list"],
+        "fit_is_empty": False,
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "capability:inverse_transform": True,
+    }
+
+    def __init__(self, min: float = 0.0, max: float = 1.0):
+        super().__init__()
+
+        self.min = min
+        self.max = max
+
+    def _fit(self, X, y=None):
+        """
+        Fit method to compute per-channel mins and maxs for the min-max scaling.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+        y :  None
+            Ignored.
+        """
+        if self.min >= self.max:
+            raise ValueError(
+                f"min value {self.min} should be less than max value {self.max}"
+            )
+        if isinstance(X, list):
+            X = np.concatenate(X, axis=1)
+            ax = 1
+        elif X.ndim == 2:
+            ax = (0, 1)
+        elif X.ndim == 3:
+            ax = (0, 2)
+
+        self._mins = np.nanmin(X, axis=ax)
+        self._maxs = np.nanmax(X, axis=ax)
+        # prevent division by zero in case of constant series
+        delta = self._maxs - self._mins
+        self._maxs = np.where(delta == 0, self._mins + 1, self._maxs)
+
+    def _transform(self, X, y=None):
+        """
+        Transform method to apply the min-max scaling.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to inverse transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
+        """
+        if isinstance(X, list):
+            return [self._transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._mins.reshape((-1, 1))
+            M = self._maxs.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._mins.reshape((1, -1, 1))
+            M = self._maxs.reshape((1, -1, 1))
+        return (X - m) / (M - m) * (self.max - self.min) + self.min
+
+    def _inverse_transform(self, X, y=None):
+        """
+        Inverse transform method to revert the min-max scaling.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to inverse transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
+        """
+        if isinstance(X, list):
+            return [self._inverse_transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._mins.reshape((-1, 1))
+            M = self._maxs.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._mins.reshape((1, -1, 1))
+            M = self._maxs.reshape((1, -1, 1))
+        X = (X - self.min) / (self.max - self.min)
+        return X * (M - m) + m
+
+
+class GlobalCenterer(BaseCollectionTransformer, CollectionInverseTransformerMixin):
+    """Global Centerer transformer for collections.
+
+    Centers each channel using the mean computed across all cases and timepoints during
+    fit.
+
+    Parameters
+    ----------
+    mean: float, default=0.0
+        The mean value to which the data will be recentered.
+    """
+
+    _tags = {
+        "X_inner_type": ["numpy2D", "numpy3D", "np-list"],
+        "fit_is_empty": False,
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "capability:inverse_transform": True,
+    }
+
+    def __init__(self, mean=0.0):
+        super().__init__()
+        self.mean = mean
+
+    def _fit(self, X, y=None):
+        """
+        Fit method to compute per-channel means for centering.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+        y :  None
+            Ignored.
+        """
+        if isinstance(X, list):
+            X = np.concatenate(X, axis=1)
+            ax = 1
+        elif X.ndim == 2:
+            ax = (0, 1)
+        elif X.ndim == 3:
+            ax = (0, 2)
+
+        self._means = np.nanmean(X, axis=ax, keepdims=True)
+
+    def _transform(self, X, y=None):
+        """
+        Transform method to apply centering.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
+        """
+        if isinstance(X, list):
+            return [self._transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+        return X - m + self.mean
+
+    def _inverse_transform(self, X, y=None):
+        """
+        Inverse transform method to revert centering.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to inverse transform. Either:
+            - a 3D array of shape ``(n_cases, n_channels, n_timepoints)``
+            - a list of ``n_cases`` 2D arrays of shape ``(n_channels, n_timepoints_i)``
+            - a univariate 2D array of shape ``(n_cases, n_timepoints)``.
+        y : Ignored.
+        """
+        if isinstance(X, list):
+            return [self._inverse_transform(x_i) for x_i in X]
+        if X.ndim == 2:
+            m = self._means.reshape((-1, 1))
+        elif X.ndim == 3:
+            m = self._means.reshape((1, -1, 1))
+        return X + m - self.mean
