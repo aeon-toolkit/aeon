@@ -23,6 +23,13 @@ def check_classification_y(y, allow_single_class=False):
     ValueError
         If y is not a binary or multiclass target.
         if y is empty or contains less than 2 unique labels.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.validation.labels import check_classification_y
+    >>> check_classification_y(np.array([0, 1, 0, 1]))
+    >>> check_classification_y(np.array(["a", "a"]), allow_single_class=True)
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
