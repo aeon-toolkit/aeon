@@ -22,10 +22,10 @@ def test_plot_series_with_profiles():
 
     series = make_example_pandas_series(n_timepoints=50)
     clasp = ClaSPSegmenter()
-    clasp.fit_predict(series)
+    found_cps, profiles, _ = clasp._run_clasp(series)
 
     fig, ax = plot_series_with_profiles(
-        series, clasp.profiles, true_cps=[25], found_cps=clasp.found_cps
+        series, profiles, true_cps=[25], found_cps=found_cps
     )
     plt.gcf().canvas.draw_idle()
 
