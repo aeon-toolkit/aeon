@@ -173,6 +173,54 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         )
 
     @final
+    def resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        """Continue fitting and return the train estimates of ``fit_predict_proba``.
+
+        The counterpart of ``resume_fit`` for a fit begun with
+        ``fit_predict_proba`` or ``fit_predict``: it continues from saved state
+        and returns the train probability estimates an uninterrupted
+        ``fit_predict_proba`` would have returned.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Original training data, in the same order and with the same values
+            and dtypes after aeon's normal input conversion.
+        y : np.ndarray
+            Original training labels in the same order.
+
+        Returns
+        -------
+        probabilities : np.ndarray
+            2D array of shape ``(n_cases, n_classes)``, train probability
+            estimates for the cases in X.
+
+        Notes
+        -----
+        Requires ``capability:checkpointing=True`` and continuation state from a
+        fit begun with ``fit_predict_proba`` or ``fit_predict``. Raises
+        ``NotImplementedError`` for classifiers that do not keep train estimates
+        across a resume, and ``ValueError`` if the fit began with ``fit``.
+        """
+        if not self.get_tag("capability:checkpointing"):
+            raise NotImplementedError("This classifier does not support checkpointing.")
+        X = self._preprocess_collection(X, store_metadata=False)
+        y = self._check_y(y, get_n_cases(X), update_classes=False)
+        self._validate_checkpoint(X, y)
+        self._start_checkpoint_timer()
+        self._validate_resume_fit(X, y)
+        self.is_fitted = False
+        probabilities = self._resume_fit_predict_proba(X, y)
+        self._fit_complete()
+        return probabilities
+
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        """Continue training and return train estimates from stored state."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not keep train estimates across a resume."
+        )
+
+    @final
     def predict(self, X) -> np.ndarray:
         """Predicts class labels for time series in X.
 

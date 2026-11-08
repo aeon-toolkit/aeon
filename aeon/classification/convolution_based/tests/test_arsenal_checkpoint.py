@@ -218,3 +218,29 @@ def test_arsenal_random_state_object(_training_data, checkpoint_directory):
     assert joblib_hash(restored._rng.get_state()) == before_prediction
     restored.resume_fit(X, y)
     _assert_same_ensemble(full, restored, X)
+
+
+def test_arsenal_resume_fit_predict_proba(_training_data, checkpoint_directory):
+    """Train estimates from a resumed fit equal those of an uninterrupted fit."""
+    X, y = _training_data
+    initial_size, target_size = 2, 4
+    params = dict(n_kernels=10, random_state=0)
+    full = Arsenal(**params, n_estimators=target_size)
+    expected = full.fit_predict_proba(X, y)
+    partial = Arsenal(**params, n_estimators=initial_size)
+    partial.fit_predict_proba(X, y)
+    partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
+    restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
+    restored.set_params(n_estimators=target_size)
+
+    np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
+    assert restored.is_fitted
+    np.testing.assert_allclose(restored.predict_proba(X), full.predict_proba(X))
+
+
+def test_arsenal_resume_fit_predict_proba_needs_train_estimate_fit(_training_data):
+    """A fit begun with fit has no train estimates to continue."""
+    X, y = _training_data
+    classifier = Arsenal(n_kernels=10, n_estimators=1, random_state=0).fit(X, y)
+    with pytest.raises(ValueError, match="train estimates"):
+        classifier.resume_fit_predict_proba(X, y)

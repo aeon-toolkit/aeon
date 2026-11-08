@@ -154,6 +154,7 @@ def check_classifier_overrides_and_tags(estimator_class):
     final_methods = [
         "fit",
         "resume_fit",
+        "resume_fit_predict_proba",
         "predict",
         "predict_proba",
         "fit_predict",

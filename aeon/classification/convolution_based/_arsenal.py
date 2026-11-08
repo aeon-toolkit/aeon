@@ -390,8 +390,21 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        train_estimates = self._fit_arsenal(X, y, return_train_estimates=True)
-        class_indices, weights, oobs = zip(*train_estimates)
+        self._fit_arsenal(X, y, return_train_estimates=True)
+        return self._train_estimate_proba()
+
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        if getattr(self, "_train_rng", None) is None:
+            raise ValueError(
+                "This fit began with fit, not fit_predict_proba, so it has no "
+                "train estimates to continue; use resume_fit."
+            )
+        self._continue_arsenal(X, y)
+        return self._train_estimate_proba()
+
+    def _train_estimate_proba(self) -> np.ndarray:
+        """Aggregate the retained out-of-bag estimates of every member."""
+        class_indices, weights, oobs = zip(*self._train_estimates)
 
         results = _aggregate_class_votes(
             class_indices,
