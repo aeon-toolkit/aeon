@@ -279,3 +279,31 @@ def test_tde_random_state_object(_training_data, checkpoint_directory):
     before_prediction = joblib_hash(restored._rng.get_state())
     restored.predict(X)
     assert joblib_hash(restored._rng.get_state()) == before_prediction
+
+
+def test_tde_resume_fit_predict_proba(_training_data, checkpoint_directory):
+    """Train estimates from a resumed fit equal those of an uninterrupted fit."""
+    X, y = _training_data
+    initial_size, target_size = 4, 8
+    full = TemporalDictionaryEnsemble(**_PARAMS, n_parameter_samples=target_size)
+    expected = full.fit_predict_proba(X, y)
+    partial = TemporalDictionaryEnsemble(**_PARAMS, n_parameter_samples=initial_size)
+    partial.fit_predict_proba(X, y)
+    partial.save_checkpoint(checkpoint_directory / "tde.pkl")
+    restored = TemporalDictionaryEnsemble.load_checkpoint(
+        checkpoint_directory / "tde.pkl"
+    )
+    restored.set_params(n_parameter_samples=target_size)
+
+    np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
+    assert restored.is_fitted
+    np.testing.assert_allclose(restored.predict_proba(X), full.predict_proba(X))
+
+
+def test_tde_resume_fit_predict_proba_needs_train_estimate_fit(_training_data):
+    """A fit begun with fit has no train estimates to continue."""
+    X, y = _training_data
+    classifier = TemporalDictionaryEnsemble(**_PARAMS, n_parameter_samples=4)
+    classifier.fit(X, y)
+    with pytest.raises(ValueError, match="train estimates"):
+        classifier.resume_fit_predict_proba(X, y)
