@@ -7,9 +7,6 @@ representations, using the weighted probabilistic CAWPE as an ensemble controlle
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["HIVECOTEV2"]
 
-import warnings
-
-import numpy as np
 
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
@@ -43,24 +40,10 @@ class HIVECOTEV2(_BaseHIVECOTE):
         n_estimators/n_parameter_samples for each component.
         Default of 0 means n_estimators/n_parameter_samples for each component is used.
     prior_correction : float, default=0.5
-        Exponent ``beta`` of a correction to the combined probabilities: they are
-        divided by the train class prior raised to ``beta`` and renormalised. The
-        CAWPE combination leans towards classes that are common in the training
-        data, and the correction moves borderline cases towards rarer classes. 0 gives
-        the original HIVE-COTE 2.0 combination and 1 corrects fully to a uniform class
-        prior. It changes nothing when the training classes are balanced, and it
-        needs no refitting. 0.5 improved both accuracy and balanced accuracy on the
-        112 UCR univariate datasets over 30 resamples (+0.17 and +0.74 percentage
-        points), with larger gains on imbalanced data.
-    save_component_probas : bool, default=False
-        When predict/predict_proba is called, save each HIVE-COTEV2 component
-        probability predictions in component_probas.
-
-        .. deprecated::
-            ``save_component_probas`` is deprecated because it mutates object
-            state during prediction. Use ``predict_proba_with_components(X)``
-            instead, which returns per-component probabilities without
-            modifying the fitted estimator.
+        Exponent ``beta``: the combined probabilities are divided by the train class
+        prior raised to ``beta`` and renormalised. 0 is the original HIVE-COTE 2.0
+        combination and 1 corrects fully to a uniform class prior. Balanced training
+        data is unaffected. It can be changed after fitting without refitting.
     verbose : int, default=0
         Level of output printed during fit. Level 1 reports HC2 progress, level 2 also
         reports component parameters, level 3 enables summary progress within each
@@ -93,9 +76,6 @@ class HIVECOTEV2(_BaseHIVECOTE):
         The weight for Arsenal probabilities.
     tde_weight_ : float
         The weight for TDE probabilities.
-    component_probas : dict
-        Only used if save_component_probas is true. Saved probability predictions for
-        each HIVE-COTEV2 component.
     fitted_estimators_ : list of BaseClassifier
         The fitted estimators for the ensemble.
     class_prior_ : np.ndarray of shape (n_classes,)
@@ -111,8 +91,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
     Notes
     -----
     For the Java version, see
-    `https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/hybrids/HIVE_COTE.java`_.
+    `tsml-java <https://github.com/time-series-machine-learning/tsml-java/blob/master/
+    src/main/java/tsml/classifiers/hybrids/HIVE_COTE.java>`_.
 
     References
     ----------
@@ -144,7 +124,6 @@ class HIVECOTEV2(_BaseHIVECOTE):
         tde_params=None,
         time_limit_in_minutes=0,
         prior_correction=0.5,
-        save_component_probas=False,
         verbose=0,
         random_state=None,
         n_jobs=1,
@@ -155,7 +134,6 @@ class HIVECOTEV2(_BaseHIVECOTE):
         self.arsenal_params = arsenal_params
         self.tde_params = tde_params
         self.time_limit_in_minutes = time_limit_in_minutes
-        self.save_component_probas = save_component_probas
         self.parallel_backend = parallel_backend
 
         super().__init__(
@@ -168,25 +146,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         )
 
     def _fit(self, X, y):
-        """Fit HIVE-COTE 2.0 to training data.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The training data.
-        y : array-like, shape = [n_cases]
-            The class labels.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-
-        Notes
-        -----
-        Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
-        """
+        """Set up the HIVE-COTE 2.0 components, then fit the ensemble."""
         if self.stc_params is not None:
             self._stc_params = self.stc_params
         else:
@@ -240,33 +200,6 @@ class HIVECOTEV2(_BaseHIVECOTE):
             )
 
         return super()._fit(X, y)
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        if self.save_component_probas:
-            warnings.warn(
-                "save_component_probas is deprecated because it mutates "
-                "object state during prediction. Use "
-                "predict_proba_with_components(X) instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            final_probas, component_probas = self.predict_proba_with_components(X)
-            self.component_probas = component_probas
-            return final_probas
-
-        return super()._predict_proba(X)
 
     def predict_proba_with_components(self, X):
         """Predict class probabilities and return per-component probabilities.

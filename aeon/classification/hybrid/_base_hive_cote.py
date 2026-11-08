@@ -29,9 +29,10 @@ class _BaseHIVECOTE(BaseClassifier):
     alpha : int or float, default=4
         The power parameter for the CAWPE weight calculation.
     prior_correction : float, default=0.0
-        Exponent ``beta`` for dividing the combined probabilities by the train class
-        prior raised to ``beta``, then renormalising. 0 is the standard CAWPE
-        combination, 1 is full correction to a uniform class prior.
+        Exponent ``beta``: the combined probabilities are divided by the train class
+        prior raised to ``beta`` and renormalised. 0 is the standard CAWPE
+        combination and 1 corrects fully to a uniform class prior. Balanced training
+        data is unaffected. It can be changed after fitting without refitting.
     random_state : int, RandomState instance or None, default=None
         Seed for random number generation.
     n_jobs : int, default=1
@@ -89,10 +90,7 @@ class _BaseHIVECOTE(BaseClassifier):
 
         if estimators is None or len(estimators) == 0:
             raise ValueError("No estimators provided to _BaseHIVECOTE.")
-        if self.prior_correction < 0:
-            raise ValueError(
-                f"prior_correction must be non-negative, got {self.prior_correction}"
-            )
+        self._check_prior_correction()
 
         for name, estimator in estimators:
             if not isinstance(estimator, BaseClassifier):
@@ -101,7 +99,6 @@ class _BaseHIVECOTE(BaseClassifier):
                     "All components must be aeon classifiers."
                 )
 
-        # Train class prior in the order of classes_, used by prior_correction
         _, counts = np.unique(y, return_counts=True)
         self.class_prior_ = counts / counts.sum()
 
@@ -188,6 +185,7 @@ class _BaseHIVECOTE(BaseClassifier):
         borderline cases towards the rarer classes; it leaves a uniform prior, and so
         balanced training data, unchanged.
         """
+        self._check_prior_correction()
         dists = np.zeros((component_probas[0].shape[0], self.n_classes_))
         for weight, probas in zip(self.weights_, component_probas):
             dists = np.add(dists, probas * weight)
@@ -198,6 +196,13 @@ class _BaseHIVECOTE(BaseClassifier):
         sums = dists.sum(axis=1, keepdims=True)
         sums[sums == 0] = 1.0
         return dists / sums
+
+    def _check_prior_correction(self):
+        # also checked at predict, since it may be changed after fitting
+        if self.prior_correction < 0:
+            raise ValueError(
+                f"prior_correction must be non-negative, got {self.prior_correction}"
+            )
 
     def get_component_weights(self):
         """Return the calculated weights for each component."""
