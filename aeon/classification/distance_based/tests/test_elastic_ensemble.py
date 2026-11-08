@@ -89,7 +89,9 @@ def test_all_distance_measures():
     ee = ElasticEnsemble(distance_measures="all", proportion_train_in_param_finding=0.4)
     ee.fit(X, y)
     distances = list(ee.get_metric_params())
-    assert len(distances) == 9
+    assert len(distances) == 11
+    for distance in ("dtw_full", "ddtw_full"):
+        assert ee.get_metric_params()[distance] == "{'window': 1.0}"
 
 
 def test_ts_quad_distance_measures():
@@ -107,3 +109,40 @@ def test_ts_quad_distance_measures():
     assert len(actual_distances) == 4
     assert isinstance(preds, np.ndarray)
     assert len(preds) == len(X)
+
+
+def test_elastic_ensemble_unequal_length():
+    """Test ElasticEnsemble on unequal length time series."""
+    rng = np.random.RandomState(0)
+    X = [
+        rng.normal(0, 1, (1, 5)),
+        rng.normal(0, 1, (1, 7)),
+        rng.normal(0, 1, (1, 6)),
+        rng.normal(0, 1, (1, 8)),
+        rng.normal(5, 1, (1, 5)),
+        rng.normal(5, 1, (1, 7)),
+        rng.normal(5, 1, (1, 6)),
+        rng.normal(5, 1, (1, 8)),
+    ]
+    y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+
+    # Test parameter finding with distance requiring train_std (erp)
+    ee = ElasticEnsemble(
+        distance_measures=["dtw", "erp"],
+        proportion_of_param_options=0.05,
+        random_state=0,
+    )
+    ee.fit(X, y)
+    preds = ee.predict(X)
+    assert len(preds) == len(y)
+
+    # Test subsampling with unequal lengths
+    ee_sub = ElasticEnsemble(
+        distance_measures=["dtw"],
+        proportion_train_in_param_finding=0.5,
+        proportion_of_param_options=0.05,
+        random_state=0,
+    )
+    ee_sub.fit(X, y)
+    preds_sub = ee_sub.predict(X)
+    assert len(preds_sub) == len(y)

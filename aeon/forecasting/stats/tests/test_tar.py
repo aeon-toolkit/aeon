@@ -110,10 +110,49 @@ def test_autotar_threshold_within_trim_band():
         threshold_trim=0.15,
     )
     f.fit(y)
-    low, high = _compute_trim_band(
-        y, delay=f.delay_, pL=f.p_below_, pR=f.p_above_, trim=0.15
-    )
+    # Candidates are all scored on rows after the largest lag searched (3).
+    low, high = _compute_trim_band(y, delay=f.delay_, pL=3, pR=3, trim=0.15)
     assert low <= f.threshold_ <= high
+
+
+def test_autotar_selection_is_scale_invariant():
+    """AutoTAR selects the same model when the series is rescaled.
+
+    Candidates with different maximum lags used to be scored on different
+    numbers of rows, so n_eff * log(sigma2) made larger lags win for large-scale
+    series and smaller lags win for small-scale series.
+    """
+    rng = np.random.default_rng(2)
+    n = 120
+    y = np.zeros(n)
+    e = rng.normal(size=n)
+    for t in range(2, n):
+        if y[t - 1] <= 0:
+            y[t] = 0.6 * y[t - 1] - 0.2 * y[t - 2] + e[t]
+        else:
+            y[t] = -0.4 * y[t - 1] + e[t]
+    selected = []
+    for scale in (1e-3, 1.0, 1e3):
+        f = AutoTAR().fit(y * scale)
+        selected.append((f.p_below_, f.p_above_, f.delay_, f.threshold_ / scale))
+    for s in selected[1:]:
+        assert s[:3] == selected[0][:3]
+        assert math.isclose(s[3], selected[0][3], rel_tol=1e-9)
+
+
+def test_autotar_threshold_search_handles_ties():
+    """With tied threshold values, the fit uses the split the threshold implies.
+
+    Rows with z equal to the selected threshold belong to the lower regime, so
+    the coefficients must match a fixed-threshold TAR fit at that threshold.
+    """
+    y = np.round(_gen_tar_series(300, phi_L=0.2, phi_R=0.8, seed=4) * 2) / 2
+    f = AutoTAR(delay=1, ar_order=(1, 1)).fit(y)
+    ref = TAR(threshold=f.threshold_, delay=1, ar_order=(1, 1)).fit(y)
+    assert math.isclose(f.intercept_below_, ref.intercept_below_, abs_tol=1e-8)
+    assert math.isclose(f.intercept_above_, ref.intercept_above_, abs_tol=1e-8)
+    np.testing.assert_allclose(f.coef_below_, ref.coef_below_, atol=1e-8)
+    np.testing.assert_allclose(f.coef_above_, ref.coef_above_, atol=1e-8)
 
 
 def test_autotar_predict_matches_internal_one_step():

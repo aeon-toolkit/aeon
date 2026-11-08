@@ -25,7 +25,6 @@ NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 # exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
     "HydraTransformer",  # returns a pytorch Tensor
-    "TimeSeriesAgglomerative",  # awaiting #3613
 ]
 
 # Exclude specific tests for estimators here
@@ -53,7 +52,6 @@ EXCLUDED_TESTS = {
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "ROCKAD": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     "COPOD": ["check_non_state_changing_method"],

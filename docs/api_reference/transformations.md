@@ -80,6 +80,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     MiniRocket
     MultiRocket
     HydraTransformer
+    KGMTP
 ```
 
 ```{eval-rst}
@@ -102,6 +103,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     SAX
+    OneDSAX
     PAA
     SFA
     SFAFast
@@ -227,8 +229,6 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     PLASeriesTransformer
     STLSeriesTransformer
     MSTLSeriesTransformer
-    StatsModelsACF
-    StatsModelsPACF
     BKFilter
     BoxCoxTransformer
     YeoJohnsonTransformer

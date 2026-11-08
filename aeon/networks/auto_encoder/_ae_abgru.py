@@ -185,7 +185,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
                     activation=self._activation_decoder[i],
                     return_sequences=True,
                 ),
-                name=f"decoder_bgru_{i+1}",
+                name=f"decoder_bgru_{i + 1}",
             )(x)
 
         decoder_outputs = tf.keras.layers.TimeDistributed(
