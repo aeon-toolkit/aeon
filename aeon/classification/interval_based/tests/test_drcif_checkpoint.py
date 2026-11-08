@@ -37,7 +37,7 @@ def _assert_same_forest(expected, actual, X):
 
 
 @pytest.mark.parametrize("contracted, train_estimates", [(False, False), (True, True)])
-def test_drcif_resume(training_data, checkpoint_directory, contracted, train_estimates):
+def test_drcif_resume(training_data, tmp_path, contracted, train_estimates):
     """Loaded forests grow and truncate with aligned interval and OOB state."""
     X, y = training_data
     initial_size, target_size = 1, 3
@@ -54,7 +54,7 @@ def test_drcif_resume(training_data, checkpoint_directory, contracted, train_est
     getattr(partial, method)(X, y)
     initial_predictions = partial.predict_proba(X)
     assert joblib_hash(seed) == seed_state
-    path = checkpoint_directory / "drcif.pkl"
+    path = tmp_path / "drcif.pkl"
     partial.save_checkpoint(path)
     restored = DrCIFClassifier.load_checkpoint(path)
     restored.set_params(**{limit: target_size}, n_jobs=2, parallel_backend="threading")
@@ -70,7 +70,7 @@ def test_drcif_resume(training_data, checkpoint_directory, contracted, train_est
 
 
 @pytest.mark.parametrize("train_estimates", [False, True])
-def test_drcif_interrupted_batch(training_data, checkpoint_directory, train_estimates):
+def test_drcif_interrupted_batch(training_data, tmp_path, train_estimates):
     """An interrupted parallel batch resumes without skipping tree or OOB seeds."""
     X, y = training_data
     n_jobs = 2
@@ -86,7 +86,7 @@ def test_drcif_interrupted_batch(training_data, checkpoint_directory, train_esti
     method = "fit_predict_proba" if train_estimates else "fit"
     full = DrCIFClassifier(**params)
     getattr(full, method)(X, y)
-    path = checkpoint_directory / "drcif.pkl"
+    path = tmp_path / "drcif.pkl"
     interval_minutes = 1
     partial = DrCIFClassifier(
         **params, checkpoint_path=path, checkpoint_interval=interval_minutes
@@ -145,7 +145,7 @@ def test_drcif_contract_budget(training_data):
     assert classifier.n_estimators_ == target_size
 
 
-def test_drcif_resume_fit_predict_proba(training_data, checkpoint_directory):
+def test_drcif_resume_fit_predict_proba(training_data, tmp_path):
     """Train estimates from a resumed fit equal those of an uninterrupted fit."""
     X, y = training_data
     initial_size, target_size = 2, 4
@@ -153,8 +153,8 @@ def test_drcif_resume_fit_predict_proba(training_data, checkpoint_directory):
     expected = full.fit_predict_proba(X, y)
     partial = DrCIFClassifier(n_estimators=initial_size, random_state=0)
     partial.fit_predict_proba(X, y)
-    partial.save_checkpoint(checkpoint_directory / "drcif.pkl")
-    restored = DrCIFClassifier.load_checkpoint(checkpoint_directory / "drcif.pkl")
+    partial.save_checkpoint(tmp_path / "drcif.pkl")
+    restored = DrCIFClassifier.load_checkpoint(tmp_path / "drcif.pkl")
     restored.set_params(n_estimators=target_size)
 
     np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)

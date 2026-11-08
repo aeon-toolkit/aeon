@@ -438,9 +438,7 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
-        # copy, so the stored generators are never the global numpy RandomState
-        # shared by every random_state=None estimator; continuation state must
-        # not be advanced by unrelated code between fit and resume_fit
+        # copy, so unrelated code cannot advance the stored generators between calls
         self._rng = deepcopy(check_random_state(self.random_state))
         self._train_rng = (
             deepcopy(check_random_state(self.random_state))
@@ -478,9 +476,6 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         self._n_jobs = check_n_jobs(self.n_jobs)
         time_limit = self.time_limit_in_minutes * 60
         target = self._get_ensemble_target()
-        # member limits apply to the whole ensemble, so a limit below the members
-        # already built discards the newest of them. The generators are not
-        # rewound, so rebuilding afterwards trains new members, not these ones.
         if self.n_estimators_ > target:
             del self.estimators_[target:]
             del self.weights_[target:]
@@ -520,8 +515,6 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
             batch_size = max(self._n_jobs, (target + 9) // 10)
         else:
             batch_size = target
-        # the contract bounds total training time, so an interrupted fit resumes
-        # with whatever budget the earlier calls left rather than a fresh one
         while self.n_estimators_ < target and (
             time_limit <= 0 or self.fit_elapsed_time_ < time_limit
         ):
