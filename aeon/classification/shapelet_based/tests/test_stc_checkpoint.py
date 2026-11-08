@@ -101,9 +101,10 @@ def test_stc_checkpoints_when_the_transform_completes(
         with pytest.raises(RuntimeError, match="interrupted"):
             classifier.fit(X, y)
 
-    # nothing of the estimator survives, but the transform does
+    # nothing of the estimator survives, but the transform and its time do
     restored = ShapeletTransformClassifier.load_checkpoint(path)
     assert restored._transformed_train_data is not None
+    assert restored.fit_elapsed_time_ > 0
     assert not hasattr(restored.estimator_, "estimators_")
     with patch.object(
         RandomShapeletTransform,
@@ -281,3 +282,16 @@ def test_stc_resume_fit_predict_proba_needs_train_estimate_fit(_training_data):
     classifier = _forest_stc().fit(X, y)
     with pytest.raises(ValueError, match="train estimates"):
         classifier.resume_fit_predict_proba(X, y)
+
+
+def test_stc_resume_without_contract_restores_estimator_limit(_training_data):
+    """Resuming with no contract gives the estimator its own time limit again."""
+    X, y = _training_data
+    estimator = RotationForestClassifier(n_estimators=N_FOREST_TREES)
+    classifier = ShapeletTransformClassifier(
+        estimator=estimator, time_limit_in_minutes=3, **_PARAMS
+    ).fit(X, y)
+    classifier.set_params(time_limit_in_minutes=0).resume_fit(X, y)
+    assert (
+        classifier.estimator_.time_limit_in_minutes == estimator.time_limit_in_minutes
+    )

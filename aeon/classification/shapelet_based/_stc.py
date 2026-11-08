@@ -343,8 +343,18 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
             self.estimator_.n_jobs = self._n_jobs
 
         m = getattr(self.estimator_, "time_limit_in_minutes", None)
-        if m is not None and self.time_limit_in_minutes > 0:
-            self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
+        if m is not None:
+            if self.time_limit_in_minutes > 0:
+                limit = self._classifier_limit_in_minutes
+            else:
+                # without a contract the estimator keeps its own setting, as in fit
+                configured = (
+                    RotationForestClassifier()
+                    if self.estimator is None
+                    else self.estimator
+                )
+                limit = configured.time_limit_in_minutes
+            self.estimator_.time_limit_in_minutes = limit
 
         # only pass verbosity to RotationForestClassifier, other estimators such as
         # scikit-learn forests interpret verbose levels differently
@@ -519,6 +529,7 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
         return proba
 
     def _fit_stc_shared(self, X, y):
+        shared_start = perf_counter()
         self.n_instances_ = len(X)
         self.n_channels_ = X[0].shape[0]
         self._n_jobs = check_n_jobs(self.n_jobs)
@@ -577,6 +588,7 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
         # configured, interval or not, because it is usually the larger part of
         # the build and repeating it is the cost a checkpoint exists to avoid
         self._transformed_train_data = X_t
+        self.fit_elapsed_time_ = perf_counter() - shared_start
         self._checkpoint_ready = True
         self._checkpoint_if_due(force=True)
 

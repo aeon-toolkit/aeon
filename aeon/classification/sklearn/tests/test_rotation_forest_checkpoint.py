@@ -138,9 +138,10 @@ def test_rotation_forest_resume_keeps_oob_state(_training_data):
     ):
         np.testing.assert_array_equal(expected_data, actual_data)
 
-    # the estimates themselves are not returned by resume_fit, but the state
-    # they are built from is complete, so recomputing them reproduces the fit
-    np.testing.assert_array_equal(expected, full._fit_predict_rotf(X, y))
+    # resume_fit does not return the estimates, but the resumed state rebuilds them
+    np.testing.assert_array_equal(
+        expected, partial._oob_train_estimates(partial._transformed_data, y)
+    )
 
 
 @pytest.mark.parametrize("forest_class", _FORESTS)
@@ -235,3 +236,13 @@ def test_rotation_forest_resume_fit_predict_proba_needs_train_estimate_fit(
     forest = RotationForestClassifier(n_estimators=1, random_state=0).fit(X, y)
     with pytest.raises(ValueError, match="train estimates"):
         forest.resume_fit_predict_proba(X, y)
+
+
+def test_rotation_forest_single_class_checkpoint(_training_data, checkpoint_directory):
+    """A single-class forest still writes its final checkpoint on completion."""
+    X, y = _training_data
+    y = np.zeros_like(y)
+    path = checkpoint_directory / "rotf.pkl"
+    RotationForestClassifier(checkpoint_path=path).fit(X, y)
+    restored = RotationForestClassifier.load_checkpoint(path)
+    np.testing.assert_array_equal(restored.predict(X), y)

@@ -220,6 +220,7 @@ class BaseRotationForest(CheckpointableMixin, BaseEstimator):
         if self._is_classifier and self.n_classes_ == 1:
             self._checkpoint_ready = True
             self._is_fitted = True
+            self._checkpoint_if_due(force=True)
             return self
 
         self._base_estimator = self.base_estimator
@@ -297,6 +298,7 @@ class BaseRotationForest(CheckpointableMixin, BaseEstimator):
         self._get_forest_target()
         if self._is_classifier and self.n_classes_ == 1:
             # nothing was built, and nothing can be: the forest is complete
+            self._checkpoint_if_due(force=True)
             return self
 
         self._is_fitted = False
