@@ -5,13 +5,13 @@ __maintainer__ = ["hadifawaz1999"]
 import numpy as np
 import pytest
 
-from aeon.clustering.averaging import VALID_BA_DISTANCE_METHODS
 from aeon.distances import get_alignment_path_function
+from aeon.distances._distance import ALIGNMENT_PATH
 from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.transformations.series import WarpingSeriesTransformer
 
 
-@pytest.mark.parametrize("distance", VALID_BA_DISTANCE_METHODS)
+@pytest.mark.parametrize("distance", ALIGNMENT_PATH)
 def test_warping_path_transformer(distance):
     """Test the functionality of Warping transformation."""
     x = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
