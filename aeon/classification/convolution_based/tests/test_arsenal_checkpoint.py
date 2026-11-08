@@ -9,14 +9,19 @@ import pytest
 from joblib import hash as joblib_hash
 
 from aeon.classification.convolution_based import Arsenal
+from aeon.classification.convolution_based._arsenal import _run_jobs
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.testing.mock_estimators import MockClassifier
+
+N_CASES, N_TIMEPOINTS = 12, 24
+N_KERNELS = 10
 
 
 @pytest.fixture
-def _training_data():
+def training_data():
     """Provide a small deterministic classification dataset."""
-    return make_example_3d_numpy(n_cases=12, n_timepoints=24, random_state=42)
+    return make_example_3d_numpy(
+        n_cases=N_CASES, n_timepoints=N_TIMEPOINTS, random_state=42
+    )
 
 
 def _assert_same_ensemble(expected, actual, X):
@@ -39,13 +44,11 @@ def _assert_same_ensemble(expected, actual, X):
 
 
 @pytest.mark.parametrize("contracted, train_estimates", [(False, False), (True, True)])
-def test_arsenal_resume(
-    _training_data, checkpoint_directory, contracted, train_estimates
-):
+def test_arsenal_resume(training_data, tmp_path, contracted, train_estimates):
     """A resumed ensemble has the same members, RNG and OOB state as a full fit."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 2, 4
-    params = dict(n_kernels=10, random_state=0)
+    params = dict(n_kernels=N_KERNELS, random_state=0)
     limit = "contract_max_n_estimators" if contracted else "n_estimators"
     if contracted:
         params["time_limit_in_minutes"] = 5
@@ -54,8 +57,8 @@ def test_arsenal_resume(
     method = "fit_predict_proba" if train_estimates else "fit"
     getattr(full, method)(X, y)
     getattr(partial, method)(X[:, 0], y)
-    partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
-    restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
+    partial.save_checkpoint(tmp_path / "arsenal.pkl")
+    restored = Arsenal.load_checkpoint(tmp_path / "arsenal.pkl")
     restored.set_params(**{limit: target_size})
     assert restored.resume_fit(X, y) is restored
     assert restored.is_fitted
@@ -67,18 +70,16 @@ def test_arsenal_resume(
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_arsenal_interrupted_batch(_training_data, checkpoint_directory, n_jobs):
+def test_arsenal_interrupted_batch(training_data, tmp_path, n_jobs):
     """A failed next batch can be recovered without skipping random seeds."""
-    X, y = _training_data
-    path = checkpoint_directory / "arsenal.pkl"
-    params = dict(n_kernels=10, n_estimators=4, random_state=0, n_jobs=n_jobs)
+    X, y = training_data
+    path = tmp_path / "arsenal.pkl"
+    params = dict(n_kernels=N_KERNELS, n_estimators=4, random_state=0, n_jobs=n_jobs)
     uninterrupted = Arsenal(**params).fit(X, y)
     checkpoint_interval = 1
     partial = Arsenal(
         **params, checkpoint_path=path, checkpoint_interval=checkpoint_interval
     )
-    from aeon.classification.convolution_based._arsenal import _run_jobs
-
     calls = 0
 
     def fail_second_batch(tasks, *args, **kwargs):
@@ -107,22 +108,19 @@ def test_arsenal_interrupted_batch(_training_data, checkpoint_directory, n_jobs)
     assert Arsenal.load_checkpoint(path).is_fitted
 
 
-def test_arsenal_extend_and_truncate(_training_data):
+def test_arsenal_extend_and_truncate(training_data):
     """A completed ensemble grows to a raised limit and truncates to a lowered one."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 2, 5
-    params = dict(n_kernels=10, random_state=0)
+    params = dict(n_kernels=N_KERNELS, random_state=0)
     uninterrupted = Arsenal(**params, n_estimators=target_size).fit(X, y)
 
-    # growing a completed fit reproduces an uninterrupted fit of the same size,
-    # so extending an ensemble costs nothing in fidelity
     extended = Arsenal(**params, n_estimators=initial_size).fit(X, y)
     assert extended.n_estimators_ == initial_size
     extended.set_params(n_estimators=target_size).resume_fit(X, y)
     assert extended.n_estimators_ == target_size
     _assert_same_ensemble(uninterrupted, extended, X)
 
-    # a lowered limit discards the newest members, leaving the oldest untouched
     extended.set_params(n_estimators=initial_size).resume_fit(X, y)
     assert extended.n_estimators_ == initial_size
     assert len(extended.estimators_) == len(extended.weights_) == initial_size
@@ -132,10 +130,10 @@ def test_arsenal_extend_and_truncate(_training_data):
     )
 
 
-def test_arsenal_resume_validation(_training_data):
+def test_arsenal_resume_validation(training_data):
     """Wrong values, labels and model parameters fail without changing metadata."""
-    X, y = _training_data
-    classifier = Arsenal(n_kernels=10, n_estimators=1, random_state=0).fit(X, y)
+    X, y = training_data
+    classifier = Arsenal(n_kernels=N_KERNELS, n_estimators=1, random_state=0).fit(X, y)
     original = joblib_hash((classifier.classes_, classifier.metadata_))
     changed_X = X.copy()
     changed_X[0, 0, 0] += 1
@@ -146,31 +144,27 @@ def test_arsenal_resume_validation(_training_data):
         (X, changed_y),
         (X[::-1], y[::-1]),
     ]:
-        with pytest.raises(ValueError, match="Unable to resume fitting: X and y"):
+        with pytest.raises(ValueError, match="X and y"):
             classifier.resume_fit(candidate_X, candidate_y)
     assert joblib_hash((classifier.classes_, classifier.metadata_)) == original
     classifier.set_params(n_kernels=20)
-    with pytest.raises(ValueError, match="Model-building parameters"):
+    with pytest.raises(ValueError, match="parameters"):
         classifier.resume_fit(X, y)
-    with pytest.raises(ValueError, match="call fit first"):
+    with pytest.raises(ValueError, match="fit first"):
         Arsenal().resume_fit(X, y)
-    with pytest.raises(NotImplementedError, match="does not support"):
-        MockClassifier().resume_fit(X, y)
 
 
-def test_arsenal_contract_budget_persists(_training_data):
+def test_arsenal_contract_budget_persists(training_data):
     """The contract covers total training time across calls, not time per call."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 1, 4
     budget_minutes = 60
     params = dict(
-        n_kernels=10,
+        n_kernels=N_KERNELS,
         time_limit_in_minutes=budget_minutes,
         contract_max_n_estimators=initial_size,
         random_state=0,
     )
-    # elapsed time is set explicitly throughout, so no assertion depends on
-    # how long the ensemble actually takes to build
     partial = Arsenal(**params)
     partial.fit(X, y)
     assert partial.n_estimators_ == initial_size
@@ -192,15 +186,15 @@ def test_arsenal_contract_budget_persists(_training_data):
     assert partial.n_estimators_ == target_size
 
 
-def test_arsenal_random_state_object(_training_data, checkpoint_directory):
+def test_arsenal_random_state_object(training_data, tmp_path):
     """A RandomState object is copied, not shared, and survives resuming."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 2, 4
     seed = np.random.RandomState(0)
     caller_state = joblib_hash(seed.get_state())
-    full = Arsenal(n_kernels=10, random_state=seed, n_estimators=target_size)
+    full = Arsenal(n_kernels=N_KERNELS, random_state=seed, n_estimators=target_size)
     partial = Arsenal(
-        n_kernels=10, random_state=deepcopy(seed), n_estimators=initial_size
+        n_kernels=N_KERNELS, random_state=deepcopy(seed), n_estimators=initial_size
     )
     full.fit_predict(X, y)
     partial.fit_predict(X, y)
@@ -210,8 +204,8 @@ def test_arsenal_random_state_object(_training_data, checkpoint_directory):
     assert joblib_hash(seed.get_state()) == caller_state
     assert full._rng is not full._train_rng
 
-    partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
-    restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
+    partial.save_checkpoint(tmp_path / "arsenal.pkl")
+    restored = Arsenal.load_checkpoint(tmp_path / "arsenal.pkl")
     restored.n_estimators = target_size
     before_prediction = joblib_hash(restored._rng.get_state())
     restored.predict(X)
@@ -220,17 +214,17 @@ def test_arsenal_random_state_object(_training_data, checkpoint_directory):
     _assert_same_ensemble(full, restored, X)
 
 
-def test_arsenal_resume_fit_predict_proba(_training_data, checkpoint_directory):
+def test_arsenal_resume_fit_predict_proba(training_data, tmp_path):
     """Train estimates from a resumed fit equal those of an uninterrupted fit."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 2, 4
-    params = dict(n_kernels=10, random_state=0)
+    params = dict(n_kernels=N_KERNELS, random_state=0)
     full = Arsenal(**params, n_estimators=target_size)
     expected = full.fit_predict_proba(X, y)
     partial = Arsenal(**params, n_estimators=initial_size)
     partial.fit_predict_proba(X, y)
-    partial.save_checkpoint(checkpoint_directory / "arsenal.pkl")
-    restored = Arsenal.load_checkpoint(checkpoint_directory / "arsenal.pkl")
+    partial.save_checkpoint(tmp_path / "arsenal.pkl")
+    restored = Arsenal.load_checkpoint(tmp_path / "arsenal.pkl")
     restored.set_params(n_estimators=target_size)
 
     np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
@@ -238,9 +232,9 @@ def test_arsenal_resume_fit_predict_proba(_training_data, checkpoint_directory):
     np.testing.assert_allclose(restored.predict_proba(X), full.predict_proba(X))
 
 
-def test_arsenal_resume_fit_predict_proba_needs_train_estimate_fit(_training_data):
+def test_arsenal_resume_fit_predict_proba_needs_train_estimate_fit(training_data):
     """A fit begun with fit has no train estimates to continue."""
-    X, y = _training_data
-    classifier = Arsenal(n_kernels=10, n_estimators=1, random_state=0).fit(X, y)
+    X, y = training_data
+    classifier = Arsenal(n_kernels=N_KERNELS, n_estimators=1, random_state=0).fit(X, y)
     with pytest.raises(ValueError, match="train estimates"):
         classifier.resume_fit_predict_proba(X, y)

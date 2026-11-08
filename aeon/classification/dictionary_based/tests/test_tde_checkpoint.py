@@ -51,7 +51,7 @@ def _assert_same_ensemble(expected, actual, X):
 
 
 @pytest.mark.parametrize("contracted, train_estimates", [(False, False), (True, True)])
-def test_tde_resume(_training_data, checkpoint_directory, contracted, train_estimates):
+def test_tde_resume(_training_data, tmp_path, contracted, train_estimates):
     """A resumed search evaluates the same candidates as an uninterrupted fit."""
     X, y = _training_data
     initial_samples, target_samples = 2, 5
@@ -66,10 +66,8 @@ def test_tde_resume(_training_data, checkpoint_directory, contracted, train_esti
     getattr(partial, method)(X, y)
     assert partial._num_classifiers == initial_samples
 
-    partial.save_checkpoint(checkpoint_directory / "tde.pkl")
-    restored = TemporalDictionaryEnsemble.load_checkpoint(
-        checkpoint_directory / "tde.pkl"
-    )
+    partial.save_checkpoint(tmp_path / "tde.pkl")
+    restored = TemporalDictionaryEnsemble.load_checkpoint(tmp_path / "tde.pkl")
     restored.set_params(**{limit: target_samples})
     assert restored.resume_fit(X, y) is restored
     assert restored.is_fitted
@@ -89,10 +87,10 @@ def test_tde_resume(_training_data, checkpoint_directory, contracted, train_esti
     _assert_same_ensemble(partial, restored, X)
 
 
-def test_tde_interrupted_candidate(_training_data, checkpoint_directory):
+def test_tde_interrupted_candidate(_training_data, tmp_path):
     """A failed candidate evaluation is repeated exactly, not skipped."""
     X, y = _training_data
-    path = checkpoint_directory / "tde.pkl"
+    path = tmp_path / "tde.pkl"
     n_parameter_samples = 5
     uninterrupted = TemporalDictionaryEnsemble(
         n_parameter_samples=n_parameter_samples, **_PARAMS
@@ -243,7 +241,7 @@ def test_tde_contract_budget_persists(_training_data):
     assert partial._num_classifiers == target_samples
 
 
-def test_tde_random_state_object(_training_data, checkpoint_directory):
+def test_tde_random_state_object(_training_data, tmp_path):
     """A RandomState object is copied, not shared, and survives resuming."""
     X, y = _training_data
     initial_samples, target_samples = 2, 5
@@ -264,10 +262,8 @@ def test_tde_random_state_object(_training_data, checkpoint_directory):
     # the members, which share the caller's generator through random_state
     assert joblib_hash(seed.get_state()) == caller_state
 
-    partial.save_checkpoint(checkpoint_directory / "tde.pkl")
-    restored = TemporalDictionaryEnsemble.load_checkpoint(
-        checkpoint_directory / "tde.pkl"
-    )
+    partial.save_checkpoint(tmp_path / "tde.pkl")
+    restored = TemporalDictionaryEnsemble.load_checkpoint(tmp_path / "tde.pkl")
     restored.n_parameter_samples = target_samples
 
     # members share the caller's generator through random_state and consume it
@@ -281,7 +277,7 @@ def test_tde_random_state_object(_training_data, checkpoint_directory):
     assert joblib_hash(restored._rng.get_state()) == before_prediction
 
 
-def test_tde_resume_fit_predict_proba(_training_data, checkpoint_directory):
+def test_tde_resume_fit_predict_proba(_training_data, tmp_path):
     """Train estimates from a resumed fit equal those of an uninterrupted fit."""
     X, y = _training_data
     initial_size, target_size = 4, 8
@@ -289,10 +285,8 @@ def test_tde_resume_fit_predict_proba(_training_data, checkpoint_directory):
     expected = full.fit_predict_proba(X, y)
     partial = TemporalDictionaryEnsemble(**_PARAMS, n_parameter_samples=initial_size)
     partial.fit_predict_proba(X, y)
-    partial.save_checkpoint(checkpoint_directory / "tde.pkl")
-    restored = TemporalDictionaryEnsemble.load_checkpoint(
-        checkpoint_directory / "tde.pkl"
-    )
+    partial.save_checkpoint(tmp_path / "tde.pkl")
+    restored = TemporalDictionaryEnsemble.load_checkpoint(tmp_path / "tde.pkl")
     restored.set_params(n_parameter_samples=target_size)
 
     np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
