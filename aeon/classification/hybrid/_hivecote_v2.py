@@ -7,9 +7,6 @@ representations, using the weighted probabilistic CAWPE as an ensemble controlle
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["HIVECOTEV2"]
 
-import warnings
-
-import numpy as np
 
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
@@ -42,15 +39,11 @@ class HIVECOTEV2(_BaseHIVECOTE):
         Time contract to limit build time in minutes, overriding
         n_estimators/n_parameter_samples for each component.
         Default of 0 means n_estimators/n_parameter_samples for each component is used.
-    save_component_probas : bool, default=False
-        When predict/predict_proba is called, save each HIVE-COTEV2 component
-        probability predictions in component_probas.
-
-        .. deprecated::
-            ``save_component_probas`` is deprecated because it mutates object
-            state during prediction. Use ``predict_proba_with_components(X)``
-            instead, which returns per-component probabilities without
-            modifying the fitted estimator.
+    prior_correction : float, default=0.5
+        Exponent ``beta``: the combined probabilities are divided by the train class
+        prior raised to ``beta`` and renormalised. 0 is the original HIVE-COTE 2.0
+        combination and 1 corrects fully to a uniform class prior. Balanced training
+        data is unaffected. It can be changed after fitting without refitting.
     verbose : int, default=0
         Level of output printed during fit. Level 1 reports HC2 progress, level 2 also
         reports component parameters, level 3 enables summary progress within each
@@ -83,11 +76,11 @@ class HIVECOTEV2(_BaseHIVECOTE):
         The weight for Arsenal probabilities.
     tde_weight_ : float
         The weight for TDE probabilities.
-    component_probas : dict
-        Only used if save_component_probas is true. Saved probability predictions for
-        each HIVE-COTEV2 component.
     fitted_estimators_ : list of BaseClassifier
         The fitted estimators for the ensemble.
+    class_prior_ : np.ndarray of shape (n_classes,)
+        The train class proportions in the order of ``classes_``, used by
+        ``prior_correction``.
 
     See Also
     --------
@@ -98,8 +91,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
     Notes
     -----
     For the Java version, see
-    `https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/hybrids/HIVE_COTE.java`_.
+    `tsml-java <https://github.com/time-series-machine-learning/tsml-java/blob/master/
+    src/main/java/tsml/classifiers/hybrids/HIVE_COTE.java>`_.
 
     References
     ----------
@@ -130,7 +123,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         arsenal_params=None,
         tde_params=None,
         time_limit_in_minutes=0,
-        save_component_probas=False,
+        prior_correction=0.5,
         verbose=0,
         random_state=None,
         n_jobs=1,
@@ -141,37 +134,19 @@ class HIVECOTEV2(_BaseHIVECOTE):
         self.arsenal_params = arsenal_params
         self.tde_params = tde_params
         self.time_limit_in_minutes = time_limit_in_minutes
-        self.save_component_probas = save_component_probas
         self.parallel_backend = parallel_backend
 
         super().__init__(
             estimators=None,
             alpha=4,
+            prior_correction=prior_correction,
             random_state=random_state,
             n_jobs=n_jobs,
             verbose=verbose,
         )
 
     def _fit(self, X, y):
-        """Fit HIVE-COTE 2.0 to training data.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The training data.
-        y : array-like, shape = [n_cases]
-            The class labels.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-
-        Notes
-        -----
-        Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
-        """
+        """Set up the HIVE-COTE 2.0 components, then fit the ensemble."""
         if self.stc_params is not None:
             self._stc_params = self.stc_params
         else:
@@ -226,33 +201,6 @@ class HIVECOTEV2(_BaseHIVECOTE):
 
         return super()._fit(X, y)
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        if self.save_component_probas:
-            warnings.warn(
-                "save_component_probas is deprecated because it mutates "
-                "object state during prediction. Use "
-                "predict_proba_with_components(X) instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            final_probas, component_probas = self.predict_proba_with_components(X)
-            self.component_probas = component_probas
-            return final_probas
-
-        return super()._predict_proba(X)
-
     def predict_proba_with_components(self, X):
         """Predict class probabilities and return per-component probabilities.
 
@@ -268,7 +216,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
         Returns
         -------
         final_probas : np.ndarray of shape (n_cases, n_classes)
-            The CAWPE-weighted ensemble probability predictions.
+            The CAWPE-weighted ensemble probability predictions, after any
+            ``prior_correction``.
         component_probas : dict
             Dictionary mapping each component name to its probability predictions
             of shape (n_cases, n_classes).
@@ -280,13 +229,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
             for name, est in zip(self.component_names_, self.fitted_estimators_)
         }
 
-        dists = np.zeros((X.shape[0], self.n_classes_))
-        for i, name in enumerate(self.component_names_):
-            dists = np.add(dists, component_probas[name] * self.weights_[i])
-
-        sums = dists.sum(axis=1, keepdims=True)
-        sums[sums == 0] = 1.0
-        final_probas = dists / sums
+        final_probas = self._combine(
+            [component_probas[name] for name in self.component_names_]
+        )
 
         return final_probas, component_probas
 
