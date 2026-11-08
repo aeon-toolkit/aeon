@@ -69,6 +69,14 @@ def check_regression_y(y):
         If y is not a numeric regression target, e.g. it contains strings or
         datetimes.
         if y is empty.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.labels import check_regression_y
+    >>> check_regression_y(np.array([1.5, 2.7, 3.6]))
+    >>> check_regression_y(pd.Series([100, 200, 300]))
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
@@ -114,6 +122,14 @@ def check_anomaly_detection_y(y):
     ValueError
         If y contains values other than 0 or 1.
         if y is empty or contains less than 2 unique labels.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.labels import check_anomaly_detection_y
+    >>> check_anomaly_detection_y(np.array([0, 1, 0, 1]))
+    >>> check_anomaly_detection_y(pd.Series([0, 0, 1, 1]))
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
