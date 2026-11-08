@@ -63,7 +63,9 @@ class TimeSeriesKMeans(BaseClusterer):
         Distance method to compute similarity between time series. A list of valid
         strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
-        a function that takes two 2d numpy arrays as input and returns a float.
+        a function that takes two 2d numpy arrays as input and returns a float. With a
+        callable distance, built-in string averaging methods must be 'mean' or
+        'shift_scale'; callable averaging methods are also supported.
     n_init : int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -85,8 +87,9 @@ class TimeSeriesKMeans(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     averaging_method : str or Callable, default='ba'
-        Averaging method to compute the average of a cluster. Any of the following
-        strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
+        Averaging method to compute the average of a cluster. Supported strings are
+        ['mean', 'shift_scale', 'ba', 'subgradient', 'kasba', 'petitjean'].
+        If a Callable is provided it must take the form
         Callable[[np.ndarray], np.ndarray].
         If you specify 'ba' then by default the distance method used will be the same
         as the distance method used for clustering. If you wish to use a different
@@ -268,7 +271,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 )
 
             if self.verbose:
-                print("%.3f" % curr_inertia, end=" --> ")  # noqa: T001, T201
+                print(f"{curr_inertia:.3f}", end=" --> ")  # noqa: T001, T201
 
             change_in_centres = np.abs(prev_inertia - curr_inertia)
             prev_inertia = curr_inertia
@@ -323,46 +326,50 @@ class TimeSeriesKMeans(BaseClusterer):
         else:
             self._average_params = self.average_params.copy()
 
-        # Add the distance to average params
-        if "distance" not in self._average_params and self.averaging_method not in [
-            "mean",
-            "shift_scale",
-        ]:
-            # Must be a str and a valid distance for ba averaging
-            if isinstance(self.distance, str):
-                if (
-                    self.averaging_method == "ba"
-                    and self.distance not in VALID_BA_DISTANCE_METHODS
-                ):
-                    raise ValueError(
-                        f"Invalid distance passed for ba. "
-                        f"Valid distances are: {VALID_BA_DISTANCE_METHODS}"
-                    )
-                self._average_params["distance"] = self.distance
-            else:
-                # Invalid distance passed for ba so default to dba
-                self._average_params["distance"] = "dtw"
-
-        if (
-            "random_state" not in self._average_params
-            and self.averaging_method not in ["shift_scale", "mean"]
-        ):
-            self._average_params["random_state"] = self._random_state
-
+        # Resolve the averaging method before distance-specific validation so an
+        # invalid method is not masked by a callable-distance restriction.
         if self.averaging_method == "ba":
             self._averaging_method = elastic_barycenter_average
         else:
             self._averaging_method = _resolve_average_callable(self.averaging_method)
+
+        # Add distance, random_state, and n_jobs to average params for string methods
+        if isinstance(self.averaging_method, str):
+            needs_distance = self.averaging_method not in ["mean", "shift_scale"]
+            if "distance" not in self._average_params and needs_distance:
+                # Must be a str and a valid distance for ba averaging
+                if isinstance(self.distance, str):
+                    if (
+                        self.averaging_method == "ba"
+                        and self.distance not in VALID_BA_DISTANCE_METHODS
+                    ):
+                        raise ValueError(
+                            f"Invalid distance passed for ba. "
+                            f"Valid distances are: {VALID_BA_DISTANCE_METHODS}"
+                        )
+                    self._average_params["distance"] = self.distance
+                else:
+                    raise ValueError(
+                        "A callable distance cannot be used with barycentre averaging. "
+                        "Use averaging_method='mean' or provide a string distance "
+                        "that supports barycentre averaging."
+                    )
+
+            if (
+                "random_state" not in self._average_params
+                and self.averaging_method not in ["shift_scale", "mean"]
+            ):
+                self._average_params["random_state"] = self._random_state
+
+            # Mean is the only one that n_jobs doesn't support
+            if self.averaging_method != "mean":
+                self._average_params["n_jobs"] = self._n_jobs
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
                 f"n_cases ({X.shape[0]})"
             )
-
-        # Mean is the only one that n_jobs doesn't support
-        if isinstance(self.averaging_method, str) and self.averaging_method != "mean":
-            self._average_params["n_jobs"] = self._n_jobs
 
     def _handle_empty_cluster(
         self,

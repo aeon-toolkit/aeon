@@ -20,7 +20,6 @@ def test_trilite_use_mixing_up(use_mixing_up):
     """Test TRILITE with possible mixing up setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             use_mixing_up=use_mixing_up,
             latent_space_dim=2,
@@ -46,7 +45,6 @@ def test_trilite_use_masking(use_masking):
     """Test TRILITE with possible masking setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             use_masking=use_masking,
             backbone_network=DummyDeepNetwork(),
@@ -72,7 +70,6 @@ def test_trilite_z_normalize_pos_neg(z_normalize_pos_neg):
     """Test TRILITE with possible znorm pos and neg setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             z_normalize_pos_neg=z_normalize_pos_neg,
             backbone_network=DummyDeepNetwork(),
@@ -98,7 +95,6 @@ def test_trilite_alpha(alpha):
     """Test TRILITE with possible alpha setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             alpha=alpha,
             backbone_network=DummyDeepNetwork(),
@@ -124,7 +120,6 @@ def test_trilite_weight_ref_min(weight_ref_min):
     """Test TRILITE with possible weight_ref_min setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             weight_ref_min=weight_ref_min,
             backbone_network=DummyDeepNetwork(),
@@ -150,7 +145,6 @@ def test_trilite_percentage_mask_length(percentage_mask_length):
     """Test TRILITE with possible percentage_mask_length setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             percentage_mask_length=percentage_mask_length,
             backbone_network=DummyDeepNetwork(),
@@ -176,7 +170,6 @@ def test_trilite_latent_space_dim(latent_space_dim):
     """Test TRILITE with possible latent_space_dim setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             latent_space_dim=latent_space_dim,
             backbone_network=DummyDeepNetwork(),
@@ -201,7 +194,6 @@ def test_trilite_latent_space_activation(latent_space_activation):
     """Test TRILITE with possible latent_space_activation setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         ssl = TRILITE(
             latent_space_activation=latent_space_activation,
             backbone_network=DummyDeepNetwork(),
@@ -227,7 +219,6 @@ def test_trilite_backbone_network(backbone_network):
     """Test TRILITE with possible backbone_network setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
-
         if backbone_network is not None:
             ssl = TRILITE(
                 backbone_network=backbone_network(),

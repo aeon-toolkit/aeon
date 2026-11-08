@@ -112,7 +112,7 @@ def test__check_y():
     with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
         reg._check_y(y, 6)
     y = np.array(["1.1", "2.2", "3.3", "4.4", "5.5"])
-    with pytest.raises(ValueError, match=r"contains strings, cannot fit a regressor"):
+    with pytest.raises(ValueError, match=r"y is not numeric, cannot fit a regressor"):
         reg._check_y(y, 5)
 
 

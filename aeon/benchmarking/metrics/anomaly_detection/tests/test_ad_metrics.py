@@ -84,6 +84,25 @@ def test_continuous_metric_requires_scores(metric):
 
 
 @pytest.mark.parametrize(
+    "metric", continuous_metrics, ids=[m.__name__ for m in continuous_metrics]
+)
+def test_continuous_metric_swapped_arguments(metric):
+    """Test swapped arguments are scored like the correct order, not y_true twice."""
+    y_true = np.zeros(40, dtype=np.int64)
+    y_true[10:15] = 1
+    y_true[25:30] = 1
+    rng = np.random.default_rng(0)
+    good = rng.uniform(0, 0.3, size=40) + 0.7 * y_true
+    inverted = 1.0 - good
+
+    for y_score in (good, inverted):
+        expected = metric(y_true, y_score)
+        with pytest.warns(UserWarning, match="permuted"):
+            swapped = metric(y_score, y_true)
+        np.testing.assert_almost_equal(swapped, expected)
+
+
+@pytest.mark.parametrize(
     "metric", binary_metrics, ids=[m.__name__ for m in binary_metrics]
 )
 def test_binary_metric_requires_predictions(metric):

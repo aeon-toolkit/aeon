@@ -192,7 +192,7 @@ ESTIMATOR_TAGS = {
         "class": "anomaly-detector",
         "type": ("str", ["anomaly_scores", "binary"]),
         "description": "The format of the anomaly detector output. anomaly_scores "
-        "estimators provide a numeric score on how anomalous the point/case is. binary"
+        "estimators provide a numeric score on how anomalous the point/case is. binary "
         "estimators provide a binary classification of whether the point/case is "
         "anomalous or not.",
     },
