@@ -915,6 +915,19 @@ class BaseIntervalForest(CheckpointableMixin, ABC):
         self._continue_forest(self._predict_setup(X), y)
         return self
 
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        if is_regressor(self):
+            raise ValueError(
+                "Train probability estimates are only available for classification"
+            )
+        if getattr(self, "_train_rng", None) is None:
+            raise ValueError(
+                "This fit began with fit, not fit_predict_proba, so it has no "
+                "train estimates to continue; use resume_fit."
+            )
+        self._resume_fit(X, y)
+        return self._checkpoint_train_proba()
+
     def _continue_forest(self, Xt, y):
         """Commit trees, interval selectors and OOB state at batch boundaries."""
         time_limit, target = self._forest_fit_limits()
@@ -934,7 +947,9 @@ class BaseIntervalForest(CheckpointableMixin, ABC):
         batch_size = (
             self._n_jobs
             if time_limit > 0 or periodic
-            else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
+            else max(self._n_jobs, (target + 9) // 10)
+            if self.verbose > 0
+            else target
         )
         start = time.perf_counter()
         accounted_time = 0.0

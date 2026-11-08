@@ -143,3 +143,28 @@ def test_drcif_contract_budget(training_data):
     classifier.fit_elapsed_time_ = budget_minutes * 2 * 60
     classifier.fit(X, y)
     assert classifier.n_estimators_ == target_size
+
+
+def test_drcif_resume_fit_predict_proba(training_data, checkpoint_directory):
+    """Train estimates from a resumed fit equal those of an uninterrupted fit."""
+    X, y = training_data
+    initial_size, target_size = 2, 4
+    full = DrCIFClassifier(n_estimators=target_size, random_state=0)
+    expected = full.fit_predict_proba(X, y)
+    partial = DrCIFClassifier(n_estimators=initial_size, random_state=0)
+    partial.fit_predict_proba(X, y)
+    partial.save_checkpoint(checkpoint_directory / "drcif.pkl")
+    restored = DrCIFClassifier.load_checkpoint(checkpoint_directory / "drcif.pkl")
+    restored.set_params(n_estimators=target_size)
+
+    np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
+    assert restored.is_fitted
+    np.testing.assert_allclose(restored.predict_proba(X), full.predict_proba(X))
+
+
+def test_drcif_resume_fit_predict_proba_needs_train_estimate_fit(training_data):
+    """A fit begun with fit has no train estimates to continue."""
+    X, y = training_data
+    classifier = DrCIFClassifier(n_estimators=1, random_state=0).fit(X, y)
+    with pytest.raises(ValueError, match="train estimates"):
+        classifier.resume_fit_predict_proba(X, y)
