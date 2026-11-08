@@ -63,6 +63,7 @@ Deprecate a function.
 ```python
 from deprecated.sphinx import deprecated
 
+
 # TODO: remove in v0.7.0
 @deprecated(
     version="0.6.0",
@@ -80,6 +81,7 @@ keyword argument with a default value, to ease the transition.
 ```python
 from deprecated.sphinx import deprecated
 
+
 # TODO: remove in v0.7.0 and remove z default
 @deprecated(
     version="0.6.0",
@@ -95,6 +97,7 @@ Deprecate a class method to remove a positional argument.
 
 ```python
 from deprecated.sphinx import deprecated
+
 
 class MyClass:
     """Contains my_method."""
@@ -120,6 +123,7 @@ minor release.
 ```python
 from deprecated.sphinx import deprecated
 
+
 # TODO: remove in v0.8.0
 @deprecated(
     version="0.6.1",
@@ -128,6 +132,7 @@ from deprecated.sphinx import deprecated
 )
 class MyClass:
     """Exists (for now)."""
+
     pass
 ```
 
@@ -136,6 +141,7 @@ direct users to use that instead while updating both.
 
 ```python
 from deprecated.sphinx import deprecated
+
 
 # TODO: remove in v0.7.0
 @deprecated(
@@ -153,6 +159,7 @@ Deprecate a class parameter.
 
 ```python
 import warnings
+
 
 class MyClass:
     """Contains x and y.
@@ -181,6 +188,7 @@ Deprecate a class parameter to rename it.
 ```python
 import warnings
 
+
 class MyClass:
     """Does stuff.
 
@@ -201,7 +209,10 @@ class MyClass:
         self.x = x
         self.new_param = new_param
         if old_param != "deprecated":
-            warnings.warn("The 'old_param' parameter will be removed in v0.7.0. Use 'new_param' instead.", FutureWarning)
+            warnings.warn(
+                "The 'old_param' parameter will be removed in v0.7.0. Use 'new_param' instead.",
+                FutureWarning,
+            )
             self.new_param = old_param
 ```
 
@@ -209,6 +220,7 @@ Deprecate a class to rename it.
 
 ```python
 from deprecated.sphinx import deprecated
+
 
 class MyNewClass:
     """Exists."""
@@ -227,6 +239,7 @@ class MyNewClass:
 )
 class MyOldClass(MyNewClass):
     """Exists."""
+
     pass
 ```
 
@@ -234,6 +247,7 @@ Deprecate a function to rename it.
 
 ```python
 from deprecated.sphinx import deprecated
+
 
 def my_new_function(x, y):
     """Return x + y."""

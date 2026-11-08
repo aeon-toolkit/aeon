@@ -59,15 +59,15 @@ def check_series_anomaly_detector_output(estimator, datatype):
         assert np.issubdtype(y_pred.dtype, np.floating) or np.issubdtype(
             y_pred.dtype, np.integer
         ), "y_pred must be of floating point or int type"
-        assert not np.array_equal(
-            np.unique(y_pred), [0, 1]
-        ), "y_pred cannot contain only 0s and 1s"
+        assert not np.array_equal(np.unique(y_pred), [0, 1]), (
+            "y_pred cannot contain only 0s and 1s"
+        )
     elif out_type == "binary":
         assert np.issubdtype(y_pred.dtype, np.integer) or np.issubdtype(
             y_pred.dtype, np.bool_
         ), "y_pred must be of int or bool type for binary output"
-        assert all(
-            val in [0, 1] for val in np.unique(y_pred)
-        ), "y_pred must contain only 0s, 1s, True, or False"
+        assert all(val in [0, 1] for val in np.unique(y_pred)), (
+            "y_pred must contain only 0s, 1s, True, or False"
+        )
     else:
         raise ValueError(f"Unknown anomaly output type: {out_type}")

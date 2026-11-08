@@ -73,7 +73,6 @@ class SimpleImputer(BaseCollectionTransformer):
         self._validate_parameters()
 
         if isinstance(X, np.ndarray):  # if X is a 3D array
-
             if self.strategy == "mean":
                 X = np.where(np.isnan(X), np.nanmean(X, axis=-1, keepdims=True), X)
 
