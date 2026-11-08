@@ -234,9 +234,7 @@ class TemporalDictionaryEnsemble(CheckpointableMixin, BaseClassifier):
         "algorithm_type": "dictionary",
     }
 
-    # max_ensemble_size is deliberately absent: retention and replacement
-    # decisions are made against it as candidates are evaluated, so it cannot
-    # change between calls
+    # max_ensemble_size is deliberately absent: see the class Notes
     _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
         "n_parameter_samples",
         "contract_max_n_parameter_samples",
@@ -374,9 +372,7 @@ class TemporalDictionaryEnsemble(CheckpointableMixin, BaseClassifier):
         else:
             self._use_bigrams = self.bigrams
 
-        # copy, so the stored generator is never the global numpy RandomState
-        # shared by every random_state=None estimator; continuation state must
-        # not be advanced by unrelated code between fit and resume_fit
+        # copy, so unrelated code cannot advance the stored generator between calls
         self._rng = deepcopy(check_random_state(self.random_state))
         self.fit_elapsed_time_ = 0.0
 
@@ -484,9 +480,7 @@ class TemporalDictionaryEnsemble(CheckpointableMixin, BaseClassifier):
                 f"{fit_limit}, max_ensemble_size={self.max_ensemble_size}"
             )
 
-        # use time limit or n_parameter_samples if limit is 0. The contract
-        # bounds total training time, so an interrupted fit resumes with
-        # whatever budget the earlier calls left rather than a fresh one
+        # use time limit or n_parameter_samples if limit is 0
         while (
             (
                 self.fit_elapsed_time_ < time_limit
