@@ -207,3 +207,31 @@ def test_rotation_forest_single_class(_training_data):
     forest.set_params(n_estimators=5).resume_fit(X, y)
     assert not hasattr(forest, "estimators_")
     np.testing.assert_array_equal(forest.predict(X), y)
+
+
+def test_rotation_forest_resume_fit_predict_proba(_training_data, checkpoint_directory):
+    """A forest grown on resume gives the out of bag estimates of a full fit."""
+    X, y = _training_data
+    initial_size, target_size = 3, 6
+    full = RotationForestClassifier(n_estimators=target_size, random_state=0)
+    expected = full.fit_predict_proba(X, y)
+    partial = RotationForestClassifier(n_estimators=initial_size, random_state=0)
+    partial.fit_predict_proba(X, y)
+    partial.save_checkpoint(checkpoint_directory / "rotf.pkl")
+    restored = RotationForestClassifier.load_checkpoint(
+        checkpoint_directory / "rotf.pkl"
+    )
+    restored.set_params(n_estimators=target_size)
+
+    np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
+    assert restored._n_estimators == target_size
+
+
+def test_rotation_forest_resume_fit_predict_proba_needs_train_estimate_fit(
+    _training_data,
+):
+    """A forest fitted with fit has no train estimates to continue."""
+    X, y = _training_data
+    forest = RotationForestClassifier(n_estimators=1, random_state=0).fit(X, y)
+    with pytest.raises(ValueError, match="train estimates"):
+        forest.resume_fit_predict_proba(X, y)

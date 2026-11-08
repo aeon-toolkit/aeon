@@ -239,8 +239,7 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
         self.fit_elapsed_time_ = perf_counter() - fit_start
         if self.verbose > 0:
             self._log(
-                f"[{type(self).__name__}] "
-                f"Finished fit in {self.fit_elapsed_time_:.2f}s"
+                f"[{type(self).__name__}] Finished fit in {self.fit_elapsed_time_:.2f}s"
             )
 
     def _resume_fit(self, X, y):
@@ -253,6 +252,38 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
                 f"Finished fit in {self.fit_elapsed_time_:.2f}s total"
             )
         return self
+
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        if not getattr(self, "_fit_with_train_estimate", False):
+            raise ValueError(
+                "This fit began with fit, not fit_predict_proba, so it has no "
+                "train estimates to continue; use resume_fit."
+            )
+        fit_start = perf_counter()
+        self._apply_runtime_settings()
+        X_t = self._transformed_train_data
+        resumable = isinstance(self.estimator_, CheckpointableMixin) and getattr(
+            self.estimator_, "_checkpoint_ready", False
+        )
+        if resumable and getattr(self.estimator_, "_save_transformed_data", False):
+            # the forest was part way through its fit_predict_proba: continue it
+            if self.verbose > 0:
+                self._log(
+                    f"[{type(self).__name__}] Continuing estimator fit and train "
+                    f"estimates ({type(self.estimator_).__name__})..."
+                )
+            proba = self.estimator_.resume_fit_predict_proba(X_t, y)
+        else:
+            # the transform completed but the estimator had not started its
+            # train-estimate fit: run that part as fit_predict_proba would
+            proba = self._estimator_train_estimates(X_t, y)
+        self.fit_elapsed_time_ += perf_counter() - fit_start
+        if self.verbose > 0:
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Finished fit in {self.fit_elapsed_time_:.2f}s total"
+            )
+        return proba
 
     def _validate_resume_fit(self, X, y):
         check_n_jobs(self.n_jobs)
@@ -413,8 +444,23 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         fit_start = perf_counter() if self.verbose > 0 else None
+        # set before the transform, so a checkpoint taken after it records that
+        # this fit is producing train estimates
+        self._fit_with_train_estimate = True
+        start = perf_counter()
+        self.fit_elapsed_time_ = 0.0
         X_t = self._fit_stc_shared(X, y)
+        proba = self._estimator_train_estimates(X_t, y)
+        self.fit_elapsed_time_ = perf_counter() - start
+        if self.verbose > 0:
+            self._log(
+                f"[{type(self).__name__}] "
+                f"Finished fit in {perf_counter() - fit_start:.2f}s"
+            )
+        return proba
 
+    def _estimator_train_estimates(self, X_t, y) -> np.ndarray:
+        """Fit the estimator on the transformed data and return train estimates."""
         estimator_start = perf_counter() if self.verbose > 0 else None
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
@@ -468,10 +514,6 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
                 f"[{type(self).__name__}] "
                 "Finished estimator fit and train estimates in "
                 f"{perf_counter() - estimator_start:.2f}s"
-            )
-            self._log(
-                f"[{type(self).__name__}] "
-                f"Finished fit in {perf_counter() - fit_start:.2f}s"
             )
 
         return proba

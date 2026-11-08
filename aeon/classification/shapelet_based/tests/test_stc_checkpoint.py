@@ -13,6 +13,7 @@ from aeon.classification.sklearn import RotationForestClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 
+N_FOREST_TREES = 4
 _PARAMS = dict(n_shapelet_samples=10, max_shapelets=3, batch_size=5, random_state=0)
 
 
@@ -34,7 +35,9 @@ def _assert_same_pipeline(expected, actual, X):
 
 def _forest_stc(**kwargs):
     return ShapeletTransformClassifier(
-        estimator=RotationForestClassifier(n_estimators=4), **_PARAMS, **kwargs
+        estimator=RotationForestClassifier(n_estimators=N_FOREST_TREES),
+        **_PARAMS,
+        **kwargs,
     )
 
 
@@ -217,3 +220,64 @@ def test_stc_resume_applies_runtime_settings(_training_data):
     assert classifier.estimator_.n_jobs == 2
     # the estimator receives its third of the overall contract
     assert classifier.estimator_.time_limit_in_minutes == pytest.approx(2)
+
+
+@pytest.mark.parametrize("interrupted_in", ["estimator", "forest"])
+def test_stc_resume_fit_predict_proba(
+    _training_data, checkpoint_directory, interrupted_in
+):
+    """Train estimates resumed after either phase equal an uninterrupted fit's."""
+    X, y = _training_data
+    path = checkpoint_directory / "stc.pkl"
+    expected = _forest_stc().fit_predict_proba(X, y)
+    checkpoint_interval = 1
+    partial = _forest_stc(checkpoint_path=path, checkpoint_interval=checkpoint_interval)
+    from aeon.base._estimators.sklearn._rotation_forest import _run_jobs
+
+    calls = 0
+
+    def fail_second_batch(tasks, *args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            list(tasks)
+            raise RuntimeError("interrupted")
+        return _run_jobs(tasks, *args, **kwargs)
+
+    if interrupted_in == "estimator":
+        interruption = patch.object(
+            RotationForestClassifier,
+            "fit_predict_proba",
+            side_effect=RuntimeError("interrupted"),
+        )
+    else:
+        interruption = patch(
+            "aeon.base._estimators.sklearn._rotation_forest._run_jobs",
+            fail_second_batch,
+        )
+    with interruption, patch("aeon.base._checkpoint.time") as clock:
+        clock.monotonic.side_effect = count(start=0, step=checkpoint_interval * 60)
+        with pytest.raises(RuntimeError, match="interrupted"):
+            partial.fit_predict_proba(X, y)
+
+    restored = ShapeletTransformClassifier.load_checkpoint(path)
+    if interrupted_in == "estimator":
+        assert not hasattr(restored.estimator_, "estimators_")
+    else:
+        assert 0 < restored.estimator_._n_estimators < N_FOREST_TREES
+    with patch.object(
+        RandomShapeletTransform,
+        "fit_transform",
+        side_effect=AssertionError("the transform was rerun"),
+    ):
+        train = restored.resume_fit_predict_proba(X, y)
+    assert restored.is_fitted
+    np.testing.assert_allclose(train, expected)
+
+
+def test_stc_resume_fit_predict_proba_needs_train_estimate_fit(_training_data):
+    """A fit begun with fit has no train estimates to continue."""
+    X, y = _training_data
+    classifier = _forest_stc().fit(X, y)
+    with pytest.raises(ValueError, match="train estimates"):
+        classifier.resume_fit_predict_proba(X, y)

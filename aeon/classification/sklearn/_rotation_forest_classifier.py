@@ -266,3 +266,25 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         Changes state by creating a fitted model that updates attributes ending in "_".
         """
         return self._fit_predict_rotf(X, y)
+
+    def resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        """Continue a forest begun with fit_predict_proba and estimate probabilities.
+
+        The counterpart of ``resume_fit`` for a forest begun with
+        ``fit_predict_proba`` or ``fit_predict``: it builds the remaining trees and
+        returns the out-of-bag probabilities an uninterrupted ``fit_predict_proba``
+        would have returned.
+
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            Original training data, with the same values and order.
+        y : array-like, shape = [n_cases]
+            Original class labels in the original order.
+
+        Returns
+        -------
+        y : array-like, shape = [n_cases, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        return self._resume_fit_predict_rotf(X, y)
