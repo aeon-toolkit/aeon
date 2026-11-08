@@ -28,6 +28,10 @@ class _BaseHIVECOTE(BaseClassifier):
         Each estimator must be an instance of BaseClassifier.
     alpha : int or float, default=4
         The power parameter for the CAWPE weight calculation.
+    prior_correction : float, default=0.0
+        Exponent ``beta`` for dividing the combined probabilities by the train class
+        prior raised to ``beta``, then renormalising. 0 is the standard CAWPE
+        combination, 1 is full correction to a uniform class prior.
     random_state : int, RandomState instance or None, default=None
         Seed for random number generation.
     n_jobs : int, default=1
@@ -47,12 +51,14 @@ class _BaseHIVECOTE(BaseClassifier):
         self,
         estimators,
         alpha=4,
+        prior_correction=0.0,
         random_state=None,
         n_jobs=1,
         verbose=0,
     ):
         self.estimators = estimators
         self.alpha = alpha
+        self.prior_correction = prior_correction
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.verbose = verbose
@@ -83,6 +89,10 @@ class _BaseHIVECOTE(BaseClassifier):
 
         if estimators is None or len(estimators) == 0:
             raise ValueError("No estimators provided to _BaseHIVECOTE.")
+        if self.prior_correction < 0:
+            raise ValueError(
+                f"prior_correction must be non-negative, got {self.prior_correction}"
+            )
 
         for name, estimator in estimators:
             if not isinstance(estimator, BaseClassifier):
@@ -90,6 +100,10 @@ class _BaseHIVECOTE(BaseClassifier):
                     f"Estimator '{name}' is not a BaseClassifier instance. "
                     "All components must be aeon classifiers."
                 )
+
+        # Train class prior in the order of classes_, used by prior_correction
+        _, counts = np.unique(y, return_counts=True)
+        self.class_prior_ = counts / counts.sum()
 
         # Reset fitted state to avoid accumulation on re-fit
         self.fitted_estimators_ = []
@@ -164,12 +178,22 @@ class _BaseHIVECOTE(BaseClassifier):
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X using CAWPE."""
-        dists = np.zeros((X.shape[0], self.n_classes_))
+        return self._combine([est.predict_proba(X) for est in self.fitted_estimators_])
 
-        for i, est in enumerate(self.fitted_estimators_):
-            weight = self.weights_[i]
-            probas = est.predict_proba(X)
+    def _combine(self, component_probas):
+        """Weight and sum the component probabilities, then apply prior correction.
+
+        The CAWPE sum leans towards the classes that are common in the training
+        data. Dividing by the train class prior raised to ``prior_correction`` moves
+        borderline cases towards the rarer classes; it leaves a uniform prior, and so
+        balanced training data, unchanged.
+        """
+        dists = np.zeros((component_probas[0].shape[0], self.n_classes_))
+        for weight, probas in zip(self.weights_, component_probas):
             dists = np.add(dists, probas * weight)
+
+        if self.prior_correction:
+            dists = dists / self.class_prior_**self.prior_correction
 
         sums = dists.sum(axis=1, keepdims=True)
         sums[sums == 0] = 1.0

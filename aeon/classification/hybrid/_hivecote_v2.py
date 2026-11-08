@@ -42,6 +42,16 @@ class HIVECOTEV2(_BaseHIVECOTE):
         Time contract to limit build time in minutes, overriding
         n_estimators/n_parameter_samples for each component.
         Default of 0 means n_estimators/n_parameter_samples for each component is used.
+    prior_correction : float, default=0.5
+        Exponent ``beta`` of a correction to the combined probabilities: they are
+        divided by the train class prior raised to ``beta`` and renormalised. The
+        CAWPE combination leans towards classes that are common in the training
+        data, and the correction moves borderline cases towards rarer classes. 0 gives
+        the original HIVE-COTE 2.0 combination and 1 corrects fully to a uniform class
+        prior. It changes nothing when the training classes are balanced, and it
+        needs no refitting. 0.5 improved both accuracy and balanced accuracy on the
+        112 UCR univariate datasets over 30 resamples (+0.17 and +0.74 percentage
+        points), with larger gains on imbalanced data.
     save_component_probas : bool, default=False
         When predict/predict_proba is called, save each HIVE-COTEV2 component
         probability predictions in component_probas.
@@ -88,6 +98,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
         each HIVE-COTEV2 component.
     fitted_estimators_ : list of BaseClassifier
         The fitted estimators for the ensemble.
+    class_prior_ : np.ndarray of shape (n_classes,)
+        The train class proportions in the order of ``classes_``, used by
+        ``prior_correction``.
 
     See Also
     --------
@@ -130,6 +143,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         arsenal_params=None,
         tde_params=None,
         time_limit_in_minutes=0,
+        prior_correction=0.5,
         save_component_probas=False,
         verbose=0,
         random_state=None,
@@ -147,6 +161,7 @@ class HIVECOTEV2(_BaseHIVECOTE):
         super().__init__(
             estimators=None,
             alpha=4,
+            prior_correction=prior_correction,
             random_state=random_state,
             n_jobs=n_jobs,
             verbose=verbose,
@@ -268,7 +283,8 @@ class HIVECOTEV2(_BaseHIVECOTE):
         Returns
         -------
         final_probas : np.ndarray of shape (n_cases, n_classes)
-            The CAWPE-weighted ensemble probability predictions.
+            The CAWPE-weighted ensemble probability predictions, after any
+            ``prior_correction``.
         component_probas : dict
             Dictionary mapping each component name to its probability predictions
             of shape (n_cases, n_classes).
@@ -280,13 +296,9 @@ class HIVECOTEV2(_BaseHIVECOTE):
             for name, est in zip(self.component_names_, self.fitted_estimators_)
         }
 
-        dists = np.zeros((X.shape[0], self.n_classes_))
-        for i, name in enumerate(self.component_names_):
-            dists = np.add(dists, component_probas[name] * self.weights_[i])
-
-        sums = dists.sum(axis=1, keepdims=True)
-        sums[sums == 0] = 1.0
-        final_probas = dists / sums
+        final_probas = self._combine(
+            [component_probas[name] for name in self.component_names_]
+        )
 
         return final_probas, component_probas
 

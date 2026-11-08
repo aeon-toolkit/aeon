@@ -236,3 +236,44 @@ def test_hivecote_estimator_attribute_lifecycle():
         clf.fit(X, y)
 
         assert hasattr(clf, "fitted_estimators_")
+
+
+def test_hc2_prior_correction():
+    """prior_correction divides the CAWPE probabilities by the train prior**beta."""
+    X, _ = make_example_3d_numpy(n_cases=20, n_timepoints=24, random_state=0)
+    y = np.array([0] * 14 + [1] * 6)
+    params = HIVECOTEV2._get_test_params(parameter_set="default")
+    hc2 = HIVECOTEV2(prior_correction=0.0, random_state=0, **params).fit(X, y)
+    np.testing.assert_allclose(hc2.class_prior_, [0.7, 0.3])
+
+    plain, component_probas = hc2.predict_proba_with_components(X)
+    dists = sum(
+        component_probas[name] * w
+        for name, w in zip(hc2.component_names_, hc2.weights_)
+    )
+    np.testing.assert_allclose(plain, dists / dists.sum(axis=1, keepdims=True))
+
+    # the correction needs no refit, so change it on the fitted model
+    for beta in (0.5, 1.0):
+        hc2.prior_correction = beta
+        expected = plain / hc2.class_prior_**beta
+        expected /= expected.sum(axis=1, keepdims=True)
+        np.testing.assert_allclose(hc2.predict_proba(X), expected)
+        np.testing.assert_allclose(hc2.predict_proba_with_components(X)[0], expected)
+
+
+def test_hc2_prior_correction_balanced_and_invalid():
+    """A balanced train set is unchanged; a negative correction is rejected."""
+    X, _ = make_example_3d_numpy(n_cases=20, n_timepoints=24, random_state=0)
+    y = np.array([0, 1] * 10)
+    params = HIVECOTEV2._get_test_params(parameter_set="default")
+    assert HIVECOTEV2().prior_correction == 0.5
+
+    hc2 = HIVECOTEV2(prior_correction=0.0, random_state=0, **params).fit(X, y)
+    np.testing.assert_allclose(hc2.class_prior_, [0.5, 0.5])
+    plain = hc2.predict_proba(X)
+    hc2.prior_correction = 1.0
+    np.testing.assert_allclose(hc2.predict_proba(X), plain)
+
+    with pytest.raises(ValueError, match="prior_correction must be non-negative"):
+        HIVECOTEV2(prior_correction=-1, **params).fit(X, y)
