@@ -104,7 +104,9 @@ def test_get_estimator_results(path):
     assert res2["HIVECOTEV2"]["Chinatown"].flags.writeable
     assert len(res2["HIVECOTEV2"]["Chinatown"]) == 30
     assert res2["HIVECOTEV2"]["Chinatown"][0] == 0.9825072886297376
-    assert np.average(res2["HIVECOTEV2"]["ItalyPowerDemand"]) == 0.9630385487528345
+    np.testing.assert_allclose(
+        np.average(res2["HIVECOTEV2"]["ItalyPowerDemand"]), 0.9630385487528345
+    )
 
     res3 = get_estimator_results(cls, datasets=data, num_resamples=None, path=path)
     assert deep_equals(res3, res2)
@@ -169,7 +171,7 @@ def test_get_estimator_results_as_array(path):
     )
     assert isinstance(res4, np.ndarray)
     assert res4.shape == (3, 3)
-    assert res4[1][0] == 0.9630385487528345
+    np.testing.assert_allclose(res4[1][0], 0.9630385487528345)
 
     # all datasets
     res5, names5 = get_estimator_results_as_array(
