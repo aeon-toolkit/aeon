@@ -365,13 +365,11 @@ def linkcode_resolve(domain, info):
         result = find_source()
         if not result:
             return None
-        filename = "%s#L%d-L%d" % result
+        path, start, end = result
+        filename = f"{path}#L{start}-L{end}"
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-    return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
-        github_tag,
-        filename,
-    )
+    return f"https://github.com/aeon-toolkit/aeon/blob/{github_tag}/{filename}"
 
 
 def _get_estimator_doc_path(estimator_class, estimator_name):

@@ -85,10 +85,24 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             transformers=transformers, _estimator=clusterer, random_state=random_state
         )
 
+        # can only predict on unseen data if the clusterer can
+        #   sklearn clusterers without out-of-sample prediction have no predict method
+        if isinstance(clusterer, BaseClusterer):
+            predict = clusterer.get_tag("capability:predict")
+        else:
+            predict = hasattr(clusterer, "predict")
+        self.set_tags(**{"capability:predict": predict})
+
     def _fit(self, X, y=None):
         super()._fit(X, y)
         self.labels_ = self.steps_[-1][1].labels_
         return self
+
+    def _predict_proba(self, X):
+        # sklearn clusterers usually have no predict_proba, use the one-hot default
+        if hasattr(self.steps_[-1][1], "predict_proba"):
+            return super()._predict_proba(X)
+        return BaseClusterer._predict_proba(self, X)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

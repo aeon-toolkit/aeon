@@ -374,7 +374,11 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
             X.shape[0],
             self.n_classes_,
         )
-        return probabilities / self._weight_sum
+        if self._weight_sum == 0:
+            probabilities[:] = 1 / self.n_classes_
+        else:
+            probabilities /= self._weight_sum
+        return probabilities
 
     def _fit_predict(self, X, y) -> np.ndarray:
         rng = deepcopy(check_random_state(self.random_state))
@@ -386,8 +390,21 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        train_estimates = self._fit_arsenal(X, y, return_train_estimates=True)
-        class_indices, weights, oobs = zip(*train_estimates)
+        self._fit_arsenal(X, y, return_train_estimates=True)
+        return self._train_estimate_proba()
+
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        if getattr(self, "_train_rng", None) is None:
+            raise ValueError(
+                "This fit began with fit, not fit_predict_proba, so it has no "
+                "train estimates to continue; use resume_fit."
+            )
+        self._continue_arsenal(X, y)
+        return self._train_estimate_proba()
+
+    def _train_estimate_proba(self) -> np.ndarray:
+        """Aggregate the retained out-of-bag estimates of every member."""
+        class_indices, weights, oobs = zip(*self._train_estimates)
 
         results = _aggregate_class_votes(
             class_indices,
@@ -497,11 +514,12 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
         periodic_checkpoints = (
             self.checkpoint_path is not None and self.checkpoint_interval is not None
         )
-        batch_size = (
-            self._n_jobs
-            if time_limit > 0 or periodic_checkpoints
-            else max(self._n_jobs, (target + 9) // 10) if self.verbose > 0 else target
-        )
+        if time_limit > 0 or periodic_checkpoints:
+            batch_size = self._n_jobs
+        elif self.verbose > 0:
+            batch_size = max(self._n_jobs, (target + 9) // 10)
+        else:
+            batch_size = target
         # the contract bounds total training time, so an interrupted fit resumes
         # with whatever budget the earlier calls left rather than a fresh one
         while self.n_estimators_ < target and (
@@ -551,14 +569,13 @@ class Arsenal(CheckpointableMixin, BaseClassifier):
                 if time_limit > 0:
                     contract_left = max(0.0, time_limit - self.fit_elapsed_time_)
                     remaining = (
-                        "contract_remaining=" f"{self._format_duration(contract_left)}"
+                        f"contract_remaining={self._format_duration(contract_left)}"
                     )
                 else:
                     estimate = train_time / (self.n_estimators_ - initial_count)
                     remaining_time = estimate * (target - self.n_estimators_)
                     remaining = (
-                        "estimated_remaining="
-                        f"{self._format_duration(remaining_time)}"
+                        f"estimated_remaining={self._format_duration(remaining_time)}"
                     )
                 for estimator_idx in range(
                     self.n_estimators_ - current_batch_size + 1, self.n_estimators_ + 1

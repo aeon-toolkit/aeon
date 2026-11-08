@@ -143,35 +143,37 @@ _Y_MULT = _TREND * np.tile(_MULT_SEASON, 10)
 _Y_ADD = _TREND + np.tile(_ADD_SEASON, 10)
 
 
-def test_dotm_season_length_one_matches_non_seasonal():
-    """``season_length=1`` must reproduce the non-seasonal forecasts."""
+def test_dotm_seasonal_period_one_matches_non_seasonal():
+    """``seasonal_period=1`` must reproduce the non-seasonal forecasts."""
     h = 5
     baseline = DOTM().iterative_forecast(Y_EXAMPLE, prediction_horizon=h)
-    explicit = DOTM(season_length=1).iterative_forecast(Y_EXAMPLE, prediction_horizon=h)
+    explicit = DOTM(seasonal_period=1).iterative_forecast(
+        Y_EXAMPLE, prediction_horizon=h
+    )
 
     np.testing.assert_allclose(explicit, baseline, rtol=0, atol=0)
 
 
-def test_dotm_season_length_one_preserves_statsforecast_reference():
-    """``season_length=1`` should still match the StatsForecast reference."""
+def test_dotm_seasonal_period_one_preserves_statsforecast_reference():
+    """``seasonal_period=1`` should still match the StatsForecast reference."""
     expected = np.array([6.31989318, 6.74828469, 7.18045737, 7.61489322, 8.05073122])
 
-    pred = DOTM(season_length=1).iterative_forecast(Y_EXAMPLE, prediction_horizon=5)
+    pred = DOTM(seasonal_period=1).iterative_forecast(Y_EXAMPLE, prediction_horizon=5)
 
     np.testing.assert_allclose(pred, expected, rtol=5e-3, atol=5e-3)
 
 
 def test_dotm_seasonal_test_false_disables_seasonality():
-    """``seasonal_test=False`` keeps DOTM non-seasonal even if ``season_length > 1``."""
+    """``seasonal_test=False`` keeps DOTM non-seasonal even if seasonal_period > 1."""
     baseline = DOTM().iterative_forecast(_Y_MULT, prediction_horizon=8)
-    forced_off = DOTM(season_length=4, seasonal_test=False).iterative_forecast(
+    forced_off = DOTM(seasonal_period=4, seasonal_test=False).iterative_forecast(
         _Y_MULT, prediction_horizon=8
     )
 
     np.testing.assert_allclose(forced_off, baseline, rtol=0, atol=0)
-    f = DOTM(season_length=4, seasonal_test=False).fit(_Y_MULT)
+    f = DOTM(seasonal_period=4, seasonal_test=False).fit(_Y_MULT)
     assert f.deseasonalised_ is False
-    assert f.season_length_ == 1
+    assert f.seasonal_period_ == 1
     assert f.seasonal_factors_ is None
 
 
@@ -179,7 +181,7 @@ def test_dotm_additive_decomposition_handles_zero_and_negative():
     """Additive decomposition must work when ``y`` contains zeros or negatives."""
     y = _Y_ADD - 12.0  # shifts roughly half the series below zero
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="additive",
         seasonal_test=True,
     ).fit(y)
@@ -195,7 +197,7 @@ def test_dotm_additive_decomposition_handles_zero_and_negative():
 def test_dotm_multiplicative_decomposition_on_positive_seasonal_data():
     """Multiplicative decomposition fits clean multiplicative seasonality."""
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test=True,
     ).fit(_Y_MULT)
@@ -219,7 +221,7 @@ def test_dotm_multiplicative_falls_back_to_additive_when_y_non_positive():
     """Multiplicative requested on non-positive ``y`` falls back to additive."""
     y = _Y_ADD - 12.0  # forces some y <= 0
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test=True,
     ).fit(y)
@@ -233,7 +235,7 @@ def test_dotm_multiplicative_falls_back_to_additive_for_tiny_factors():
     """Tiny positive multiplicative factors should fall back to additive."""
     y = np.tile(np.array([1e-12, 1.0, 1.0, 1.0]), 10)
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test=True,
     ).fit(y)
@@ -247,7 +249,7 @@ def test_dotm_iterative_forecast_seasonal_shape_and_finite():
     """Seasonal ``iterative_forecast`` returns shape ``(h,)`` and finite values."""
     h = 12
     preds = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test=True,
     ).iterative_forecast(_Y_MULT, prediction_horizon=h)
@@ -259,7 +261,7 @@ def test_dotm_iterative_forecast_seasonal_shape_and_finite():
 def test_dotm_seasonal_fitted_and_residuals_on_original_scale():
     """Fitted values and residuals live on the original scale."""
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test=True,
     ).fit(_Y_MULT)
@@ -276,21 +278,21 @@ def test_dotm_seasonal_fitted_and_residuals_on_original_scale():
 
 
 def test_dotm_deseasonalised_true_when_seasonal_test_true():
-    """``seasonal_test=True`` deseasonalises whenever ``season_length > 1``."""
+    """``seasonal_test=True`` deseasonalises whenever ``seasonal_period > 1``."""
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="additive",
         seasonal_test=True,
     ).fit(_Y_MULT)
 
     assert forecaster.deseasonalised_ is True
-    assert forecaster.season_length_ == 4
+    assert forecaster.seasonal_period_ == 4
     assert forecaster.seasonal_factors_.shape == (4,)
 
 
 def test_dotm_seasonal_predict_matches_iterative_forecast_h1():
     """Single-step ``predict`` must match ``iterative_forecast`` at h=1."""
-    f = DOTM(season_length=4, seasonal_test=True).fit(_Y_MULT)
+    f = DOTM(seasonal_period=4, seasonal_test=True).fit(_Y_MULT)
     h1_iter = f.iterative_forecast(_Y_MULT, prediction_horizon=1)[0]
     # iterative_forecast refits internally; the fit state is therefore equivalent.
     h1_pred = f.predict(_Y_MULT)
@@ -302,7 +304,7 @@ def test_dotm_fit_and_predict_do_not_mutate_input_y():
     """DOTM fit and predict should leave caller-owned input arrays unchanged."""
     y = _Y_MULT.copy()
     original = y.copy()
-    forecaster = DOTM(season_length=4, seasonal_test=True).fit(y)
+    forecaster = DOTM(seasonal_period=4, seasonal_test=True).fit(y)
     np.testing.assert_array_equal(y, original)
 
     _ = forecaster.predict(y)
@@ -321,7 +323,7 @@ def test_dotm_seasonal_rolling_predict_matches_iterative_forecast():
     by phase in ``_predict``.
     """
     h = 5
-    f = DOTM(season_length=4, seasonal_test=True).fit(_Y_MULT)
+    f = DOTM(seasonal_period=4, seasonal_test=True).fit(_Y_MULT)
     iterative = f.iterative_forecast(_Y_MULT, prediction_horizon=h)
 
     # Rebuild f's state via iterative_forecast (which fits internally) and
@@ -345,13 +347,13 @@ def test_dotm_auto_seasonal_test_ignores_pure_linear_trend():
     y = np.linspace(10.0, 20.0, 40)
 
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test="auto",
     ).fit(y)
 
     assert forecaster.deseasonalised_ is False
-    assert forecaster.season_length_ == 1
+    assert forecaster.seasonal_period_ == 1
     assert forecaster.seasonal_factors_ is None
 
     preds = forecaster.iterative_forecast(y, prediction_horizon=8)
@@ -363,24 +365,24 @@ def test_dotm_auto_seasonal_test_ignores_pure_linear_trend():
 
 def test_dotm_auto_seasonal_test_returns_false_for_short_series():
     """``seasonal_test='auto'`` should not deseasonalise when ``len(y) < 2 * m``."""
-    y = _Y_MULT[:7]  # < 2 * season_length = 8
+    y = _Y_MULT[:7]  # < 2 * seasonal_period = 8
     forecaster = DOTM(
-        season_length=4,
+        seasonal_period=4,
         decomposition_type="multiplicative",
         seasonal_test="auto",
     ).fit(y)
 
     assert forecaster.deseasonalised_ is False
-    assert forecaster.season_length_ == 1
+    assert forecaster.seasonal_period_ == 1
     assert forecaster.seasonal_factors_ is None
 
 
 @pytest.mark.parametrize(
     "kwargs, match",
     [
-        ({"season_length": 0}, "season_length"),
-        ({"season_length": -1}, "season_length"),
-        ({"season_length": 4.0}, "season_length"),
+        ({"seasonal_period": 0}, "seasonal_period"),
+        ({"seasonal_period": -1}, "seasonal_period"),
+        ({"seasonal_period": 4.0}, "seasonal_period"),
         ({"decomposition_type": "stl"}, "decomposition_type"),
         ({"seasonal_test": "maybe"}, "seasonal_test"),
         ({"seasonal_test": 0}, "seasonal_test"),
@@ -438,7 +440,7 @@ def test_dotm_additive_seasonal_predict():
     """Forced additive decomposition round-trips through predict."""
     y = _seasonal_series()
     f = DOTM(
-        season_length=4,
+        seasonal_period=4,
         seasonal_test=True,
         decomposition_type="additive",
         max_iter=50,
@@ -447,10 +449,10 @@ def test_dotm_additive_seasonal_predict():
     assert np.isfinite(f._predict(y.reshape(1, -1)))
 
 
-def test_dotm_odd_season_length():
+def test_dotm_odd_seasonal_period():
     """Odd seasonal periods use the plain centred moving average."""
     y = _seasonal_series(n=21, m=3)
-    f = DOTM(season_length=3, seasonal_test=True, max_iter=50).fit(y)
+    f = DOTM(seasonal_period=3, seasonal_test=True, max_iter=50).fit(y)
     assert f.deseasonalised_
     assert np.isfinite(f.forecast_)
 
@@ -458,7 +460,7 @@ def test_dotm_odd_season_length():
 def test_dotm_auto_seasonal_test_runs_acf():
     """seasonal_test='auto' runs the ACF significance test on noisy data."""
     y = _seasonal_series(n=32, m=4, noise=0.2)
-    f = DOTM(season_length=4, seasonal_test="auto", max_iter=50).fit(y)
+    f = DOTM(seasonal_period=4, seasonal_test="auto", max_iter=50).fit(y)
     assert np.isfinite(f.forecast_)
 
 

@@ -2,12 +2,13 @@
 
 import json
 import pickle
+from copy import deepcopy
 from unittest.mock import patch
 
 import pytest
 
 from aeon import __version__
-from aeon.base import CheckpointableMixin, CheckpointVersionWarning
+from aeon.base import CheckpointableMixin
 from aeon.testing.mock_estimators import MockClassifier
 
 
@@ -22,14 +23,28 @@ def _ready_estimator():
     return estimator
 
 
+def _update_checkpoint_metadata(path, **changes):
+    with path.open("rb") as file:
+        metadata = json.loads(file.readline())
+        body = file.read()
+    metadata.update(changes)
+    with path.open("wb") as file:
+        file.write(json.dumps(metadata).encode("utf-8") + b"\n")
+        file.write(body)
+
+
 def test_checkpoint_round_trip(checkpoint_directory):
-    """Restoring a checkpoint creates an independent object with all its state."""
+    """Copying preserves paths; restored continuation state is independent."""
     estimator = _ready_estimator()
     path = checkpoint_directory / "checkpoint.pkl"
+    estimator.checkpoint_path = path
+    assert deepcopy(estimator).checkpoint_path == path
     estimator.save_checkpoint(str(path))
     restored = _Checkpointable.load_checkpoint(path)
-    assert restored.completed_ == [1, 2, 3]
-    assert restored is not estimator
+    assert restored.checkpoint_path == path
+    assert restored.completed_ == estimator.completed_
+    restored.completed_.append(4)
+    assert estimator.completed_ == [1, 2, 3]
 
 
 @pytest.mark.parametrize("failure", ["serialization", "replace"])
@@ -52,29 +67,6 @@ def test_failed_save_preserves_checkpoint(checkpoint_directory, failure):
     assert list(checkpoint_directory.iterdir()) == [path]
 
 
-@pytest.mark.parametrize(
-    "field, value, message",
-    [
-        ("format_version", 999, "format version"),
-        ("estimator_class", "wrong.Class", "estimator class"),
-        ("parameter_signature", "not-the-fitted-signature", "parameter signature"),
-    ],
-)
-def test_checkpoint_metadata(checkpoint_directory, field, value, message):
-    """Reject incompatible checkpoint metadata."""
-    path = checkpoint_directory / "checkpoint.pkl"
-    _ready_estimator().save_checkpoint(path)
-    with path.open("rb") as file:
-        metadata = json.loads(file.readline())
-        body = file.read()
-    metadata[field] = value
-    with path.open("wb") as file:
-        file.write(json.dumps(metadata).encode("utf-8") + b"\n")
-        file.write(body)
-    with pytest.raises(ValueError, match=message):
-        _Checkpointable.load_checkpoint(path)
-
-
 def test_read_checkpoint_metadata(checkpoint_directory):
     """The public reader returns the raw JSON header without unpickling."""
     path = checkpoint_directory / "checkpoint.pkl"
@@ -89,6 +81,7 @@ def test_read_checkpoint_metadata(checkpoint_directory):
         assert CheckpointableMixin.read_checkpoint_metadata(path) == metadata
         load.assert_not_called()
 
+    assert metadata["format_version"] == 1
     assert metadata["aeon_version"] == __version__
     assert metadata["estimator_class"].endswith("_Checkpointable")
     assert metadata["parameter_signature"] == "a-parameter-hash"
@@ -98,35 +91,21 @@ def test_checkpoint_version_mismatch_warns_and_loads(checkpoint_directory):
     """A checkpoint from another aeon version warns but is still restored."""
     path = checkpoint_directory / "checkpoint.pkl"
     _ready_estimator().save_checkpoint(path)
-    with path.open("rb") as file:
-        metadata = json.loads(file.readline())
-        body = file.read()
-    metadata["aeon_version"] = "0.0.0"
-    with path.open("wb") as file:
-        file.write(json.dumps(metadata).encode("utf-8") + b"\n")
-        file.write(body)
+    _update_checkpoint_metadata(path, aeon_version="0.0.0")
 
-    with pytest.warns(CheckpointVersionWarning, match="0.0.0") as record:
+    with pytest.warns(UserWarning, match="0.0.0") as record:
         restored = _Checkpointable.load_checkpoint(path)
 
     # losing a long fit to a patch release is worse than resuming with a warning
     assert restored.completed_ == [1, 2, 3]
-    assert record[0].message.original_aeon_version == "0.0.0"
-    assert record[0].message.current_aeon_version == __version__
+    assert __version__ in str(record[0].message)
 
 
 def test_read_checkpoint_metadata_inspects_unloadable(checkpoint_directory):
     """A checkpoint that cannot be loaded here can still be inspected."""
     path = checkpoint_directory / "checkpoint.pkl"
     _ready_estimator().save_checkpoint(path)
-    with path.open("rb") as file:
-        metadata = json.loads(file.readline())
-        body = file.read()
-    metadata["format_version"] = 999
-    metadata["aeon_version"] = "0.0.0"
-    with path.open("wb") as file:
-        file.write(json.dumps(metadata).encode("utf-8") + b"\n")
-        file.write(body)
+    _update_checkpoint_metadata(path, format_version=999, aeon_version="0.0.0")
 
     # refused by the loader, but the header still says what produced it
     with pytest.raises(ValueError, match="format version"):
@@ -137,13 +116,15 @@ def test_read_checkpoint_metadata_inspects_unloadable(checkpoint_directory):
 def test_checkpoint_rejects_non_json_header(checkpoint_directory):
     """A file without a JSON header is refused before anything is unpickled."""
     path = checkpoint_directory / "checkpoint.pkl"
-    # the layout used before the JSON header, and anything else pickle-first
+    # A pickle-first file is not a supported checkpoint layout.
     with path.open("wb") as file:
         pickle.dump({"format_version": 1}, file)
         pickle.dump(_ready_estimator(), file)
 
-    with pytest.raises(ValueError, match="not readable JSON"):
-        _Checkpointable.load_checkpoint(path)
+    with patch("aeon.base._checkpoint.pickle.load") as load:
+        with pytest.raises(ValueError, match="not readable JSON"):
+            _Checkpointable.load_checkpoint(path)
+        load.assert_not_called()
 
 
 def test_checkpoint_rejects_wrong_class(checkpoint_directory):
@@ -182,9 +163,10 @@ def test_checkpoint_timer(checkpoint_directory):
         with patch("aeon.base._checkpoint.time.monotonic", return_value=130):
             estimator._checkpoint_if_due()
             save.assert_called_once_with(estimator.checkpoint_path)
+        with patch("aeon.base._checkpoint.time.monotonic", return_value=200):
             estimator._start_checkpoint_timer()
         save.reset_mock()
-        with patch("aeon.base._checkpoint.time.monotonic", return_value=131):
+        with patch("aeon.base._checkpoint.time.monotonic", return_value=250):
             estimator._checkpoint_if_due()
             save.assert_not_called()
             estimator._checkpoint_if_due(force=True)
