@@ -7,20 +7,21 @@ import numpy as np
 import pytest
 from joblib import hash as joblib_hash
 
+from aeon.base._estimators.sklearn._rotation_forest import _run_jobs
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.regression.sklearn import RotationForestRegressor
 from aeon.testing.data_generation import make_example_2d_numpy_collection
 
 _FORESTS = [RotationForestClassifier, RotationForestRegressor]
+N_CASES, N_TIMEPOINTS = 20, 12
 
 
 @pytest.fixture
-def _training_data():
+def training_data():
     """Provide a small deterministic tabular dataset."""
-    X, y = make_example_2d_numpy_collection(
-        n_cases=20, n_timepoints=12, random_state=42
+    return make_example_2d_numpy_collection(
+        n_cases=N_CASES, n_timepoints=N_TIMEPOINTS, random_state=42
     )
-    return X, y
 
 
 def _targets(forest_class, y):
@@ -46,9 +47,9 @@ def _assert_same_forest(expected, actual, X):
 
 @pytest.mark.parametrize("forest_class", _FORESTS)
 @pytest.mark.parametrize("contracted", [False, True])
-def test_rotation_forest_resume(_training_data, tmp_path, forest_class, contracted):
+def test_rotation_forest_resume(training_data, tmp_path, forest_class, contracted):
     """A resumed forest holds the same trees and RNG state as a full fit."""
-    X, y = _training_data
+    X, y = training_data
     y = _targets(forest_class, y)
     initial_size, target_size = 2, 5
     params = dict(random_state=0)
@@ -65,9 +66,7 @@ def test_rotation_forest_resume(_training_data, tmp_path, forest_class, contract
     assert restored.resume_fit(X, y) is restored
     _assert_same_forest(full, restored, X)
 
-    # tree limits cover the whole forest, so a lowered one discards the newest
-    # and keeps the oldest. The generator is not rewound, which is why only the
-    # trees are compared here and not the random state
+    # the generator is not rewound on shrinking, so only the trees are compared
     restored.set_params(**{limit: initial_size}).resume_fit(X, y)
     assert restored._n_estimators == initial_size
     np.testing.assert_array_equal(restored.predict(X), partial.predict(X))
@@ -76,9 +75,9 @@ def test_rotation_forest_resume(_training_data, tmp_path, forest_class, contract
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_rotation_forest_interrupted_batch(_training_data, tmp_path, n_jobs):
+def test_rotation_forest_interrupted_batch(training_data, tmp_path, n_jobs):
     """A failed batch can be recovered without skipping tree seeds."""
-    X, y = _training_data
+    X, y = training_data
     path = tmp_path / "rotf.pkl"
     params = dict(n_estimators=4, random_state=0, n_jobs=n_jobs)
     uninterrupted = RotationForestClassifier(**params).fit(X, y)
@@ -86,8 +85,6 @@ def test_rotation_forest_interrupted_batch(_training_data, tmp_path, n_jobs):
     partial = RotationForestClassifier(
         **params, checkpoint_path=path, checkpoint_interval=checkpoint_interval
     )
-    from aeon.base._estimators.sklearn._rotation_forest import _run_jobs
-
     calls = 0
 
     def fail_second_batch(tasks, *args, **kwargs):
@@ -115,9 +112,9 @@ def test_rotation_forest_interrupted_batch(_training_data, tmp_path, n_jobs):
     _assert_same_forest(uninterrupted, restored, X)
 
 
-def test_rotation_forest_resume_keeps_oob_state(_training_data):
+def test_rotation_forest_resume_keeps_oob_state(training_data):
     """Out of bag state from fit_predict survives and grows with the forest."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 2, 5
     params = dict(random_state=0)
     full = RotationForestClassifier(**params, n_estimators=target_size)
@@ -134,16 +131,15 @@ def test_rotation_forest_resume_keeps_oob_state(_training_data):
     ):
         np.testing.assert_array_equal(expected_data, actual_data)
 
-    # resume_fit does not return the estimates, but the resumed state rebuilds them
     np.testing.assert_array_equal(
         expected, partial._oob_train_estimates(partial._transformed_data, y)
     )
 
 
 @pytest.mark.parametrize("forest_class", _FORESTS)
-def test_rotation_forest_resume_validation(_training_data, forest_class):
+def test_rotation_forest_resume_validation(training_data, forest_class):
     """Wrong values, targets and model parameters are refused."""
-    X, y = _training_data
+    X, y = training_data
     y = _targets(forest_class, y)
     forest = forest_class(n_estimators=1, random_state=0).fit(X, y)
     changed_X = X.copy()
@@ -152,22 +148,22 @@ def test_rotation_forest_resume_validation(_training_data, forest_class):
         (changed_X, y),
         (X[::-1], y[::-1]),
     ]:
-        with pytest.raises(ValueError, match="Unable to resume fitting: X and y"):
+        with pytest.raises(ValueError, match="X and y"):
             forest.resume_fit(candidate_X, candidate_y)
 
     forest.set_params(min_group=2)
-    with pytest.raises(ValueError, match="Model-building parameters"):
+    with pytest.raises(ValueError, match="parameters"):
         forest.resume_fit(X, y)
     forest.set_params(min_group=3, n_estimators=0)
-    with pytest.raises(ValueError, match="must be a positive integer"):
+    with pytest.raises(ValueError, match="positive integer"):
         forest.resume_fit(X, y)
-    with pytest.raises(ValueError, match="call fit first"):
+    with pytest.raises(ValueError, match="fit first"):
         forest_class().resume_fit(X, y)
 
 
-def test_rotation_forest_contract_budget_persists(_training_data):
+def test_rotation_forest_contract_budget_persists(training_data):
     """The contract covers total training time across calls, not time per call."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 1, 4
     budget_minutes = 60
     params = dict(
@@ -175,8 +171,6 @@ def test_rotation_forest_contract_budget_persists(_training_data):
         contract_max_n_estimators=initial_size,
         random_state=0,
     )
-    # elapsed time is set explicitly throughout, so no assertion depends on
-    # how long the forest actually takes to build
     partial = RotationForestClassifier(**params).fit(X, y)
     assert partial._n_estimators == initial_size
     partial.set_params(contract_max_n_estimators=target_size)
@@ -195,9 +189,9 @@ def test_rotation_forest_contract_budget_persists(_training_data):
     assert partial._n_estimators == target_size
 
 
-def test_rotation_forest_single_class(_training_data):
+def test_rotation_forest_single_class(training_data):
     """A forest with nothing to build is complete and resuming changes nothing."""
-    X, y = _training_data
+    X, y = training_data
     y = np.zeros_like(y)
     forest = RotationForestClassifier(n_estimators=3, random_state=0).fit(X, y)
     assert not hasattr(forest, "estimators_")
@@ -206,9 +200,9 @@ def test_rotation_forest_single_class(_training_data):
     np.testing.assert_array_equal(forest.predict(X), y)
 
 
-def test_rotation_forest_resume_fit_predict_proba(_training_data, tmp_path):
+def test_rotation_forest_resume_fit_predict_proba(training_data, tmp_path):
     """A forest grown on resume gives the out of bag estimates of a full fit."""
-    X, y = _training_data
+    X, y = training_data
     initial_size, target_size = 3, 6
     full = RotationForestClassifier(n_estimators=target_size, random_state=0)
     expected = full.fit_predict_proba(X, y)
@@ -223,18 +217,18 @@ def test_rotation_forest_resume_fit_predict_proba(_training_data, tmp_path):
 
 
 def test_rotation_forest_resume_fit_predict_proba_needs_train_estimate_fit(
-    _training_data,
+    training_data,
 ):
     """A forest fitted with fit has no train estimates to continue."""
-    X, y = _training_data
+    X, y = training_data
     forest = RotationForestClassifier(n_estimators=1, random_state=0).fit(X, y)
     with pytest.raises(ValueError, match="train estimates"):
         forest.resume_fit_predict_proba(X, y)
 
 
-def test_rotation_forest_single_class_checkpoint(_training_data, tmp_path):
+def test_rotation_forest_single_class_checkpoint(training_data, tmp_path):
     """A single-class forest still writes its final checkpoint on completion."""
-    X, y = _training_data
+    X, y = training_data
     y = np.zeros_like(y)
     path = tmp_path / "rotf.pkl"
     RotationForestClassifier(checkpoint_path=path).fit(X, y)

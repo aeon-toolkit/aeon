@@ -129,9 +129,8 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
     a resumed fit rebuilds it from the start on the transformed data, which is
     still the smaller half of the work.
 
-    ``resume_fit`` returns the classifier, not training predictions, so a fit
-    begun with ``fit_predict`` or ``fit_predict_proba`` and then resumed gives
-    no train estimates.
+    ``resume_fit_predict_proba`` continues a fit begun with ``fit_predict`` or
+    ``fit_predict_proba`` and returns its train estimates.
 
     For the Java version, see
     `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
@@ -174,8 +173,6 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
-    # the transform is complete before any checkpoint exists, so the parameters
-    # shaping it are fixed, as is the estimator a continued fit inherits
     _checkpoint_mutable_params = CheckpointableMixin._checkpoint_mutable_params + (
         "time_limit_in_minutes",
     )
@@ -262,9 +259,7 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
         fit_start = perf_counter()
         self._apply_runtime_settings()
         X_t = self._transformed_train_data
-        resumable = isinstance(self.estimator_, CheckpointableMixin) and getattr(
-            self.estimator_, "_checkpoint_ready", False
-        )
+        resumable = self._estimator_resumable()
         if resumable and getattr(self.estimator_, "_save_transformed_data", False):
             # the forest was part way through its fit_predict_proba: continue it
             if self.verbose > 0:
@@ -296,12 +291,7 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
     def _continue_stc(self, y):
         """Fit, or continue fitting, the estimator on the transformed data."""
         self._apply_runtime_settings()
-        # a checkpointable estimator that already holds continuation state was
-        # interrupted part way through; anything else starts from scratch on
-        # the transformed data, which the transform phase already saved
-        resumable = isinstance(self.estimator_, CheckpointableMixin) and getattr(
-            self.estimator_, "_checkpoint_ready", False
-        )
+        resumable = self._estimator_resumable()
         estimator_start = perf_counter() if self.verbose > 0 else None
         if self.verbose > 0:
             self._log(
@@ -318,6 +308,12 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
                 f"[{type(self).__name__}] Finished estimator fit in "
                 f"{perf_counter() - estimator_start:.2f}s"
             )
+
+    def _estimator_resumable(self):
+        """Whether the estimator holds state from an interrupted fit."""
+        return isinstance(self.estimator_, CheckpointableMixin) and getattr(
+            self.estimator_, "_checkpoint_ready", False
+        )
 
     def _split_time_limits(self):
         """Divide any overall contract between the transform and estimator."""
@@ -453,19 +449,17 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        fit_start = perf_counter() if self.verbose > 0 else None
+        fit_start = perf_counter()
         # set before the transform, so a checkpoint taken after it records that
         # this fit is producing train estimates
         self._fit_with_train_estimate = True
-        start = perf_counter()
         self.fit_elapsed_time_ = 0.0
         X_t = self._fit_stc_shared(X, y)
         proba = self._estimator_train_estimates(X_t, y)
-        self.fit_elapsed_time_ = perf_counter() - start
+        self.fit_elapsed_time_ = perf_counter() - fit_start
         if self.verbose > 0:
             self._log(
-                f"[{type(self).__name__}] "
-                f"Finished fit in {perf_counter() - fit_start:.2f}s"
+                f"[{type(self).__name__}] Finished fit in {self.fit_elapsed_time_:.2f}s"
             )
         return proba
 
@@ -583,10 +577,7 @@ class ShapeletTransformClassifier(CheckpointableMixin, BaseClassifier):
                 f"retained={len(self.transformer_.shapelets)}"
             )
 
-        # the transform has no safe boundary inside it, so this is the first
-        # point a checkpoint can be taken. It is always written when a path is
-        # configured, interval or not, because it is usually the larger part of
-        # the build and repeating it is the cost a checkpoint exists to avoid
+        # the first safe boundary, always written: see the class Notes
         self._transformed_train_data = X_t
         self.fit_elapsed_time_ = perf_counter() - shared_start
         self._checkpoint_ready = True

@@ -245,9 +245,7 @@ class BaseRotationForest(CheckpointableMixin, BaseEstimator):
         self._min = useful_X.min(axis=0)
         self._ptp = useful_X.max(axis=0) - self._min
 
-        # copy, so the stored generator is never the global numpy RandomState
-        # shared by every random_state=None estimator; continuation state must
-        # not be advanced by unrelated code between fit and resume_fit
+        # copy, so unrelated code cannot advance the stored generator between calls
         self._rng = deepcopy(check_random_state(self.random_state))
         self._save_transformed_data = save_transformed_data
         self.estimators_ = []
@@ -326,9 +324,6 @@ class BaseRotationForest(CheckpointableMixin, BaseEstimator):
         self._n_jobs = check_n_jobs(self.n_jobs)
         time_limit = self.time_limit_in_minutes * 60
         target = self._get_forest_target()
-        # tree limits apply to the whole forest, so a limit below the trees
-        # already built discards the newest of them. The generator is not
-        # rewound, so rebuilding afterwards grows new trees, not these ones.
         if self._n_estimators > target:
             del self.estimators_[target:]
             del self._pcas[target:]
@@ -366,20 +361,16 @@ class BaseRotationForest(CheckpointableMixin, BaseEstimator):
                 f"n_attributes={self.n_atts_}, {fit_limit}, n_jobs={self._n_jobs}"
             )
 
-        periodic_checkpoints = (
-            getattr(self, "_checkpoint_parent", None) is not None
-            or self.checkpoint_path is not None
-            and self.checkpoint_interval is not None
+        has_parent = getattr(self, "_checkpoint_parent", None) is not None
+        periodic_checkpoints = has_parent or (
+            self.checkpoint_path is not None and self.checkpoint_interval is not None
         )
-        batch_size = (
-            self._n_jobs
-            if time_limit > 0 or periodic_checkpoints
-            else max(self._n_jobs, (target + 9) // 10)
-            if self.verbose > 0
-            else target
-        )
-        # the contract bounds total training time, so an interrupted fit resumes
-        # with whatever budget the earlier calls left rather than a fresh one
+        if time_limit > 0 or periodic_checkpoints:
+            batch_size = self._n_jobs
+        elif self.verbose > 0:
+            batch_size = max(self._n_jobs, (target + 9) // 10)
+        else:
+            batch_size = target
         while self._n_estimators < target and (
             time_limit <= 0 or self.fit_elapsed_time_ < time_limit
         ):

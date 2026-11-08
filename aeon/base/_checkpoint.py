@@ -301,9 +301,7 @@ class CheckpointableMixin:
         """Save at a safe boundary when due, or on successful completion."""
         parent = getattr(self, "_checkpoint_parent", None)
         if parent is not None:
-            # the parent decides, since only it knows where to write. A child
-            # reaching a boundary, or finishing, says nothing about whether the
-            # parent has finished, so its completion is not forced through
+            # never forced: the child finishing does not mean the parent has
             parent._checkpoint_if_due()
             return
         if self.checkpoint_path is None:

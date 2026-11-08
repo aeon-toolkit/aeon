@@ -1,5 +1,6 @@
 """STC continuation tests, covering both phases of the build."""
 
+from contextlib import contextmanager
 from itertools import count
 from unittest.mock import patch
 
@@ -8,19 +9,24 @@ import pytest
 from joblib import hash as joblib_hash
 from sklearn.ensemble import RandomForestClassifier
 
+from aeon.base._estimators.sklearn._rotation_forest import _run_jobs
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 
+N_CASES, N_TIMEPOINTS = 12, 24
 N_FOREST_TREES = 4
+CHECKPOINT_INTERVAL = 1
 _PARAMS = dict(n_shapelet_samples=10, max_shapelets=3, batch_size=5, random_state=0)
 
 
 @pytest.fixture
-def _training_data():
+def training_data():
     """Provide a small deterministic classification dataset."""
-    return make_example_3d_numpy(n_cases=12, n_timepoints=24, random_state=42)
+    return make_example_3d_numpy(
+        n_cases=N_CASES, n_timepoints=N_TIMEPOINTS, random_state=42
+    )
 
 
 def _assert_same_pipeline(expected, actual, X):
@@ -33,6 +39,38 @@ def _assert_same_pipeline(expected, actual, X):
     )
 
 
+def _fail_forest_batch(failing_call):
+    """Patch the forest so its ``failing_call``-th batch of trees raises."""
+    calls = 0
+
+    def run_jobs(tasks, *args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == failing_call:
+            list(tasks)
+            raise RuntimeError("interrupted")
+        return _run_jobs(tasks, *args, **kwargs)
+
+    return patch("aeon.base._estimators.sklearn._rotation_forest._run_jobs", run_jobs)
+
+
+@contextmanager
+def _periodic_checkpoints():
+    """Make every safe boundary due for a periodic checkpoint."""
+    with patch("aeon.base._checkpoint.time") as clock:
+        clock.monotonic.side_effect = count(start=0, step=CHECKPOINT_INTERVAL * 60)
+        yield
+
+
+def _transform_not_rerun():
+    """Fail if the shapelet transform is fitted again."""
+    return patch.object(
+        RandomShapeletTransform,
+        "fit_transform",
+        side_effect=AssertionError("the transform was rerun"),
+    )
+
+
 def _forest_stc(**kwargs):
     return ShapeletTransformClassifier(
         estimator=RotationForestClassifier(n_estimators=N_FOREST_TREES),
@@ -41,56 +79,29 @@ def _forest_stc(**kwargs):
     )
 
 
-def test_stc_resume_continues_the_forest(_training_data, tmp_path):
+def test_stc_resume_continues_the_forest(training_data, tmp_path):
     """An interrupted forest resumes into the same pipeline as a full fit."""
-    X, y = _training_data
+    X, y = training_data
     path = tmp_path / "stc.pkl"
     uninterrupted = _forest_stc().fit(X, y)
-    checkpoint_interval = 1
-    partial = _forest_stc(checkpoint_path=path, checkpoint_interval=checkpoint_interval)
-    from aeon.base._estimators.sklearn._rotation_forest import _run_jobs
-
-    calls = 0
-
-    def fail_third_batch(tasks, *args, **kwargs):
-        nonlocal calls
-        calls += 1
-        if calls == 3:
-            list(tasks)
-            raise RuntimeError("interrupted")
-        return _run_jobs(tasks, *args, **kwargs)
-
-    with (
-        patch(
-            "aeon.base._estimators.sklearn._rotation_forest._run_jobs",
-            fail_third_batch,
-        ),
-        patch("aeon.base._checkpoint.time") as clock,
-    ):
-        clock.monotonic.side_effect = count(start=0, step=checkpoint_interval * 60)
+    partial = _forest_stc(checkpoint_path=path, checkpoint_interval=CHECKPOINT_INTERVAL)
+    with _fail_forest_batch(3), _periodic_checkpoints():
         with pytest.raises(RuntimeError, match="interrupted"):
             partial.fit(X, y)
 
-    # the forest was part built when the job died, and the checkpoint holds it
     restored = ShapeletTransformClassifier.load_checkpoint(path)
     assert not restored.is_fitted
-    assert 0 < restored.estimator_._n_estimators < 4
-
-    # the transform is the expensive phase and must not be repeated
-    with patch.object(
-        RandomShapeletTransform,
-        "fit_transform",
-        side_effect=AssertionError("the transform was rerun"),
-    ):
+    assert 0 < restored.estimator_._n_estimators < N_FOREST_TREES
+    with _transform_not_rerun():
         assert restored.resume_fit(X, y) is restored
     assert restored.is_fitted
-    assert restored.estimator_._n_estimators == 4
+    assert restored.estimator_._n_estimators == N_FOREST_TREES
     _assert_same_pipeline(uninterrupted, restored, X)
 
 
-def test_stc_checkpoints_when_the_transform_completes(_training_data, tmp_path):
+def test_stc_checkpoints_when_the_transform_completes(training_data, tmp_path):
     """The transform boundary is saved even with no interval configured."""
-    X, y = _training_data
+    X, y = training_data
     path = tmp_path / "stc.pkl"
     classifier = _forest_stc(checkpoint_path=path)
     with patch.object(
@@ -99,26 +110,23 @@ def test_stc_checkpoints_when_the_transform_completes(_training_data, tmp_path):
         with pytest.raises(RuntimeError, match="interrupted"):
             classifier.fit(X, y)
 
-    # nothing of the estimator survives, but the transform and its time do
     restored = ShapeletTransformClassifier.load_checkpoint(path)
     assert restored._transformed_train_data is not None
     assert restored.fit_elapsed_time_ > 0
     assert not hasattr(restored.estimator_, "estimators_")
-    with patch.object(
-        RandomShapeletTransform,
-        "fit_transform",
-        side_effect=AssertionError("the transform was rerun"),
-    ):
+    with _transform_not_rerun():
         restored.resume_fit(X, y)
     assert restored.is_fitted
     _assert_same_pipeline(_forest_stc().fit(X, y), restored, X)
 
 
-def test_stc_non_checkpointable_estimator(_training_data, tmp_path):
+def test_stc_non_checkpointable_estimator(training_data, tmp_path):
     """An estimator that cannot resume is refitted on the saved transform."""
-    X, y = _training_data
+    X, y = training_data
     path = tmp_path / "stc.pkl"
-    params = dict(estimator=RandomForestClassifier(n_estimators=4), **_PARAMS)
+    params = dict(
+        estimator=RandomForestClassifier(n_estimators=N_FOREST_TREES), **_PARAMS
+    )
     uninterrupted = ShapeletTransformClassifier(**params).fit(X, y)
     classifier = ShapeletTransformClassifier(**params, checkpoint_path=path)
     with patch.object(
@@ -128,18 +136,14 @@ def test_stc_non_checkpointable_estimator(_training_data, tmp_path):
             classifier.fit(X, y)
 
     restored = ShapeletTransformClassifier.load_checkpoint(path)
-    with patch.object(
-        RandomShapeletTransform,
-        "fit_transform",
-        side_effect=AssertionError("the transform was rerun"),
-    ):
+    with _transform_not_rerun():
         restored.resume_fit(X, y)
     _assert_same_pipeline(uninterrupted, restored, X)
 
 
-def test_stc_resume_after_completion(_training_data):
+def test_stc_resume_after_completion(training_data):
     """Resuming a completed fit is a no-op that leaves the pipeline alone."""
-    X, y = _training_data
+    X, y = training_data
     classifier = _forest_stc().fit(X, y)
     expected = classifier.predict_proba(X)
     classifier.resume_fit(X, y)
@@ -147,9 +151,9 @@ def test_stc_resume_after_completion(_training_data):
     np.testing.assert_array_equal(classifier.predict_proba(X), expected)
 
 
-def test_stc_resume_validation(_training_data):
+def test_stc_resume_validation(training_data):
     """Wrong values, labels and model parameters are refused."""
-    X, y = _training_data
+    X, y = training_data
     classifier = _forest_stc().fit(X, y)
     original = joblib_hash((classifier.classes_, classifier.metadata_))
     changed_X = X.copy()
@@ -161,33 +165,32 @@ def test_stc_resume_validation(_training_data):
         (X, changed_y),
         (X[::-1], y[::-1]),
     ]:
-        with pytest.raises(ValueError, match="Unable to resume fitting: X and y"):
+        with pytest.raises(ValueError, match="X and y"):
             classifier.resume_fit(candidate_X, candidate_y)
     assert joblib_hash((classifier.classes_, classifier.metadata_)) == original
 
-    # the transform is complete and fixed, so what shapes it cannot change
     classifier.set_params(n_shapelet_samples=20)
-    with pytest.raises(ValueError, match="Model-building parameters"):
+    with pytest.raises(ValueError, match="parameters"):
         classifier.resume_fit(X, y)
     classifier.set_params(**_PARAMS)
-    with pytest.raises(ValueError, match="call fit first"):
+    with pytest.raises(ValueError, match="fit first"):
         _forest_stc().resume_fit(X, y)
 
 
-def test_stc_random_state_object(_training_data, tmp_path):
+def test_stc_random_state_object(training_data, tmp_path):
     """A RandomState instance shared with the components can still resume."""
-    X, y = _training_data
+    X, y = training_data
     path = tmp_path / "stc.pkl"
     params = dict(_PARAMS)
     del params["random_state"]
     uninterrupted = ShapeletTransformClassifier(
-        estimator=RotationForestClassifier(n_estimators=4),
+        estimator=RotationForestClassifier(n_estimators=N_FOREST_TREES),
         random_state=np.random.RandomState(0),
         **params,
     ).fit(X, y)
 
     classifier = ShapeletTransformClassifier(
-        estimator=RotationForestClassifier(n_estimators=4),
+        estimator=RotationForestClassifier(n_estimators=N_FOREST_TREES),
         random_state=np.random.RandomState(0),
         checkpoint_path=path,
         **params,
@@ -198,19 +201,18 @@ def test_stc_random_state_object(_training_data, tmp_path):
         with pytest.raises(RuntimeError, match="interrupted"):
             classifier.fit(X, y)
 
-    # the transform and the cloned estimator both draw from the generator the
-    # caller passed, so its state moves during fit; that is not a change of
-    # model configuration and must not block continuing
     restored = ShapeletTransformClassifier.load_checkpoint(path)
     restored.resume_fit(X, y)
     _assert_same_pipeline(uninterrupted, restored, X)
 
 
-def test_stc_resume_applies_runtime_settings(_training_data):
+def test_stc_resume_applies_runtime_settings(training_data):
     """Settings that may change between calls reach the estimator on resuming."""
-    X, y = _training_data
+    X, y = training_data
     classifier = ShapeletTransformClassifier(
-        estimator=RotationForestClassifier(n_estimators=4, contract_max_n_estimators=4),
+        estimator=RotationForestClassifier(
+            n_estimators=N_FOREST_TREES, contract_max_n_estimators=N_FOREST_TREES
+        ),
         n_jobs=1,
         **_PARAMS,
     ).fit(X, y)
@@ -222,25 +224,12 @@ def test_stc_resume_applies_runtime_settings(_training_data):
 
 
 @pytest.mark.parametrize("interrupted_in", ["estimator", "forest"])
-def test_stc_resume_fit_predict_proba(_training_data, tmp_path, interrupted_in):
+def test_stc_resume_fit_predict_proba(training_data, tmp_path, interrupted_in):
     """Train estimates resumed after either phase equal an uninterrupted fit's."""
-    X, y = _training_data
+    X, y = training_data
     path = tmp_path / "stc.pkl"
     expected = _forest_stc().fit_predict_proba(X, y)
-    checkpoint_interval = 1
-    partial = _forest_stc(checkpoint_path=path, checkpoint_interval=checkpoint_interval)
-    from aeon.base._estimators.sklearn._rotation_forest import _run_jobs
-
-    calls = 0
-
-    def fail_second_batch(tasks, *args, **kwargs):
-        nonlocal calls
-        calls += 1
-        if calls == 2:
-            list(tasks)
-            raise RuntimeError("interrupted")
-        return _run_jobs(tasks, *args, **kwargs)
-
+    partial = _forest_stc(checkpoint_path=path, checkpoint_interval=CHECKPOINT_INTERVAL)
     if interrupted_in == "estimator":
         interruption = patch.object(
             RotationForestClassifier,
@@ -248,12 +237,8 @@ def test_stc_resume_fit_predict_proba(_training_data, tmp_path, interrupted_in):
             side_effect=RuntimeError("interrupted"),
         )
     else:
-        interruption = patch(
-            "aeon.base._estimators.sklearn._rotation_forest._run_jobs",
-            fail_second_batch,
-        )
-    with interruption, patch("aeon.base._checkpoint.time") as clock:
-        clock.monotonic.side_effect = count(start=0, step=checkpoint_interval * 60)
+        interruption = _fail_forest_batch(2)
+    with interruption, _periodic_checkpoints():
         with pytest.raises(RuntimeError, match="interrupted"):
             partial.fit_predict_proba(X, y)
 
@@ -262,27 +247,23 @@ def test_stc_resume_fit_predict_proba(_training_data, tmp_path, interrupted_in):
         assert not hasattr(restored.estimator_, "estimators_")
     else:
         assert 0 < restored.estimator_._n_estimators < N_FOREST_TREES
-    with patch.object(
-        RandomShapeletTransform,
-        "fit_transform",
-        side_effect=AssertionError("the transform was rerun"),
-    ):
+    with _transform_not_rerun():
         train = restored.resume_fit_predict_proba(X, y)
     assert restored.is_fitted
     np.testing.assert_allclose(train, expected)
 
 
-def test_stc_resume_fit_predict_proba_needs_train_estimate_fit(_training_data):
+def test_stc_resume_fit_predict_proba_needs_train_estimate_fit(training_data):
     """A fit begun with fit has no train estimates to continue."""
-    X, y = _training_data
+    X, y = training_data
     classifier = _forest_stc().fit(X, y)
     with pytest.raises(ValueError, match="train estimates"):
         classifier.resume_fit_predict_proba(X, y)
 
 
-def test_stc_resume_without_contract_restores_estimator_limit(_training_data):
+def test_stc_resume_without_contract_restores_estimator_limit(training_data):
     """Resuming with no contract gives the estimator its own time limit again."""
-    X, y = _training_data
+    X, y = training_data
     estimator = RotationForestClassifier(n_estimators=N_FOREST_TREES)
     classifier = ShapeletTransformClassifier(
         estimator=estimator, time_limit_in_minutes=3, **_PARAMS
