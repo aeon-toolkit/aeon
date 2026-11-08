@@ -46,9 +46,7 @@ def _assert_same_forest(expected, actual, X):
 
 @pytest.mark.parametrize("forest_class", _FORESTS)
 @pytest.mark.parametrize("contracted", [False, True])
-def test_rotation_forest_resume(
-    _training_data, checkpoint_directory, forest_class, contracted
-):
+def test_rotation_forest_resume(_training_data, tmp_path, forest_class, contracted):
     """A resumed forest holds the same trees and RNG state as a full fit."""
     X, y = _training_data
     y = _targets(forest_class, y)
@@ -61,8 +59,8 @@ def test_rotation_forest_resume(
     partial = forest_class(**params, **{limit: initial_size}).fit(X, y)
     assert partial._n_estimators == initial_size
 
-    partial.save_checkpoint(checkpoint_directory / "rotf.pkl")
-    restored = forest_class.load_checkpoint(checkpoint_directory / "rotf.pkl")
+    partial.save_checkpoint(tmp_path / "rotf.pkl")
+    restored = forest_class.load_checkpoint(tmp_path / "rotf.pkl")
     restored.set_params(**{limit: target_size})
     assert restored.resume_fit(X, y) is restored
     _assert_same_forest(full, restored, X)
@@ -78,12 +76,10 @@ def test_rotation_forest_resume(
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_rotation_forest_interrupted_batch(
-    _training_data, checkpoint_directory, n_jobs
-):
+def test_rotation_forest_interrupted_batch(_training_data, tmp_path, n_jobs):
     """A failed batch can be recovered without skipping tree seeds."""
     X, y = _training_data
-    path = checkpoint_directory / "rotf.pkl"
+    path = tmp_path / "rotf.pkl"
     params = dict(n_estimators=4, random_state=0, n_jobs=n_jobs)
     uninterrupted = RotationForestClassifier(**params).fit(X, y)
     checkpoint_interval = 1
@@ -210,7 +206,7 @@ def test_rotation_forest_single_class(_training_data):
     np.testing.assert_array_equal(forest.predict(X), y)
 
 
-def test_rotation_forest_resume_fit_predict_proba(_training_data, checkpoint_directory):
+def test_rotation_forest_resume_fit_predict_proba(_training_data, tmp_path):
     """A forest grown on resume gives the out of bag estimates of a full fit."""
     X, y = _training_data
     initial_size, target_size = 3, 6
@@ -218,10 +214,8 @@ def test_rotation_forest_resume_fit_predict_proba(_training_data, checkpoint_dir
     expected = full.fit_predict_proba(X, y)
     partial = RotationForestClassifier(n_estimators=initial_size, random_state=0)
     partial.fit_predict_proba(X, y)
-    partial.save_checkpoint(checkpoint_directory / "rotf.pkl")
-    restored = RotationForestClassifier.load_checkpoint(
-        checkpoint_directory / "rotf.pkl"
-    )
+    partial.save_checkpoint(tmp_path / "rotf.pkl")
+    restored = RotationForestClassifier.load_checkpoint(tmp_path / "rotf.pkl")
     restored.set_params(n_estimators=target_size)
 
     np.testing.assert_allclose(restored.resume_fit_predict_proba(X, y), expected)
@@ -238,11 +232,11 @@ def test_rotation_forest_resume_fit_predict_proba_needs_train_estimate_fit(
         forest.resume_fit_predict_proba(X, y)
 
 
-def test_rotation_forest_single_class_checkpoint(_training_data, checkpoint_directory):
+def test_rotation_forest_single_class_checkpoint(_training_data, tmp_path):
     """A single-class forest still writes its final checkpoint on completion."""
     X, y = _training_data
     y = np.zeros_like(y)
-    path = checkpoint_directory / "rotf.pkl"
+    path = tmp_path / "rotf.pkl"
     RotationForestClassifier(checkpoint_path=path).fit(X, y)
     restored = RotationForestClassifier.load_checkpoint(path)
     np.testing.assert_array_equal(restored.predict(X), y)

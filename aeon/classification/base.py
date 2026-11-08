@@ -151,6 +151,13 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         contract covers total training time across calls, so resuming continues
         spending the budget rather than starting a new one.
         """
+        X, y = self._resume_setup(X, y)
+        self._resume_fit(X, y)
+        self._fit_complete()
+        return self
+
+    def _resume_setup(self, X, y):
+        """Validate a resume call and return the converted data."""
         if not self.get_tag("capability:checkpointing"):
             raise NotImplementedError("This classifier does not support checkpointing.")
         X = self._preprocess_collection(X, store_metadata=False)
@@ -159,9 +166,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         self._start_checkpoint_timer()
         self._validate_resume_fit(X, y)
         self.is_fitted = False
-        self._resume_fit(X, y)
-        self._fit_complete()
-        return self
+        return X, y
 
     def _validate_resume_fit(self, X, y):
         """Validate continuation parameters without changing fitted state."""
@@ -202,14 +207,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         ``NotImplementedError`` for classifiers that do not keep train estimates
         across a resume, and ``ValueError`` if the fit began with ``fit``.
         """
-        if not self.get_tag("capability:checkpointing"):
-            raise NotImplementedError("This classifier does not support checkpointing.")
-        X = self._preprocess_collection(X, store_metadata=False)
-        y = self._check_y(y, get_n_cases(X), update_classes=False)
-        self._validate_checkpoint(X, y)
-        self._start_checkpoint_timer()
-        self._validate_resume_fit(X, y)
-        self.is_fitted = False
+        X, y = self._resume_setup(X, y)
         probabilities = self._resume_fit_predict_proba(X, y)
         self._fit_complete()
         return probabilities

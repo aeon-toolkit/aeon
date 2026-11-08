@@ -41,10 +41,10 @@ def _forest_stc(**kwargs):
     )
 
 
-def test_stc_resume_continues_the_forest(_training_data, checkpoint_directory):
+def test_stc_resume_continues_the_forest(_training_data, tmp_path):
     """An interrupted forest resumes into the same pipeline as a full fit."""
     X, y = _training_data
-    path = checkpoint_directory / "stc.pkl"
+    path = tmp_path / "stc.pkl"
     uninterrupted = _forest_stc().fit(X, y)
     checkpoint_interval = 1
     partial = _forest_stc(checkpoint_path=path, checkpoint_interval=checkpoint_interval)
@@ -88,12 +88,10 @@ def test_stc_resume_continues_the_forest(_training_data, checkpoint_directory):
     _assert_same_pipeline(uninterrupted, restored, X)
 
 
-def test_stc_checkpoints_when_the_transform_completes(
-    _training_data, checkpoint_directory
-):
+def test_stc_checkpoints_when_the_transform_completes(_training_data, tmp_path):
     """The transform boundary is saved even with no interval configured."""
     X, y = _training_data
-    path = checkpoint_directory / "stc.pkl"
+    path = tmp_path / "stc.pkl"
     classifier = _forest_stc(checkpoint_path=path)
     with patch.object(
         RotationForestClassifier, "fit", side_effect=RuntimeError("interrupted")
@@ -116,10 +114,10 @@ def test_stc_checkpoints_when_the_transform_completes(
     _assert_same_pipeline(_forest_stc().fit(X, y), restored, X)
 
 
-def test_stc_non_checkpointable_estimator(_training_data, checkpoint_directory):
+def test_stc_non_checkpointable_estimator(_training_data, tmp_path):
     """An estimator that cannot resume is refitted on the saved transform."""
     X, y = _training_data
-    path = checkpoint_directory / "stc.pkl"
+    path = tmp_path / "stc.pkl"
     params = dict(estimator=RandomForestClassifier(n_estimators=4), **_PARAMS)
     uninterrupted = ShapeletTransformClassifier(**params).fit(X, y)
     classifier = ShapeletTransformClassifier(**params, checkpoint_path=path)
@@ -176,10 +174,10 @@ def test_stc_resume_validation(_training_data):
         _forest_stc().resume_fit(X, y)
 
 
-def test_stc_random_state_object(_training_data, checkpoint_directory):
+def test_stc_random_state_object(_training_data, tmp_path):
     """A RandomState instance shared with the components can still resume."""
     X, y = _training_data
-    path = checkpoint_directory / "stc.pkl"
+    path = tmp_path / "stc.pkl"
     params = dict(_PARAMS)
     del params["random_state"]
     uninterrupted = ShapeletTransformClassifier(
@@ -224,12 +222,10 @@ def test_stc_resume_applies_runtime_settings(_training_data):
 
 
 @pytest.mark.parametrize("interrupted_in", ["estimator", "forest"])
-def test_stc_resume_fit_predict_proba(
-    _training_data, checkpoint_directory, interrupted_in
-):
+def test_stc_resume_fit_predict_proba(_training_data, tmp_path, interrupted_in):
     """Train estimates resumed after either phase equal an uninterrupted fit's."""
     X, y = _training_data
-    path = checkpoint_directory / "stc.pkl"
+    path = tmp_path / "stc.pkl"
     expected = _forest_stc().fit_predict_proba(X, y)
     checkpoint_interval = 1
     partial = _forest_stc(checkpoint_path=path, checkpoint_interval=checkpoint_interval)

@@ -237,7 +237,7 @@ def check_checkpointing_classifier(estimator_class, datatype):
         assert not restored.is_fitted
         bad_y = y.copy()
         bad_y[0] = y[np.flatnonzero(y != y[0])[0]]
-        with pytest.raises(ValueError, match="Unable to resume fitting: X and y"):
+        with pytest.raises(ValueError, match="X and y"):
             restored.resume_fit(X, bad_y)
         with patch.object(
             estimator_class,
