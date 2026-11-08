@@ -3077,6 +3077,15 @@
         "code",
         "test"
       ]
+    },
+    {
+      "login": "mmporong",
+      "name": "Lim Jooyoung",
+      "avatar_url": "https://avatars.githubusercontent.com/u/74720422?v=4",
+      "profile": "http://mmporong.github.io/robotics-garden",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
