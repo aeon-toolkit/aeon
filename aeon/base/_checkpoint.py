@@ -63,8 +63,8 @@ class CheckpointableMixin:
 
     Only load trusted files: the body is pickle and can execute arbitrary code.
     The default implementation requires ``cant_pickle=False``. A checkpoint from
-    a different aeon version raises ``UserWarning`` and is still
-    loaded, following scikit-learn, because a version change usually leaves
+    a different aeon version raises ``UserWarning`` and is still loaded,
+    following scikit-learn, because a version change usually leaves
     continuation state readable and refusing would discard the fit. Dependency
     versions and the Python environment should also be kept fixed.
     """
@@ -87,13 +87,11 @@ class CheckpointableMixin:
         Notes
         -----
         A temporary file in the destination directory is flushed and synced,
-        then replaces the destination. Failed serialization leaves the previous
+        then replaces the destination. Failed serialisation leaves the previous
         checkpoint intact. Concurrent writers to the same path are unsupported.
         """
         if self.get_tag("cant_pickle"):
-            raise ValueError(
-                "Default checkpoint persistence requires cant_pickle=False."
-            )
+            raise ValueError("Default checkpointing requires cant_pickle=False.")
         if not getattr(self, "_checkpoint_ready", False):
             raise ValueError("No safe continuation state is available to checkpoint.")
         filepath = Path(filepath)
@@ -147,13 +145,10 @@ class CheckpointableMixin:
             estimator is still loaded.
         """
         with Path(filepath).open("rb") as file:
-            # Reject unreadable headers and unsupported formats before unpickling.
             metadata = _parse_checkpoint_header(file)
             if metadata.get("format_version") != _CHECKPOINT_FORMAT_VERSION:
                 raise ValueError("Unsupported checkpoint format version.")
             if metadata.get("aeon_version") != __version__:
-                # a version change usually leaves continuation state readable, so
-                # warn and let the caller decide rather than discarding the work
                 warnings.warn(
                     f"Trying to load a {metadata.get('estimator_class')} checkpoint "
                     f"written by aeon {metadata.get('aeon_version')} while running "
