@@ -1,6 +1,6 @@
 """Mixin providing explicit checkpoint persistence for estimators."""
 
-__all__ = ["CheckpointableMixin", "CheckpointVersionWarning"]
+__all__ = ["CheckpointableMixin"]
 
 import json
 import os
@@ -16,38 +16,8 @@ from joblib import hash as joblib_hash
 
 from aeon import __version__
 
-# Bump when the on-disk layout changes. Version 1 stored the metadata as a
-# pickle; it was never released, so no files in that format are supported.
-_CHECKPOINT_FORMAT_VERSION = 2
-
-
-class CheckpointVersionWarning(UserWarning):
-    """Warning raised when a checkpoint was written by a different aeon version.
-
-    Parameters
-    ----------
-    estimator_name : str
-        Estimator the checkpoint holds.
-    current_aeon_version : str
-        The aeon version loading the checkpoint.
-    original_aeon_version : str
-        The aeon version that wrote the checkpoint.
-    """
-
-    def __init__(self, *, estimator_name, current_aeon_version, original_aeon_version):
-        self.estimator_name = estimator_name
-        self.current_aeon_version = current_aeon_version
-        self.original_aeon_version = original_aeon_version
-
-    def __str__(self):
-        return (
-            f"Trying to load a {self.estimator_name} checkpoint written by aeon "
-            f"{self.original_aeon_version} while running aeon "
-            f"{self.current_aeon_version}. Continuation state is restored by "
-            "pickle, so an estimator whose attributes have changed between these "
-            "versions may resume incorrectly or fail. Resume in the environment "
-            "that wrote the checkpoint where possible."
-        )
+# Bump when the on-disk layout changes.
+_CHECKPOINT_FORMAT_VERSION = 1
 
 
 def _parse_checkpoint_header(file):
@@ -61,7 +31,7 @@ def _parse_checkpoint_header(file):
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ValueError(
             "Checkpoint header is not readable JSON; the file is not an aeon "
-            "checkpoint, or it predates the JSON header format."
+            "checkpoint."
         ) from e
     if not isinstance(metadata, dict):
         raise ValueError("Checkpoint header is not a JSON object.")
@@ -88,13 +58,12 @@ class CheckpointableMixin:
     A checkpoint is a single file holding a one-line JSON header followed by the
     pickled estimator. The header records the format and aeon versions, the
     estimator class and the parameter signature. The format version is checked
-    before unpickling; estimator class and parameter-signature checks happen
-    after unpickling. The plain-text header can be inspected without loading
-    the estimator.
+    before unpickling. The plain-text header can be inspected without loading
+    the estimator; its class and parameter signature are informational.
 
     Only load trusted files: the body is pickle and can execute arbitrary code.
     The default implementation requires ``cant_pickle=False``. A checkpoint from
-    a different aeon version raises ``CheckpointVersionWarning`` and is still
+    a different aeon version raises ``UserWarning`` and is still
     loaded, following scikit-learn, because a version change usually leaves
     continuation state readable and refusing would discard the fit. Dependency
     versions and the Python environment should also be kept fixed.
@@ -106,13 +75,6 @@ class CheckpointableMixin:
         "n_jobs",
         "verbose",
     )
-
-    def __getstate__(self):
-        """Serialize checkpoint paths without platform-specific Path classes."""
-        state = super().__getstate__().copy()
-        if isinstance(state.get("checkpoint_path"), os.PathLike):
-            state["checkpoint_path"] = os.fspath(state["checkpoint_path"])
-        return state
 
     def save_checkpoint(self, filepath):
         """Atomically save a resumable estimator to ``filepath``.
@@ -180,13 +142,12 @@ class CheckpointableMixin:
 
         Warns
         -----
-        CheckpointVersionWarning
+        UserWarning
             If the checkpoint was written by a different aeon version. The
             estimator is still loaded.
         """
         with Path(filepath).open("rb") as file:
             # Reject unreadable headers and unsupported formats before unpickling.
-            # Class and parameter-signature checks below require the loaded body.
             metadata = _parse_checkpoint_header(file)
             if metadata.get("format_version") != _CHECKPOINT_FORMAT_VERSION:
                 raise ValueError("Unsupported checkpoint format version.")
@@ -194,11 +155,13 @@ class CheckpointableMixin:
                 # a version change usually leaves continuation state readable, so
                 # warn and let the caller decide rather than discarding the work
                 warnings.warn(
-                    CheckpointVersionWarning(
-                        estimator_name=str(metadata.get("estimator_class")),
-                        current_aeon_version=__version__,
-                        original_aeon_version=str(metadata.get("aeon_version")),
-                    ),
+                    f"Trying to load a {metadata.get('estimator_class')} checkpoint "
+                    f"written by aeon {metadata.get('aeon_version')} while running "
+                    f"aeon {__version__}. Continuation state is restored by pickle, "
+                    "so an estimator whose attributes have changed between these "
+                    "versions may resume incorrectly or fail. Resume in the "
+                    "environment that wrote the checkpoint where possible.",
+                    UserWarning,
                     stacklevel=2,
                 )
             estimator = pickle.load(file)
@@ -209,16 +172,6 @@ class CheckpointableMixin:
                 f"expected an instance of {cls.__name__}."
             )
 
-        if metadata.get("estimator_class") != estimator._checkpoint_class_name():
-            raise ValueError("Checkpoint estimator class does not match its metadata.")
-        if metadata.get("parameter_signature") != getattr(
-            estimator, "_checkpoint_parameter_signature", None
-        ):
-            raise ValueError(
-                "Checkpoint parameter signature does not match its metadata."
-            )
-        if not getattr(estimator, "_checkpoint_ready", False):
-            raise ValueError("Checkpoint does not contain safe continuation state.")
         return estimator
 
     @staticmethod
@@ -251,7 +204,7 @@ class CheckpointableMixin:
         --------
         >>> from aeon.base import CheckpointableMixin  # doctest: +SKIP
         >>> CheckpointableMixin.read_checkpoint_metadata("run.pkl")  # doctest: +SKIP
-        {'format_version': 2, 'aeon_version': '1.6.0', ...}
+        {'format_version': 1, 'aeon_version': '1.6.0', ...}
         """
         with Path(filepath).open("rb") as file:
             return _parse_checkpoint_header(file)
@@ -301,6 +254,13 @@ class CheckpointableMixin:
             raise ValueError("Model-building parameters have changed since fitting.")
 
     def _start_checkpoint_timer(self):
+        """Validate checkpoint settings and restart timing for fit or resume_fit.
+
+        The interval must be None (final-only saving) or positive finite minutes.
+        When a destination is configured, require an existing parent directory,
+        a file destination and an estimator that supports pickling. Validate
+        these settings before training starts, even if no periodic save is due.
+        """
         interval = self.checkpoint_interval
         if interval is not None and (
             isinstance(interval, bool)
@@ -325,6 +285,7 @@ class CheckpointableMixin:
                 )
             if self._checkpoint_cant_pickle():
                 raise ValueError("Default checkpointing requires cant_pickle=False.")
+        # Each fit or resume_fit call starts a fresh checkpoint interval.
         self._checkpoint_last_time = time.monotonic()
 
     def _set_checkpoint_parent(self, parent):

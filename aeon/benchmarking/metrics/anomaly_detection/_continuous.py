@@ -50,7 +50,7 @@ def roc_auc_score(y_true: np.ndarray, y_score: np.ndarray) -> float:
     sklearn.metrics.roc_auc_score
         Is used internally.
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -80,7 +80,7 @@ def pr_auc_score(y_true: np.ndarray, y_score: np.ndarray) -> float:
     sklearn.metrics.precision_recall_curve
         Function used under the hood.
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -124,7 +124,7 @@ def f_score_at_k_points(
     aeon.benchmarking.metrics.anomaly_detection.thresholding.top_k_points_threshold
         Function used to find the threshold.
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -170,7 +170,7 @@ def f_score_at_k_ranges(
     aeon.benchmarking.metrics.anomaly_detection.thresholding.top_k_ranges_threshold
         Function used to find the threshold.
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",
@@ -236,7 +236,7 @@ def rp_rr_auc_score(
        1920–30. 2018.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
+    y_true, y_score = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
             "Cannot compute metric for a constant value in y_score, returning 0.0!",

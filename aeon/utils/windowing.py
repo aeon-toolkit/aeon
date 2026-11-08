@@ -224,7 +224,7 @@ def _has_enough_memory_for_vectorized_entire(window_size: int, n: int) -> bool:
 
     memory_limit = psutil.virtual_memory().available
     # 128 MB (for other objs) + size of scores array
-    memory_buffer = 128 * 1024**2 + sys.getsizeof(float()) * n
+    memory_buffer = 128 * 1024**2 + sys.getsizeof(0.0) * n
 
     # if we are running within a container
     container_limit_file = Path("/sys/fs/cgroup/memory/memory.limit_in_bytes")
@@ -244,7 +244,7 @@ def _has_enough_memory_for_vectorized_entire(window_size: int, n: int) -> bool:
     except (ImportError, ValueError):
         pass
 
-    estimated_mem_usage = sys.getsizeof(float()) * (n + window_size - 1) * window_size
+    estimated_mem_usage = sys.getsizeof(0.0) * (n + window_size - 1) * window_size
     return estimated_mem_usage <= memory_limit
 
 

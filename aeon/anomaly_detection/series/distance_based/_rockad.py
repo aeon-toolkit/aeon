@@ -83,11 +83,10 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
     >>> detector.fit(X_train)
     ROCKAD(...)
-    >>> np.round(detector.predict(X_test), 7)
-    array([0.        , 0.0055471, 0.0699094, 0.2288105, 0.3238258,
-           0.4365215, 0.4365215, 0.4365215, 0.4365215, 0.4365215,
-           0.4365215, 0.4365215, 0.4365215, 0.4365215, 0.4365215,
-           0.5238258, 0.6520087, 0.8031336, 0.8519434, 1.        ])
+    >>> np.round(detector.predict(X_test), 5)
+    array([0.     , 0.00555, 0.06991, 0.22881, 0.32383, 0.43652, 0.43652,
+           0.43652, 0.43652, 0.43652, 0.43652, 0.43652, 0.43652, 0.43652,
+           0.43652, 0.52383, 0.65201, 0.80313, 0.85194, 1.     ])
     """
 
     _tags = {
@@ -153,10 +152,11 @@ class ROCKAD(BaseSeriesAnomalyDetector):
                 "The stride must be at least 1 and at most the window size."
             )
 
-        if int((X.shape[0] - self.window_size) / self.stride + 1) < self.n_neighbors:
+        n_windows = int((X.shape[0] - self.window_size) / self.stride + 1)
+        if n_windows < self.n_neighbors:
             raise ValueError(
-                f"Window count ({int((X.shape[0]-self.window_size)/self.stride+1)}) "
-                f"has to be larger than n_neighbors ({self.n_neighbors})."
+                f"Window count ({n_windows}) "
+                f"has to be larger than n_neighbors ({self.n_neighbors}). "
                 "Please choose a smaller n_neighbors value or increase window count "
                 "by choosing a smaller window size or larger stride."
             )

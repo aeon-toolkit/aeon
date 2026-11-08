@@ -31,7 +31,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
     trend estimate. The DOTM core is then fitted to the adjusted series, and
     forecasts are produced by recombining the DOTM forecast with a seasonal
     naive forecast of the seasonal component. The default behaviour is
-    non-seasonal because ``season_length=1``.
+    non-seasonal because ``seasonal_period=1``.
 
     Exogenous variables and prediction intervals are not supported.
 
@@ -49,7 +49,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         Bounds for estimated ``alpha``.
     theta_bounds : tuple of float, default=(1.0, 1e10)
         Bounds for estimated ``theta``.
-    season_length : int, default=1
+    seasonal_period : int, default=1
         Seasonal period. ``1`` means no seasonality.
     decomposition_type : {"multiplicative", "additive"}, default="multiplicative"
         Type of classical decomposition used when the series is deseasonalised.
@@ -60,9 +60,9 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         Controls whether to deseasonalise the series.
 
         - ``False`` : never deseasonalise.
-        - ``True``  : deseasonalise when ``season_length > 1`` and at least
+        - ``True``  : deseasonalise when ``seasonal_period > 1`` and at least
           two full seasonal cycles are available.
-        - ``"auto"``: apply an ACF-based seasonal test at lag ``season_length``
+        - ``"auto"``: apply an ACF-based seasonal test at lag ``seasonal_period``
           to the first-differenced series and deseasonalise only when seasonal
           evidence is present. First differencing removes a constant trend, so
           monotone series do not trigger spurious seasonal detection.
@@ -96,7 +96,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         Final dynamic line slope state.
     mean_y_ : float
         Final running mean state.
-    season_length_ : int
+    seasonal_period_ : int
         Seasonal period actually used. ``1`` when no deseasonalisation was
         performed.
     decomposition_type_ : str
@@ -105,7 +105,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
     deseasonalised_ : bool
         Whether the input series was deseasonalised before fitting.
     seasonal_factors_ : np.ndarray or None
-        Estimated seasonal factors of length ``season_length_``, or ``None``
+        Estimated seasonal factors of length ``seasonal_period_``, or ``None``
         when ``deseasonalised_`` is ``False``.
 
     References
@@ -136,7 +136,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         initial_level_bounds=(-1e10, 1e10),
         alpha_bounds=(0.1, 0.99),
         theta_bounds=(1.0, 1e10),
-        season_length=1,
+        seasonal_period=1,
         decomposition_type="multiplicative",
         seasonal_test="auto",
         max_iter=500,
@@ -148,7 +148,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         self.initial_level_bounds = initial_level_bounds
         self.alpha_bounds = alpha_bounds
         self.theta_bounds = theta_bounds
-        self.season_length = season_length
+        self.seasonal_period = seasonal_period
         self.decomposition_type = decomposition_type
         self.seasonal_test = seasonal_test
         self.max_iter = max_iter
@@ -161,11 +161,13 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         y = _prepare_dotm_y(y)
         y_original = y
 
-        deseasonalise = _should_deseasonalise(y, self.season_length, self.seasonal_test)
+        deseasonalise = _should_deseasonalise(
+            y, self.seasonal_period, self.seasonal_test
+        )
 
         if deseasonalise:
             factors, y_adjusted, used_type = _seasonal_decompose(
-                y, self.season_length, self.decomposition_type
+                y, self.seasonal_period, self.decomposition_type
             )
             # If seasonality could not be performed, used_type is none: n is too
             # short for a centred MA, at least one seasonal position has no
@@ -174,16 +176,16 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             if used_type == "none":
                 deseasonalise = False
                 y_adjusted = y
-                self.season_length_ = 1
+                self.seasonal_period_ = 1
                 self.decomposition_type_ = self.decomposition_type
                 self.seasonal_factors_ = None
             else:
-                self.season_length_ = int(self.season_length)
+                self.seasonal_period_ = int(self.seasonal_period)
                 self.decomposition_type_ = used_type
                 self.seasonal_factors_ = factors
         else:
             y_adjusted = y
-            self.season_length_ = 1
+            self.seasonal_period_ = 1
             self.decomposition_type_ = self.decomposition_type
             self.seasonal_factors_ = None
 
@@ -231,8 +233,8 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
         if self.deseasonalised_:
             n = y_original.shape[0]
-            in_sample = self.seasonal_factors_[np.arange(n) % self.season_length_]
-            one_step_factor = self.seasonal_factors_[n % self.season_length_]
+            in_sample = self.seasonal_factors_[np.arange(n) % self.seasonal_period_]
+            one_step_factor = self.seasonal_factors_[n % self.seasonal_period_]
             if self.decomposition_type_ == "additive":
                 self.fitted_values_ = adjusted_fitted + in_sample
                 self.forecast_ = float(adjusted_forecast + one_step_factor)
@@ -253,7 +255,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
         For seasonal models the supplied context is deseasonalised using the
         *fitted* seasonal factors (applied by position), the DOTM core is run
         on the adjusted context, and the result is re-seasonalised using the
-        factor at position ``len(y) % season_length_``. This makes rolling
+        factor at position ``len(y) % seasonal_period_``. This makes rolling
         one-step ``predict`` consistent with multi-step
         ``iterative_forecast``, at the cost of assuming the supplied context
         shares its seasonal phase with the training data.
@@ -265,7 +267,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             )
 
         n = y.shape[0]
-        m = self.season_length_
+        m = self.seasonal_period_
         factors = self.seasonal_factors_
         rep = factors[np.arange(n) % m]
         if self.decomposition_type_ == "additive":
@@ -327,7 +329,7 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
             return adjusted_fc
 
         seasonal_fc = _seasonal_forecast(
-            self.seasonal_factors_, h, self.season_length_, n
+            self.seasonal_factors_, h, self.seasonal_period_, n
         )
         if self.decomposition_type_ == "additive":
             return adjusted_fc + seasonal_fc
@@ -335,12 +337,12 @@ class DOTM(BaseForecaster, IterativeForecastingMixin):
 
     def _validate_seasonal_params(self):
         """Validate seasonal-extension parameters in ``_fit`` (not ``__init__``)."""
-        if isinstance(self.season_length, bool) or not isinstance(
-            self.season_length, (int, np.integer)
+        if isinstance(self.seasonal_period, bool) or not isinstance(
+            self.seasonal_period, (int, np.integer)
         ):
-            raise ValueError("season_length must be a positive integer.")
-        if self.season_length < 1:
-            raise ValueError("season_length must be at least 1.")
+            raise ValueError("seasonal_period must be a positive integer.")
+        if self.seasonal_period < 1:
+            raise ValueError("seasonal_period must be at least 1.")
         if self.decomposition_type not in ("multiplicative", "additive"):
             raise ValueError(
                 "decomposition_type must be 'multiplicative' or 'additive', "
@@ -421,24 +423,24 @@ def _prepare_dotm_y(y):
     return y
 
 
-def _should_deseasonalise(y, season_length, seasonal_test):
+def _should_deseasonalise(y, seasonal_period, seasonal_test):
     """Decide whether the series should be seasonally adjusted before fitting.
 
     The ``"auto"`` mode delegates the ACF significance test to the numba
     implementation :func:`_acf_seasonal_test_numba`.
     """
-    if season_length <= 1:
+    if seasonal_period <= 1:
         return False
-    if y.shape[0] < 2 * season_length:
+    if y.shape[0] < 2 * seasonal_period:
         return False
     if seasonal_test is True:
         return True
     if seasonal_test is False:
         return False
-    return bool(_acf_seasonal_test_numba(y, int(season_length), _ACF_TEST_QUANTILE))
+    return bool(_acf_seasonal_test_numba(y, int(seasonal_period), _ACF_TEST_QUANTILE))
 
 
-def _seasonal_decompose(y, season_length, requested_type):
+def _seasonal_decompose(y, seasonal_period, requested_type):
     """Thin wrapper around :func:`_seasonal_decompose_numba`.
 
     Translates the integer type code returned from numba into the public
@@ -447,7 +449,7 @@ def _seasonal_decompose(y, season_length, requested_type):
     """
     type_code, factors, adjusted = _seasonal_decompose_numba(
         y,
-        int(season_length),
+        int(seasonal_period),
         requested_type == "multiplicative",
         _MULTIPLICATIVE_FLOOR,
     )
@@ -458,22 +460,22 @@ def _seasonal_decompose(y, season_length, requested_type):
     return factors, adjusted, "multiplicative"
 
 
-def _seasonal_forecast(seasonal_factors, h, season_length, n_train):
+def _seasonal_forecast(seasonal_factors, h, seasonal_period, n_train):
     """Repeat the learned seasonal cycle in phase for ``h`` future steps."""
-    return seasonal_factors[(int(n_train) + np.arange(int(h))) % int(season_length)]
+    return seasonal_factors[(int(n_train) + np.arange(int(h))) % int(seasonal_period)]
 
 
 @njit(cache=True, fastmath={"contract"})
-def _acf_seasonal_test_numba(y, season_length, threshold):
+def _acf_seasonal_test_numba(y, seasonal_period, threshold):
     """Single-pass ACF seasonal significance test on first-differenced ``y``.
 
     Equivalent to the previous numpy implementation: compute ``dy = diff(y)``,
-    centre it, then compare the Bartlett-corrected ACF at lag ``season_length``
+    centre it, then compare the Bartlett-corrected ACF at lag ``seasonal_period``
     against ``threshold``. Implemented as one numba routine to avoid the
     per-call numpy roundtrip overhead seen on short series.
     """
     n = y.shape[0]
-    if n <= season_length + 1:
+    if n <= seasonal_period + 1:
         return False
 
     dy_len = n - 1
@@ -491,7 +493,7 @@ def _acf_seasonal_test_numba(y, season_length, threshold):
     if denom <= 1e-12:
         return False
 
-    m = season_length
+    m = seasonal_period
     prior_sq = 0.0
     acf_at_m = 0.0
     for lag in range(1, m + 1):
@@ -512,13 +514,13 @@ def _acf_seasonal_test_numba(y, season_length, threshold):
 
 
 @njit(cache=True, fastmath={"contract"})
-def _seasonal_decompose_numba(y, season_length, requested_mult, mult_floor):
+def _seasonal_decompose_numba(y, seasonal_period, requested_mult, mult_floor):
     """Classical seasonal decomposition with centred-MA detrending in one pass.
 
     Steps mirror the previous numpy version:
 
     1. Estimate a trend via the centred moving average of period
-       ``season_length`` (odd ``m``: uniform window; even ``m``: 2*m smoothing
+       ``seasonal_period`` (odd ``m``: uniform window; even ``m``: 2*m smoothing
        with ``[0.5, 1, ..., 1, 0.5] / m`` weights).
     2. Detrend additively or multiplicatively.
     3. Estimate seasonal indices as the per-position mean of the detrended
@@ -535,14 +537,14 @@ def _seasonal_decompose_numba(y, season_length, requested_mult, mult_floor):
         ``0`` for "none" (no decomposition applied), ``1`` for additive,
         ``2`` for multiplicative.
     factors : np.ndarray
-        Seasonal factors of length ``season_length``. All zeros when
+        Seasonal factors of length ``seasonal_period``. All zeros when
         ``type_code == 0``; the caller should ignore the array in that case.
     adjusted : np.ndarray
         Seasonally adjusted series of the same length as ``y``. Equal to a
         copy of ``y`` when ``type_code == 0``.
     """
     n = y.shape[0]
-    m = season_length
+    m = seasonal_period
     half = m // 2
 
     factors = np.zeros(m, dtype=np.float64)

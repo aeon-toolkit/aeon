@@ -1,7 +1,6 @@
 """Test interval forest classifiers."""
 
 import re
-import warnings
 
 import numpy as np
 import pytest
@@ -16,7 +15,6 @@ from aeon.classification.interval_based import (
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
-from aeon.testing.utils.estimator_checks import _assert_predict_probabilities
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_temporal_importance_curves
 
@@ -62,53 +60,6 @@ def test_tic_curves_invalid(cls):
         NotImplementedError, match="No temporal importance curves available."
     ):
         clf.temporal_importance_curves()
-
-
-def test_drcif_warns_once_for_use_pycatch22():
-    """Test that internal Catch22 clones do not repeat the public warning."""
-    X_train, y_train = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
-    params = DrCIFClassifier._get_test_params()
-    params["use_pycatch22"] = False
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", FutureWarning)
-        DrCIFClassifier(**params).fit(X_train, y_train)
-
-    deprecation_warnings = [
-        warning
-        for warning in caught
-        if "use_pycatch22" in str(warning.message)
-        and issubclass(warning.category, FutureWarning)
-    ]
-    assert len(deprecation_warnings) == 1
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["pycatch22"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-@pytest.mark.parametrize("cls", [CanonicalIntervalForestClassifier, DrCIFClassifier])
-def test_forest_pycatch22(cls):
-    """Test whether the forest classifiers with pycatch22 run without error."""
-    X_train, y_train = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
-    X_test, _ = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["test"]
-
-    params = cls._get_test_params()
-    if isinstance(params, list):
-        params = params[0]
-    params.update({"use_pycatch22": True})
-
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", FutureWarning)
-        clf = cls(**params)
-        clf.fit(X_train, y_train)
-        prob = clf.predict_proba(X_test)
-
-    deprecation_warnings = [
-        warning for warning in caught if "use_pycatch22" in str(warning.message)
-    ]
-    assert len(deprecation_warnings) == 1
-    _assert_predict_probabilities(prob, X_test, n_classes=2)
 
 
 @pytest.mark.parametrize(

@@ -306,7 +306,7 @@ def load_rehab_pile_dataset(
                         out_file.write(response.read())
             except (HTTPError, URLError, TimeoutError) as e:
                 raise OSError(
-                    f"Failed to download metadata from {meta_url}. " f"Error: {e}"
+                    f"Failed to download metadata from {meta_url}. Error: {e}"
                 ) from e
         with open(meta_path) as f:
             meta_data = json.load(f)
