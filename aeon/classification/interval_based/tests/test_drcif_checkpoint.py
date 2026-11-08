@@ -11,12 +11,19 @@ from aeon.base._estimators.interval_based.base_interval_forest import _run_jobs
 from aeon.classification.interval_based import DrCIFClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
 
+N_CASES, N_CHANNELS, N_TIMEPOINTS = 12, 2, 24
+CHECKPOINT_INTERVAL = 1
+_FOREST_PARAMS = dict(n_intervals=2, att_subsample_size=2)
+
 
 @pytest.fixture
 def training_data():
     """Small multivariate data exercising all three DrCIF representations."""
     return make_example_3d_numpy(
-        n_cases=12, n_channels=2, n_timepoints=24, random_state=42
+        n_cases=N_CASES,
+        n_channels=N_CHANNELS,
+        n_timepoints=N_TIMEPOINTS,
+        random_state=42,
     )
 
 
@@ -43,7 +50,7 @@ def test_drcif_resume(training_data, tmp_path, contracted, train_estimates):
     initial_size, target_size = 1, 3
     seed = np.random.RandomState(0)
     seed_state = joblib_hash(seed)
-    params = dict(n_intervals=2, att_subsample_size=2, random_state=seed)
+    params = dict(**_FOREST_PARAMS, random_state=seed)
     limit = "contract_max_n_estimators" if contracted else "n_estimators"
     if contracted:
         params["time_limit_in_minutes"] = 5
@@ -77,8 +84,7 @@ def test_drcif_interrupted_batch(training_data, tmp_path, train_estimates):
     target_size = n_jobs + 1
     params = dict(
         n_estimators=target_size,
-        n_intervals=2,
-        att_subsample_size=2,
+        **_FOREST_PARAMS,
         random_state=0,
         n_jobs=n_jobs,
         parallel_backend="threading",
@@ -87,9 +93,8 @@ def test_drcif_interrupted_batch(training_data, tmp_path, train_estimates):
     full = DrCIFClassifier(**params)
     getattr(full, method)(X, y)
     path = tmp_path / "drcif.pkl"
-    interval_minutes = 1
     partial = DrCIFClassifier(
-        **params, checkpoint_path=path, checkpoint_interval=interval_minutes
+        **params, checkpoint_path=path, checkpoint_interval=CHECKPOINT_INTERVAL
     )
     calls = 0
 
@@ -108,7 +113,7 @@ def test_drcif_interrupted_batch(training_data, tmp_path, train_estimates):
         ),
         patch("aeon.base._checkpoint.time") as clock,
     ):
-        clock.monotonic.side_effect = count(step=interval_minutes * 60)
+        clock.monotonic.side_effect = count(step=CHECKPOINT_INTERVAL * 60)
         with pytest.raises(RuntimeError, match="interrupted"):
             getattr(partial, method)(X, y)
     restored = DrCIFClassifier.load_checkpoint(path)
@@ -125,8 +130,7 @@ def test_drcif_contract_budget(training_data):
     initial_size, target_size = 1, 3
     budget_minutes = 5
     classifier = DrCIFClassifier(
-        n_intervals=2,
-        att_subsample_size=2,
+        **_FOREST_PARAMS,
         time_limit_in_minutes=budget_minutes,
         contract_max_n_estimators=initial_size,
         n_jobs=2,
