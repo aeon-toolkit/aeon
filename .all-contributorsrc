@@ -3086,6 +3086,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "Vinayak19112003",
+      "name": "Vinayak Deshmuk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/118991845?v=4",
+      "profile": "https://github.com/Vinayak19112003",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
