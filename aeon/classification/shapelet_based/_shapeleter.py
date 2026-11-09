@@ -232,25 +232,8 @@ class ShapeleterClassifier(BaseClassifier):
         return self
 
     def _predict(self, X):
-        """Predict labels for input series using 4-view hard voting."""
-        v0, v1, v2, v3 = self._assemble_views(X)
-
-        p0 = self.clf_v0_.predict(v0)
-        p1 = self.clf_v1_.predict(v1)
-        p2 = self.clf_v2_.predict(v2)
-        p3 = self.clf_v3_.predict(v3)
-
-        class_to_idx = {c: i for i, c in enumerate(self.classes_)}
-        n_cases = X.shape[0]
-        n_classes = len(self.classes_)
-        vote_counts = np.zeros((n_cases, n_classes), dtype=np.int64)
-
-        for preds in (p0, p1, p2, p3):
-            for i, p in enumerate(preds):
-                vote_counts[i, class_to_idx[p]] += 1
-
-        best_idx = np.argmax(vote_counts, axis=1)
-        return self.classes_[best_idx]
+        """Predict labels; ties go to the first class (np.argmax over sorted classes)."""
+        return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
 
     def _predict_proba(self, X):
         """Predict class probabilities as vote shares across the 4 ensemble views."""

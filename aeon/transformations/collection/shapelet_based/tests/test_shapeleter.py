@@ -29,15 +29,9 @@ def test_shapeleter_transformer_features():
     Xt = st.fit_transform(X, y)
     assert Xt.ndim == 2
     assert Xt.shape[0] == 5
-    assert hasattr(st, "rdst_")
-    assert hasattr(st, "fusion_min_")
-    assert hasattr(st, "fusion_soo_")
-    assert hasattr(st, "series_len_")
-    assert hasattr(st, "shapelet_lengths_")
-    assert hasattr(st, "scaler_min_")
-    assert hasattr(st, "scaler_soo_")
-    assert hasattr(st, "ka_opt_")
-    assert hasattr(st, "ko_opt_")
+    assert np.isfinite(Xt).all()
+    assert set(st.ka_opt_) == set(st.unique_dilations_)
+    assert set(st.ko_opt_) == set(st.unique_dilations_)
 
 
 def test_shapeleter_transformer_fit_transform_equivalence():
