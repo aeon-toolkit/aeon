@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
@@ -11,6 +12,7 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _knn_hyperedges,
     _optimize_position_encoding_np,
     _series_transform,
+    _vectorized_2feature_lda_fit,
 )
 
 
@@ -238,3 +240,25 @@ def test_series_transform_modes():
     np.testing.assert_allclose(np.std(X_H, axis=-1), 1.0, atol=1e-5)
     np.testing.assert_allclose(np.mean(X_HF, axis=-1), 0.0, atol=1e-5)
     np.testing.assert_allclose(np.std(X_HF, axis=-1), 1.0, atol=1e-5)
+
+
+@pytest.mark.parametrize("n_classes", [2, 3, 4])
+def test_vectorized_lda_matches_sklearn_direction(n_classes):
+    """Test that closed-form 2-feature LDA matches sklearn LDA projection directions."""
+    rng = np.random.RandomState(0)
+    n, k = 60, 6
+    y = np.arange(n) % n_classes
+    x1 = rng.normal(size=(n, k)) + y[:, None] * rng.uniform(0, 1, k)
+    x2 = 0.5 * x1 + rng.normal(size=(n, k)) + y[:, None] * rng.uniform(-1, 1, k)
+
+    valid, w1, w2 = _vectorized_2feature_lda_fit(x1, x2, y)
+    assert valid.all()
+    for j in range(k):
+        s = (
+            LinearDiscriminantAnalysis(n_components=1)
+            .fit(np.c_[x1[:, j], x2[:, j]], y)
+            .scalings_[:, 0]
+        )
+        s = s / np.linalg.norm(s)
+        s = s if s[0] >= 0 else -s
+        np.testing.assert_allclose([w1[j], w2[j]], s, atol=1e-8)

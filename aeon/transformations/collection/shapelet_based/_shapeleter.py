@@ -445,7 +445,14 @@ def _vectorized_2feature_lda_transform(X1, X2, valid, w1, w2):
 
 
 class _CombinationFusion:
-    """Pairwise 2-feature LDA fusion of original, absolute, and ordinal views."""
+    """Pairwise 2-feature LDA fusion of original, absolute, and ordinal views.
+
+    Notes
+    -----
+    Projection direction matches scikit-learn
+    `LinearDiscriminantAnalysis(n_components=1)` with w1 >= 0. Scale is normalized
+    to unit-norm Euclidean length, so clipping at threshold=20 is rarely reached.
+    """
 
     def __init__(self, threshold=20.0):
         self.threshold = threshold
