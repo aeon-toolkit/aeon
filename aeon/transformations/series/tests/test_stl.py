@@ -105,3 +105,27 @@ def test_jumps_keep_components_in_range(n, kwargs):
     trend = np.asarray(trend).ravel()
     assert np.all(np.isfinite(trend))
     assert np.all(trend > 99.0) and np.all(trend < 100.0 + n)
+
+
+def test_straight_line_is_pure_trend():
+    """Degree-1 STL must return a straight line as the trend, with zero seasonal."""
+    y = np.arange(48, dtype=float)
+    kwargs = dict(period=4, seasonal=7, trend=9, low_pass=5, inner_iter=1, outer_iter=0)
+    trend = STLSeriesTransformer(**kwargs, output="trend").fit_transform(y)
+    seasonal = STLSeriesTransformer(**kwargs, output="seasonal").fit_transform(y)
+    np.testing.assert_allclose(np.ravel(trend), y, atol=1e-8)
+    np.testing.assert_allclose(np.ravel(seasonal), 0.0, atol=1e-8)
+
+
+@pytest.mark.parametrize(
+    "other", [{"low_pass": 21}, {"low_pass_deg": 0}, {"low_pass_jump": 3}]
+)
+def test_low_pass_parameters_change_output(other):
+    """The low-pass LOESS parameters must affect the seasonal component."""
+    t = np.arange(48)
+    rng = np.random.default_rng(0)
+    z = 0.05 * t + np.sin(2 * np.pi * t / 4) + 0.1 * rng.normal(size=48)
+    base = dict(period=4, low_pass=5, output="seasonal")
+    a = STLSeriesTransformer(**base).fit_transform(z)
+    b = STLSeriesTransformer(**{**base, **other}).fit_transform(z)
+    assert np.abs(np.ravel(a) - np.ravel(b)).max() > 1e-6
