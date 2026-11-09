@@ -120,20 +120,55 @@ def test_hypergraph_prune_exhausted_label_rotation():
     assert (pruned_labels == 2).sum() > 1
 
 
-def test_optimize_position_encoding_pinned():
-    """Test that Adam positional optimization matches pinned reference values."""
+def _pe_inputs():
     rng = np.random.RandomState(42)
     n, k = 20, 5
     feat = rng.normal(size=(n, 2 * k))
     pos = rng.uniform(0, 30, size=(n, k))
     order = np.argsort(np.argsort(pos, axis=1), axis=1).astype(float)
-    len_map = 50.0
+    return feat, pos, order, 50.0
 
+
+def test_optimize_position_encoding_regression():
+    """Regression pin of this implementation (NOT yet checked against reference)."""
+    feat, pos, order, len_map = _pe_inputs()
     ka, ko = _optimize_position_encoding_np(
         feat, pos, order, len_map, ka0=8.0, ko0=8.0, max_iter=20
     )
     assert ka == pytest.approx(8.325319, abs=1e-4)
     assert ko == pytest.approx(8.325612, abs=1e-4)
+
+
+def test_optimize_position_encoding_first_step_is_log_space():
+    """Adam's first step moves log(K) by ~lr, so K changes by a factor e^(+-lr).
+
+    A linear-space Adam would move K by ~lr (8.0 -> 8.1), not by a factor.
+    """
+    feat, pos, order, len_map = _pe_inputs()
+    ka, ko = _optimize_position_encoding_np(
+        feat, pos, order, len_map, ka0=8.0, ko0=8.0, lr=0.1, max_iter=1
+    )
+    for k in (ka, ko):
+        assert any(k == pytest.approx(8.0 * np.exp(s * 0.1), rel=1e-3) for s in (1, -1))
+
+
+def test_optimize_position_encoding_stays_in_bounds():
+    """Ka and Ko stay inside [k_min, k_max] even under large learning rates."""
+    feat, pos, order, len_map = _pe_inputs()
+    ka, ko = _optimize_position_encoding_np(
+        feat,
+        pos,
+        order,
+        len_map,
+        ka0=8.0,
+        ko0=8.0,
+        k_min=2.0,
+        k_max=10.0,
+        lr=5.0,
+        max_iter=30,
+    )
+    assert 2.0 <= ka <= 10.0
+    assert 2.0 <= ko <= 10.0
 
 
 def test_combination_fusion_constant_columns():
