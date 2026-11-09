@@ -148,3 +148,18 @@ def test_shapeleter_classifier_tie_goes_to_first_class(votes, monkeypatch):
         setattr(clf, name, _StubVoter(lab))
     assert np.all(clf._predict(X) == clf.classes_[0])
     np.testing.assert_allclose(clf._predict_proba(X), 0.5)
+
+
+def test_shapeleter_classifier_multiclass():
+    """Verify multiclass classification with probability normalization."""
+    rng = np.random.RandomState(0)
+    X = rng.normal(size=(12, 1, 30))
+    y = np.array([0, 1, 2] * 4)
+    clf = ShapeleterClassifier(
+        max_shapelets=20, per_shapelets=5, max_iter=2, random_state=42
+    )
+    clf.fit(X, y)
+    proba = clf.predict_proba(X)
+    assert proba.shape == (12, 3)
+    np.testing.assert_allclose(proba.sum(axis=1), 1.0)
+    assert set(clf.predict(X)) <= {0, 1, 2}

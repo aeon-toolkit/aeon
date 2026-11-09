@@ -362,3 +362,16 @@ def test_rdst_feature_order_min_argmin_soo():
     assert np.all(feats[:, 0::3] >= 0.0)
     assert np.all(np.isclose(feats[:, 1::3], np.round(feats[:, 1::3])))
     assert np.all(feats[:, 2::3] >= 0.0)
+
+
+def test_shapeleter_transform_multiclass():
+    """Verify multiclass y produces finite features through pairwise LDA fusion."""
+    rng = np.random.RandomState(0)
+    X = rng.normal(size=(12, 1, 30))
+    y = np.array([0, 1, 2] * 4)
+    st = ShapeleterTransform(
+        max_shapelets=20, per_shapelets=5, max_iter=2, random_state=42
+    )
+    Xt = st.fit_transform(X, y)
+    assert Xt.shape[0] == 12
+    assert np.all(np.isfinite(Xt))
