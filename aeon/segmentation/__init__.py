@@ -13,6 +13,7 @@ __all__ = [
     "EAggloSegmenter",
     "HMMSegmenter",
     "HidalgoSegmenter",
+    "PELTSegmenter",
 ]
 
 from aeon.segmentation._binseg import BinSegmenter
@@ -23,5 +24,6 @@ from aeon.segmentation._ggs import GreedyGaussianSegmenter
 from aeon.segmentation._hidalgo import HidalgoSegmenter
 from aeon.segmentation._hmm import HMMSegmenter
 from aeon.segmentation._igts import InformationGainSegmenter, entropy
+from aeon.segmentation._pelt import PELTSegmenter
 from aeon.segmentation._random import RandomSegmenter
 from aeon.segmentation.base import BaseSegmenter

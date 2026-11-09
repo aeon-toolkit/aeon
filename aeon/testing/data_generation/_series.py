@@ -6,6 +6,12 @@ __all__ = [
     "make_example_2d_numpy_series",
     "make_example_pandas_series",
     "make_example_dataframe_series",
+    "make_example_mean_shift_series",
+    "make_example_variance_shift_series",
+    "make_example_multivariate_series",
+    "make_mean_shift_series",
+    "make_variance_shift_series",
+    "make_multivariate_series",
 ]
 
 
@@ -333,3 +339,159 @@ def _make_index(n_timepoints, index_type=None):
         return pd.Index(np.arange(0, n_timepoints), dtype=int)
     else:
         raise ValueError(f"index_class: {index_type} is not supported")
+
+
+def make_example_mean_shift_series(
+    n_timepoints: int = 300,
+    mean_shift: float = 10.0,
+    noise_std: float = 0.5,
+    random_state: int | np.random.Generator | None = None,
+) -> np.ndarray:
+    """Generate 1D series with three segments exhibiting mean shifts.
+
+    Creates a 1D numpy array with three segments of roughly equal length.
+    The first and third segments have mean 0, and the middle segment has mean
+    `mean_shift`. All segments have Gaussian noise with standard deviation `noise_std`.
+
+    Parameters
+    ----------
+    n_timepoints : int, default=300
+        Total length of the time series to generate.
+    mean_shift : float, default=10.0
+        Mean value of the middle segment.
+    noise_std : float, default=0.5
+        Standard deviation of Gaussian noise added to all segments.
+    random_state : int, np.random.Generator, or None, default=None
+        Seed or generator for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        1D numpy array of shape (n_timepoints,).
+
+    Examples
+    --------
+    >>> from aeon.testing.data_generation import make_example_mean_shift_series
+    >>> X = make_example_mean_shift_series(n_timepoints=300, random_state=42)
+    >>> len(X)
+    300
+    """
+    rng = np.random.default_rng(random_state)
+    seg1_len = n_timepoints // 3
+    seg2_len = n_timepoints // 3
+    seg3_len = n_timepoints - seg1_len - seg2_len
+
+    seg1 = rng.normal(0.0, noise_std, seg1_len)
+    seg2 = rng.normal(mean_shift, noise_std, seg2_len)
+    seg3 = rng.normal(0.0, noise_std, seg3_len)
+    return np.concatenate([seg1, seg2, seg3])
+
+
+def make_example_variance_shift_series(
+    n_timepoints: int = 300,
+    scale1: float = 1.0,
+    scale2: float = 5.0,
+    random_state: int | np.random.Generator | None = None,
+) -> np.ndarray:
+    """Generate 1D series with three segments exhibiting variance shifts.
+
+    Creates a 1D numpy array with three segments of roughly equal length and zero mean.
+    The first and third segments have standard deviation `scale1`, and the middle
+    segment has standard deviation `scale2`.
+
+    Parameters
+    ----------
+    n_timepoints : int, default=300
+        Total length of the time series to generate.
+    scale1 : float, default=1.0
+        Standard deviation of the first and third segments.
+    scale2 : float, default=5.0
+        Standard deviation of the middle segment.
+    random_state : int, np.random.Generator, or None, default=None
+        Seed or generator for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        1D numpy array of shape (n_timepoints,).
+
+    Examples
+    --------
+    >>> from aeon.testing.data_generation import make_example_variance_shift_series
+    >>> X = make_example_variance_shift_series(n_timepoints=300, random_state=7)
+    >>> len(X)
+    300
+    """
+    rng = np.random.default_rng(random_state)
+    seg1_len = n_timepoints // 3
+    seg2_len = n_timepoints // 3
+    seg3_len = n_timepoints - seg1_len - seg2_len
+
+    seg1 = rng.normal(0.0, scale1, seg1_len)
+    seg2 = rng.normal(0.0, scale2, seg2_len)
+    seg3 = rng.normal(0.0, scale1, seg3_len)
+    return np.concatenate([seg1, seg2, seg3])
+
+
+def make_example_multivariate_series(
+    n_timepoints: int = 200,
+    n_channels: int = 3,
+    mean_shift: float = 8.0,
+    noise_std: float = 0.5,
+    axis: int = 1,
+    random_state: int | np.random.Generator | None = None,
+) -> np.ndarray:
+    """Generate 2D multivariate series with two segments exhibiting a mean shift.
+
+    Creates a 2D numpy array split into two halves along timepoints.
+    The first half has zero mean and the second half has mean `mean_shift` across
+    all channels, with Gaussian noise of standard deviation `noise_std`.
+
+    Parameters
+    ----------
+    n_timepoints : int, default=200
+        Number of timepoints to generate.
+    n_channels : int, default=3
+        Number of channels to generate.
+    mean_shift : float, default=8.0
+        Mean value of the second segment.
+    noise_std : float, default=0.5
+        Standard deviation of Gaussian noise.
+    axis : int, default=1
+        The axis for timepoints. If 1, returns shape (n_channels, n_timepoints).
+        If 0, returns shape (n_timepoints, n_channels).
+    random_state : int, np.random.Generator, or None, default=None
+        Seed or generator for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        2D numpy array of shape (n_channels, n_timepoints) if axis=1,
+        or (n_timepoints, n_channels) if axis=0.
+
+    Examples
+    --------
+    >>> from aeon.testing.data_generation import make_example_multivariate_series
+    >>> X = make_example_multivariate_series(
+    ...     n_timepoints=200, n_channels=3, random_state=42
+    ... )
+    >>> X.shape
+    (3, 200)
+    """
+    if axis not in (0, 1):
+        raise ValueError(f"axis: {axis} is not supported, please use 0 or 1.")
+
+    rng = np.random.default_rng(random_state)
+    half = n_timepoints // 2
+    seg1 = rng.normal(0.0, noise_std, (n_channels, half))
+    seg2 = rng.normal(mean_shift, noise_std, (n_channels, n_timepoints - half))
+    X = np.hstack([seg1, seg2])
+
+    if axis == 0:
+        return X.T
+    return X
+
+
+make_mean_shift_series = make_example_mean_shift_series
+make_variance_shift_series = make_example_variance_shift_series
+make_multivariate_series = make_example_multivariate_series
