@@ -654,6 +654,23 @@ class ShapeleterTransform(BaseCollectionTransformer):
                 "ShapeleterTransform requires y for hypergraph pruning and LDA fusion."
             )
 
+        if self.max_shapelets <= 0:
+            raise ValueError("max_shapelets must be positive.")
+        if self.per_shapelets <= 0:
+            raise ValueError("per_shapelets must be positive.")
+        if self.k_min <= 0:
+            raise ValueError("k_min must be positive.")
+        if self.k_min > self.k_max:
+            raise ValueError("k_min must be <= k_max.")
+        if not (self.k_min <= self.ka <= self.k_max):
+            raise ValueError("ka must be within [k_min, k_max].")
+        if not (self.k_min <= self.ko <= self.k_max):
+            raise ValueError("ko must be within [k_min, k_max].")
+        if self.lr <= 0:
+            raise ValueError("lr must be positive.")
+        if self.max_iter < 0:
+            raise ValueError("max_iter must be non-negative.")
+
         self.series_len_ = X.shape[-1]
         self.rdst_ = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,

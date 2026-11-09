@@ -313,3 +313,25 @@ def test_normalise_soo_matches_loop():
 
     vec = st._normalise_soo(raw_feats.copy())
     np.testing.assert_allclose(vec, ref, atol=1e-12)
+
+
+@pytest.mark.parametrize(
+    "invalid_param",
+    [
+        {"max_shapelets": 0},
+        {"per_shapelets": -1},
+        {"k_min": 0.0},
+        {"k_min": 10.0, "k_max": 5.0},
+        {"ka": 0.5, "k_min": 1.0, "k_max": 15.0},
+        {"ko": 20.0, "k_min": 1.0, "k_max": 15.0},
+        {"lr": 0.0},
+        {"max_iter": -5},
+    ],
+)
+def test_shapeleter_hyperparameter_validation(invalid_param):
+    """Test that invalid hyperparameter values raise ValueError."""
+    X = np.random.RandomState(42).normal(size=(5, 1, 30))
+    y = np.array([0, 1, 0, 1, 0])
+    st = ShapeleterTransform(**invalid_param)
+    with pytest.raises(ValueError):
+        st.fit(X, y)
