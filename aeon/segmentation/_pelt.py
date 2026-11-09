@@ -1,7 +1,7 @@
 """PELT (Pruned Exact Linear Time) Segmenter.
 
 Optimal changepoint detection via dynamic programming with an exact pruning
-rule that yields expected O(n) complexity.  Supports L2 (mean change) and
+rule that yields expected O(n) complexity. Supports L2 (mean change) and
 Gaussian log-likelihood (mean + variance change) cost functions, automatic
 penalty selection (BIC / AIC), and multivariate time series.
 
@@ -63,12 +63,12 @@ class PELTSegmenter(BaseSegmenter):
     jump : int, default=1
         Subsample interval for candidate changepoint positions.
         ``jump=1`` considers every position; ``jump=k`` considers every
-        k-th position.  Larger values trade optimality for speed.
+        k-th position. Larger values trade optimality for speed.
 
     Notes
     -----
     The implementation uses prefix-sum arrays for O(d) cost evaluation per
-    candidate (d = number of channels).  Input data is centred per channel
+    candidate (d = number of channels). Input data is centred per channel
     and cast to float64 before prefix-sum computation to mitigate
     floating-point cancellation.
 
@@ -134,28 +134,22 @@ class PELTSegmenter(BaseSegmenter):
         if n_timepoints < 2 * self.min_size:
             return np.array([], dtype=np.intp)
 
-        # --- prefix-sum preparation ---
-        # Centre per channel and promote to float64 for stability.
+        # Center per channel and cast to float64 for numerical stability.
         data = X.astype(np.float64)
         data = data - data.mean(axis=1, keepdims=True)
 
-        # S[t, c]  = sum_{i=0}^{t-1} data[c, i]   (S[0, :] = 0)
-        # SS[t, c] = sum_{i=0}^{t-1} data[c, i]^2  (SS[0, :] = 0)
-        data_T = data.T  # (n_timepoints, n_channels)
+        data_T = data.T
         S = np.zeros((n_timepoints + 1, n_channels), dtype=np.float64)
         SS = np.zeros((n_timepoints + 1, n_channels), dtype=np.float64)
         np.cumsum(data_T, axis=0, out=S[1:])
         np.cumsum(data_T**2, axis=0, out=SS[1:])
 
-        # --- penalty ---
         pen = self._compute_penalty(n_timepoints, n_channels)
 
-        # --- admissible changepoint grid ---
         grid = list(range(0, n_timepoints + 1, self.jump))
         if grid[-1] != n_timepoints:
             grid.append(n_timepoints)
 
-        # --- PELT dynamic programming ---
         F: dict[int, float] = {0: -pen}
         cp: dict[int, int] = {0: 0}
         candidates: set[int] = {0}
@@ -179,20 +173,18 @@ class PELTSegmenter(BaseSegmenter):
             F[t] = best_cost
             cp[t] = best_tau
 
-            # Pruning (K = 0 for L2 / normal costs):
-            # keep tau iff F[tau] + C(tau..t) <= F[t]
+            # Pruning rule with K = 0: keep tau iff F[tau] + C(tau..t) <= F[t]
             new_candidates: set[int] = set()
             for tau in candidates:
                 if tau in seg_costs:
                     if F[tau] + seg_costs[tau] <= F[t]:
                         new_candidates.add(tau)
                 else:
-                    # segment too short to evaluate — keep for future t
                     new_candidates.add(tau)
             new_candidates.add(t)
             candidates = new_candidates
 
-        # --- backtrack ---
+        # Backtrack optimal changepoint sequence
         changepoints: list[int] = []
         t = n_timepoints
         while cp.get(t, 0) != 0:
@@ -201,10 +193,6 @@ class PELTSegmenter(BaseSegmenter):
 
         changepoints.sort()
         return np.array(changepoints, dtype=np.intp)
-
-    # -----------------------------------------------------------------
-    # Cost functions
-    # -----------------------------------------------------------------
 
     @staticmethod
     def _cost_l2(S: np.ndarray, SS: np.ndarray, start: int, end: int) -> float:
@@ -269,10 +257,6 @@ class PELTSegmenter(BaseSegmenter):
         var = np.maximum(diff_ss / length - (diff_s / length) ** 2, 0.0)
         return float(np.sum(length * np.log(var + 1e-8)))
 
-    # -----------------------------------------------------------------
-    # Penalty computation
-    # -----------------------------------------------------------------
-
     def _compute_penalty(self, n_timepoints: int, n_channels: int) -> float:
         """Compute the penalty value from *self.penalty*.
 
@@ -286,9 +270,8 @@ class PELTSegmenter(BaseSegmenter):
         Returns
         -------
         float
-            Penalty value (> 0).
+            Penalty value (>= 0).
         """
-        # Number of free parameters per segment.
         params_per_channel = 1 if self.cost == "l2" else 2
         p = n_channels * params_per_channel
 
@@ -297,13 +280,8 @@ class PELTSegmenter(BaseSegmenter):
         if isinstance(self.penalty, str):
             if self.penalty == "bic":
                 return p * np.log(n_timepoints)
-            # "aic"
             return 2.0 * p
         return float(self.penalty)
-
-    # -----------------------------------------------------------------
-    # Validation
-    # -----------------------------------------------------------------
 
     def _validate_params(self) -> None:
         """Validate constructor parameters.
@@ -344,10 +322,6 @@ class PELTSegmenter(BaseSegmenter):
 
         if not isinstance(self.jump, int) or self.jump < 1:
             raise ValueError(f"jump must be an integer >= 1, got {self.jump}.")
-
-    # -----------------------------------------------------------------
-    # Estimator test interface
-    # -----------------------------------------------------------------
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

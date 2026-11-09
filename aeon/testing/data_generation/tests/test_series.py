@@ -10,7 +10,10 @@ from aeon.testing.data_generation import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
     make_example_dataframe_series,
+    make_example_mean_shift_series,
+    make_example_multivariate_series,
     make_example_pandas_series,
+    make_example_variance_shift_series,
 )
 from aeon.utils.validation.series import is_series
 
@@ -140,3 +143,34 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
         make_example_dataframe_series(
             n_timepoints=n_timepoints, n_channels=n_channels, axis=1, return_y="invalid"
         )
+
+
+def test_make_example_mean_shift_series():
+    """Test generated mean shift series."""
+    X = make_example_mean_shift_series(n_timepoints=30, random_state=42)
+    assert isinstance(X, np.ndarray)
+    assert X.shape == (30,)
+    assert is_series(X)
+
+
+def test_make_example_variance_shift_series():
+    """Test generated variance shift series."""
+    X = make_example_variance_shift_series(n_timepoints=30, random_state=7)
+    assert isinstance(X, np.ndarray)
+    assert X.shape == (30,)
+    assert is_series(X)
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+def test_make_example_multivariate_series(axis):
+    """Test generated multivariate series."""
+    X = make_example_multivariate_series(
+        n_timepoints=20, n_channels=3, axis=axis, random_state=42
+    )
+    assert isinstance(X, np.ndarray)
+    expected_shape = (20, 3) if axis == 0 else (3, 20)
+    assert X.shape == expected_shape
+    assert is_series(X, include_2d=True)
+
+    with pytest.raises(ValueError, match="axis: 2 is not supported"):
+        make_example_multivariate_series(axis=2)

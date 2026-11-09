@@ -14,6 +14,12 @@ __all__ = [
     "make_example_2d_numpy_series",
     "make_example_pandas_series",
     "make_example_dataframe_series",
+    "make_example_mean_shift_series",
+    "make_example_variance_shift_series",
+    "make_example_multivariate_series",
+    "make_mean_shift_series",
+    "make_variance_shift_series",
+    "make_multivariate_series",
     # labels
     "make_anomaly_detection_labels",
 ]
@@ -33,5 +39,11 @@ from aeon.testing.data_generation._series import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
     make_example_dataframe_series,
+    make_example_mean_shift_series,
+    make_example_multivariate_series,
     make_example_pandas_series,
+    make_example_variance_shift_series,
+    make_mean_shift_series,
+    make_multivariate_series,
+    make_variance_shift_series,
 )
