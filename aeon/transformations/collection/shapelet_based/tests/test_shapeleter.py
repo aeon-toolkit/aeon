@@ -335,3 +335,30 @@ def test_shapeleter_hyperparameter_validation(invalid_param):
     st = ShapeleterTransform(**invalid_param)
     with pytest.raises(ValueError):
         st.fit(X, y)
+
+
+def test_rdst_pruning_keeps_internal_state_consistent():
+    """Verify that pruning RDST shapelets maintains matching counts and transform width."""
+    X = np.random.RandomState(42).normal(size=(10, 1, 40))
+    y = np.array([0, 1] * 5)
+    st = ShapeleterTransform(
+        max_shapelets=100, per_shapelets=10, max_iter=1, random_state=42
+    )
+    st.fit(X, y)
+    n = len(st.shapelet_lengths_)
+    assert len(st.rdst_.shapelets_[0]) == n
+    assert st.rdst_.transform(X).shape[1] == 3 * n
+
+
+def test_rdst_feature_order_min_argmin_soo():
+    """Verify RDST transform outputs [min distance, argmin position, SOO]."""
+    X = np.random.RandomState(42).normal(size=(10, 1, 40))
+    y = np.array([0, 1] * 5)
+    st = ShapeleterTransform(
+        max_shapelets=50, per_shapelets=10, max_iter=1, random_state=42
+    )
+    st.fit(X, y)
+    feats = st.rdst_.transform(X)
+    assert np.all(feats[:, 0::3] >= 0.0)
+    assert np.all(np.isclose(feats[:, 1::3], np.round(feats[:, 1::3])))
+    assert np.all(feats[:, 2::3] >= 0.0)

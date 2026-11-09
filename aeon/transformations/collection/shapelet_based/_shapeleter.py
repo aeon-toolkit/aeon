@@ -680,15 +680,24 @@ class ShapeleterTransform(BaseCollectionTransformer):
         )
         self.rdst_.fit(X, y)
 
-        raw_shapelets = self.rdst_.shapelets_[0]
+        # RDST ``shapelets_`` tuple layout (verified against _dilated_shapelet_transform.py):
+        # 0: shapelet values, 1: startpoints, 2: lengths, 3: dilations, 4: thresholds,
+        # 5: normalisation flags, 6: means, 7: stds, 8: source class
+        shp_vals_idx = 0
+        shp_lens_idx = 2
+        shp_dils_idx = 3
+        shp_norm_idx = 5
+        shp_cls_idx = 8
+
+        raw_shapelets = self.rdst_.shapelets_[shp_vals_idx]
         n_candidates = len(raw_shapelets)
 
         if n_candidates > 0 and len(np.unique(y)) > 1:
             save_rate = float(self.per_shapelets) / max(1.0, float(n_candidates))
-            lengths = self.rdst_.shapelets_[2]
-            dilas = self.rdst_.shapelets_[3]
-            norms = self.rdst_.shapelets_[5]
-            shapelet_classes = self.rdst_.shapelets_[8]
+            lengths = self.rdst_.shapelets_[shp_lens_idx]
+            dilas = self.rdst_.shapelets_[shp_dils_idx]
+            norms = self.rdst_.shapelets_[shp_norm_idx]
+            shapelet_classes = self.rdst_.shapelets_[shp_cls_idx]
             selected_idx = []
 
             for l_val in np.unique(lengths):
@@ -713,8 +722,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
                     attr[selected_idx] for attr in self.rdst_.shapelets_
                 )
 
-        self.shapelet_lengths_ = self.rdst_.shapelets_[2]
-        self.shapelet_dilations_ = self.rdst_.shapelets_[3]
+        self.shapelet_lengths_ = self.rdst_.shapelets_[shp_lens_idx]
+        self.shapelet_dilations_ = self.rdst_.shapelets_[shp_dils_idx]
 
         raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
