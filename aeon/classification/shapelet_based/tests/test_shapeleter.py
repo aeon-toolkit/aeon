@@ -93,3 +93,58 @@ def test_shapeleter_classifier_unit_test_fits(seed):
     clf.fit(X, y)
     proba = clf.predict_proba(X)
     assert np.all(np.isfinite(proba))
+
+
+def _fitted_clf():
+    X = np.random.RandomState(42).normal(size=(8, 1, 30))
+    y = np.array([0, 1] * 4)
+    clf = ShapeleterClassifier(
+        max_shapelets=10, per_shapelets=5, max_iter=2, random_state=42
+    )
+    clf.fit(X, y)
+    return clf, X
+
+
+def test_shapeleter_classifier_view_widths():
+    """V0 = 4 reps x (min + soo); V1..V3 = V0 + one more positional block."""
+    clf, X = _fitted_clf()
+    v0, v1, v2, v3 = clf._assemble_views(X)
+    n_shp = sum(
+        len(t.shapelet_lengths_)
+        for t in (
+            clf.transformer_raw_,
+            clf.transformer_t0_,
+            clf.transformer_t1_,
+            clf.transformer_t2_,
+        )
+    )
+    assert v0.shape == (8, 2 * n_shp)
+    for v in (v1, v2, v3):
+        assert v.shape == (8, 4 * n_shp)
+
+
+def test_shapeleter_classifier_four_voters():
+    clf, _ = _fitted_clf()
+    voters = [clf.clf_v0_, clf.clf_v1_, clf.clf_v2_, clf.clf_v3_]
+    assert len({id(v) for v in voters}) == 4
+
+
+class _StubVoter:
+
+    def __init__(self, label):
+        self.label = label
+
+    def predict(self, v):
+        return np.full(len(v), self.label)
+
+
+@pytest.mark.parametrize("votes", [(0, 1, 0, 1), (1, 0, 1, 0), (1, 1, 0, 0)])
+def test_shapeleter_classifier_tie_goes_to_first_class(votes, monkeypatch):
+    """2-2 tie must resolve to the first (sorted) class, like np.argmax."""
+    clf, X = _fitted_clf()
+    dummy = np.zeros((len(X), 1))
+    monkeypatch.setattr(clf, "_assemble_views", lambda X: (dummy,) * 4)
+    for name, lab in zip(("clf_v0_", "clf_v1_", "clf_v2_", "clf_v3_"), votes):
+        setattr(clf, name, _StubVoter(lab))
+    assert np.all(clf._predict(X) == clf.classes_[0])
+    np.testing.assert_allclose(clf._predict_proba(X), 0.5)
