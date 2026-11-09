@@ -290,3 +290,26 @@ def test_shapeleter_transform_unit_test_fits(seed):
     )
     Xt = st.fit_transform(X, y)
     assert np.all(np.isfinite(Xt))
+
+
+def test_normalise_soo_matches_loop():
+    """Verify vectorized SOO normalization matches the per-shapelet reference loop."""
+    st = ShapeleterTransform()
+    st.series_len_ = 50
+    st.shapelet_lengths_ = np.array([5, 7, 11, 15])
+    st.shapelet_dilations_ = np.array([1, 2, 1, 2])
+    n_shapelets = len(st.shapelet_lengths_)
+    rng = np.random.RandomState(42)
+    raw_feats = rng.uniform(0.0, 10.0, size=(10, 3 * n_shapelets))
+
+    ref = raw_feats.copy()
+    for i in range(n_shapelets):
+        denom = (
+            st.series_len_
+            - (st.shapelet_lengths_[i] - 1) * st.shapelet_dilations_[i]
+        )
+        denom = max(1.0, float(denom))
+        ref[:, 2 + 3 * i] = ref[:, 2 + 3 * i] / denom
+
+    vec = st._normalise_soo(raw_feats.copy())
+    np.testing.assert_allclose(vec, ref, atol=1e-12)

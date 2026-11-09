@@ -701,15 +701,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
         raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
-
-        n_shapelets = len(self.shapelet_lengths_)
-        for i in range(n_shapelets):
-            denom = (
-                self.series_len_
-                - (self.shapelet_lengths_[i] - 1) * self.shapelet_dilations_[i]
-            )
-            denom = max(1.0, float(denom))
-            raw_feats[:, 2 + 3 * i] = raw_feats[:, 2 + 3 * i] / denom
+        raw_feats = self._normalise_soo(raw_feats)
 
         x_min = raw_feats[:, 0::3]
         x_arg = raw_feats[:, 1::3]
@@ -821,19 +813,22 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
         return x_min_abs, x_min_ord, x_soo_abs, x_soo_ord
 
+    def _normalise_soo(self, raw_feats):
+        """Divide each SOO column by its number of valid positions."""
+        if len(self.shapelet_lengths_) > 0:
+            denom = (
+                self.series_len_
+                - (self.shapelet_lengths_ - 1) * self.shapelet_dilations_
+            )
+            denom = np.maximum(1.0, denom.astype(float))
+            raw_feats[:, 2::3] /= denom[np.newaxis, :]
+        return raw_feats
+
     def _transform_groups(self, X):
         """Transform time series into 8 distinct shapelet feature groups."""
         raw_feats = self.rdst_.transform(X)
         raw_feats = np.nan_to_num(raw_feats, nan=0.0, posinf=0.0, neginf=0.0)
-
-        n_shapelets = len(self.shapelet_lengths_)
-        for i in range(n_shapelets):
-            denom = (
-                self.series_len_
-                - (self.shapelet_lengths_[i] - 1) * self.shapelet_dilations_[i]
-            )
-            denom = max(1.0, float(denom))
-            raw_feats[:, 2 + 3 * i] = raw_feats[:, 2 + 3 * i] / denom
+        raw_feats = self._normalise_soo(raw_feats)
 
         x_min = self.scaler_min_.transform(raw_feats[:, 0::3])
         x_soo = self.scaler_soo_.transform(raw_feats[:, 2::3])
