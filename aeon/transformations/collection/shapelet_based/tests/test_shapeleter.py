@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
+from aeon.datasets import load_unit_test
+
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
     _CombinationFusion,
@@ -277,3 +279,14 @@ def test_vectorized_lda_matches_sklearn_direction(n_classes):
         s = s / np.linalg.norm(s)
         s = s if s[0] >= 0 else -s
         np.testing.assert_allclose([w1[j], w2[j]], s, atol=1e-8)
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2])
+def test_shapeleter_transform_unit_test_fits(seed):
+    """Regression: UnitTest used to crash on constant feature pairs."""
+    X, y = load_unit_test(split="train")
+    st = ShapeleterTransform(
+        max_shapelets=200, per_shapelets=20, max_iter=20, random_state=seed
+    )
+    Xt = st.fit_transform(X, y)
+    assert np.all(np.isfinite(Xt))

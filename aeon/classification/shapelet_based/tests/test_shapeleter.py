@@ -1,6 +1,7 @@
 """Tests for Shapeleter classifier."""
 
 import numpy as np
+import pytest
 
 from aeon.classification.shapelet_based._shapeleter import ShapeleterClassifier
 from aeon.datasets import load_unit_test
@@ -80,3 +81,15 @@ def test_shapeleter_classifier_unit_test():
     assert probas.shape == (len(X_test), len(clf.classes_))
     predicted_indices = np.array([list(clf.classes_).index(p) for p in preds])
     np.testing.assert_array_equal(np.argmax(probas, axis=1), predicted_indices)
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2])
+def test_shapeleter_classifier_unit_test_fits(seed):
+    """Regression: UnitTest fits and predicts without constant feature pair crashes."""
+    X, y = load_unit_test(split="train")
+    clf = ShapeleterClassifier(
+        max_shapelets=200, per_shapelets=20, max_iter=20, random_state=seed
+    )
+    clf.fit(X, y)
+    proba = clf.predict_proba(X)
+    assert np.all(np.isfinite(proba))
