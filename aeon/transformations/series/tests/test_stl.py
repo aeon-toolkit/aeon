@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.transformations.series._stl import STLSeriesTransformer
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def _synthetic_series(n=240, period=12, trend_slope=0.01, noise=0.0, seed=0):
@@ -64,6 +65,8 @@ def test_parameter_validation():
             y
         )  # low_pass <= period
     with pytest.raises(ValueError):
+        STLSeriesTransformer(period=12, low_pass_jump=0).fit_transform(y)
+    with pytest.raises(ValueError):
         STLSeriesTransformer(period=12, output="foo").fit_transform(y)
 
 
@@ -105,3 +108,49 @@ def test_jumps_keep_components_in_range(n, kwargs):
     trend = np.asarray(trend).ravel()
     assert np.all(np.isfinite(trend))
     assert np.all(trend > 99.0) and np.all(trend < 100.0 + n)
+
+
+def test_straight_line_trend_exact():
+    """Regression test for #3994: trend of straight line should match line exactly."""
+    params = dict(period=4, seasonal=7, trend=9, low_pass=5)
+    y = np.arange(48, dtype=float)
+
+    trend = STLSeriesTransformer(
+        **params, inner_iter=1, outer_iter=0, output="trend"
+    ).fit_transform(y)
+    np.testing.assert_allclose(np.ravel(trend), y, atol=1e-10)
+
+
+def test_low_pass_parameters_affect_output():
+    """Regression test for #3994: changing low_pass parameters must affect output."""
+    rng = np.random.default_rng(0)
+    t = np.arange(48)
+    z = 0.05 * t + np.sin(2 * np.pi * t / 4) + 0.1 * rng.normal(size=48)
+
+    a = STLSeriesTransformer(period=4, low_pass=5, output="seasonal").fit_transform(z)
+    b = STLSeriesTransformer(
+        period=4, low_pass=21, low_pass_deg=0, output="seasonal"
+    ).fit_transform(z)
+    assert not np.allclose(np.ravel(a), np.ravel(b))
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if statsmodels is not available",
+)
+def test_matches_statsmodels_stl():
+    """Regression test for #3994: verify close agreement with statsmodels STL."""
+    from statsmodels.tsa.seasonal import STL
+
+    params = dict(period=4, seasonal=7, trend=9, low_pass=5)
+    rng = np.random.default_rng(42)
+    t = np.arange(48)
+    z = 0.05 * t + np.sin(2 * np.pi * t / 4) + 0.1 * rng.normal(size=48)
+
+    aeon_res = STLSeriesTransformer(
+        **params, inner_iter=2, outer_iter=0, output="all"
+    ).fit_transform(z)
+    sm_res = STL(z, **params).fit(inner_iter=2, outer_iter=0)
+
+    np.testing.assert_allclose(aeon_res[:, 0], sm_res.seasonal, atol=1e-10)
+    np.testing.assert_allclose(aeon_res[:, 1], sm_res.trend, atol=1e-10)
