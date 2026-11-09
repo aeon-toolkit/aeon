@@ -33,6 +33,18 @@ def is_tabular(X):
     -------
     bool
         True if input is 2D, False otherwise.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.collection import is_tabular
+    >>> is_tabular(np.zeros(shape=(10, 3)))
+    True
+    >>> is_tabular(pd.DataFrame(np.zeros(shape=(10, 3))))
+    True
+    >>> is_tabular(np.zeros(shape=(10, 3, 20)))
+    False
     """
     return get_type(X, raise_error=False) in ["numpy2D", "pd-wide"]
 
