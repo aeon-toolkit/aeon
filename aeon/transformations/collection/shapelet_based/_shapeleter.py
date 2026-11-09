@@ -645,8 +645,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
         self.random_state = random_state
         super().__init__()
 
-    def _fit(self, X, y=None):
-        """Fit RDST backbone, apply hypergraph pruning, and initialize fusions."""
+    def _fit_groups(self, X, y):
+        """Fit RDST backbone, pruning, positions, and fusion models; return 8 groups."""
         if y is None:
             raise ValueError(
                 "ShapeleterTransform requires y for hypergraph pruning and LDA fusion."
@@ -719,7 +719,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
         x_soo_scaled = self.scaler_soo_.transform(x_soo)
 
         self.unique_dilations_ = np.unique(self.shapelet_dilations_)
-        self._unique_dilations = self.unique_dilations_
         self.base_abs_ = {}
         self.base_ord_ = {}
         self.ka_opt_ = {}
@@ -758,9 +757,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
             self.base_abs_[d] = ka_d * len_map / (2.0 * np.pi)
             self.base_ord_[d] = ko_d * n_sub / (2.0 * np.pi)
 
-        self._base_abs = self.base_abs_
-        self._base_ord = self.base_ord_
-
         x_min_abs, x_min_ord, x_soo_abs, x_soo_ord = self._encode_positions(
             x_min_scaled, x_soo_scaled, x_arg
         )
@@ -775,7 +771,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
             x_soo_scaled, x_soo_abs, x_soo_ord, y
         )
 
-        self._fit_transformed_groups = (
+        return (
             x_min_scaled,
             x_soo_scaled,
             m_oa,
@@ -785,14 +781,15 @@ class ShapeleterTransform(BaseCollectionTransformer):
             m_ar,
             s_ar,
         )
+
+    def _fit(self, X, y=None):
+        """Fit RDST backbone, apply hypergraph pruning, and initialize fusions."""
+        self._fit_groups(X, y)
         return self
 
     def _fit_transform_groups(self, X, y=None):
         """Fit the transformer and return multi-view feature groups."""
-        self._fit(X, y)
-        groups = self._fit_transformed_groups
-        del self._fit_transformed_groups
-        return groups
+        return self._fit_groups(X, y)
 
     def _fit_transform(self, X, y=None):
         """Fit to data, then transform it."""

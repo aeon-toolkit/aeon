@@ -58,6 +58,20 @@ def test_shapeleter_transformer_fit_transform_equivalence():
     np.testing.assert_allclose(xt1, xt2, atol=1e-5)
 
 
+def test_fit_does_not_keep_training_features():
+    """Test that fit() does not retain training feature groups or duplicate aliases."""
+    X = np.random.RandomState(42).normal(size=(5, 1, 30))
+    y = np.array([0, 1, 0, 1, 0])
+    st = ShapeleterTransform(
+        max_shapelets=20, per_shapelets=5, max_iter=2, random_state=42
+    )
+    st.fit(X, y)
+    assert not hasattr(st, "_fit_transformed_groups")
+    assert not hasattr(st, "_unique_dilations")
+    assert not hasattr(st, "_base_abs")
+    assert not hasattr(st, "_base_ord")
+
+
 def test_shapeleter_fixed_k_max_iter_zero():
     """Test initialization when max_iter is 0."""
     X = np.random.RandomState(42).normal(size=(5, 1, 30))
