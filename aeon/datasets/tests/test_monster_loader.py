@@ -47,9 +47,7 @@ def test_load_monster_dataset():
         load_monster_dataset(dataset_name)
     dataset_name = "Pedestrian"
 
-    X_train, y_train, X_test, y_test = load_monster_dataset(
-        dataset_name=dataset_name, fold=0
-    )
+    X_train, y_train, X_test, y_test = load_monster_dataset(name=dataset_name, fold=0)
 
     assert isinstance(X_train, np.ndarray)
     assert isinstance(y_train, np.ndarray)
@@ -60,3 +58,27 @@ def test_load_monster_dataset():
     assert X_test.ndim == 3
     assert len(X_train) == len(y_train)
     assert len(X_test) == len(y_test)
+
+
+def test_load_monster_dataset_name_errors():
+    """Test name argument errors raised before any download."""
+    with pytest.raises(ValueError, match="No dataset name provided"):
+        load_monster_dataset()
+    with pytest.raises(ValueError, match="Both 'name' and 'dataset_name'"):
+        load_monster_dataset(name="Pedestrian", dataset_name="Pedestrian")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
+@pytest.mark.skipif(
+    not _check_soft_dependencies("huggingface_hub", severity="none"),
+    reason="required soft dependency huggingface-hub not available",
+)
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
+def test_load_monster_dataset_deprecated_dataset_name():
+    """Test the deprecated dataset_name parameter raises a FutureWarning."""
+    with pytest.warns(FutureWarning, match="'dataset_name' parameter is deprecated"):
+        with pytest.raises(ValueError, match="not found in the Monster collection"):
+            load_monster_dataset(dataset_name="FOO")
