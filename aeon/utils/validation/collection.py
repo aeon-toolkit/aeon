@@ -63,6 +63,18 @@ def is_collection(X, include_2d=False):
     -------
     bool
         True if input is a collection, False otherwise.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.collection import is_collection
+    >>> is_collection(np.zeros(shape=(10, 3, 20)))
+    True
+    >>> is_collection(pd.DataFrame(np.zeros(shape=(10, 3))), include_2d=True)
+    True
+    >>> is_collection(pd.DataFrame(np.zeros(shape=(10, 3))))
+    False
     """
     valid = ["numpy3D", "np-list", "df-list", "pd-multiindex"]
     if include_2d:
@@ -89,6 +101,16 @@ def get_n_cases(X):
     ------
     ValueError
         input_type not in COLLECTIONS_DATA_TYPES.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.collection import get_n_cases
+    >>> get_n_cases(np.zeros(shape=(10, 3, 20)))
+    10
+    >>> get_n_cases(pd.DataFrame(np.zeros(shape=(10, 3))))
+    10
     """
     t = get_type(X)
     if t == "pd-multiindex":
@@ -115,6 +137,15 @@ def get_n_timepoints(X):
     ------
     ValueError
         Input_type not in COLLECTIONS_DATA_TYPES.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.validation.collection import get_n_timepoints
+    >>> get_n_timepoints(np.zeros(shape=(10, 3, 20)))
+    20
+    >>> print(get_n_timepoints([np.zeros(shape=(3, 20)), np.zeros(shape=(3, 15))]))
+    None
     """
     t = get_type(X)
     if not is_equal_length(X):
@@ -146,6 +177,17 @@ def get_n_channels(X):
         X is list of 2D numpy arrays or pd.DataFrames but number of channels is not
         consistent.
         Input_type not in COLLECTIONS_DATA_TYPES.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.validation.collection import get_n_channels
+    >>> get_n_channels(np.zeros(shape=(10, 3, 20)))
+    3
+    >>> get_n_channels(np.zeros(shape=(10, 20)))
+    1
+    >>> get_n_channels([np.zeros(shape=(2, 20)), np.zeros(shape=(2, 15))])
+    2
     """
     t = get_type(X)
     if t == "numpy3D":
@@ -253,7 +295,7 @@ def has_missing(X):
 
 
 def is_univariate(X):
-    """Check if X is multivariate.
+    """Check if X is univariate.
 
     Parameters
     ----------
@@ -270,6 +312,15 @@ def is_univariate(X):
     ValueError
         X is list of 2D numpy arrays or pd.DataFrames but number of channels is not
         consistent.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.validation.collection import is_univariate
+    >>> is_univariate(np.zeros(shape=(10, 3, 20)))
+    False
+    >>> is_univariate(np.zeros(shape=(10, 20)))
+    True
     """
     return get_n_channels(X) == 1
 
@@ -549,6 +600,20 @@ def check_collection_variance(X, threshold=1e-7, raise_error=True):
         If any case has std <= threshold and raise_error=True.
         threshold is negative.
         Input_type not in COLLECTIONS_DATA_TYPES.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.validation.collection import check_collection_variance
+    >>> rng = np.random.default_rng(0)
+    >>> check_collection_variance(rng.random(size=(10, 3, 20)), threshold=1e-7)
+    True
+    >>> check_collection_variance(np.zeros(shape=(10, 3, 20)))
+    True
+    >>> X = np.ones(shape=(10, 3, 20))
+    >>> X[0, 0, 0] += 1e-9
+    >>> check_collection_variance(X, raise_error=False)
+    False
     """
     if threshold < 0:
         raise ValueError("threshold must be non-negative.")
