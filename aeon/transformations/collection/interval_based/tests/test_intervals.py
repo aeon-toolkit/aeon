@@ -65,31 +65,40 @@ def test_supervised_transformers():
     "dtype",
     ["int16", "int32", "int64", "float32", "float64"],
 )
-def test_supervised_intervals_preserves_float_precision(dtype):
-    """Test SupervisedIntervals preserves float32 and promotes integer input."""
+@pytest.mark.parametrize("normalise_for_search", [True, False])
+def test_supervised_intervals_preserves_float_precision(dtype, normalise_for_search):
+    """Check precision, selected intervals and values agree between fit paths."""
     X, y = make_example_3d_numpy(
         random_state=0,
-        n_channels=1,
+        n_channels=2,
         n_timepoints=20,
     )
     X = X.astype(dtype)
+    assert np.all(np.ptp(X, axis=2) > 0)
 
     expected_dtype = np.float32 if dtype == "float32" else np.float64
 
     sit = SupervisedIntervals(
-        features=[row_mean],
+        features=[row_mean, row_median],
         n_intervals=2,
         random_state=0,
+        normalise_for_search=normalise_for_search,
     )
     sit.fit(X, y)
     Xt = sit.transform(X)
 
-    sit = SupervisedIntervals(
-        features=[row_mean],
+    sit_fit_transform = SupervisedIntervals(
+        features=[row_mean, row_median],
         n_intervals=2,
         random_state=0,
+        normalise_for_search=normalise_for_search,
     )
-    Xt_fit_transform = sit.fit_transform(X, y)
+    Xt_fit_transform = sit_fit_transform.fit_transform(X, y)
 
+    assert sit.intervals_ == sit_fit_transform.intervals_
+    assert Xt.shape == Xt_fit_transform.shape == (X.shape[0], len(sit.intervals_))
+    assert Xt.shape[1] > 0
     assert Xt.dtype == expected_dtype
     assert Xt_fit_transform.dtype == expected_dtype
+    rtol = 1e-6 if dtype == "float32" else 1e-12
+    np.testing.assert_allclose(Xt, Xt_fit_transform, rtol=rtol, atol=0)

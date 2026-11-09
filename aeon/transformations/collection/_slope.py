@@ -3,6 +3,8 @@
 __all__ = ["SlopeTransformer"]
 __maintainer__ = []
 
+import math
+
 import numpy as np
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
@@ -111,17 +113,19 @@ class SlopeTransformer(BaseCollectionTransformer):
         xminXbar = (X - meanX) ** 2
 
         # Sum them to produce w.
-        w = np.sum(yminYbar) - np.sum(xminXbar)
+        w = float(np.sum(yminYbar)) - float(np.sum(xminXbar))
 
         # Sum (xi-mean(x))*(yi-mean(y)) and multiply by 2 to calculate r
-        r = 2 * np.sum((X - meanX) * (Y - meanY))
+        r = 2 * float(np.sum((X - meanX) * (Y - meanY)))
 
         if r == 0:
             # remove nans
             m = 0
         else:
-            # Gradient is defined as (w+sqrt(w^2+r^2))/r
-            m = (w + np.sqrt(w**2 + r**2)) / r
+            # Use scalar double precision and hypot to avoid squaring overflow.
+            # Rationalize the numerator when w < 0 to avoid cancellation.
+            hypotenuse = math.hypot(w, r)
+            m = r / (hypotenuse - w) if w < 0 else (w + hypotenuse) / r
 
         return m
 
