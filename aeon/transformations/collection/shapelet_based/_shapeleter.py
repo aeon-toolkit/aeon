@@ -10,7 +10,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.preprocessing import MinMaxScaler
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.collection.shapelet_based import (
+from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
 )
 

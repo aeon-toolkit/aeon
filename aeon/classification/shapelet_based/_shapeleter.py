@@ -231,12 +231,8 @@ class ShapeleterClassifier(BaseClassifier):
 
         return self
 
-    def _predict(self, X):
-        """Predict labels; ties go to the first class (np.argmax over sorted classes)."""
-        return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
-
-    def _predict_proba(self, X):
-        """Predict class probabilities as vote shares across the 4 ensemble views."""
+    def _vote_counts(self, X):
+        """Compute accumulated vote counts across the 4 ensemble views."""
         v0, v1, v2, v3 = self._assemble_views(X)
 
         p0 = self.clf_v0_.predict(v0)
@@ -253,7 +249,16 @@ class ShapeleterClassifier(BaseClassifier):
             for i, p in enumerate(preds):
                 vote_counts[i, class_to_idx[p]] += 1.0
 
-        return vote_counts / 4.0
+        return vote_counts
+
+    def _predict(self, X):
+        """Predict labels; ties go to the first class (np.argmax over sorted classes)."""
+        return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
+
+    def _predict_proba(self, X):
+        """Predict class probabilities as normalized vote shares across the 4 views."""
+        counts = self._vote_counts(X)
+        return counts / counts.sum(axis=1, keepdims=True)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
