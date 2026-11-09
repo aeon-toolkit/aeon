@@ -77,8 +77,7 @@ def _hypergraph_prune(
     shapelet_len,
     labels,
     neighbor_k=(3, 5),
-    save_rate=0.5,
-    per_shapelets=None,
+    save_rate=0.125,
     jaccard_threshold=0.9,
 ):
     """Prune candidate shapelets using hypergraph purity and Jaccard diversity."""
@@ -116,11 +115,7 @@ def _hypergraph_prune(
     j_matrix_bin[j_matrix >= jaccard_threshold] = 1.0
     np.fill_diagonal(j_matrix_bin, -1.0)
 
-    if per_shapelets is not None:
-        save_n = int(np.ceil(min(float(per_shapelets), float(n_shapelets))))
-    else:
-        save_n = int(np.ceil(save_rate * n_shapelets))
-    save_n = max(1, min(save_n, n_shapelets))
+    save_n = max(1, min(int(np.ceil(save_rate * n_shapelets)), n_shapelets))
 
     unique_labels = np.unique(labels)
     top_node = int(np.argmax(purity))
@@ -577,6 +572,12 @@ class ShapeleterTransform(BaseCollectionTransformer):
     fusion_soo_ : _CombinationFusion
         Fitted pairwise LDA fusion model for SOO views.
 
+    Notes
+    -----
+    `per_shapelets` is converted to a global keep-rate (`per_shapelets / n_candidates`)
+    applied per candidate group with `ceil`, so the total number of retained shapelets
+    can slightly exceed `per_shapelets`.
+
     References
     ----------
     .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet Enhancer via Multiview
@@ -674,7 +675,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
                                 l_val,
                                 shapelet_classes[sub_idx],
                                 save_rate=save_rate,
-                                per_shapelets=self.per_shapelets,
                             )
                             selected_idx.append(sub_idx[pruned_rel])
 
