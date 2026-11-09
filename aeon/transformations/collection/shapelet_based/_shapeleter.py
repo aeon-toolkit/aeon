@@ -590,6 +590,10 @@ class ShapeleterTransform(BaseCollectionTransformer):
     applied per candidate group with `ceil`, so the total number of retained shapelets
     can slightly exceed `per_shapelets`.
 
+    Ka and Ko are optimised per dilation. The absolute-position scale for a
+    dilation uses the length of the first retained shapelet with that dilation.
+    To be confirmed against the reference implementation.
+
     References
     ----------
     .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet Enhancer via Multiview
