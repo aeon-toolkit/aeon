@@ -252,7 +252,7 @@ class ShapeleterClassifier(BaseClassifier):
         return vote_counts
 
     def _predict(self, X):
-        """Predict labels; ties go to the first class (np.argmax over sorted classes)."""
+        """Predict labels; ties go to the first class."""
         return self.classes_[np.argmax(self._predict_proba(X), axis=1)]
 
     def _predict_proba(self, X):

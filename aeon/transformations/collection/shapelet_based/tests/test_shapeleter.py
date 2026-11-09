@@ -5,7 +5,6 @@ import pytest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 from aeon.datasets import load_unit_test
-
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
     _CombinationFusion,
@@ -305,8 +304,7 @@ def test_normalise_soo_matches_loop():
     ref = raw_feats.copy()
     for i in range(n_shapelets):
         denom = (
-            st.series_len_
-            - (st.shapelet_lengths_[i] - 1) * st.shapelet_dilations_[i]
+            st.series_len_ - (st.shapelet_lengths_[i] - 1) * st.shapelet_dilations_[i]
         )
         denom = max(1.0, float(denom))
         ref[:, 2 + 3 * i] = ref[:, 2 + 3 * i] / denom
@@ -338,7 +336,7 @@ def test_shapeleter_hyperparameter_validation(invalid_param):
 
 
 def test_rdst_pruning_keeps_internal_state_consistent():
-    """Verify that pruning RDST shapelets maintains matching counts and transform width."""
+    """Verify pruning RDST shapelets maintains counts and transform width."""
     X = np.random.RandomState(42).normal(size=(10, 1, 40))
     y = np.array([0, 1] * 5)
     st = ShapeleterTransform(

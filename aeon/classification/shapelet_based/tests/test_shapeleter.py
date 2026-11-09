@@ -124,13 +124,13 @@ def test_shapeleter_classifier_view_widths():
 
 
 def test_shapeleter_classifier_four_voters():
+    """Verify that all four voter classifiers are distinct estimator instances."""
     clf, _ = _fitted_clf()
     voters = [clf.clf_v0_, clf.clf_v1_, clf.clf_v2_, clf.clf_v3_]
     assert len({id(v) for v in voters}) == 4
 
 
 class _StubVoter:
-
     def __init__(self, label):
         self.label = label
 

@@ -140,7 +140,8 @@ def _hypergraph_prune(
             break
 
         cand_labels = labels[candidate_nodes]
-        # Follows the exhausted-label rule of the reference implementation (see PR discussion, reviewer TonyBagnall point 13).
+        # Follows the exhausted-label rule of the reference implementation
+        # (see PR discussion, reviewer TonyBagnall point 13).
         while (
             len(unique_labels) > 0
             and np.sum(cand_labels == unique_labels[lbl_idx]) == 0
@@ -684,9 +685,10 @@ class ShapeleterTransform(BaseCollectionTransformer):
         )
         self.rdst_.fit(X, y)
 
-        # RDST ``shapelets_`` tuple layout (verified against _dilated_shapelet_transform.py):
-        # 0: shapelet values, 1: startpoints, 2: lengths, 3: dilations, 4: thresholds,
-        # 5: normalisation flags, 6: means, 7: stds, 8: source class
+        # RDST ``shapelets_`` tuple layout
+        # (verified against _dilated_shapelet_transform.py):
+        # 0: shapelet values, 1: startpoints, 2: lengths, 3: dilations,
+        # 4: thresholds, 5: normalisation flags, 6: means, 7: stds, 8: source class
         shp_vals_idx = 0
         shp_lens_idx = 2
         shp_dils_idx = 3
