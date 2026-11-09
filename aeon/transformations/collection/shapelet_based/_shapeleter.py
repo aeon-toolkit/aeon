@@ -11,7 +11,6 @@ __all__ = [
 import numpy as np
 from numba import njit, prange
 from scipy.sparse import csr_matrix
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.preprocessing import MinMaxScaler
 
@@ -92,66 +91,75 @@ def _hypergraph_prune(
     cleaned_sub = np.nan_to_num(raw_sub, nan=0.0, posinf=0.0, neginf=0.0)
 
     dist_mat = euclidean_distances(cleaned_sub)
-    np.fill_diagonal(dist_mat, 0.0)
+    np.fill_diagonal(dist_mat, -np.inf)
 
     edges = []
     for k in valid_k:
         for i in range(n_shapelets):
             nn_indices = np.argsort(dist_mat[i])[:k]
-            if i not in nn_indices:
-                nn_indices[-1] = i
             edges.append(nn_indices)
 
-    purity = np.zeros(n_shapelets)
-    degree = np.zeros(n_shapelets)
+    purity = np.zeros(n_shapelets, dtype=float)
+    degree = np.zeros(n_shapelets, dtype=float)
     for edge in edges:
         sub_labels = labels[edge]
         edge_sz = len(edge)
         for idx in edge:
-            degree[idx] += 1
-            purity[idx] += np.sum(labels[idx] == sub_labels) / edge_sz
+            degree[idx] += 1.0
+            purity[idx] += np.sum(labels[idx] == sub_labels) / float(edge_sz)
 
     with np.errstate(divide="ignore", invalid="ignore"):
         purity = np.where(degree > 0, purity / degree, 0.0)
 
     j_matrix = _compute_jaccard_matrix(edges, n_shapelets)
-    j_matrix_bin = np.where(j_matrix >= jaccard_threshold, 1, 0)
-    np.fill_diagonal(j_matrix_bin, -1)
+    j_matrix_bin = np.zeros_like(j_matrix)
+    j_matrix_bin[j_matrix >= jaccard_threshold] = 1.0
+    np.fill_diagonal(j_matrix_bin, -1.0)
 
-    save_n = max(1, int(np.ceil(save_rate * n_shapelets)))
     if per_shapelets is not None:
-        save_n = min(save_n, int(per_shapelets))
+        save_n = int(np.ceil(min(float(per_shapelets), float(n_shapelets))))
+    else:
+        save_n = int(np.ceil(save_rate * n_shapelets))
+    save_n = max(1, min(save_n, n_shapelets))
+
     unique_labels = np.unique(labels)
     top_node = int(np.argmax(purity))
     saved_nodes = [top_node]
 
-    lbl_idx = (np.where(unique_labels == labels[top_node])[0][0] + 1) % len(
-        unique_labels
+    lbl_idx = int(np.where(unique_labels == labels[top_node])[0][0])
+    lbl_idx = (lbl_idx + 1) % len(unique_labels)
+    candidate_nodes = np.array(
+        [node for node in np.argsort(purity)[::-1] if node != top_node]
     )
-    candidate_nodes = [node for node in np.argsort(purity)[::-1] if node != top_node]
 
     for _ in range(save_n - 1):
-        if not candidate_nodes:
+        if len(candidate_nodes) == 0:
             break
         last_saved = saved_nodes[-1]
-        similar_nodes = set(np.where(j_matrix_bin[last_saved, :] == 1)[0])
-        candidate_nodes = [c for c in candidate_nodes if c not in similar_nodes]
-        if not candidate_nodes:
+        similar_nodes = np.where(j_matrix_bin[last_saved, :] == 1.0)[0]
+        j_matrix_bin[:, similar_nodes] = -1.0
+        j_matrix_bin[similar_nodes, :] = -1.0
+        j_matrix_bin[last_saved, :] = -1.0
+        j_matrix_bin[:, last_saved] = -1.0
+        candidate_nodes = candidate_nodes[~np.isin(candidate_nodes, similar_nodes)]
+        if len(candidate_nodes) == 0:
             break
 
         cand_labels = labels[candidate_nodes]
-        target_lbl = unique_labels[lbl_idx]
-        if np.sum(cand_labels == target_lbl) == 0:
+        curr_label = unique_labels[lbl_idx]
+        if np.sum(cand_labels == curr_label) == 0:
+            curr_label_0 = curr_label
             lbl_idx = (lbl_idx + 1) % len(unique_labels)
-            target_lbl = unique_labels[lbl_idx]
+            curr_label = unique_labels[lbl_idx]
+            unique_labels = unique_labels[unique_labels != curr_label_0]
 
-        sub_cands = [c for c in candidate_nodes if labels[c] == target_lbl]
-        if not sub_cands:
-            sub_cands = candidate_nodes
+        sub_cands = candidate_nodes[cand_labels == curr_label]
+        if len(sub_cands) == 0:
+            break
 
-        best_cand = sub_cands[int(np.argmax(purity[sub_cands]))]
+        best_cand = int(sub_cands[np.argmax(purity[sub_cands])])
         saved_nodes.append(best_cand)
-        candidate_nodes.remove(best_cand)
+        candidate_nodes = candidate_nodes[candidate_nodes != best_cand]
         lbl_idx = (lbl_idx + 1) % len(unique_labels)
 
     return np.array(saved_nodes, dtype=int)
@@ -330,70 +338,142 @@ def _series_transform(X, mode):
     return (s - mean) / (std + 1e-8)
 
 
+def _vectorized_2feature_lda_fit(X1, X2, y):
+    """Compute vectorized closed-form Fisher 2-feature LDA projection weights.
+
+    Projects each feature pair (X1[:, i], X2[:, i]) onto a 1D discriminant subspace.
+    If a feature pair has near-zero variance or is collinear, falls back to the
+    unweighted average.
+    """
+    N, K = X1.shape
+    classes = np.unique(y)
+    n_classes = len(classes)
+
+    if n_classes <= 1 or N <= 2:
+        return np.zeros(K, dtype=bool), np.zeros(K), np.zeros(K)
+
+    priors = np.array([np.mean(y == c) for c in classes])
+    means1 = np.zeros((n_classes, K))
+    means2 = np.zeros((n_classes, K))
+    sw11 = np.zeros(K)
+    sw22 = np.zeros(K)
+    sw12 = np.zeros(K)
+
+    for idx, c in enumerate(classes):
+        mask = y == c
+        n_c = np.sum(mask)
+        if n_c == 0:
+            continue
+        m1 = np.mean(X1[mask], axis=0)
+        m2 = np.mean(X2[mask], axis=0)
+        means1[idx] = m1
+        means2[idx] = m2
+        diff1 = X1[mask] - m1
+        diff2 = X2[mask] - m2
+        sw11 += np.sum(diff1**2, axis=0) / N
+        sw22 += np.sum(diff2**2, axis=0) / N
+        sw12 += np.sum(diff1 * diff2, axis=0) / N
+
+    det = sw11 * sw22 - sw12**2
+    valid = (det > 1e-12) & (sw11 > 1e-12) & (sw22 > 1e-12)
+
+    w1 = np.zeros(K)
+    w2 = np.zeros(K)
+
+    if n_classes == 2:
+        d_mu1 = means1[1] - means1[0]
+        d_mu2 = means2[1] - means2[0]
+        w1[valid] = sw22[valid] * d_mu1[valid] - sw12[valid] * d_mu2[valid]
+        w2[valid] = -sw12[valid] * d_mu1[valid] + sw11[valid] * d_mu2[valid]
+    else:
+        overall_m1 = np.mean(X1, axis=0)
+        overall_m2 = np.mean(X2, axis=0)
+        sb11 = np.zeros(K)
+        sb22 = np.zeros(K)
+        sb12 = np.zeros(K)
+        for idx in range(n_classes):
+            dm1 = means1[idx] - overall_m1
+            dm2 = means2[idx] - overall_m2
+            p = priors[idx]
+            sb11 += p * (dm1**2)
+            sb22 += p * (dm2**2)
+            sb12 += p * (dm1 * dm2)
+
+        inv_det = np.zeros(K)
+        inv_det[valid] = 1.0 / det[valid]
+
+        m11 = (sw22 * sb11 - sw12 * sb12) * inv_det
+        m12 = (sw22 * sb12 - sw12 * sb22) * inv_det
+        m21 = (-sw12 * sb11 + sw11 * sb12) * inv_det
+        m22 = (-sw12 * sb12 + sw11 * sb22) * inv_det
+
+        tr = m11 + m22
+        disc = np.maximum(0.0, (m11 - m22) ** 2 + 4.0 * m12 * m21)
+        lam = 0.5 * (tr + np.sqrt(disc))
+
+        mask_m12 = valid & (np.abs(m12) > 1e-12)
+        w1[mask_m12] = m12[mask_m12]
+        w2[mask_m12] = lam[mask_m12] - m11[mask_m12]
+
+        mask_m21 = valid & (~mask_m12) & (np.abs(m21) > 1e-12)
+        w1[mask_m21] = lam[mask_m21] - m22[mask_m21]
+        w2[mask_m21] = m21[mask_m21]
+
+        mask_diag = valid & (~mask_m12) & (~mask_m21)
+        w1[mask_diag & (m11 >= m22)] = 1.0
+        w2[mask_diag & (m11 < m22)] = 1.0
+
+    norm_w = np.sqrt(w1**2 + w2**2)
+    norm_valid = valid & (norm_w > 1e-12)
+    w1[norm_valid] /= norm_w[norm_valid]
+    w2[norm_valid] /= norm_w[norm_valid]
+
+    flip = norm_valid & ((w1 < 0) | ((np.abs(w1) <= 1e-12) & (w2 < 0)))
+    w1[flip] = -w1[flip]
+    w2[flip] = -w2[flip]
+
+    valid = norm_valid
+    return valid, w1, w2
+
+
+def _vectorized_2feature_lda_transform(X1, X2, valid, w1, w2):
+    """Project feature pairs with fitted LDA weights or fallback to average."""
+    out = np.zeros_like(X1)
+    out[:, valid] = X1[:, valid] * w1[valid] + X2[:, valid] * w2[valid]
+    out[:, ~valid] = 0.5 * (X1[:, ~valid] + X2[:, ~valid])
+    return out
+
+
 class _CombinationFusion:
-    """Pairwise LDA fusion of original, absolute, and ordinal views."""
+    """Pairwise 2-feature LDA fusion of original, absolute, and ordinal views."""
 
     def __init__(self, threshold=20.0):
         self.threshold = threshold
-        self.lda_oa = []
-        self.lda_or = []
-        self.lda_ar = []
         self.scaler_oa = MinMaxScaler((-1, 1))
         self.scaler_or = MinMaxScaler((-1, 1))
         self.scaler_ar = MinMaxScaler((-1, 1))
 
-    def _fit_single_pair(self, v1, v2, y):
-        feat = np.hstack([v1, v2])
-        if len(np.unique(y)) > 1:
-            try:
-                lda = LinearDiscriminantAnalysis(n_components=1)
-                lda.fit(feat, y)
-                trans = lda.transform(feat)
-                if trans.ndim == 2 and trans.shape[1] == 1:
-                    return lda, trans
-            except (np.linalg.LinAlgError, ValueError):
-                pass
-        return None, np.mean(feat, axis=1, keepdims=True)
-
-    def _transform_single_pair(self, v1, v2, lda):
-        feat = np.hstack([v1, v2])
-        if lda is not None:
-            try:
-                trans = lda.transform(feat)
-                if trans.ndim == 2 and trans.shape[1] == 1:
-                    return trans
-            except (np.linalg.LinAlgError, ValueError):
-                pass
-        return np.mean(feat, axis=1, keepdims=True)
-
     def fit_transform(self, x_orig, x_abs, x_ord, y):
-        n_features = x_orig.shape[1]
-        out_oa = np.zeros_like(x_orig)
-        out_or = np.zeros_like(x_orig)
-        out_ar = np.zeros_like(x_orig)
+        """Fit LDA weights and scale transformed features to [-1, 1]."""
+        self.valid_oa, self.w1_oa, self.w2_oa = _vectorized_2feature_lda_fit(
+            x_orig, x_abs, y
+        )
+        self.valid_or, self.w1_or, self.w2_or = _vectorized_2feature_lda_fit(
+            x_orig, x_ord, y
+        )
+        self.valid_ar, self.w1_ar, self.w2_ar = _vectorized_2feature_lda_fit(
+            x_abs, x_ord, y
+        )
 
-        self.lda_oa = []
-        self.lda_or = []
-        self.lda_ar = []
-
-        for i in range(n_features):
-            lda, trans = self._fit_single_pair(
-                x_orig[:, i : i + 1], x_abs[:, i : i + 1], y
-            )
-            self.lda_oa.append(lda)
-            out_oa[:, i : i + 1] = trans
-
-            lda, trans = self._fit_single_pair(
-                x_orig[:, i : i + 1], x_ord[:, i : i + 1], y
-            )
-            self.lda_or.append(lda)
-            out_or[:, i : i + 1] = trans
-
-            lda, trans = self._fit_single_pair(
-                x_abs[:, i : i + 1], x_ord[:, i : i + 1], y
-            )
-            self.lda_ar.append(lda)
-            out_ar[:, i : i + 1] = trans
+        out_oa = _vectorized_2feature_lda_transform(
+            x_orig, x_abs, self.valid_oa, self.w1_oa, self.w2_oa
+        )
+        out_or = _vectorized_2feature_lda_transform(
+            x_orig, x_ord, self.valid_or, self.w1_or, self.w2_or
+        )
+        out_ar = _vectorized_2feature_lda_transform(
+            x_abs, x_ord, self.valid_ar, self.w1_ar, self.w2_ar
+        )
 
         out_oa[out_oa > self.threshold] = self.threshold
         out_or[out_or > self.threshold] = self.threshold
@@ -406,21 +486,16 @@ class _CombinationFusion:
         )
 
     def transform(self, x_orig, x_abs, x_ord):
-        n_features = x_orig.shape[1]
-        out_oa = np.zeros_like(x_orig)
-        out_or = np.zeros_like(x_orig)
-        out_ar = np.zeros_like(x_orig)
-
-        for i in range(n_features):
-            out_oa[:, i : i + 1] = self._transform_single_pair(
-                x_orig[:, i : i + 1], x_abs[:, i : i + 1], self.lda_oa[i]
-            )
-            out_or[:, i : i + 1] = self._transform_single_pair(
-                x_orig[:, i : i + 1], x_ord[:, i : i + 1], self.lda_or[i]
-            )
-            out_ar[:, i : i + 1] = self._transform_single_pair(
-                x_abs[:, i : i + 1], x_ord[:, i : i + 1], self.lda_ar[i]
-            )
+        """Transform feature pairs with fitted LDA weights."""
+        out_oa = _vectorized_2feature_lda_transform(
+            x_orig, x_abs, self.valid_oa, self.w1_oa, self.w2_oa
+        )
+        out_or = _vectorized_2feature_lda_transform(
+            x_orig, x_ord, self.valid_or, self.w1_or, self.w2_or
+        )
+        out_ar = _vectorized_2feature_lda_transform(
+            x_abs, x_ord, self.valid_ar, self.w1_ar, self.w2_ar
+        )
 
         out_oa[out_oa > self.threshold] = self.threshold
         out_or[out_or > self.threshold] = self.threshold
@@ -436,16 +511,23 @@ class _CombinationFusion:
 class ShapeleterTransform(BaseCollectionTransformer):
     """Shapeleter transformer with hypergraph pruning and dual positional embedding.
 
-    Shapeleter [1]_ enhances shapelet-based representations by combining a random
-    dilated shapelet transform (RDST) backbone with multi-scale hypergraph pruning
-    and dual positional embeddings (absolute positions and ordinal ranks).
+    Shapeleter [1]_ enhances shapelet-based time series representations by combining:
+    1. A random dilated shapelet transform (RDST) candidate generation backbone.
+    2. Multi-scale hypergraph pruning grouped by shapelet length, dilation, and
+       normalization, utilizing self-inclusive k-NN hyperedges, hypergraph purity
+       weighting, and Jaccard-based diversity filtering.
+    3. Dual sinusoidal positional embeddings incorporating both absolute occurrence
+       positions (SAPE) and ordinal relative ranks (SOPE), with frequency scaling
+       parameters optimized via log-space Adam.
+    4. Multi-view feature fusion via pairwise 2-feature Linear Discriminant Analysis
+       (LDA) with one-sided threshold clipping and MinMax normalization.
 
     Parameters
     ----------
     max_shapelets : int, default=20000
         Maximum number of candidate shapelets sampled initially by the RDST backbone.
     per_shapelets : int, default=2500
-        Maximum number of shapelets preserved per group after hypergraph pruning.
+        Target number of shapelets preserved per group after hypergraph pruning.
     alpha_similarity : float, default=0.0
         The minimum similarity between shapelets for self-similarity pruning in RDST.
     proba_normalization : float, default=0.8
@@ -463,9 +545,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
     max_iter : int, default=200
         Maximum number of iterations for Adam positional optimization per dilation.
         If set to 0, optimization is skipped and fixed `ka` and `ko` values are used.
-    save_rate : float, default=0.5
-        Proportion of candidate shapelets preserved by hypergraph selection in each
-        group.
     random_state : int, RandomState instance or None, default=None
         Seed for random number generation.
 
@@ -500,9 +579,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     References
     ----------
-    .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet enhancer via multiview
-       positional embedding for time series classification and extrinsic regression",
-       Information Fusion, 2024.
+    .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet Enhancer via Multiview
+       Positional Embedding for Time Series Classification", Knowledge-Based Systems,
+       2026.
 
     Examples
     --------
@@ -520,7 +599,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
-        "capability:multivariate": True,
+        "capability:multivariate": False,
         "capability:unequal_length": False,
         "X_inner_type": "numpy3D",
         "python_dependencies": None,
@@ -540,7 +619,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
         k_max=15.0,
         lr=0.002,
         max_iter=200,
-        save_rate=0.5,
         random_state=None,
     ):
         self.max_shapelets = max_shapelets
@@ -553,7 +631,6 @@ class ShapeleterTransform(BaseCollectionTransformer):
         self.k_max = k_max
         self.lr = lr
         self.max_iter = max_iter
-        self.save_rate = save_rate
         self.random_state = random_state
         super().__init__()
 
@@ -577,6 +654,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
         n_candidates = len(raw_shapelets)
 
         if n_candidates > 0 and len(np.unique(y)) > 1:
+            save_rate = float(self.per_shapelets) / max(1.0, float(n_candidates))
             lengths = self.rdst_.shapelets_[2]
             dilas = self.rdst_.shapelets_[3]
             norms = self.rdst_.shapelets_[5]
@@ -595,7 +673,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
                                 raw_shapelets[sub_idx],
                                 l_val,
                                 shapelet_classes[sub_idx],
-                                save_rate=self.save_rate,
+                                save_rate=save_rate,
                                 per_shapelets=self.per_shapelets,
                             )
                             selected_idx.append(sub_idx[pruned_rel])
@@ -680,9 +758,36 @@ class ShapeleterTransform(BaseCollectionTransformer):
         self.fusion_min_ = _CombinationFusion()
         self.fusion_soo_ = _CombinationFusion()
 
-        self.fusion_min_.fit_transform(x_min_scaled, x_min_abs, x_min_ord, y)
-        self.fusion_soo_.fit_transform(x_soo_scaled, x_soo_abs, x_soo_ord, y)
+        m_oa, m_or, m_ar = self.fusion_min_.fit_transform(
+            x_min_scaled, x_min_abs, x_min_ord, y
+        )
+        s_oa, s_or, s_ar = self.fusion_soo_.fit_transform(
+            x_soo_scaled, x_soo_abs, x_soo_ord, y
+        )
+
+        self._fit_transformed_groups = (
+            x_min_scaled,
+            x_soo_scaled,
+            m_oa,
+            s_oa,
+            m_or,
+            s_or,
+            m_ar,
+            s_ar,
+        )
         return self
+
+    def _fit_transform_groups(self, X, y=None):
+        """Fit the transformer and return multi-view feature groups."""
+        self._fit(X, y)
+        groups = self._fit_transformed_groups
+        del self._fit_transformed_groups
+        return groups
+
+    def _fit_transform(self, X, y=None):
+        """Fit to data, then transform it."""
+        groups = self._fit_transform_groups(X, y)
+        return np.hstack(groups)
 
     def _encode_positions(self, x_min, x_soo, x_arg):
         """Dual absolute and ordinal sinusoidal positional encoding."""

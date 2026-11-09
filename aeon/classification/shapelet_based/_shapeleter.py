@@ -13,24 +13,6 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
 )
 
 
-def _decision_to_proba(decision, n_classes):
-    """Convert decision function output to class probabilities."""
-    if n_classes == 1:
-        return np.ones((len(decision), 1), dtype=np.float64)
-    if n_classes == 2:
-        d = np.asarray(decision).ravel()
-        d_clipped = np.clip(d, -500.0, 500.0)
-        p1 = 1.0 / (1.0 + np.exp(-d_clipped))
-        p0 = 1.0 - p1
-        return np.column_stack([p0, p1])
-    else:
-        d = np.asarray(decision)
-        d_shifted = d - np.max(d, axis=1, keepdims=True)
-        exp_d = np.exp(d_shifted)
-        sum_exp = np.sum(exp_d, axis=1, keepdims=True)
-        return exp_d / np.maximum(sum_exp, 1e-12)
-
-
 class ShapeleterClassifier(BaseClassifier):
     """Shapeleter 4-view ensemble classifier for time series classification.
 
@@ -50,16 +32,16 @@ class ShapeleterClassifier(BaseClassifier):
     - V2: V0 concatenated with original-relative positional features (O_R).
     - V3: V0 concatenated with absolute-relative positional features (A_R).
 
-    Ensemble predictions are combined via hard voting with confidence-based
-    tie-breaking, and class probabilities are computed by averaging normalized
-    decision scores across views.
+    Ensemble predictions are combined via 4-classifier hard voting matching
+    the reference implementation. Class probabilities are computed as the
+    proportion of votes received from the ensemble voters.
 
     Parameters
     ----------
     max_shapelets : int, default=20000
         Maximum number of candidate shapelets sampled initially by each RDST backbone.
     per_shapelets : int, default=2500
-        Maximum number of shapelets preserved per group after hypergraph pruning.
+        Target number of shapelets preserved per group after hypergraph pruning.
     alpha_similarity : float, default=0.0
         The minimum similarity between shapelets for self-similarity pruning in RDST.
     proba_normalization : float, default=0.8
@@ -77,9 +59,6 @@ class ShapeleterClassifier(BaseClassifier):
     max_iter : int, default=200
         Maximum number of iterations for Adam positional optimization per dilation.
         If set to 0, optimization is skipped and fixed `ka` and `ko` values are used.
-    save_rate : float, default=0.5
-        Proportion of candidate shapelets preserved by hypergraph selection in each
-        group.
     random_state : int, RandomState instance or None, default=None
         Seed for random number generation.
 
@@ -106,9 +85,9 @@ class ShapeleterClassifier(BaseClassifier):
 
     References
     ----------
-    .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet enhancer via multiview
-       positional embedding for time series classification and extrinsic regression",
-       Information Fusion, 2024.
+    .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet Enhancer via Multiview
+       Positional Embedding for Time Series Classification", Knowledge-Based Systems,
+       2026.
 
     Examples
     --------
@@ -127,10 +106,11 @@ class ShapeleterClassifier(BaseClassifier):
     """
 
     _tags = {
-        "capability:multivariate": True,
+        "capability:multivariate": False,
         "capability:unequal_length": False,
         "X_inner_type": "numpy3D",
         "python_dependencies": None,
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
@@ -145,7 +125,6 @@ class ShapeleterClassifier(BaseClassifier):
         k_max=15.0,
         lr=0.002,
         max_iter=200,
-        save_rate=0.5,
         random_state=None,
     ):
         self.max_shapelets = max_shapelets
@@ -158,71 +137,11 @@ class ShapeleterClassifier(BaseClassifier):
         self.k_max = k_max
         self.lr = lr
         self.max_iter = max_iter
-        self.save_rate = save_rate
         self.random_state = random_state
         super().__init__()
 
-    def _fit(self, X, y):
-        """Fit Shapeleter 4-view ensemble classifier on training series."""
-        self.classes_ = np.unique(y)
-
-        X_raw = X
-        X_t0 = _series_transform(X, "F")
-        X_t1 = _series_transform(X, "H")
-        X_t2 = _series_transform(X, "HF")
-
-        transformer_params = {
-            "max_shapelets": self.max_shapelets,
-            "per_shapelets": self.per_shapelets,
-            "alpha_similarity": self.alpha_similarity,
-            "proba_normalization": self.proba_normalization,
-            "ka": self.ka,
-            "ko": self.ko,
-            "k_min": self.k_min,
-            "k_max": self.k_max,
-            "lr": self.lr,
-            "max_iter": self.max_iter,
-            "save_rate": self.save_rate,
-            "random_state": self.random_state,
-        }
-
-        self.transformer_raw_ = ShapeleterTransform(**transformer_params)
-        self.transformer_t0_ = ShapeleterTransform(**transformer_params)
-        self.transformer_t1_ = ShapeleterTransform(**transformer_params)
-        self.transformer_t2_ = ShapeleterTransform(**transformer_params)
-
-        self.transformer_raw_.fit(X_raw, y)
-        self.transformer_t0_.fit(X_t0, y)
-        self.transformer_t1_.fit(X_t1, y)
-        self.transformer_t2_.fit(X_t2, y)
-
-        v0, v1, v2, v3 = self._assemble_views(X)
-
-        alphas = np.logspace(-4, 4, 20)
-        self.clf_v0_ = RidgeClassifierCV(alphas=alphas)
-        self.clf_v1_ = RidgeClassifierCV(alphas=alphas)
-        self.clf_v2_ = RidgeClassifierCV(alphas=alphas)
-        self.clf_v3_ = RidgeClassifierCV(alphas=alphas)
-
-        self.clf_v0_.fit(v0, y)
-        self.clf_v1_.fit(v1, y)
-        self.clf_v2_.fit(v2, y)
-        self.clf_v3_.fit(v3, y)
-
-        return self
-
-    def _assemble_views(self, X):
-        """Transform across 4 representations and construct V0, V1, V2, V3."""
-        X_raw = X
-        X_t0 = _series_transform(X, "F")
-        X_t1 = _series_transform(X, "H")
-        X_t2 = _series_transform(X, "HF")
-
-        g_raw = self.transformer_raw_._transform_groups(X_raw)
-        g_t0 = self.transformer_t0_._transform_groups(X_t0)
-        g_t1 = self.transformer_t1_._transform_groups(X_t1)
-        g_t2 = self.transformer_t2_._transform_groups(X_t2)
-
+    def _assemble_views_from_groups(self, g_raw, g_t0, g_t1, g_t2):
+        """Construct V0, V1, V2, V3 matrices from 4 representation feature groups."""
         o_raw = np.hstack([g_raw[0], g_raw[1]])
         oa_raw = np.hstack([g_raw[2], g_raw[3]])
         or_raw = np.hstack([g_raw[4], g_raw[5]])
@@ -250,8 +169,91 @@ class ShapeleterClassifier(BaseClassifier):
 
         return v0, v1, v2, v3
 
+    def _assemble_views(self, X):
+        """Transform across 4 representations and construct V0, V1, V2, V3."""
+        X_raw = X
+        X_t0 = _series_transform(X, "F")
+        X_t1 = _series_transform(X, "H")
+        X_t2 = _series_transform(X, "HF")
+
+        g_raw = self.transformer_raw_._transform_groups(X_raw)
+        g_t0 = self.transformer_t0_._transform_groups(X_t0)
+        g_t1 = self.transformer_t1_._transform_groups(X_t1)
+        g_t2 = self.transformer_t2_._transform_groups(X_t2)
+
+        return self._assemble_views_from_groups(g_raw, g_t0, g_t1, g_t2)
+
+    def _fit(self, X, y):
+        """Fit Shapeleter 4-view ensemble classifier on training series."""
+        self.classes_ = np.unique(y)
+
+        X_raw = X
+        X_t0 = _series_transform(X, "F")
+        X_t1 = _series_transform(X, "H")
+        X_t2 = _series_transform(X, "HF")
+
+        transformer_params = {
+            "max_shapelets": self.max_shapelets,
+            "per_shapelets": self.per_shapelets,
+            "alpha_similarity": self.alpha_similarity,
+            "proba_normalization": self.proba_normalization,
+            "ka": self.ka,
+            "ko": self.ko,
+            "k_min": self.k_min,
+            "k_max": self.k_max,
+            "lr": self.lr,
+            "max_iter": self.max_iter,
+            "random_state": self.random_state,
+        }
+
+        self.transformer_raw_ = ShapeleterTransform(**transformer_params)
+        self.transformer_t0_ = ShapeleterTransform(**transformer_params)
+        self.transformer_t1_ = ShapeleterTransform(**transformer_params)
+        self.transformer_t2_ = ShapeleterTransform(**transformer_params)
+
+        g_raw = self.transformer_raw_._fit_transform_groups(X_raw, y)
+        g_t0 = self.transformer_t0_._fit_transform_groups(X_t0, y)
+        g_t1 = self.transformer_t1_._fit_transform_groups(X_t1, y)
+        g_t2 = self.transformer_t2_._fit_transform_groups(X_t2, y)
+
+        v0, v1, v2, v3 = self._assemble_views_from_groups(g_raw, g_t0, g_t1, g_t2)
+
+        alphas = np.logspace(-4, 4, 20)
+        self.clf_v0_ = RidgeClassifierCV(alphas=alphas)
+        self.clf_v1_ = RidgeClassifierCV(alphas=alphas)
+        self.clf_v2_ = RidgeClassifierCV(alphas=alphas)
+        self.clf_v3_ = RidgeClassifierCV(alphas=alphas)
+
+        self.clf_v0_.fit(v0, y)
+        self.clf_v1_.fit(v1, y)
+        self.clf_v2_.fit(v2, y)
+        self.clf_v3_.fit(v3, y)
+
+        return self
+
     def _predict(self, X):
         """Predict labels for input series using 4-view hard voting."""
+        v0, v1, v2, v3 = self._assemble_views(X)
+
+        p0 = self.clf_v0_.predict(v0)
+        p1 = self.clf_v1_.predict(v1)
+        p2 = self.clf_v2_.predict(v2)
+        p3 = self.clf_v3_.predict(v3)
+
+        class_to_idx = {c: i for i, c in enumerate(self.classes_)}
+        n_cases = X.shape[0]
+        n_classes = len(self.classes_)
+        vote_counts = np.zeros((n_cases, n_classes), dtype=np.int64)
+
+        for preds in (p0, p1, p2, p3):
+            for i, p in enumerate(preds):
+                vote_counts[i, class_to_idx[p]] += 1
+
+        best_idx = np.argmax(vote_counts, axis=1)
+        return self.classes_[best_idx]
+
+    def _predict_proba(self, X):
+        """Predict class probabilities as vote shares across the 4 ensemble views."""
         v0, v1, v2, v3 = self._assemble_views(X)
 
         p0 = self.clf_v0_.predict(v0)
@@ -268,27 +270,7 @@ class ShapeleterClassifier(BaseClassifier):
             for i, p in enumerate(preds):
                 vote_counts[i, class_to_idx[p]] += 1.0
 
-        prob0 = _decision_to_proba(self.clf_v0_.decision_function(v0), n_classes)
-        prob1 = _decision_to_proba(self.clf_v1_.decision_function(v1), n_classes)
-        prob2 = _decision_to_proba(self.clf_v2_.decision_function(v2), n_classes)
-        prob3 = _decision_to_proba(self.clf_v3_.decision_function(v3), n_classes)
-        mean_prob = (prob0 + prob1 + prob2 + prob3) / 4.0
-
-        best_idx = np.argmax(vote_counts + 0.01 * mean_prob, axis=1)
-        return self.classes_[best_idx]
-
-    def _predict_proba(self, X):
-        """Predict class probabilities for input series using 4-view ensemble."""
-        v0, v1, v2, v3 = self._assemble_views(X)
-        n_classes = len(self.classes_)
-
-        prob0 = _decision_to_proba(self.clf_v0_.decision_function(v0), n_classes)
-        prob1 = _decision_to_proba(self.clf_v1_.decision_function(v1), n_classes)
-        prob2 = _decision_to_proba(self.clf_v2_.decision_function(v2), n_classes)
-        prob3 = _decision_to_proba(self.clf_v3_.decision_function(v3), n_classes)
-
-        mean_prob = (prob0 + prob1 + prob2 + prob3) / 4.0
-        return mean_prob / np.sum(mean_prob, axis=1, keepdims=True)
+        return vote_counts / 4.0
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

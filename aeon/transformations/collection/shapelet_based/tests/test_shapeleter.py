@@ -1,10 +1,14 @@
 """Tests for Shapeleter transformer."""
 
 import numpy as np
+import pytest
 
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
+    _CombinationFusion,
     _cosine_similarity_squared_loss,
+    _hypergraph_prune,
+    _optimize_position_encoding_np,
     _series_transform,
 )
 
@@ -35,6 +39,24 @@ def test_shapeleter_transformer_features():
     assert hasattr(st, "ko_opt_")
 
 
+def test_shapeleter_transformer_fit_transform_equivalence():
+    """Test that fit_transform and fit then transform produce equivalent output."""
+    X = np.random.RandomState(42).normal(size=(6, 1, 30))
+    y = np.array([0, 1, 0, 1, 0, 1])
+    st1 = ShapeleterTransform(
+        max_shapelets=20, per_shapelets=5, max_iter=2, random_state=42
+    )
+    xt1 = st1.fit_transform(X, y)
+
+    st2 = ShapeleterTransform(
+        max_shapelets=20, per_shapelets=5, max_iter=2, random_state=42
+    )
+    st2.fit(X, y)
+    xt2 = st2.transform(X)
+
+    np.testing.assert_allclose(xt1, xt2, atol=1e-5)
+
+
 def test_shapeleter_fixed_k_max_iter_zero():
     """Test initialization when max_iter is 0."""
     X = np.random.RandomState(42).normal(size=(5, 1, 30))
@@ -51,13 +73,90 @@ def test_shapeleter_fixed_k_max_iter_zero():
 
 
 def test_cosine_similarity_squared_loss():
-    """Test loss computation on 2D arrays."""
+    """Test loss computation matches exact hand-calculated value."""
     f0 = np.array([[0.1, 0.2], [0.3, 0.4]])
     f1 = np.array([[0.2, 0.1], [0.4, 0.3]])
     loss = _cosine_similarity_squared_loss(f0, f1)
-    assert isinstance(loss, float)
-    assert not np.isnan(loss)
-    assert 0.0 <= loss <= 1.0
+    assert loss == pytest.approx(0.98, abs=1e-5)
+
+
+def test_hypergraph_neighborhood_self_inclusion():
+    """Test that candidate shapelets include self in their k-NN hyperedges."""
+    shapelets = np.random.RandomState(42).normal(size=(10, 1, 8))
+    labels = np.array([0, 1] * 5)
+    selected = _hypergraph_prune(
+        shapelets=shapelets,
+        shapelet_len=8,
+        labels=labels,
+        neighbor_k=(3, 5),
+        save_rate=0.5,
+    )
+    assert len(selected) > 0
+    assert len(selected) <= 10
+    assert len(np.unique(selected)) == len(selected)
+
+
+def test_hypergraph_prune_exhausted_labels():
+    """Test that pruning terminates gracefully when candidate labels are exhausted."""
+    shapelets = np.random.RandomState(42).normal(size=(6, 1, 8))
+    labels = np.array([0, 0, 0, 0, 0, 1])
+    selected = _hypergraph_prune(
+        shapelets=shapelets,
+        shapelet_len=8,
+        labels=labels,
+        neighbor_k=(2, 3),
+        save_rate=1.0,
+    )
+    assert len(selected) >= 1
+    assert len(selected) <= 6
+
+
+def test_optimize_position_encoding_pinned():
+    """Test that Adam positional optimization matches pinned reference values."""
+    rng = np.random.RandomState(42)
+    n, k = 20, 5
+    feat = rng.normal(size=(n, 2 * k))
+    pos = rng.uniform(0, 30, size=(n, k))
+    order = np.argsort(np.argsort(pos, axis=1), axis=1).astype(float)
+    len_map = 50.0
+
+    ka, ko = _optimize_position_encoding_np(
+        feat, pos, order, len_map, ka0=8.0, ko0=8.0, max_iter=20
+    )
+    assert ka == pytest.approx(8.325319, abs=1e-4)
+    assert ko == pytest.approx(8.325612, abs=1e-4)
+
+
+def test_combination_fusion_constant_columns():
+    """Test that 2-feature LDA fusion handles constant columns without crashing."""
+    rng = np.random.RandomState(42)
+    n, k = 20, 10
+    x_orig = rng.normal(size=(n, k))
+    x_abs = rng.normal(size=(n, k))
+    x_ord = rng.normal(size=(n, k))
+    # Make columns 0 and 1 constant across all samples
+    x_orig[:, 0] = 1.0
+    x_abs[:, 0] = 1.0
+    x_ord[:, 0] = 1.0
+    x_orig[:, 1] = 0.0
+    x_abs[:, 1] = 0.0
+    x_ord[:, 1] = 0.0
+
+    y = np.array([0, 1] * 10)
+    fusion = _CombinationFusion(threshold=20.0)
+    oa, or_feat, ar = fusion.fit_transform(x_orig, x_abs, x_ord, y)
+
+    assert oa.shape == (n, k)
+    assert or_feat.shape == (n, k)
+    assert ar.shape == (n, k)
+    assert not np.any(np.isnan(oa))
+    assert not np.any(np.isnan(or_feat))
+    assert not np.any(np.isnan(ar))
+
+    oa_test, or_test, ar_test = fusion.transform(x_orig, x_abs, x_ord)
+    np.testing.assert_allclose(oa, oa_test, atol=1e-5)
+    np.testing.assert_allclose(or_feat, or_test, atol=1e-5)
+    np.testing.assert_allclose(ar, ar_test, atol=1e-5)
 
 
 def test_series_transform_modes():
