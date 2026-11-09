@@ -141,6 +141,21 @@ def test_optimize_position_encoding_regression():
     assert ko == pytest.approx(8.325612, abs=1e-4)
 
 
+REF_KA = None
+REF_KO = None
+
+
+@pytest.mark.skip(
+    reason="Awaiting reference values from original Shapeleter implementation"
+)
+def test_optimize_position_encoding_matches_reference():
+    """Verify Adam positional optimizer matches reference implementation."""
+    feat, pos, order, len_map = _pe_inputs()
+    ka, ko = _optimize_position_encoding_np(feat, pos, order, len_map)
+    assert ka == pytest.approx(REF_KA, abs=1e-3)
+    assert ko == pytest.approx(REF_KO, abs=1e-3)
+
+
 def test_optimize_position_encoding_first_step_is_log_space():
     """Adam's first step moves log(K) by ~lr, so K changes by a factor e^(+-lr).
 
