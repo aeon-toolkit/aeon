@@ -8,6 +8,7 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _CombinationFusion,
     _cosine_similarity_squared_loss,
     _hypergraph_prune,
+    _knn_hyperedges,
     _optimize_position_encoding_np,
     _series_transform,
 )
@@ -81,34 +82,34 @@ def test_cosine_similarity_squared_loss():
 
 
 def test_hypergraph_neighborhood_self_inclusion():
-    """Test that candidate shapelets include self in their k-NN hyperedges."""
-    shapelets = np.random.RandomState(42).normal(size=(10, 1, 8))
-    labels = np.array([0, 1] * 5)
-    selected = _hypergraph_prune(
-        shapelets=shapelets,
-        shapelet_len=8,
-        labels=labels,
-        neighbor_k=(3, 5),
-        save_rate=0.5,
-    )
-    assert len(selected) > 0
-    assert len(selected) <= 10
-    assert len(np.unique(selected)) == len(selected)
+    """k-NN hyperedges must include the node itself."""
+    cleaned = np.array([[0.0], [10.0], [20.0]])
+    edges = _knn_hyperedges(cleaned, valid_k=[1, 2])
+    for i in range(3):
+        assert i in edges[i]
+        assert i in edges[3 + i]
 
 
-def test_hypergraph_prune_exhausted_labels():
-    """Test that pruning terminates gracefully when candidate labels are exhausted."""
-    shapelets = np.random.RandomState(42).normal(size=(6, 1, 8))
-    labels = np.array([0, 0, 0, 0, 0, 1])
-    selected = _hypergraph_prune(
-        shapelets=shapelets,
-        shapelet_len=8,
-        labels=labels,
-        neighbor_k=(2, 3),
-        save_rate=1.0,
-    )
-    assert len(selected) >= 1
-    assert len(selected) <= 6
+def test_hypergraph_prune_reduces_size():
+    """Hypergraph pruning actually reduces the candidate count."""
+    rng = np.random.RandomState(42)
+    n = 20
+    shapelets = rng.normal(size=(n, 1, 8))
+    labels = np.array([0, 1] * (n // 2))
+    pruned = _hypergraph_prune(shapelets, 8, labels, save_rate=0.25)
+    assert len(pruned) < n
+    assert len(pruned) == int(np.ceil(0.25 * n))
+
+
+def test_hypergraph_prune_exhausted_label_rotation():
+    """When a class is exhausted, rotation picks the NEXT surviving class."""
+    shapelets = np.arange(11, dtype=float).reshape(11, 1, 1)
+    labels = np.array([0] * 1 + [1] * 5 + [2] * 5)
+    pruned = _hypergraph_prune(shapelets, 1, labels, neighbor_k=(2,), save_rate=1.0)
+    pruned_labels = labels[pruned]
+    assert (pruned_labels == 0).sum() == 1
+    assert (pruned_labels == 1).sum() > 1
+    assert (pruned_labels == 2).sum() > 1
 
 
 def test_optimize_position_encoding_pinned():

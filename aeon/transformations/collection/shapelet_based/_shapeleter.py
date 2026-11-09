@@ -72,6 +72,18 @@ def _compute_jaccard_matrix(edges, n_nodes):
     return j_matrix
 
 
+def _knn_hyperedges(cleaned_sub, valid_k):
+    """Compute self-inclusive k-NN hyperedges for candidate shapelets."""
+    n_shapelets = cleaned_sub.shape[0]
+    dist_mat = euclidean_distances(cleaned_sub)
+    np.fill_diagonal(dist_mat, -np.inf)
+    edges = []
+    for k in valid_k:
+        for i in range(n_shapelets):
+            edges.append(np.argsort(dist_mat[i])[:k])
+    return edges
+
+
 def _hypergraph_prune(
     shapelets,
     shapelet_len,
@@ -89,14 +101,7 @@ def _hypergraph_prune(
     raw_sub = shapelets[:, 0, :shapelet_len]
     cleaned_sub = np.nan_to_num(raw_sub, nan=0.0, posinf=0.0, neginf=0.0)
 
-    dist_mat = euclidean_distances(cleaned_sub)
-    np.fill_diagonal(dist_mat, -np.inf)
-
-    edges = []
-    for k in valid_k:
-        for i in range(n_shapelets):
-            nn_indices = np.argsort(dist_mat[i])[:k]
-            edges.append(nn_indices)
+    edges = _knn_hyperedges(cleaned_sub, valid_k)
 
     purity = np.zeros(n_shapelets, dtype=float)
     degree = np.zeros(n_shapelets, dtype=float)
@@ -117,12 +122,11 @@ def _hypergraph_prune(
 
     save_n = max(1, min(int(np.ceil(save_rate * n_shapelets)), n_shapelets))
 
-    unique_labels = np.unique(labels)
+    unique_labels = list(np.unique(labels))
     top_node = int(np.argmax(purity))
     saved_nodes = [top_node]
 
-    lbl_idx = int(np.where(unique_labels == labels[top_node])[0][0])
-    lbl_idx = (lbl_idx + 1) % len(unique_labels)
+    lbl_idx = int((unique_labels.index(labels[top_node]) + 1) % len(unique_labels))
     candidate_nodes = np.array(
         [node for node in np.argsort(purity)[::-1] if node != top_node]
     )
@@ -141,13 +145,19 @@ def _hypergraph_prune(
             break
 
         cand_labels = labels[candidate_nodes]
-        curr_label = unique_labels[lbl_idx]
-        if np.sum(cand_labels == curr_label) == 0:
-            curr_label_0 = curr_label
-            lbl_idx = (lbl_idx + 1) % len(unique_labels)
-            curr_label = unique_labels[lbl_idx]
-            unique_labels = unique_labels[unique_labels != curr_label_0]
+        # Follows the exhausted-label rule of the reference implementation (see PR discussion, reviewer TonyBagnall point 13).
+        while (
+            len(unique_labels) > 0
+            and np.sum(cand_labels == unique_labels[lbl_idx]) == 0
+        ):
+            unique_labels.pop(lbl_idx)
+            if len(unique_labels) > 0:
+                lbl_idx = lbl_idx % len(unique_labels)
 
+        if len(unique_labels) == 0:
+            break
+
+        curr_label = unique_labels[lbl_idx]
         sub_cands = candidate_nodes[cand_labels == curr_label]
         if len(sub_cands) == 0:
             break
