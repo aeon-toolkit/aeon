@@ -105,3 +105,15 @@ def test_jumps_keep_components_in_range(n, kwargs):
     trend = np.asarray(trend).ravel()
     assert np.all(np.isfinite(trend))
     assert np.all(trend > 99.0) and np.all(trend < 100.0 + n)
+
+
+def test_robust_with_outlier_block_returns_finite_output():
+    """Regression test for #3980: robust=True with a large outlier run was all NaN."""
+    t = np.arange(300)
+    y = 0.02 * t + 3 * np.sin(2 * np.pi * t / 12)
+    y += np.random.default_rng(0).normal(size=300)
+    y[100:140] += 1e6
+    out = STLSeriesTransformer(
+        period=12, seasonal=11, robust=True, output="all"
+    ).fit_transform(y)
+    assert np.all(np.isfinite(out))
