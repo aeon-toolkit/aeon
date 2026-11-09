@@ -1,6 +1,9 @@
 """Test anomaly detection thresholding methods."""
 
+import warnings
+
 import numpy as np
+import pytest
 
 from aeon.benchmarking.metrics.anomaly_detection.thresholding import (
     percentile_threshold,
@@ -29,6 +32,28 @@ def test_top_k_ranges_thresholding():
     """Test top k ranges thresholding."""
     threshold = top_k_ranges_threshold(y_true, y_score, k=2)
     np.testing.assert_almost_equal(threshold, 0.60, decimal=2)
+
+
+def test_top_k_ranges_thresholding_not_reachable():
+    """Test top k ranges thresholding when no threshold gives k ranges."""
+    # increasing scores always give a single range
+    y_true_two = np.array([1, 0, 0, 1, 0, 0])
+    with pytest.warns(UserWarning, match="No threshold gives at least 2"):
+        threshold = top_k_ranges_threshold(y_true_two, np.arange(6, dtype=float))
+    assert isinstance(threshold, float)
+    np.testing.assert_almost_equal(threshold, 1.0)
+    # constant scores
+    with pytest.warns(UserWarning, match="No threshold gives at least 2"):
+        threshold = top_k_ranges_threshold(y_true_two, np.full(6, 0.3))
+    np.testing.assert_almost_equal(threshold, 0.3)
+    # k larger than the number of points
+    with pytest.warns(UserWarning, match="No threshold gives at least 20"):
+        top_k_ranges_threshold(y_true_two, np.array([1.0, 0, 1, 0, 1, 0]), k=20)
+    # constant scores still give one range, so k=1 is reached without a warning
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        threshold = top_k_ranges_threshold(y_true_two, np.full(6, 0.3), k=1)
+    np.testing.assert_almost_equal(threshold, 0.3)
 
 
 def test_sigma_thresholding():
