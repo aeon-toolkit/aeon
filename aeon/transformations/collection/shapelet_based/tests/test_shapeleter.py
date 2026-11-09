@@ -171,6 +171,24 @@ def test_optimize_position_encoding_stays_in_bounds():
     assert 2.0 <= ko <= 10.0
 
 
+def test_optimize_position_encoding_first_step_exit_falls_back():
+    """If the very first step leaves [k_min, k_max], return (ka0, ko0)."""
+    feat, pos, order, len_map = _pe_inputs()
+    ka, ko = _optimize_position_encoding_np(
+        feat,
+        pos,
+        order,
+        len_map,
+        ka0=8.0,
+        ko0=8.0,
+        k_min=7.999,
+        k_max=8.001,
+        lr=0.5,
+        max_iter=50,
+    )
+    assert (ka, ko) == (8.0, 8.0)
+
+
 def test_combination_fusion_constant_columns():
     """Test that 2-feature LDA fusion handles constant columns without crashing."""
     rng = np.random.RandomState(42)
