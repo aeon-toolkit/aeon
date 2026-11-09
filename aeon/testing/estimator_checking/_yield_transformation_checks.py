@@ -89,7 +89,7 @@ def check_transformer_overrides_and_tags(estimator_class):
     inherits_inverse = (
         issubclass(estimator_class, SeriesInverseTransformerMixin)
         if issubclass(estimator_class, BaseSeriesTransformer)
-        else (issubclass(estimator_class, CollectionInverseTransformerMixin))
+        else issubclass(estimator_class, CollectionInverseTransformerMixin)
     )
     if estimator_class.get_class_tag("capability:inverse_transform"):
         assert inherits_inverse
