@@ -117,18 +117,22 @@ def _hypergraph_prune(
 
     save_n = max(1, min(int(np.ceil(save_rate * n_shapelets)), n_shapelets))
 
-    unique_labels = list(np.unique(labels))
+    # Follows neighbor_hypergraph_based_shapelet_selection
+    # (reference notebook cell 11, CCHe64/Shapeleter) line by line.
+    # Note: the reference does not remap the label index after removing
+    # an exhausted label; this is kept for parity.
+    unique_labels = np.unique(labels)
     top_node = int(np.argmax(purity))
     saved_nodes = [top_node]
 
-    lbl_idx = int((unique_labels.index(labels[top_node]) + 1) % len(unique_labels))
+    label_index = int(np.where(unique_labels == labels[top_node])[0][0]) + 1
+    if label_index >= len(unique_labels):
+        label_index = 0
     candidate_nodes = np.array(
         [node for node in np.argsort(purity)[::-1] if node != top_node]
     )
 
     for _ in range(save_n - 1):
-        if len(candidate_nodes) == 0:
-            break
         last_saved = saved_nodes[-1]
         similar_nodes = np.where(j_matrix_bin[last_saved, :] == 1.0)[0]
         j_matrix_bin[:, similar_nodes] = -1.0
@@ -140,28 +144,26 @@ def _hypergraph_prune(
             break
 
         cand_labels = labels[candidate_nodes]
-        # Follows the exhausted-label rule of the reference implementation
-        # (see PR discussion, reviewer TonyBagnall point 13).
-        while (
-            len(unique_labels) > 0
-            and np.sum(cand_labels == unique_labels[lbl_idx]) == 0
-        ):
-            unique_labels.pop(lbl_idx)
-            if len(unique_labels) > 0:
-                lbl_idx = lbl_idx % len(unique_labels)
+        curr_label = unique_labels[label_index]
+        if np.sum(cand_labels == curr_label) == 0:
+            curr_label_0 = curr_label
+            label_index += 1
+            if label_index >= len(unique_labels):
+                label_index = 0
+            curr_label = unique_labels[label_index]
+            unique_labels = unique_labels[unique_labels != curr_label_0]
 
-        if len(unique_labels) == 0:
-            break
-
-        curr_label = unique_labels[lbl_idx]
         sub_cands = candidate_nodes[cand_labels == curr_label]
         if len(sub_cands) == 0:
             break
-
         best_cand = int(sub_cands[np.argmax(purity[sub_cands])])
+
+        label_index += 1
+        if label_index >= len(unique_labels):
+            label_index = 0
+
         saved_nodes.append(best_cand)
         candidate_nodes = candidate_nodes[candidate_nodes != best_cand]
-        lbl_idx = (lbl_idx + 1) % len(unique_labels)
 
     return np.array(saved_nodes, dtype=int)
 

@@ -112,15 +112,34 @@ def test_hypergraph_prune_reduces_size():
     assert len(pruned) == int(np.ceil(0.25 * n))
 
 
-def test_hypergraph_prune_exhausted_label_rotation():
-    """When a class is exhausted, rotation picks the NEXT surviving class."""
-    shapelets = np.arange(11, dtype=float).reshape(11, 1, 1)
-    labels = np.array([0] * 1 + [1] * 5 + [2] * 5)
-    pruned = _hypergraph_prune(shapelets, 1, labels, neighbor_k=(2,), save_rate=1.0)
-    pruned_labels = labels[pruned]
-    assert (pruned_labels == 0).sum() == 1
-    assert (pruned_labels == 1).sum() > 1
-    assert (pruned_labels == 2).sum() > 1
+@pytest.mark.parametrize(
+    "labels, seed, save_rate, threshold, expected",
+    [
+        ([0] + [1] * 5 + [2] * 5, 0, 1.0, 1.1, [9, 0, 3, 8, 4, 1, 10, 5, 7, 2, 6]),
+        (
+            [0] + [1] * 2 + [2] * 4 + [3] * 12,
+            0,
+            0.5,
+            0.9,
+            [13, 0, 1, 3, 9, 2, 7, 4, 6, 8],
+        ),
+        ([0] * 2 + [1] * 3 + [2] * 10, 3, 0.5, 0.9, [14, 1, 3, 11, 0, 4, 9, 2]),
+    ],
+)
+def test_hypergraph_prune_matches_reference(
+    labels, seed, save_rate, threshold, expected
+):
+    """Expected output from the reference neighbor_hypergraph_based_shapelet_selection.
+
+    Reference: https://github.com/CCHe64/Shapeleter (Shapeleter.ipynb, cell 11),
+    inputs: shapelets = RandomState(seed).normal(size=(n, 1, 11)), neighbor_k=[3, 5].
+    """
+    labels = np.array(labels)
+    sh = np.random.RandomState(seed).normal(size=(len(labels), 1, 11))
+    selected = _hypergraph_prune(
+        sh, 11, labels, save_rate=save_rate, jaccard_threshold=threshold
+    )
+    assert selected.tolist() == expected
 
 
 def _pe_inputs():
