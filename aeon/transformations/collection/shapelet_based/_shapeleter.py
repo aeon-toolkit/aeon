@@ -352,8 +352,18 @@ def _vectorized_2feature_lda_fit(X1, X2, y):
     classes = np.unique(y)
     n_classes = len(classes)
 
+    mean1 = np.mean(X1, axis=0)
+    mean2 = np.mean(X2, axis=0)
+
     if n_classes <= 1 or N <= 2:
-        return np.zeros(K, dtype=bool), np.zeros(K), np.zeros(K)
+        return (
+            np.zeros(K, dtype=bool),
+            np.zeros(K),
+            np.zeros(K),
+            mean1,
+            mean2,
+            np.zeros(K),
+        )
 
     priors = np.array([np.mean(y == c) for c in classes])
     means1 = np.zeros((n_classes, K))
@@ -431,18 +441,34 @@ def _vectorized_2feature_lda_fit(X1, X2, y):
     w1[norm_valid] /= norm_w[norm_valid]
     w2[norm_valid] /= norm_w[norm_valid]
 
-    flip = norm_valid & ((w1 < 0) | ((np.abs(w1) <= 1e-12) & (w2 < 0)))
-    w1[flip] = -w1[flip]
-    w2[flip] = -w2[flip]
+    if n_classes > 2:
+        # For multiclass, match positive w1 convention since SVD sign varies
+        flip = norm_valid & ((w1 < 0) | ((np.abs(w1) <= 1e-12) & (w2 < 0)))
+        w1[flip] = -w1[flip]
+        w2[flip] = -w2[flip]
+    # For n_classes == 2, do NOT apply the w1 >= 0 flip: the binary formula
+    # already gives w . (mu1 - mu0) > 0, matching sklearn's convention.
 
-    valid = norm_valid
-    return valid, w1, w2
+    scale = np.zeros(K)
+    quad = (
+        w1**2 * sw11
+        + 2.0 * w1 * w2 * sw12
+        + w2**2 * sw22
+    )
+    scale_valid = norm_valid & (quad > 1e-12)
+    scale[scale_valid] = 1.0 / np.sqrt(quad[scale_valid])
+
+    valid = scale_valid
+    return valid, w1, w2, mean1, mean2, scale
 
 
-def _vectorized_2feature_lda_transform(X1, X2, valid, w1, w2):
+def _vectorized_2feature_lda_transform(X1, X2, valid, w1, w2, mean1, mean2, scale):
     """Project feature pairs with fitted LDA weights or fallback to average."""
     out = np.zeros_like(X1)
-    out[:, valid] = X1[:, valid] * w1[valid] + X2[:, valid] * w2[valid]
+    out[:, valid] = (
+        (X1[:, valid] - mean1[valid]) * w1[valid]
+        + (X2[:, valid] - mean2[valid]) * w2[valid]
+    ) * scale[valid]
     out[:, ~valid] = 0.5 * (X1[:, ~valid] + X2[:, ~valid])
     return out
 
@@ -452,9 +478,10 @@ class _CombinationFusion:
 
     Notes
     -----
-    Projection direction matches scikit-learn
-    `LinearDiscriminantAnalysis(n_components=1)` with w1 >= 0. Scale is normalized
-    to unit-norm Euclidean length, so clipping at threshold=20 is rarely reached.
+    The closed-form projection reproduces scikit-learn's
+    `LinearDiscriminantAnalysis(n_components=1).transform` (centred, unit
+    within-class variance); for more than 2 classes the overall sign is
+    fixed by convention.
     """
 
     def __init__(self, threshold=20.0):
@@ -465,24 +492,60 @@ class _CombinationFusion:
 
     def fit_transform(self, x_orig, x_abs, x_ord, y):
         """Fit LDA weights and scale transformed features to [-1, 1]."""
-        self.valid_oa, self.w1_oa, self.w2_oa = _vectorized_2feature_lda_fit(
-            x_orig, x_abs, y
-        )
-        self.valid_or, self.w1_or, self.w2_or = _vectorized_2feature_lda_fit(
-            x_orig, x_ord, y
-        )
-        self.valid_ar, self.w1_ar, self.w2_ar = _vectorized_2feature_lda_fit(
-            x_abs, x_ord, y
-        )
+        (
+            self.valid_oa,
+            self.w1_oa,
+            self.w2_oa,
+            self.mean1_oa,
+            self.mean2_oa,
+            self.scale_oa,
+        ) = _vectorized_2feature_lda_fit(x_orig, x_abs, y)
+        (
+            self.valid_or,
+            self.w1_or,
+            self.w2_or,
+            self.mean1_or,
+            self.mean2_or,
+            self.scale_or,
+        ) = _vectorized_2feature_lda_fit(x_orig, x_ord, y)
+        (
+            self.valid_ar,
+            self.w1_ar,
+            self.w2_ar,
+            self.mean1_ar,
+            self.mean2_ar,
+            self.scale_ar,
+        ) = _vectorized_2feature_lda_fit(x_abs, x_ord, y)
 
         out_oa = _vectorized_2feature_lda_transform(
-            x_orig, x_abs, self.valid_oa, self.w1_oa, self.w2_oa
+            x_orig,
+            x_abs,
+            self.valid_oa,
+            self.w1_oa,
+            self.w2_oa,
+            self.mean1_oa,
+            self.mean2_oa,
+            self.scale_oa,
         )
         out_or = _vectorized_2feature_lda_transform(
-            x_orig, x_ord, self.valid_or, self.w1_or, self.w2_or
+            x_orig,
+            x_ord,
+            self.valid_or,
+            self.w1_or,
+            self.w2_or,
+            self.mean1_or,
+            self.mean2_or,
+            self.scale_or,
         )
         out_ar = _vectorized_2feature_lda_transform(
-            x_abs, x_ord, self.valid_ar, self.w1_ar, self.w2_ar
+            x_abs,
+            x_ord,
+            self.valid_ar,
+            self.w1_ar,
+            self.w2_ar,
+            self.mean1_ar,
+            self.mean2_ar,
+            self.scale_ar,
         )
 
         out_oa[out_oa > self.threshold] = self.threshold
@@ -498,13 +561,34 @@ class _CombinationFusion:
     def transform(self, x_orig, x_abs, x_ord):
         """Transform feature pairs with fitted LDA weights."""
         out_oa = _vectorized_2feature_lda_transform(
-            x_orig, x_abs, self.valid_oa, self.w1_oa, self.w2_oa
+            x_orig,
+            x_abs,
+            self.valid_oa,
+            self.w1_oa,
+            self.w2_oa,
+            self.mean1_oa,
+            self.mean2_oa,
+            self.scale_oa,
         )
         out_or = _vectorized_2feature_lda_transform(
-            x_orig, x_ord, self.valid_or, self.w1_or, self.w2_or
+            x_orig,
+            x_ord,
+            self.valid_or,
+            self.w1_or,
+            self.w2_or,
+            self.mean1_or,
+            self.mean2_or,
+            self.scale_or,
         )
         out_ar = _vectorized_2feature_lda_transform(
-            x_abs, x_ord, self.valid_ar, self.w1_ar, self.w2_ar
+            x_abs,
+            x_ord,
+            self.valid_ar,
+            self.w1_ar,
+            self.w2_ar,
+            self.mean1_ar,
+            self.mean2_ar,
+            self.scale_ar,
         )
 
         out_oa[out_oa > self.threshold] = self.threshold
