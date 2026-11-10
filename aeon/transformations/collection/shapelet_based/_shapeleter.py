@@ -338,7 +338,9 @@ def _series_transform(X, mode):
 
     mean = np.mean(s, axis=-1, keepdims=True)
     std = np.std(s, axis=-1, keepdims=True)
-    return (s - mean) / (std + 1e-8)
+    # same zero handling as sklearn.preprocessing.scale
+    std = np.where(std < 10 * np.finfo(np.float64).eps, 1.0, std)
+    return (s - mean) / std
 
 
 def _vectorized_2feature_lda_fit(X1, X2, y):

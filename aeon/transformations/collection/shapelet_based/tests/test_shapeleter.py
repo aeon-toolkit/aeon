@@ -3,12 +3,14 @@
 import numpy as np
 import pytest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.preprocessing import scale
 
 from aeon.datasets import load_unit_test
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
     _CombinationFusion,
     _cosine_similarity_squared_loss,
+    _hilbert_transform,
     _hypergraph_prune,
     _knn_hyperedges,
     _optimize_position_encoding_np,
@@ -276,6 +278,35 @@ def test_series_transform_modes():
     np.testing.assert_allclose(np.std(X_H, axis=-1), 1.0, atol=1e-5)
     np.testing.assert_allclose(np.mean(X_HF, axis=-1), 0.0, atol=1e-5)
     np.testing.assert_allclose(np.std(X_HF, axis=-1), 1.0, atol=1e-5)
+
+
+@pytest.mark.parametrize("mode", ["F", "H", "HF"])
+def test_series_transform_matches_sklearn_scale(mode):
+    """Verify _series_transform matches sklearn scale per series and handles const."""
+    rng = np.random.RandomState(42)
+    steps = rng.normal(size=(5, 1, 40))
+    X = np.cumsum(steps, axis=-1)
+
+    res = _series_transform(X, mode)
+    if mode == "F":
+        raw = np.diff(X, axis=-1)
+    elif mode == "H":
+        raw = _hilbert_transform(X)
+    else:
+        raw = np.diff(_hilbert_transform(X), axis=-1)
+
+    expected = np.zeros_like(raw)
+    for i in range(raw.shape[0]):
+        expected[i, 0] = scale(raw[i, 0])
+
+    np.testing.assert_allclose(res, expected, atol=1e-9)
+
+    # Constant input series for mode F (std=0 after diff)
+    if mode == "F":
+        X_const = np.ones((3, 1, 30))
+        res_const = _series_transform(X_const, mode)
+        assert np.all(np.isfinite(res_const))
+        np.testing.assert_allclose(res_const, 0.0, atol=1e-12)
 
 
 def _lda_pair_data(n_classes, seed=0, n=60, k=6):
