@@ -206,7 +206,7 @@ def has_missing(X):
 
 
 def is_univariate(X, axis=None):
-    """Check if X is multivariate.
+    """Check if X is univariate.
 
     Parameters
     ----------
@@ -232,6 +232,18 @@ def is_univariate(X, axis=None):
     ValueError
         Input_type not in SERIES_DATA_TYPES.
         X is 2D but axis is not 0 or 1.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import is_univariate
+    >>> is_univariate(np.array([1, 2, 3, 4, 5]))
+    True
+    >>> is_univariate(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    True
+    >>> is_univariate(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
+    False
     """
     return get_n_channels(X, axis) == 1
 
