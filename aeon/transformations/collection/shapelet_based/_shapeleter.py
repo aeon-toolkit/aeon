@@ -450,11 +450,7 @@ def _vectorized_2feature_lda_fit(X1, X2, y):
     # already gives w . (mu1 - mu0) > 0, matching sklearn's convention.
 
     scale = np.zeros(K)
-    quad = (
-        w1**2 * sw11
-        + 2.0 * w1 * w2 * sw12
-        + w2**2 * sw22
-    )
+    quad = w1**2 * sw11 + 2.0 * w1 * w2 * sw12 + w2**2 * sw22
     scale_valid = norm_valid & (quad > 1e-12)
     scale[scale_valid] = 1.0 / np.sqrt(quad[scale_valid])
 
@@ -759,17 +755,15 @@ class ShapeleterTransform(BaseCollectionTransformer):
             raise ValueError("max_shapelets must be positive.")
         if self.per_shapelets <= 0:
             raise ValueError("per_shapelets must be positive.")
-        if (
-            not isinstance(self.jaccard_threshold, (int, float, np.floating))
-            or not (0.0 < self.jaccard_threshold <= 1.0)
+        if not isinstance(self.jaccard_threshold, (int, float, np.floating)) or not (
+            0.0 < self.jaccard_threshold <= 1.0
         ):
             raise ValueError("jaccard_threshold must be in (0, 1].")
         if (
             not isinstance(self.neighbor_k, (tuple, list))
             or len(self.neighbor_k) == 0
             or any(
-                not isinstance(k, (int, np.integer)) or k <= 0
-                for k in self.neighbor_k
+                not isinstance(k, (int, np.integer)) or k <= 0 for k in self.neighbor_k
             )
         ):
             raise ValueError("neighbor_k must contain positive integers.")

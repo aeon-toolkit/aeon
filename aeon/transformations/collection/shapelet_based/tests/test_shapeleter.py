@@ -423,4 +423,3 @@ def test_shapeleter_neighbor_k_changes_selection():
     s1 = _hypergraph_prune(sh, 11, labels, neighbor_k=(2,), save_rate=0.5)
     s2 = _hypergraph_prune(sh, 11, labels, neighbor_k=(5,), save_rate=0.5)
     assert not np.array_equal(s1, s2)
-
