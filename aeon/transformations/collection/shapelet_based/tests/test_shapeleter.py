@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.preprocessing import scale
+from sklearn.preprocessing import MinMaxScaler, scale
 
 from aeon.datasets import load_unit_test
 from aeon.transformations.collection.shapelet_based._shapeleter import (
@@ -14,10 +14,8 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _hypergraph_prune,
     _knn_hyperedges,
     _optimize_position_encoding_np,
-    _PairLDA,
     _series_transform,
-    _vectorized_2feature_lda_fit,
-    _vectorized_2feature_lda_transform,
+    _sk_lda_pair_fit,
 )
 
 
@@ -310,44 +308,6 @@ def test_series_transform_matches_sklearn_scale(mode):
         np.testing.assert_allclose(res_const, 0.0, atol=1e-12)
 
 
-def _lda_pair_data(n_classes, seed=0, n=60, k=6):
-    rng = np.random.RandomState(seed)
-    y = np.arange(n) % n_classes
-    x1 = rng.normal(size=(n, k)) + y[:, None] * rng.uniform(0, 1, k)
-    x2 = 0.5 * x1 + rng.normal(size=(n, k)) + y[:, None] * rng.uniform(-1, 1, k)
-    return x1, x2, y
-
-
-def test_lda_projection_matches_sklearn_transform_binary():
-    """Test that 2-feature LDA projection matches sklearn transform for binary y."""
-    x1, x2, y = _lda_pair_data(2)
-    fit = _vectorized_2feature_lda_fit(x1, x2, y)
-    out = _vectorized_2feature_lda_transform(x1, x2, *fit)
-    for j in range(x1.shape[1]):
-        z = (
-            LinearDiscriminantAnalysis(n_components=1)
-            .fit(np.c_[x1[:, j], x2[:, j]], y)
-            .transform(np.c_[x1[:, j], x2[:, j]])[:, 0]
-        )
-        np.testing.assert_allclose(out[:, j], z, atol=1e-8)
-
-
-@pytest.mark.parametrize("n_classes", [3, 4])
-def test_lda_projection_matches_sklearn_transform_multiclass_up_to_sign(n_classes):
-    """Test that 2-feature LDA projection matches sklearn transform up to sign."""
-    x1, x2, y = _lda_pair_data(n_classes)
-    fit = _vectorized_2feature_lda_fit(x1, x2, y)
-    out = _vectorized_2feature_lda_transform(x1, x2, *fit)
-    for j in range(x1.shape[1]):
-        z = (
-            LinearDiscriminantAnalysis(n_components=1)
-            .fit(np.c_[x1[:, j], x2[:, j]], y)
-            .transform(np.c_[x1[:, j], x2[:, j]])[:, 0]
-        )
-        s = np.sign(out[:, j] @ z)
-        np.testing.assert_allclose(s * out[:, j], z, atol=1e-8)
-
-
 @pytest.mark.parametrize("seed", [0, 1, 2])
 def test_shapeleter_transform_unit_test_fits(seed):
     """Regression: UnitTest used to crash on constant feature pairs."""
@@ -474,110 +434,271 @@ def test_shapeleter_pruning_normalization_order():
             assert last_one < first_zero, "Expected norm=1 shapelets to precede norm=0"
 
 
-def _ref_pair_transform_single(x1_tr, x2_tr, y_tr, x1_te, x2_te, thr=20.0):
-    """Project a single column pair using scikit-learn LDA."""
-    lda = LinearDiscriminantAnalysis(n_components=1)
-    try:
-        res = lda.fit_transform(np.c_[x1_tr, x2_tr], y_tr)
-        if res.shape[1] == 1:
-            out_train = np.clip(res[:, 0], None, thr)
-            out_test = np.clip(lda.transform(np.c_[x1_te, x2_te])[:, 0], None, thr)
-            return out_train, out_test
-    except Exception:
-        pass
-    out_train = 0.5 * (x1_tr + x2_tr)
-    out_test = 0.5 * (x1_te + x2_te)
-    return out_train, out_test
-
-
-def _make_crafted_columns(N, n_classes, seed=42):
-    """Construct 8 characteristic feature-pair types spanning conditioning regimes."""
+def _build_test_columns(n_classes, seed=0):
+    """Build train and test sets spanning 10 characteristic conditioning regimes."""
     rng = np.random.RandomState(seed)
-    y = np.repeat(np.arange(n_classes), int(np.ceil(N / n_classes)))[:N]
-    c0_1, c0_2 = rng.randn(N), rng.randn(N)
-    c1_1 = rng.randn(N)
-    c1_2 = c1_1 + 1e-12 * rng.randn(N)
-    c2_1, c2_2 = np.full(N, -1.0), rng.randn(N)
-    c3_1, c3_2 = rng.randn(N), np.full(N, -1.0)
-    c4_1, c4_2 = np.full(N, -1.0), np.full(N, -1.0)
-    c5_1, c5_2 = rng.randn(N), rng.randn(N)
-    c5_1[y == 0] = -1.0
-    c6_1, c6_2 = rng.randn(N) * 5.0, rng.randn(N) * 5.0
-    c7_1, c7_2 = rng.randn(N) * 1e3, rng.randn(N) * 1e3
-    X1 = np.column_stack([c0_1, c1_1, c2_1, c3_1, c4_1, c5_1, c6_1, c7_1])
-    X2 = np.column_stack([c0_2, c1_2, c2_2, c3_2, c4_2, c5_2, c6_2, c7_2])
-    return X1, X2, y
+    n = 36
+    y = rng.permutation(np.arange(n) % n_classes)
+    y_te = np.arange(60) % n_classes
+
+    cols_tr_x1, cols_tr_x2 = [], []
+    cols_te_x1, cols_te_x2 = [], []
+
+    # 1: normal
+    cols_tr_x1.append(rng.randn(n) + 0.5 * y)
+    cols_tr_x2.append(rng.randn(n) + 0.5 * y)
+    cols_te_x1.append(rng.randn(60) + 0.5 * y_te)
+    cols_te_x2.append(rng.randn(60) + 0.5 * y_te)
+
+    # 2: x1 constant -1.0 with x2 small variance class dependent
+    cols_tr_x1.append(np.full(n, -1.0))
+    cols_tr_x2.append(0.01 * rng.randn(n) + 0.02 * y)
+    cols_te_x1.append(np.full(60, -1.0))
+    cols_te_x2.append(0.01 * rng.randn(60) + 0.02 * y_te)
+
+    # 3: x1 constant with x2 class independent small variance
+    cols_tr_x1.append(np.full(n, -1.0))
+    cols_tr_x2.append(0.01 * rng.randn(n))
+    cols_te_x1.append(np.full(60, -1.0))
+    cols_te_x2.append(0.01 * rng.randn(60))
+
+    # 4: x2 constant -1.0
+    cols_tr_x1.append(rng.randn(n) + 0.5 * y)
+    cols_tr_x2.append(np.full(n, -1.0))
+    cols_te_x1.append(rng.randn(60) + 0.5 * y_te)
+    cols_te_x2.append(np.full(60, -1.0))
+
+    # 5: both constant
+    cols_tr_x1.append(np.full(n, -1.0))
+    cols_tr_x2.append(np.full(n, -1.0))
+    cols_te_x1.append(np.full(60, -1.0))
+    cols_te_x2.append(np.full(60, -1.0))
+
+    # 6: collinear x2 = 2 * x1 + 1
+    x1_6 = rng.randn(n) + 0.5 * y
+    cols_tr_x1.append(x1_6)
+    cols_tr_x2.append(2.0 * x1_6 + 1.0)
+    x1_6_te = rng.randn(60) + 0.5 * y_te
+    cols_te_x1.append(x1_6_te)
+    cols_te_x2.append(2.0 * x1_6_te + 1.0)
+
+    # 7: collinear x2 = -3 * x1 + 2
+    x1_7 = rng.randn(n) + 0.5 * y
+    cols_tr_x1.append(x1_7)
+    cols_tr_x2.append(-3.0 * x1_7 + 2.0)
+    x1_7_te = rng.randn(60) + 0.5 * y_te
+    cols_te_x1.append(x1_7_te)
+    cols_te_x2.append(-3.0 * x1_7_te + 2.0)
+
+    # 8: near collinear x2 = x1 + 0.001 * N(0,1)
+    x1_8 = rng.randn(n) + 0.5 * y
+    cols_tr_x1.append(x1_8)
+    cols_tr_x2.append(x1_8 + 0.001 * rng.randn(n))
+    x1_8_te = rng.randn(60) + 0.5 * y_te
+    cols_te_x1.append(x1_8_te)
+    cols_te_x2.append(x1_8_te + 0.001 * rng.randn(60))
+
+    # 9: tiny variance
+    cols_tr_x1.append(0.001 * rng.randn(n) + 0.003 * y)
+    cols_tr_x2.append(0.001 * rng.randn(n) + 0.003 * y)
+    cols_te_x1.append(0.001 * rng.randn(60) + 0.003 * y_te)
+    cols_te_x2.append(0.001 * rng.randn(60) + 0.003 * y_te)
+
+    # 10: well separated
+    cols_tr_x1.append(rng.randn(n) + 3.0 * y)
+    cols_tr_x2.append(rng.randn(n) + 3.0 * y)
+    cols_te_x1.append(rng.randn(60) + 3.0 * y_te)
+    cols_te_x2.append(rng.randn(60) + 3.0 * y_te)
+
+    x1_tr = np.column_stack(cols_tr_x1)
+    x2_tr = np.column_stack(cols_tr_x2)
+    x1_te = np.column_stack(cols_te_x1)
+    x2_te = np.column_stack(cols_te_x2)
+    return x1_tr, x2_tr, y, x1_te, x2_te, y_te
 
 
-def _make_crafted_test(N_t, seed=142):
-    """Construct test set for the 8 characteristic feature-pair types."""
-    rng = np.random.RandomState(seed)
-    c0_1, c0_2 = rng.randn(N_t), rng.randn(N_t)
-    c1_1 = rng.randn(N_t)
-    c1_2 = c1_1 + 1e-12 * rng.randn(N_t)
-    c2_1, c2_2 = np.full(N_t, -1.0), rng.randn(N_t)
-    c3_1, c3_2 = rng.randn(N_t), np.full(N_t, -1.0)
-    c4_1, c4_2 = np.full(N_t, -1.0), np.full(N_t, -1.0)
-    c5_1, c5_2 = rng.randn(N_t), rng.randn(N_t)
-    c6_1, c6_2 = rng.randn(N_t) * 20.0 + 30.0, rng.randn(N_t) * 20.0 + 30.0
-    c7_1, c7_2 = rng.randn(N_t) * 1e3, rng.randn(N_t) * 1e3
-    X1_te = np.column_stack([c0_1, c1_1, c2_1, c3_1, c4_1, c5_1, c6_1, c7_1])
-    X2_te = np.column_stack([c0_2, c1_2, c2_2, c3_2, c4_2, c5_2, c6_2, c7_2])
-    return X1_te, X2_te
+@pytest.mark.parametrize("n_classes", [2, 3, 4, 6])
+def test_sk_lda_pair_matches_sklearn(n_classes):
+    """Verify _sk_lda_pair_fit exactly matches scikit-learn LDA SVD solver."""
+    x1_tr, x2_tr, y_tr, x1_te, x2_te, y_te = _build_test_columns(n_classes)
+    params = _sk_lda_pair_fit(x1_tr, x2_tr, y_tr)
+    k = x1_tr.shape[1]
+    failed = []
+    for j in range(k):
+        lda = LinearDiscriminantAnalysis(n_components=1)
+        try:
+            res = lda.fit_transform(np.c_[x1_tr[:, j], x2_tr[:, j]], y_tr)
+            if res.shape[1] != 1:
+                failed.append(j)
+            else:
+                proj_tr = (x1_tr[:, j] - params["xbar1"][j]) * params["s1"][j] + (
+                    x2_tr[:, j] - params["xbar2"][j]
+                ) * params["s2"][j]
+                proj_te = (x1_te[:, j] - params["xbar1"][j]) * params["s1"][j] + (
+                    x2_te[:, j] - params["xbar2"][j]
+                ) * params["s2"][j]
+                exp_tr = res[:, 0]
+                exp_te = lda.transform(np.c_[x1_te[:, j], x2_te[:, j]])[:, 0]
+                np.testing.assert_allclose(proj_tr, exp_tr, atol=1e-8)
+                np.testing.assert_allclose(proj_te, exp_te, atol=1e-8)
+        except (ValueError, np.linalg.LinAlgError, IndexError):
+            failed.append(j)
+
+    ok_false = [j for j in range(k) if not params["ok"][j]]
+    assert set(failed) == set(ok_false)
 
 
-def test_combination_fusion_hybrid_parity_binary():
-    """Verify hybrid _PairLDA matches reference scikit-learn helper on binary y."""
-    X1_tr, X2_tr, y_tr = _make_crafted_columns(30, 2)
-    X1_te, X2_te = _make_crafted_test(60)
-    pair = _PairLDA(threshold=20.0, safe=0.1)
-    pair.fit(X1_tr, X2_tr, y_tr)
-    out_tr = pair.transform(X1_tr, X2_tr)
-    out_te = pair.transform(X1_te, X2_te)
-    for j in range(8):
-        h_tr, h_te = _ref_pair_transform_single(
-            X1_tr[:, j], X2_tr[:, j], y_tr, X1_te[:, j], X2_te[:, j]
-        )
-        np.testing.assert_allclose(out_tr[:, j], h_tr, atol=1e-6)
-        np.testing.assert_allclose(out_te[:, j], h_te, atol=1e-6)
-
-
-def test_combination_fusion_hybrid_parity_multiclass():
-    """Verify hybrid _PairLDA matches reference helper on 3-class y."""
-    X1_tr, X2_tr, y_tr = _make_crafted_columns(30, 3)
-    X1_te, X2_te = _make_crafted_test(60)
-    pair = _PairLDA(threshold=20.0, safe=0.1)
-    pair.fit(X1_tr, X2_tr, y_tr)
-    out_tr = pair.transform(X1_tr, X2_tr)
-    out_te = pair.transform(X1_te, X2_te)
-    for j in range(8):
-        h_tr, h_te = _ref_pair_transform_single(
-            X1_tr[:, j], X2_tr[:, j], y_tr, X1_te[:, j], X2_te[:, j]
-        )
-        if j in pair.use_closed:
-            diff_tr = min(
-                np.max(np.abs(out_tr[:, j] - h_tr)),
-                np.max(np.abs(out_tr[:, j] + h_tr)),
-            )
-            diff_te = min(
-                np.max(np.abs(out_te[:, j] - h_te)),
-                np.max(np.abs(out_te[:, j] + h_te)),
-            )
-            assert diff_tr < 1e-6
-            assert diff_te < 1e-6
-        else:
-            np.testing.assert_allclose(out_tr[:, j], h_tr, atol=1e-12)
-            np.testing.assert_allclose(out_te[:, j], h_te, atol=1e-12)
-
-
-def test_combination_fusion_closed_form_used():
-    """Verify _CombinationFusion uses closed-form LDA on well-conditioned data."""
+def test_sk_lda_pair_degenerate_inputs():
+    """Verify _sk_lda_pair_fit handles all-equal labels and n_cases <= n_classes."""
     rng = np.random.RandomState(42)
-    N = 30
-    x_orig = rng.randn(N, 10)
-    x_abs = rng.randn(N, 10)
-    x_ord = rng.randn(N, 10)
-    y = np.array([0, 1] * 15)
+    p_a = _sk_lda_pair_fit(rng.randn(30, 5), rng.randn(30, 5), np.zeros(30))
+    assert not np.any(p_a["ok"])
+
+    p_b = _sk_lda_pair_fit(rng.randn(3, 5), rng.randn(3, 5), np.array([0, 1, 2]))
+    assert not np.any(p_b["ok"])
+
+
+def _ref_pair_transform_single(x1_tr, x2_tr, y_tr, x1_te, x2_te, thr=20.0):
+    """Project a pair of column sets using scikit-learn LDA with reference clipping."""
+    lda = LinearDiscriminantAnalysis(n_components=1)
+    k = x1_tr.shape[1]
+    out_tr = np.zeros_like(x1_tr)
+    out_te = np.zeros_like(x1_te)
+    for j in range(k):
+        try:
+            res = lda.fit_transform(np.c_[x1_tr[:, j], x2_tr[:, j]], y_tr)
+            if res.shape[1] == 1:
+                col_tr = res[:, 0]
+                col_te = lda.transform(np.c_[x1_te[:, j], x2_te[:, j]])[:, 0]
+            else:
+                col_tr = 0.5 * (x1_tr[:, j] + x2_tr[:, j])
+                col_te = 0.5 * (x1_te[:, j] + x2_te[:, j])
+        except (ValueError, np.linalg.LinAlgError, IndexError):
+            col_tr = 0.5 * (x1_tr[:, j] + x2_tr[:, j])
+            col_te = 0.5 * (x1_te[:, j] + x2_te[:, j])
+        col_tr = np.clip(col_tr, None, thr)
+        col_te = np.clip(col_te, None, thr)
+        out_tr[:, j] = col_tr
+        out_te[:, j] = col_te
+    scaler = MinMaxScaler((-1, 1))
+    return scaler.fit_transform(out_tr), scaler.transform(out_te)
+
+
+def _build_3sets_columns(n_classes, seed=0):
+    """Build three sets of 10 characteristic columns for CombinationFusion testing."""
+    rng = np.random.RandomState(seed)
+    n = 36
+    y = rng.permutation(np.arange(n) % n_classes)
+    y_te = np.arange(60) % n_classes
+
+    cols1, cols2, cols3 = [], [], []
+    cols1_te, cols2_te, cols3_te = [], [], []
+    for cols, cols_te in [(cols1, cols1_te), (cols2, cols2_te), (cols3, cols3_te)]:
+        cols.append(rng.randn(n) + 0.5 * y)
+        cols_te.append(rng.randn(60) + 0.5 * y_te)
+    cols1.append(np.full(n, -1.0))
+    cols1_te.append(np.full(60, -1.0))
+    cols2.append(0.01 * rng.randn(n) + 0.02 * y)
+    cols2_te.append(0.01 * rng.randn(60) + 0.02 * y_te)
+    cols3.append(0.01 * rng.randn(n) + 0.02 * y)
+    cols3_te.append(0.01 * rng.randn(60) + 0.02 * y_te)
+    cols1.append(np.full(n, -1.0))
+    cols1_te.append(np.full(60, -1.0))
+    cols2.append(0.01 * rng.randn(n))
+    cols2_te.append(0.01 * rng.randn(60))
+    cols3.append(0.01 * rng.randn(n))
+    cols3_te.append(0.01 * rng.randn(60))
+    cols1.append(rng.randn(n) + 0.5 * y)
+    cols1_te.append(rng.randn(60) + 0.5 * y_te)
+    cols2.append(np.full(n, -1.0))
+    cols2_te.append(np.full(60, -1.0))
+    cols3.append(rng.randn(n) + 0.5 * y)
+    cols3_te.append(rng.randn(60) + 0.5 * y_te)
+    cols1.append(np.full(n, -1.0))
+    cols1_te.append(np.full(60, -1.0))
+    cols2.append(np.full(n, -1.0))
+    cols2_te.append(np.full(60, -1.0))
+    cols3.append(np.full(n, -1.0))
+    cols3_te.append(np.full(60, -1.0))
+    x1_6 = rng.randn(n) + 0.5 * y
+    x1_6_te = rng.randn(60) + 0.5 * y_te
+    cols1.append(x1_6)
+    cols1_te.append(x1_6_te)
+    cols2.append(2.0 * x1_6 + 1.0)
+    cols2_te.append(2.0 * x1_6_te + 1.0)
+    cols3.append(2.0 * x1_6 + 1.0)
+    cols3_te.append(2.0 * x1_6_te + 1.0)
+    x1_7 = rng.randn(n) + 0.5 * y
+    x1_7_te = rng.randn(60) + 0.5 * y_te
+    cols1.append(x1_7)
+    cols1_te.append(x1_7_te)
+    cols2.append(-3.0 * x1_7 + 2.0)
+    cols2_te.append(-3.0 * x1_7_te + 2.0)
+    cols3.append(-3.0 * x1_7 + 2.0)
+    cols3_te.append(-3.0 * x1_7_te + 2.0)
+    x1_8 = rng.randn(n) + 0.5 * y
+    x1_8_te = rng.randn(60) + 0.5 * y_te
+    cols1.append(x1_8)
+    cols1_te.append(x1_8_te)
+    cols2.append(x1_8 + 0.001 * rng.randn(n))
+    cols2_te.append(x1_8_te + 0.001 * rng.randn(60))
+    cols3.append(x1_8 + 0.001 * rng.randn(n))
+    cols3_te.append(x1_8_te + 0.001 * rng.randn(60))
+    cols1.append(0.001 * rng.randn(n) + 0.003 * y)
+    cols1_te.append(0.001 * rng.randn(60) + 0.003 * y_te)
+    cols2.append(0.001 * rng.randn(n) + 0.003 * y)
+    cols2_te.append(0.001 * rng.randn(60) + 0.003 * y_te)
+    cols3.append(0.001 * rng.randn(n) + 0.003 * y)
+    cols3_te.append(0.001 * rng.randn(60) + 0.003 * y_te)
+    cols1.append(rng.randn(n) + 3.0 * y)
+    cols1_te.append(rng.randn(60) + 3.0 * y_te)
+    cols2.append(rng.randn(n) + 3.0 * y)
+    cols2_te.append(rng.randn(60) + 3.0 * y_te)
+    cols3.append(rng.randn(n) + 3.0 * y)
+    cols3_te.append(rng.randn(60) + 3.0 * y_te)
+
+    xo = np.column_stack(cols1)
+    xa = np.column_stack(cols2)
+    xr = np.column_stack(cols3)
+    xo_te = np.column_stack(cols1_te)
+    xa_te = np.column_stack(cols2_te)
+    xr_te = np.column_stack(cols3_te)
+    return xo, xa, xr, y, xo_te, xa_te, xr_te
+
+
+def test_combination_fusion_matches_reference_binary():
+    """Verify _CombinationFusion matches reference scikit-learn LDA for binary y."""
+    xo, xa, xr, y, xo_te, xa_te, xr_te = _build_3sets_columns(2)
     fusion = _CombinationFusion()
-    fusion.fit_transform(x_orig, x_abs, x_ord, y)
-    assert fusion.n_closed_ > 0
+    out_oa, out_or, out_ar = fusion.fit_transform(xo, xa, xr, y)
+    te_oa, te_or, te_ar = fusion.transform(xo_te, xa_te, xr_te)
+
+    ref_oa_tr, ref_oa_te = _ref_pair_transform_single(xo, xa, y, xo_te, xa_te)
+    ref_or_tr, ref_or_te = _ref_pair_transform_single(xo, xr, y, xo_te, xr_te)
+    ref_ar_tr, ref_ar_te = _ref_pair_transform_single(xa, xr, y, xa_te, xr_te)
+
+    np.testing.assert_allclose(out_oa, ref_oa_tr, atol=1e-6)
+    np.testing.assert_allclose(te_oa, ref_oa_te, atol=1e-6)
+    np.testing.assert_allclose(out_or, ref_or_tr, atol=1e-6)
+    np.testing.assert_allclose(te_or, ref_or_te, atol=1e-6)
+    np.testing.assert_allclose(out_ar, ref_ar_tr, atol=1e-6)
+    np.testing.assert_allclose(te_ar, ref_ar_te, atol=1e-6)
+
+
+def test_combination_fusion_matches_reference_multiclass():
+    """Verify _CombinationFusion matches reference scikit-learn LDA for 3 classes."""
+    xo, xa, xr, y, xo_te, xa_te, xr_te = _build_3sets_columns(3)
+    fusion = _CombinationFusion()
+    out_oa, out_or, out_ar = fusion.fit_transform(xo, xa, xr, y)
+    te_oa, te_or, te_ar = fusion.transform(xo_te, xa_te, xr_te)
+
+    ref_oa_tr, ref_oa_te = _ref_pair_transform_single(xo, xa, y, xo_te, xa_te)
+    ref_or_tr, ref_or_te = _ref_pair_transform_single(xo, xr, y, xo_te, xr_te)
+    ref_ar_tr, ref_ar_te = _ref_pair_transform_single(xa, xr, y, xa_te, xr_te)
+
+    np.testing.assert_allclose(out_oa, ref_oa_tr, atol=1e-6)
+    np.testing.assert_allclose(te_oa, ref_oa_te, atol=1e-6)
+    np.testing.assert_allclose(out_or, ref_or_tr, atol=1e-6)
+    np.testing.assert_allclose(te_or, ref_or_te, atol=1e-6)
+    np.testing.assert_allclose(out_ar, ref_ar_tr, atol=1e-6)
+    np.testing.assert_allclose(te_ar, ref_ar_te, atol=1e-6)
