@@ -683,7 +683,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     Ka and Ko are optimised per dilation. The absolute-position scale for a
     dilation uses the length of the first retained shapelet with that dilation.
-    To be confirmed against the reference implementation.
+    Pruning is grouped by (length, dilation, normalisation), whereas the reference
+    groups by (dilation, normalisation); these are identical whenever a single
+    shapelet length is used.
 
     References
     ----------
