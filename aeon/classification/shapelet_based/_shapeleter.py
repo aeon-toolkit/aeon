@@ -46,6 +46,10 @@ class ShapeleterClassifier(BaseClassifier):
         The minimum similarity between shapelets for self-similarity pruning in RDST.
     proba_normalization : float, default=0.8
         Probability of normalizing shapelets during extraction in RDST.
+    neighbor_k : tuple of int, default=(3, 5)
+        Neighborhood sizes for constructing hyperedges in hypergraph candidate pruning.
+    jaccard_threshold : float, default=0.9
+        Maximum Jaccard similarity threshold for candidate diversity filtering.
     ka : float, default=8.0
         Initial absolute positional scaling parameter (:math:`K_{a0}`).
     ko : float, default=8.0
@@ -119,6 +123,8 @@ class ShapeleterClassifier(BaseClassifier):
         per_shapelets=2500,
         alpha_similarity=0.0,
         proba_normalization=0.8,
+        neighbor_k=(3, 5),
+        jaccard_threshold=0.9,
         ka=8.0,
         ko=8.0,
         k_min=1.0,
@@ -131,6 +137,8 @@ class ShapeleterClassifier(BaseClassifier):
         self.per_shapelets = per_shapelets
         self.alpha_similarity = alpha_similarity
         self.proba_normalization = proba_normalization
+        self.neighbor_k = neighbor_k
+        self.jaccard_threshold = jaccard_threshold
         self.ka = ka
         self.ko = ko
         self.k_min = k_min
@@ -197,6 +205,8 @@ class ShapeleterClassifier(BaseClassifier):
             "per_shapelets": self.per_shapelets,
             "alpha_similarity": self.alpha_similarity,
             "proba_normalization": self.proba_normalization,
+            "neighbor_k": self.neighbor_k,
+            "jaccard_threshold": self.jaccard_threshold,
             "ka": self.ka,
             "ko": self.ko,
             "k_min": self.k_min,

@@ -343,6 +343,11 @@ def test_normalise_soo_matches_loop():
         {"ko": 20.0, "k_min": 1.0, "k_max": 15.0},
         {"lr": 0.0},
         {"max_iter": -5},
+        {"jaccard_threshold": 0.0},
+        {"jaccard_threshold": 1.5},
+        {"neighbor_k": ()},
+        {"neighbor_k": (3, -1)},
+        {"neighbor_k": (0,)},
     ],
 )
 def test_shapeleter_hyperparameter_validation(invalid_param):
@@ -392,3 +397,13 @@ def test_shapeleter_transform_multiclass():
     Xt = st.fit_transform(X, y)
     assert Xt.shape[0] == 12
     assert np.all(np.isfinite(Xt))
+
+
+def test_shapeleter_neighbor_k_changes_selection():
+    """Verify that changing neighbor_k alters the hypergraph-pruned shapelet set."""
+    labels = np.array([0] * 5 + [1] * 5 + [2] * 5)
+    sh = np.random.RandomState(42).normal(size=(len(labels), 1, 11))
+    s1 = _hypergraph_prune(sh, 11, labels, neighbor_k=(2,), save_rate=0.5)
+    s2 = _hypergraph_prune(sh, 11, labels, neighbor_k=(5,), save_rate=0.5)
+    assert not np.array_equal(s1, s2)
+

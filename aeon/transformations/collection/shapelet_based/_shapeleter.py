@@ -542,6 +542,10 @@ class ShapeleterTransform(BaseCollectionTransformer):
         The minimum similarity between shapelets for self-similarity pruning in RDST.
     proba_normalization : float, default=0.8
         Probability of normalizing shapelets during extraction in RDST.
+    neighbor_k : tuple of int, default=(3, 5)
+        Neighborhood sizes for constructing hyperedges in hypergraph candidate pruning.
+    jaccard_threshold : float, default=0.9
+        Maximum Jaccard similarity threshold for candidate diversity filtering.
     ka : float, default=8.0
         Initial absolute positional scaling parameter (:math:`K_{a0}`).
     ko : float, default=8.0
@@ -633,6 +637,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
         per_shapelets=2500,
         alpha_similarity=0.0,
         proba_normalization=0.8,
+        neighbor_k=(3, 5),
+        jaccard_threshold=0.9,
         ka=8.0,
         ko=8.0,
         k_min=1.0,
@@ -645,6 +651,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
         self.per_shapelets = per_shapelets
         self.alpha_similarity = alpha_similarity
         self.proba_normalization = proba_normalization
+        self.neighbor_k = neighbor_k
+        self.jaccard_threshold = jaccard_threshold
         self.ka = ka
         self.ko = ko
         self.k_min = k_min
@@ -665,6 +673,20 @@ class ShapeleterTransform(BaseCollectionTransformer):
             raise ValueError("max_shapelets must be positive.")
         if self.per_shapelets <= 0:
             raise ValueError("per_shapelets must be positive.")
+        if (
+            not isinstance(self.jaccard_threshold, (int, float, np.floating))
+            or not (0.0 < self.jaccard_threshold <= 1.0)
+        ):
+            raise ValueError("jaccard_threshold must be in (0, 1].")
+        if (
+            not isinstance(self.neighbor_k, (tuple, list))
+            or len(self.neighbor_k) == 0
+            or any(
+                not isinstance(k, (int, np.integer)) or k <= 0
+                for k in self.neighbor_k
+            )
+        ):
+            raise ValueError("neighbor_k must contain positive integers.")
         if self.k_min <= 0:
             raise ValueError("k_min must be positive.")
         if self.k_min > self.k_max:
@@ -720,7 +742,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
                                 raw_shapelets[sub_idx],
                                 l_val,
                                 shapelet_classes[sub_idx],
+                                neighbor_k=self.neighbor_k,
                                 save_rate=save_rate,
+                                jaccard_threshold=self.jaccard_threshold,
                             )
                             selected_idx.append(sub_idx[pruned_rel])
 
