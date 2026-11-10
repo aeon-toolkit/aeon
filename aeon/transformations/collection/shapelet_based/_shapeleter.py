@@ -487,89 +487,93 @@ class _CombinationFusion:
 
 
 class ShapeleterTransform(BaseCollectionTransformer):
-    """Shapeleter transformer with hypergraph pruning and dual positional embedding.
+    """
+    Shapeleter transformer: hypergraph shapelet pruning and dual positional embedding.
 
-    Shapeleter [1]_ enhances shapelet-based time series representations by combining:
-    1. A random dilated shapelet transform (RDST) candidate generation backbone.
-    2. Multi-scale hypergraph pruning grouped by shapelet length, dilation, and
-       normalization, utilizing self-inclusive k-NN hyperedges, hypergraph purity
-       weighting, and Jaccard-based diversity filtering.
-    3. Dual sinusoidal positional embeddings incorporating both absolute occurrence
-       positions (SAPE) and ordinal relative ranks (SOPE), with frequency scaling
-       parameters optimized via log-space Adam.
-    4. Multi-view feature fusion via pairwise 2-feature Linear Discriminant Analysis
-       (LDA) with one-sided threshold clipping and MinMax normalization.
+    Shapeleter [1]_ enhances shapelet-based representations. Candidate shapelets are
+    sampled with a random dilated shapelet transform (RDST), pruned with a
+    neighbourhood hypergraph (purity and Jaccard diversity), and each retained
+    shapelet is described by its minimum distance, its occurrence count and two
+    sinusoidal positional encodings (absolute position and ordinal rank). The three
+    views are fused pairwise with a two-feature linear discriminant.
 
     Parameters
     ----------
     max_shapelets : int, default=20000
-        Maximum number of candidate shapelets sampled initially by the RDST backbone.
+        Number of candidate shapelets sampled by the RDST backbone.
     per_shapelets : int, default=2500
-        Target number of shapelets preserved per group after hypergraph pruning.
+        Target total number of retained shapelets. It is converted to a global keep
+        rate ``per_shapelets / n_candidates`` that is applied to every
+        (length, dilation, normalisation) group, rounding up, so the total can be
+        slightly larger than ``per_shapelets``.
     alpha_similarity : float, default=0.0
-        The minimum similarity between shapelets for self-similarity pruning in RDST.
+        Similarity parameter of the RDST candidate sampling.
     proba_normalization : float, default=0.8
-        Probability of normalizing shapelets during extraction in RDST.
+        Probability that a sampled shapelet is z-normalised.
     neighbor_k : tuple of int, default=(3, 5)
-        Neighborhood sizes for constructing hyperedges in hypergraph candidate pruning.
+        Neighbourhood sizes used to build the hyperedges of the pruning hypergraph.
+        Values larger than the number of candidates in a group are ignored.
     jaccard_threshold : float, default=0.9
-        Maximum Jaccard similarity threshold for candidate diversity filtering.
+        Two shapelets whose hyperedge sets have a Jaccard similarity at or above this
+        value are treated as redundant during pruning. Must be in (0, 1].
     ka : float, default=8.0
-        Initial absolute positional scaling parameter (:math:`K_{a0}`).
+        Initial value of the absolute-position scale ``Ka``.
     ko : float, default=8.0
-        Initial ordinal positional scaling parameter (:math:`K_{o0}` / :math:`K_{r0}`).
+        Initial value of the ordinal-position scale ``Ko``.
     k_min : float, default=1.0
-        Lower bound for :math:`K_a` and :math:`K_o` during Adam optimization.
+        Lower bound of ``Ka`` and ``Ko``.
     k_max : float, default=15.0
-        Upper bound for :math:`K_a` and :math:`K_o` during Adam optimization.
+        Upper bound of ``Ka`` and ``Ko``.
     lr : float, default=0.002
-        Learning rate for Adam optimization of :math:`K_a` and :math:`K_o`.
+        Learning rate of the Adam optimiser used for ``Ka`` and ``Ko``.
     max_iter : int, default=200
-        Maximum number of iterations for Adam positional optimization per dilation.
-        If set to 0, optimization is skipped and fixed `ka` and `ko` values are used.
+        Maximum number of Adam iterations per dilation. If 0, ``ka`` and ``ko`` are
+        used unchanged. The optimisation stops, keeping the last values inside
+        ``[k_min, k_max]``, as soon as ``Ka`` or ``Ko`` leaves that interval.
     random_state : int, RandomState instance or None, default=None
-        Seed for random number generation.
+        Seed used by the RDST backbone.
 
     Attributes
     ----------
     rdst_ : RandomDilatedShapeletTransform
-        The underlying fitted RDST shapelet backbone.
-    shapelet_lengths_ : np.ndarray
-        Array of shapelet lengths for all preserved shapelets.
-    shapelet_dilations_ : np.ndarray
-        Array of shapelet dilations for all preserved shapelets.
+        The fitted RDST backbone, whose shapelets have been pruned.
     series_len_ : int
-        Length of the input time series.
+        Length of the training series.
+    shapelet_lengths_ : np.ndarray
+        Length of every retained shapelet.
+    shapelet_dilations_ : np.ndarray
+        Dilation of every retained shapelet.
     unique_dilations_ : np.ndarray
-        Array of unique dilations among preserved shapelets.
+        Distinct dilations of the retained shapelets.
     ka_opt_ : dict
-        Mapping from dilation to optimized absolute positional scaling factor Ka.
+        Optimised ``Ka`` for every dilation.
     ko_opt_ : dict
-        Mapping from dilation to optimized ordinal positional scaling factor Ko.
+        Optimised ``Ko`` for every dilation.
     base_abs_ : dict
-        Mapping from dilation to optimized absolute positional base scaling factor.
+        Absolute-position frequency base for every dilation.
     base_ord_ : dict
-        Mapping from dilation to optimized ordinal positional base scaling factor.
+        Ordinal-position frequency base for every dilation.
     scaler_min_ : MinMaxScaler
-        Fitted scaler for minimum shapelet distance features.
+        Scaler of the minimum-distance features.
     scaler_soo_ : MinMaxScaler
-        Fitted scaler for shapelet occurrence (SOO) features.
+        Scaler of the shapelet-occurrence features.
     fusion_min_ : _CombinationFusion
-        Fitted pairwise LDA fusion model for minimum distance views.
+        Pairwise LDA fusion of the minimum-distance views.
     fusion_soo_ : _CombinationFusion
-        Fitted pairwise LDA fusion model for SOO views.
+        Pairwise LDA fusion of the shapelet-occurrence views.
 
     Notes
     -----
-    `per_shapelets` is converted to a global keep-rate (`per_shapelets / n_candidates`)
-    applied per candidate group with `ceil`, so the total number of retained shapelets
-    can slightly exceed `per_shapelets`.
-
-    Ka and Ko are optimised per dilation. The absolute-position scale for a
-    dilation uses the length of the first retained shapelet with that dilation.
-    Pruning is grouped by (length, dilation, normalisation), whereas the reference
-    groups by (dilation, normalisation); these are identical whenever a single
-    shapelet length is used.
+    The output has eight blocks of one column per retained shapelet: the scaled
+    minimum distance, the scaled occurrence, and for the minimum distance and the
+    occurrence the original/absolute, original/ordinal and absolute/ordinal fusions.
+    ``Ka`` and ``Ko`` are optimised per dilation; the absolute-position scale of a
+    dilation uses the length of the first retained shapelet with that dilation (RDST
+    draws a single shapelet length by default). Pruning only compares the first
+    channel, so the transformer is univariate. The projection of the fusion mirrors
+    scikit-learn's ``LinearDiscriminantAnalysis``, see ``_CombinationFusion``.
+    The Hilbert-type series transforms used by ``ShapeleterClassifier`` are
+    quadratic in the series length.
 
     References
     ----------
