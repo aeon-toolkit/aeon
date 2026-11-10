@@ -454,3 +454,20 @@ def test_shapeleter_neighbor_k_changes_selection():
     s1 = _hypergraph_prune(sh, 11, labels, neighbor_k=(2,), save_rate=0.5)
     s2 = _hypergraph_prune(sh, 11, labels, neighbor_k=(5,), save_rate=0.5)
     assert not np.array_equal(s1, s2)
+
+
+def test_shapeleter_pruning_normalization_order():
+    """Verify hypergraph pruning retains normalized candidates before unnormalized."""
+    X, y = load_unit_test(split="train")
+    st = ShapeleterTransform(
+        max_shapelets=200, per_shapelets=20, max_iter=0, random_state=0
+    )
+    st.fit(X, y)
+    dilas = st.rdst_.shapelets_[3]
+    norms = st.rdst_.shapelets_[5]
+    for d in np.unique(dilas):
+        d_norms = norms[dilas == d]
+        if 1 in d_norms and 0 in d_norms:
+            first_zero = np.where(d_norms == 0)[0][0]
+            last_one = np.where(d_norms == 1)[0][-1]
+            assert last_one < first_zero, "Expected norm=1 shapelets to precede norm=0"

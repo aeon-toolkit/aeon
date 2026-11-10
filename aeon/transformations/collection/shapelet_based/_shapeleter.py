@@ -814,7 +814,7 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
             for l_val in np.unique(lengths):
                 for d_val in np.unique(dilas):
-                    for norm_flag in [0, 1]:
+                    for norm_flag in [1, 0]:
                         mask = (
                             (lengths == l_val) & (dilas == d_val) & (norms == norm_flag)
                         )
