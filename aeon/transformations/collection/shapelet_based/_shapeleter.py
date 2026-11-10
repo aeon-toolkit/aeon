@@ -6,6 +6,7 @@ __all__ = ["ShapeleterTransform"]
 import numpy as np
 from numba import njit, prange
 from scipy.sparse import csr_matrix
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.preprocessing import MinMaxScaler
 
@@ -343,121 +344,120 @@ def _series_transform(X, mode):
     return (s - mean) / std
 
 
-def _vectorized_2feature_lda_fit(X1, X2, y):
-    """Compute vectorized closed-form Fisher 2-feature LDA projection weights.
+def _lda_pair_fit(X1, X2, y, rank_tol=2e-8, zero_tol=1e-30):
+    """Per-column 2-feature LDA reproducing sklearn LDA transform.
 
-    Projects each feature pair (X1[:, i], X2[:, i]) onto a 1D discriminant subspace.
-    If a feature pair has near-zero variance or is collinear, falls back to the
-    unweighted average.
+    Returns kind (0=fallback mean, 1=2-D, 2=use X1 only, 3=use X2 only),
+    w1, w2, m1, m2, scale.
     """
     N, K = X1.shape
     classes = np.unique(y)
-    n_classes = len(classes)
-
-    mean1 = np.mean(X1, axis=0)
-    mean2 = np.mean(X2, axis=0)
-
-    if n_classes <= 1 or N <= 2:
-        return (
-            np.zeros(K, dtype=bool),
-            np.zeros(K),
-            np.zeros(K),
-            mean1,
-            mean2,
-            np.zeros(K),
-        )
-
-    priors = np.array([np.mean(y == c) for c in classes])
-    means1 = np.zeros((n_classes, K))
-    means2 = np.zeros((n_classes, K))
+    nc = len(classes)
+    kind = np.zeros(K, dtype=int)
+    w1 = np.zeros(K)
+    w2 = np.zeros(K)
+    m1 = X1.mean(0)
+    m2 = X2.mean(0)
+    scale = np.zeros(K)
+    if nc <= 1 or N <= 2:
+        return kind, w1, w2, m1, m2, scale
     sw11 = np.zeros(K)
     sw22 = np.zeros(K)
     sw12 = np.zeros(K)
-
-    for idx, c in enumerate(classes):
-        mask = y == c
-        n_c = np.sum(mask)
-        if n_c == 0:
-            continue
-        m1 = np.mean(X1[mask], axis=0)
-        m2 = np.mean(X2[mask], axis=0)
-        means1[idx] = m1
-        means2[idx] = m2
-        diff1 = X1[mask] - m1
-        diff2 = X2[mask] - m2
-        sw11 += np.sum(diff1**2, axis=0) / N
-        sw22 += np.sum(diff2**2, axis=0) / N
-        sw12 += np.sum(diff1 * diff2, axis=0) / N
-
+    mu1 = np.zeros((nc, K))
+    mu2 = np.zeros((nc, K))
+    pri = np.zeros(nc)
+    for i, c in enumerate(classes):
+        m = y == c
+        pri[i] = m.mean()
+        mu1[i] = X1[m].mean(0)
+        mu2[i] = X2[m].mean(0)
+        d1 = X1[m] - mu1[i]
+        d2 = X2[m] - mu2[i]
+        sw11 += (d1**2).sum(0) / N
+        sw22 += (d2**2).sum(0) / N
+        sw12 += (d1 * d2).sum(0) / N
+    v1 = sw11 > zero_tol
+    v2 = sw22 > zero_tol
+    with np.errstate(divide="ignore", invalid="ignore"):
+        r2 = np.where(v1 & v2, sw12**2 / (sw11 * sw22), 1.0)
+    two_d = v1 & v2 & (1.0 - r2 > rank_tol)
+    only1 = v1 & (~two_d)
+    only2 = (~v1) & v2
+    # 2-D columns: closed form (binary and multiclass)
     det = sw11 * sw22 - sw12**2
-    valid = (det > 1e-12) & (sw11 > 1e-12) & (sw22 > 1e-12)
-
-    w1 = np.zeros(K)
-    w2 = np.zeros(K)
-
-    if n_classes == 2:
-        d_mu1 = means1[1] - means1[0]
-        d_mu2 = means2[1] - means2[0]
-        w1[valid] = sw22[valid] * d_mu1[valid] - sw12[valid] * d_mu2[valid]
-        w2[valid] = -sw12[valid] * d_mu1[valid] + sw11[valid] * d_mu2[valid]
+    if nc == 2:
+        d1m = mu1[1] - mu1[0]
+        d2m = mu2[1] - mu2[0]
+        a = sw22 * d1m - sw12 * d2m
+        b = -sw12 * d1m + sw11 * d2m
     else:
-        overall_m1 = np.mean(X1, axis=0)
-        overall_m2 = np.mean(X2, axis=0)
+        om1 = (pri[:, None] * mu1).sum(0)
+        om2 = (pri[:, None] * mu2).sum(0)
         sb11 = np.zeros(K)
         sb22 = np.zeros(K)
         sb12 = np.zeros(K)
-        for idx in range(n_classes):
-            dm1 = means1[idx] - overall_m1
-            dm2 = means2[idx] - overall_m2
-            p = priors[idx]
-            sb11 += p * (dm1**2)
-            sb22 += p * (dm2**2)
-            sb12 += p * (dm1 * dm2)
+        for i in range(nc):
+            e1 = mu1[i] - om1
+            e2 = mu2[i] - om2
+            sb11 += pri[i] * (e1**2)
+            sb22 += pri[i] * (e2**2)
+            sb12 += pri[i] * (e1 * e2)
+        idet = np.zeros(K)
+        idet[two_d] = 1.0 / det[two_d]
+        M11 = (sw22 * sb11 - sw12 * sb12) * idet
+        M12 = (sw22 * sb12 - sw12 * sb22) * idet
+        M21 = (-sw12 * sb11 + sw11 * sb12) * idet
+        M22 = (-sw12 * sb12 + sw11 * sb22) * idet
+        lam = 0.5 * (
+            (M11 + M22) + np.sqrt(np.maximum(0.0, (M11 - M22) ** 2 + 4.0 * M12 * M21))
+        )
+        a = np.where(
+            np.abs(M12) > 1e-12,
+            M12,
+            np.where(np.abs(M21) > 1e-12, lam - M22, np.where(M11 >= M22, 1.0, 0.0)),
+        )
+        b = np.where(
+            np.abs(M12) > 1e-12,
+            lam - M11,
+            np.where(np.abs(M21) > 1e-12, M21, np.where(M11 >= M22, 0.0, 1.0)),
+        )
+    nrm = np.sqrt(a**2 + b**2)
+    ok = two_d & (nrm > 1e-12)
+    w1[ok] = a[ok] / nrm[ok]
+    w2[ok] = b[ok] / nrm[ok]
+    kind[ok] = 1
+    # rank-1 columns: single varying variable
+    k1 = only1 & (~ok) & v1
+    k2 = only2 & (~ok)
+    kind[k1] = 2
+    w1[k1] = 1.0
+    kind[k2] = 3
+    w2[k2] = 1.0
+    # scale = 1/sqrt(w' Sw w)
+    q = w1**2 * sw11 + 2.0 * w1 * w2 * sw12 + w2**2 * sw22
+    good = kind > 0
+    scale[good] = 1.0 / np.sqrt(q[good])
+    # sign: binary -> class1 > class0
+    if nc == 2:
+        d = w1 * (mu1[1] - mu1[0]) + w2 * (mu2[1] - mu2[0])
+        s = np.where(d < 0, -1.0, 1.0)
+        w1 *= s
+        w2 *= s
+    else:
+        flip = good & ((w1 < 0) | ((np.abs(w1) <= 1e-12) & (w2 < 0)))
+        w1[flip] *= -1.0
+        w2[flip] *= -1.0
+    return kind, w1, w2, m1, m2, scale
 
-        inv_det = np.zeros(K)
-        inv_det[valid] = 1.0 / det[valid]
 
-        m11 = (sw22 * sb11 - sw12 * sb12) * inv_det
-        m12 = (sw22 * sb12 - sw12 * sb22) * inv_det
-        m21 = (-sw12 * sb11 + sw11 * sb12) * inv_det
-        m22 = (-sw12 * sb12 + sw11 * sb22) * inv_det
+def _vectorized_2feature_lda_fit(X1, X2, y):
+    """Compute vectorized closed-form Fisher 2-feature LDA projection weights.
 
-        tr = m11 + m22
-        disc = np.maximum(0.0, (m11 - m22) ** 2 + 4.0 * m12 * m21)
-        lam = 0.5 * (tr + np.sqrt(disc))
-
-        mask_m12 = valid & (np.abs(m12) > 1e-12)
-        w1[mask_m12] = m12[mask_m12]
-        w2[mask_m12] = lam[mask_m12] - m11[mask_m12]
-
-        mask_m21 = valid & (~mask_m12) & (np.abs(m21) > 1e-12)
-        w1[mask_m21] = lam[mask_m21] - m22[mask_m21]
-        w2[mask_m21] = m21[mask_m21]
-
-        mask_diag = valid & (~mask_m12) & (~mask_m21)
-        w1[mask_diag & (m11 >= m22)] = 1.0
-        w2[mask_diag & (m11 < m22)] = 1.0
-
-    norm_w = np.sqrt(w1**2 + w2**2)
-    norm_valid = valid & (norm_w > 1e-12)
-    w1[norm_valid] /= norm_w[norm_valid]
-    w2[norm_valid] /= norm_w[norm_valid]
-
-    if n_classes > 2:
-        # For multiclass, match positive w1 convention since SVD sign varies
-        flip = norm_valid & ((w1 < 0) | ((np.abs(w1) <= 1e-12) & (w2 < 0)))
-        w1[flip] = -w1[flip]
-        w2[flip] = -w2[flip]
-    # For n_classes == 2, do NOT apply the w1 >= 0 flip: the binary formula
-    # already gives w . (mu1 - mu0) > 0, matching sklearn's convention.
-
-    scale = np.zeros(K)
-    quad = w1**2 * sw11 + 2.0 * w1 * w2 * sw12 + w2**2 * sw22
-    scale_valid = norm_valid & (quad > 1e-12)
-    scale[scale_valid] = 1.0 / np.sqrt(quad[scale_valid])
-
-    valid = scale_valid
-    return valid, w1, w2, mean1, mean2, scale
+    Compatibility helper for tests.
+    """
+    kind, w1, w2, m1, m2, scale = _lda_pair_fit(X1, X2, y)
+    return kind == 1, w1, w2, m1, m2, scale
 
 
 def _vectorized_2feature_lda_transform(X1, X2, valid, w1, w2, mean1, mean2, scale):
@@ -471,84 +471,95 @@ def _vectorized_2feature_lda_transform(X1, X2, valid, w1, w2, mean1, mean2, scal
     return out
 
 
+class _PairLDA:
+    """Pairwise 2-feature LDA reproducing sklearn LDA(n_components=1)."""
+
+    def __init__(self, threshold=20.0, safe=0.1):
+        self.threshold = threshold
+        self.safe = safe
+
+    def fit(self, X1, X2, y):
+        kind, w1, w2, m1, m2, scale = _lda_pair_fit(X1, X2, y)
+        self.kind, self.w1, self.w2, self.m1, self.m2, self.scale = (
+            kind,
+            w1,
+            w2,
+            m1,
+            m2,
+            scale,
+        )
+        closed = kind == 1
+        out = ((X1 - m1) * w1 + (X2 - m2) * w2) * scale
+        big = np.abs(out).max(axis=0) > (self.safe * self.threshold)
+        self.use_closed = closed & (~big)
+        self.n_closed_ = int(np.sum(self.use_closed))
+
+        self.sk_models_ = {}
+        delegated = np.where(~self.use_closed)[0]
+        for j in delegated:
+            lda = LinearDiscriminantAnalysis(n_components=1)
+            # Reference cell 24 mirrors try/except to fall back to the mean
+            # of the two columns if LDA fails or produces 0 components.
+            try:
+                A = np.c_[X1[:, j], X2[:, j]]
+                lda.fit(A, y)
+                res = lda.transform(A)
+                if res.shape[1] == 1:
+                    self.sk_models_[j] = lda
+                else:
+                    self.sk_models_[j] = None
+            except Exception:
+                self.sk_models_[j] = None
+        return self
+
+    def transform(self, X1, X2):
+        out = 0.5 * (X1 + X2)
+        c = self.use_closed
+        out[:, c] = (
+            (X1[:, c] - self.m1[c]) * self.w1[c] + (X2[:, c] - self.m2[c]) * self.w2[c]
+        ) * self.scale[c]
+        for j, lda in self.sk_models_.items():
+            if lda is not None:
+                out[:, j] = lda.transform(np.c_[X1[:, j], X2[:, j]])[:, 0]
+        out[out > self.threshold] = self.threshold
+        return out
+
+
 class _CombinationFusion:
     """Pairwise 2-feature LDA fusion of original, absolute, and ordinal views.
 
     Notes
     -----
-    The closed-form projection reproduces scikit-learn's
-    `LinearDiscriminantAnalysis(n_components=1).transform` (centred, unit
-    within-class variance); for more than 2 classes the overall sign is
-    fixed by convention.
+    The projection reproduces scikit-learn's
+    `LinearDiscriminantAnalysis(n_components=1).transform`; well-conditioned
+    columns use a closed form, other columns call scikit-learn directly as in
+    the reference implementation.
     """
 
-    def __init__(self, threshold=20.0):
+    def __init__(self, threshold=20.0, safe=0.1):
         self.threshold = threshold
+        self.safe = safe
+        self.pair_oa = _PairLDA(threshold=threshold, safe=safe)
+        self.pair_or = _PairLDA(threshold=threshold, safe=safe)
+        self.pair_ar = _PairLDA(threshold=threshold, safe=safe)
         self.scaler_oa = MinMaxScaler((-1, 1))
         self.scaler_or = MinMaxScaler((-1, 1))
         self.scaler_ar = MinMaxScaler((-1, 1))
 
+    @property
+    def n_closed_(self):
+        """Total number of closed-form columns across all three pairs."""
+        return self.pair_oa.n_closed_ + self.pair_or.n_closed_ + self.pair_ar.n_closed_
+
     def fit_transform(self, x_orig, x_abs, x_ord, y):
         """Fit LDA weights and scale transformed features to [-1, 1]."""
-        (
-            self.valid_oa,
-            self.w1_oa,
-            self.w2_oa,
-            self.mean1_oa,
-            self.mean2_oa,
-            self.scale_oa,
-        ) = _vectorized_2feature_lda_fit(x_orig, x_abs, y)
-        (
-            self.valid_or,
-            self.w1_or,
-            self.w2_or,
-            self.mean1_or,
-            self.mean2_or,
-            self.scale_or,
-        ) = _vectorized_2feature_lda_fit(x_orig, x_ord, y)
-        (
-            self.valid_ar,
-            self.w1_ar,
-            self.w2_ar,
-            self.mean1_ar,
-            self.mean2_ar,
-            self.scale_ar,
-        ) = _vectorized_2feature_lda_fit(x_abs, x_ord, y)
+        self.pair_oa.fit(x_orig, x_abs, y)
+        self.pair_or.fit(x_orig, x_ord, y)
+        self.pair_ar.fit(x_abs, x_ord, y)
 
-        out_oa = _vectorized_2feature_lda_transform(
-            x_orig,
-            x_abs,
-            self.valid_oa,
-            self.w1_oa,
-            self.w2_oa,
-            self.mean1_oa,
-            self.mean2_oa,
-            self.scale_oa,
-        )
-        out_or = _vectorized_2feature_lda_transform(
-            x_orig,
-            x_ord,
-            self.valid_or,
-            self.w1_or,
-            self.w2_or,
-            self.mean1_or,
-            self.mean2_or,
-            self.scale_or,
-        )
-        out_ar = _vectorized_2feature_lda_transform(
-            x_abs,
-            x_ord,
-            self.valid_ar,
-            self.w1_ar,
-            self.w2_ar,
-            self.mean1_ar,
-            self.mean2_ar,
-            self.scale_ar,
-        )
-
-        out_oa[out_oa > self.threshold] = self.threshold
-        out_or[out_or > self.threshold] = self.threshold
-        out_ar[out_ar > self.threshold] = self.threshold
+        out_oa = self.pair_oa.transform(x_orig, x_abs)
+        out_or = self.pair_or.transform(x_orig, x_ord)
+        out_ar = self.pair_ar.transform(x_abs, x_ord)
 
         return (
             self.scaler_oa.fit_transform(out_oa),
@@ -558,40 +569,9 @@ class _CombinationFusion:
 
     def transform(self, x_orig, x_abs, x_ord):
         """Transform feature pairs with fitted LDA weights."""
-        out_oa = _vectorized_2feature_lda_transform(
-            x_orig,
-            x_abs,
-            self.valid_oa,
-            self.w1_oa,
-            self.w2_oa,
-            self.mean1_oa,
-            self.mean2_oa,
-            self.scale_oa,
-        )
-        out_or = _vectorized_2feature_lda_transform(
-            x_orig,
-            x_ord,
-            self.valid_or,
-            self.w1_or,
-            self.w2_or,
-            self.mean1_or,
-            self.mean2_or,
-            self.scale_or,
-        )
-        out_ar = _vectorized_2feature_lda_transform(
-            x_abs,
-            x_ord,
-            self.valid_ar,
-            self.w1_ar,
-            self.w2_ar,
-            self.mean1_ar,
-            self.mean2_ar,
-            self.scale_ar,
-        )
-
-        out_oa[out_oa > self.threshold] = self.threshold
-        out_or[out_or > self.threshold] = self.threshold
-        out_ar[out_ar > self.threshold] = self.threshold
+        out_oa = self.pair_oa.transform(x_orig, x_abs)
+        out_or = self.pair_or.transform(x_orig, x_ord)
+        out_ar = self.pair_ar.transform(x_abs, x_ord)
 
         return (
             self.scaler_oa.transform(out_oa),

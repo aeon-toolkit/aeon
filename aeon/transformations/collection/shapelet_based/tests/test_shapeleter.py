@@ -14,6 +14,7 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _hypergraph_prune,
     _knn_hyperedges,
     _optimize_position_encoding_np,
+    _PairLDA,
     _series_transform,
     _vectorized_2feature_lda_fit,
     _vectorized_2feature_lda_transform,
@@ -471,3 +472,112 @@ def test_shapeleter_pruning_normalization_order():
             first_zero = np.where(d_norms == 0)[0][0]
             last_one = np.where(d_norms == 1)[0][-1]
             assert last_one < first_zero, "Expected norm=1 shapelets to precede norm=0"
+
+
+def _ref_pair_transform_single(x1_tr, x2_tr, y_tr, x1_te, x2_te, thr=20.0):
+    """Project a single column pair using scikit-learn LDA."""
+    lda = LinearDiscriminantAnalysis(n_components=1)
+    try:
+        res = lda.fit_transform(np.c_[x1_tr, x2_tr], y_tr)
+        if res.shape[1] == 1:
+            out_train = np.clip(res[:, 0], None, thr)
+            out_test = np.clip(lda.transform(np.c_[x1_te, x2_te])[:, 0], None, thr)
+            return out_train, out_test
+    except Exception:
+        pass
+    out_train = 0.5 * (x1_tr + x2_tr)
+    out_test = 0.5 * (x1_te + x2_te)
+    return out_train, out_test
+
+
+def _make_crafted_columns(N, n_classes, seed=42):
+    """Construct 8 characteristic feature-pair types spanning conditioning regimes."""
+    rng = np.random.RandomState(seed)
+    y = np.repeat(np.arange(n_classes), int(np.ceil(N / n_classes)))[:N]
+    c0_1, c0_2 = rng.randn(N), rng.randn(N)
+    c1_1 = rng.randn(N)
+    c1_2 = c1_1 + 1e-12 * rng.randn(N)
+    c2_1, c2_2 = np.full(N, -1.0), rng.randn(N)
+    c3_1, c3_2 = rng.randn(N), np.full(N, -1.0)
+    c4_1, c4_2 = np.full(N, -1.0), np.full(N, -1.0)
+    c5_1, c5_2 = rng.randn(N), rng.randn(N)
+    c5_1[y == 0] = -1.0
+    c6_1, c6_2 = rng.randn(N) * 5.0, rng.randn(N) * 5.0
+    c7_1, c7_2 = rng.randn(N) * 1e3, rng.randn(N) * 1e3
+    X1 = np.column_stack([c0_1, c1_1, c2_1, c3_1, c4_1, c5_1, c6_1, c7_1])
+    X2 = np.column_stack([c0_2, c1_2, c2_2, c3_2, c4_2, c5_2, c6_2, c7_2])
+    return X1, X2, y
+
+
+def _make_crafted_test(N_t, seed=142):
+    """Construct test set for the 8 characteristic feature-pair types."""
+    rng = np.random.RandomState(seed)
+    c0_1, c0_2 = rng.randn(N_t), rng.randn(N_t)
+    c1_1 = rng.randn(N_t)
+    c1_2 = c1_1 + 1e-12 * rng.randn(N_t)
+    c2_1, c2_2 = np.full(N_t, -1.0), rng.randn(N_t)
+    c3_1, c3_2 = rng.randn(N_t), np.full(N_t, -1.0)
+    c4_1, c4_2 = np.full(N_t, -1.0), np.full(N_t, -1.0)
+    c5_1, c5_2 = rng.randn(N_t), rng.randn(N_t)
+    c6_1, c6_2 = rng.randn(N_t) * 20.0 + 30.0, rng.randn(N_t) * 20.0 + 30.0
+    c7_1, c7_2 = rng.randn(N_t) * 1e3, rng.randn(N_t) * 1e3
+    X1_te = np.column_stack([c0_1, c1_1, c2_1, c3_1, c4_1, c5_1, c6_1, c7_1])
+    X2_te = np.column_stack([c0_2, c1_2, c2_2, c3_2, c4_2, c5_2, c6_2, c7_2])
+    return X1_te, X2_te
+
+
+def test_combination_fusion_hybrid_parity_binary():
+    """Verify hybrid _PairLDA matches reference scikit-learn helper on binary y."""
+    X1_tr, X2_tr, y_tr = _make_crafted_columns(30, 2)
+    X1_te, X2_te = _make_crafted_test(60)
+    pair = _PairLDA(threshold=20.0, safe=0.1)
+    pair.fit(X1_tr, X2_tr, y_tr)
+    out_tr = pair.transform(X1_tr, X2_tr)
+    out_te = pair.transform(X1_te, X2_te)
+    for j in range(8):
+        h_tr, h_te = _ref_pair_transform_single(
+            X1_tr[:, j], X2_tr[:, j], y_tr, X1_te[:, j], X2_te[:, j]
+        )
+        np.testing.assert_allclose(out_tr[:, j], h_tr, atol=1e-6)
+        np.testing.assert_allclose(out_te[:, j], h_te, atol=1e-6)
+
+
+def test_combination_fusion_hybrid_parity_multiclass():
+    """Verify hybrid _PairLDA matches reference helper on 3-class y."""
+    X1_tr, X2_tr, y_tr = _make_crafted_columns(30, 3)
+    X1_te, X2_te = _make_crafted_test(60)
+    pair = _PairLDA(threshold=20.0, safe=0.1)
+    pair.fit(X1_tr, X2_tr, y_tr)
+    out_tr = pair.transform(X1_tr, X2_tr)
+    out_te = pair.transform(X1_te, X2_te)
+    for j in range(8):
+        h_tr, h_te = _ref_pair_transform_single(
+            X1_tr[:, j], X2_tr[:, j], y_tr, X1_te[:, j], X2_te[:, j]
+        )
+        if j in pair.use_closed:
+            diff_tr = min(
+                np.max(np.abs(out_tr[:, j] - h_tr)),
+                np.max(np.abs(out_tr[:, j] + h_tr)),
+            )
+            diff_te = min(
+                np.max(np.abs(out_te[:, j] - h_te)),
+                np.max(np.abs(out_te[:, j] + h_te)),
+            )
+            assert diff_tr < 1e-6
+            assert diff_te < 1e-6
+        else:
+            np.testing.assert_allclose(out_tr[:, j], h_tr, atol=1e-12)
+            np.testing.assert_allclose(out_te[:, j], h_te, atol=1e-12)
+
+
+def test_combination_fusion_closed_form_used():
+    """Verify _CombinationFusion uses closed-form LDA on well-conditioned data."""
+    rng = np.random.RandomState(42)
+    N = 30
+    x_orig = rng.randn(N, 10)
+    x_abs = rng.randn(N, 10)
+    x_ord = rng.randn(N, 10)
+    y = np.array([0, 1] * 15)
+    fusion = _CombinationFusion()
+    fusion.fit_transform(x_orig, x_abs, x_ord, y)
+    assert fusion.n_closed_ > 0
