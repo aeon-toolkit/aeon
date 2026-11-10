@@ -298,6 +298,24 @@ html_css_files = [
 
 html_show_sourcelink = False
 
+# -- Analytics ---------------------------------------------------------------
+
+# GoatCounter: free, open source, sets no cookies and stores no personal data,
+# so no consent banner is needed and its dashboard can be made public.
+# Loaded only on Read the Docs production builds; local builds and pull request
+# previews ("external" versions) are excluded so they do not inflate the counts.
+# The script URL must be absolute: Sphinx rewrites protocol-relative URLs.
+if on_readthedocs and os.environ.get("READTHEDOCS_VERSION_TYPE") != "external":
+    html_js_files = [
+        (
+            "https://gc.zgo.at/count.js",
+            {
+                "async": "async",
+                "data-goatcounter": "https://aeon.goatcounter.com/count",
+            },
+        ),
+    ]
+
 # -- Documentation functions and setup ---------------------------------------
 
 
