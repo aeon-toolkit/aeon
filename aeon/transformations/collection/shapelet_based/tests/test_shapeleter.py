@@ -162,15 +162,15 @@ def test_optimize_position_encoding_regression():
     assert ko == pytest.approx(8.325612, abs=1e-4)
 
 
-REF_KA = None
-REF_KO = None
+REF_KA = 11.41175172217355
+REF_KO = 11.482662795661266
 
 
-@pytest.mark.skip(
-    reason="Awaiting reference values from original Shapeleter implementation"
-)
 def test_optimize_position_encoding_matches_reference():
-    """Verify Adam positional optimizer matches reference implementation."""
+    """Verify Adam positional optimizer matches reference implementation.
+
+    Reference: reference cells 19/20, CCHe64/Shapeleter (Shapeleter.ipynb).
+    """
     feat, pos, order, len_map = _pe_inputs()
     ka, ko = _optimize_position_encoding_np(feat, pos, order, len_map)
     assert ka == pytest.approx(REF_KA, abs=1e-3)
