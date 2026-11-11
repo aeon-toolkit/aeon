@@ -54,7 +54,7 @@ def test_load_forecasting_from_repo():
     """Test load forecasting from repo."""
     name = "FOO"
     with pytest.raises(
-        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+        ValueError, match=f"File name {name} is not in the list of valid files"
     ):
         load_forecasting(name)
     name = "m1_quarterly_dataset"
@@ -105,7 +105,7 @@ def test_load_regression_from_repo():
     """Test load regression from repo."""
     name = "FOO"
     with pytest.raises(
-        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+        ValueError, match=f"File name {name} is not in the list of valid files"
     ):
         load_regression(name)
     name = "FloodModeling1"

@@ -275,7 +275,6 @@ class TimeMCL(BaseCollectionTransformer):
             num_batches = 0
 
             for step, (x_batch_train, _) in enumerate(train_dataset):
-
                 x_batch_train2 = tf.random.shuffle(x_batch_train)
 
                 _contrastive_weight = np.random.beta(self.alpha, self.alpha)

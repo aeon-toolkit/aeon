@@ -700,7 +700,7 @@ class BaseRotationForest(BaseEstimator):
         task = "classifier" if is_classifier(self) else "regressor"
         msg = (
             f"{self.__class__.__name__} is not a time series {task}. "
-            "A valid sklearn input such as a 2d numpy array is required."
+            "A valid sklearn input such as a 2d numpy array is required. "
             "Sparse input formats are currently not supported."
         )
         if isinstance(X, pd.DataFrame):

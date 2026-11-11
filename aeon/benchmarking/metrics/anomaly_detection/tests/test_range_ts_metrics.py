@@ -46,17 +46,13 @@ def _execute_test_case(
         recall,
         expected_recall,
         decimal=floating_precision,
-        err_msg=(
-            f"Recall failed for {name}! " f"Expected={expected_recall}, Got={recall}"
-        ),
+        err_msg=(f"Recall failed for {name}! Expected={expected_recall}, Got={recall}"),
     )
     np.testing.assert_almost_equal(
         f1_score,
         expected_f1,
         decimal=floating_precision,
-        err_msg=(
-            f"F1-Score failed for {name}! " f"Expected={expected_f1}, Got={f1_score}"
-        ),
+        err_msg=(f"F1-Score failed for {name}! Expected={expected_f1}, Got={f1_score}"),
     )
 
 

@@ -686,7 +686,6 @@ class Catch22(BaseCollectionTransformer):
 
         ami = np.zeros(len(X_ac), dtype=np.float64)
         for i in range(tau):
-
             lag_size = len(X_ac) - (i + 1)
             y = X_ac[i + 1 :]
             nom = 0.0

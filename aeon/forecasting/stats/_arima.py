@@ -261,7 +261,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         if self.beta_ is not None:
             if exog is None:
                 raise ValueError(
-                    "exog must be provided for prediction"
+                    "exog must be provided for prediction "
                     "when model was fit with exogenous variables"
                 )
             exog_arr = np.asarray(exog)

@@ -364,9 +364,9 @@ class InceptionTimeRegressor(BaseRegressor):
         -------
         InceptionTimeRegressor
         """
-        assert (
-            type(model_path) is list
-        ), "model_path should be a list of paths to the models"
+        assert type(model_path) is list, (
+            "model_path should be a list of paths to the models"
+        )
 
         regressor = self()
         regressor.regressors_ = []
@@ -526,7 +526,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
+    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC

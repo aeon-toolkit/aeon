@@ -199,7 +199,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             if meta_data["univariate"]:
                 if current_channels > 1:
                     raise OSError(
-                        f"Seen {current_channels} in case {n_cases}."
+                        f"Seen {current_channels} in case {n_cases}. "
                         f"Expecting univariate from metadata"
                     )
         if meta_data["equallength"]:
@@ -622,7 +622,7 @@ def load_from_arff_file(
                             raise ValueError(
                                 f" Number of channels not equal in "
                                 f"dataset, first case had {n_channels} channel "
-                                f"but case number {n_cases+1} has "
+                                f"but case number {n_cases + 1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
@@ -863,7 +863,7 @@ def load_from_tsf_file(
                         if len(series) == 0:
                             raise Exception(
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series. "
                                 "Missing values should be indicated with ? symbol"
@@ -883,7 +883,7 @@ def load_from_tsf_file(
                             raise Exception(
                                 "All series values are missing. "
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series."
                             )
@@ -1037,9 +1037,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
                         f" but it is not correctly formatted.",
                     )
 
-            if not os.path.exists(
-                f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
-            ):
+            if not os.path.exists(f"{local_module}/{local_dirname}/{name}/{name}.tsf"):
                 z = zipfile.ZipFile(file_save, "r")
                 z.extractall(f"{local_module}/{local_dirname}/{name}/")
     full_name = f"{local_module}/{local_dirname}/{name}/{name}.tsf"
