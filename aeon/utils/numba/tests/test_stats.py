@@ -3,7 +3,76 @@
 import numpy as np
 import pytest
 
-from aeon.utils.numba.stats import gini, gini_gain
+from aeon.utils.numba.stats import (
+    gini,
+    gini_gain,
+    row_count_above_mean,
+    row_count_mean_crossing,
+    row_iqr,
+    row_mean,
+    row_median,
+    row_numba_max,
+    row_numba_min,
+    row_ppv,
+    row_quantile,
+    row_quantile25,
+    row_quantile75,
+    row_slope,
+    row_std,
+)
+
+
+@pytest.mark.parametrize("dtype", ["int16", "int32", "int64", "float32", "float64"])
+@pytest.mark.parametrize(
+    "func, expected, kwargs",
+    [
+        (row_mean, [1.5, 2.0], {}),
+        (row_std, [np.sqrt(5.25), 0.0], {}),
+        (row_quantile, [1.5, 2.0], {"q": 0.5}),
+        (row_median, [1.5, 2.0], {}),
+        (row_quantile25, [-0.25, 2.0], {}),
+        (row_quantile75, [3.25, 2.0], {}),
+        (row_numba_min, [-2.0, 2.0], {}),
+        (row_numba_max, [5.0, 2.0], {}),
+        (row_slope, [1.0, 0.0], {}),
+        (row_iqr, [3.5, 0.0], {}),
+        (row_ppv, [5 / 8, 1.0], {}),
+        (row_count_above_mean, [4.0, 0.0], {}),
+        (row_count_mean_crossing, [1.0, 0.0], {}),
+    ],
+)
+def test_row_statistics_dtype_and_values(dtype, func, expected, kwargs):
+    """Preserve float32 and promote integer outputs without truncating statistics."""
+    X = np.array([[-2, -1, 0, 1, 2, 3, 4, 5], [2] * 8], dtype=dtype)
+    result = func(X, **kwargs)
+    assert result.dtype == (np.float32 if dtype == "float32" else np.float64)
+    np.testing.assert_allclose(
+        result, expected, rtol=1e-6 if dtype == "float32" else 1e-12
+    )
+
+
+@pytest.mark.parametrize("dtype", ["float32", "float64"])
+@pytest.mark.parametrize("scale", [1e-30, 1e-4, 1e9, 1e30])
+def test_row_statistics_precision(dtype, scale):
+    """Mean, standard deviation and signed slopes retain stable intermediates."""
+    X = (np.arange(1, 17, dtype=dtype) * scale).reshape(2, 8)[:, ::-1]
+    X[1] *= -1
+    reference = X.astype(np.float64)
+    times = np.arange(X.shape[1], dtype=np.float64)
+    times -= times.mean()
+    slopes = ((reference - reference.mean(axis=1, keepdims=True)) @ times) / (
+        times @ times
+    )
+    for func, expected in [
+        (row_mean, reference.mean(axis=1)),
+        (row_std, reference.std(axis=1)),
+        (row_slope, slopes),
+    ]:
+        result = func(X)
+        assert np.isfinite(result).all()
+        np.testing.assert_allclose(
+            result, expected, rtol=1e-6 if dtype == "float32" else 1e-12, atol=0
+        )
 
 
 def test_gini():

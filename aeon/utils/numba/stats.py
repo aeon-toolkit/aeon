@@ -80,6 +80,7 @@ def row_mean(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The means for axis 0 of the input array
 
     Examples
@@ -89,7 +90,7 @@ def row_mean(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> m = row_mean(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = mean(X[i])
     return arr
@@ -137,6 +138,7 @@ def row_count_mean_crossing(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The count above mean of first order differences for axis 0 of the input array
 
     Examples
@@ -146,7 +148,7 @@ def row_count_mean_crossing(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> c = row_count_mean_crossing(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = count_mean_crossing(X[i])
     return arr
@@ -194,6 +196,7 @@ def row_count_above_mean(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The count above mean for axis 0 of the input array
 
     Examples
@@ -203,7 +206,7 @@ def row_count_above_mean(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> c = row_count_above_mean(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = count_above_mean(X[i])
     return arr
@@ -258,6 +261,7 @@ def row_quantile(X: np.ndarray, q: float) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The quantiles for axis 0 of the input array
 
     Examples
@@ -267,7 +271,7 @@ def row_quantile(X: np.ndarray, q: float) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> q = row_quantile(X, 0.5)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = np.quantile(X[i], q)
     return arr
@@ -309,6 +313,7 @@ def row_median(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The medians for axis 0 of the input array
 
     Examples
@@ -357,6 +362,7 @@ def row_quantile25(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The 0.25 quantiles for axis 0 of the input array
 
     Examples
@@ -405,6 +411,7 @@ def row_quantile75(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The 0.75 quantiles for axis 0 of the input array
 
     Examples
@@ -486,6 +493,7 @@ def row_std(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The standard deviation for axis 0 of the input array
 
     Examples
@@ -495,7 +503,7 @@ def row_std(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> s = row_std(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = std(X[i])
     return arr
@@ -541,6 +549,7 @@ def row_numba_min(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The min for axis 0 of the input array
 
     Examples
@@ -550,7 +559,7 @@ def row_numba_min(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> m = row_numba_min(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = numba_min(X[i])
     return arr
@@ -596,6 +605,7 @@ def row_numba_max(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The max for axis 0 of the input array
 
     Examples
@@ -605,7 +615,7 @@ def row_numba_max(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> m = row_numba_max(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = numba_max(X[i])
     return arr
@@ -658,6 +668,7 @@ def row_slope(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The slope for axis 0 of the input array
 
     Examples
@@ -667,7 +678,7 @@ def row_slope(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> s = row_slope(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = slope(X[i])
     return arr
@@ -710,6 +721,7 @@ def row_iqr(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The interquartile range for axis 0 of the input array
 
     Examples
@@ -719,7 +731,7 @@ def row_iqr(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> i = row_iqr(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = iqr(X[i])
     return arr
@@ -765,6 +777,7 @@ def row_ppv(X: np.ndarray) -> np.ndarray:
     Returns
     -------
     arr : 1d numpy array
+        Uses float32 for float32 input and float64 otherwise.
         The proportion of positive values for axis 0 of the input array
 
     Examples
@@ -774,7 +787,7 @@ def row_ppv(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> p = row_ppv(X)
     """
-    arr = np.zeros(X.shape[0])
+    arr = np.zeros(X.shape[0], dtype=general_numba._as_normalised_float(X[:0]).dtype)
     for i in range(X.shape[0]):
         arr[i] = ppv(X[i])
     return arr
