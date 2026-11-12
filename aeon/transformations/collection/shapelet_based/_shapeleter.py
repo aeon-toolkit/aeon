@@ -3,10 +3,13 @@
 __maintainer__ = []
 __all__ = ["ShapeleterTransform"]
 
+from functools import lru_cache
+
 import numpy as np
 from numba import njit, prange
 from scipy import linalg
 from scipy.sparse import csr_matrix
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.preprocessing import MinMaxScaler
 
@@ -344,10 +347,27 @@ def _series_transform(X, mode):
     return (s - mean) / std
 
 
-# Mirrors scikit-learn's LinearDiscriminantAnalysis(solver="svd", n_components=1)
-# for many independent 2-feature problems; test_sk_lda_pair_matches_sklearn
-# guards against a scikit-learn change.
-def _sk_lda_pair_fit(x1, x2, y, tol=1e-4):
+@lru_cache(maxsize=1)
+def _sk_lda_divides_by_n_minus_classes():
+    """Return True if scikit-learn scales the within-class SVD by 1 / (n - n_classes).
+
+    scikit-learn <= 1.8 uses ``1 / (n_samples - n_classes)``, newer releases use
+    ``1 / n_samples``. The convention is detected once by comparing a fixed small
+    problem against both candidates.
+    """
+    rng = np.random.RandomState(0)
+    y = np.arange(12) % 2
+    x = rng.normal(size=(12, 2))
+    x[:, 0] += y
+    ref = LinearDiscriminantAnalysis(n_components=1).fit(x, y).scalings_[:, 0]
+    new = _sk_lda_pair_fit(x[:, :1], x[:, 1:], y, _within_dof_old=False)
+    old = _sk_lda_pair_fit(x[:, :1], x[:, 1:], y, _within_dof_old=True)
+    d_new = abs(new["s1"][0] - ref[0]) + abs(new["s2"][0] - ref[1])
+    d_old = abs(old["s1"][0] - ref[0]) + abs(old["s2"][0] - ref[1])
+    return bool(d_old < d_new)
+
+
+def _sk_lda_pair_fit(x1, x2, y, tol=1e-4, _within_dof_old=None):
     """Fit K independent 2-feature LDA problems like sklearn's LDA(solver='svd').
 
     Parameters
@@ -387,7 +407,10 @@ def _sk_lda_pair_fit(x1, x2, y, tol=1e-4):
     # scikit-learn concatenates the class-centred groups; the row order
     # changes the SVD sign.
     order = np.concatenate([np.where(y == c)[0] for c in classes])
-    xs = np.sqrt(1.0 / n) * (xc[:, order, :] / std[:, None, :])
+    if _within_dof_old is None:
+        _within_dof_old = _sk_lda_divides_by_n_minus_classes()
+    fac = 1.0 / (n - n_classes) if _within_dof_old else 1.0 / n
+    xs = np.sqrt(fac) * (xc[:, order, :] / std[:, None, :])
     wts = np.sqrt((n * pri) * (1.0 / (n_classes - 1)))
     cm = wts[None, :, None] * (means - xbar[:, None, :])  # (K, C, 2)
     for j in range(k):
@@ -411,7 +434,10 @@ def _sk_lda_pair_fit(x1, x2, y, tol=1e-4):
 
 
 class _PairLDA:
-    """One fused view: LDA projection, mean fallback, one-sided clipping."""
+    """One fused view: LDA projection of feature pairs.
+
+    Includes mean fallback and one-sided clipping.
+    """
 
     def __init__(self, threshold=20.0):
         self.threshold = threshold
