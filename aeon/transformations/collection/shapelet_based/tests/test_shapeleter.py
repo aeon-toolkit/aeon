@@ -15,6 +15,7 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _knn_hyperedges,
     _optimize_position_encoding_np,
     _series_transform,
+    _sk_lda_divides_by_n_minus_classes,
     _sk_lda_pair_fit,
 )
 
@@ -702,3 +703,58 @@ def test_combination_fusion_matches_reference_multiclass():
     np.testing.assert_allclose(te_or, ref_or_te, atol=1e-6)
     np.testing.assert_allclose(out_ar, ref_ar_tr, atol=1e-6)
     np.testing.assert_allclose(te_ar, ref_ar_te, atol=1e-6)
+
+
+def test_sk_lda_calibration_matches_installed_sklearn():
+    """Verify _sk_lda_divides_by_n_minus_classes detects the installed convention."""
+    _sk_lda_divides_by_n_minus_classes.cache_clear()
+    rng = np.random.RandomState(0)
+    y = np.arange(12) % 2
+    x = rng.normal(size=(12, 2))
+    x[:, 0] += y
+    ref = LinearDiscriminantAnalysis(n_components=1).fit(x, y).scalings_[:, 0]
+    new = _sk_lda_pair_fit(x[:, :1], x[:, 1:], y, _within_dof_old=False)
+    old = _sk_lda_pair_fit(x[:, :1], x[:, 1:], y, _within_dof_old=True)
+    d_new = abs(new["s1"][0] - ref[0]) + abs(new["s2"][0] - ref[1])
+    d_old = abs(old["s1"][0] - ref[0]) + abs(old["s2"][0] - ref[1])
+
+    matches_new = d_new < 1e-8
+    matches_old = d_old < 1e-8
+    assert matches_new ^ matches_old
+    detected = _sk_lda_divides_by_n_minus_classes()
+    assert detected == matches_old
+
+
+def test_sk_lda_pair_equal_class_means_follows_sklearn():
+    """Regression test for equal class means where LDA direction is noise-driven."""
+    n_samples = 20
+    y = np.arange(n_samples) % 2
+    rng_base = np.random.RandomState(42)
+    u = rng_base.randn(n_samples)
+    x1_base = u + 0.5 * rng_base.randn(n_samples)
+    x2_base = 2.0 * u + 0.5 * rng_base.randn(n_samples)
+    for c in [0, 1]:
+        mask = y == c
+        x1_base[mask] -= x1_base[mask].mean()
+        x2_base[mask] -= x2_base[mask].mean()
+    x1_base += 1.0
+    x2_base += 2.0
+
+    for seed in range(20):
+        rng = np.random.RandomState(seed)
+        noise1 = 1e-10 * rng.randn(n_samples)
+        noise2 = 1e-10 * rng.randn(n_samples)
+        x1 = x1_base + noise1
+        x2 = x2_base + noise2
+        X = np.c_[x1, x2]
+
+        lda = LinearDiscriminantAnalysis(n_components=1).fit(X, y)
+        ref_proj = lda.transform(X)[:, 0]
+
+        fit = _sk_lda_pair_fit(x1[:, None], x2[:, None], y)
+        assert fit["ok"][0]
+        our_proj = (x1 - fit["xbar1"][0]) * fit["s1"][0] + (x2 - fit["xbar2"][0]) * fit[
+            "s2"
+        ][0]
+
+        np.testing.assert_allclose(our_proj, ref_proj, atol=1e-8)
