@@ -311,33 +311,24 @@ class ResNetNetwork(BaseDeepLearningNetwork):
         for c in range(self._n_conv_per_residual_block[b]):
             for i, l in enumerate(order):
                 if l == L.CONV:
-                    if not self.transpose:
-                        x = tf.keras.layers.Conv1D(
-                            filters=self._n_filters[b][c],
-                            kernel_size=self._kernel_size[b][c],
-                            strides=self._strides[b][c],
-                            padding=self._padding[b][c],
-                            dilation_rate=self._dilation_rate[b][c],
-                            use_bias=self._use_bias[b][c],
-                            groups=self._cardinality[b][c],
-                        )(x)
-                    else:
-                        x = tf.keras.layers.Conv1DTranspose(
-                            filters=self._n_filters[b][c],
-                            kernel_size=self._kernel_size[b][c],
-                            strides=self._strides[b][c],
-                            padding=self._padding[b][c],
-                            dilation_rate=self._dilation_rate[b][c],
-                            use_bias=self._use_bias[b][c],
-                        )(x)
+                    ConvLayer = tf.keras.layers.Conv1D
+                    if self.transpose:
+                        ConvLayer = tf.keras.layers.Conv1DTranspose
+                    x = ConvLayer(
+                        filters=self._n_filters[b][c],
+                        kernel_size=self._kernel_size[b][c],
+                        strides=self._strides[b][c],
+                        padding=self._padding[b][c],
+                        dilation_rate=self._dilation_rate[b][c],
+                        use_bias=self._use_bias[b][c],
+                        groups=self._cardinality[b][c],
+                    )(x)
 
                 if l == L.POOL and c == 0 and self._max_pooling[b]:
-                    if not self.transpose:
-                        x = tf.keras.layers.MaxPooling1D(
-                            pool_size=2, strides=2, padding="same"
-                        )(x)
-                    else:
-                        x = tf.keras.layers.UpSampling1D(size=2)(x)
+                    PoolingLayer = tf.keras.layers.MaxPooling1D
+                    if self.transpose:
+                        PoolingLayer = tf.keras.layers.UpSampling1D
+                    x = PoolingLayer(size=2, strides=2, padding="same")(x)
 
                 if l == L.BN and self._use_batch_norm[b][c]:
                     x = tf.keras.layers.BatchNormalization()(x)
@@ -393,18 +384,13 @@ class ResNetNetwork(BaseDeepLearningNetwork):
 
     @staticmethod
     def _compute_projection_strides(x, skip):
-        strides, s_remainder = divmod(skip.shape[1], x.shape[1])
-        upsampling, u_remainder = divmod(x.shape[1], skip.shape[1])
-        if s_remainder != 0 and u_remainder != 0:
+        strides, remainder = divmod(skip.shape[1], x.shape[1])
+        if remainder != 0:
             raise ValueError(
                 f"Cannot compute strides for skip connection between layers: "
                 f"skip.shape[1] = {skip.shape[1]}, x.shape[1] = {x.shape[1]}"
             )
-        if s_remainder != 0:
-            strides = 1
-        if u_remainder != 0:
-            upsampling = 1
-        return strides, upsampling
+        return strides
 
     def _projection_shortcut(self, x, skip, b, c):
         import tensorflow as tf
@@ -417,17 +403,8 @@ class ResNetNetwork(BaseDeepLearningNetwork):
         if w == 0:
             return x
 
-        strides, upsampling = self._compute_projection_strides(x, skip)
-        if upsampling > 1:
-            skip = tf.keras.layers.UpSampling1D(size=upsampling)(skip)
-            if skip.shape[-1] != x.shape[-1]:
-                skip = tf.keras.layers.Conv1D(x.shape[-1], 1, 1, pad, use_bias=bias)(
-                    skip
-                )
-        else:
-            skip = tf.keras.layers.Conv1D(x.shape[-1], 1, strides, pad, use_bias=bias)(
-                skip
-            )
+        strides = self._compute_projection_strides(x, skip)
+        skip = tf.keras.layers.Conv1D(x.shape[-1], 1, strides, pad, use_bias=bias)(skip)
 
         if self._resnet_type == RESNET_TYPE.V1 and use_bn:
             skip = tf.keras.layers.BatchNormalization()(skip)
