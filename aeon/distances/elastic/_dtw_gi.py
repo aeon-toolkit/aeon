@@ -72,12 +72,14 @@ def _dtw_gi(
       - bias
 
     """
+    # Cast once, before any arithmetic: rebinding x_/y_ to a different dtype later
+    # makes numba unify their types and fails to compile for float32 input.
     if x.ndim == 1 and y.ndim == 1:
-        x_ = x.reshape((1, x.shape[0]))
-        y_ = y.reshape((1, y.shape[0]))
+        x_ = x.reshape((1, x.shape[0])).astype(np.float64)
+        y_ = y.reshape((1, y.shape[0])).astype(np.float64)
     elif x.ndim == 2 and y.ndim == 2:
-        x_ = x
-        y_ = y
+        x_ = x.astype(np.float64)
+        y_ = y.astype(np.float64)
     else:
         raise ValueError("x and y must be 1D or 2D")
 
@@ -93,10 +95,7 @@ def _dtw_gi(
     if init_p is None:
         p = np.eye(x_channels, y_channels, dtype=np.float64)
     else:
-        p = init_p
-
-    y_ = y_.astype(np.float64)
-    x_ = x_.astype(np.float64)
+        p = init_p.astype(np.float64)
 
     bias = np.zeros((x_channels, 1))
 

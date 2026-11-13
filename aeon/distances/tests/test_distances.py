@@ -259,3 +259,45 @@ def test_kneighbors_classifier_dtw_mixed_dtypes():
     X_test_f32 = rng.normal(size=(2, 1, 6)).astype(np.float32)
     preds_f32 = clf.predict(X_test_f32)
     assert preds_f32.shape == (2,)
+
+
+@pytest.mark.parametrize(
+    "dtype_x,dtype_y",
+    [(np.float32, np.float32), (np.float32, np.float64), (np.float64, np.float32)],
+)
+def test_dtw_gi_float32(dtype_x, dtype_y):
+    """Test that dtw_gi accepts float32 input and matches the float64 result."""
+    from aeon.distances import (
+        dtw_gi_alignment_path,
+        dtw_gi_cost_matrix,
+        dtw_gi_distance,
+        dtw_gi_pairwise_distance,
+    )
+
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(3, 2, 8))
+    x, y = X[0], X[1]
+    x_, y_ = x.astype(dtype_x), y.astype(dtype_y)
+
+    assert dtw_gi_distance(x_, y_) == pytest.approx(dtw_gi_distance(x, y), rel=1e-5)
+    assert dtw_gi_distance(x_[0], y_[0]) == pytest.approx(
+        dtw_gi_distance(x[0], y[0]), rel=1e-5
+    )
+    np.testing.assert_allclose(
+        dtw_gi_cost_matrix(x_, y_), dtw_gi_cost_matrix(x, y), rtol=1e-5
+    )
+    path, dist = dtw_gi_alignment_path(x_, y_)
+    path64, dist64 = dtw_gi_alignment_path(x, y)
+    assert path == path64
+    assert dist == pytest.approx(dist64, rel=1e-5)
+    np.testing.assert_allclose(
+        dtw_gi_pairwise_distance(X.astype(dtype_x), X.astype(dtype_y)),
+        dtw_gi_pairwise_distance(X),
+        rtol=1e-5,
+        atol=1e-8,
+    )
+
+    init_p = np.eye(2, dtype=np.float32)
+    assert dtw_gi_distance(x_, y_, init_p=init_p) == pytest.approx(
+        dtw_gi_distance(x, y), rel=1e-5
+    )
