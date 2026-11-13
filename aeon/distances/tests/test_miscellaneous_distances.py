@@ -57,3 +57,49 @@ def test_shift_scale_invariant_distance_float32():
         x.astype(np.float32), y.astype(np.float32)
     )
     assert shifted32.dtype == np.float32
+
+
+def test_minkowski_pairwise_weights_match_single_series():
+    """Weights must be series-shaped and applied uniformly to every pair (#3861).
+
+    Previously the pairwise helpers indexed w by case, causing out-of-bounds
+    reads, crashes on multivariate input, and asymmetric X-to-y vs y-to-X.
+    """
+    from aeon.distances import minkowski_distance, minkowski_pairwise_distance
+
+    rng = np.random.default_rng(0)
+
+    # Univariate collection, series-shaped weights
+    X = rng.normal(size=(4, 1, 5))
+    Y = rng.normal(size=(3, 1, 5))
+    w = np.abs(rng.normal(size=(1, 5)))
+
+    expected_self = np.array(
+        [[minkowski_distance(a, b, p=2, w=w) for b in X] for a in X]
+    )
+    expected_xy = np.array(
+        [[minkowski_distance(a, b, p=2, w=w) for b in Y] for a in X]
+    )
+
+    got_self = minkowski_pairwise_distance(X, p=2, w=w)
+    got_xy = minkowski_pairwise_distance(X, Y, p=2, w=w)
+
+    assert_almost_equal(got_self, expected_self)
+    assert_almost_equal(got_xy, expected_xy)
+    # Symmetry under swap of arguments
+    assert_almost_equal(
+        minkowski_pairwise_distance(Y, X, p=2, w=w), expected_xy.T
+    )
+
+    # Multivariate collection
+    Xm = rng.normal(size=(3, 2, 5))
+    wm = np.abs(rng.normal(size=(2, 5)))
+    expected_m = np.array(
+        [[minkowski_distance(a, b, p=2, w=wm) for b in Xm] for a in Xm]
+    )
+    got_m = minkowski_pairwise_distance(Xm, p=2, w=wm)
+    assert_almost_equal(got_m, expected_m)
+
+    # Wrong weight shape must raise clearly
+    with np.testing.assert_raises(ValueError):
+        minkowski_pairwise_distance(X, p=2, w=np.ones(5))

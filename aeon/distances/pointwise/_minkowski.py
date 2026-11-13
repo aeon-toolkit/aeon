@@ -189,10 +189,10 @@ def minkowski_pairwise_distance(
 
     >>> X = np.array([[1, 2, 3], [4, 5, 6]])
     >>> y = np.array([[11, 12, 13], [14, 15, 16]])
-    >>> w = np.array([[21, 22, 23], [24, 25, 26]])
+    >>> w = np.array([[2.0, 2.0, 2.0]])
     >>> minkowski_pairwise_distance(X, y, p=2, w=w)
-    array([[ 81.24038405, 105.61249926],
-           [ 60.62177826,  86.60254038]])
+    array([[24.49489743, 31.84336666],
+           [17.1464282 , 24.49489743]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([11, 12, 13])
@@ -210,6 +210,21 @@ def minkowski_pairwise_distance(
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
+
+    # Validate weights once against a single series shape (as documented).
+    # Pass the same series-shaped w through to every pairwise call.
+    if w is not None:
+        if len(_X) == 0:
+            raise ValueError("X must contain at least one series when weights are given")
+        sample = _X[0]
+        if w.shape != sample.shape:
+            raise ValueError(
+                f"Weights w must have the same shape as a single series in X "
+                f"(got w.shape={w.shape}, series shape={sample.shape})"
+            )
+        if np.any(w < 0):
+            raise ValueError("Input weights should be all non-negative")
+
     if y is None:
         return _minkowski_pairwise_distance(_X, p, w)
 
@@ -229,10 +244,7 @@ def _minkowski_pairwise_distance(
             if w is None:
                 distances[i, j] = minkowski_distance(X[i], X[j], p)
             else:
-                # Reshape weights to 2D for matching instance
-                # channels in distance calculation.
-                _w = w[i].reshape((1, w.shape[1]))
-                distances[i, j] = minkowski_distance(X[i], X[j], p, _w)
+                distances[i, j] = minkowski_distance(X[i], X[j], p, w)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -254,7 +266,6 @@ def _minkowski_from_multiple_to_multiple_distance(
             if w is None:
                 distances[i, j] = minkowski_distance(x[i], y[j], p)
             else:
-                _w = w[i].reshape((1, w.shape[1]))
-                distances[i, j] = minkowski_distance(x[i], y[j], p, _w)
+                distances[i, j] = minkowski_distance(x[i], y[j], p, w)
 
     return distances
