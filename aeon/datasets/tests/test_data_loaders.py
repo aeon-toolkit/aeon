@@ -5,6 +5,7 @@ __maintainer__ = ["TonyBagnall"]
 import os
 import shutil
 import tempfile
+import urllib.request
 from inspect import signature
 from urllib.error import URLError
 from zipfile import BadZipFile
@@ -15,6 +16,8 @@ import pytest
 
 import aeon
 from aeon.datasets import (
+    download_all_regression,
+    download_archive,
     get_dataset_meta_data,
     load_classification,
     load_forecasting,
@@ -584,3 +587,30 @@ def test_download_and_extract():
             _download_and_extract(url, extract_path=extract_path)
         except BadZipFile:
             assert os.path.exists(extract_path)
+
+
+@pytest.mark.parametrize(
+    "download", [lambda p: download_archive("TSR", p), download_all_regression]
+)
+def test_download_tsr_archive_url(download, tmp_path, monkeypatch):
+    """Test the TSR archive is requested from the expected Zenodo record."""
+    calls = []
+
+    def _fake_urlretrieve(url, filename):
+        calls.append((url, filename))
+        with open(filename, "wb") as f:
+            f.write(b"")
+
+    monkeypatch.setattr(urllib.request, "urlretrieve", _fake_urlretrieve)
+
+    download(str(tmp_path))
+    assert len(calls) == 1
+    url, filename = calls[0]
+    assert url == (
+        "https://zenodo.org/records/24195386/files/TSER%20Archive%20Datasets%202024.zip"
+    )
+    assert os.path.normpath(filename) == os.path.normpath(tmp_path / "TSR.zip")
+
+    # an existing zip is not downloaded again
+    download(str(tmp_path))
+    assert len(calls) == 1

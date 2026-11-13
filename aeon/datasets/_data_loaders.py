@@ -1313,7 +1313,7 @@ def download_archive(archive="UCR", extract_path=None):
     [6] Guijo-Rubio, D. and Middlehurst, M. and Arcencio, G. and Silva,
         D. and Bagnall, A. Unsupervised feature based algorithms for time series
         extrinsic regression. Data Min Knowl Disc, 2141-2185, 2024.
-        Data: https://zenodo.org/records/11236865
+        Data: https://zenodo.org/records/24195386
     [7] Qiu C., Middlehurst, M., Holder, C. and Bagnall, A.
         e-SMOTE: a train set rebalancing algorithm for time series classification
         Proc 10th AALTD at ECML/PKDD, 2025
