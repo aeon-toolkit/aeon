@@ -232,6 +232,39 @@ def test_set_tags():
     assert clf.get_tag("capability:unequal_length") is False
 
 
+def test_tags_are_not_shared():
+    """Test returned tags are copies and the per-class tag cache is not modified."""
+
+    class _ListTagClassifier(MockClassifier):
+        _tags = {"X_inner_type": ["numpy3D", "np-list"]}
+
+    class _ChildClassifier(_ListTagClassifier):
+        _tags = {"capability:multivariate": True}
+
+    expected = ["numpy3D", "np-list"]
+    clf = _ListTagClassifier()
+
+    # modifying returned values must not change later lookups
+    clf.get_tag("X_inner_type").append("pd-multiindex")
+    clf.get_tags()["X_inner_type"].append("pd-multiindex")
+    _ListTagClassifier.get_class_tag("X_inner_type").append("pd-multiindex")
+    _ListTagClassifier.get_class_tags()["X_inner_type"].append("pd-multiindex")
+    assert clf.get_tag("X_inner_type") == expected
+    assert _ListTagClassifier.get_class_tag("X_inner_type") == expected
+
+    # dynamic tags apply to one instance only
+    clf.set_tags(**{"capability:multivariate": True})
+    assert clf.get_tag("capability:multivariate") is True
+    assert clf.get_tags()["capability:multivariate"] is True
+    assert _ListTagClassifier().get_tag("capability:multivariate") is False
+    assert _ListTagClassifier.get_class_tag("capability:multivariate") is False
+
+    # subclasses merge their own tags, after the parent class tags were cached
+    assert _ChildClassifier.get_class_tag("capability:multivariate") is True
+    assert _ChildClassifier.get_class_tag("X_inner_type") == expected
+    assert _ListTagClassifier.get_class_tag("capability:multivariate") is False
+
+
 def test_get_fitted_params():
     """Tests fitted parameter retrieval."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
