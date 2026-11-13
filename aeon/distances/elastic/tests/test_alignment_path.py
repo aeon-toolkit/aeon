@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from numba.typed import List as NumbaList
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import alignment_path as compute_alignment_path
@@ -10,6 +11,7 @@ from aeon.distances._distance import (
     DISTANCES_DICT,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
 )
+from aeon.distances.elastic._alignment_paths import derivative_path_to_original_path
 from aeon.testing.data_generation import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
@@ -135,3 +137,34 @@ def test_alignment_path(dist):
             dist["distance"],
             dist["alignment_path"],
         )
+
+
+@pytest.mark.parametrize("name", ["ddtw", "wddtw"])
+@pytest.mark.parametrize(
+    "n_timepoints, m_timepoints", [(10, 10), (10, 7), (7, 10), (3, 3)]
+)
+def test_derivative_alignment_path_uses_original_indices(
+    name, n_timepoints, m_timepoints
+):
+    """Test the ddtw and wddtw paths index the original series, not the derivative."""
+    x = make_example_2d_numpy_series(n_timepoints, 1, random_state=1)
+    y = make_example_2d_numpy_series(m_timepoints, 1, random_state=2)
+
+    path, _ = compute_alignment_path(x, y, method=name)
+
+    assert path[0] == (0, 0)
+    assert path[-1] == (n_timepoints - 1, m_timepoints - 1)
+    assert {i for i, _ in path} == set(range(n_timepoints))
+    assert {j for _, j in path} == set(range(m_timepoints))
+    # A warping path moves by at most one point in each series at every step.
+    for (i, j), (next_i, next_j) in zip(path, path[1:]):
+        assert (next_i - i, next_j - j) in [(1, 1), (1, 0), (0, 1)]
+
+
+def test_derivative_path_to_original_path():
+    """Test the mapping adds one to each index and adds the two corner points."""
+    derivative_path = NumbaList([(0, 0), (1, 0), (1, 1), (2, 2)])
+
+    path = derivative_path_to_original_path(derivative_path, 5, 5)
+
+    assert path == [(0, 0), (1, 1), (2, 1), (2, 2), (3, 3), (4, 4)]
