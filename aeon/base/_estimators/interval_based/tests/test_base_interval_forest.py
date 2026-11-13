@@ -194,6 +194,29 @@ def test_interval_forest_series_transformer(series_transformer):
     assert est._transformed_data[0].shape[1] == expected
 
 
+@pytest.mark.parametrize("interval_selection_method", ["random", "supervised"])
+def test_interval_forest_series_get_different_intervals(interval_selection_method):
+    """Each series transformer of a tree samples its own intervals."""
+    X, y = make_example_3d_numpy(n_cases=20, n_timepoints=60, random_state=0)
+
+    est = IntervalForestClassifier(
+        n_estimators=5,
+        n_intervals=8,
+        series_transformers=[None, None],
+        interval_selection_method=interval_selection_method,
+        random_state=0,
+    )
+    est.fit(X, y)
+
+    # both series are the original data, so a shared random stream would give
+    # identical intervals
+    for selectors in est.intervals_:
+        first, second = (
+            {(iv[0], iv[1], iv[2]) for iv in s.intervals_} for s in selectors
+        )
+        assert first != second
+
+
 def test_min_interval_length():
     """Test exception raising for min_interval_length."""
     X, y = make_example_3d_numpy(n_cases=3, n_timepoints=12)
