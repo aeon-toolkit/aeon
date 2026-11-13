@@ -21,6 +21,13 @@ def test_warping_path_transformer(distance):
 
     warping_path = alignment_path_function(x, y)[0]
 
+    if distance != "lcss":
+        n_timepoints = x.shape[1]
+        assert warping_path[0] == (0, 0)
+        assert warping_path[-1] == (n_timepoints - 1, n_timepoints - 1)
+        assert {i for i, _ in warping_path} == set(range(n_timepoints))
+        assert {j for _, j in warping_path} == set(range(n_timepoints))
+
     new_x = WarpingSeriesTransformer(
         series_index=0, warping_path=warping_path
     ).fit_transform(x)
