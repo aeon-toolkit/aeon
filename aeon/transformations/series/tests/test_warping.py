@@ -59,3 +59,20 @@ def test_warping_invalid_series_index_raises():
     transformer = WarpingSeriesTransformer(series_index=2, warping_path=warping_path)
     with pytest.raises(ValueError, match="0 or 1"):
         transformer.fit_transform(x)
+
+
+@pytest.mark.parametrize("distance", ["ddtw", "wddtw"])
+def test_warping_derivative_distances_keep_end_of_series(distance):
+    """Test warping with a ddtw or wddtw path does not drop the end of the series."""
+    x = np.arange(10.0).reshape(1, -1) ** 2
+    y = (np.arange(10.0).reshape(1, -1) + 1) ** 2
+
+    warping_path = get_alignment_path_function(method=distance)(x, y)[0]
+    new_x = WarpingSeriesTransformer(
+        series_index=0, warping_path=warping_path
+    ).fit_transform(x)
+
+    # Every point of x is used, including x[8] = 64 and x[9] = 81.
+    assert set(new_x[0]) == set(x[0])
+    assert new_x[0, 0] == x[0, 0]
+    assert new_x[0, -1] == x[0, -1]
