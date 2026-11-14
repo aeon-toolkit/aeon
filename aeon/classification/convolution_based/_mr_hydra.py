@@ -8,6 +8,7 @@ import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.preprocessing import StandardScaler
 
+from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.convolution_based._hydra import _SparseScaler
 from aeon.transformations.collection.convolution_based import MultiRocket
@@ -40,6 +41,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
         A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Only applies when ``estimator`` is None.
         Note: "balanced_subsample" is not supported as RidgeClassifierCV
         is not an ensemble model.
     n_jobs : int, default=1
@@ -51,8 +53,15 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
+    estimator : sklearn compatible classifier or None, default=None
+        Classifier fitted on the transformed and scaled features. If None, uses
+        RidgeClassifierCV with alphas=np.logspace(-3, 3, 10). The supplied
+        estimator is cloned before fitting.
+
     Attributes
     ----------
+    estimator_ : sklearn classifier
+        The fitted classifier.
     n_classes_ : int
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
@@ -96,12 +105,14 @@ class MultiRocketHydraClassifier(BaseClassifier):
         class_weight=None,
         n_jobs: int = 1,
         random_state=None,
+        estimator=None,
     ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
         self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.estimator = estimator
 
         super().__init__()
 
@@ -130,14 +141,30 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
-        self.classifier = RidgeClassifierCV(
-            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+        self.estimator_ = _clone_estimator(
+            RidgeClassifierCV(
+                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            )
+            if self.estimator is None
+            else self.estimator,
+            self.random_state,
         )
+        self.classifier = self.estimator_
         self.classifier.fit(Xt, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
+        return self.classifier.predict(self._transform_features(X))
+
+    def _predict_proba(self, X) -> np.ndarray:
+        if callable(getattr(self.classifier, "predict_proba", None)):
+            probabilities = self.classifier.predict_proba(self._transform_features(X))
+            class_order = {label: i for i, label in enumerate(self.classifier.classes_)}
+            return probabilities[:, [class_order[label] for label in self.classes_]]
+        return super()._predict_proba(X)
+
+    def _transform_features(self, X):
         Xt_hydra = self._transform_hydra.transform(X)
         Xt_hydra = self._scale_hydra.transform(Xt_hydra)
 
@@ -146,4 +173,4 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
-        return self.classifier.predict(Xt)
+        return Xt
