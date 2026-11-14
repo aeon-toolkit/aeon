@@ -214,6 +214,6 @@ class SASTClassifier(BaseClassifier):
                     start_pos = i
             axes[f].plot(range(start_pos, start_pos + kernel.size), kernel, linewidth=5)
             axes[f].plot(range(ts.size), ts, linewidth=2)
-            axes[f].set_title(f"feature: {f+1}")
+            axes[f].set_title(f"feature: {f + 1}")
 
         return fig

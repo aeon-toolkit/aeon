@@ -23,12 +23,19 @@ def check_classification_y(y, allow_single_class=False):
     ValueError
         If y is not a binary or multiclass target.
         if y is empty or contains less than 2 unique labels.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.validation.labels import check_classification_y
+    >>> check_classification_y(np.array([0, 1, 0, 1]))
+    >>> check_classification_y(np.array(["a", "a"]), allow_single_class=True)
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
             f"y must be a np.array or a pd.Series, but found type: {type(y)}"
         )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
+    if isinstance(y, np.ndarray) and y.ndim != 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
     if len(y) == 0:
         raise ValueError("y must not be empty.")
@@ -62,12 +69,20 @@ def check_regression_y(y):
         If y is not a numeric regression target, e.g. it contains strings or
         datetimes.
         if y is empty.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.labels import check_regression_y
+    >>> check_regression_y(np.array([1.5, 2.7, 3.6]))
+    >>> check_regression_y(pd.Series([100, 200, 300]))
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
             f"y must be a np.array or a pd.Series, but found type: {type(y)}"
         )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
+    if isinstance(y, np.ndarray) and y.ndim != 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
     if len(y) == 0:
         raise ValueError("y must not be empty.")
@@ -107,12 +122,20 @@ def check_anomaly_detection_y(y):
     ValueError
         If y contains values other than 0 or 1.
         if y is empty or contains less than 2 unique labels.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.labels import check_anomaly_detection_y
+    >>> check_anomaly_detection_y(np.array([0, 1, 0, 1]))
+    >>> check_anomaly_detection_y(pd.Series([0, 0, 1, 1]))
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
             f"y must be a np.array or a pd.Series, but found type: {type(y)}"
         )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
+    if isinstance(y, np.ndarray) and y.ndim != 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
     if len(y) == 0:
         raise ValueError("y must not be empty.")

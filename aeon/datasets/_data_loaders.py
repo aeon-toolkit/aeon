@@ -199,7 +199,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             if meta_data["univariate"]:
                 if current_channels > 1:
                     raise OSError(
-                        f"Seen {current_channels} in case {n_cases}."
+                        f"Seen {current_channels} in case {n_cases}. "
                         f"Expecting univariate from metadata"
                     )
         if meta_data["equallength"]:
@@ -622,7 +622,7 @@ def load_from_arff_file(
                             raise ValueError(
                                 f" Number of channels not equal in "
                                 f"dataset, first case had {n_channels} channel "
-                                f"but case number {n_cases+1} has "
+                                f"but case number {n_cases + 1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
@@ -863,7 +863,7 @@ def load_from_tsf_file(
                         if len(series) == 0:
                             raise Exception(
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series. "
                                 "Missing values should be indicated with ? symbol"
@@ -883,7 +883,7 @@ def load_from_tsf_file(
                             raise Exception(
                                 "All series values are missing. "
                                 "A given series should contains a set "
-                                "of comma separated numeric values."
+                                "of comma separated numeric values. "
                                 "At least one numeric value should be there "
                                 "in a series."
                             )
@@ -1037,9 +1037,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
                         f" but it is not correctly formatted.",
                     )
 
-            if not os.path.exists(
-                f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
-            ):
+            if not os.path.exists(f"{local_module}/{local_dirname}/{name}/{name}.tsf"):
                 z = zipfile.ZipFile(file_save, "r")
                 z.extractall(f"{local_module}/{local_dirname}/{name}/")
     full_name = f"{local_module}/{local_dirname}/{name}/{name}.tsf"
@@ -1272,15 +1270,18 @@ def download_archive(archive="UCR", extract_path=None):
     "TSR":  63 TSR problems (univariate and multivariate) (~900MB) [5,6]
     "Imbalanced": 76 unbalanced versions of the UCR archive  (~245MB) [7]
     "Unequal": Unequal length versions of the UCR (~400MB) [8]
-    "EEG": 28 EEG classification problems (~14.5GB) [8]
 
     The links to go directly to zenodo are in the references below.
+
+    The 28 EEG problems in ``tsc_datasets.eeg2026`` have no bulk download yet, so
+    ``download_archive("EEG")`` raises a ``ValueError``. Load each problem with
+    ``load_classification`` instead.
 
     Parameters
     ----------
     archive: str, default = "UCR"
-         Archive to download, should be one of "EEG","UCR","UEA","Imbalanced","TSR",
-         "Unequal".
+         Archive to download, should be one of "UCR", "UEA", "Redux", "TSR",
+         "Imbalanced", "Unequal".
     extract_path: str or None, default = None
          The path to look for the data. If no path is provided, the function
          looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
@@ -1288,7 +1289,7 @@ def download_archive(archive="UCR", extract_path=None):
 
     Raises
     ------
-    ValueError if an invalid archive is passed.
+    ValueError if an invalid archive or "EEG" is passed.
     URLError or HTTPError if the website is not accessible.
 
     References
@@ -1315,7 +1316,7 @@ def download_archive(archive="UCR", extract_path=None):
     [6] Guijo-Rubio, D. and Middlehurst, M. and Arcencio, G. and Silva,
         D. and Bagnall, A. Unsupervised feature based algorithms for time series
         extrinsic regression. Data Min Knowl Disc, 2141-2185, 2024.
-        Data: https://zenodo.org/records/11236865
+        Data: https://zenodo.org/records/24195386
     [7] Qiu C., Middlehurst, M., Holder, C. and Bagnall, A.
         e-SMOTE: a train set rebalancing algorithm for time series classification
         Proc 10th AALTD at ECML/PKDD, 2025
@@ -1323,6 +1324,12 @@ def download_archive(archive="UCR", extract_path=None):
     [8] TBC, In press
         Data: https://zenodo.org/records/XXX
     """
+    if archive == "EEG":
+        raise ValueError(
+            "There is no bulk download for the EEG archive yet. Load each dataset "
+            "in aeon.datasets.tsc_datasets.eeg2026 with "
+            "load_classification(name, extract_path=...) instead."
+        )
     valid = tsml_archives.keys()
     if archive not in valid:
         raise ValueError(f"Passed archive name {archive}, must be one of {valid}")

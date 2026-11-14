@@ -90,7 +90,6 @@ def plot_pairwise_distance_matrix(
 
     # Plot the orange time series b.
     for i in range(b.shape[0]):
-
         ax_s_x.plot(
             np.linspace(0.5, ts_length - 1.5, ts_length),
             b[i],

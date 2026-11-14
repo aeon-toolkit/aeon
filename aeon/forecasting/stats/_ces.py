@@ -443,7 +443,7 @@ class CES(BaseForecaster, IterativeForecastingMixin):
         _validate_seasonal_period(self.seasonal_period)
         if model_code != "N" and self.seasonal_period < 2:
             raise ValueError(
-                f"Seasonal CES (model={model_code!r}) requires " "seasonal_period >= 2."
+                f"Seasonal CES (model={model_code!r}) requires seasonal_period >= 2."
             )
 
     def _validate_ces_param_bounds(self, model_code):
@@ -672,8 +672,7 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
             if code != "N" and m < 2:
                 results[code] = _ic_failure(
                     "skipped",
-                    f"Seasonal model {code!r} requires seasonal_period >= 2; "
-                    f"got {m}.",
+                    f"Seasonal model {code!r} requires seasonal_period >= 2; got {m}.",
                 )
                 continue
             if code != "N" and n < 2 * m:

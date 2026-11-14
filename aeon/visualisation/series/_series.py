@@ -65,7 +65,7 @@ def plot_series(
     if not is_series(series, include_2d=True):
         raise ValueError(
             "series must be a single time series, either univariate (1D "
-            "np.ndarray or pd.Series) or multivariate (2D np.ndarray or pd.DataFrame)"
+            "np.ndarray or pd.Series) or multivariate (2D np.ndarray or pd.DataFrame) "
             "of shape (n_channels, n_timepoints)"
         )
 

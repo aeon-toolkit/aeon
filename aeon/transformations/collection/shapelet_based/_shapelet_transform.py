@@ -126,7 +126,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/time-series-machine-learning/tsml-java/src/java/tsml/>`_.
+    `TSML <https://github.com/time-series-machine-learning/tsml-java/tree/master/src/main/java/tsml/>`_.
 
     References
     ----------

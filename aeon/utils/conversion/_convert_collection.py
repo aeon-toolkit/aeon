@@ -198,7 +198,7 @@ def _from_df_list_to_numpy3d(X):
 def _from_df_list_to_numpy2d(X):
     if not is_equal_length(X):
         raise TypeError(
-            f"{type(X)} does not store equal length series."
+            f"{type(X)} does not store equal length series. "
             f"Cannot convert unequal length to numpy flat"
         )
     np_list = _from_df_list_to_np_list(X)

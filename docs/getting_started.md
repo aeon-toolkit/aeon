@@ -14,34 +14,34 @@ classical techniques for the following learning tasks:
 
 - [**Classification**](api_reference/classification), where a collection of time series
   labelled with  a discrete value is used to train a model to predict unseen cases
-  ([more details](examples/classification/classification.ipynb)).
+  ([more details](examples/classification/classification)).
 - [**Regression**](api_reference/regression), where a collection of time series
   labelled with a continuous value is used to train a model to predict unseen cases
-  ([more details](examples/regression/regression.ipynb)).
+  ([more details](examples/regression/regression)).
 - [**Clustering**](api_reference/clustering), where a collection of time series without
   any labels are used to train a model to label cases
-  ([more details](examples/clustering/clustering.ipynb)).
+  ([more details](examples/clustering/clustering)).
 - [**Similarity search**](api_reference/similarity_search), where the goal is to find
   nearest neighbors among subsequences or whole series within a collection of time
   series in an efficient way.
-  ([more details](examples/similarity_search/similarity_search.ipynb)).
+  ([more details](examples/similarity_search/similarity_search)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
 - [**Forecasting**](api_reference/forecasting.rst), where the goal is to predict future values
   of a single time series
-  ([more details](examples/forecasting/forecasting.ipynb)).
+  ([more details](examples/forecasting/forecasting)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
   series into regions that are dissimilar to each other
-  ([more details](examples/segmentation/segmentation.ipynb)).
+  ([more details](examples/segmentation/segmentation)).
 
 `aeon` also provides core modules that are used by the modules above:
 
 - [**Transformations**](api_reference/transformations), where either a single series or collection is
-  transformed into a different representation or domain. ([more details](examples/transformations/transformations.ipynb)).
+  transformed into a different representation or domain. ([more details](examples/transformations/transformations)).
 - [**Distances**](api_reference/distances), which measure the dissimilarity between two time series or
-  collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
+  collections of series and include functions to align series ([more details](examples/distances/distances)).
 - [**Networks**](api_reference/networks), provides core models for deep learning for all time series tasks
-  ([more details](examples/networks/deep_learning.ipynb)).
+  ([more details](examples/networks/deep_learning)).
 
 There are dedicated notebooks going into more detail for each of these modules. This
 guide is meant to give you the briefest of introductions to the main concepts and
@@ -97,7 +97,7 @@ If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`. So
 the US Change data loaded above has five channels and 187 time points. For more
 details on our provided datasets and on how to load data into aeon compatible data
-structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
+structures, see our [datasets](examples/datasets/datasets) notebooks.
 
 ## Single Series Modules
 
@@ -362,7 +362,7 @@ collection:
 ```
 
 For more examples and use cases you can check the example section of the module,
-starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)
+starting with the general [similarity search notebook](examples/similarity_search/similarity_search)
 
 ## Transformers
 

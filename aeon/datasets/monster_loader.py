@@ -6,6 +6,8 @@ __all__ = [
     "load_monster_dataset",
 ]
 
+import warnings
+
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -34,8 +36,10 @@ def load_monster_dataset_names() -> list[str]:
     return sorted(dataset_names)
 
 
+# TODO: remove dataset_name in v1.8.0 and change the signature to
+#  load_monster_dataset(name: str, fold: int = 0)
 def load_monster_dataset(
-    dataset_name: str, fold: int = 0
+    name: str | None = None, fold: int = 0, dataset_name: str = "deprecated"
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Load a Monster dataset from Hugging Face Hub.
 
@@ -45,11 +49,13 @@ def load_monster_dataset(
 
     Parameters
     ----------
-    dataset_name : str
+    name : str
         The name of the dataset to load (e.g., "CornellWhaleChallenge", "AudioMNIST").
     fold : int, default=0
         The specific cross-validation fold index to load. This determines which
         samples are used for the test set. Defaults to fold 0.
+    dataset_name : str, default="deprecated"
+        Deprecated, use ``name`` instead. Will be removed in v1.8.0.
 
     Returns
     -------
@@ -68,8 +74,8 @@ def load_monster_dataset(
     ModuleNotFoundError
         If required optional dependency 'huggingface-hub' not installed.
     ValueError
-        If the `dataset_name` is not recognized
-        or the `fold` number is invalid.
+        If no dataset name is provided, if both ``name`` and ``dataset_name`` are
+        provided, if the ``name`` is not recognized or the ``fold`` number is invalid.
     OSError
         If the download fails due to network issues
 
@@ -87,26 +93,47 @@ def load_monster_dataset(
         Time Series Evaluation Repository. arXiv preprint arXiv:2502.15122.
 
     """
+    # TODO: remove dataset_name in v1.8.0
+    if dataset_name != "deprecated":
+        if name is not None:
+            raise ValueError(
+                "Both 'name' and 'dataset_name' were provided. 'dataset_name' is "
+                "deprecated, use 'name' only."
+            )
+        warnings.warn(
+            "The 'dataset_name' parameter is deprecated and will be removed in "
+            "v1.8.0. Use 'name' instead.  From v1.8.0 the signature will be "
+            "load_monster_dataset(name: str, fold: int = 0).",
+            FutureWarning,
+            stacklevel=2,
+        )
+        name = dataset_name
+
+    if name is None:
+        raise ValueError(
+            "No dataset name provided. Please specify a dataset name using the "
+            "'name' parameter."
+        )
     _check_soft_dependencies("huggingface_hub")
     from huggingface_hub import hf_hub_download
 
-    repo_id = f"{ORG_ID}/{dataset_name}"
+    repo_id = f"{ORG_ID}/{name}"
 
-    if dataset_name not in load_monster_dataset_names():
-        raise ValueError(f"Dataset {dataset_name} not found in the Monster collection.")
+    if name not in load_monster_dataset_names():
+        raise ValueError(f"Dataset {name} not found in the Monster collection.")
 
     data_path = hf_hub_download(
-        repo_id=repo_id, filename=f"{dataset_name}_X.npy", repo_type="dataset"
+        repo_id=repo_id, filename=f"{name}_X.npy", repo_type="dataset"
     )
     X = np.load(data_path, mmap_mode="r")
 
-    label_filename = f"{dataset_name}_Y.npy"
+    label_filename = f"{name}_Y.npy"
     try:
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
         )
     except Exception:
-        label_filename = f"{dataset_name}_y.npy"
+        label_filename = f"{name}_y.npy"
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
         )

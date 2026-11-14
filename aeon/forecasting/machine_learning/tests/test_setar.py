@@ -37,9 +37,9 @@ def test_forecast_sets_attribute_and_matches_predict():
     f2 = SETAR(lag=6)
     f2.fit(y)
     pred = f2.predict(y)
-    assert np.isclose(
-        pred, out, atol=0.1
-    ), "predict() should match forecast() on same y"
+    assert np.isclose(pred, out, atol=0.1), (
+        "predict() should match forecast() on same y"
+    )
 
 
 def test_too_short_series_for_fallback_raises():

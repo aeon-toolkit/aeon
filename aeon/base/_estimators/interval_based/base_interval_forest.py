@@ -404,8 +404,7 @@ class BaseIntervalForest(ABC):
                 self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
             else:
                 raise ValueError(
-                    f"{self} must be a scikit-learn compatible classifier or "
-                    "regressor."
+                    f"{self} must be a scikit-learn compatible classifier or regressor."
                 )
         # base_estimator must be an sklearn estimator
         elif not isinstance(self.base_estimator, BaseEstimator):

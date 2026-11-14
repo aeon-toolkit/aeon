@@ -129,8 +129,7 @@ def check_regressor_against_expected_results(
         expected_preds,
         decimal=2,
         err_msg=(
-            f"Failed to reproduce results for {estimator_class.__name__} "
-            f"on {data_name}"
+            f"Failed to reproduce results for {estimator_class.__name__} on {data_name}"
         ),
     )
 

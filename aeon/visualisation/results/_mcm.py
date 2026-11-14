@@ -493,7 +493,7 @@ def _draw(
 
         if row_comparates[0] == col_comparates[0]:
             raise ValueError(
-                f"Row and Column comparates are the same" f" {row_comparates[0]}"
+                f"Row and Column comparates are the same {row_comparates[0]}"
             )
             return
     else:

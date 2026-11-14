@@ -150,7 +150,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                         units=self._n_units[i],
                         activation=self._activation[i],
                         return_sequences=return_sequences,
-                        name=f"{self.rnn_type}_{i+1}",
+                        name=f"{self.rnn_type}_{i + 1}",
                     )
                 )(x)
             else:
@@ -158,7 +158,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                     units=self._n_units[i],
                     activation=self._activation[i],
                     return_sequences=return_sequences,
-                    name=f"{self.rnn_type}_{i+1}",
+                    name=f"{self.rnn_type}_{i + 1}",
                 )(x)
 
             # Add appropriate dropout based on layer position
@@ -172,7 +172,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
                 # Apply intermediate dropout to all layers except the last
                 if self.dropout_intermediate > 0:
                     x = tf.keras.layers.Dropout(
-                        self.dropout_intermediate, name=f"dropout_intermediate_{i+1}"
+                        self.dropout_intermediate, name=f"dropout_intermediate_{i + 1}"
                     )(x)
 
         # Return input and output layers

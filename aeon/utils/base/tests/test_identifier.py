@@ -16,9 +16,9 @@ def test_base_type_inference(item):
     """Check that get_identifier returns the correct key for base classes."""
     identifier = get_identifier(item[1])
 
-    assert (
-        identifier == item[0]
-    ), f"get_identifier returned {identifier} for {item[1]}, expected {item[0]}"
+    assert identifier == item[0], (
+        f"get_identifier returned {identifier} for {item[1]}, expected {item[0]}"
+    )
 
 
 def test_get_identifier():
