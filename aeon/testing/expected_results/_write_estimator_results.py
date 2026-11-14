@@ -32,7 +32,6 @@ excluded_estimators = [
     "IndividualOrdinalTDE",
     # wrappers
     "MrSEQLClassifier",
-    "MrSQMClassifier",
     # Unknown failure, needs investigation
     "SignatureClassifier",
     "TDMVDCClassifier",
