@@ -11,7 +11,7 @@ from aeon.datasets._data_loaders import CONNECTION_ERRORS
 from aeon.datasets.dataset_collections import tsml_archives
 from aeon.datasets.tsc_datasets import tsc_zenodo
 from aeon.datasets.tser_datasets import tsr_zenodo
-from aeon.testing.testing_config import PR_TESTING
+from aeon.testing.testing_config import PERIODIC_TESTING
 
 # Dictionaries mapping names to Zenodo record IDs in the tsml community.
 ZENODO_ID_DICTS = {
@@ -56,8 +56,9 @@ def _latest_community_versions():
 
 
 @pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because it reads from Zenodo.",
+    not PERIODIC_TESTING,
+    reason="Only run in the periodic tests because it reads from Zenodo and fails "
+    "when a new dataset version is published, regardless of code changes.",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_zenodo_ids_are_latest_versions():

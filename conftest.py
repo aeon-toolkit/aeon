@@ -6,6 +6,9 @@ This allows for smaller parameter matrices to be used for certain tests and enab
 sub-sampling in the tests (for shorter runtime) ensuring that each estimators full
 tests are run on each operating system at least once, and on each python version at
 least once, but not necessarily on each operating system / python version combination.
+Adds a --periodictesting option to pytest.
+This enables tests which should only run in the periodic test workflow, such as
+checks against external sources which can start failing without a code change.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
@@ -35,6 +38,14 @@ def pytest_addoption(parser):
             "Toggle for PR test configuration. Uses smaller parameter matrices for "
             "test generation and sub-samples estimators in tests by workflow os/py "
             "version."
+        ),
+    )
+    parser.addoption(
+        "--periodictesting",
+        default=False,
+        help=(
+            "Toggle for periodic test configuration. Runs tests which are skipped "
+            "outside of the periodic test workflow."
         ),
     )
     parser.addoption(
@@ -91,6 +102,11 @@ def pytest_configure(config):
         from aeon.testing import testing_config
 
         testing_config.PR_TESTING = True
+
+    if config.getoption("--periodictesting") in [True, "True", "true"]:
+        from aeon.testing import testing_config
+
+        testing_config.PERIODIC_TESTING = True
 
     if config.getoption("--check-soft-dependency-skips"):
         config.pluginmanager.register(

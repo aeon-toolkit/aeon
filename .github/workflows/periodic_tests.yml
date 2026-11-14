@@ -154,7 +154,9 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical
+        # --periodictesting runs the periodic-only tests, such as the Zenodo ID check.
+        # These only need core dependencies, so run them in this job only.
+        run: python -m pytest -n logical --periodictesting true
 
       - name: Save new cache
         uses: actions/cache/save@v6
