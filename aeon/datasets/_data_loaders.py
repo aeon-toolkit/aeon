@@ -1270,15 +1270,18 @@ def download_archive(archive="UCR", extract_path=None):
     "TSR":  63 TSR problems (univariate and multivariate) (~900MB) [5,6]
     "Imbalanced": 76 unbalanced versions of the UCR archive  (~245MB) [7]
     "Unequal": Unequal length versions of the UCR (~400MB) [8]
-    "EEG": 28 EEG classification problems (~14.5GB) [8]
 
     The links to go directly to zenodo are in the references below.
+
+    The 28 EEG problems in ``tsc_datasets.eeg2026`` have no bulk download yet, so
+    ``download_archive("EEG")`` raises a ``ValueError``. Load each problem with
+    ``load_classification`` instead.
 
     Parameters
     ----------
     archive: str, default = "UCR"
-         Archive to download, should be one of "EEG","UCR","UEA","Imbalanced","TSR",
-         "Unequal".
+         Archive to download, should be one of "UCR", "UEA", "Redux", "TSR",
+         "Imbalanced", "Unequal".
     extract_path: str or None, default = None
          The path to look for the data. If no path is provided, the function
          looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
@@ -1286,7 +1289,7 @@ def download_archive(archive="UCR", extract_path=None):
 
     Raises
     ------
-    ValueError if an invalid archive is passed.
+    ValueError if an invalid archive or "EEG" is passed.
     URLError or HTTPError if the website is not accessible.
 
     References
@@ -1321,6 +1324,12 @@ def download_archive(archive="UCR", extract_path=None):
     [8] TBC, In press
         Data: https://zenodo.org/records/XXX
     """
+    if archive == "EEG":
+        raise ValueError(
+            "There is no bulk download for the EEG archive yet. Load each dataset "
+            "in aeon.datasets.tsc_datasets.eeg2026 with "
+            "load_classification(name, extract_path=...) instead."
+        )
     valid = tsml_archives.keys()
     if archive not in valid:
         raise ValueError(f"Passed archive name {archive}, must be one of {valid}")
