@@ -7,7 +7,10 @@ import numpy as np
 from numba import njit, prange
 from numba.typed import List as NumbaList
 
-from aeon.distances.elastic._alignment_paths import compute_min_return_path
+from aeon.distances.elastic._alignment_paths import (
+    compute_min_return_path,
+    derivative_path_to_original_path,
+)
 from aeon.distances.elastic._dtw import (
     _dtw_cost_matrix,
     _dtw_distance,
@@ -360,7 +363,9 @@ def ddtw_alignment_path(
     List[Tuple[int, int]]
         The alignment path between the two time series where each element is a tuple
         of the index in x and the index in y that have the best alignment according
-        to the cost matrix.
+        to the cost matrix. The indices refer to the original series, not to their
+        derivatives. The path starts at (0, 0) and ends at
+        (n_timepoints - 1, m_timepoints - 1).
     float
         The ddtw distance between the two time series.
 
@@ -377,10 +382,9 @@ def ddtw_alignment_path(
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
     >>> ddtw_alignment_path(x, y)
-    ([(0, 0), (1, 1)], 0.25)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 0.25)
     """
     cost_matrix = ddtw_cost_matrix(x, y, window, itakura_max_slope)
-    return (
-        compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3],
-    )
+    derivative_path = compute_min_return_path(cost_matrix)
+    path = derivative_path_to_original_path(derivative_path, x.shape[-1], y.shape[-1])
+    return path, cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3]
