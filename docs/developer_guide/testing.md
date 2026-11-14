@@ -185,11 +185,6 @@ are:
 
 The periodic tests will run all of the above.
 
-Some tests only run in the periodic tests, even with the `full pytest actions` label.
-These check external sources that can start failing without a code change, such as
-whether the stored Zenodo dataset IDs are the latest versions. This is controlled by the
-`PERIODIC_TESTING` flag in [`testing/testing_config.py`](https://github.com/aeon-toolkit/aeon/blob/main/aeon/testing/testing_config.py).
-
 ## Running unit tests locally using `pytest`
 
 
@@ -231,7 +226,6 @@ There are:
 - `--nonumba` - Disable `numba` compilation if true
 - `--enablethreading` - Skip setting various threading options to 1 prior to tests if true
 - `--prtesting` - Set the PR_TESTING flag
-- `--periodictesting` - Set the PERIODIC_TESTING flag
 
 ## Tracking test coverage
 
