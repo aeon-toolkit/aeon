@@ -298,7 +298,7 @@ def get_type(X, raise_error=True):
     else:
         msg = (
             f"ERROR passed input of type {type(X)}, must be of type "
-            f"np.ndarray, pd.Series or pd.DataFrame."
+            f"np.ndarray, pd.Series or pd.DataFrame. "
             f"See aeon.utils.data_types.SERIES_DATA_TYPES"
         )
 

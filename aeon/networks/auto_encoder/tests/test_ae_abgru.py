@@ -77,9 +77,9 @@ def test_aeattentionbigrunetwork_n_layers_decoder(n_layers_decoder):
 
         # Check if all Bidirectional layers contain GRU as expected
         for i, layer in enumerate(bidirectional_layers):
-            assert isinstance(
-                layer.forward_layer, tf.keras.layers.GRU
-            ), f"Layer {i} is not using GRU as expected"
+            assert isinstance(layer.forward_layer, tf.keras.layers.GRU), (
+                f"Layer {i} is not using GRU as expected"
+            )
 
 
 @pytest.mark.skipif(
@@ -176,7 +176,7 @@ def test_aeattentionbigrunetwork_activation_decoder(activation_decoder):
                 == expected_activations[n_layers - i - 1]
             ), (
                 f"Layer {i} has activation {layer.forward_layer.activation.__name__}, "
-                f"expected {expected_activations[n_layers-i-1]}"
+                f"expected {expected_activations[n_layers - i - 1]}"
             )
 
 
@@ -226,7 +226,7 @@ def test_aeattentionbigrunetwork_activation_encoder(activation_encoder):
         for i in range(n_layers):
             assert gru_layers[i * 2].activation.__name__ == expected_activations[i], (
                 f"Forward GRU layer {i} has activation "
-                f"{gru_layers[i*2].activation.__name__}, expected "
+                f"{gru_layers[i * 2].activation.__name__}, expected "
                 f"{expected_activations[i]}"
             )
 

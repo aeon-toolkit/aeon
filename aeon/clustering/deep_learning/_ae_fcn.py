@@ -386,12 +386,10 @@ class AEFCNClusterer(BaseDeepClusterer):
                 # Calculate MSE for each layer in the encoder and decoder
                 mse = 0
 
-                _encoder_intermediate_outputs = (
-                    []
-                )  # Store embeddings of each layer in the Encoder
-                _decoder_intermediate_outputs = (
-                    []
-                )  # Store embeddings of each layer in the Decoder
+                # Store embeddings of each layer in the Encoder
+                _encoder_intermediate_outputs = []
+                # Store embeddings of each layer in the Decoder
+                _decoder_intermediate_outputs = []
 
                 encoder = autoencoder.layers[1]  # Returns Functional API Models.
                 decoder = autoencoder.layers[2]  # Returns Functional API Models.

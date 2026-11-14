@@ -301,7 +301,7 @@ def wilcoxon_test(results, labels, lower_better=False):
                 p_values[i, j] = 1
                 # raise warning
                 warnings.warn(
-                    f"Estimators {labels[i]} and {labels[j]} have the same performance"
+                    f"Estimators {labels[i]} and {labels[j]} have the same performance "
                     "on all datasets. This may cause problems when forming cliques.",
                     stacklevel=2,
                 )

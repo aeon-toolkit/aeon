@@ -322,6 +322,6 @@ def test_reverse_windowing_without_psutil(monkeypatch):
 def test_wrong_input():
     """Test error raises."""
     with pytest.raises(
-        ValueError, match="padding_length must be provided when stride " "is not 1"
+        ValueError, match="padding_length must be provided when stride is not 1"
     ):
         reverse_windowing(_DATA[:9], window_size=2, stride=2)

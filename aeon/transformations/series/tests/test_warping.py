@@ -5,13 +5,13 @@ __maintainer__ = ["hadifawaz1999"]
 import numpy as np
 import pytest
 
-from aeon.clustering.averaging import VALID_BA_DISTANCE_METHODS
 from aeon.distances import get_alignment_path_function
+from aeon.distances._distance import ALIGNMENT_PATH
 from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.transformations.series import WarpingSeriesTransformer
 
 
-@pytest.mark.parametrize("distance", VALID_BA_DISTANCE_METHODS)
+@pytest.mark.parametrize("distance", ALIGNMENT_PATH)
 def test_warping_path_transformer(distance):
     """Test the functionality of Warping transformation."""
     x = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
@@ -20,6 +20,13 @@ def test_warping_path_transformer(distance):
     alignment_path_function = get_alignment_path_function(method=distance)
 
     warping_path = alignment_path_function(x, y)[0]
+
+    if distance != "lcss":
+        n_timepoints = x.shape[1]
+        assert warping_path[0] == (0, 0)
+        assert warping_path[-1] == (n_timepoints - 1, n_timepoints - 1)
+        assert {i for i, _ in warping_path} == set(range(n_timepoints))
+        assert {j for _, j in warping_path} == set(range(n_timepoints))
 
     new_x = WarpingSeriesTransformer(
         series_index=0, warping_path=warping_path
@@ -52,3 +59,20 @@ def test_warping_invalid_series_index_raises():
     transformer = WarpingSeriesTransformer(series_index=2, warping_path=warping_path)
     with pytest.raises(ValueError, match="0 or 1"):
         transformer.fit_transform(x)
+
+
+@pytest.mark.parametrize("distance", ["ddtw", "wddtw"])
+def test_warping_derivative_distances_keep_end_of_series(distance):
+    """Test warping with a ddtw or wddtw path does not drop the end of the series."""
+    x = np.arange(10.0).reshape(1, -1) ** 2
+    y = (np.arange(10.0).reshape(1, -1) + 1) ** 2
+
+    warping_path = get_alignment_path_function(method=distance)(x, y)[0]
+    new_x = WarpingSeriesTransformer(
+        series_index=0, warping_path=warping_path
+    ).fit_transform(x)
+
+    # Every point of x is used, including x[8] = 64 and x[9] = 81.
+    assert set(new_x[0]) == set(x[0])
+    assert new_x[0, 0] == x[0, 0]
+    assert new_x[0, -1] == x[0, -1]

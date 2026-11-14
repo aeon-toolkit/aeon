@@ -250,9 +250,9 @@ def check_create_test_instance(estimator_class):
 
 def check_inheritance(estimator_class):
     """Check that estimator inherits from BaseAeonEstimator."""
-    assert issubclass(
-        estimator_class, BaseAeonEstimator
-    ), f"object {estimator_class} is not a sub-class of BaseAeonEstimator."
+    assert issubclass(estimator_class, BaseAeonEstimator), (
+        f"object {estimator_class} is not a sub-class of BaseAeonEstimator."
+    )
 
     # get_identifier raises a TypeError if the estimator has multiple base types
     identifier = get_identifier(estimator_class)
@@ -282,9 +282,9 @@ def check_has_common_interface(estimator_class):
     )
 
     # axis class parameter is for internal use only
-    assert (
-        "axis" not in estimator_class.__dict__
-    ), "axis should not be a class parameter"
+    assert "axis" not in estimator_class.__dict__, (
+        "axis should not be a class parameter"
+    )
 
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
@@ -300,7 +300,8 @@ def check_set_params(estimator_class):
         p.name
         for p in signature(estimator_class.__init__).parameters.values()
         # dont include self and *args, **kwargs
-        if p.name != "self" and p.kind not in [p.VAR_KEYWORD, p.VAR_POSITIONAL]
+        if p.name != "self"
+        and p.kind not in [p.VAR_KEYWORD, p.VAR_POSITIONAL]
         # has no default
         and p.default == p.empty
     ]
@@ -320,9 +321,9 @@ def check_set_params(estimator_class):
         params_full.update(params)
 
         est_after_set = estimator.set_params(**params_full)
-        assert (
-            est_after_set is estimator
-        ), f"set_params of {estimator_class.__name__} does not return self"
+        assert est_after_set is estimator, (
+            f"set_params of {estimator_class.__name__} does not return self"
+        )
 
         is_equal, equals_msg = deep_equals(
             estimator.get_params(deep=False), params_full, return_msg=True
@@ -345,9 +346,9 @@ def check_constructor(estimator_class):
     * tests that parameter values are always copied to the attribute and not changed
     * tests that default parameters are a valid type or callable
     """
-    assert (
-        getfullargspec(estimator_class.__init__).varkw is None
-    ), "constructor __init__ should have no varargs"
+    assert getfullargspec(estimator_class.__init__).varkw is None, (
+        "constructor __init__ should have no varargs"
+    )
 
     estimator = estimator_class._create_test_instance()
 
@@ -356,16 +357,16 @@ def check_constructor(estimator_class):
         "Estimator should have an is_fitted attribute after init, if not make sure "
         "you call super().__init__ in the constructor"
     )
-    assert (
-        estimator.is_fitted is False
-    ), "Estimator is_fitted attribute should be set to False after init"
+    assert estimator.is_fitted is False, (
+        "Estimator is_fitted attribute should be set to False after init"
+    )
     assert hasattr(estimator, "_tags_dynamic"), (
         "Estimator should have a _tags_dynamic attribute after init, if not make sure "
         "you call super().__init__ in the constructor"
     )
-    assert isinstance(
-        estimator._tags_dynamic, dict
-    ), "Estimator _tags_dynamic attribute should be a dict after init"
+    assert isinstance(estimator._tags_dynamic, dict), (
+        "Estimator _tags_dynamic attribute should be a dict after init"
+    )
 
     # ensure that each parameter is set in init
     init_params = signature(estimator_class.__init__).parameters
@@ -440,8 +441,7 @@ def check_estimator_class_tags(estimator_class):
     if hasattr(estimator_class, "_tags"):
         tags = estimator_class._tags
         assert isinstance(tags, dict), (
-            f"_tags attribute of {estimator_class} must be dict, "
-            f"but found {type(tags)}"
+            f"_tags attribute of {estimator_class} must be dict, but found {type(tags)}"
         )
         assert len(tags) > 0, f"_tags dict of class {estimator_class} is empty"
         assert all(isinstance(key, str) for key in tags.keys())
@@ -561,9 +561,10 @@ def check_non_state_changing_method(estimator, datatype):
 
             assert deep_equals(
                 X, FULL_TEST_DATA_DICT[datatype]["test"][0]
-            ) and deep_equals(
-                y, FULL_TEST_DATA_DICT[datatype]["test"][1]
-            ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
+            ) and deep_equals(y, FULL_TEST_DATA_DICT[datatype]["test"][1]), (
+                f"Estimator: {type(estimator)} has side effects on arguments of "
+                f"{method}"
+            )
 
             changed = _changed_state(state_before, estimator)
             reference_only = sorted(
@@ -592,15 +593,15 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
     """
     # do some basic checks for cloning
     estimator_clone = estimator.clone()
-    assert isinstance(
-        estimator_clone, type(estimator)
-    ), "Estimator clone should be of the same type as the original estimator"
-    assert (
-        estimator_clone is not estimator
-    ), "Estimator clone should not be the same object as the original estimator"
-    assert (
-        estimator_clone.is_fitted is False
-    ), "Estimator is_fitted attribute should be set to False after cloning and init"
+    assert isinstance(estimator_clone, type(estimator)), (
+        "Estimator clone should be of the same type as the original estimator"
+    )
+    assert estimator_clone is not estimator, (
+        "Estimator clone should not be the same object as the original estimator"
+    )
+    assert estimator_clone.is_fitted is False, (
+        "Estimator is_fitted attribute should be set to False after cloning and init"
+    )
 
     # Make a physical copy of the original estimator parameters before fitting.
     estimator = estimator_clone
@@ -609,14 +610,14 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
     fitted_estimator = _run_estimator_method(estimator, "fit", datatype, "train")
 
     # Check fit returns self
-    assert (
-        fitted_estimator is estimator
-    ), f"Estimator: {estimator} does not return self when calling fit"
+    assert fitted_estimator is estimator, (
+        f"Estimator: {estimator} does not return self when calling fit"
+    )
 
     # Check is_fitted attribute is updated correctly to True after calling fit
-    assert (
-        fitted_estimator.is_fitted is True
-    ), f"Estimator: {estimator} does not update attribute: is_fitted during fit"
+    assert fitted_estimator.is_fitted is True, (
+        f"Estimator: {estimator} does not update attribute: is_fitted during fit"
+    )
 
     # Compare the state of the model parameters with the original parameters
     new_params = fitted_estimator.get_params()
@@ -637,9 +638,9 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
 
     # check that estimator cloned from fitted estimator is not fitted
     estimator_clone = estimator.clone()
-    assert (
-        estimator_clone.is_fitted is False
-    ), "Estimator is_fitted attribute should be set to False after cloning"
+    assert estimator_clone.is_fitted is False, (
+        "Estimator is_fitted attribute should be set to False after cloning"
+    )
 
 
 def check_raises_not_fitted_error(estimator, datatype):
@@ -707,7 +708,7 @@ def check_fit_deterministic(estimator, datatype):
             if not same:
                 raise ValueError(
                     f"Running {type(estimator)} {method} with test parameters after "
-                    f"two calls to fit gives different results."
+                    f"two calls to fit gives different results. "
                     f"Check equivalence message: {msg}"
                 )
             i += 1

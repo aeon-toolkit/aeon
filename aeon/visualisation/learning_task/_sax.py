@@ -174,8 +174,7 @@ def plot_sax_representation(
     title = "Original series and SAX approximation"
     if is_windowed:
         title += (
-            f" — window {window_index + 1}/{n_windows} "
-            f"[{window_start}:{window_end}]"
+            f" — window {window_index + 1}/{n_windows} [{window_start}:{window_end}]"
         )
 
     ax.set_title(title, fontsize=15)

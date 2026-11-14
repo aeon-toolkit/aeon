@@ -155,8 +155,7 @@ class HOG1DTransformer(BaseCollectionTransformer):
                 raise ValueError("num_bins must have the value of at least 1")
         else:
             raise TypeError(
-                f"num_bins must be an 'int'. Found"
-                f" {type(self.n_bins).__name__}instead."
+                f"num_bins must be an 'int'. Found {type(self.n_bins).__name__}instead."
             )
 
         if not isinstance(self.scaling_factor, numbers.Number):

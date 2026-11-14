@@ -320,7 +320,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int_)
             if not np.all(self.shapelet_lengths_ >= 2):
                 warnings.warn(
-                    "Some values in 'shapelet_lengths' are inferior to 2."
+                    "Some values in 'shapelet_lengths' are inferior to 2. "
                     "These values will be ignored.",
                     stacklevel=2,
                 )
@@ -740,7 +740,6 @@ def random_dilated_shapelet_extraction(
     max_shapelets = values.shape[0]
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
-
         # (2, _, _): Mask is different for normalised and non-normalised shapelets
         alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):

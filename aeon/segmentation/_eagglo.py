@@ -110,7 +110,7 @@ class EAggloSegmenter(BaseSegmenter):
 
         if self.alpha <= 0 or self.alpha > 2:
             raise ValueError(
-                f"allowed values for 'alpha' are (0, 2], " f"got: {self.alpha}"
+                f"allowed values for 'alpha' are (0, 2], got: {self.alpha}"
             )
 
         self._initialize_params(X)
@@ -244,7 +244,9 @@ class EAggloSegmenter(BaseSegmenter):
                     2
                     * grouped.apply(
                         lambda xj: get_distance_matrix(
-                            xi.to_numpy(), xj.to_numpy(), self.alpha  # noqa
+                            xi.to_numpy(),  # noqa: B023
+                            xj.to_numpy(),
+                            self.alpha,
                         )
                     )
                     - within[i]
