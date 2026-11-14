@@ -2,6 +2,7 @@
 
 __all__ = [
     "BaseSegmenter",
+    "SegmenterScoresMixin",
     "BinSegmenter",
     "FLUSSSegmenter",
     "ClaSPSegmenter",
@@ -24,4 +25,4 @@ from aeon.segmentation._hidalgo import HidalgoSegmenter
 from aeon.segmentation._hmm import HMMSegmenter
 from aeon.segmentation._igts import InformationGainSegmenter, entropy
 from aeon.segmentation._random import RandomSegmenter
-from aeon.segmentation.base import BaseSegmenter
+from aeon.segmentation.base import BaseSegmenter, SegmenterScoresMixin
