@@ -202,7 +202,16 @@ def _fts_nb(season_pad, period):
 
 @njit(cache=True, nogil=True, fastmath=True)
 def _seasonal_smoothing_nb(
-    y_minus_trend, period, seasonal_win, seasonal_deg, seasonal_jump, use_rw, rw
+    y_minus_trend,
+    period,
+    seasonal_win,
+    seasonal_deg,
+    seasonal_jump,
+    low_pass_win,
+    low_pass_deg,
+    low_pass_jump,
+    use_rw,
+    rw,
 ):
     """Return seasonal component (length n) and lowpass (length n), numba version."""
     y = y_minus_trend
@@ -225,14 +234,18 @@ def _seasonal_smoothing_nb(
         sub_sm = np.empty(k, dtype=np.float64)
         _ess_nb(sub, seasonal_win, seasonal_deg, seasonal_jump, use_rw, sub_rw, sub_sm)
 
-        # build padded of length k+2
+        # build padded of length k+2 via extrapolated LOESS estimates
         padded = np.empty(k + 2, dtype=np.float64)
-        if k > 1:
-            padded[0] = sub_sm[1]
-            padded[k + 1] = sub_sm[k - 2]
-        else:
-            padded[0] = sub_sm[0]
-            padded[k + 1] = sub_sm[0]
+        nright = min(seasonal_win, k)
+        val = _est_point_nb(
+            sub, k, seasonal_win, seasonal_deg, 0, 1, nright, use_rw, sub_rw
+        )
+        padded[0] = sub_sm[0] if np.isnan(val) else val
+        nleft = max(1, k - seasonal_win + 1)
+        val = _est_point_nb(
+            sub, k, seasonal_win, seasonal_deg, k + 1, nleft, k, use_rw, sub_rw
+        )
+        padded[k + 1] = sub_sm[k - 1] if np.isnan(val) else val
         for t in range(k):
             padded[1 + t] = sub_sm[t]
 
@@ -240,10 +253,21 @@ def _seasonal_smoothing_nb(
         for r in range(k + 2):
             season_pad[j + r * period] = padded[r]
 
-    # lowpass via FTS, then seasonal = prelim - lowpass
-    lowpass_pad = _fts_nb(season_pad, period)  # length n_pad - 2*period
+    # lowpass filter: moving averages (FTS) followed by LOESS smoothing
+    lowpass_raw = _fts_nb(season_pad, period)  # length n
+    dummy_rw = np.ones(n, dtype=np.float64)
+    lowpass = np.empty(n, dtype=np.float64)
+    _ess_nb(
+        lowpass_raw,
+        low_pass_win,
+        low_pass_deg,
+        low_pass_jump,
+        False,
+        dummy_rw,
+        lowpass,
+    )
+
     prelim = season_pad[period : period + n]  # length n
-    lowpass = lowpass_pad[:n]
     seasonal = prelim - lowpass
     return seasonal, lowpass
 
@@ -286,7 +310,9 @@ def _stl_core_nb(
     trend_win,
     trend_deg,
     trend_jump,
-    low_pass_win,  # kept for parity
+    low_pass_win,
+    low_pass_deg,
+    low_pass_jump,
     robust,
     inner_iter,
     outer_iter,
@@ -316,6 +342,9 @@ def _stl_core_nb(
                 seasonal_win,
                 seasonal_deg,
                 seasonal_jump,
+                low_pass_win,
+                low_pass_deg,
+                low_pass_jump,
                 use_rw,
                 rw,
             )
@@ -489,6 +518,8 @@ class STLSeriesTransformer(BaseSeriesTransformer):
             raise ValueError("`seasonal_jump` must be a positive integer.")
         if not self._is_pos_int(self.trend_jump, odd=False):
             raise ValueError("`trend_jump` must be a positive integer.")
+        if not self._is_pos_int(self.low_pass_jump, odd=False):
+            raise ValueError("`low_pass_jump` must be a positive integer.")
 
         x = np.ascontiguousarray(x, dtype=float)
 
@@ -513,6 +544,8 @@ class STLSeriesTransformer(BaseSeriesTransformer):
             self.trend_deg,
             self.trend_jump,
             low_pass,
+            self.low_pass_deg,
+            self.low_pass_jump,
             self.robust,
             inner_iter,
             outer_iter,
