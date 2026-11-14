@@ -71,6 +71,13 @@ def test_check_classification_y_rejects_ndim():
         check_classification_y(y)
 
 
+def test_check_classification_y_rejects_0d():
+    """Reject 0-dimensional numpy y for classification."""
+    y = np.array(5)
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional, found 0 dimensions"):
+        check_classification_y(y)
+
+
 @pytest.mark.parametrize("y", [np.array([]), pd.Series([], dtype=float)])
 def test_check_classification_y_rejects_empty(y):
     """Reject empty y for classification."""
@@ -160,6 +167,13 @@ def test_check_regression_y_rejects_ndim():
     """Reject multi-dimensional y for regression."""
     y = np.array([[0.1, 0.2], [0.3, 0.4]])
     with pytest.raises(TypeError, match=r"y must be 1-dimensional, found 2 dimensions"):
+        check_regression_y(y)
+
+
+def test_check_regression_y_rejects_0d():
+    """Reject 0-dimensional numpy y for regression."""
+    y = np.array(5.0)
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional, found 0 dimensions"):
         check_regression_y(y)
 
 
@@ -276,6 +290,13 @@ def test_check_anomaly_detection_y_rejects_ndim():
     """Reject multi-dimensional y for anomaly detection."""
     y = np.array([[0, 1], [1, 0]])
     with pytest.raises(TypeError, match=r"y must be 1-dimensional, found 2 dimensions"):
+        check_anomaly_detection_y(y)
+
+
+def test_check_anomaly_detection_y_rejects_0d():
+    """Reject 0-dimensional numpy y for anomaly detection."""
+    y = np.array(1)
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional, found 0 dimensions"):
         check_anomaly_detection_y(y)
 
 
