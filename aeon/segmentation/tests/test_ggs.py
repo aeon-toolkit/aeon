@@ -32,3 +32,18 @@ def test_GreedyGaussianSegmentation(univariate_mean_shift):
         "max_shuffles": 250,
         "random_state": None,
     }
+
+
+def test_ggs_fit_is_empty():
+    """Test that GreedyGaussianSegmenter does not implement redundant _fit."""
+    # Ensure _fit was removed from the class
+    assert "_fit" not in GreedyGaussianSegmenter.__dict__
+
+    # Ensure the tag is correctly True
+    assert GreedyGaussianSegmenter.get_class_tag("fit_is_empty") is True
+
+    # Ensure calling .fit() works without error
+    X = np.random.RandomState(0).randn(30, 2)
+    ggs = GreedyGaussianSegmenter(k_max=2, max_shuffles=5)
+    result = ggs.fit(X, axis=0)
+    assert result is ggs
