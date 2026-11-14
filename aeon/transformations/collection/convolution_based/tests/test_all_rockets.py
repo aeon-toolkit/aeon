@@ -197,11 +197,41 @@ def test_rocket_inputs(rocket, t, X):
 
 @pytest.mark.parametrize("rocket", rockets)
 def test_rocket_single_transform(rocket):
-    """Test rockets can transform a single time series."""
+    """Test rockets can fit on and transform a single time series."""
     X = np.random.random((10, 1, 20))
     X2 = np.random.random((1, 20))
     rocket.fit(X)
     rocket.transform(X2)
+    rocket.fit_transform(X2)
+
+
+@pytest.mark.parametrize("rocket_class", [MiniRocket, MultiRocket])
+def test_rocket_minimum_n_kernels(rocket_class):
+    """Fewer than 84 kernels is raised to 84, one feature per base kernel."""
+    transformer = rocket_class(n_kernels=10, random_state=0)
+    Xt = transformer.fit_transform(multi_test_data)
+
+    assert transformer.n_kernels_ == 84
+    np.testing.assert_array_equal(
+        Xt, rocket_class(n_kernels=84, random_state=0).fit_transform(multi_test_data)
+    )
+
+
+def test_multirocket_normalise_matches_normalised_input():
+    """MultiRocket with normalise=True equals normalising the input beforehand.
+
+    Fit and transform must normalise the same way, or the biases are fitted to
+    slightly different series than the ones transformed.
+    """
+    X = check_random_state(0).standard_normal((10, 2, 30))
+    X_normalised = (X - X.mean(axis=-1, keepdims=True)) / (
+        X.std(axis=-1, keepdims=True) + 1e-8
+    )
+
+    Xt = MultiRocket(n_kernels=100, normalise=True, random_state=0).fit_transform(X)
+    expected = MultiRocket(n_kernels=100, random_state=0).fit_transform(X_normalised)
+
+    np.testing.assert_array_equal(Xt, expected)
 
 
 def test_expected_unit_test():
