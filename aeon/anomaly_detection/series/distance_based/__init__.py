@@ -2,6 +2,7 @@
 
 __all__ = [
     "CBLOF",
+    "DAMP",
     "KMeansAD",
     "LeftSTAMPi",
     "LOF",
@@ -12,6 +13,7 @@ __all__ = [
 ]
 
 from aeon.anomaly_detection.series.distance_based._cblof import CBLOF
+from aeon.anomaly_detection.series.distance_based._damp import DAMP
 from aeon.anomaly_detection.series.distance_based._kmeans import KMeansAD
 from aeon.anomaly_detection.series.distance_based._left_stampi import LeftSTAMPi
 from aeon.anomaly_detection.series.distance_based._lof import LOF

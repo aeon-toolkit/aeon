@@ -42,6 +42,7 @@ Distance-based
     :template: class.rst
 
     CBLOF
+    DAMP
     KMeansAD
     LeftSTAMPi
     LOF
