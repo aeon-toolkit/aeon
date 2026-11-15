@@ -68,3 +68,35 @@ def test_erp_pairwise_distance_mixed_dtypes(dtype_y, bounding):
                     -1, -1
                 ]
         assert_allclose(pw, expected, rtol=_mixed_rtol(dtype_y))
+
+
+def test_erp_leading_gaps_cost_cumulative():
+    """Deleting the first i points costs the sum of their gap costs, not the total.
+
+    Regression test for gh-4003: the first row and column of the cost matrix held
+    the total gap cost of the whole series, so alignments starting with gaps were
+    over-charged.
+    """
+    x = np.array([[3.0, 0.0, 0.0]])
+    y = np.array([[0.0, 0.0, 3.0]])
+    assert erp_distance(x, y) == 0.0
+    assert erp_pairwise_distance(np.stack([x]), np.stack([y]))[0, 0] == 0.0
+
+    # Cost matrix of a series against all zeros (g = 0): the only cost is deleting
+    # x[:i], so row i is cumsum(x)[i].
+    x = np.array([[1.0, 2.0, 4.0]])
+    assert_allclose(
+        erp_cost_matrix(x, np.zeros((1, 3))), [[1, 1, 1], [3, 3, 3], [7, 7, 7]]
+    )
+
+
+def test_erp_triangle_inequality():
+    """ERP is a metric, so it must satisfy the triangle inequality (gh-4003)."""
+    a, b, c = np.array([[1.0]]), np.array([[0.0, 1.0]]), np.array([[0.0, 2.0]])
+    assert erp_distance(a, c) == 1.0
+    assert erp_distance(a, c) <= erp_distance(a, b) + erp_distance(b, c)
+
+    rng = np.random.default_rng(0)
+    for _ in range(50):
+        a, b, c = (rng.normal(size=(1, rng.integers(1, 8))) for _ in range(3))
+        assert erp_distance(a, c) <= erp_distance(a, b) + erp_distance(b, c) + 1e-9
