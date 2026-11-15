@@ -255,7 +255,6 @@ def _seasonal_smoothing_nb(
 
     # lowpass filter: moving averages (FTS) followed by LOESS smoothing
     lowpass_raw = _fts_nb(season_pad, period)  # length n
-    dummy_rw = np.ones(n, dtype=np.float64)
     lowpass = np.empty(n, dtype=np.float64)
     _ess_nb(
         lowpass_raw,
@@ -263,7 +262,7 @@ def _seasonal_smoothing_nb(
         low_pass_deg,
         low_pass_jump,
         False,
-        dummy_rw,
+        rw,
         lowpass,
     )
 
