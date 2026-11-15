@@ -603,9 +603,9 @@ class ShapeleterTransform(BaseCollectionTransformer):
 
     References
     ----------
-    .. [1] Chang-Cheng He et al. "Shapeleter: Shapelet Enhancer via Multiview
-       Positional Embedding for Time Series Classification", Knowledge-Based Systems,
-       2026.
+    .. [1] Shapeleter: Shapelet Enhancer via Multiview Positional Embedding for Time
+       Series Classification. Knowledge-Based Systems, 2026.
+       https://www.sciencedirect.com/science/article/pii/S0950705126017612
 
     Examples
     --------
