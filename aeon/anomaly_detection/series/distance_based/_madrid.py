@@ -9,6 +9,7 @@ import numpy as np
 from numba import njit
 
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
+from aeon.anomaly_detection.series.distance_based._damp import _damp, _mass
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import std
 
@@ -261,137 +262,6 @@ class MADRID(BaseSeriesAnomalyDetector):
             test instance.
         """
         return {"min_length": 4, "max_length": 7, "train_test_split": 8}
-
-
-@njit(cache=True, fastmath=True)
-def _next_pow2(x):
-    return int(np.ceil(np.log2(x)))
-
-
-@njit(cache=True, fastmath=True)
-def _moving_mean_std(x, m):
-    n = len(x)
-    result_mean = np.empty(n - m + 1, dtype=np.float64)
-    result_std = np.empty(n - m + 1, dtype=np.float64)
-
-    sum_x = 0.0
-    sum_x_sq = 0.0
-    for k in range(m):
-        sum_x += x[k]
-        sum_x_sq += x[k] * x[k]
-
-    result_mean[0] = sum_x / m
-    var0 = (sum_x_sq / m) - (result_mean[0] * result_mean[0])
-    result_std[0] = np.sqrt(var0) if var0 > 0.0 else 0.0
-
-    for i in range(1, n - m + 1):
-        sum_x += x[i + m - 1] - x[i - 1]
-        sum_x_sq += x[i + m - 1] * x[i + m - 1] - x[i - 1] * x[i - 1]
-        mean = sum_x / m
-        result_mean[i] = mean
-        var = (sum_x_sq / m) - (mean * mean)
-        result_std[i] = np.sqrt(var) if var > 0.0 else 0.0
-
-    return result_mean, result_std
-
-
-@njit(cache=True, fastmath=True)
-def _sliding_dot_product(query, ts):
-    m = len(query)
-    n = len(ts)
-    length = n - m + 1
-    qt = np.empty(length, dtype=np.float64)
-    for j in range(length):
-        s = 0.0
-        for k in range(m):
-            s += query[k] * ts[j + k]
-        qt[j] = s
-    return qt
-
-
-@njit(cache=True, fastmath=True)
-def _mass(ts, query):
-    """Mueen's Algorithm for Similarity Search (z-normalised distance profile)."""
-    m = len(query)
-    length = len(ts) - m + 1
-
-    mean_q = np.mean(query)
-    std_q = np.std(query)
-    if std_q < AEON_NUMBA_STD_THRESHOLD:
-        std_q = AEON_NUMBA_STD_THRESHOLD
-
-    mean_t, std_t = _moving_mean_std(ts, m)
-    qt = _sliding_dot_product(query, ts)
-
-    dist = np.empty(length, dtype=np.float64)
-    for j in range(length):
-        s = std_t[j]
-        if s < AEON_NUMBA_STD_THRESHOLD:
-            s = AEON_NUMBA_STD_THRESHOLD
-        val = 2.0 * (m - (qt[j] - m * mean_t[j] * mean_q) / (s * std_q))
-        dist[j] = np.sqrt(val) if val > 0.0 else 0.0
-    return dist
-
-
-@njit(cache=True)
-def _damp_forward_processing(ts, m, i, best_so_far, pruned):
-    n = len(ts)
-    if i + m >= n - m + 1:
-        return pruned
-    lookahead = 2 ** _next_pow2(m)
-    start = i + m
-    end = min(start + lookahead, n)
-    d_i = _mass(ts[start:end], ts[i : i + m])
-    for k in range(len(d_i)):
-        if d_i[k] <= best_so_far:
-            pruned[start + k] = False
-    return pruned
-
-
-@njit(cache=True)
-def _damp_backward_processing(ts, m, i, best_so_far):
-    a_mp_i = np.inf
-    a_mp_i_candidate = np.inf
-    prefix = 2 ** _next_pow2(m)
-    endpoint = i
-    while a_mp_i_candidate >= best_so_far:
-        if endpoint - prefix <= 0:
-            a_mp_i = np.nanmin(_mass(ts[:endpoint], ts[i : i + m]))
-            if a_mp_i < a_mp_i_candidate:
-                a_mp_i_candidate = a_mp_i
-            if a_mp_i_candidate > best_so_far and a_mp_i_candidate != np.inf:
-                best_so_far = a_mp_i_candidate
-            break
-        else:
-            a_mp_i = np.nanmin(_mass(ts[endpoint - prefix : endpoint], ts[i : i + m]))
-            if a_mp_i < a_mp_i_candidate:
-                a_mp_i_candidate = a_mp_i
-            if a_mp_i < best_so_far:
-                break
-            else:
-                endpoint = endpoint - prefix + m - 1
-                prefix = 2 * prefix
-    if a_mp_i_candidate == np.inf:
-        a_mp_i_candidate = 0.0
-    return a_mp_i_candidate, best_so_far
-
-
-@njit(cache=True)
-def _damp(ts, m, split, a_mp, best_so_far):
-    """DAMP left-discord approximate matrix profile for one subsequence length."""
-    n = len(ts)
-    pruned = np.ones(n - m + 1, dtype=np.bool_)
-    if best_so_far > 0.0:
-        pruned = _damp_forward_processing(ts, m, split, best_so_far, pruned)
-
-    for i in range(split, n - m + 1):
-        if not pruned[i]:
-            a_mp[i] = a_mp[i - 1]
-        else:
-            a_mp[i], best_so_far = _damp_backward_processing(ts, m, i, best_so_far)
-            pruned = _damp_forward_processing(ts, m, i, best_so_far, pruned)
-
-    return best_so_far, a_mp
 
 
 @njit(cache=True)

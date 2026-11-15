@@ -9,7 +9,6 @@ import numpy as np
 from numba import njit
 
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
-from aeon.anomaly_detection.series.distance_based._madrid import _mass, _next_pow2
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import std
 
@@ -336,11 +335,81 @@ def _has_near_constant_window(ts, m):
     return False
 
 
+@njit(cache=True, fastmath=True)
+def _next_pow2(x):
+    return int(np.ceil(np.log2(x)))
+
+
+@njit(cache=True, fastmath=True)
+def _moving_mean_std(x, m):
+    n = len(x)
+    result_mean = np.empty(n - m + 1, dtype=np.float64)
+    result_std = np.empty(n - m + 1, dtype=np.float64)
+
+    sum_x = 0.0
+    sum_x_sq = 0.0
+    for k in range(m):
+        sum_x += x[k]
+        sum_x_sq += x[k] * x[k]
+
+    result_mean[0] = sum_x / m
+    var0 = (sum_x_sq / m) - (result_mean[0] * result_mean[0])
+    result_std[0] = np.sqrt(var0) if var0 > 0.0 else 0.0
+
+    for i in range(1, n - m + 1):
+        sum_x += x[i + m - 1] - x[i - 1]
+        sum_x_sq += x[i + m - 1] * x[i + m - 1] - x[i - 1] * x[i - 1]
+        mean = sum_x / m
+        result_mean[i] = mean
+        var = (sum_x_sq / m) - (mean * mean)
+        result_std[i] = np.sqrt(var) if var > 0.0 else 0.0
+
+    return result_mean, result_std
+
+
+@njit(cache=True, fastmath=True)
+def _sliding_dot_product(query, ts):
+    m = len(query)
+    n = len(ts)
+    length = n - m + 1
+    qt = np.empty(length, dtype=np.float64)
+    for j in range(length):
+        s = 0.0
+        for k in range(m):
+            s += query[k] * ts[j + k]
+        qt[j] = s
+    return qt
+
+
+@njit(cache=True, fastmath=True)
+def _mass(ts, query):
+    """Mueen's Algorithm for Similarity Search (z-normalised distance profile)."""
+    m = len(query)
+    length = len(ts) - m + 1
+
+    mean_q = np.mean(query)
+    std_q = np.std(query)
+    if std_q < AEON_NUMBA_STD_THRESHOLD:
+        std_q = AEON_NUMBA_STD_THRESHOLD
+
+    mean_t, std_t = _moving_mean_std(ts, m)
+    qt = _sliding_dot_product(query, ts)
+
+    dist = np.empty(length, dtype=np.float64)
+    for j in range(length):
+        s = std_t[j]
+        if s < AEON_NUMBA_STD_THRESHOLD:
+            s = AEON_NUMBA_STD_THRESHOLD
+        val = 2.0 * (m - (qt[j] - m * mean_t[j] * mean_q) / (s * std_q))
+        dist[j] = np.sqrt(val) if val > 0.0 else 0.0
+    return dist
+
+
 @njit(cache=True)
 def _backward_search(ts, m, i, threshold):
     """Left matrix profile value at ``i`` and whether the search was exhaustive.
 
-    Uses the doubling-prefix search of MADRID's DAMP kernel. The search stops at
+    Uses a doubling-prefix search. The search stops at
     the first window containing a neighbour closer than ``threshold``, which leaves
     an upper bound below the threshold; otherwise it reaches the start of the series
     and the value is exact.
@@ -366,6 +435,50 @@ def _backward_search(ts, m, i, threshold):
     if candidate == np.inf:
         return 0.0, False
     return candidate, exact
+
+
+@njit(cache=True)
+def _forward_prune(ts, m, i, threshold, lookahead, skipped):
+    start = i + m
+    n = len(ts)
+    if lookahead <= 0 or start >= n - m + 1:
+        return
+    end = min(start + lookahead, n)
+    if end - start < m:
+        return
+    dist = _mass(ts[start:end], ts[i : i + m])
+    for j in range(len(dist)):
+        if dist[j] <= threshold:
+            skipped[start + j] = True
+
+
+@njit(cache=True)
+def _damp(ts, m, split, a_mp, best_so_far):
+    """Single-discord search with MADRID's seeded profile and threshold."""
+    best_so_far, a_mp, _ = _damp_single(
+        ts, m, split, a_mp, best_so_far, 2 ** _next_pow2(m)
+    )
+    return best_so_far, a_mp
+
+
+@njit(cache=True)
+def _damp_single(ts, m, split, a_mp, best_so_far, lookahead):
+    """Search one length, retaining a seeded profile and pruning decisions."""
+    n_sub = len(ts) - m + 1
+    skipped = np.zeros(n_sub, dtype=np.bool_)
+    if best_so_far > 0.0:
+        _forward_prune(ts, m, split, best_so_far, lookahead, skipped)
+
+    for i in range(split, n_sub):
+        if skipped[i]:
+            a_mp[i] = a_mp[i - 1]
+        else:
+            value, is_exact = _backward_search(ts, m, i, best_so_far)
+            a_mp[i] = value
+            if is_exact and value > best_so_far:
+                best_so_far = value
+            _forward_prune(ts, m, i, best_so_far, lookahead, skipped)
+    return best_so_far, a_mp, skipped
 
 
 @njit(cache=True)
@@ -409,6 +522,12 @@ def _damp_top_k(ts, m, split, n_discords, lookahead):
     n_sub = n - m + 1
     radius = m // 2
     left_mp = np.zeros(n_sub)
+    if n_discords == 1:
+        score, left_mp, skipped = _damp_single(ts, m, split, left_mp, 0.0, lookahead)
+        location = split + np.argmax(left_mp[split:])
+        pruning_rate = np.sum(skipped[split:]) / (n_sub - split)
+        return left_mp, np.array([score]), np.array([location]), pruning_rate
+
     skipped = np.zeros(n_sub, dtype=np.bool_)
     exact = np.zeros(n_sub, dtype=np.bool_)
     blocked = np.zeros(n_sub, dtype=np.bool_)
@@ -448,14 +567,8 @@ def _damp_top_k(ts, m, split, n_discords, lookahead):
                             kept += 1
                     buffer_len = kept
 
-        start = i + m
-        if lookahead > 0 and start < n_sub and (threshold > 0.0 or n_discords == 1):
-            end = min(start + lookahead, n)
-            if end - start >= m:
-                dist = _mass(ts[start:end], ts[i : i + m])
-                for j in range(len(dist)):
-                    if dist[j] <= threshold:
-                        skipped[start + j] = True
+        if threshold > 0.0 or n_discords == 1:
+            _forward_prune(ts, m, i, threshold, lookahead, skipped)
 
     pruning_rate = np.sum(skipped[split:]) / (n_sub - split)
 
