@@ -27,6 +27,16 @@ def check_n_jobs(n_jobs: int) -> int:
     -------
     n_jobs : int
         The number of threads to be used.
+
+    Examples
+    --------
+    >>> from aeon.utils.validation import check_n_jobs
+    >>> check_n_jobs(None)
+    1
+    >>> check_n_jobs(0)
+    1
+    >>> check_n_jobs(2)
+    2
     """
     if n_jobs is None or n_jobs == 0:
         return 1

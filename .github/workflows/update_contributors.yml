@@ -14,10 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 18
-
       - name: Setup all-contributors-cli
         run: npm install -g all-contributors-cli
 
