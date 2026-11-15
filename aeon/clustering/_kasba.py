@@ -47,9 +47,8 @@ class KASBA(BaseClusterer):
         Maximum number of iterations of the k-means algorithm before it is forcibly
         stopped.
     tol : float, default=1e-6
-        Relative tolerance in regard to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
-        convergence.
+        Absolute tolerance on the change in cost between iterations of barycenter
+        averaging. The outer clustering loop checks for unchanged cluster labels.
     distance_params : dict, default=None
         Dictionary containing kwargs for the distance being used. For example if you
         wanted to specify a cost for MSM you would pass
