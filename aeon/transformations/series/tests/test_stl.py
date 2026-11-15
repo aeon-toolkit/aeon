@@ -65,3 +65,43 @@ def test_parameter_validation():
         )  # low_pass <= period
     with pytest.raises(ValueError):
         STLSeriesTransformer(period=12, output="foo").fit_transform(y)
+
+
+@pytest.mark.parametrize("n", [10, 23, 24, 25, 50])
+@pytest.mark.parametrize("jump", [2, 3, 5, 7])
+def test_interpolate_knots_sets_every_point(n, jump):
+    """Every point is interpolated, including the gap before the last knot."""
+    from aeon.transformations.series._stl import _interpolate_knots_nb
+
+    line = 2.0 * np.arange(n) + 1.0
+    ys = np.full(n, -999.0)
+    knots = sorted(set(range(0, n, jump)) | {n - 1})
+    ys[knots] = line[knots]
+    _interpolate_knots_nb(ys, n, jump)
+    assert not np.any(ys == -999.0)
+    np.testing.assert_allclose(ys, line)
+
+
+def test_trend_jump_leaves_no_unset_value():
+    """Regression test for #3980: trend_jump=3 left index 22 of 24 unset."""
+    y = np.arange(24.0) + 1
+    trend = STLSeriesTransformer(
+        period=4, seasonal=7, trend=7, trend_jump=3, inner_iter=1, output="trend"
+    ).fit_transform(y)
+    trend = np.asarray(trend).ravel()
+    assert np.all(np.isfinite(trend))
+    assert trend[-3] > 0.0
+    assert min(trend[-4], trend[-2]) <= trend[-3] <= max(trend[-4], trend[-2])
+
+
+@pytest.mark.parametrize("n", [24, 25, 26, 50])
+@pytest.mark.parametrize("kwargs", [{"trend_jump": 3}, {"seasonal_jump": 3}])
+def test_jumps_keep_components_in_range(n, kwargs):
+    """A non-default jump must not leave zeros or garbage in the output."""
+    y = np.arange(n, dtype=float) + 100.0
+    trend = STLSeriesTransformer(
+        period=4, seasonal=7, trend=7, inner_iter=1, output="trend", **kwargs
+    ).fit_transform(y)
+    trend = np.asarray(trend).ravel()
+    assert np.all(np.isfinite(trend))
+    assert np.all(trend > 99.0) and np.all(trend < 100.0 + n)

@@ -4,7 +4,7 @@ import numpy as np
 from numba import njit
 
 from aeon.forecasting.utils._extract_paras import _ets_is_damped, _ets_num_params
-from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
+from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit, _sarima_fit
 
 
 @njit(cache=True)
@@ -13,6 +13,8 @@ def dispatch_loss(fn_id, params, data, model):
         value = _arima_fit(params, data, model)
     elif fn_id == 1:
         value = _ets_fit(params, data, model)[0]
+    elif fn_id == 2:
+        value = _sarima_fit(params, data, model)
     else:
         raise ValueError("Unknown loss function ID")
     if np.isnan(value) or np.isinf(value):
@@ -396,26 +398,68 @@ def _lstsq(X, y):
 def _hannan_rissanen(data, model):
     """Hannan-Rissanen estimates of an ARMA model, as ARIMA starting values.
 
+    Returns ``[c?, phi..., theta...]`` in the layout of ``_extract_arma_params``,
+    or NaNs if the series is too short. See ``_hannan_rissanen_lags``.
+    """
+    ar_lags = np.arange(1, model[1] + 1)
+    ma_lags = np.arange(1, model[2] + 1)
+    return _hannan_rissanen_lags(data, model[0], ar_lags, ma_lags)
+
+
+@njit(cache=True, fastmath={"contract"})
+def _sarima_hannan_rissanen(data, model):
+    """Hannan-Rissanen starting values of a SARIMA model.
+
+    Regresses on the non-seasonal and seasonal lags, leaving out the product
+    terms of the multiplicative model, which have no coefficient of their own.
+    Returns ``[c?, phi..., theta..., Phi..., Theta...]``, or NaNs if the series
+    is too short.
+    """
+    c, p, q, P, Q, m = model[0], model[1], model[2], model[3], model[4], model[5]
+    ar_lags = np.concatenate((np.arange(1, p + 1), m * np.arange(1, P + 1)))
+    ma_lags = np.concatenate((np.arange(1, q + 1), m * np.arange(1, Q + 1)))
+    est = _hannan_rissanen_lags(data, c, ar_lags, ma_lags)
+    # the regression orders the coefficients c, phi, Phi, theta, Theta
+    return np.concatenate(
+        (
+            est[: c + p],
+            est[c + p + P : c + p + P + q],
+            est[c + p : c + p + P],
+            est[c + p + P + q :],
+        )
+    )
+
+
+@njit(cache=True, fastmath={"contract"})
+def _hannan_rissanen_lags(data, c, ar_lags, ma_lags):
+    """Hannan-Rissanen estimates of an ARMA model on the given lags.
+
     Fit a long autoregression by least squares to estimate the innovations,
     then regress the series on its own lags and the lagged innovations [1]_.
     For a pure AR model this is the least squares fit, which is the conditional
-    sum of squares optimum. Returns ``[c?, phi..., theta...]`` in the layout of
-    ``_extract_arma_params``, or NaNs if the series is too short.
+    sum of squares optimum. Returns ``[c?, ar..., ma...]``, or NaNs if the series
+    is too short.
 
     References
     ----------
     .. [1] E. J. Hannan and J. Rissanen, Recursive estimation of mixed
        autoregressive-moving average order. Biometrika, 69(1), 81-94, 1982.
     """
-    c, p, q = model[0], model[1], model[2]
     n = len(data)
-    out = np.full(c + p + q, np.nan)
-    if q == 0:
+    n_ar, n_ma = len(ar_lags), len(ma_lags)
+    k = int(c + n_ar + n_ma)
+    out = np.full(k, np.nan)
+    if k == 0:
+        return out
+    max_ar = int(np.max(ar_lags)) if n_ar > 0 else 0
+    max_ma = int(np.max(ma_lags)) if n_ma > 0 else 0
+    if n_ma == 0:
         resid = np.zeros(0)
-        start = p
+        start = max_ar
     else:
-        # long autoregression, of order 10 log10(n) as in R's ar()
-        m = int(min(max(p + q, np.ceil(10.0 * np.log10(n))), n // 4))
+        # long autoregression, of order 10 log10(n) as in R's ar(), long enough
+        # to reach the MA lags
+        m = int(min(max(n_ar + n_ma, max_ma, np.ceil(10.0 * np.log10(n))), n // 4))
         if m < 1:
             return out
         X = np.ones((n - m, m + 1))
@@ -426,14 +470,16 @@ def _hannan_rissanen(data, model):
             return out
         resid = np.zeros(n)
         resid[m:] = data[m:] - X @ coef
-        start = m + max(p, q)
-    if n - start <= c + p + q:
+        start = m + max(max_ar, max_ma)
+    if n - start <= k:
         return out
-    X = np.ones((n - start, c + p + q))
-    for j in range(p):
-        X[:, c + j] = data[start - j - 1 : n - j - 1]
-    for j in range(q):
-        X[:, c + p + j] = resid[start - j - 1 : n - j - 1]
+    X = np.ones((n - start, k))
+    for j in range(n_ar):
+        lag = ar_lags[j]
+        X[:, c + j] = data[start - lag : n - lag]
+    for j in range(n_ma):
+        lag = ma_lags[j]
+        X[:, c + n_ar + j] = resid[start - lag : n - lag]
     return _lstsq(X, data[start:])
 
 
@@ -485,21 +531,45 @@ def _fit_arima_parameters(data, model, max_iter=200, simplex_init=0.1, tol=1e-6)
     best_value : float
         AIC at ``best_params``.
     """
-    k = model[0] + model[1] + model[2]
+    x0 = _hannan_rissanen(data, model)
+    return _fit_from_start(0, x0, data, model, max_iter, simplex_init, tol)
+
+
+@njit(cache=True, fastmath={"contract"})
+def _fit_sarima_parameters(data, model, max_iter=200, simplex_init=0.1, tol=1e-6):
+    """Fit SARIMA parameters by minimising the AIC with Nelder-Mead.
+
+    The three runs of ``_fit_arima_parameters``, starting from
+    ``_sarima_hannan_rissanen``. ``model`` is as in ``_extract_sarima_params``,
+    which also gives the layout of the parameters.
+    """
+    x0 = _sarima_hannan_rissanen(data, model)
+    return _fit_from_start(2, x0, data, model, max_iter, simplex_init, tol)
+
+
+@njit(cache=True, fastmath={"contract"})
+def _fit_from_start(loss_id, x0, data, model, max_iter, simplex_init, tol):
+    """Run from the default simplex and ``x0``, then restart from the best.
+
+    ``x0`` has one element per parameter and is skipped if it is not finite.
+    Returns the best parameters and loss of the three runs.
+    """
+    k = len(x0)
     points = np.empty((k + 1, k))
     _init_arima_simplex(points, data, model, simplex_init)
-    best_x, best_v = _nelder_mead_from_simplex(0, points, data, model, tol, max_iter)
+    best_x, best_v = _nelder_mead_from_simplex(
+        loss_id, points, data, model, tol, max_iter
+    )
     if k == 0:
         return best_x, best_v
-    x0 = _hannan_rissanen(data, model)
     if np.all(np.isfinite(x0)):
         x, v = _nelder_mead_from_simplex(
-            0, _arima_simplex_around(x0, data, model), data, model, tol, max_iter
+            loss_id, _arima_simplex_around(x0, data, model), data, model, tol, max_iter
         )
         if v < best_v:
             best_x, best_v = x, v
     x, v = _nelder_mead_from_simplex(
-        0, _arima_simplex_around(best_x, data, model), data, model, tol, max_iter
+        loss_id, _arima_simplex_around(best_x, data, model), data, model, tol, max_iter
     )
     if v < best_v:
         best_x, best_v = x, v

@@ -41,6 +41,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
         A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+        Only applies when ``estimator`` is None.
         Note: "balanced_subsample" is not supported as RidgeClassifierCV
         is not an ensemble model.
     n_jobs : int, default=1
@@ -52,17 +53,18 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     estimator : sklearn compatible classifier or None, default=None
-        The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-        is used.
+        Classifier fitted on the transformed and scaled features. If None, uses
+        RidgeClassifierCV with alphas=np.logspace(-3, 3, 10). The supplied
+        estimator is cloned before fitting.
 
     Attributes
     ----------
+    estimator_ : sklearn classifier
+        The fitted classifier.
     n_classes_ : int
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
-    estimator_ : sklearn classifier
-        The fitted estimator.
 
     See Also
     --------
@@ -141,13 +143,11 @@ class MultiRocketHydraClassifier(BaseClassifier):
         _using_default_estimator = self.estimator is None
 
         self.estimator_ = _clone_estimator(
-            (
-                RidgeClassifierCV(
-                    alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
-                )
-                if _using_default_estimator
-                else self.estimator
-            ),
+            RidgeClassifierCV(
+                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            )
+            if _using_default_estimator
+            else self.estimator,
             self.random_state,
         )
 
@@ -155,11 +155,22 @@ class MultiRocketHydraClassifier(BaseClassifier):
             n_samples, n_features = Xt.shape
             check_lapack_svd_safe(n_samples, n_features, "MultiRocketHydraClassifier")
 
-        self.estimator_.fit(Xt, y)
-
+        self.classifier = self.estimator_
+        self.classifier.fit(Xt, y)
+        
         return self
 
     def _predict(self, X) -> np.ndarray:
+        return self.classifier.predict(self._transform_features(X))
+
+    def _predict_proba(self, X) -> np.ndarray:
+        if callable(getattr(self.classifier, "predict_proba", None)):
+            probabilities = self.classifier.predict_proba(self._transform_features(X))
+            class_order = {label: i for i, label in enumerate(self.classifier.classes_)}
+            return probabilities[:, [class_order[label] for label in self.classes_]]
+        return super()._predict_proba(X)
+
+    def _transform_features(self, X):
         Xt_hydra = self._transform_hydra.transform(X)
         Xt_hydra = self._scale_hydra.transform(Xt_hydra)
 
@@ -167,21 +178,5 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Xt_multirocket = self._scale_multirocket.transform(Xt_multirocket)
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
-
-        return self.estimator_.predict(Xt)
-
-    @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> dict:
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests.
-
-        Returns
-        -------
-        params : dict
-            Parameters to create testing instances of the class.
-        """
-        return {"n_kernels": 2, "n_groups": 2}
+        
+        return Xt
