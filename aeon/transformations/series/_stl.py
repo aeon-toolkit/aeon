@@ -240,15 +240,22 @@ def _seasonal_smoothing_nb(
         # build padded of length k+2 via extrapolated LOESS estimates
         padded = np.empty(k + 2, dtype=np.float64)
         nright = min(seasonal_win, k)
-        val = _est_point_nb(
-            sub, k, seasonal_win, seasonal_deg, 0, 1, nright, use_rw, sub_rw
+        padded[0] = _est_point_nb(
+            sub, k, seasonal_win, seasonal_deg, 0, 1, nright, use_rw, sub_rw, sub_sm[0]
         )
-        padded[0] = sub_sm[0] if np.isnan(val) else val
         nleft = max(1, k - seasonal_win + 1)
-        val = _est_point_nb(
-            sub, k, seasonal_win, seasonal_deg, k + 1, nleft, k, use_rw, sub_rw
+        padded[k + 1] = _est_point_nb(
+            sub,
+            k,
+            seasonal_win,
+            seasonal_deg,
+            k + 1,
+            nleft,
+            k,
+            use_rw,
+            sub_rw,
+            sub_sm[k - 1],
         )
-        padded[k + 1] = sub_sm[k - 1] if np.isnan(val) else val
         for t in range(k):
             padded[1 + t] = sub_sm[t]
 
@@ -258,7 +265,6 @@ def _seasonal_smoothing_nb(
 
     # lowpass filter: moving averages (FTS) followed by LOESS smoothing
     lowpass_raw = _fts_nb(season_pad, period)  # length n
-    dummy_rw = np.ones(n, dtype=np.float64)
     lowpass = np.empty(n, dtype=np.float64)
     _ess_nb(
         lowpass_raw,
@@ -266,7 +272,7 @@ def _seasonal_smoothing_nb(
         low_pass_deg,
         low_pass_jump,
         False,
-        dummy_rw,
+        rw,
         lowpass,
     )
 
