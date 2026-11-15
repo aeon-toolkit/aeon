@@ -336,7 +336,8 @@ class EncoderRegressor(BaseDeepRegressor):
             "batch_size": 4,
             "use_bias": False,
             "fc_units": 8,
-            "strides": 2,
+            "kernel_size": [3, 5, 7],
+            "n_filters": [8, 16, 32],
             "dropout_proba": 0,
         }
 
