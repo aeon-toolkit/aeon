@@ -157,7 +157,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         self.classifier = self.estimator_
         self.classifier.fit(Xt, y)
-        
+
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -178,5 +178,5 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Xt_multirocket = self._scale_multirocket.transform(Xt_multirocket)
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
-        
+
         return Xt
