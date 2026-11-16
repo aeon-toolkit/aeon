@@ -1,7 +1,23 @@
 """
 Abstract base class for the Keras neural network regressors.
 
-The reason for this class between BaseClassifier and deep_learning classifiers is
+    class name: BaseDeepRegressor
+
+Defining methods:
+    fitting         - fit(self, X, y)
+    predicting      - predict(self, X)
+    model building  - build_model(self, input_shape) (abstract method)
+
+Inherited inspection methods:
+    hyper-parameter inspection  - get_params()
+    fitted parameter inspection - get_fitted_params()
+
+State:
+    fitted model/strategy   - by convention, any attributes ending in "_"
+    fitted state flag       - is_fitted (property)
+    fitted state inspection - check_is_fitted()
+
+The reason for this class between BaseRegressor and deep_learning regressors is
 because we can generalise tags and _predict
 """
 
@@ -25,17 +41,24 @@ if TYPE_CHECKING:
 class BaseDeepRegressor(BaseRegressor):
     """Abstract base class for deep learning time series regression.
 
-    The base classifier provides a deep learning default method for
+    The base regressor provides a deep learning default method for
     _predict, and provides a new abstract method for building a
     model.
 
     Parameters
     ----------
-    batch_size : int, default = 40
-        training batch size for the model
-    last_file_name      : str, default = "last_model"
+    batch_size : int, default=40
+        Training batch size for the model.
+    last_file_name : str, default="last_model"
         The name of the file of the last model, used
-        only if save_last_model_to_file is used
+        only if save_last_model_to_file is used.
+
+    Attributes
+    ----------
+    model_ : tensorflow.keras.models.Model or None
+        The compiled and fitted Keras model.
+    history : tensorflow.keras.callbacks.History or None
+        The training history object returned by ``fit``.
     """
 
     _tags = {

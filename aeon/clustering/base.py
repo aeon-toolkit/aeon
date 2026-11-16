@@ -1,4 +1,22 @@
-"""Base class for clustering."""
+"""
+Abstract base class for time series clusterers.
+
+    class name: BaseClusterer
+
+Defining methods:
+    fitting         - fit(self, X, y=None)
+    predicting      - predict(self, X)
+                    - predict_proba(self, X)
+
+Inherited inspection methods:
+    hyper-parameter inspection  - get_params()
+    fitted parameter inspection - get_fitted_params()
+
+State:
+    fitted model/strategy   - by convention, any attributes ending in "_"
+    fitted state flag       - is_fitted (property)
+    fitted state inspection - check_is_fitted()
+"""
 
 __maintainer__ = []
 __all__ = ["BaseClusterer"]
@@ -20,6 +38,11 @@ class BaseClusterer(ClusterMixin, BaseCollectionEstimator):
     ----------
     n_clusters : int, default=None
         Number of clusters for model.
+
+    Attributes
+    ----------
+    labels_ : np.ndarray
+        Cluster labels for each point in the dataset seen in ``fit``.
     """
 
     _tags = {
