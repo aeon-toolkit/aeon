@@ -123,7 +123,7 @@ class Catch22Classifier(BaseClassifier):
     >>> clf.fit(X, y)
     Catch22Classifier(...)
     >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    array([0, 0, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {

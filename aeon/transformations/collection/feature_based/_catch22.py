@@ -7,17 +7,71 @@ __maintainer__ = []
 __all__ = ["Catch22"]
 
 import math
+import warnings
+from weakref import WeakSet
 
 import numpy as np
 from joblib import Parallel, delayed
 from numba import njit
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils.numba.general import z_normalise_series_with_mean
 from aeon.utils.numba.stats import mean, numba_max, numba_min
 from aeon.utils.validation import check_n_jobs
 
+# Feature names as in catch22 v1.0. The order is aeon's, not catch22's, so that
+# selecting features by index is unchanged.
 feature_names = [
+    "DN_HistogramMode_5",
+    "DN_HistogramMode_10",
+    "CO_FirstCrossing_acf_1e_pointOfCrossing",
+    "CO_FirstMin_ac",
+    "CO_HistogramAMI_even_5bin_ami2",
+    "CO_trev_1_num",
+    "MD_pNN_pnn40",
+    "SB_BinaryStats_mean_longstretch1",
+    "SB_TransitionMatrix_quantile_3_ac_sumdiagcov",
+    "PD_PeriodicityWang_th0_01",
+    "CO_Embed2_Dist_tau_d_expfit_meandiff",
+    "IN_AutoMutualInfoStats_40_gaussian_fmmi",
+    "FC_LocalSimple_mean1_taurat",
+    "DN_OutlierInclude_p_001_mdrmd",
+    "DN_OutlierInclude_n_001_mdrmd",
+    "SP_Summaries_fft_area_5_1",
+    "SB_BinaryStats_diff_longstretch0",
+    "SB_MotifThree_quantile_hh",
+    "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
+    "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
+    "SP_Summaries_fft_wq_50",
+    "FC_LocalSimple_mean3_stde",
+]
+
+feature_names_short = [
+    "mode_5",
+    "mode_10",
+    "acf_timescale",
+    "acf_first_min",
+    "ami2",
+    "trev",
+    "high_fluctuation",
+    "stretch_high",
+    "transition_variance",
+    "periodicity",
+    "embedding_dist",
+    "ami_timescale",
+    "whiten_timescale",
+    "outlier_timing_pos",
+    "outlier_timing_neg",
+    "low_freq_power",
+    "stretch_decreasing",
+    "entropy_pairs",
+    "rs_range",
+    "dfa",
+    "median_freq",
+    "forecast_error",
+]
+
+# TODO remove the catch22 v0.x names in v1.8.0
+legacy_feature_names = [
     "DN_HistogramMode_5",
     "DN_HistogramMode_10",
     "CO_f1ecac",
@@ -41,31 +95,49 @@ feature_names = [
     "SP_Summaries_welch_rect_centroid",
     "FC_LocalSimple_mean3_stderr",
 ]
+_legacy_short_names = {"transition_matrix": 8, "centroid_freq": 20}
+_WARNED_LEGACY_NAMES = WeakSet()
 
-feature_names_short = [
-    "mode_5",
-    "mode_10",
-    "acf_timescale",
-    "acf_first_min",
-    "ami2",
-    "trev",
-    "high_fluctuation",
-    "stretch_high",
-    "transition_matrix",
-    "periodicity",
-    "embedding_dist",
-    "ami_timescale",
-    "whiten_timescale",
-    "outlier_timing_pos",
-    "outlier_timing_neg",
-    "low_freq_power",
-    "stretch_decreasing",
-    "entropy_pairs",
-    "rs_range",
-    "dfa",
-    "centroid_freq",
-    "forecast_error",
-]
+# catch24's two extra features, by aeon's and catch22's names
+_catch24_names = {
+    "Mean": 22,
+    "StandardDeviation": 23,
+    "DN_mean": 22,
+    "DN_Spread_std": 23,
+    "mean": 22,
+    "std": 23,
+}
+
+
+def _mask_value(feature, n):
+    """Return catch22's value for a feature that cannot be estimated.
+
+    A constant series is treated as the limit of an infinitely slow, perfectly
+    predictable series, and a failure as the absence of the structure the feature
+    looks for, which places it at one end of the feature's range.
+    """
+    if feature == 2:
+        # the autocorrelation never decays
+        return n - 1.0
+    if feature == 3:
+        # no minimum of the autocorrelation
+        return float(n)
+    if feature == 8:
+        # perfectly predictable transitions between three equiprobable symbols
+        return 1.0 / 9.0
+    if feature == 10:
+        # distances maximally far from exponential (all distances equal)
+        range_term = 1.0 / (math.sqrt(2.0) * 0.001)
+        mean_term = (
+            (n - 2) / (math.sqrt(2.0) * math.sqrt((n - 1.0) / n)) if n > 2 else 0.0
+        )
+        return range_term + mean_term
+    if feature == 11:
+        # no minimum of the automutual information within the lags analysed
+        return float(min(40, (n + 1) // 2))
+    if feature in (15, 18, 19):
+        return 1.0
+    return 0.0
 
 
 class Catch22(BaseCollectionTransformer):
@@ -82,38 +154,49 @@ class Catch22(BaseCollectionTransformer):
         list of names or indices for multiple features. If "all", all features are
         extracted.
         Valid features are as follows:
-            ["DN_HistogramMode_5", "DN_HistogramMode_10", "CO_f1ecac","CO_FirstMin_ac",
-            "CO_HistogramAMI_even_2_5", "CO_trev_1_num", "MD_hrv_classic_pnn40",
-            "SB_BinaryStats_mean_longstretch1", "SB_TransitionMatrix_3ac_sumdiagcov",
+            ["DN_HistogramMode_5", "DN_HistogramMode_10",
+            "CO_FirstCrossing_acf_1e_pointOfCrossing", "CO_FirstMin_ac",
+            "CO_HistogramAMI_even_5bin_ami2", "CO_trev_1_num", "MD_pNN_pnn40",
+            "SB_BinaryStats_mean_longstretch1",
+            "SB_TransitionMatrix_quantile_3_ac_sumdiagcov",
             "PD_PeriodicityWang_th0_01", "CO_Embed2_Dist_tau_d_expfit_meandiff",
-            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "FC_LocalSimple_mean1_tauresrat",
+            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "FC_LocalSimple_mean1_taurat",
             "DN_OutlierInclude_p_001_mdrmd", "DN_OutlierInclude_n_001_mdrmd",
-            "SP_Summaries_welch_rect_area_5_1", "SB_BinaryStats_diff_longstretch0",
+            "SP_Summaries_fft_area_5_1", "SB_BinaryStats_diff_longstretch0",
             "SB_MotifThree_quantile_hh", "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
-            "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
-            "SP_Summaries_welch_rect_centroid", "FC_LocalSimple_mean3_stderr"]
+            "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1", "SP_Summaries_fft_wq_50",
+            "FC_LocalSimple_mean3_stde"]
         Shortened:
             ["mode_5", "mode_10", "acf_timescale", "acf_first_min",
             "ami2", "trev", "high_fluctuation",
-            "stretch_high", "transition_matrix",
+            "stretch_high", "transition_variance",
             "periodicity", "embedding_dist",
             "ami_timescale", "whiten_timescale",
             "outlier_timing_pos", "outlier_timing_neg",
             "low_freq_power", "stretch_decreasing",
             "entropy_pairs", "rs_range",
             "dfa",
-            "centroid_freq", "forecast_error"]
+            "median_freq", "forecast_error"]
 
+        The feature names from catch22 v0.x (e.g. "CO_f1ecac" or "centroid_freq")
+        are deprecated and will be removed in v1.8.0. They select the same position,
+        which now holds the catch22 v1.0 feature.
     catch24 : bool, default=False
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
-        "StandardDeviation" must be added to the List to extract these features.
-    outlier_norm : bool, optional, default=False
-        If True, each time series is normalized during the computation of the two
-        outlier Catch22 features, which can take a while to process for large values
-        as it depends on the max value in the timseries. Note that this parameter
-        did not exist in the original publication/implementation as they used time
-        series that were already normalized.
+        "StandardDeviation" (or catch22's "mean" and "std") must be added to the List
+        to extract these features.
+    outlier_norm : bool, default=True
+        If True, each time series is z-normalised during the computation of the two
+        outlier Catch22 features, as catch22 does for all features. Without it, the
+        outlier features of a series with values far from zero are NaN (masked if
+        ``mask_nans`` is True). Other features are computed on the series as given:
+        catch22 defines them on z-normalised series.
+    mask_nans : bool, default=True
+        Replace a feature that cannot be estimated (e.g. for a constant series, or
+        "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1" on a series shorter than 79
+        values) with a fixed value at the appropriate end of its range, as catch22
+        does. If False, such features are NaN.
     replace_nans : bool, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
     n_jobs : int, default=1
@@ -138,13 +221,12 @@ class Catch22(BaseCollectionTransformer):
     https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
     /tsml/transformers/Catch22.java
 
-    From aeon v1.7.0, four features follow catch22 v0.6.0, which corrected them to
-    match hctsa. "PD_PeriodicityWang_th0_01" and
-    "IN_AutoMutualInfoStats_40_gaussian_fmmi" return the lag rather than the lag
-    minus one. "SB_BinaryStats_mean_longstretch1" and
-    "SB_BinaryStats_diff_longstretch0" return exact run lengths, with zero
-    differences counted as non-increasing for the latter. Values of these features
-    differ from earlier versions.
+    From aeon v1.7.0, the features follow catch22 v1.0, in which each feature
+    reproduces its hctsa v3.0.0 definition. Values differ from earlier versions for
+    most features, several features are renamed, and "SP_Summaries_fft_wq_50"
+    (the median frequency) replaces "SP_Summaries_welch_rect_centroid". On
+    z-normalised series, the features match catch22 v1.0 up to floating-point
+    rounding.
 
     References
     ----------
@@ -165,12 +247,10 @@ class Catch22(BaseCollectionTransformer):
     >>> tnf.fit(X)
     Catch22(...)
     >>> print(tnf.transform(X)[0])
-    [1.15639531e+00 1.31700577e+00 5.66227710e-01 2.00000000e+00
-     3.89048349e-01 2.33853577e-01 1.00000000e+00 2.00000000e+00
-     8.23045267e-03 0.00000000e+00 1.70859420e-01 3.00000000e+00
-     1.00000000e+00 7.00000000e-01 2.00000000e-01 1.10933565e-32
-     3.00000000e+00 2.04319187e+00 0.00000000e+00 0.00000000e+00
-     1.96349541e+00 5.51667002e-01]
+    [1.15639493 1.31700564 0.56622771 2.         0.67021592 0.23385358
+     1.         2.         0.00823045 0.         0.41695174 3.
+     0.91537551 0.7        0.2        0.03988775 3.         2.20985854
+     1.         1.         1.96349541 0.551667  ]
     """
 
     _tags = {
@@ -187,6 +267,7 @@ class Catch22(BaseCollectionTransformer):
         features="all",
         catch24=False,
         outlier_norm=True,
+        mask_nans=True,
         replace_nans=False,
         n_jobs=1,
         parallel_backend=None,
@@ -194,11 +275,26 @@ class Catch22(BaseCollectionTransformer):
         self.features = features
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
+        self.mask_nans = mask_nans
         self.replace_nans = replace_nans
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
         super().__init__()
+
+        # TODO remove with the catch22 v0.x names in v1.8.0
+        # warn once per instance: reset() calls __init__ again on every fit
+        legacy = _legacy_names_in(features)
+        if legacy and self not in _WARNED_LEGACY_NAMES:
+            _WARNED_LEGACY_NAMES.add(self)
+            renamed = [feature_names[_feature_index(f, True)] for f in legacy]
+            warnings.warn(
+                f"The catch22 v0.x feature names {legacy} are deprecated and will be "
+                f"removed in v1.8.0. They now select the catch22 v1.0 features "
+                f"{renamed}; use those names instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.
@@ -224,29 +320,29 @@ class Catch22(BaseCollectionTransformer):
         features = [
             Catch22._DN_HistogramMode_5,
             Catch22._DN_HistogramMode_10,
-            Catch22._CO_f1ecac,
+            Catch22._CO_FirstCrossing_acf_1e_pointOfCrossing,
             Catch22._CO_FirstMin_ac,
-            Catch22._CO_HistogramAMI_even_2_5,
+            Catch22._CO_HistogramAMI_even_5bin_ami2,
             Catch22._CO_trev_1_num,
-            Catch22._MD_hrv_classic_pnn40,
+            Catch22._MD_pNN_pnn40,
             Catch22._SB_BinaryStats_mean_longstretch1,
-            Catch22._SB_TransitionMatrix_3ac_sumdiagcov,
+            Catch22._SB_TransitionMatrix_quantile_3_ac_sumdiagcov,
             Catch22._PD_PeriodicityWang_th0_01,
             Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff,
             Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi,
-            Catch22._FC_LocalSimple_mean1_tauresrat,
+            Catch22._FC_LocalSimple_mean1_taurat,
             Catch22._DN_OutlierInclude_p_001_mdrmd,
             Catch22._DN_OutlierInclude_n_001_mdrmd,
-            Catch22._SP_Summaries_welch_rect_area_5_1,
+            Catch22._SP_Summaries_fft_area_5_1,
             Catch22._SB_BinaryStats_diff_longstretch0,
             Catch22._SB_MotifThree_quantile_hh,
             Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
             Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-            Catch22._SP_Summaries_welch_rect_centroid,
-            Catch22._FC_LocalSimple_mean3_stderr,
+            Catch22._SP_Summaries_fft_wq_50,
+            Catch22._FC_LocalSimple_mean3_stde,
         ]
 
-        # The two welch power-spectrum features (indices 15 and 20) each need
+        # The two power-spectrum features (indices 15 and 20) each need
         # np.fft.fft of the mean-centred series. np.fft.fft has a high fixed
         # per-call cost on short interval series, so compute it once for the
         # whole batch (all cases share a length) instead of once per case. The
@@ -284,14 +380,15 @@ class Catch22(BaseCollectionTransformer):
             else:
                 keep = np.ones(len(f_idx) * n_channels, dtype=np.bool_)
             f_arr = np.asarray(f_idx, dtype=np.int64)
-            # catch24's standard deviation stays a numpy call for exact
-            # reproducibility (numba's np.std can round differently). The
-            # ascontiguousarray is load-bearing: np.std along axis 2 only
-            # matches the per-series np.std bit-for-bit when the last axis is
-            # contiguous, so do not simplify it to np.std(X, axis=2).
+            # catch24's standard deviation (the sample standard deviation, as
+            # catch22) stays a numpy call for exact reproducibility (numba's
+            # np.std can round differently). The ascontiguousarray is
+            # load-bearing: np.std along axis 2 only matches the per-series
+            # np.std bit-for-bit when the last axis is contiguous, so do not
+            # simplify it to np.std(X, axis=2, ddof=1).
             stds = None
             if 23 in f_idx:
-                stds = np.std(np.ascontiguousarray(X), axis=2)
+                stds = np.std(np.ascontiguousarray(X), axis=2, ddof=1)
             # typed empty placeholders for absent caches; the matching
             # kernel branches are unreachable when a cache was not built
             no_fft = np.empty((0, 0), dtype=np.complex128)
@@ -340,6 +437,8 @@ class Catch22(BaseCollectionTransformer):
             )(delayed(func)(*args) for args in case_args)
 
         c22_array = np.array(c22_list)
+        if self.mask_nans:
+            _mask_unestimable(c22_array, X, f_idx)
         if self.replace_nans:
             c22_array = np.nan_to_num(c22_array, False, 0, 0, 0)
 
@@ -437,25 +536,25 @@ class Catch22(BaseCollectionTransformer):
         for i, series in enumerate(X):
             dim = i * len(f_idx)
             outlier_series = None
-            smin = None
-            smax = None
+            smin = numba_min(series)
+            smax = numba_max(series)
+            # the catch22 features cannot be computed on a constant series
+            is_constant = smin == smax
             smean = None
             fft = None
             ac = None
-            acfz = None
 
             for n, feature in enumerate(f_idx):
                 f_count += 1
                 if not transform_feature[f_count]:
                     continue
+                if is_constant and feature < 22:
+                    c22[dim + n] = np.nan
+                    continue
 
                 args = [series]
 
                 if feature == 0 or feature == 1 or feature == 4:
-                    if smin is None:
-                        smin = numba_min(series)
-                    if smax is None:
-                        smax = numba_max(series)
                     args = [series, smin, smax]
                 elif feature == 7 or feature == 22:
                     if smean is None:
@@ -463,26 +562,21 @@ class Catch22(BaseCollectionTransformer):
                     args = [series, smean]
                 elif feature == 13 or feature == 14:
                     if self.outlier_norm:
-                        if smean is None:
-                            smean = mean(series)
                         if outlier_series is None:
-                            outlier_series = z_normalise_series_with_mean(series, smean)
+                            outlier_series = _zscore(series)
                         args = [outlier_series]
                     else:
                         args = [series]
                 elif feature == 15 or feature == 20:
-                    if smean is None:
-                        smean = mean(series)
                     if fft is None:
                         if fft_cache is not None:
                             fft = fft_cache[i]
                         else:
-                            nfft = int(
-                                np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
+                            fft = np.fft.fft(
+                                series - mean(series), n=_nextpow2(len(series))
                             )
-                            fft = np.fft.fft(series - smean, n=nfft)
                     args = [series, fft]
-                elif feature == 2 or feature == 3:
+                elif feature in (2, 3, 8, 10, 12):
                     if ac is None:
                         if ac_cache is not None:
                             ac = ac_cache[i]
@@ -490,25 +584,17 @@ class Catch22(BaseCollectionTransformer):
                             ac = _autocorrelations_with_tw(series, ac_tw, ac_nfft)
                         else:
                             ac = _compute_autocorrelations(series)
-                    args = [ac, len(series)]
-                elif feature == 12 or feature == 10 or feature == 8:
-                    if ac is None:
-                        if ac_cache is not None:
-                            ac = ac_cache[i]
-                        elif ac_tw is not None:
-                            ac = _autocorrelations_with_tw(series, ac_tw, ac_nfft)
-                        else:
-                            ac = _compute_autocorrelations(series)
-                    if acfz is None:
-                        acfz = _ac_first_zero(ac)
-                    if feature == 12:
-                        args = [series, acfz, ac_tw, ac_nfft]
+                    if feature == 2 or feature == 3:
+                        args = [ac, len(series)]
+                    elif feature == 12:
+                        tw = ac_tw if ac_tw is not None else np.empty(0, np.complex128)
+                        args = [series, ac, tw, ac_nfft]
                     else:
-                        args = [series, acfz]
+                        args = [series, ac]
                 if feature == 22:
                     c22[dim + n] = smean
                 elif feature == 23:
-                    c22[dim + n] = np.std(series)
+                    c22[dim + n] = np.std(series, ddof=1)
                 else:
                     c22[dim + n] = features[feature](*args)
 
@@ -546,7 +632,7 @@ class Catch22(BaseCollectionTransformer):
                 return None
 
         m = X.shape[2]
-        nfft = int(np.power(2, np.ceil(np.log(m) / np.log(2))))
+        nfft = _nextpow2(m)
         flat = X.reshape(n_cases * n_channels, m)
         # Use the same numba mean() as _transform_case so the centred series, and
         # therefore the FFT, are identical to the per-case path.
@@ -569,20 +655,28 @@ class Catch22(BaseCollectionTransformer):
             )
         )
 
+    # The feature kernels below follow catch22 v1.0's C code. Kernels that can
+    # return NaN (a feature that cannot be estimated) are compiled without
+    # fastmath, whose no-NaN assumption would let the compiler drop those paths;
+    # without it they also round as the C does, which keeps index-valued and
+    # tie-breaking decisions the same.
+
     @staticmethod
     def _DN_HistogramMode_5(X, smin, smax):
-        # Mode of z-scored distribution (5-bin histogram).
+        # Mean centre of the most populated of 5 equal-width bins.
         return _histogram_mode(X, 5, smin, smax)
 
     @staticmethod
     def _DN_HistogramMode_10(X, smin, smax):
-        # Mode of z-scored distribution (10-bin histogram).
+        # Mean centre of the most populated of 10 equal-width bins.
         return _histogram_mode(X, 10, smin, smax)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _SB_BinaryStats_diff_longstretch0(X):
-        # Longest period of successive non-increasing steps.
+        # Longest run of successive non-increasing steps.
+        if len(X) < 2:
+            return np.nan
         diff_binary = np.zeros(len(X) - 1)
         for i in range(len(X) - 1):
             if X[i + 1] - X[i] > 0:
@@ -596,144 +690,142 @@ class Catch22(BaseCollectionTransformer):
         return _outlier_include(X)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _DN_OutlierInclude_n_001_mdrmd(X):
         # Time intervals between successive extreme events below the mean.
         return _outlier_include(-X)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _CO_f1ecac(X_ac, size):
-        # Parameter has already been transformed using _autocorr
-        # First 1/e crossing of autocorrelation function.
-        threshold = 0.36787944117144233  # 1 / np.exp(1)
-        for i in range(len(X_ac) - 2):
-            if X_ac[i + 1] < threshold:
-                m = X_ac[i + 1] - X_ac[i]
-                if m == 0:
-                    return size
-                dy = threshold - X_ac[i]
-                dx = dy / m
-                out = np.float64(i) + dx
-                return out
-
-        return len(X_ac)
+    @njit(cache=True)
+    def _CO_FirstCrossing_acf_1e_pointOfCrossing(X_ac, size):
+        # First 1/e crossing of the autocorrelation function, interpolated.
+        return _first_crossing(X_ac, size, 0.36787944117144233)  # 1 / e
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _CO_FirstMin_ac(X_ac, size):
-        # First minimum of autocorrelation function.
-        for i in range(1, len(X_ac) - 1):
+        # First minimum of the autocorrelation function.
+        if size < 3:
+            return np.nan
+        for i in range(1, size - 1):
             if X_ac[i] < X_ac[i - 1] and X_ac[i] < X_ac[i + 1]:
                 return i
         return size
 
     @staticmethod
-    def _SP_Summaries_welch_rect_area_5_1(X, X_fft):
-        # Total power in lowest fifth of frequencies in the Fourier power spectrum.
-        return _summaries_welch_rect(X, False, X_fft)
+    def _SP_Summaries_fft_area_5_1(X, X_fft):
+        # Power in the lowest fifth of the frequencies of the power spectrum.
+        return _summaries_fft(X, False, X_fft)
 
     @staticmethod
-    def _SP_Summaries_welch_rect_centroid(X, X_fft):
-        # Centroid of the Fourier power spectrum.
-        return _summaries_welch_rect(X, True, X_fft)
+    def _SP_Summaries_fft_wq_50(X, X_fft):
+        # Median frequency of the power spectrum.
+        return _summaries_fft(X, True, X_fft)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _FC_LocalSimple_mean3_stderr(X):
-        # Mean error from a rolling 3-sample mean forecasting.
-        if len(X) - 3 < 3:
-            return 0
+    @njit(cache=True)
+    def _FC_LocalSimple_mean3_stde(X):
+        # Standard deviation of the errors of a rolling 3-sample mean forecast.
+        if len(X) <= 4:
+            return np.nan
         res = _local_simple_mean(X, 3)
-        return _stddev(res, len(X) - 3)
+        return _stddev(res, len(res))
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _CO_trev_1_num(X):
         # Time-reversibility statistic, ((x_{t+1} - x_t)^3)_t.
-        y = np.zeros(len(X) - 1)
-        for i in range(len(y)):
-            y[i] = np.power(X[i + 1] - X[i], 3)
-        return np.mean(y)
+        if len(X) < 2:
+            return np.nan
+        total = 0.0
+        for i in range(len(X) - 1):
+            total += (X[i + 1] - X[i]) ** 3
+        return total / (len(X) - 1)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _CO_HistogramAMI_even_2_5(X, smin, smax):
-        # Automutual information, m = 2, tau = 5.
-        new_min = smin - 0.1
-        new_max = smax + 0.1
-        bin_width = (new_max - new_min) / 5
+    @njit(cache=True)
+    def _CO_HistogramAMI_even_5bin_ami2(X, smin, smax):
+        # Automutual information at lag 2 from 5 equal-width bins, with the
+        # Panzeri-Treves bias correction.
+        if len(X) <= 2:
+            return np.nan
+        edges = np.zeros(6)
+        nb = _hist_edges(smin, smax, 5, edges)
+        n_samples = len(X) - 2
 
-        histogram = np.zeros((5, 5))
-        sumx = np.zeros(5)
-        sumy = np.zeros(5)
-        v = 1.0 / (len(X) - 2)
-        for i in range(len(X) - 2):
-            idx1 = int((X[i] - new_min) / bin_width)
-            idx2 = int((X[i + 2] - new_min) / bin_width)
-
-            histogram[idx1][idx2] += v
-            sumx[idx1] += v
-            sumy[idx2] += v
-
-        nsum = 0
-        for i in range(5):
-            for n in range(5):
-                if histogram[i][n] > 0:
-                    nsum += histogram[i][n] * np.log(
-                        histogram[i][n] / sumx[i] / sumy[n]
-                    )
-
-        return nsum
-
-    @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _IN_AutoMutualInfoStats_40_gaussian_fmmi(X_ac):
-        # First minimum of the automutual information function.
-        tau = int(min(40, np.ceil(len(X_ac) / 2)))
-
-        ami = np.zeros(len(X_ac), dtype=np.float64)
-        for i in range(tau):
-            lag_size = len(X_ac) - (i + 1)
-            y = X_ac[i + 1 :]
-            nom = 0.0
-            denomX = 0.0
-            denomY = 0.0
-            meanX = 0.0
-            for j in range(lag_size):
-                meanX += X_ac[j]
-            meanX = meanX / lag_size
-            meanY = np.mean(y)
-            for j in range(lag_size):
-                nom += (X_ac[j] - meanX) * (y[j] - meanY)
-                denomX += (X_ac[j] - meanX) * (X_ac[j] - meanX)
-                denomY += (y[j] - meanY) * (y[j] - meanY)
-            divisor = np.sqrt(denomX * denomY)
-            if divisor == 0:
+        pij = np.zeros((5, 5))
+        for t in range(n_samples):
+            b1 = _hist_bin_index(X[t], edges, nb)
+            b2 = _hist_bin_index(X[t + 2], edges, nb)
+            if b1 < 0 or b2 < 0:
                 return np.nan
-            ac = nom / np.sqrt(denomX * denomY)
-            ami[i] = -0.5 * np.log(1 - np.power(ac, 2))
+            pij[b1, b2] += 1
 
-        # ami[i] holds lag i + 1
-        for i in range(1, tau - 1):
-            if ami[i] < ami[i - 1] and ami[i] < ami[i + 1]:
-                return i + 1
-        return tau
+        # column-major sums, as MATLAB
+        total = 0.0
+        for j in range(nb):
+            for i in range(nb):
+                total += pij[i, j]
+        for i in range(nb):
+            for j in range(nb):
+                pij[i, j] /= total
+        pi = np.zeros(5)
+        pj = np.zeros(5)
+        for i in range(nb):
+            for j in range(nb):
+                pi[i] += pij[i, j]
+        for j in range(nb):
+            for i in range(nb):
+                pj[j] += pij[i, j]
+
+        ami = 0.0
+        m_xy = 0
+        for j in range(nb):
+            for i in range(nb):
+                if pij[i, j] > 0:
+                    ami += pij[i, j] * np.log(pij[i, j] / pi[i] / pj[j])
+                    m_xy += 1
+        m_x = 0
+        m_y = 0
+        for i in range(nb):
+            if pi[i] > 0:
+                m_x += 1
+            if pj[i] > 0:
+                m_y += 1
+        return ami - (m_xy - m_x - m_y + 1) / (2.0 * n_samples)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _MD_hrv_classic_pnn40(X):
-        # Proportion of successive differences exceeding 0.04 σ (Mietus 2002).
-        diffs = np.zeros(len(X) - 1)
-        for i in range(len(diffs)):
-            diffs[i] = np.abs(X[i + 1] - X[i]) * 1000
+    @njit(cache=True)
+    def _IN_AutoMutualInfoStats_40_gaussian_fmmi(X):
+        # First minimum of the automutual information function.
+        tau = min(40, (len(X) + 1) // 2)
+        # fewer than 3 lags have no local minimum
+        if tau < 3:
+            return float(tau)
 
+        ami_prev = _gaussian_ami(X, 1)
+        ami_curr = _gaussian_ami(X, 2)
+        for i in range(1, tau - 1):
+            ami_next = _gaussian_ami(X, i + 2)
+            # ami_curr holds lag i + 1
+            if ami_curr < ami_prev and ami_curr < ami_next:
+                return float(i + 1)
+            ami_prev = ami_curr
+            ami_curr = ami_next
+        return float(tau)
+
+    @staticmethod
+    @njit(cache=True)
+    def _MD_pNN_pnn40(X):
+        # Proportion of successive differences exceeding 0.04 sigma (Mietus 2002).
+        if len(X) < 2:
+            return np.nan
         nsum = 0
-        for diff in diffs:
-            if diff > 40:
+        for i in range(len(X) - 1):
+            if np.abs(X[i + 1] - X[i]) * 1000 > 40:
                 nsum += 1
 
-        return nsum / len(diffs)
+        return nsum / (len(X) - 1)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -747,201 +839,170 @@ class Catch22(BaseCollectionTransformer):
         return _long_stretch(mean_binary, 1)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _SB_MotifThree_quantile_hh(X):
-        # Entropy of adjacent-symbol transitions after 3-symbol coarse-graining.
-        # The original built per-symbol position lists (r1) and per-transition
-        # lists (r2) and trimmed the final position; that is exactly a 3x3 count
-        # of adjacent pairs (yt[p], yt[p+1]) for p in 0..len-2 (the last position
-        # has no successor, which the range already excludes).
+        # Entropy of successive pairs of letters of a 3-letter equiprobable
+        # alphabet, with the Miller-Madow bias correction.
         alphabet_size = 3
         n = len(X)
+        if n < 2:
+            return 0.0
         yt = np.zeros(n, dtype=np.int32)
         _sb_coarsegrain(X, 3, yt)
 
         counts = np.zeros((alphabet_size, alphabet_size), dtype=np.float64)
         for p in range(n - 1):
-            counts[yt[p] - 1][yt[p + 1] - 1] += 1.0
-
-        out2 = np.zeros((alphabet_size, alphabet_size), dtype=np.float64)
-        for i in range(alphabet_size):
-            for j in range(alphabet_size):
-                out2[i][j] = counts[i][j] / (np.float64(n) - 1.0)
+            if yt[p] > 0 and yt[p + 1] > 0:
+                counts[yt[p] - 1][yt[p + 1] - 1] += 1.0
 
         hh = 0.0
+        non_empty = 0
         for i in range(alphabet_size):
             f = 0.0
             for j in range(alphabet_size):
-                if out2[i][j] > 0:
-                    f += out2[i][j] * np.log(out2[i][j])
+                p = counts[i][j] / (np.float64(n) - 1.0)
+                if p > 0:
+                    non_empty += 1
+                    f += p * np.log(p)
             hh += -1 * f
+        # degrees of freedom constrained by the (fixed, equiprobable) marginals
+        df = non_empty - 1 - 2 * (alphabet_size - 1)
+        if df > 0:
+            hh += df / (2.0 * (n - 1))
         return hh
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _FC_LocalSimple_mean1_tauresrat(X, acfz, ac_tw, ac_nfft):
-        # Change in correlation length after iterative differencing.
-        if len(X) < 2:
-            return 0
-        res = _local_simple_mean(X, 1)
-        m = len(res)
-
-        # The result is the first lag where the differenced-series autocorrelation
-        # is <= 0, which is almost always lag 1 (differencing induces a strong
-        # negative lag-1 autocorrelation). Scan the centred autocovariance directly
-        # and stop at the first crossing - sign(autocov[k]) == sign(acf[k]) since
-        # autocov[0] > 0 - avoiding the full FFT autocorrelation. This matches the
-        # FFT result except at a near-zero tie (none seen over ~67k series).
-        res_mean = np.mean(res)
-        for k in range(1, m):
-            cov = 0.0
-            for i in range(m - k):
-                cov += (res[i] - res_mean) * (res[i + k] - res_mean)
-            if cov <= 0:
-                return k / acfz
-
-        # No crossing among the real lags: fall back to the padded FFT
-        # autocorrelation, reusing the precomputed twiddles when the differenced
-        # series lands on the same FFT size (all lengths except 2**k + 1).
-        if ac_tw is not None and _ac_nfft(m) == ac_nfft:
-            ac = _autocorrelations_with_tw(res, ac_tw, ac_nfft)
-        else:
-            ac = _compute_autocorrelations(res)
-        return _ac_first_zero(ac) / acfz
+    @njit(cache=True)
+    def _FC_LocalSimple_mean1_taurat(X, X_ac, ac_tw, ac_nfft):
+        # Ratio of the (interpolated) first zero crossings of the autocorrelation
+        # of the residuals of a 1-sample mean forecast and of the series.
+        if len(X) <= 1:
+            return np.nan
+        y_cross = _first_crossing(X_ac, len(X), 0.0)
+        res_cross = _residual_zero_crossing(_local_simple_mean(X, 1), ac_tw, ac_nfft)
+        if y_cross == 0 or np.isnan(y_cross) or np.isnan(res_cross):
+            return np.nan
+        return res_cross / y_cross
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _CO_Embed2_Dist_tau_d_expfit_meandiff(X, acfz):
-        # Exponential fit to successive distances in 2-d embedding space.
-        tau = acfz
-        if tau > len(X) / 10:
-            tau = int(len(X) / 10)
-        d = np.zeros(len(X) - tau - 1)
-        d_mean = 0
-        for i in range(len(d)):
-            n = np.sqrt(
-                np.power(X[i + 1] - X[i], 2) + np.power(X[i + tau] - X[i + tau + 1], 2)
-            )
-            d[i] = n
-            d_mean += n
-        d_mean /= len(d)
-        smin = np.min(d)
-        smax = np.max(d)
-        srange = smax - smin
-        std = np.std(d)
-        if std < 0.001:
-            return 0
-        num_bins = int(
-            np.ceil(
-                srange
-                / (3.5 * _stddev(d, len(d)) / np.power(len(d), 0.3333333333333333))
-            )
-        )
-        if num_bins == 0:
-            return 0
-        bin_width = srange / num_bins
+    @njit(cache=True)
+    def _CO_Embed2_Dist_tau_d_expfit_meandiff(X, X_ac):
+        # Mean absolute difference between the distribution of successive
+        # distances in the 2-d embedding at tau and an exponential fitted to them.
+        size = len(X)
+        # first zero of the autocorrelation function, at most size / 10
+        tau = 0
+        while X_ac[tau] > 0 and tau < size:
+            tau += 1
+        if tau > size / 10:
+            tau = int(np.floor(size / 10))
+        n = size - tau - 1
+        if n < 1:
+            return np.nan
 
-        histogram = np.zeros(num_bins, dtype=np.int32)
-        binEdges = np.zeros(num_bins + 1, dtype=np.float64)
-        for val in d:
-            idx = int((val - smin) / bin_width)
-            if idx < 0:
-                idx = 0
-            if idx >= num_bins:
-                idx = num_bins - 1
-            histogram[idx] += 1
+        d = np.zeros(n)
+        for i in range(n):
+            a = X[i + 1] - X[i]
+            b = X[i + tau + 1] - X[i + tau]
+            d[i] = np.sqrt(a * a + b * b)
+        dmin = d[0]
+        dmax = d[0]
+        for i in range(1, n):
+            if d[i] < dmin:
+                dmin = d[i]
+            if d[i] > dmax:
+                dmax = d[i]
+        # all distances equal (to within rounding): no distribution to fit
+        if dmax - dmin <= 1e-12 * dmax:
+            return np.nan
+        d_mean = 0.0
+        for i in range(n):
+            d_mean += d[i]
+        d_mean /= n
 
-        for i in range(num_bins + 1):
-            binEdges[i] = i * bin_width + smin
+        num_bins = _hist_num_bins_auto(d, dmin, dmax)
+        edges = np.zeros(num_bins + 1)
+        _hist_edges(dmin, dmax, num_bins, edges)
+        counts = np.zeros(num_bins, dtype=np.int64)
+        for i in range(n):
+            b = _hist_bin_index(d[i], edges, num_bins)
+            if b >= 0:
+                counts[b] += 1
 
-        histogramNormalise = np.zeros(num_bins, dtype=np.float64)
-        for i in range(len(histogramNormalise)):
-            histogramNormalise[i] = histogram[i] / len(d)
-
-        d_exp_fit = np.zeros(num_bins, dtype=np.float64)
+        sum_abs = 0.0
         for i in range(num_bins):
-            expf = np.exp(-(binEdges[i] + binEdges[i + 1]) * 0.5 / d_mean) / d_mean
-            if expf < 0:
-                expf = 0
-
-            d_exp_fit[i] = np.abs(histogramNormalise[i] - expf)
-
-        return np.mean(d_exp_fit)
+            pdf = counts[i] / (n * (edges[i + 1] - edges[i]))
+            centre = (edges[i] + edges[i + 1]) / 2
+            expf = (1 / d_mean) * np.exp(-centre / d_mean)
+            sum_abs += np.abs(pdf - expf)
+        return sum_abs / num_bins
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1(X):
-        # Proportion of slower timescale fluctuations that scale with DFA (50%
-        # sampling).
-        cs = np.zeros(int(len(X) / 2))
-        cs[0] = X[0]
-        for i in range(1, len(cs)):
-            cs[i] = cs[i - 1] + X[i * 2]
-
-        return _fluct_prop(cs, len(X), True)
+        # Proportion of timescales in the first of two scaling regimes of
+        # detrended fluctuation analysis on every second sample.
+        return _fluct_anal_prop_r1(X, 2, True)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    @njit(cache=True)
     def _SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1(X):
-        # Proportion of slower timescale fluctuations that scale with linearly rescaled
-        # range fits.
-        cs = np.zeros(len(X))
-        cs[0] = X[0]
-        for i in range(1, len(X)):
-            cs[i] = cs[i - 1] + X[i]
-
-        return _fluct_prop(cs, len(X), False)
+        # Proportion of timescales in the first of two scaling regimes of the
+        # range of linearly detrended windows.
+        return _fluct_anal_prop_r1(X, 1, False)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
-    def _SB_TransitionMatrix_3ac_sumdiagcov(X, acfz):
-        # Trace of covariance of transition matrix between symbols in 3-letter alphabet.
-        ds = np.zeros(int(((len(X) - 1) / acfz) + 1), dtype=np.float64)
-        for i in range(len(ds)):
-            ds[i] = X[i * acfz]
-        # swap to alphabet:
-        yCG = np.zeros(len(ds), dtype=np.int32)
+    @njit(cache=True)
+    def _SB_TransitionMatrix_quantile_3_ac_sumdiagcov(X, X_ac):
+        # Trace of the covariance of the transition matrix between symbols of a
+        # 3-letter alphabet, after anti-aliased downsampling by tau.
+        size = len(X)
+        # first lag with a strictly negative autocorrelation, at most size / 50
+        tau = size - 1
+        for k in range(1, size):
+            if X_ac[k] < 0:
+                tau = k
+                break
+        if tau > size // 50:
+            tau = size // 50
+
+        if tau > 1:
+            # Resample the mean-centred series: the filter assumes zeros beyond
+            # the ends, which catch22 applies to z-normalised series. Centring
+            # keeps the feature unaffected by an offset on raw input.
+            smean = 0.0
+            for i in range(size):
+                smean += X[i]
+            smean /= size
+            centred = np.zeros(size)
+            for i in range(size):
+                centred[i] = X[i] - smean
+            ds = _resample_down(centred, tau)
+        else:
+            ds = np.zeros(size)
+            for i in range(size):
+                ds[i] = X[i]
+        n_ds = len(ds)
+        if n_ds < 2:
+            return np.nan
+
+        yCG = np.zeros(n_ds, dtype=np.int32)
         _sb_coarsegrain(ds, 3, yCG)
         T = np.zeros((3, 3), dtype=np.float64)
-        for i in range(len(ds) - 1):
+        for i in range(n_ds - 1):
             T[yCG[i] - 1][yCG[i + 1] - 1] += 1
-
         for i in range(3):
             for j in range(3):
-                if (len(ds) - 1) == 0:
-                    T[i][j] = np.nan
-                else:
-                    T[i][j] /= len(ds) - 1
-        column1 = np.zeros(3, dtype=np.float64)
-        column2 = np.zeros(3, dtype=np.float64)
-        column3 = np.zeros(3, dtype=np.float64)
+                T[i][j] /= n_ds - 1
 
-        for i in range(3):
-            column1[i] = T[i][0]
-            column2[i] = T[i][1]
-            column3[i] = T[i][2]
-        columns = np.zeros((3, 3), dtype=np.float64)
-        columns[0] = column1
-        columns[1] = column2
-        columns[2] = column3
-
-        # columns = [column1, column2, column3]
-        cov_array = np.zeros((3, 3), dtype=np.float64)
-        for i in range(3):
-            for j in range(3):
-                covTemp = 0
-                meanX = np.mean(columns[i])
-                meanY = np.mean(columns[j])
-                for k in range(3):
-                    covTemp += (columns[i][k] - meanX) * (columns[j][k] - meanY)
-                covTemp = covTemp / 2
-                cov_array[i][j] = covTemp
-                cov_array[j][i] = covTemp
-
+        # sum of the variances of the columns of T
         sum_of_diagonal_cov = 0.0
-        for i in range(3):
-            sum_of_diagonal_cov += cov_array[i][i]
-
+        for j in range(3):
+            col_mean = (T[0][j] + T[1][j] + T[2][j]) / 3
+            cov = 0.0
+            for i in range(3):
+                cov += (T[i][j] - col_mean) * (T[i][j] - col_mean)
+            sum_of_diagonal_cov += cov / 2
         return sum_of_diagonal_cov
 
     @staticmethod
@@ -993,39 +1054,101 @@ class Catch22(BaseCollectionTransformer):
         return out
 
 
-@njit(fastmath=True, cache=True)
-def _histogram_mode(X, num_bins, smin, smax):
-    srange = smax - smin
-
-    bin_width = srange / num_bins
-    if bin_width == 0:
-        return np.nan
-
-    histogram = np.zeros(num_bins, dtype=np.int32)
-    edges = np.zeros(num_bins + 1, dtype=np.float64)
-    for val in X:
-        idx = int((val - smin) / bin_width)
-        if idx < 0:
-            idx = 0
-        if idx >= num_bins:
-            idx = num_bins - 1
-        histogram[idx] += 1
-
+@njit(cache=True)
+def _hist_edges(smin, smax, num_bins, edges):
+    # num_bins + 1 equal-width bin edges spanning [smin, smax], as hctsa's
+    # BF_HistEdges: interior edges lowered, and end edges widened, by 1e-6 of a
+    # bin width. Data constant to within rounding get one bin of unit width.
+    # Returns the number of bins.
+    if smax - smin <= 1e-12 * max(np.abs(smin), np.abs(smax)):
+        edges[0] = smin - 0.5
+        edges[1] = smin + 0.5
+        return 1
+    bin_width = (smax - smin) / num_bins
+    tol = 1e-6 * bin_width
     for i in range(num_bins + 1):
-        edges[i] = i * bin_width + smin
+        edges[i] = (smin + i * bin_width) - tol
+    edges[0] = smin - tol
+    edges[num_bins] = smax + tol
+    return num_bins
 
-    max_count = 0
-    num_maxs = 1
-    max_sum = 0
-    for i in range(num_bins):
-        v = (edges[i] + edges[i + 1]) / 2
+
+@njit(cache=True)
+def _hist_bin_index(x, edges, num_bins):
+    # Bin containing x with MATLAB histcounts' convention: [edges[i], edges[i+1]),
+    # the last bin also including its right edge. -1 if x is outside the edges.
+    if x < edges[0] or x > edges[num_bins]:
+        return -1
+    if x == edges[num_bins]:
+        return num_bins - 1
+    lo = 0
+    hi = num_bins
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if x >= edges[mid]:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
+@njit(cache=True)
+def _iqr_matlab(X):
+    # Interquartile range with MATLAB's percentile convention.
+    s = np.sort(X)
+    size = len(s)
+    q = np.zeros(2)
+    for k in range(2):
+        r = size * (0.25 if k == 0 else 0.75) - 0.5
+        if r <= 0:
+            q[k] = s[0]
+        elif r >= size - 1:
+            q[k] = s[size - 1]
+        else:
+            i = int(np.floor(r))
+            frac = r - i
+            q[k] = s[i] if frac == 0 else s[i] + frac * (s[i + 1] - s[i])
+    return q[1] - q[0]
+
+
+@njit(cache=True)
+def _hist_num_bins_auto(X, smin, smax):
+    # hctsa's 'auto' rule: the larger of the Sturges and Freedman-Diaconis numbers
+    # of bins (Sturges when the IQR is 0), between 1 and the number of values.
+    size = len(X)
+    srange = smax - smin
+    max_abs = max(np.abs(smax), np.abs(smin))
+    num_sturges = np.ceil(np.log2(float(size)) + 1)
+    fd_width = 0.0
+    q = _iqr_matlab(X)
+    if srange > 0 and q > 1e-12 * max_abs:
+        fd_width = 2 * q * np.power(float(size), -1.0 / 3.0)
+    num_fd = np.ceil(srange / fd_width) if fd_width > 0 else num_sturges
+    num_bins = max(num_sturges, num_fd)
+    num_bins = max(1.0, min(num_bins, float(size)))
+    return int(num_bins)
+
+
+@njit(cache=True)
+def _histogram_mode(X, num_bins, smin, smax):
+    edges = np.zeros(num_bins + 1, dtype=np.float64)
+    nb = _hist_edges(smin, smax, num_bins, edges)
+    histogram = np.zeros(nb, dtype=np.int64)
+    for val in X:
+        idx = _hist_bin_index(val, edges, nb)
+        if idx >= 0:
+            histogram[idx] += 1
+
+    max_count = -1
+    for i in range(nb):
         if histogram[i] > max_count:
             max_count = histogram[i]
-            num_maxs = 1
-            max_sum = v
-        elif histogram[i] == max_count:
+    max_sum = 0.0
+    num_maxs = 0
+    for i in range(nb):
+        if histogram[i] == max_count:
+            max_sum += (edges[i] + edges[i + 1]) / 2
             num_maxs += 1
-            max_sum += v
     return max_sum / num_maxs
 
 
@@ -1045,7 +1168,7 @@ def _long_stretch(X_binary, val):
     return max_stretch
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 def _bit_update(bit, i, n):
     # Fenwick tree point increment at 1-indexed position i (size n).
     while i <= n:
@@ -1053,11 +1176,12 @@ def _bit_update(bit, i, n):
         i += i & (-i)
 
 
-@njit(fastmath=True, cache=True)
-def _bit_select(bit, k, n, logn):
-    # Return the 1-indexed position of the k-th smallest present element.
+@njit(cache=True)
+def _bit_select(bit, k, n, top):
+    # Return the 1-indexed position of the k-th smallest present element; top is
+    # the largest power of two not above n.
     pos = 0
-    pw = 1 << logn
+    pw = top
     while pw > 0:
         nxt = pos + pw
         if nxt <= n and bit[nxt] < k:
@@ -1067,94 +1191,114 @@ def _bit_select(bit, k, n, logn):
     return pos + 1
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 def _outlier_include(X):
+    # Median, over increasing thresholds, of the median time (relative to the
+    # series midpoint) of values above the threshold, as hctsa's
+    # DN_OutlierInclude.mdrmd on the (positive) values of X.
     n = len(X)
-    total = 0
-    threshold = 0
+    inc = 0.01
+    tot = 0
+    max_val = X[0]
     for v in X:
         if v >= 0:
-            total += 1
-            if v > threshold:
-                threshold = v
+            tot += 1
+        if v > max_val:
+            max_val = v
+    if max_val < inc:
+        return 0.0
+    # a z-normalised series has max_val <= (n - 1) / sqrt(n); larger input would
+    # need more thresholds than can be counted
+    if max_val > np.sqrt(n):
+        return np.nan
 
-    if threshold < 0.01:
-        return 0
+    num_thresholds = int(max_val / inc + 1)
 
-    num_thresholds = int(threshold / 0.01) + 1
-    means = np.zeros(num_thresholds)
-    dists = np.zeros(num_thresholds)
-    medians = np.zeros(num_thresholds)
-
-    # For each position, membership "X[pos] >= i * 0.01" holds for a contiguous
-    # range of thresholds i = 0 .. k. Bucket each position by its highest such k
-    # (found with the same comparison the original loop used) so thresholds can
-    # be swept without rescanning X. Positions sharing a k are chained via nxt.
+    # Bucket each position by the highest threshold index j it satisfies
+    # (X[pos] >= j * inc), chaining positions that share one via nxt.
     head = np.full(num_thresholds, -1, dtype=np.int64)
     nxt = np.full(n, -1, dtype=np.int64)
+    cnt = np.zeros(num_thresholds, dtype=np.int64)
     for pos in range(n):
-        x = X[pos]
-        if x < 0:
-            continue
-        k = int(x / 0.01)
-        while k * 0.01 > x:
-            k -= 1
-        while (k + 1) * 0.01 <= x:
-            k += 1
-        if k > num_thresholds - 1:
-            k = num_thresholds - 1
-        nxt[pos] = head[k]
-        head[k] = pos
+        v = X[pos]
+        q = v / inc
+        if q >= num_thresholds - 1:
+            j = num_thresholds - 1
+        elif q < 0:
+            j = -1
+        else:
+            j = int(q)
+        while j + 1 < num_thresholds and v >= (j + 1) * inc:
+            j += 1
+        while j >= 0 and v < j * inc:
+            j -= 1
+        if j >= 0:
+            nxt[pos] = head[j]
+            head[j] = pos
+            cnt[j] += 1
 
-    logn = 0
-    while (1 << (logn + 1)) <= n:
-        logn += 1
+    # counts above each threshold, and from them the thresholds to keep: up to the
+    # last with more than 2% of the values, and before the first with one value
+    counts = np.zeros(num_thresholds, dtype=np.int64)
+    run = 0
+    for j in range(num_thresholds - 1, -1, -1):
+        run += cnt[j]
+        counts[j] = run
+    mj = 0
+    for j in range(num_thresholds):
+        if (counts[j] - 1) * 100.0 / tot > 2:
+            mj = j
+    fbi = num_thresholds - 1
+    for j in range(num_thresholds - 1, -1, -1):
+        if counts[j] - 1 == 0:
+            fbi = j
+    trim_limit = min(mj, fbi)
+
+    top = 1
+    while (top << 1) <= n:
+        top <<= 1
     bit = np.zeros(n + 1, dtype=np.int64)
 
     # Sweep thresholds from high to low, inserting positions as they enter the
-    # set. count/min/max update incrementally; the median is read from the
-    # Fenwick tree. This reproduces the per-threshold r-array statistics exactly.
-    count = 0
-    cur_min = n + 1
-    cur_max = -1
-    for i in range(num_thresholds - 1, -1, -1):
-        pos = head[i]
+    # set, and read each median from the Fenwick tree.
+    medians = np.zeros(trim_limit + 1)
+    m = 0
+    denom = n / 2
+    for j in range(num_thresholds - 1, -1, -1):
+        pos = head[j]
         while pos != -1:
-            rv = pos + 1
-            _bit_update(bit, rv, n)
-            if rv < cur_min:
-                cur_min = rv
-            if rv > cur_max:
-                cur_max = rv
-            count += 1
+            _bit_update(bit, pos + 1, n)
+            m += 1
             pos = nxt[pos]
-
-        if count == 0:
+        if j > trim_limit:
             continue
-
-        # mean of consecutive gaps telescopes to (last - first) / (count - 1).
-        means[i] = (cur_max - cur_min) / (count - 1) if count > 1 else 9999999999
-        dists[i] = (count - 1) * 100 / total
-
-        if count % 2 == 1:
-            median_val = _bit_select(bit, (count + 1) // 2, n, logn)
+        if m % 2 == 1:
+            med = float(_bit_select(bit, m // 2 + 1, n, top))
         else:
-            a = _bit_select(bit, count // 2, n, logn)
-            b = _bit_select(bit, count // 2 + 1, n, logn)
-            median_val = (a + b) / 2.0
-        medians[i] = median_val / (n / 2) - 1
+            lo = float(_bit_select(bit, m // 2, n, top))
+            hi = float(_bit_select(bit, m // 2 + 1, n, top))
+            med = (hi + lo) / 2.0
+        medians[j] = med / denom - 1
 
-    mj = 0
-    fbi = num_thresholds - 1
-    for i in range(num_thresholds):
-        if dists[i] > 2:
-            mj = i
-        if means[i] == 9999999999:
-            fbi = num_thresholds - 1 - i
+    return np.median(medians)
 
-    trim_limit = max(mj, fbi)
 
-    return np.median(medians[: trim_limit + 1])
+@njit(cache=True)
+def _zscore(X):
+    # z-normalise as catch22 does, with the sample standard deviation
+    n = len(X)
+    out = _zeros_promoted(X, n)
+    m = 0.0
+    for i in range(n):
+        m += X[i]
+    m /= n
+    s = 0.0
+    for i in range(n):
+        s += (X[i] - m) ** 2
+    sd = np.sqrt(s / (n - 1)) if n > 1 else 0.0
+    for i in range(n):
+        out[i] = (X[i] - m) / sd if sd > 0 else X[i] - m
+    return out
 
 
 def _autocorr(X, X_fft):
@@ -1179,41 +1323,45 @@ def _get_acf(X, ca):
     return acf
 
 
-@njit(fastmath=True, cache=True)
-def _summaries_welch_rect(X, centroid, X_fft):
-    new_length = int(len(X_fft) / 2) + 1
-    p = np.zeros(new_length)
-    pi2 = 2 * math.pi
-    p[0] = (np.power(_complex_magnitude(X_fft[0]), 2) / len(X)) / pi2
-    for i in range(1, new_length - 1):
-        p[i] = ((np.power(_complex_magnitude(X_fft[i]), 2) / len(X)) * 2) / pi2
-    p[new_length - 1] = (
-        np.power(_complex_magnitude(X_fft[new_length - 1]), 2) / len(X)
-    ) / pi2
-
-    w = np.zeros(new_length)
-    a = 1.0 / len(X_fft)
-    for i in range(0, new_length):
-        w[i] = i * a * math.pi * 2
-
-    if centroid:
-        cs = np.zeros(new_length)
-        cs[0] = p[0]
-        for i in range(1, new_length):
-            cs[i] = cs[i - 1] + p[i]
-
-        threshold = cs[new_length - 1] / 2
-        for i in range(1, new_length):
-            if cs[i] > threshold:
-                return w[i]
+@njit(cache=True)
+def _summaries_fft(X, median_freq, X_fft):
+    # Single-sided power spectrum of the zero-padded series, as hctsa's
+    # SP_Summaries(y,'fft'), with the DC bin dropped and a floor of 1e-12 of the
+    # maximum: the median frequency, or the power in the lowest fifth of the
+    # frequencies.
+    size = len(X)
+    nfft = len(X_fft)
+    n_bins = nfft // 2
+    if n_bins < 2:
         return np.nan
-    else:
-        tau = int(np.floor(new_length / 5))
-        nsum = 0
-        for i in range(tau):
-            nsum += p[i]
+    pi = 3.14159265358979323846
+    S = np.zeros(n_bins)
+    for k in range(n_bins):
+        a = _complex_magnitude(X_fft[k + 1])
+        S[k] = 2 * a * a / size / (2 * pi)
+    s_max = S[0]
+    for k in range(1, n_bins):
+        if S[k] > s_max:
+            s_max = S[k]
+    for k in range(n_bins):
+        if S[k] < 1e-12 * s_max:
+            S[k] = 1e-12 * s_max
 
-        return nsum * (w[1] - w[0])
+    if median_freq:
+        total = 0.0
+        for k in range(n_bins):
+            total += S[k]
+        cs = 0.0
+        for k in range(n_bins):
+            cs += S[k]
+            if cs >= 0.5 * total:
+                return 2 * pi * (k + 1) / nfft
+        return np.nan
+
+    area = 0.0
+    for k in range(n_bins // 5):
+        area += S[k]
+    return area * (2 * pi * 2 / nfft - 2 * pi * 1 / nfft)
 
 
 @njit(fastmath=True, cache=True)
@@ -1232,135 +1380,274 @@ def _local_simple_mean(X, train_length):
     return res
 
 
-@njit(fastmath=True, cache=True)
-def _ac_first_zero(X_ac):
-    for i in range(1, len(X_ac)):
-        if X_ac[i] <= 0:
-            return i
+@njit(cache=True)
+def _first_crossing(X_ac, size, threshold):
+    # First crossing of a threshold by the autocorrelation function, linearly
+    # interpolated between the lags either side of it; size - 1 if it never
+    # crosses.
+    if size < 2:
+        return np.nan
+    for k in range(1, size):
+        if X_ac[k] < threshold:
+            return (k - 1) + (X_ac[k - 1] - threshold) / (X_ac[k - 1] - X_ac[k])
+    return size - 1.0
 
-    return len(X_ac)
 
-
-@njit(fastmath=True, cache=True)
-def _fluct_prop(X, og_length, dfa):
-    a = np.zeros(50, dtype=np.int_)
-    a[0] = 5
-    n_tau = 1
-    smin = 1.6094379124341003  # Math.log(5);
-    smax = np.log(og_length / 2)
-    inc = (smax - smin) / 49
-    for i in range(1, 50):
-        val = int(np.round(np.exp(smin + inc * i) + 0.000000000001))
-        if val != a[n_tau - 1]:
-            a[n_tau] = val
-            n_tau += 1
-
-    if n_tau < 12:
+@njit(cache=True)
+def _residual_zero_crossing(res, ac_tw, ac_nfft):
+    # _first_crossing of 0 by the autocorrelation of res. The crossing is almost
+    # always at lag 1 (the residuals of a mean forecast are close to differences),
+    # so scan the autocovariance directly for the first few lags before falling
+    # back to the FFT autocorrelation.
+    m = len(res)
+    if m < 2:
+        return np.nan
+    res_mean = 0.0
+    for i in range(m):
+        res_mean += res[i]
+    res_mean /= m
+    c0 = 0.0
+    for i in range(m):
+        c0 += (res[i] - res_mean) * (res[i] - res_mean)
+    if c0 == 0:
         return np.nan
 
-    f = np.zeros(n_tau)
-    for i in range(n_tau):
-        tau = a[i]
-        buff_size = int(len(X) / tau)
-        lag = 0
-        if buff_size == 0:
-            buff_size = 1
-            lag = 1
+    prev = 1.0
+    for k in range(1, min(m, 16)):
+        cov = 0.0
+        for i in range(m - k):
+            cov += (res[i] - res_mean) * (res[i + k] - res_mean)
+        ac_k = cov / c0
+        if ac_k < 0:
+            return (k - 1) + prev / (prev - ac_k)
+        prev = ac_k
+    if m <= 16:
+        return m - 1.0
 
-        buffer = np.zeros((buff_size, tau))
-        count = 0
-        for n in range(buff_size):
-            for j in range(tau - lag):
-                buffer[n][j] = X[count]
-                count += 1
+    # reuse the precomputed twiddles when the residuals land on the same FFT size
+    if len(ac_tw) > 0 and _ac_nfft(m) == ac_nfft:
+        ac = _autocorrelations_with_tw(res, ac_tw, ac_nfft)
+    else:
+        ac = _compute_autocorrelations(res)
+    return _first_crossing(ac, m, 0.0)
 
-        # Bespoke least squares over the fixed grid d = [1..tau]: its moments are
-        # closed-form and computed once per tau instead of re-summed per window.
-        # For DFA the fluctuation is the residual sum of squares, obtained from
-        # sums (SSR = sumy2 - c1*sumxy - c2*sumy) without detrending in place.
-        sumx = tau * (tau + 1) / 2.0
-        sumx2 = tau * (tau + 1) * (2 * tau + 1) / 6.0
-        denom = tau * sumx2 - sumx * sumx
 
-        for n in range(buff_size):
-            sumy = 0.0
+@njit(cache=True)
+def _gaussian_ami(X, lag):
+    # Automutual information at a lag for a Gaussian, -log(1 - r^2) / 2 for the
+    # autocorrelation r, floored at 1e-12 inside the log as catch22 does
+    # (sequential sums as the C, so windows of equal values tie exactly)
+    n = len(X) - lag
+    mx = 0.0
+    my = 0.0
+    for j in range(n):
+        mx += X[j]
+        my += X[j + lag]
+    mx /= n
+    my /= n
+    nom = 0.0
+    dx = 0.0
+    dy = 0.0
+    for j in range(n):
+        nom += (X[j] - mx) * (X[j + lag] - my)
+        dx += (X[j] - mx) * (X[j] - mx)
+        dy += (X[j + lag] - my) * (X[j + lag] - my)
+    v = 1e-12
+    if dx * dy != 0:
+        r = nom / np.sqrt(dx * dy)
+        v = max(1.0 - r * r, 1e-12)
+    return -0.5 * np.log(v)
+
+
+@njit(cache=True)
+def _bessel_i0(x):
+    # Zeroth-order modified Bessel function of the first kind, from its power
+    # series (converges quickly for the small arguments used here)
+    half_x2 = (x / 2) * (x / 2)
+    term = 1.0
+    total = 1.0
+    for k in range(1, 500):
+        term *= half_x2 / (float(k) * k)
+        total += term
+        if term < total * 1e-17:
+            break
+    return total
+
+
+@njit(cache=True)
+def _resample_down(X, q):
+    # Anti-aliased downsampling by the integer factor q > 1: a windowed-sinc
+    # low-pass filter (Kaiser window, beta = 5, half-width 10q) with unit DC gain,
+    # applied centred on every q-th value with zeros beyond the ends.
+    size = len(X)
+    pi = 3.14159265358979323846
+    beta = 5.0
+    K = 10 * q
+    M = (size + q - 1) // q
+
+    h = np.zeros(2 * K + 1)
+    i0_beta = _bessel_i0(beta)
+    h_sum = 0.0
+    for m in range(-K, K + 1):
+        u = m / q
+        g = 1.0 / q if m == 0 else np.sin(pi * u) / (pi * u) / q
+        r = m / K
+        w = _bessel_i0(beta * np.sqrt(1 - r * r)) / i0_beta
+        h[m + K] = g * w
+        h_sum += h[m + K]
+    for m in range(2 * K + 1):
+        h[m] /= h_sum
+
+    out = np.zeros(M)
+    for i in range(M):
+        centre = i * q
+        j_lo = max(centre - K, 0)
+        j_hi = min(centre + K, size - 1)
+        acc = 0.0
+        for j in range(j_lo, j_hi + 1):
+            acc += X[j] * h[centre - j + K]
+        out[i] = acc
+    return out
+
+
+@njit(cache=True)
+def _round_half_away(x):
+    # C's round(): halves away from zero (np.round rounds them to even)
+    return np.floor(x + 0.5) if x >= 0 else np.ceil(x - 0.5)
+
+
+@njit(cache=True)
+def _line_fit_sse(x, y, start, n):
+    # Sum of squared residuals of a least-squares line through n points from start
+    sumx = 0.0
+    sumx2 = 0.0
+    sumxy = 0.0
+    sumy = 0.0
+    for i in range(start, start + n):
+        sumx += x[i]
+        sumx2 += x[i] * x[i]
+        sumxy += x[i] * y[i]
+        sumy += y[i]
+    denom = n * sumx2 - sumx * sumx
+    m = 0.0
+    b = 0.0
+    if denom != 0:
+        m = (n * sumxy - sumx * sumy) / denom
+        b = (sumy * sumx2 - sumx * sumxy) / denom
+    sse = 0.0
+    for i in range(start, start + n):
+        e = m * x[i] + b - y[i]
+        sse += e * e
+    return sse
+
+
+@njit(cache=True)
+def _fluct_anal_prop_r1(X, lag, dfa):
+    # Fluctuation analysis with a two-regime fit, as hctsa's
+    # SC_FluctAnal(x,2,how,50,1,lag,true).prop_r1: the proportion of the
+    # (log-spaced) timescales in the first of two scaling regimes. dfa selects
+    # detrended fluctuation analysis over the range of linearly detrended windows.
+    size = len(X)
+    ny = (size + lag - 1) // lag
+    if ny < 10:
+        return np.nan
+    y_cs = np.zeros(ny)
+    y_cs[0] = X[0]
+    for i in range(1, ny):
+        y_cs[i] = y_cs[i - 1] + X[i * lag]
+
+    # up to 50 log-spaced timescales from 5 to floor(ny / 2), rounded and
+    # de-duplicated
+    tau_step = 50
+    lin_low = np.log(5.0)
+    lin_high = np.log(float(ny // 2))
+    taus = np.zeros(tau_step, dtype=np.int64)
+    for i in range(tau_step):
+        taus[i] = int(
+            _round_half_away(
+                np.exp(lin_low + i * (lin_high - lin_low) / (tau_step - 1))
+            )
+        )
+    taus[tau_step - 1] = ny // 2
+    taus = np.sort(taus)
+    n_tau = 0
+    for i in range(tau_step):
+        if n_tau == 0 or taus[i] != taus[n_tau - 1]:
+            taus[n_tau] = taus[i]
+            n_tau += 1
+    if n_tau < 8:
+        return np.nan
+
+    # fluctuation at each timescale, over the floor(ny / t) full windows
+    log_tt = np.zeros(n_tau)
+    log_ff = np.zeros(n_tau)
+    for idx in range(n_tau):
+        t = taus[idx]
+        n_windows = ny // t
+        sumx = 0.0
+        sumx2 = 0.0
+        for k in range(t):
+            sumx += k + 1.0
+            sumx2 += (k + 1.0) * (k + 1.0)
+        denom = t * sumx2 - sumx * sumx
+        f = 0.0
+        for j in range(n_windows):
             sumxy = 0.0
-            sumy2 = 0.0
-            for j in range(tau):
-                v = buffer[n][j]
+            sumy = 0.0
+            for k in range(t):
+                v = y_cs[j * t + k]
+                sumxy += (k + 1.0) * v
                 sumy += v
-                sumxy += (j + 1) * v
-                sumy2 += v * v
-
-            if denom == 0:
-                c1 = 0.0
-                c2 = 0.0
-            else:
-                c1 = (tau * sumxy - sumx * sumy) / denom
-                c2 = (sumy * sumx2 - sumx * sumxy) / denom
-
+            m = 0.0
+            b = 0.0
+            if denom != 0:
+                m = (t * sumxy - sumx * sumy) / denom
+                b = (sumy * sumx2 - sumx * sumxy) / denom
             if dfa:
-                ssr = sumy2 - c1 * sumxy - c2 * sumy
-                if ssr < 0.0:
-                    ssr = 0.0
-                f[i] += ssr
+                for k in range(t):
+                    resid = y_cs[j * t + k] - (m * (k + 1) + b)
+                    f += resid * resid
             else:
-                rmax = -np.inf
-                rmin = np.inf
-                for j in range(tau):
-                    resid = buffer[n][j] - (c1 * (j + 1) + c2)
+                rmax = y_cs[j * t] - (m * 1 + b)
+                rmin = rmax
+                for k in range(1, t):
+                    resid = y_cs[j * t + k] - (m * (k + 1) + b)
                     if resid > rmax:
                         rmax = resid
                     if resid < rmin:
                         rmin = resid
-                f[i] += np.power(rmax - rmin, 2)
-
+                f += (rmax - rmin) * (rmax - rmin)
         if dfa:
-            f[i] = np.sqrt(f[i] / (buff_size * tau))
+            f = np.sqrt(f / (n_windows * t))
         else:
-            f[i] = np.sqrt(f[i] / buff_size)
+            f = np.sqrt(f / n_windows)
+        log_tt[idx] = np.log(float(t))
+        log_ff[idx] = np.log(f)
 
-    log_a = np.zeros(n_tau)
-    log_f = np.zeros(n_tau)
-    for i in range(n_tau):
-        log_a[i] = np.log(a[i])
-        log_f[i] = np.log(f[i])
-
-    sserr = np.zeros(n_tau - 11)
-    for i in range(6, n_tau - 5):
-        c1_1, c1_2 = _linear_regression(log_a, log_f, i, 0)
-        c2_1, c2_2 = _linear_regression(log_a, log_f, n_tau - i + 1, i - 1)
-
-        sum1 = 0
-        for n in range(i):
-            sum1 += np.power(log_a[n] * c1_1 + c1_2 - log_f[n], 2)
-        sserr[i - 6] += np.sqrt(sum1)
-
-        sum2 = 0
-        for n in range(n_tau - i + 1):
-            sum2 += np.power(log_a[n + i - 1] * c2_1 + c2_2 - log_f[n + i - 1], 2)
-        sserr[i - 6] += np.sqrt(sum2)
-
-    return (np.argmin(sserr) + 6) / n_tau
-
-
-@njit(fastmath=True, cache=True)
-def _linear_regression(X, y, n, lag):
-    sumx = 0
-    sumx2 = 0
-    sumxy = 0
-    sumy = 0
-    for i in range(lag, n + lag):
-        sumx += X[i]
-        sumx2 += X[i] * X[i]
-        sumxy += X[i] * y[i]
-        sumy += y[i]
-
-    denom = n * sumx2 - sumx * sumx
-    if denom == 0:
-        return 0, 0
-
-    return (n * sumxy - sumx * sumy) / denom, (sumy * sumx2 - sumx * sumxy) / denom
+    # two-regime fit: the split minimising the total squared error of the two
+    # line fits (which share the split point), each with at least min_points
+    min_points = int(max(8.0, _round_half_away(0.25 * n_tau)))
+    if n_tau < 2 * min_points:
+        return np.nan
+    n_splits = n_tau - 2 * min_points + 1
+    err = np.zeros(n_splits)
+    min_err = np.inf
+    for s in range(n_splits):
+        i = min_points + s
+        sse = _line_fit_sse(log_tt, log_ff, 0, i) + _line_fit_sse(
+            log_tt, log_ff, i - 1, n_tau - i + 1
+        )
+        err[s] = sse / n_tau
+        if err[s] < min_err:
+            min_err = err[s]
+    # the first split within a relative 1e-9 of the best, so that splits tied up
+    # to rounding resolve the same way on every platform
+    break_pt = min_points
+    for s in range(n_splits):
+        if err[s] <= min_err * (1 + 1e-9):
+            break_pt = min_points + s
+            break
+    return break_pt / n_tau
 
 
 @njit(fastmath=True, cache=True)
@@ -1561,22 +1848,47 @@ def _spline_fit(X):
     return y_out
 
 
+def _feature_index(name, catch24):
+    # index of a feature by its name, short name or catch22 v0.x name
+    if name in feature_names_short:
+        return feature_names_short.index(name)
+    if name in feature_names:
+        return feature_names.index(name)
+    # TODO remove the catch22 v0.x names in v1.8.0
+    if name in legacy_feature_names:
+        return legacy_feature_names.index(name)
+    if name in _legacy_short_names:
+        return _legacy_short_names[name]
+    if catch24 and name in _catch24_names:
+        return _catch24_names[name]
+    raise ValueError("Invalid feature selection.")
+
+
+# TODO remove with the catch22 v0.x names in v1.8.0
+def _legacy_names_in(features):
+    # the catch22 v0.x names among the selected features
+    if isinstance(features, str):
+        features = [features]
+    elif not isinstance(features, (list, tuple)):
+        return []
+    return [
+        f
+        for f in features
+        if isinstance(f, str)
+        and f not in feature_names
+        and f not in feature_names_short
+        and (f in legacy_feature_names or f in _legacy_short_names)
+    ]
+
+
 def _verify_features(features, catch24):
     if isinstance(features, str):
         if features == "all":
             f_idx = [*range(22)]
             if catch24:
                 f_idx += [22, 23]
-        elif features in feature_names_short:
-            f_idx = [feature_names_short.index(features)]
-        elif features in feature_names:
-            f_idx = [feature_names.index(features)]
-        elif catch24 and features == "Mean":
-            f_idx = [22]
-        elif catch24 and features == "StandardDeviation":
-            f_idx = [23]
         else:
-            raise ValueError("Invalid feature selection.")
+            f_idx = [_feature_index(features, catch24)]
     elif isinstance(features, int):
         if features >= 0 and features < 22:
             f_idx = [features]
@@ -1591,16 +1903,7 @@ def _verify_features(features, catch24):
             f_idx = []
             for f in features:
                 if isinstance(f, str):
-                    if f in feature_names_short:
-                        f_idx.append(feature_names_short.index(f))
-                    elif f in feature_names:
-                        f_idx.append(feature_names.index(f))
-                    elif catch24 and f == "Mean":
-                        f_idx.append(22)
-                    elif catch24 and f == "StandardDeviation":
-                        f_idx.append(23)
-                    else:
-                        raise ValueError("Invalid feature selection.")
+                    f_idx.append(_feature_index(f, catch24))
                 elif isinstance(f, int):
                     if f >= 0 and f < 22:
                         f_idx.append(f)
@@ -1618,6 +1921,29 @@ def _verify_features(features, catch24):
         raise ValueError("Invalid feature selection.")
 
     return f_idx
+
+
+def _mask_unestimable(c22_array, X, f_idx):
+    """Replace, in place, features that could not be estimated by catch22's values.
+
+    A feature is masked when it is NaN for a series of finite values; a series
+    containing NaN or inf keeps NaN features, as in catch22.
+    """
+    nan_positions = np.argwhere(np.isnan(c22_array))
+    n_feats = len(f_idx)
+    for case, col in nan_positions:
+        channel, n = divmod(col, n_feats)
+        feature = f_idx[n]
+        if feature >= 22:
+            continue
+        series = X[case][channel]
+        if np.all(np.isfinite(series)):
+            c22_array[case, col] = _mask_value(feature, len(series))
+
+
+def _nextpow2(n):
+    # smallest power of two not below n
+    return 1 << (int(n) - 1).bit_length()
 
 
 @njit(fastmath=True, cache=True)
@@ -1718,7 +2044,8 @@ def _sb_coarsegrain(y, num_groups, labels):
     tmp = np.sort(y)
     for i in range(num_groups + 1):
         th[i] = _quantile_sorted(tmp, ls[i])
-    th[0] -= 1
+    # the minimum is in the first group (th[0] - 1 == th[0] beyond 2**53)
+    th[0] = -np.inf
     # Single pass over y: the group ranges (th[i], th[i+1]] are disjoint, so the
     # first match is the only match (equivalent to the original num_groups passes).
     for j in range(len(y)):
@@ -1755,23 +2082,23 @@ def _quantile(X, quant):
 # kernels: numba resolves plain module globals at compile time, but cannot look
 # up attributes on a Python class. All of these are the same compiled
 # dispatchers the Python path calls.
-_f1ecac = Catch22._CO_f1ecac
+_f1ecac = Catch22._CO_FirstCrossing_acf_1e_pointOfCrossing
 _first_min_ac = Catch22._CO_FirstMin_ac
-_ami_even_2_5 = Catch22._CO_HistogramAMI_even_2_5
+_ami_even_5bin_ami2 = Catch22._CO_HistogramAMI_even_5bin_ami2
 _trev_1_num = Catch22._CO_trev_1_num
-_hrv_classic_pnn40 = Catch22._MD_hrv_classic_pnn40
+_pnn40 = Catch22._MD_pNN_pnn40
 _binstats_mean_longstretch1 = Catch22._SB_BinaryStats_mean_longstretch1
-_transition_matrix_3ac = Catch22._SB_TransitionMatrix_3ac_sumdiagcov
+_transition_matrix_3ac = Catch22._SB_TransitionMatrix_quantile_3_ac_sumdiagcov
 _periodicity_wang = Catch22._PD_PeriodicityWang_th0_01
 _embed2_dist_expfit = Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff
 _ami_stats_40_fmmi = Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi
-_local_simple_mean1_tauresrat = Catch22._FC_LocalSimple_mean1_tauresrat
+_local_simple_mean1_taurat = Catch22._FC_LocalSimple_mean1_taurat
 _outlier_include_n = Catch22._DN_OutlierInclude_n_001_mdrmd
 _binstats_diff_longstretch0 = Catch22._SB_BinaryStats_diff_longstretch0
 _motif_three_quantile_hh = Catch22._SB_MotifThree_quantile_hh
 _fluct_anal_rsrange = Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1
 _fluct_anal_dfa = Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1
-_local_simple_mean3_stderr = Catch22._FC_LocalSimple_mean3_stderr
+_local_simple_mean3_stde = Catch22._FC_LocalSimple_mean3_stde
 
 
 @njit(fastmath=True, cache=True)
@@ -1779,7 +2106,7 @@ def _zeros_promoted(series, n):
     """Allocate a length-n zero array typed to match catch22's dtype rule.
 
     Applies the same dtype-promotion rule used internally by
-    z_normalise_series_with_mean / _as_normalised_float (float32
+    _zscore / _as_normalised_float (float32
     input stays float32, every other dtype -- including integer input --
     promotes to float64). Used both for typed placeholders whose real
     values are assigned later, and for output buffers that must keep the
@@ -1789,7 +2116,7 @@ def _zeros_promoted(series, n):
     return np.zeros(n, dtype=dtype)
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 def _transform_case_numba(
     X, f_idx, keep, outlier_norm, fft_case, ac_case, ac_tw, ac_nfft, stds
 ):
@@ -1797,12 +2124,13 @@ def _transform_case_numba(
 
     Runs the per-(channel, feature) dispatch loop in compiled code, calling the
     same feature kernels the Python loop calls, with the same lazily shared
-    intermediates (min/max, mean, z-normalised series, welch FFT row,
-    autocorrelation row, its first zero). The welch FFT and autocorrelation
-    always come from the batch caches: the caller only routes here for 3D
-    input, where a cache is built whenever its features are present and
-    unmasked. `stds` carries np.std per channel when catch24's feature 23 is
-    requested (numba's np.std can round differently from numpy's).
+    intermediates (min/max, mean, z-normalised series, FFT row,
+    autocorrelation row). The FFT and autocorrelation always come from the
+    batch caches: the caller only routes here for 3D input, where a cache is
+    built whenever its features are present and unmasked. `stds` carries
+    np.std per channel when catch24's feature 23 is requested (numba's np.std
+    can round differently from numpy's). Compiled without fastmath so the NaN
+    of a feature that cannot be estimated is stored as NaN.
     """
     n_feats = len(f_idx)
     c22 = _zeros_promoted(X[0], n_feats * len(X))
@@ -1811,77 +2139,68 @@ def _transform_case_numba(
     for i in range(len(X)):
         series = X[i]
         dim = i * n_feats
-        smin = 0.0
-        smax = 0.0
-        have_minmax = False
+        smin = numba_min(series)
+        smax = numba_max(series)
+        # the catch22 features cannot be computed on a constant series
+        is_constant = smin == smax
         smean = 0.0
         have_mean = False
         # typed placeholders; real values are assigned before first use. These
         # must be dtype-fixed (not aliases of series) so the kernel also
         # compiles for integer input arrays.
-        # / 1 applies the same dtype promotion z_normalise_series_with_mean
-        # uses internally (float32 stays float32, everything else becomes
-        # float64), so this placeholder always matches the real value's dtype.
+        # / 1 applies the same dtype promotion _zscore uses internally
+        # (float32 stays float32, everything else becomes float64), so this
+        # placeholder always matches the real value's dtype.
         outlier_series = _zeros_promoted(series, 0)
         have_outlier = False
         fft = ac_tw[:0]
         have_fft = False
         ac = np.empty(0, np.float64)
         have_ac = False
-        acfz = 0
-        have_acfz = False
 
         for n in range(n_feats):
             f_count += 1
             if not keep[f_count]:
                 continue
             feature = f_idx[n]
+            if is_constant and feature < 22:
+                c22[dim + n] = np.nan
+                continue
 
             if feature == 0 or feature == 1 or feature == 4:
-                if not have_minmax:
-                    smin = numba_min(series)
-                    smax = numba_max(series)
-                    have_minmax = True
                 if feature == 0 or feature == 1:
-                    # num_bins from the runtime feature id (0 -> 5, 1 -> 10):
-                    # a literal here lets LLVM constant-fold the callee's
-                    # bin-width division after inlining, changing its rounding
-                    # under fastmath vs the Python path's runtime argument
+                    # num_bins from the runtime feature id (0 -> 5, 1 -> 10)
                     c22[dim + n] = _histogram_mode(
                         series, (feature + 1) * 5, smin, smax
                     )
                 else:
-                    c22[dim + n] = _ami_even_2_5(series, smin, smax)
-            elif feature == 2 or feature == 3:
+                    c22[dim + n] = _ami_even_5bin_ami2(series, smin, smax)
+            elif (
+                feature == 2
+                or feature == 3
+                or feature == 8
+                or feature == 10
+                or feature == 12
+            ):
                 if not have_ac:
                     ac = ac_case[i]
                     have_ac = True
                 if feature == 2:
                     c22[dim + n] = _f1ecac(ac, len(series))
-                else:
+                elif feature == 3:
                     c22[dim + n] = _first_min_ac(ac, len(series))
-            elif feature == 8 or feature == 10 or feature == 12:
-                if not have_ac:
-                    ac = ac_case[i]
-                    have_ac = True
-                if not have_acfz:
-                    acfz = _ac_first_zero(ac)
-                    have_acfz = True
-                if feature == 8:
-                    c22[dim + n] = _transition_matrix_3ac(series, acfz)
+                elif feature == 8:
+                    c22[dim + n] = _transition_matrix_3ac(series, ac)
                 elif feature == 10:
-                    c22[dim + n] = _embed2_dist_expfit(series, acfz)
+                    c22[dim + n] = _embed2_dist_expfit(series, ac)
                 else:
-                    c22[dim + n] = _local_simple_mean1_tauresrat(
-                        series, acfz, ac_tw, ac_nfft
+                    c22[dim + n] = _local_simple_mean1_taurat(
+                        series, ac, ac_tw, ac_nfft
                     )
             elif feature == 13 or feature == 14:
                 if outlier_norm:
-                    if not have_mean:
-                        smean = mean(series)
-                        have_mean = True
                     if not have_outlier:
-                        outlier_series = z_normalise_series_with_mean(series, smean)
+                        outlier_series = _zscore(series)
                         have_outlier = True
                     if feature == 13:
                         c22[dim + n] = _outlier_include(outlier_series)
@@ -1896,7 +2215,7 @@ def _transform_case_numba(
                 if not have_fft:
                     fft = fft_case[i]
                     have_fft = True
-                c22[dim + n] = _summaries_welch_rect(series, feature == 20, fft)
+                c22[dim + n] = _summaries_fft(series, feature == 20, fft)
             elif feature == 7 or feature == 22:
                 if not have_mean:
                     smean = mean(series)
@@ -1910,7 +2229,7 @@ def _transform_case_numba(
             elif feature == 5:
                 c22[dim + n] = _trev_1_num(series)
             elif feature == 6:
-                c22[dim + n] = _hrv_classic_pnn40(series)
+                c22[dim + n] = _pnn40(series)
             elif feature == 9:
                 c22[dim + n] = _periodicity_wang(series)
             elif feature == 11:
@@ -1924,6 +2243,6 @@ def _transform_case_numba(
             elif feature == 19:
                 c22[dim + n] = _fluct_anal_dfa(series)
             elif feature == 21:
-                c22[dim + n] = _local_simple_mean3_stderr(series)
+                c22[dim + n] = _local_simple_mean3_stde(series)
 
     return c22

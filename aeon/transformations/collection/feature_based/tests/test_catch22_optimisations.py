@@ -74,7 +74,7 @@ def test_catch24_columns_are_series_mean_and_std():
     """catch24 appends the series mean and standard deviation as the last columns.
 
     These two columns are produced outside the numba kernel, so check they equal
-    numpy's per-series mean and population standard deviation.
+    numpy's per-series mean and sample standard deviation (as catch22).
     """
     X = _example(n_channels=N_CHANNELS)
     n_features = 24
@@ -84,7 +84,7 @@ def test_catch24_columns_are_series_mean_and_std():
         mean_column = Xt[:, channel * n_features + 22]
         std_column = Xt[:, channel * n_features + 23]
         assert_allclose(mean_column, X[:, channel].mean(axis=1), atol=1e-10)
-        assert_allclose(std_column, X[:, channel].std(axis=1), atol=1e-10)
+        assert_allclose(std_column, X[:, channel].std(axis=1, ddof=1), atol=1e-10)
 
 
 def test_masked_features_are_zeroed_and_others_unchanged():

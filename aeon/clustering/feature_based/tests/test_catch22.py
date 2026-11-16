@@ -40,7 +40,7 @@ def test_catch22_multivariate():
     )
     assert np.array_equal(
         train_result,
-        [7, 3, 0, 6, 5, 4, 7, 7, 4, 7, 1, 2],
+        [7, 3, 0, 5, 6, 4, 7, 7, 4, 7, 1, 2],
     )
     assert train_score == 0.4090909090909091
     assert test_score == 0.5
