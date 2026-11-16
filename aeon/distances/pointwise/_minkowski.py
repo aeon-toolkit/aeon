@@ -215,7 +215,9 @@ def minkowski_pairwise_distance(
     # Pass the same series-shaped w through to every pairwise call.
     if w is not None:
         if len(_X) == 0:
-            raise ValueError("X must contain at least one series when weights are given")
+            raise ValueError(
+                "X must contain at least one series when weights are given"
+            )
         sample = _X[0]
         if w.shape != sample.shape:
             raise ValueError(
