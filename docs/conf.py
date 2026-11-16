@@ -553,7 +553,9 @@ $(document).ready(function() {
 </script>
 """
 
-    with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
+    with open(
+        Path(__file__).parent / "estimator_overview_table.md", "w", encoding="utf-8"
+    ) as file:
         file.write(df_str)
 
 

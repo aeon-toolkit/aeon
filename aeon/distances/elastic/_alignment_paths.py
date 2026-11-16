@@ -54,6 +54,35 @@ def compute_min_return_path(cost_matrix: np.ndarray) -> list[tuple]:
 
 
 @njit(cache=True, fastmath=True)
+def derivative_path_to_original_path(
+    path: list[tuple], n_timepoints_x: int, n_timepoints_y: int
+) -> list[tuple]:
+    """Map an alignment path on derivative series to the original series.
+
+    Parameters
+    ----------
+    path : list of tuple
+        Alignment path on the derivative series, from ``(0, 0)`` to
+        ``(n_timepoints_x - 3, n_timepoints_y - 3)``.
+    n_timepoints_x : int
+        Number of time points in the first original series.
+    n_timepoints_y : int
+        Number of time points in the second original series.
+
+    Returns
+    -------
+    list of tuple
+        Alignment path on the original series, from ``(0, 0)`` to
+        ``(n_timepoints_x - 1, n_timepoints_y - 1)``.
+    """
+    mapped_path = [(0, 0)]
+    for i, j in path:
+        mapped_path.append((i + 1, j + 1))
+    mapped_path.append((n_timepoints_x - 1, n_timepoints_y - 1))
+    return mapped_path
+
+
+@njit(cache=True, fastmath=True)
 def compute_lcss_return_path(
     x: np.ndarray,
     y: np.ndarray,
