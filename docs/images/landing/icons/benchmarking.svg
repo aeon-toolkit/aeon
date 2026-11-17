@@ -1,0 +1,8 @@
+<svg class="aeon-icon" viewBox="0 0 160 90" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+<path class="i-line i-ink" d="M20 24h120M20 20v8M50 20v8M80 20v8M110 20v8M140 20v8"/>
+<path class="i-line i-ink-strong i-thick i-fade" style="--d:.7s" d="M62 33h26"/>
+<g class="i-fade" style="--d:0.0s"><path class="i-line i-ink i-thin" d="M38 24V46H14"/><circle class="i-fill-a" cx="38" cy="24" r="4.5"/></g>
+<g class="i-fade" style="--d:0.15s"><path class="i-line i-ink i-thin" d="M66 24V62H14"/><circle class="i-fill-ink" cx="66" cy="24" r="4.5"/></g>
+<g class="i-fade" style="--d:0.3s"><path class="i-line i-ink i-thin" d="M84 24V62H146"/><circle class="i-fill-ink" cx="84" cy="24" r="4.5"/></g>
+<g class="i-fade" style="--d:0.44999999999999996s"><path class="i-line i-ink i-thin" d="M124 24V46H146"/><circle class="i-fill-b" cx="124" cy="24" r="4.5"/></g>
+</svg>

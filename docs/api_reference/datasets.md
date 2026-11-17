@@ -19,6 +19,7 @@ used by `aeon`.
     load_classification
     load_forecasting
     load_regression
+    download_archive
     download_all_regression
     load_time_series_segmentation_benchmark
     load_human_activity_segmentation_datasets
@@ -34,7 +35,7 @@ used by `aeon`.
     load_basic_motions
     load_italy_power_demand
     load_japanese_vowels
-    load_plaid
+    load_pickup_gesture_wiimoteZ
     load_longley
     load_unit_test
     load_uschange
@@ -50,7 +51,7 @@ used by `aeon`.
 ```
 
 ```{toctree}
-:maxdepth: 1
+:hidden:
 
-api_reference/data_format.md
+data_format.md
 ```
