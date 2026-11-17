@@ -150,7 +150,7 @@ def _pelt_dp_loop(
 
 
 class PELTSegmenter(BaseSegmenter):
-    """PELT (Pruned Exact Linear Time) changepoint detector.
+    r"""PELT (Pruned Exact Linear Time) changepoint detector.
 
     Detects an unknown number of changepoints in a time series by minimising
     a penalised cost function using dynamic programming with an exact pruning
@@ -173,14 +173,14 @@ class PELTSegmenter(BaseSegmenter):
         Penalty added for each additional changepoint.
 
         - ``"bic"`` : Bayesian Information Criterion. For ``cost="l2"``, each
-          changepoint adds :math:`p = n\\_channels` mean parameters, and the penalty
-          is scaled by the channel noise variance :math:`\\hat{\\sigma}^2_c` estimated
+          changepoint adds :math:`p = n\_channels` mean parameters, and the penalty
+          is scaled by the channel noise variance :math:`\hat{\sigma}^2_c` estimated
           via the MAD of first differences (Killick et al. 2012, Section 2.1) [1]_:
-          :math:`\beta = \\sum_c \\hat{\\sigma}^2_c \\log(n)`.
-          For ``cost="normal"``, each changepoint adds :math:`p = 2 \\cdot n\\_channels`
-          parameters (mean and variance), yielding :math:`\beta = p \\log(n)`.
+          :math:`\beta = \sum_c \hat{\sigma}^2_c \log(n)`.
+          For ``cost="normal"``, each changepoint adds :math:`p = 2 \cdot n\_channels`
+          parameters (mean and variance), yielding :math:`\beta = p \log(n)`.
         - ``"aic"`` : Akaike Information Criterion. For ``cost="l2"``,
-          :math:`\beta = 2 \\sum_c \\hat{\\sigma}^2_c`. For ``cost="normal"``,
+          :math:`\beta = 2 \sum_c \hat{\sigma}^2_c`. For ``cost="normal"``,
           :math:`\beta = 2 p`.
         - ``float`` or ``int`` : Manual penalty value (must be finite and >= 0).
         - ``None`` : No penalty (equivalent to 0).
@@ -203,7 +203,7 @@ class PELTSegmenter(BaseSegmenter):
     floating-point cancellation.
 
     For the ``"normal"`` cost, a regularization constant epsilon relative to
-    each channel's empirical variance (:math:`\\epsilon_c = 10^{-8} \\mathrm{Var}(X_c)`)
+    each channel's empirical variance (:math:`\epsilon_c = 10^{-8} \mathrm{Var}(X_c)`)
     is added inside the logarithm to ensure scale invariance and prevent numerical
     issues on constant-value segments (with a fallback to :math:`10^{-8}` if
     channel variance is zero).
