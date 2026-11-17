@@ -172,16 +172,17 @@ class PELTSegmenter(BaseSegmenter):
     penalty : str, float, int, or None, default="bic"
         Penalty added for each additional changepoint.
 
-        - ``"bic"`` : Bayesian Information Criterion. For ``cost="l2"``, each
-          changepoint adds :math:`p = n\_channels` mean parameters, and the penalty
-          is scaled by the channel noise variance :math:`\hat{\sigma}^2_c` estimated
-          via the MAD of first differences (Killick et al. 2012, Section 2.1) [1]_:
-          :math:`\beta = \sum_c \hat{\sigma}^2_c \log(n)`.
-          For ``cost="normal"``, each changepoint adds :math:`p = 2 \cdot n\_channels`
-          parameters (mean and variance), yielding :math:`\beta = p \log(n)`.
-        - ``"aic"`` : Akaike Information Criterion. For ``cost="l2"``,
-          :math:`\beta = 2 \sum_c \hat{\sigma}^2_c`. For ``cost="normal"``,
-          :math:`\beta = 2 p`.
+        - ``"bic"`` : Bayesian Information Criterion. Under Killick et al.
+          (2012, Section 2.1) [1]_, each changepoint introduces :math:`p = 2`
+          parameters per channel (the changepoint location and the segment parameter).
+          For ``cost="l2"``, the penalty is scaled by the channel noise variance
+          :math:`\hat{\sigma}^2_c` estimated via the MAD of first differences:
+          :math:`\beta = 2 \sum_c \hat{\sigma}^2_c \log(n)`.
+          For ``cost="normal"``, both mean and variance are estimated per segment,
+          yielding :math:`\beta = 2 \cdot n\_channels \log(n)`.
+        - ``"aic"`` : Akaike Information Criterion:
+          For ``cost="l2"``, :math:`\beta = 4 \sum_c \hat{\sigma}^2_c`.
+          For ``cost="normal"``, :math:`\beta = 4 \cdot n\_channels`.
         - ``float`` or ``int`` : Manual penalty value (must be finite and >= 0).
         - ``None`` : No penalty (equivalent to 0).
 
@@ -400,12 +401,14 @@ class PELTSegmenter(BaseSegmenter):
             else:
                 total_var = float(n_channels)
 
+            # p = 2 parameters per changepoint per channel (Killick et al. 2012)
+            p = 2.0 * total_var
             if self.penalty == "bic":
-                return float(total_var * np.log(n_timepoints))
-            return float(2.0 * total_var)
+                return float(p * np.log(n_timepoints))
+            return float(2.0 * p)
         else:
             # For normal cost, p = 2 * n_channels (mean and variance per channel)
-            p = 2 * n_channels
+            p = 2.0 * n_channels
             if self.penalty == "bic":
                 return float(p * np.log(n_timepoints))
             return float(2.0 * p)

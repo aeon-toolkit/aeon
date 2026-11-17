@@ -1,5 +1,7 @@
 """Tests for _pelt module."""
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -85,7 +87,7 @@ def test_pelt_bic_vs_manual_penalty():
     diff = np.diff(series)
     mad = float(np.median(np.abs(diff - np.median(diff))))
     sigma = 1.4826 * mad / np.sqrt(2.0)
-    manual_pen = float((sigma**2) * np.log(len(series)))
+    manual_pen = float(2.0 * (sigma**2) * np.log(len(series)))
 
     pelt_bic = PELTSegmenter(cost="l2", penalty="bic")
     pelt_manual = PELTSegmenter(cost="l2", penalty=manual_pen)
@@ -143,7 +145,7 @@ def test_pelt_aic_penalty():
     diff = np.diff(series)
     mad = float(np.median(np.abs(diff - np.median(diff))))
     sigma = 1.4826 * mad / np.sqrt(2.0)
-    manual_pen_l2 = float(2.0 * (sigma**2))
+    manual_pen_l2 = float(4.0 * (sigma**2))
 
     pelt_aic = PELTSegmenter(cost="l2", penalty="aic")
     pelt_manual = PELTSegmenter(cost="l2", penalty=manual_pen_l2)
@@ -205,8 +207,10 @@ def test_pelt_scale_invariance(cost, scale):
 def test_pelt_validation_errors(kwargs, X, expected_msg):
     """Test that invalid parameters and non-finite inputs raise ValueError."""
     pelt = PELTSegmenter(**kwargs)
-    with pytest.raises(ValueError, match=expected_msg):
-        pelt.fit_predict(X)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        with pytest.raises(ValueError, match=expected_msg):
+            pelt.fit_predict(X)
 
 
 @pytest.mark.parametrize("int_type", [int, np.int32, np.int64])
