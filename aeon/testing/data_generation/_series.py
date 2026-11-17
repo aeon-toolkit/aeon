@@ -346,7 +346,7 @@ def make_example_segment_series(
     return_changepoints: bool = False,
     random_state: int | np.random.RandomState | np.random.Generator | None = None,
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
-    """Generate time series with segmented mean or variance shifts.
+    r"""Generate time series with segmented mean or variance shifts.
 
     Creates a synthetic series divided into three segments:
     - Segment 1 (indices 0 to t1): baseline distribution.
@@ -354,12 +354,16 @@ def make_example_segment_series(
     - Segment 3 (indices t2 to n_timepoints): baseline distribution.
 
     For ``shift_type="mean"``:
-    - Segments 1 & 3: :math:`\\mathcal{N}(0, \\sigma^2)` with :math:`\\sigma = \\text{noise\\_std}`.
-    - Segment 2: :math:`\\mathcal{N}(\\mu, \\sigma^2)` with :math:`\\mu = \\text{shift\\_magnitude}`.
+    - Segments 1 & 3: :math:`\mathcal{N}(0, \sigma^2)` where
+      :math:`\sigma = \text{noise\_std}`.
+    - Segment 2: :math:`\mathcal{N}(\mu, \sigma^2)` where
+      :math:`\mu = \text{shift\_magnitude}`.
 
     For ``shift_type="variance"``:
-    - Segments 1 & 3: :math:`\\mathcal{N}(0, \\sigma_1^2)` with :math:`\\sigma_1 = \\text{noise\\_std}`.
-    - Segment 2: :math:`\\mathcal{N}(0, \\sigma_2^2)` with :math:`\\sigma_2 = \\text{shift\\_magnitude}`.
+    - Segments 1 & 3: :math:`\mathcal{N}(0, \sigma_1^2)` where
+      :math:`\sigma_1 = \text{noise\_std}`.
+    - Segment 2: :math:`\mathcal{N}(0, \sigma_2^2)` where
+      :math:`\sigma_2 = \text{shift\_magnitude}`.
 
     Parameters
     ----------
