@@ -9,6 +9,7 @@ __all__ = [
     "ChannelScorer",
     "ElbowClassPairwise",
     "ElbowClassSum",
+    "MSTS",
     "RandomChannelSelector",
     "TSelect",
 ]
@@ -21,6 +22,7 @@ from aeon.transformations.collection.channel_selection._elbow_class import (
     ElbowClassPairwise,
     ElbowClassSum,
 )
+from aeon.transformations.collection.channel_selection._msts import MSTS
 from aeon.transformations.collection.channel_selection._random import (
     RandomChannelSelector,
 )
