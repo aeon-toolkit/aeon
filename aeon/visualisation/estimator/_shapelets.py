@@ -26,11 +26,11 @@ from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
     RandomShapeletTransform,
 )
-from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
+from aeon.utils.numba.general import (
     get_all_subsequences,
     normalise_subsequences,
+    sliding_mean_std_one_series,
 )
-from aeon.utils.numba.general import sliding_mean_std_one_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
