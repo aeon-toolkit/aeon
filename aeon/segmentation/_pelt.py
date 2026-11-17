@@ -21,8 +21,132 @@ __maintainer__ = []
 __all__ = ["PELTSegmenter"]
 
 import numpy as np
+from numba import njit
 
 from aeon.segmentation.base import BaseSegmenter
+
+
+@njit(cache=True)
+def _cost_l2_numba(S: np.ndarray, SS: np.ndarray, start: int, end: int) -> float:
+    length = end - start
+    n_channels = S.shape[1]
+    total = 0.0
+    for c in range(n_channels):
+        diff_s = S[end, c] - S[start, c]
+        diff_ss = SS[end, c] - SS[start, c]
+        dev = diff_ss - (diff_s * diff_s) / length
+        if dev > 0.0:
+            total += dev
+    return total
+
+
+@njit(cache=True)
+def _cost_normal_numba(
+    S: np.ndarray, SS: np.ndarray, start: int, end: int, eps: np.ndarray
+) -> float:
+    length = end - start
+    n_channels = S.shape[1]
+    total = 0.0
+    for c in range(n_channels):
+        diff_s = S[end, c] - S[start, c]
+        diff_ss = SS[end, c] - SS[start, c]
+        mean_c = diff_s / length
+        var = diff_ss / length - mean_c * mean_c
+        if var < 0.0:
+            var = 0.0
+        total += length * np.log(var + eps[c])
+    return total
+
+
+@njit(cache=True)
+def _pelt_dp_loop(
+    S: np.ndarray,
+    SS: np.ndarray,
+    grid: np.ndarray,
+    pen: float,
+    min_size: int,
+    cost_type: int,
+    eps: np.ndarray,
+) -> np.ndarray:
+    n_timepoints = S.shape[0] - 1
+    F = np.full(n_timepoints + 1, np.inf, dtype=np.float64)
+    F[0] = -pen
+    last_cp = np.zeros(n_timepoints + 1, dtype=np.int64)
+    expire = np.full(n_timepoints + 1, n_timepoints + 1, dtype=np.int64)
+
+    candidates = np.zeros(n_timepoints + 1, dtype=np.int64)
+    candidates[0] = 0
+    n_candidates = 1
+
+    cand_costs = np.zeros(n_timepoints + 1, dtype=np.float64)
+    cand_evaluated = np.zeros(n_timepoints + 1, dtype=np.bool_)
+
+    n_grid = len(grid)
+    for g_idx in range(1, n_grid):
+        t = grid[g_idx]
+
+        # Drop candidates that have expired by current time t
+        new_n_candidates = 0
+        for i in range(n_candidates):
+            tau = candidates[i]
+            if expire[tau] > t:
+                candidates[new_n_candidates] = tau
+                new_n_candidates += 1
+        n_candidates = new_n_candidates
+
+        best_cost = np.inf
+        best_tau = 0
+
+        for i in range(n_candidates):
+            tau = candidates[i]
+            if t - tau >= min_size:
+                if cost_type == 0:
+                    c = _cost_l2_numba(S, SS, tau, t)
+                else:
+                    c = _cost_normal_numba(S, SS, tau, t, eps)
+                cand_costs[i] = c
+                cand_evaluated[i] = True
+                total = F[tau] + c + pen
+                if total < best_cost:
+                    best_cost = total
+                    best_tau = tau
+            else:
+                cand_evaluated[i] = False
+
+        F[t] = best_cost
+        last_cp[t] = best_tau
+
+        # Pruning rule with delayed expiration for min_size >= 2
+        if np.isfinite(F[t]):
+            for i in range(n_candidates):
+                if cand_evaluated[i]:
+                    tau = candidates[i]
+                    c = cand_costs[i]
+                    if F[tau] + c >= F[t]:
+                        exp_t = t + min_size
+                        if exp_t < expire[tau]:
+                            expire[tau] = exp_t
+
+        if t >= min_size and np.isfinite(F[t]):
+            candidates[n_candidates] = t
+            n_candidates += 1
+
+    # Backtrack optimal changepoint sequence
+    curr = n_timepoints
+    count = 0
+    while last_cp[curr] != 0:
+        count += 1
+        curr = last_cp[curr]
+
+    changepoints = np.empty(count, dtype=np.int64)
+    curr = n_timepoints
+    idx = count - 1
+    while last_cp[curr] != 0:
+        changepoints[idx] = last_cp[curr]
+        curr = last_cp[curr]
+        idx -= 1
+
+    return changepoints
 
 
 class PELTSegmenter(BaseSegmenter):
@@ -48,22 +172,28 @@ class PELTSegmenter(BaseSegmenter):
     penalty : str, float, int, or None, default="bic"
         Penalty added for each additional changepoint.
 
-        - ``"bic"`` : Bayesian Information Criterion,
-          ``penalty = p * log(n_timepoints)`` where ``p`` is the number of
-          free parameters per segment (``n_channels`` for L2,
-          ``2 * n_channels`` for normal).
-        - ``"aic"`` : Akaike Information Criterion, ``penalty = 2 * p``.
-        - ``float`` or ``int`` : Manual penalty value (must be >= 0).
+        - ``"bic"`` : Bayesian Information Criterion. For ``cost="l2"``, each
+          changepoint adds :math:`p = n\\_channels` mean parameters, and the penalty
+          is scaled by the channel noise variance :math:`\\hat{\\sigma}^2_c` estimated
+          via the MAD of first differences (Killick et al. 2012, Section 2.1) [1]_:
+          :math:`\beta = \\sum_c \\hat{\\sigma}^2_c \\log(n)`.
+          For ``cost="normal"``, each changepoint adds :math:`p = 2 \\cdot n\\_channels`
+          parameters (mean and variance), yielding :math:`\beta = p \\log(n)`.
+        - ``"aic"`` : Akaike Information Criterion. For ``cost="l2"``,
+          :math:`\beta = 2 \\sum_c \\hat{\\sigma}^2_c`. For ``cost="normal"``,
+          :math:`\beta = 2 p`.
+        - ``float`` or ``int`` : Manual penalty value (must be finite and >= 0).
         - ``None`` : No penalty (equivalent to 0).
 
     min_size : int, default=2
         Minimum number of observations between consecutive changepoints.
-        Must be >= 2.
+        Must be an integer >= 2.
 
     jump : int, default=1
         Subsample interval for candidate changepoint positions.
         ``jump=1`` considers every position; ``jump=k`` considers every
         k-th position. Larger values trade optimality for speed.
+        Must be an integer >= 1.
 
     Notes
     -----
@@ -72,8 +202,11 @@ class PELTSegmenter(BaseSegmenter):
     and cast to float64 before prefix-sum computation to mitigate
     floating-point cancellation.
 
-    For the ``"normal"`` cost, an epsilon of 1e-8 is added inside the
-    logarithm to prevent numerical issues on constant-value segments.
+    For the ``"normal"`` cost, a regularization constant epsilon relative to
+    each channel's empirical variance (:math:`\\epsilon_c = 10^{-8} \\mathrm{Var}(X_c)`)
+    is added inside the logarithm to ensure scale invariance and prevent numerical
+    issues on constant-value segments (with a fallback to :math:`10^{-8}` if
+    channel variance is zero).
     Setting ``min_size >= 10`` is recommended when using ``cost="normal"``
     to prevent spurious short segments resulting from empirical variance
     underestimation.
@@ -131,6 +264,9 @@ class PELTSegmenter(BaseSegmenter):
 
         n_channels, n_timepoints = X.shape
 
+        if np.isinf(X).any():
+            raise ValueError("Input time series X contains infinite values.")
+
         if n_timepoints < 2 * self.min_size:
             return np.array([], dtype=np.intp)
 
@@ -144,55 +280,23 @@ class PELTSegmenter(BaseSegmenter):
         np.cumsum(data_T, axis=0, out=S[1:])
         np.cumsum(data_T**2, axis=0, out=SS[1:])
 
-        pen = self._compute_penalty(n_timepoints, n_channels)
+        pen = self._compute_penalty(n_timepoints, n_channels, data)
+        cost_type = 0 if self.cost == "l2" else 1
 
-        grid = list(range(0, n_timepoints + 1, self.jump))
+        if self.cost == "normal":
+            eps = np.empty(n_channels, dtype=np.float64)
+            for c in range(n_channels):
+                chan_var = float(np.var(data[c]))
+                eps[c] = 1e-8 * chan_var if chan_var > 0.0 else 1e-8
+        else:
+            eps = np.zeros(n_channels, dtype=np.float64)
+
+        grid = np.arange(0, n_timepoints + 1, self.jump, dtype=np.int64)
         if grid[-1] != n_timepoints:
-            grid.append(n_timepoints)
+            grid = np.append(grid, n_timepoints)
 
-        F: dict[int, float] = {0: -pen}
-        cp: dict[int, int] = {0: 0}
-        candidates: set[int] = {0}
-
-        cost_fn = self._cost_l2 if self.cost == "l2" else self._cost_normal
-
-        for t in grid[1:]:
-            best_cost = np.inf
-            best_tau = 0
-            seg_costs: dict[int, float] = {}
-
-            for tau in candidates:
-                if t - tau >= self.min_size:
-                    c = cost_fn(S, SS, tau, t)
-                    seg_costs[tau] = c
-                    total = F[tau] + c + pen
-                    if total < best_cost:
-                        best_cost = total
-                        best_tau = tau
-
-            F[t] = best_cost
-            cp[t] = best_tau
-
-            # Pruning rule with K = 0: keep tau iff F[tau] + C(tau..t) <= F[t]
-            new_candidates: set[int] = set()
-            for tau in candidates:
-                if tau in seg_costs:
-                    if F[tau] + seg_costs[tau] <= F[t]:
-                        new_candidates.add(tau)
-                else:
-                    new_candidates.add(tau)
-            new_candidates.add(t)
-            candidates = new_candidates
-
-        # Backtrack optimal changepoint sequence
-        changepoints: list[int] = []
-        t = n_timepoints
-        while cp.get(t, 0) != 0:
-            changepoints.append(cp[t])
-            t = cp[t]
-
-        changepoints.sort()
-        return np.array(changepoints, dtype=np.intp)
+        changepoints = _pelt_dp_loop(S, SS, grid, pen, self.min_size, cost_type, eps)
+        return changepoints.astype(np.intp)
 
     @staticmethod
     def _cost_l2(S: np.ndarray, SS: np.ndarray, start: int, end: int) -> float:
@@ -220,13 +324,12 @@ class PELTSegmenter(BaseSegmenter):
         float
             Segment cost.
         """
-        length = end - start
-        diff_s = S[end] - S[start]
-        diff_ss = SS[end] - SS[start]
-        return float(np.sum(np.maximum(diff_ss - diff_s**2 / length, 0.0)))
+        return _cost_l2_numba(S, SS, start, end)
 
     @staticmethod
-    def _cost_normal(S: np.ndarray, SS: np.ndarray, start: int, end: int) -> float:
+    def _cost_normal(
+        S: np.ndarray, SS: np.ndarray, start: int, end: int, eps: float = 1e-8
+    ) -> float:
         r"""Gaussian log-likelihood cost (mean + variance change).
 
         .. math::
@@ -245,19 +348,21 @@ class PELTSegmenter(BaseSegmenter):
             Segment start (exclusive).
         end : int
             Segment end (inclusive).
+        eps : float, default=1e-8
+            Regularization constant.
 
         Returns
         -------
         float
             Segment cost.
         """
-        length = end - start
-        diff_s = S[end] - S[start]
-        diff_ss = SS[end] - SS[start]
-        var = np.maximum(diff_ss / length - (diff_s / length) ** 2, 0.0)
-        return float(np.sum(length * np.log(var + 1e-8)))
+        n_channels = S.shape[1]
+        eps_arr = np.full(n_channels, eps, dtype=np.float64)
+        return _cost_normal_numba(S, SS, start, end, eps_arr)
 
-    def _compute_penalty(self, n_timepoints: int, n_channels: int) -> float:
+    def _compute_penalty(
+        self, n_timepoints: int, n_channels: int, data: np.ndarray | None = None
+    ) -> float:
         """Compute the penalty value from *self.penalty*.
 
         Parameters
@@ -266,22 +371,44 @@ class PELTSegmenter(BaseSegmenter):
             Length of the time series.
         n_channels : int
             Number of channels.
+        data : np.ndarray or None, default=None
+            Centered data array of shape ``(n_channels, n_timepoints)`` used to
+            estimate channel noise variance for L2 penalty scaling.
 
         Returns
         -------
         float
             Penalty value (>= 0).
         """
-        params_per_channel = 1 if self.cost == "l2" else 2
-        p = n_channels * params_per_channel
-
         if self.penalty is None:
             return 0.0
-        if isinstance(self.penalty, str):
+        if not isinstance(self.penalty, str):
+            return float(self.penalty)
+
+        if self.cost == "l2":
+            if data is not None and n_timepoints > 1:
+                total_var = 0.0
+                for c in range(n_channels):
+                    diff = np.diff(data[c])
+                    mad = float(np.median(np.abs(diff - np.median(diff))))
+                    sigma = 1.4826 * mad / np.sqrt(2.0)
+                    var_c = sigma**2
+                    if var_c <= 0.0:
+                        chan_var = float(np.var(data[c]))
+                        var_c = max(1e-8 * chan_var, 1e-8)
+                    total_var += var_c
+            else:
+                total_var = float(n_channels)
+
             if self.penalty == "bic":
-                return p * np.log(n_timepoints)
-            return 2.0 * p
-        return float(self.penalty)
+                return float(total_var * np.log(n_timepoints))
+            return float(2.0 * total_var)
+        else:
+            # For normal cost, p = 2 * n_channels (mean and variance per channel)
+            p = 2 * n_channels
+            if self.penalty == "bic":
+                return float(p * np.log(n_timepoints))
+            return float(2.0 * p)
 
     def _validate_params(self) -> None:
         """Validate constructor parameters.
@@ -297,6 +424,13 @@ class PELTSegmenter(BaseSegmenter):
                 f"Invalid cost '{self.cost}'. Must be one of {valid_costs}."
             )
 
+        if isinstance(self.penalty, bool):
+            raise ValueError(f"penalty cannot be a boolean, got {self.penalty}.")
+        if isinstance(self.min_size, bool):
+            raise ValueError(f"min_size cannot be a boolean, got {self.min_size}.")
+        if isinstance(self.jump, bool):
+            raise ValueError(f"jump cannot be a boolean, got {self.jump}.")
+
         if self.penalty is None:
             pass
         elif isinstance(self.penalty, str):
@@ -307,6 +441,8 @@ class PELTSegmenter(BaseSegmenter):
                     f"Must be one of {valid_penalties}, None, or a non-negative number."
                 )
         elif isinstance(self.penalty, (int, float, np.number)):
+            if not np.isfinite(self.penalty):
+                raise ValueError(f"penalty must be finite, got {self.penalty}.")
             if self.penalty < 0:
                 raise ValueError(
                     f"Manual penalty must be a non-negative number, got {self.penalty}."
@@ -317,10 +453,10 @@ class PELTSegmenter(BaseSegmenter):
                 f"got {self.penalty}."
             )
 
-        if not isinstance(self.min_size, int) or self.min_size < 2:
+        if not isinstance(self.min_size, (int, np.integer)) or self.min_size < 2:
             raise ValueError(f"min_size must be an integer >= 2, got {self.min_size}.")
 
-        if not isinstance(self.jump, int) or self.jump < 1:
+        if not isinstance(self.jump, (int, np.integer)) or self.jump < 1:
             raise ValueError(f"jump must be an integer >= 1, got {self.jump}.")
 
     @classmethod

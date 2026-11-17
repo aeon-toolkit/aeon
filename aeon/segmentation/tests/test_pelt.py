@@ -166,9 +166,7 @@ def test_pelt_aic_penalty():
 # ---- brute-force exact partition solver & tests ----
 
 
-def _exact_partition_solver(
-    X, cost="l2", penalty=5.0, min_size=2, jump=1, axis=1
-):
+def _exact_partition_solver(X, cost="l2", penalty=5.0, min_size=2, jump=1, axis=1):
     """Brute-force exact optimal partition solver without pruning.
 
     Solves the optimal partitioning problem using unpruned dynamic
@@ -214,12 +212,7 @@ def _exact_partition_solver(
         best_cost = np.inf
         best_tau = 0
         for tau in grid:
-            if (
-                tau < t
-                and (t - tau) >= min_size
-                and tau in F
-                and np.isfinite(F[tau])
-            ):
+            if tau < t and (t - tau) >= min_size and tau in F and np.isfinite(F[tau]):
                 c = calc_cost(tau, t)
                 total = F[tau] + c + penalty
                 if total < best_cost:
