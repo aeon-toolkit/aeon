@@ -45,15 +45,24 @@ class BaseDeepClassifier(BaseClassifier):
 
     Parameters
     ----------
-    batch_size : int, default = 40
-        training batch size for the model
-    last_file_name : str, default = "last_model"
+    batch_size : int, default=40
+        Training batch size for the model.
+    random_state : int, RandomState instance or None, default=None
+        If int, random_state is the seed used by the random number generator.
+    last_file_name : str, default="last_model"
         The name of the file of the last model, used
-        only if save_last_model_to_file is used
+        only if save_last_model_to_file is used.
 
     Attributes
     ----------
-    self.model = None
+    model_ : tensorflow.keras.models.Model or None
+        The compiled and fitted Keras model.
+    classes_ : np.ndarray
+        Unique class labels seen in training data.
+    n_classes_ : int
+        Number of unique classes seen in training data.
+    history : tensorflow.keras.callbacks.History or None
+        The training history object returned by ``fit``.
     """
 
     _tags = {

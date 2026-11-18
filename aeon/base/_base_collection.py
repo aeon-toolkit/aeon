@@ -53,6 +53,13 @@ class BaseCollectionEstimator(BaseAeonEstimator):
 
     It also stores the common default tags used by all the subclasses and meta data
     describing the characteristics of time series passed to ``fit``.
+
+    Attributes
+    ----------
+    metadata_ : dict
+        Metadata about the time series collection seen in ``fit``, describing
+        characteristics such as ``n_cases``, ``n_channels``, ``n_timepoints``,
+        ``multivariate``, ``unequal_length``, and ``missing_values``.
     """
 
     _tags = {
