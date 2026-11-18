@@ -32,6 +32,7 @@ from aeon.datasets._data_loaders import (
     _load_header_info,
     _load_saved_dataset,
     _load_tsc_dataset,
+    download_archive,
     download_dataset,
 )
 from aeon.testing.testing_config import PR_TESTING
@@ -551,6 +552,19 @@ def test_download_dataset():
             download_dataset("FOO", save_path=tmp)
         with pytest.raises(ValueError, match="Invalid dataset name"):
             download_dataset("BAR")
+
+
+def test_download_archive_eeg_raises(tmp_path, monkeypatch):
+    """Test download_archive("EEG") raises before creating or downloading anything."""
+
+    def _fail_urlretrieve(url, filename):
+        raise AssertionError(f"Unexpected download of {url}")
+
+    monkeypatch.setattr("urllib.request.urlretrieve", _fail_urlretrieve)
+    extract_path = tmp_path / "eeg"
+    with pytest.raises(ValueError, match="load_classification"):
+        download_archive("EEG", extract_path=str(extract_path))
+    assert not extract_path.exists()
 
 
 @pytest.mark.skipif(
