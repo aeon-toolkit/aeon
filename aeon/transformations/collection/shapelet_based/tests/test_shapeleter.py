@@ -12,6 +12,7 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _cosine_similarity_squared_loss,
     _hilbert_transform,
     _hypergraph_prune,
+    _jaccard_similar_neighbors,
     _knn_hyperedges,
     _optimize_position_encoding_np,
     _series_transform,
@@ -758,3 +759,218 @@ def test_sk_lda_pair_equal_class_means_follows_sklearn():
         ][0]
 
         np.testing.assert_allclose(our_proj, ref_proj, atol=1e-8)
+
+
+@pytest.mark.parametrize(
+    "n, n_classes, seed, duplicates, save_rate, threshold, expected",
+    [
+        (
+            150,
+            3,
+            1,
+            True,
+            0.125,
+            0.9,
+            [
+                35,
+                127,
+                30,
+                110,
+                134,
+                125,
+                12,
+                59,
+                108,
+                87,
+                52,
+                144,
+                46,
+                44,
+                69,
+                117,
+                58,
+                70,
+                1,
+            ],
+        ),
+        (
+            200,
+            5,
+            2,
+            True,
+            0.25,
+            0.5,
+            [
+                43,
+                161,
+                75,
+                146,
+                162,
+                29,
+                40,
+                126,
+                65,
+                92,
+                190,
+                153,
+                168,
+                149,
+                48,
+                170,
+                184,
+                142,
+                71,
+                110,
+                181,
+                79,
+                15,
+                6,
+                47,
+                38,
+                99,
+                8,
+                17,
+                186,
+                24,
+                20,
+                36,
+                163,
+                58,
+                118,
+                191,
+                130,
+                157,
+                137,
+                134,
+                74,
+                66,
+                196,
+                194,
+                141,
+                183,
+                121,
+                176,
+                12,
+            ],
+        ),
+        (
+            120,
+            2,
+            3,
+            False,
+            0.5,
+            0.9,
+            [
+                28,
+                115,
+                94,
+                67,
+                44,
+                85,
+                34,
+                99,
+                119,
+                83,
+                22,
+                25,
+                65,
+                21,
+                46,
+                57,
+                66,
+                100,
+                31,
+                104,
+                68,
+                61,
+                72,
+                8,
+                64,
+                86,
+                59,
+                15,
+                95,
+                12,
+                87,
+                81,
+                112,
+                26,
+                58,
+                2,
+                78,
+                3,
+                84,
+                69,
+                91,
+                56,
+                9,
+                113,
+                29,
+                62,
+                79,
+                4,
+                98,
+                109,
+                71,
+                102,
+                114,
+                49,
+                40,
+                107,
+                18,
+                17,
+                111,
+                63,
+            ],
+        ),
+    ],
+)
+def test_hypergraph_prune_matches_reference_larger_groups(
+    n, n_classes, seed, duplicates, save_rate, threshold, expected
+):
+    """Expected output from reference neighbor_hypergraph_based_shapelet_selection.
+
+    Reference: https://github.com/CCHe64/Shapeleter (Shapeleter.ipynb, cell 11).
+    neighbor_k=[3, 5], shapelets = RandomState(seed).normal(size=(n, 1, 11))
+    (second quarter copied from the first when ``duplicates``),
+    labels = RandomState(seed + 100).randint(0, n_classes, size=n).
+    """
+    sh = np.random.RandomState(seed).normal(size=(n, 1, 11))
+    if duplicates:
+        half = n // 2
+        sh[half : 2 * half] = sh[:half]
+    labels = np.random.RandomState(seed + 100).randint(0, n_classes, size=n)
+    selected = _hypergraph_prune(
+        sh, 11, labels, save_rate=save_rate, jaccard_threshold=threshold
+    )
+    assert selected.tolist() == expected
+
+
+@pytest.mark.parametrize("threshold", [0.9, 0.5, 0.2])
+def test_jaccard_similar_neighbors_matches_dense(threshold):
+    """Sparse neighbours must equal pairs of dense Jaccard matrix above threshold."""
+    rng = np.random.RandomState(0)
+    n = 60
+    sub = rng.normal(size=(n, 11))
+    sub[30:] = sub[:30]  # duplicates create many identical hyperedge sets
+    edges = _knn_hyperedges(sub, (3, 5))
+    members = np.zeros((n, len(edges)), dtype=int)
+    for e, nodes in enumerate(edges):
+        members[nodes, e] = 1
+    inter = members @ members.T
+    union = members.sum(1)[:, None] + members.sum(1)[None, :] - inter
+    jac = np.divide(inter, union, out=np.zeros((n, n)), where=union != 0)
+    np.fill_diagonal(jac, 0.0)
+    similar = _jaccard_similar_neighbors(edges, n, threshold)
+    for i in range(n):
+        expected = np.where(jac[i] >= threshold)[0]
+        assert sorted(similar[i].tolist()) == expected.tolist()
+
+
+def test_knn_hyperedges_do_not_keep_sorted_rows_alive():
+    """Hyperedge must own its memory (a view would keep a whole sorted row alive)."""
+    sub = np.random.RandomState(0).normal(size=(40, 11))
+    edges = _knn_hyperedges(sub, (3, 5))
+    assert len(edges) == 2 * 40
+    assert all(edge.base is None for edge in edges)
+    assert [len(edge) for edge in edges] == [3] * 40 + [5] * 40
