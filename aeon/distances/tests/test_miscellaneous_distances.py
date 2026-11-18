@@ -77,9 +77,7 @@ def test_minkowski_pairwise_weights_match_single_series():
     expected_self = np.array(
         [[minkowski_distance(a, b, p=2, w=w) for b in X] for a in X]
     )
-    expected_xy = np.array(
-        [[minkowski_distance(a, b, p=2, w=w) for b in Y] for a in X]
-    )
+    expected_xy = np.array([[minkowski_distance(a, b, p=2, w=w) for b in Y] for a in X])
 
     got_self = minkowski_pairwise_distance(X, p=2, w=w)
     got_xy = minkowski_pairwise_distance(X, Y, p=2, w=w)
@@ -87,9 +85,7 @@ def test_minkowski_pairwise_weights_match_single_series():
     assert_almost_equal(got_self, expected_self)
     assert_almost_equal(got_xy, expected_xy)
     # Symmetry under swap of arguments
-    assert_almost_equal(
-        minkowski_pairwise_distance(Y, X, p=2, w=w), expected_xy.T
-    )
+    assert_almost_equal(minkowski_pairwise_distance(Y, X, p=2, w=w), expected_xy.T)
 
     # Multivariate collection
     Xm = rng.normal(size=(3, 2, 5))
