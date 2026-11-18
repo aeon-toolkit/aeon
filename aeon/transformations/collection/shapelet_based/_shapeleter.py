@@ -49,38 +49,48 @@ def _assign_order_batch(positions_abs_2d):
     return out
 
 
-def _compute_jaccard_matrix(edges, n_nodes):
-    """Compute Jaccard similarity matrix across hypergraph nodes."""
-    if len(edges) == 0 or n_nodes == 0:
-        return np.eye(max(1, n_nodes))
-
-    num_edges = len(edges)
-    edge_lens = [len(e) for e in edges]
-    cols = np.repeat(np.arange(num_edges), edge_lens)
-    rows = np.concatenate(edges)
-    data = np.ones(len(rows), dtype=np.int32)
-
-    h_csr = csr_matrix((data, (rows, cols)), shape=(n_nodes, num_edges))
-    intersection = (h_csr @ h_csr.T).toarray()
-    degrees = np.asarray(h_csr.sum(axis=1)).ravel()
-    union = degrees[:, np.newaxis] + degrees[np.newaxis, :] - intersection
-
-    j_matrix = np.zeros((n_nodes, n_nodes), dtype=float)
-    np.divide(intersection, union, where=(union != 0), out=j_matrix)
-    np.fill_diagonal(j_matrix, 1.0)
-    return j_matrix
-
-
 def _knn_hyperedges(cleaned_sub, valid_k):
-    """Compute self-inclusive k-NN hyperedges for candidate shapelets."""
-    n_shapelets = cleaned_sub.shape[0]
+    """Self-inclusive k-NN hyperedges.
+
+    The diagonal is -inf, so a node is its own first neighbour.
+    The edge order is k-major (all edges of the first k, then the second k), as before.
+    Each edge is copied: a slice of ``np.argsort`` row would keep
+    the whole sorted row alive.
+    """
+    n = cleaned_sub.shape[0]
     dist_mat = euclidean_distances(cleaned_sub)
     np.fill_diagonal(dist_mat, -np.inf)
-    edges = []
-    for k in valid_k:
-        for i in range(n_shapelets):
-            edges.append(np.argsort(dist_mat[i])[:k])
-    return edges
+    edges_by_k = [[] for _ in valid_k]
+    for i in range(n):
+        order = np.argsort(dist_mat[i])
+        for j, k in enumerate(valid_k):
+            edges_by_k[j].append(order[:k].copy())
+    return [edge for edges in edges_by_k for edge in edges]
+
+
+def _jaccard_similar_neighbors(edges, n_nodes, jaccard_threshold):
+    """Return, for every node, the other nodes with Jaccard similarity >= threshold.
+
+    Only the pairs that share at least one hyperedge are computed (sparse), so memory is
+    linear in the number of hyperedges instead of quadratic in the number of nodes.
+    """
+    edge_lens = [len(e) for e in edges]
+    cols = np.repeat(np.arange(len(edges)), edge_lens)
+    rows = np.concatenate(edges)
+    h = csr_matrix(
+        (np.ones(len(rows), dtype=np.int32), (rows, cols)), shape=(n_nodes, len(edges))
+    )
+    inter = (h @ h.T).tocoo()
+    degrees = np.asarray(h.sum(axis=1)).ravel()
+    union = degrees[inter.row] + degrees[inter.col] - inter.data
+    sim = np.zeros(len(union), dtype=float)
+    np.divide(inter.data, union, where=(union != 0), out=sim)
+    keep = (sim >= jaccard_threshold) & (inter.row != inter.col)
+    r, c = inter.row[keep], inter.col[keep]
+    order = np.argsort(r, kind="stable")
+    r, c = r[order], c[order]
+    bounds = np.searchsorted(r, np.arange(n_nodes + 1))
+    return [c[bounds[i] : bounds[i + 1]] for i in range(n_nodes)]
 
 
 def _hypergraph_prune(
@@ -114,21 +124,14 @@ def _hypergraph_prune(
     with np.errstate(divide="ignore", invalid="ignore"):
         purity = np.where(degree > 0, purity / degree, 0.0)
 
-    j_matrix = _compute_jaccard_matrix(edges, n_shapelets)
-    j_matrix_bin = np.zeros_like(j_matrix)
-    j_matrix_bin[j_matrix >= jaccard_threshold] = 1.0
-    np.fill_diagonal(j_matrix_bin, -1.0)
-
+    # Sparse Jaccard neighbours instead of a dense n x n matrix:
+    # same selection, memory linear in the number of hyperedges.
+    similar = _jaccard_similar_neighbors(edges, n_shapelets, jaccard_threshold)
     save_n = max(1, min(int(np.ceil(save_rate * n_shapelets)), n_shapelets))
 
-    # Follows neighbor_hypergraph_based_shapelet_selection
-    # (reference notebook cell 11, CCHe64/Shapeleter) line by line.
-    # Note: the reference does not remap the label index after removing
-    # an exhausted label; this is kept for parity.
     unique_labels = np.unique(labels)
     top_node = int(np.argmax(purity))
     saved_nodes = [top_node]
-
     label_index = int(np.where(unique_labels == labels[top_node])[0][0]) + 1
     if label_index >= len(unique_labels):
         label_index = 0
@@ -138,15 +141,11 @@ def _hypergraph_prune(
 
     for _ in range(save_n - 1):
         last_saved = saved_nodes[-1]
-        similar_nodes = np.where(j_matrix_bin[last_saved, :] == 1.0)[0]
-        j_matrix_bin[:, similar_nodes] = -1.0
-        j_matrix_bin[similar_nodes, :] = -1.0
-        j_matrix_bin[last_saved, :] = -1.0
-        j_matrix_bin[:, last_saved] = -1.0
-        candidate_nodes = candidate_nodes[~np.isin(candidate_nodes, similar_nodes)]
+        candidate_nodes = candidate_nodes[
+            ~np.isin(candidate_nodes, similar[last_saved])
+        ]
         if len(candidate_nodes) == 0:
             break
-
         cand_labels = labels[candidate_nodes]
         curr_label = unique_labels[label_index]
         if np.sum(cand_labels == curr_label) == 0:
@@ -156,19 +155,15 @@ def _hypergraph_prune(
                 label_index = 0
             curr_label = unique_labels[label_index]
             unique_labels = unique_labels[unique_labels != curr_label_0]
-
         sub_cands = candidate_nodes[cand_labels == curr_label]
         if len(sub_cands) == 0:
             break
         best_cand = int(sub_cands[np.argmax(purity[sub_cands])])
-
         label_index += 1
         if label_index >= len(unique_labels):
             label_index = 0
-
         saved_nodes.append(best_cand)
         candidate_nodes = candidate_nodes[candidate_nodes != best_cand]
-
     return np.array(saved_nodes, dtype=int)
 
 
