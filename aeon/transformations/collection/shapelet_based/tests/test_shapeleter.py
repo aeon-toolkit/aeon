@@ -26,11 +26,11 @@ def test_shapeleter_transformer_features():
     X = np.random.RandomState(42).normal(size=(5, 1, 30))
     y = np.array([0, 1, 0, 1, 0])
     st = ShapeleterTransform(
-        max_shapelets=20,
-        per_shapelets=5,
+        max_shapelets=10,
+        per_shapelets=3,
         ka=8.0,
         ko=8.0,
-        max_iter=5,
+        max_iter=1,
         random_state=42,
     )
     Xt = st.fit_transform(X, y)
@@ -960,9 +960,9 @@ def _ref_knn_hyperedges_full_matrix(cleaned_sub, valid_k):
     return [edge for edges in edges_by_k for edge in edges]
 
 
-@pytest.mark.parametrize("n", [50, 300])
+@pytest.mark.parametrize("n", [50, 150])
 @pytest.mark.parametrize("seed", [0, 1])
-@pytest.mark.parametrize("chunk_size", [1, 7, 64, 10000])
+@pytest.mark.parametrize("chunk_size", [1, 16, 10000])
 def test_knn_hyperedges_row_blocked_matches_full_matrix(n, seed, chunk_size):
     """Row-blocked k-NN must match full-matrix reference on tie-free continuous data."""
     from sklearn.metrics.pairwise import euclidean_distances

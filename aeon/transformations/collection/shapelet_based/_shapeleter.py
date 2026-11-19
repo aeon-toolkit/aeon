@@ -6,7 +6,7 @@ __all__ = ["ShapeleterTransform"]
 from functools import lru_cache
 
 import numpy as np
-from numba import njit, prange
+from numba import njit
 from scipy import linalg
 from scipy.sparse import csr_matrix
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -39,12 +39,12 @@ def _assign_order(positions_abs):
     return positions_ord
 
 
-@njit(parallel=True, fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def _assign_order_batch(positions_abs_2d):
-    """Compute ordinal positions across all cases in parallel."""
+    """Compute ordinal positions across all cases."""
     n_cases, n_feats = positions_abs_2d.shape
     out = np.zeros((n_cases, n_feats), dtype=np.float64)
-    for c in prange(n_cases):
+    for c in range(n_cases):
         out[c] = _assign_order(positions_abs_2d[c])
     return out
 
@@ -168,11 +168,11 @@ def _hypergraph_prune(
 
     for _ in range(save_n - 1):
         last_saved = saved_nodes[-1]
-        candidate_nodes = candidate_nodes[
-            ~np.isin(candidate_nodes, similar[last_saved])
-        ]
-        if len(candidate_nodes) == 0:
-            break
+        sim_last = similar[last_saved]
+        if len(sim_last) > 0:
+            candidate_nodes = candidate_nodes[~np.isin(candidate_nodes, sim_last)]
+            if len(candidate_nodes) == 0:
+                break
         cand_labels = labels[candidate_nodes]
         curr_label = unique_labels[label_index]
         if np.sum(cand_labels == curr_label) == 0:
@@ -285,12 +285,12 @@ def _optimize_position_encoding_np(
     return last_valid_ka, last_valid_ko
 
 
-@njit(parallel=True, fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def _hilbert_transform_3d(X):
     """Compute exact discrete Hilbert transform via direct sum."""
     n_cases, n_channels, n_timepoints = X.shape
     out = np.zeros((n_cases, n_channels, n_timepoints), dtype=np.float64)
-    for c in prange(n_cases):
+    for c in range(n_cases):
         for ch in range(n_channels):
             for k in range(n_timepoints):
                 val = 0.0
@@ -333,6 +333,14 @@ def _hilbert_transform(signal):
     return out
 
 
+def _z_normalize_series(s):
+    mean = np.mean(s, axis=-1, keepdims=True)
+    std = np.std(s, axis=-1, keepdims=True)
+    # same zero handling as sklearn.preprocessing.scale
+    std = np.where(std < 10 * np.finfo(np.float64).eps, 1.0, std)
+    return (s - mean) / std
+
+
 def _series_transform(X, mode):
     """Transform time series collection into alternative representation.
 
@@ -362,11 +370,17 @@ def _series_transform(X, mode):
             f"Unknown transformation mode: {mode}. Expected 'F', 'H', or 'HF'."
         )
 
-    mean = np.mean(s, axis=-1, keepdims=True)
-    std = np.std(s, axis=-1, keepdims=True)
-    # same zero handling as sklearn.preprocessing.scale
-    std = np.where(std < 10 * np.finfo(np.float64).eps, 1.0, std)
-    return (s - mean) / std
+    return _z_normalize_series(s)
+
+
+def _generate_series_representations(X):
+    """Compute raw, F, H, and HF representations without duplicate transforms."""
+    X_raw = X
+    X_t0 = _series_transform(X, "F")
+    X_ht = _hilbert_transform(X)
+    X_t1 = _z_normalize_series(X_ht)
+    X_t2 = _z_normalize_series(np.diff(X_ht, axis=-1))
+    return X_raw, X_t0, X_t1, X_t2
 
 
 @lru_cache(maxsize=1)
@@ -930,8 +944,8 @@ class ShapeleterTransform(BaseCollectionTransformer):
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter sets for the estimator."""
         return {
-            "max_shapelets": 20,
-            "per_shapelets": 5,
-            "max_iter": 2,
+            "max_shapelets": 10,
+            "per_shapelets": 3,
+            "max_iter": 1,
             "random_state": 42,
         }

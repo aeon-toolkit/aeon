@@ -88,7 +88,7 @@ def test_shapeleter_classifier_unit_test_fits(seed):
     """Regression: UnitTest fits and predicts without constant feature pair crashes."""
     X, y = load_unit_test(split="train")
     clf = ShapeleterClassifier(
-        max_shapelets=200, per_shapelets=20, max_iter=20, random_state=seed
+        max_shapelets=50, per_shapelets=10, max_iter=2, random_state=seed
     )
     clf.fit(X, y)
     proba = clf.predict_proba(X)

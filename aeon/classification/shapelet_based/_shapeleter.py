@@ -9,7 +9,7 @@ from sklearn.linear_model import RidgeClassifierCV
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.shapelet_based._shapeleter import (
     ShapeleterTransform,
-    _series_transform,
+    _generate_series_representations,
 )
 
 
@@ -179,10 +179,7 @@ class ShapeleterClassifier(BaseClassifier):
 
     def _assemble_views(self, X):
         """Transform across 4 representations and construct V0, V1, V2, V3."""
-        X_raw = X
-        X_t0 = _series_transform(X, "F")
-        X_t1 = _series_transform(X, "H")
-        X_t2 = _series_transform(X, "HF")
+        X_raw, X_t0, X_t1, X_t2 = _generate_series_representations(X)
 
         g_raw = self.transformer_raw_._transform_groups(X_raw)
         g_t0 = self.transformer_t0_._transform_groups(X_t0)
@@ -195,10 +192,7 @@ class ShapeleterClassifier(BaseClassifier):
         """Fit Shapeleter 4-view ensemble classifier on training series."""
         self.classes_ = np.unique(y)
 
-        X_raw = X
-        X_t0 = _series_transform(X, "F")
-        X_t1 = _series_transform(X, "H")
-        X_t2 = _series_transform(X, "HF")
+        X_raw, X_t0, X_t1, X_t2 = _generate_series_representations(X)
 
         transformer_params = {
             "max_shapelets": self.max_shapelets,
@@ -274,8 +268,8 @@ class ShapeleterClassifier(BaseClassifier):
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter sets for the estimator."""
         return {
-            "max_shapelets": 20,
-            "per_shapelets": 5,
-            "max_iter": 2,
+            "max_shapelets": 10,
+            "per_shapelets": 3,
+            "max_iter": 1,
             "random_state": 42,
         }
