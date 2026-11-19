@@ -51,7 +51,6 @@ EXCLUDED_TESTS = {
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
-    "HMMSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
