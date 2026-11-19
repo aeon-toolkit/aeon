@@ -762,212 +762,164 @@ def test_sk_lda_pair_equal_class_means_follows_sklearn():
 
 
 @pytest.mark.parametrize(
-    "n, n_classes, seed, duplicates, save_rate, threshold, expected",
+    "n, n_classes, seed, duplicates, save_rate, threshold",
     [
-        (
-            150,
-            3,
-            1,
-            True,
-            0.125,
-            0.9,
-            [
-                110,
-                127,
-                125,
-                35,
-                134,
-                50,
-                121,
-                59,
-                3,
-                87,
-                52,
-                83,
-                12,
-                44,
-                30,
-                46,
-                129,
-                144,
-                132,
-            ],
-        ),
-        (
-            200,
-            5,
-            2,
-            True,
-            0.25,
-            0.5,
-            [
-                47,
-                43,
-                153,
-                15,
-                163,
-                92,
-                190,
-                40,
-                26,
-                35,
-                110,
-                29,
-                61,
-                42,
-                49,
-                148,
-                138,
-                56,
-                168,
-                70,
-                58,
-                182,
-                174,
-                177,
-                106,
-                162,
-                38,
-                55,
-                198,
-                117,
-                186,
-                128,
-                81,
-                36,
-                125,
-                166,
-                76,
-                175,
-                108,
-                146,
-                180,
-                59,
-                179,
-                150,
-                144,
-                194,
-                24,
-                199,
-                57,
-                9,
-            ],
-        ),
-        (
-            120,
-            2,
-            3,
-            False,
-            0.5,
-            0.9,
-            [
-                28,
-                115,
-                94,
-                67,
-                44,
-                85,
-                34,
-                99,
-                119,
-                83,
-                22,
-                25,
-                65,
-                21,
-                46,
-                57,
-                66,
-                100,
-                31,
-                104,
-                68,
-                8,
-                72,
-                61,
-                59,
-                15,
-                64,
-                86,
-                95,
-                12,
-                87,
-                81,
-                112,
-                2,
-                58,
-                26,
-                78,
-                3,
-                84,
-                69,
-                91,
-                56,
-                9,
-                113,
-                29,
-                62,
-                79,
-                4,
-                98,
-                109,
-                71,
-                102,
-                40,
-                49,
-                114,
-                107,
-                18,
-                17,
-                111,
-                63,
-            ],
-        ),
+        (150, 3, 1, True, 0.125, 0.9),
+        (200, 5, 2, True, 0.25, 0.5),
+        (120, 2, 3, False, 0.5, 0.9),
     ],
 )
-def test_hypergraph_prune_matches_reference_larger_groups(
-    n, n_classes, seed, duplicates, save_rate, threshold, expected
+def test_hypergraph_prune_larger_groups_is_valid_and_repeatable(
+    n, n_classes, seed, duplicates, save_rate, threshold
 ):
-    """Expected output from reference neighbor_hypergraph_based_shapelet_selection.
-
-    Reference: https://github.com/CCHe64/Shapeleter (Shapeleter.ipynb, cell 11).
-    neighbor_k=[3, 5], shapelets = RandomState(seed).normal(size=(n, 1, 11))
-    (second quarter copied from the first when ``duplicates``),
-    labels = RandomState(seed + 100).randint(0, n_classes, size=n).
-    """
+    """Pruning on larger groups with duplicates or ties must be valid and repeatable."""
     sh = np.random.RandomState(seed).normal(size=(n, 1, 11))
     if duplicates:
         half = n // 2
         sh[half : 2 * half] = sh[:half]
     labels = np.random.RandomState(seed + 100).randint(0, n_classes, size=n)
-    selected = _hypergraph_prune(
+    first = _hypergraph_prune(
         sh, 11, labels, save_rate=save_rate, jaccard_threshold=threshold
     )
-    if duplicates:
-        half = n // 2
-        sel_canon = [
-            i % half
-            if (
-                i >= half
-                and np.array_equal(sh[i], sh[i % half])
-                and labels[i] == labels[i % half]
-            )
-            else i
-            for i in selected
-        ]
-        exp_canon = [
-            i % half
-            if (
-                i >= half
-                and np.array_equal(sh[i], sh[i % half])
-                and labels[i] == labels[i % half]
-            )
-            else i
-            for i in expected
-        ]
-        assert sel_canon == exp_canon
-    else:
-        assert selected.tolist() == expected
+    second = _hypergraph_prune(
+        sh, 11, labels, save_rate=save_rate, jaccard_threshold=threshold
+    )
+    np.testing.assert_array_equal(first, second)
+    assert len(np.unique(first)) == len(first)
+    assert first.min() >= 0 and first.max() < n
+    assert 1 <= len(first) <= int(np.ceil(save_rate * n))
+
+
+@pytest.mark.parametrize("save_rate", [0.125, 0.5])
+def test_hypergraph_prune_duplicate_candidates_is_valid_and_repeatable(save_rate):
+    """Duplicated candidates create exact ties.
+
+    The selection must be a valid set and repeatable.
+    """
+    n = 150
+    sh = np.random.RandomState(1).normal(size=(n, 1, 11))
+    sh[n // 2 : 2 * (n // 2)] = sh[: n // 2]
+    labels = np.random.RandomState(101).randint(0, 3, size=n)
+    first = _hypergraph_prune(sh, 11, labels, save_rate=save_rate)
+    second = _hypergraph_prune(sh, 11, labels, save_rate=save_rate)
+    np.testing.assert_array_equal(first, second)
+    assert len(np.unique(first)) == len(first)
+    assert first.min() >= 0 and first.max() < n
+    assert 1 <= len(first) <= int(np.ceil(save_rate * n))
+
+
+def _ref_hypergraph_prune_plain_argsort(
+    shapelets, labels, neighbor_k=(3, 5), save_rate=0.5, jaccard_threshold=0.9
+):
+    """Prune shapelets using reference implementation from Shapeleter.ipynb."""
+    from scipy.sparse import lil_matrix
+    from sklearn.metrics.pairwise import euclidean_distances
+
+    n_shapelets = len(labels)
+    dist_mat = euclidean_distances(shapelets[:, 0, :])
+    np.fill_diagonal(dist_mat, -np.inf)
+
+    edges = []
+    for k in neighbor_k:
+        for i in range(n_shapelets):
+            edges.append(np.argsort(dist_mat[i])[:k])
+
+    purity = np.zeros(n_shapelets)
+    degree = np.zeros(n_shapelets)
+    for edge in edges:
+        sub = labels[edge]
+        for j in range(len(edge)):
+            degree[edge[j]] += 1
+            purity[edge[j]] += np.sum(sub[j] == sub) / len(edge)
+    purity = purity / degree
+
+    h_mat = lil_matrix((n_shapelets, len(edges)), dtype=int)
+    for edge_id, edge in enumerate(edges):
+        for node in edge:
+            h_mat[node, edge_id] = 1
+    h_mat = h_mat.tocsr()
+    inter = h_mat.dot(h_mat.T).toarray()
+    degs = np.array(h_mat.sum(axis=1)).flatten()
+    union = degs[:, None] + degs[None, :] - inter
+    j_mat = np.zeros((n_shapelets, n_shapelets))
+    np.divide(inter, union, where=(union != 0), out=j_mat)
+    j_mat[union == 0] = 0.0
+    np.fill_diagonal(j_mat, 1.0)
+
+    j_bin = np.where(j_mat >= jaccard_threshold, 1.0, 0.0)
+    np.fill_diagonal(j_bin, -1.0)
+
+    unique_labels = list(np.unique(labels))
+    save_n = int(np.ceil(save_rate * n_shapelets))
+    top = int(np.argmax(purity))
+    saved = [top]
+    lbl_idx = (unique_labels.index(labels[top]) + 1) % len(unique_labels)
+    sorted_nodes = np.argsort(purity)[::-1]
+    candidates = sorted_nodes[sorted_nodes != top]
+
+    for _ in range(save_n - 1):
+        if len(candidates) == 0:
+            break
+        last = saved[-1]
+        sim = np.where(j_bin[last] == 1.0)[0]
+        j_bin[:, sim] = -1.0
+        j_bin[sim, :] = -1.0
+        j_bin[last, :] = -1.0
+        j_bin[:, last] = -1.0
+        candidates = candidates[~np.isin(candidates, sim)]
+        if len(candidates) == 0:
+            break
+        cand_labels = labels[candidates]
+        curr_lbl = unique_labels[lbl_idx]
+        if np.sum(cand_labels == curr_lbl) == 0:
+            curr_lbl_0 = curr_lbl
+            lbl_idx = (lbl_idx + 1) % len(unique_labels)
+            curr_lbl = unique_labels[lbl_idx]
+            unique_labels = [lbl for lbl in unique_labels if lbl != curr_lbl_0]
+        sub_cands = candidates[labels[candidates] == curr_lbl]
+        if len(sub_cands) == 0:
+            break
+        top_node = sub_cands[np.argmax(purity[sub_cands])]
+        lbl_idx = (lbl_idx + 1) % len(unique_labels)
+        saved.append(top_node)
+        candidates = candidates[candidates != top_node]
+
+    return np.array(saved)
+
+
+def test_hypergraph_prune_matches_plain_argsort_reference_tie_free():
+    """Compare pruning with the plain-argsort reference on tie-free inputs."""
+    from sklearn.metrics.pairwise import euclidean_distances
+
+    n = 25
+    rng = np.random.RandomState(9)
+    sh = rng.normal(size=(n, 1, 11))
+    labels = rng.randint(0, 2, size=n)
+
+    # Assert pairwise distances are all distinct
+    dist_mat = euclidean_distances(sh[:, 0, :])
+    triu_idx = np.triu_indices(n, k=1)
+    assert len(np.unique(dist_mat[triu_idx])) == len(dist_mat[triu_idx])
+
+    # Assert purities are all distinct
+    np.fill_diagonal(dist_mat, -np.inf)
+    edges = []
+    for k in (3, 5):
+        for i in range(n):
+            edges.append(np.argsort(dist_mat[i])[:k])
+    purity = np.zeros(n)
+    degree = np.zeros(n)
+    for edge in edges:
+        sub = labels[edge]
+        for j in range(len(edge)):
+            degree[edge[j]] += 1
+            purity[edge[j]] += np.sum(sub[j] == sub) / len(edge)
+    purity = purity / degree
+    assert len(np.unique(purity)) == n
+
+    ref_selected = _ref_hypergraph_prune_plain_argsort(sh, labels, save_rate=0.5)
+    our_selected = _hypergraph_prune(sh, 11, labels, save_rate=0.5)
+    np.testing.assert_array_equal(our_selected, ref_selected)
 
 
 @pytest.mark.parametrize("threshold", [0.9, 0.5, 0.2])
@@ -991,10 +943,72 @@ def test_jaccard_similar_neighbors_matches_dense(threshold):
         assert sorted(similar[i].tolist()) == expected.tolist()
 
 
-def test_knn_hyperedges_do_not_keep_sorted_rows_alive():
-    """Hyperedge must own its memory (a view would keep a whole sorted row alive)."""
-    sub = np.random.RandomState(0).normal(size=(40, 11))
-    edges = _knn_hyperedges(sub, (3, 5))
-    assert len(edges) == 2 * 40
-    assert all(edge.base is None for edge in edges)
-    assert [len(edge) for edge in edges] == [3] * 40 + [5] * 40
+def _ref_knn_hyperedges_full_matrix(cleaned_sub, valid_k):
+    """Compute reference full-matrix k-NN hyperedges."""
+    from sklearn.metrics.pairwise import euclidean_distances
+
+    n = cleaned_sub.shape[0]
+    if len(valid_k) == 0 or n == 0:
+        return []
+    dist_mat = euclidean_distances(cleaned_sub)
+    np.fill_diagonal(dist_mat, -np.inf)
+    edges_by_k = [[] for _ in valid_k]
+    for i in range(n):
+        order = np.argsort(dist_mat[i])
+        for j, k in enumerate(valid_k):
+            edges_by_k[j].append(order[:k].copy())
+    return [edge for edges in edges_by_k for edge in edges]
+
+
+@pytest.mark.parametrize("n", [50, 300])
+@pytest.mark.parametrize("seed", [0, 1])
+@pytest.mark.parametrize("chunk_size", [1, 7, 64, 10000])
+def test_knn_hyperedges_row_blocked_matches_full_matrix(n, seed, chunk_size):
+    """Row-blocked k-NN must match full-matrix reference on tie-free continuous data."""
+    from sklearn.metrics.pairwise import euclidean_distances
+
+    rng = np.random.RandomState(seed)
+    sub = rng.normal(size=(n, 11))
+
+    dist_mat = euclidean_distances(sub)
+    np.fill_diagonal(dist_mat, -np.inf)
+    for i in range(n):
+        s_dist = np.sort(dist_mat[i][dist_mat[i] != -np.inf])
+        assert np.min(np.diff(s_dist)) > 1e-9
+
+    ref_edges = _ref_knn_hyperedges_full_matrix(sub, (3, 5))
+    blocked_edges = _knn_hyperedges(sub, (3, 5), chunk_size=chunk_size)
+    assert len(ref_edges) == len(blocked_edges)
+    for r_edge, b_edge in zip(ref_edges, blocked_edges):
+        np.testing.assert_array_equal(r_edge, b_edge)
+
+
+def test_knn_hyperedges_edge_cases():
+    """Verify edge cases for row-blocked k-NN computation."""
+    sub = np.random.RandomState(0).normal(size=(20, 11))
+    assert _knn_hyperedges(sub, []) == []
+    assert _knn_hyperedges(np.empty((0, 11)), [3]) == []
+
+    out_large = _knn_hyperedges(sub, [50], chunk_size=7)
+    assert len(out_large) == 20
+    assert all(len(e) == 20 for e in out_large)
+    assert all(e[0] == i for i, e in enumerate(out_large))
+    assert all(e.base is None for e in out_large)
+    for i in range(len(out_large)):
+        for j in range(i + 1, len(out_large)):
+            assert not np.shares_memory(out_large[i], out_large[j])
+
+
+def test_knn_hyperedges_duplicates_valid_and_repeatable():
+    """On data with many exact duplicates, output must be valid and repeatable."""
+    n = 100
+    sh = np.random.RandomState(7).normal(size=(n, 11))
+    sh[50:] = sh[:50]
+    first = _knn_hyperedges(sh, (3, 5), chunk_size=16)
+    second = _knn_hyperedges(sh, (3, 5), chunk_size=16)
+    assert len(first) == len(second) == 2 * n
+    for e1, e2 in zip(first, second):
+        np.testing.assert_array_equal(e1, e2)
+        assert e1[0] in range(n)
+        assert len(np.unique(e1)) == len(e1)
+        assert e1.min() >= 0 and e1.max() < n

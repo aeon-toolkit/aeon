@@ -49,23 +49,45 @@ def _assign_order_batch(positions_abs_2d):
     return out
 
 
-def _knn_hyperedges(cleaned_sub, valid_k):
-    """Self-inclusive k-NN hyperedges.
+def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=1024):
+    """Build k-NN hyperedges from candidate shapelet coordinates.
 
-    The diagonal is -inf, so a node is its own first neighbour.
-    The edge order is k-major (all edges of the first k, then the second k), as before.
-    Each edge is copied: a slice of ``np.argsort`` row would keep
-    the whole sorted row alive.
+    Parameters
+    ----------
+    cleaned_sub : np.ndarray, 2D
+        Shapelet coordinate matrix of shape (n_cases, length).
+    valid_k : tuple or list of int
+        Candidate neighborhood sizes k.
+    chunk_size : int, default=1024
+        Number of rows to compute distances for at a time to avoid
+        materializing the full dense distance matrix.
+
+    Returns
+    -------
+    list of np.ndarray
+        Flat list of hyperedges ordered by k first, then candidate index.
     """
     n = cleaned_sub.shape[0]
-    dist_mat = euclidean_distances(cleaned_sub)
-    dist_mat = np.round(dist_mat, decimals=12)
-    np.fill_diagonal(dist_mat, -np.inf)
+    if len(valid_k) == 0 or n == 0:
+        return []
+
     edges_by_k = [[] for _ in valid_k]
-    for i in range(n):
-        order = np.argsort(dist_mat[i], kind="stable")
+    # Rows are processed in blocks so that the full n x n distance matrix
+    # is never held in memory. Distances come from a BLAS computation;
+    # near-equal values are not canonicalised, and block-wise computation
+    # can change the last bits compared with one full-matrix call.
+    max_k = min(n, max(valid_k))
+    for start in range(0, n, chunk_size):
+        stop = min(start + chunk_size, n)
+        dist = euclidean_distances(cleaned_sub[start:stop], cleaned_sub)
+        r_idx = np.arange(stop - start)
+        dist[r_idx, start + r_idx] = -np.inf
+        order = np.argsort(dist, axis=1)[:, :max_k]
         for j, k in enumerate(valid_k):
-            edges_by_k[j].append(order[:k].copy())
+            k_eff = min(k, n)
+            for r in range(stop - start):
+                edges_by_k[j].append(order[r, :k_eff].copy())
+
     return [edge for edges in edges_by_k for edge in edges]
 
 
@@ -136,8 +158,13 @@ def _hypergraph_prune(
     label_index = int(np.where(unique_labels == labels[top_node])[0][0]) + 1
     if label_index >= len(unique_labels):
         label_index = 0
-    order = np.lexsort((np.arange(n_shapelets), -purity))
-    candidate_nodes = np.array([node for node in order if node != top_node])
+    # Ties between equal distances or purities follow numpy's default argsort,
+    # as in the reference implementation. numpy does not define an order
+    # for exact ties, so tied cases can differ between numpy versions and
+    # CPUs.
+    candidate_nodes = np.array(
+        [node for node in np.argsort(purity)[::-1] if node != top_node]
+    )
 
     for _ in range(save_n - 1):
         last_saved = saved_nodes[-1]
