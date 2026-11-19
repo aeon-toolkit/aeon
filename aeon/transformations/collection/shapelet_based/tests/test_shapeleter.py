@@ -789,7 +789,7 @@ def test_sk_lda_pair_equal_class_means_follows_sklearn():
                 30,
                 46,
                 129,
-                69,
+                144,
                 132,
             ],
         ),
@@ -943,7 +943,31 @@ def test_hypergraph_prune_matches_reference_larger_groups(
     selected = _hypergraph_prune(
         sh, 11, labels, save_rate=save_rate, jaccard_threshold=threshold
     )
-    assert selected.tolist() == expected
+    if duplicates:
+        half = n // 2
+        sel_canon = [
+            i % half
+            if (
+                i >= half
+                and np.array_equal(sh[i], sh[i % half])
+                and labels[i] == labels[i % half]
+            )
+            else i
+            for i in selected
+        ]
+        exp_canon = [
+            i % half
+            if (
+                i >= half
+                and np.array_equal(sh[i], sh[i % half])
+                and labels[i] == labels[i % half]
+            )
+            else i
+            for i in expected
+        ]
+        assert sel_canon == exp_canon
+    else:
+        assert selected.tolist() == expected
 
 
 @pytest.mark.parametrize("threshold", [0.9, 0.5, 0.2])

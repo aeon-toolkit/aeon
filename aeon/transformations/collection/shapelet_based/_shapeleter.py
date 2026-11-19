@@ -59,6 +59,7 @@ def _knn_hyperedges(cleaned_sub, valid_k):
     """
     n = cleaned_sub.shape[0]
     dist_mat = euclidean_distances(cleaned_sub)
+    dist_mat = np.round(dist_mat, decimals=12)
     np.fill_diagonal(dist_mat, -np.inf)
     edges_by_k = [[] for _ in valid_k]
     for i in range(n):
