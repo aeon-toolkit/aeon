@@ -129,10 +129,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     max_iter: int, default=300
         Maximum number of iterations of the k-means algorithm for a single
         run.
-    tol: float, default=1e-4
-        Relative tolerance with regards to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
-        convergence.
+    tol : float, default=1e-4
+        Absolute tolerance on the change in inertia between consecutive iterations,
+        passed to ``tslearn.clustering.KernelKMeans``.
     verbose: bool, default=False
         Verbosity mode.
     n_jobs : int or None, default=None
@@ -140,7 +139,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See scikit-learn's
-        `Glossary <https://scikit-learn.org/stable/glossary.html#term-n-jobs>`_
+        `Glossary <https://scikit-learn.org/stable/glossary.html#term-n_jobs>`_
         for more details.
     random_state: int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.

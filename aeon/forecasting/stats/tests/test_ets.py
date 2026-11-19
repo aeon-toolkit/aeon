@@ -105,9 +105,9 @@ def test_ets_iterative_forecast():
 
     # Optional: check that the first prediction equals forecast_ from .fit()
     forecaster.fit(y)
-    assert np.isclose(
-        preds[0], forecaster.forecast_, atol=1e-6
-    ), "First forecast should match forecast_"
+    assert np.isclose(preds[0], forecaster.forecast_, atol=1e-6), (
+        "First forecast should match forecast_"
+    )
     forecaster = ETS(trend_type=None)
     forecaster._fit(y)
     assert forecaster._trend_type == 0

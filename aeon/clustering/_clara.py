@@ -57,9 +57,8 @@ class TimeSeriesCLARA(BaseClusterer):
         Maximum number of iterations of the PAM algorithm for a single
         run.
     tol : float, default=1e-6
-        Relative tolerance with regards to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
-        convergence.
+        Absolute tolerance on the change in inertia between consecutive iterations
+        of each sampled PAM run.
     verbose : bool, default=False
         Verbosity mode.
     random_state : int, np.random.RandomState instance or None, default=None
@@ -170,7 +169,6 @@ class TimeSeriesCLARA(BaseClusterer):
         best_pam = None
         best_labels = None
         for _ in range(self.n_sampling_iters):
-
             if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
                     np.arange(n_cases),

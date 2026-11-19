@@ -82,9 +82,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         Maximum number of iterations of the k-medoids algorithm for a single
         run.
     tol : float, default=1e-6
-        Relative tolerance with regards to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
-        convergence.
+        Absolute tolerance on the change in inertia between consecutive iterations.
+        Used by both the PAM and alternate methods.
     verbose : bool, default=False
         Verbosity mode.
     random_state : int, np.random.RandomState instance or None, default=None

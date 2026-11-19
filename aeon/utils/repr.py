@@ -34,7 +34,10 @@ def get_unchanged_and_required_params_as_str(obj: Any) -> str:
 
     params = {}
     for name, param in signature.parameters.items():
-        if name == "self":
+        if name == "self" or param.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
             continue
 
         has_default = param.default is not inspect.Parameter.empty

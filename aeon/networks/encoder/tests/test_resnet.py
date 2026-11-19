@@ -13,13 +13,13 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def test_resnet_default_initialization():
     """Test if the network initializes with proper attributes."""
     model = ResNetNetwork()
-    assert isinstance(
-        model, ResNetNetwork
-    ), "Model initialization failed: Incorrect type"
+    assert isinstance(model, ResNetNetwork), (
+        "Model initialization failed: Incorrect type"
+    )
     assert model.n_residual_blocks == 3, "Default residual blocks count mismatch"
-    assert (
-        model.n_conv_per_residual_block == 3
-    ), "Default convolution blocks count mismatch"
+    assert model.n_conv_per_residual_block == 3, (
+        "Default convolution blocks count mismatch"
+    )
     assert model.n_filters is None, "Default n_filters should be None"
     assert model.kernel_size is None, "Default kernel_size should be None"
     assert model.strides == 1, "Default strides value mismatch"
@@ -45,9 +45,9 @@ def test_resnet_custom_initialization():
         padding="same",
     )
     model.build_network((128, 1))
-    assert isinstance(
-        model, ResNetNetwork
-    ), "Custom initialization failed: Incorrect type"
+    assert isinstance(model, ResNetNetwork), (
+        "Custom initialization failed: Incorrect type"
+    )
     assert model._n_filters == [64, 128, 128], "n_filters list mismatch"
     assert model._kernel_size == [8, 5, 3], "kernel_size list mismatch"
     assert model._activation == ["relu", "relu", "relu"], "activation list mismatch"

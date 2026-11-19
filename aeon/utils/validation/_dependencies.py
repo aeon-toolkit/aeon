@@ -143,7 +143,7 @@ def _check_soft_dependencies(
             else:
                 raise RuntimeError(
                     "Error in calling _check_soft_dependencies, severity "
-                    'argument must be "error", "warning", or "none",'
+                    'argument must be "error", "warning", or "none", '
                     f'found "{severity}".'
                 )
 

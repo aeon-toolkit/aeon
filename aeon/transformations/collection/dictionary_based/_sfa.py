@@ -244,7 +244,7 @@ class SFA(BaseCollectionTransformer):
             raise ValueError(
                 "Typed Dictionaries can only handle 64 bit words. "
                 "ceil(log2(alphabet_size)) * word_length must be less than or equal "
-                "to 64."
+                "to 64. "
                 "With bi-grams or skip-grams enabled, this bit limit is 32."
             )
 
