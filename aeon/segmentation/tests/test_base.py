@@ -3,9 +3,25 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.testing.mock_estimators import MockSegmenter, MockSegmenterRequiresY
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
+from aeon.testing.mock_estimators import (
+    MockSegmenter,
+    MockSegmenterRequiresY,
+    MockSegmenterWithScores,
+)
+
+N_TIMEPOINTS = 20
+N_CHANNELS = 3
+X_UNIVARIATE = make_example_1d_numpy(n_timepoints=N_TIMEPOINTS, random_state=0)
+X_MULTIVARIATE = make_example_2d_numpy_series(
+    n_timepoints=N_TIMEPOINTS, n_channels=N_CHANNELS, random_state=0
+)
 
 
 def test_fit_predict_correct():
@@ -82,3 +98,29 @@ def test_check_y_wrong(y_wrong):
     """Test the _check_y method with incorrect input."""
     with pytest.raises(ValueError, match="Error in input type for y"):
         BaseSegmenter._check_y(None, y_wrong)
+
+
+@pytest.mark.parametrize("X", [X_UNIVARIATE, X_MULTIVARIATE])
+def test_predict_scores_returns_one_score_per_timepoint(X):
+    """Test predict_scores returns a float score for each time point of X."""
+    seg = MockSegmenterWithScores().fit(X)
+    scores = seg.predict_scores(X)
+    assert isinstance(scores, np.ndarray)
+    assert scores.shape == (N_TIMEPOINTS,)
+    assert np.issubdtype(scores.dtype, np.floating)
+
+
+def test_predict_scores_axis():
+    """Test predict_scores gives the same scores for X with axis=1 and X.T, axis=0."""
+    seg = MockSegmenterWithScores().fit(X_MULTIVARIATE)
+    np.testing.assert_array_equal(
+        seg.predict_scores(X_MULTIVARIATE, axis=1),
+        seg.predict_scores(X_MULTIVARIATE.T, axis=0),
+    )
+
+
+def test_predict_scores_not_fitted():
+    """Test predict_scores raises NotFittedError before fit if fit is not empty."""
+    seg = MockSegmenterWithScores()
+    with pytest.raises(NotFittedError):
+        seg.predict_scores(X_UNIVARIATE)

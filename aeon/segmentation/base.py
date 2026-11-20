@@ -1,9 +1,9 @@
 """Abstract base class for time series segmenters."""
 
-__all__ = ["BaseSegmenter"]
+__all__ = ["BaseSegmenter", "SegmenterScoresMixin"]
 __maintainer__ = []
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import final
 
 import numpy as np
@@ -62,6 +62,10 @@ class BaseSegmenter(BaseSeriesEstimator):
         Number of segments to split the time series into. If None, then the number of
         segments needs to be found in fit.
 
+    Notes
+    -----
+    Segmenters that also return a score for each time point inherit from
+    ``SegmenterScoresMixin``, which adds ``predict_scores``.
     """
 
     _tags = {
@@ -244,3 +248,49 @@ class BaseSegmenter(BaseSeriesEstimator):
         for cp in change_points:
             labels[cp:] += 1
         return labels
+
+
+class SegmenterScoresMixin(ABC):
+    """Mixin for segmenters that return a score for each time point.
+
+    Inherit from this before ``BaseSegmenter``, i.e.
+    ``class MySegmenter(SegmenterScoresMixin, BaseSegmenter)``, and implement
+    ``_predict_scores``. ``predict_scores`` must not change the state of the
+    estimator.
+    """
+
+    @final
+    def predict_scores(self, X, axis=1):
+        """Return a score for each time point of X.
+
+        Parameters
+        ----------
+        X : One of ``VALID_SERIES_INPUT_TYPES``
+            Input time series.
+        axis : int or None, default = 1
+            Axis along which to segment if passed a multivariate series (2D input)
+            with ``n_channels`` time series. If axis is 0, it is assumed each column
+            is a time series and each row is a time point, i.e. the shape of the data
+            is ``(n_timepoints, n_channels)``. ``axis == 1`` indicates the time
+            series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``. ``axis is None`` indicates that the axis
+            of X is the same as ``self.axis``.
+
+        Returns
+        -------
+        np.ndarray
+            1D array of floats of length ``n_timepoints``, one score for each time
+            point of X. How the scores are interpreted is documented on each
+            segmenter.
+        """
+        if not self.get_tag("fit_is_empty"):
+            self._check_is_fitted()
+        if axis is None:
+            axis = self.axis
+        X = self._preprocess_series(X, axis, False)
+        return self._predict_scores(X)
+
+    @abstractmethod
+    def _predict_scores(self, X) -> np.ndarray:
+        """Return a 1D array of floats of length ``n_timepoints`` for X."""
+        ...
