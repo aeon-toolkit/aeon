@@ -33,6 +33,7 @@ from sklearn.model_selection import cross_val_predict
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.decorators.method_timer import method_timer
+from aeon.utils.validation.collection import get_n_cases
 from aeon.utils.validation.labels import check_classification_y
 
 
@@ -122,9 +123,100 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         self._fit(X, y)
 
-        # this should happen last
-        self.is_fitted = True
+        self._fit_complete()
         return self
+
+    @final
+    def resume_fit(self, X, y):
+        """Continue fitting from a checkpoint or an already fitted estimator.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Original training data, in the same order and with the same values
+            and dtypes after aeon's normal input conversion.
+        y : np.ndarray
+            Original training labels in the same order.
+
+        Returns
+        -------
+        self : BaseClassifier
+            The fitted classifier.
+
+        Notes
+        -----
+        Requires ``capability:checkpointing=True`` and continuation state, which
+        is preserved. Model-building parameters must match the original fit;
+        allowed runtime changes are documented by each classifier. Any time
+        contract covers total training time across calls, so resuming continues
+        spending the budget rather than starting a new one.
+        """
+        X, y = self._resume_setup(X, y)
+        self._resume_fit(X, y)
+        self._fit_complete()
+        return self
+
+    def _resume_setup(self, X, y):
+        """Validate a resume call and return the converted data."""
+        if not self.get_tag("capability:checkpointing"):
+            raise NotImplementedError("This classifier does not support checkpointing.")
+        X = self._preprocess_collection(X, store_metadata=False)
+        y = self._check_y(y, get_n_cases(X), update_classes=False)
+        self._validate_checkpoint(X, y)
+        self._start_checkpoint_timer()
+        self._validate_resume_fit(X, y)
+        self.is_fitted = False
+        return X, y
+
+    def _validate_resume_fit(self, X, y):
+        """Validate continuation parameters without changing fitted state."""
+
+    def _resume_fit(self, X, y):
+        """Continue algorithm-specific training from stored state."""
+        raise NotImplementedError(
+            "Checkpointable classifiers must implement _resume_fit."
+        )
+
+    @final
+    def resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        """Continue fitting and return the train estimates of ``fit_predict_proba``.
+
+        The counterpart of ``resume_fit`` for a fit begun with
+        ``fit_predict_proba`` or ``fit_predict``: it continues from saved state
+        and returns the train probability estimates an uninterrupted
+        ``fit_predict_proba`` would have returned.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Original training data, in the same order and with the same values
+            and dtypes after aeon's normal input conversion.
+        y : np.ndarray
+            Original training labels in the same order.
+
+        Returns
+        -------
+        probabilities : np.ndarray
+            2D array of shape ``(n_cases, n_classes)``, train probability
+            estimates for the cases in X.
+
+        Notes
+        -----
+        Requires ``capability:checkpointing=True`` and continuation state from a
+        fit begun with ``fit_predict_proba`` or ``fit_predict``. Raises
+        ``NotImplementedError`` for classifiers that do not keep train estimates
+        across a resume, and ``ValueError`` if the fit began with ``fit``.
+        """
+        X, y = self._resume_setup(X, y)
+        probabilities = self._resume_fit_predict_proba(X, y)
+        self._fit_complete()
+        return probabilities
+
+    def _resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        """Continue training and return train estimates from stored state."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not keep train estimates across a resume."
+        )
 
     @final
     def predict(self, X) -> np.ndarray:
@@ -309,8 +401,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         y_pred = self._fit_predict(X, y, **kwargs)
 
-        # this should happen last
-        self.is_fitted = True
+        self._fit_complete()
         return y_pred
 
     @final
@@ -388,8 +479,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         y_proba = self._fit_predict_proba(X, y, **kwargs)
 
-        # this should happen last
-        self.is_fitted = True
+        self._fit_complete()
         return y_proba
 
     def score(
@@ -606,12 +696,21 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         cv_size = BaseClassifier._get_folds(kwargs)
         return self._fit_predict_default(X, y, "predict_proba", cv_size)
 
+    def _fit_complete(self):
+        """Mark fitting complete and save the final checkpoint if configured."""
+        self.is_fitted = True
+        if self.get_tag("capability:checkpointing"):
+            self._checkpoint_if_due(force=True)
+
     def _fit_setup(self, X, y):
         # reset estimator at the start of fit
         self.reset()
 
         X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
+
+        if self.get_tag("capability:checkpointing"):
+            self._init_checkpoint(X, y)
 
         return X, y
 
