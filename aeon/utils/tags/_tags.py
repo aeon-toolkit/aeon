@@ -45,6 +45,11 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "The estimator cannot be pickled.",
     },
+    "capability:checkpointing": {
+        "class": "estimator",
+        "type": "bool",
+        "description": "Can the estimator save training state and resume fit?",
+    },
     "X_inner_type": {
         "class": "estimator",
         "type": [

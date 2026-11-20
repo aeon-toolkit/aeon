@@ -4,10 +4,12 @@ __all__ = [
     "BaseAeonEstimator",
     "BaseCollectionEstimator",
     "BaseSeriesEstimator",
+    "CheckpointableMixin",
     "ComposableEstimatorMixin",
 ]
 
 from aeon.base._base import BaseAeonEstimator
 from aeon.base._base_collection import BaseCollectionEstimator
 from aeon.base._base_series import BaseSeriesEstimator
+from aeon.base._checkpoint import CheckpointableMixin
 from aeon.base._compose import ComposableEstimatorMixin

@@ -395,3 +395,11 @@ def test_different_channels_fit_predict():
         ValueError, match="X has different number of channels to the data seen in fit"
     ):
         dummy.predict(X5)
+
+
+def test_resume_fit_predict_proba_needs_checkpointing():
+    """A classifier without the checkpointing capability cannot resume."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+    classifier = MockClassifier().fit(X, y)
+    with pytest.raises(NotImplementedError):
+        classifier.resume_fit_predict_proba(X, y)
