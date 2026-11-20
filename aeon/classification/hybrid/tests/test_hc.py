@@ -1,5 +1,7 @@
 """Tests for HIVE-COTE."""
 
+from copy import deepcopy
+
 import numpy as np
 import pytest
 
@@ -236,3 +238,102 @@ def test_hivecote_estimator_attribute_lifecycle():
         clf.fit(X, y)
 
         assert hasattr(clf, "fitted_estimators_")
+
+
+N_MAJORITY, N_MINORITY = 14, 6
+N_CASES = N_MAJORITY + N_MINORITY
+N_TIMEPOINTS = 24
+
+
+def _make_prior_X():
+    X, _ = make_example_3d_numpy(
+        n_cases=N_CASES, n_timepoints=N_TIMEPOINTS, random_state=0
+    )
+    return X
+
+
+def _fit_hc2(X, y):
+    """Fit a small HC2 with no prior correction applied."""
+    params = HIVECOTEV2._get_test_params(parameter_set="default")
+    return HIVECOTEV2(prior_correction=0.0, random_state=0, **params).fit(X, y)
+
+
+@pytest.fixture(scope="module")
+def imbalanced_hc2():
+    """HC2 fitted on two classes of sizes N_MAJORITY and N_MINORITY."""
+    X = _make_prior_X()
+    y = np.array([0] * N_MAJORITY + [1] * N_MINORITY)
+    return X, y, _fit_hc2(X, y)
+
+
+def test_hc2_prior_correction(imbalanced_hc2):
+    """prior_correction divides the CAWPE probabilities by the train prior**beta."""
+    X, _, fitted = imbalanced_hc2
+    hc2 = deepcopy(fitted)
+    np.testing.assert_allclose(
+        hc2.class_prior_, np.array([N_MAJORITY, N_MINORITY]) / N_CASES
+    )
+
+    plain, component_probas = hc2.predict_proba_with_components(X)
+    dists = sum(
+        component_probas[name] * w
+        for name, w in zip(hc2.component_names_, hc2.weights_)
+    )
+    np.testing.assert_allclose(plain, dists / dists.sum(axis=1, keepdims=True))
+
+    # the correction needs no refit, so change it on the fitted model
+    for beta in (0.5, 1.0):
+        hc2.prior_correction = beta
+        expected = plain / hc2.class_prior_**beta
+        expected /= expected.sum(axis=1, keepdims=True)
+        np.testing.assert_allclose(hc2.predict_proba(X), expected)
+        np.testing.assert_allclose(hc2.predict_proba_with_components(X)[0], expected)
+
+
+def test_hc2_prior_correction_balanced():
+    """With balanced train classes the correction leaves probabilities unchanged."""
+    X = _make_prior_X()
+    y = np.array([0, 1] * (N_CASES // 2))
+    hc2 = _fit_hc2(X, y)
+    n_classes = len(np.unique(y))
+    np.testing.assert_allclose(hc2.class_prior_, np.full(n_classes, 1 / n_classes))
+
+    plain = hc2.predict_proba(X)
+    hc2.prior_correction = 1.0
+    np.testing.assert_allclose(hc2.predict_proba(X), plain)
+
+
+def test_hc2_prior_correction_negative(imbalanced_hc2):
+    """A negative prior_correction is rejected at fit and at predict."""
+    X, y, fitted = imbalanced_hc2
+    params = HIVECOTEV2._get_test_params(parameter_set="default")
+    with pytest.raises(ValueError, match="prior_correction"):
+        HIVECOTEV2(prior_correction=-1, **params).fit(X, y)
+
+    hc2 = deepcopy(fitted)
+    hc2.prior_correction = -1
+    with pytest.raises(ValueError, match="prior_correction"):
+        hc2.predict_proba(X)
+
+
+def test_base_n_jobs_only_set_on_components_that_support_it():
+    """n_jobs is passed to components with an n_jobs attribute and no others."""
+    from aeon.classification.feature_based import SummaryClassifier
+    from aeon.classification.hybrid._base_hive_cote import _BaseHIVECOTE
+    from aeon.testing.mock_estimators import MockClassifierPredictProba
+
+    n_jobs = 2
+    X, y = make_example_3d_numpy(
+        n_cases=N_CASES, n_timepoints=N_TIMEPOINTS, random_state=0
+    )
+    hc = _BaseHIVECOTE(
+        estimators=[
+            ("summary", SummaryClassifier()),
+            ("mock", MockClassifierPredictProba()),
+        ],
+        n_jobs=n_jobs,
+    ).fit(X, y)
+
+    with_n_jobs, without_n_jobs = hc.fitted_estimators_
+    assert with_n_jobs.n_jobs == n_jobs
+    assert not hasattr(without_n_jobs, "n_jobs")
