@@ -9,7 +9,7 @@ import pytest
 from sklearn.utils import check_random_state
 
 from aeon.anomaly_detection.series.distance_based import DAMP
-from aeon.anomaly_detection.series.distance_based._madrid import _damp, _next_pow2
+from aeon.anomaly_detection.series.distance_based._damp import _damp, _next_pow2
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
@@ -227,6 +227,26 @@ def test_damp_k1_matches_madrid_damp_kernel(seed, window_size, periodic):
     assert np.array_equal(out["left_matrix_profile"], left_mp)
     assert out["scores"][0] == best_so_far
     assert out["locations"][0] == np.argmax(left_mp)
+
+
+@pytest.mark.parametrize("window_size", [8, 13])
+@pytest.mark.parametrize("seed_best", [False, True])
+def test_damp_seeded_search(window_size, seed_best):
+    """Test a seeded search retains or improves the incumbent discord."""
+    series = _make_series_with_anomalies("walk", 200, 2, 0)
+    split = 4 * window_size
+    exact = _brute_force_left_matrix_profile(series, window_size, split)
+    location = int(np.argmax(exact)) if seed_best else split
+    seed = exact[location]
+    profile = np.zeros(len(exact))
+    profile[location] = seed
+
+    score, result = _damp(series, window_size, split, profile, seed)
+
+    np.testing.assert_allclose(score, exact.max(), rtol=1e-10)
+    assert np.argmax(result) == np.argmax(exact)
+    np.testing.assert_allclose(result.max(), score, rtol=1e-10)
+    np.testing.assert_array_equal(result[:split], np.zeros(split))
 
 
 def test_pointwise_scores_only_from_identified_discords():

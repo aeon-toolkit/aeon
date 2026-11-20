@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection.series.distance_based import MADRID
+from aeon.anomaly_detection.series.distance_based import DAMP, MADRID
 
 
 def _make_series_with_anomaly(n=200, anomaly=(120, 135), seed=0):
@@ -173,3 +173,41 @@ def test_best_interval_consistent_with_scores():
     start, end = out["best_interval"]
     assert start == out["locations"][best]
     assert end == start + out["lengths"][best]
+
+
+@pytest.mark.parametrize(
+    "min_length, max_length, step_size", [(4, 4, 1), (4, 5, 1), (5, 21, 4)]
+)
+def test_madrid_matches_standalone_damp(min_length, max_length, step_size):
+    """Test each length's normalized score against standalone DAMP."""
+    series = _make_series_with_anomaly()
+    split = 40
+    result = MADRID(
+        min_length=min_length,
+        max_length=max_length,
+        step_size=step_size,
+        train_test_split=split,
+    ).predict_discords(series)
+
+    for length, score, location in zip(
+        result["lengths"], result["scores"], result["locations"]
+    ):
+        discord = DAMP(
+            window_size=int(length),
+            train_test_split=split,
+            lookahead=1 << (int(length) - 1).bit_length(),
+        ).predict_discords(series)
+        np.testing.assert_allclose(score, discord["scores"][0] / np.sqrt(length))
+        assert location == discord["locations"][0]
+
+
+def test_madrid_zero_score_ties():
+    """Test zero-score ties preserve MADRID's first table location."""
+    series = np.tile([1.0, -1.0], 100)
+    detector = MADRID(min_length=4, max_length=8, step_size=4, train_test_split=40)
+    result = detector.predict_discords(series)
+
+    np.testing.assert_array_equal(result["scores"], [0.0, 0.0])
+    np.testing.assert_array_equal(result["locations"], [0, 0])
+    assert result["best_interval"] == (0, 4)
+    np.testing.assert_array_equal(detector.fit_predict(series), np.zeros(len(series)))
