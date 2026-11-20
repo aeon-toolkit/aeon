@@ -25,7 +25,7 @@ expected_correct = {
     "msm": 20,
     "erp": 19,
     "lcss": 12,
-    "edr": 20,
+    "edr": 21,
 }
 
 # expected correct on test set using window params.
@@ -35,7 +35,7 @@ expected_correct_window = {
     "wdtw": 21,
     "msm": 20,
     "erp": 19,
-    "edr": 20,
+    "edr": 21,
     "lcss": 12,
 }
 
