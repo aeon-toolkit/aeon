@@ -15,6 +15,7 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _jaccard_similar_neighbors,
     _knn_hyperedges,
     _optimize_position_encoding_np,
+    _round_significant,
     _series_transform,
     _sk_lda_divides_by_n_minus_classes,
     _sk_lda_pair_fit,
@@ -1012,3 +1013,19 @@ def test_knn_hyperedges_duplicates_valid_and_repeatable():
         assert e1[0] in range(n)
         assert len(np.unique(e1)) == len(e1)
         assert e1.min() >= 0 and e1.max() < n
+
+
+@pytest.mark.parametrize("exponent", [-3, 0, 3, 6, 9])
+def test_round_significant_collapses_last_bit_differences(exponent):
+    """Test that last-bit differences across scales collapse to exact equality."""
+    a = np.array([4.53, 1.2345678, 7.0]) * 10.0**exponent
+    b = np.nextafter(a, np.inf)
+    assert not np.array_equal(a, b)
+    np.testing.assert_array_equal(_round_significant(a), _round_significant(b))
+
+
+def test_round_significant_keeps_zero_and_non_finite():
+    """Test that zero and non-finite values are preserved without modification."""
+    x = np.array([0.0, -np.inf, np.inf, 2.5])
+    out = _round_significant(x)
+    assert out[0] == 0.0 and out[1] == -np.inf and out[2] == np.inf and out[3] == 2.5
