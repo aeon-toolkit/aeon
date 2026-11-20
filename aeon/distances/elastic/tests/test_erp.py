@@ -68,3 +68,60 @@ def test_erp_pairwise_distance_mixed_dtypes(dtype_y, bounding):
                     -1, -1
                 ]
         assert_allclose(pw, expected, rtol=_mixed_rtol(dtype_y))
+
+
+def _erp_reference(x, y, g):
+    """Recursive ERP definition: deleting a point costs its distance to g."""
+
+    def erp(i, j):
+        if i == len(x):
+            return sum(abs(v - g) for v in y[j:])
+        if j == len(y):
+            return sum(abs(v - g) for v in x[i:])
+        return min(
+            erp(i + 1, j + 1) + abs(x[i] - y[j]),
+            erp(i + 1, j) + abs(x[i] - g),
+            erp(i, j + 1) + abs(y[j] - g),
+        )
+
+    return erp(0, 0)
+
+
+def test_erp_matches_definition():
+    """Leading gaps must cost the cumulative distance to g, not the total."""
+    # delete the leading zeros of y (cost 0), match the 3s, delete the trailing zeros
+    x = np.array([[3.0, 0.0, 0.0]])
+    y = np.array([[0.0, 0.0, 3.0]])
+    assert erp_distance(x, y) == 0.0
+    assert erp_pairwise_distance(x[np.newaxis], y[np.newaxis])[0, 0] == 0.0
+    assert erp_cost_matrix(x, y)[-1, -1] == 0.0
+
+    rng = np.random.default_rng(0)
+    for g in (0.0, 0.5):
+        for n, m in [(1, 4), (5, 5), (6, 3)]:
+            x = rng.normal(size=(1, n))
+            y = rng.normal(size=(1, m))
+            expected = _erp_reference(x[0], y[0], g)
+            assert_allclose(erp_distance(x, y, g=g), expected)
+            assert_allclose(erp_cost_matrix(x, y, g=g)[-1, -1], expected)
+
+
+def test_erp_matches_definition_multichannel_g_arr():
+    """Two channels with a per-channel g follow the same cumulative gap cost."""
+    rng = np.random.default_rng(1)
+    x = rng.normal(size=(2, 5))
+    y = rng.normal(size=(2, 4))
+    g_arr = np.array([0.2, -0.3])
+
+    def erp(i, j):
+        if i == x.shape[1]:
+            return sum(np.linalg.norm(y[:, k] - g_arr) for k in range(j, y.shape[1]))
+        if j == y.shape[1]:
+            return sum(np.linalg.norm(x[:, k] - g_arr) for k in range(i, x.shape[1]))
+        return min(
+            erp(i + 1, j + 1) + np.linalg.norm(x[:, i] - y[:, j]),
+            erp(i + 1, j) + np.linalg.norm(x[:, i] - g_arr),
+            erp(i, j + 1) + np.linalg.norm(y[:, j] - g_arr),
+        )
+
+    assert_allclose(erp_distance(x, y, g_arr=g_arr), erp(0, 0))

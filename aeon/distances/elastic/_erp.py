@@ -52,8 +52,9 @@ def erp_distance(
         insert &=  D_{i,j-1}+ d({g,y_{j}})\\
         D_{i,j} &= min(match,insert, delete)
 
-    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the sum of
-    distances to $g$ for each series.
+    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the cumulative sum of
+    the distances to :math:`g` of the first :math:`j` points of :math:`y` and the first
+    :math:`i` points of :math:`x` respectively.
 
     The value of :math:`g` is by default 0 in ``aeon``, but in [1]_ it is data dependent
     , selected from the range :math:`[\sigma/5, \sigma]`, where :math:`\sigma` is the
@@ -249,18 +250,18 @@ def _erp_distance_impl(
     x_size = x.shape[1]
     y_size = y.shape[1]
 
-    gx_distance, x_sum = _precompute_g(x, g, g_arr)
-    gy_distance, y_sum = _precompute_g(y, g, g_arr)
+    gx_distance, x_cum = _precompute_g(x, g, g_arr)
+    gy_distance, y_cum = _precompute_g(y, g, g_arr)
 
     # prev is row i-1, curr is row i; size y_size + 1 for the boundary column.
     prev = np.full(y_size + 1, np.inf)
     curr = np.full(y_size + 1, np.inf)
     prev[0] = 0.0
-    prev[1:] = y_sum
+    prev[1:] = y_cum
 
     for i in range(1, x_size + 1):
-        # Column 0 of the padded cost matrix is x_sum for every row i >= 1.
-        curr[0] = x_sum
+        # Column 0 of the padded cost matrix: cost of deleting x[:i].
+        curr[0] = x_cum[i - 1]
         for j in range(1, y_size + 1):
             if bounding_matrix[i - 1, j - 1]:
                 curr[j] = min(
@@ -299,19 +300,19 @@ def _erp_distance_unbounded_impl(
     x_size = x.shape[1]
     y_size = y.shape[1]
 
-    gx_distance, x_sum = _precompute_g(x, g, g_arr)
-    gy_distance, y_sum = _precompute_g(y, g, g_arr)
+    gx_distance, x_cum = _precompute_g(x, g, g_arr)
+    gy_distance, y_cum = _precompute_g(y, g, g_arr)
 
     prev = np.empty(y_size + 1)
     curr = np.empty(y_size + 1)
     prev[0] = 0.0
-    prev[1:] = y_sum
+    prev[1:] = y_cum
     univariate = x.shape[0] == 1 and y.shape[0] == 1
     x0 = x[0]
     y0 = y[0]
 
     for i in range(1, x_size + 1):
-        curr[0] = x_sum
+        curr[0] = x_cum[i - 1]
         if univariate:
             xi = x0[i - 1]
             for j in range(1, y_size + 1):
@@ -345,11 +346,11 @@ def _erp_cost_matrix(
     y_size = y.shape[1]
 
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
-    gx_distance, x_sum = _precompute_g(x, g, g_arr)
-    gy_distance, y_sum = _precompute_g(y, g, g_arr)
+    gx_distance, x_cum = _precompute_g(x, g, g_arr)
+    gy_distance, y_cum = _precompute_g(y, g, g_arr)
 
-    cost_matrix[1:, 0] = x_sum
-    cost_matrix[0, 1:] = y_sum
+    cost_matrix[1:, 0] = x_cum
+    cost_matrix[0, 1:] = y_cum
     cost_matrix[0, 0] = 0.0
 
     for i in range(1, x_size + 1):
@@ -368,7 +369,7 @@ def _erp_cost_matrix(
 @njit(cache=True, fastmath=True)
 def _precompute_g(
     x: np.ndarray, g: float, g_array: np.ndarray | None
-) -> tuple[np.ndarray, float]:
+) -> tuple[np.ndarray, np.ndarray]:
     gx_distance = np.zeros(x.shape[1])
     if g_array is None:
         g_arr = np.full(x.shape[0], g)
@@ -376,13 +377,10 @@ def _precompute_g(
         if g_array.shape[0] != x.shape[0]:
             raise ValueError("g must be a float or an array with shape (x.shape[0],)")
         g_arr = g_array
-    x_sum = 0
 
     for i in range(x.shape[1]):
-        temp = _univariate_euclidean_distance(x[:, i], g_arr)
-        gx_distance[i] = temp
-        x_sum += temp
-    return gx_distance, x_sum
+        gx_distance[i] = _univariate_euclidean_distance(x[:, i], g_arr)
+    return gx_distance, np.cumsum(gx_distance)
 
 
 @numba_thread_handler
