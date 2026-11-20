@@ -58,6 +58,13 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         Level of output printed during fit. Level 1 reports the fit configuration,
         periodic progress and a final summary. Level 2 and above additionally report
         every fitted estimator and estimated remaining time.
+    checkpoint_path : str, pathlib.Path or None, default=None
+        Checkpoint file, saved at completed batch boundaries and on successful
+        completion. None disables automatic writes. The parent must exist.
+    checkpoint_interval : float or None, default=None
+        Minimum minutes between periodic checkpoint writes. None saves only on
+        successful completion when a path is configured. Use ``resume_fit`` to
+        continue a loaded checkpoint; ``fit`` always starts afresh.
 
     Attributes
     ----------
@@ -110,6 +117,8 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
         verbose: int = 0,
+        checkpoint_path=None,
+        checkpoint_interval=None,
     ):
         super().__init__(
             n_estimators=n_estimators,
@@ -122,6 +131,8 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose,
+            checkpoint_path=checkpoint_path,
+            checkpoint_interval=checkpoint_interval,
         )
 
     def fit(self, X, y):
@@ -255,3 +266,25 @@ class RotationForestClassifier(ClassifierMixin, BaseRotationForest):
         Changes state by creating a fitted model that updates attributes ending in "_".
         """
         return self._fit_predict_rotf(X, y)
+
+    def resume_fit_predict_proba(self, X, y) -> np.ndarray:
+        """Continue a forest begun with fit_predict_proba and estimate probabilities.
+
+        The counterpart of ``resume_fit`` for a forest begun with
+        ``fit_predict_proba`` or ``fit_predict``: it builds the remaining trees and
+        returns the out-of-bag probabilities an uninterrupted ``fit_predict_proba``
+        would have returned.
+
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            Original training data, with the same values and order.
+        y : array-like, shape = [n_cases]
+            Original class labels in the original order.
+
+        Returns
+        -------
+        y : array-like, shape = [n_cases, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        return self._resume_fit_predict_rotf(X, y)
