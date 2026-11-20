@@ -6,6 +6,7 @@ __all__ = [
     "make_example_2d_numpy_series",
     "make_example_pandas_series",
     "make_example_dataframe_series",
+    "make_example_segment_series",
 ]
 
 
@@ -333,3 +334,137 @@ def _make_index(n_timepoints, index_type=None):
         return pd.Index(np.arange(0, n_timepoints), dtype=int)
     else:
         raise ValueError(f"index_class: {index_type} is not supported")
+
+
+def make_example_segment_series(
+    n_timepoints: int = 300,
+    n_channels: int = 1,
+    shift_type: str = "mean",
+    shift_magnitude: float | None = None,
+    noise_std: float | None = None,
+    axis: int = 1,
+    return_changepoints: bool = False,
+    random_state: int | np.random.RandomState | np.random.Generator | None = None,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
+    r"""Generate time series with segmented mean or variance shifts.
+
+    Creates a synthetic series divided into three segments:
+    - Segment 1 (indices 0 to t1): baseline distribution.
+    - Segment 2 (indices t1 to t2): shifted distribution.
+    - Segment 3 (indices t2 to n_timepoints): baseline distribution.
+
+    For ``shift_type="mean"``:
+    - Segments 1 & 3: :math:`\mathcal{N}(0, \sigma^2)` where
+      :math:`\sigma = \text{noise\_std}`.
+    - Segment 2: :math:`\mathcal{N}(\mu, \sigma^2)` where
+      :math:`\mu = \text{shift\_magnitude}`.
+
+    For ``shift_type="variance"``:
+    - Segments 1 & 3: :math:`\mathcal{N}(0, \sigma_1^2)` where
+      :math:`\sigma_1 = \text{noise\_std}`.
+    - Segment 2: :math:`\mathcal{N}(0, \sigma_2^2)` where
+      :math:`\sigma_2 = \text{shift\_magnitude}`.
+
+    Parameters
+    ----------
+    n_timepoints : int, default=300
+        Total length of the time series to generate.
+    n_channels : int, default=1
+        Number of channels to generate. If 1, returns a 1D array of shape
+        ``(n_timepoints,)``. If > 1, returns a 2D array of shape
+        ``(n_channels, n_timepoints)`` (if axis=1) or ``(n_timepoints, n_channels)``
+        (if axis=0).
+    shift_type : {"mean", "variance"}, default="mean"
+        Type of distribution change in the middle segment.
+    shift_magnitude : float or None, default=None
+        Magnitude of the shift in the middle segment. If None, defaults to
+        10.0 for ``shift_type="mean"`` and 5.0 for ``shift_type="variance"``.
+    noise_std : float or None, default=None
+        Standard deviation of the baseline noise in segments 1 and 3.
+        If None, defaults to 0.5 for ``shift_type="mean"`` and 1.0 for
+        ``shift_type="variance"``.
+    axis : int, default=1
+        The axis for timepoints when ``n_channels > 1``.
+        If 1, shape is ``(n_channels, n_timepoints)``.
+        If 0, shape is ``(n_timepoints, n_channels)``.
+    return_changepoints : bool, default=False
+        If True, also returns the true changepoint locations.
+    random_state : int, RandomState, Generator, or None, default=None
+        Seed or random state for reproducibility.
+
+    Returns
+    -------
+    X : np.ndarray
+        Synthetic segmented time series.
+    changepoints : np.ndarray, optional
+        Array of changepoint boundary indices ``[t1, t2]``, returned only if
+        ``return_changepoints=True``.
+
+    Raises
+    ------
+    ValueError
+        If ``shift_type`` is not one of ``{"mean", "variance"}``, or if ``axis``
+        is not 0 or 1.
+
+    Examples
+    --------
+    >>> from aeon.testing.data_generation import make_example_segment_series
+    >>> X = make_example_segment_series(n_timepoints=300, random_state=42)
+    >>> len(X)
+    300
+    """
+    if axis not in (0, 1):
+        raise ValueError(f"axis: {axis} is not supported, please use 0 or 1.")
+    if shift_type not in ("mean", "variance"):
+        raise ValueError(
+            f"shift_type '{shift_type}' is not supported. Must be 'mean' or 'variance'."
+        )
+
+    if random_state is None or isinstance(random_state, (int, np.integer)):
+        rng = np.random.default_rng(random_state)
+    elif isinstance(random_state, np.random.Generator):
+        rng = random_state
+    elif isinstance(random_state, np.random.RandomState):
+        rng = np.random.default_rng(random_state.randint(0, 2**31 - 1))
+    else:
+        raise ValueError(f"Invalid random_state: {random_state}")
+
+    seg1_len = n_timepoints // 3
+    seg2_len = n_timepoints // 3
+    seg3_len = n_timepoints - seg1_len - seg2_len
+
+    if shift_type == "mean":
+        shift = 10.0 if shift_magnitude is None else float(shift_magnitude)
+        std = 0.5 if noise_std is None else float(noise_std)
+        if n_channels == 1:
+            seg1 = rng.normal(0.0, std, seg1_len)
+            seg2 = rng.normal(shift, std, seg2_len)
+            seg3 = rng.normal(0.0, std, seg3_len)
+            X = np.concatenate([seg1, seg2, seg3])
+        else:
+            seg1 = rng.normal(0.0, std, (n_channels, seg1_len))
+            seg2 = rng.normal(shift, std, (n_channels, seg2_len))
+            seg3 = rng.normal(0.0, std, (n_channels, seg3_len))
+            X = np.hstack([seg1, seg2, seg3])
+            if axis == 0:
+                X = X.T
+    else:  # variance
+        std1 = 1.0 if noise_std is None else float(noise_std)
+        std2 = 5.0 if shift_magnitude is None else float(shift_magnitude)
+        if n_channels == 1:
+            seg1 = rng.normal(0.0, std1, seg1_len)
+            seg2 = rng.normal(0.0, std2, seg2_len)
+            seg3 = rng.normal(0.0, std1, seg3_len)
+            X = np.concatenate([seg1, seg2, seg3])
+        else:
+            seg1 = rng.normal(0.0, std1, (n_channels, seg1_len))
+            seg2 = rng.normal(0.0, std2, (n_channels, seg2_len))
+            seg3 = rng.normal(0.0, std1, (n_channels, seg3_len))
+            X = np.hstack([seg1, seg2, seg3])
+            if axis == 0:
+                X = X.T
+
+    changepoints = np.array([seg1_len, seg1_len + seg2_len], dtype=np.intp)
+    if return_changepoints:
+        return X, changepoints
+    return X
