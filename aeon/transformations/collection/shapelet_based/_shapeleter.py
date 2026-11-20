@@ -49,7 +49,17 @@ def _assign_order_batch(positions_abs_2d):
     return out
 
 
-def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=1024):
+def _round_significant(x, digits=12):
+    """Round to ``digits`` significant digits; zeros and non-finite values are kept."""
+    out = x.copy()
+    ok = np.isfinite(x) & (x != 0)
+    exp = np.clip(np.floor(np.log10(np.abs(x[ok]))), -290, None)
+    factor = 10.0 ** (digits - 1 - exp)
+    out[ok] = np.round(x[ok] * factor) / factor
+    return out
+
+
+def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=None):
     """Build k-NN hyperedges from candidate shapelet coordinates.
 
     Parameters
@@ -58,9 +68,8 @@ def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=1024):
         Shapelet coordinate matrix of shape (n_cases, length).
     valid_k : tuple or list of int
         Candidate neighborhood sizes k.
-    chunk_size : int, default=1024
-        Number of rows to compute distances for at a time to avoid
-        materializing the full dense distance matrix.
+    chunk_size : int, optional
+        Ignored, kept for backward compatibility.
 
     Returns
     -------
@@ -71,22 +80,17 @@ def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=1024):
     if len(valid_k) == 0 or n == 0:
         return []
 
+    dist_mat = euclidean_distances(cleaned_sub)
+    np.fill_diagonal(dist_mat, -np.inf)
     edges_by_k = [[] for _ in valid_k]
-    # Rows are processed in blocks so that the full n x n distance matrix
-    # is never held in memory. Distances come from a BLAS computation;
-    # near-equal values are not canonicalised, and block-wise computation
-    # can change the last bits compared with one full-matrix call.
-    max_k = min(n, max(valid_k))
-    for start in range(0, n, chunk_size):
-        stop = min(start + chunk_size, n)
-        dist = euclidean_distances(cleaned_sub[start:stop], cleaned_sub)
-        r_idx = np.arange(stop - start)
-        dist[r_idx, start + r_idx] = -np.inf
-        order = np.argsort(dist, axis=1)[:, :max_k]
+    for i in range(n):
+        # Distances are rounded to 12 significant digits so that last-bit differences
+        # of the matrix product (different between CPUs) become exact ties, which the
+        # stable sort resolves by index order. This is not part of the reference
+        # algorithm.
+        order = np.argsort(_round_significant(dist_mat[i]), kind="stable")
         for j, k in enumerate(valid_k):
-            k_eff = min(k, n)
-            for r in range(stop - start):
-                edges_by_k[j].append(order[r, :k_eff].copy())
+            edges_by_k[j].append(order[:k].copy())
 
     return [edge for edges in edges_by_k for edge in edges]
 
