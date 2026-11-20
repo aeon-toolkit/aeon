@@ -729,7 +729,7 @@ class AutoCES(BaseForecaster, IterativeForecastingMixin):
         """Predict one step ahead from the selected ``best_model_``."""
         if exog is not None:
             raise NotImplementedError("AutoCES does not support exogenous variables.")
-        return self.best_model_.predict(y)
+        return self.best_model_.predict(y).item()
 
     def iterative_forecast(
         self,

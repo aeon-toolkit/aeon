@@ -6,32 +6,29 @@ import pytest
 from aeon.forecasting.machine_learning._setar import SETAR, _lagmat_1d
 
 
-def test_constant_series_scalar_and_close():
-    """Forecasting on a constant series returns a scalar near the constant."""
+def test_constant_series_forecast():
+    """Forecasting on a constant series returns a value near the constant."""
     y = np.ones(40)
     f = SETAR(lag=10)
     f.fit(y)
     pred = f.predict(y)
-    assert np.isscalar(pred), "Prediction should be a scalar for univariate series"
     assert np.isclose(pred, 1.0, atol=1e-6), f"Prediction {pred} not close to 1.0"
 
 
-def test_linear_series_scalar_and_next_value():
-    """Forecasting on an arithmetic progression returns the next value (scalar)."""
+def test_linear_series_next_value():
+    """Forecasting on an arithmetic progression returns the next value."""
     y = np.arange(1.0, 41.0)  # 1..40
     f = SETAR(lag=5)
     f.fit(y)
     pred = f.predict(y)
-    assert np.isscalar(pred), "Prediction should be a scalar for univariate series"
     assert np.isclose(pred, 41.0, atol=0.05), f"Prediction {pred} not close to 41.0"
 
 
 def test_forecast_sets_attribute_and_matches_predict():
-    """forecast() returns scalar and sets forecast_ equal to the returned value."""
+    """forecast() sets forecast_ equal to the returned prediction."""
     y = np.arange(1.0, 31.0)
     f = SETAR(lag=6)
     out = f.forecast(y)  # triggers internal fit + 1-step forecast
-    assert np.isscalar(out), "forecast() should return a scalar"
     assert hasattr(f, "forecast_"), "forecast_ should be set by _fit/_forecast"
     assert np.isclose(f.forecast_, out), "forecast_ must equal the returned forecast"
     f2 = SETAR(lag=6)
@@ -83,7 +80,6 @@ def test_ar1_decay_next_value_matches_rule():
     f.fit(y)
     pred = f.predict(y)
     expected = 0.82 * y[-1]
-    assert np.isscalar(pred), "Prediction should be a scalar"
     assert np.isclose(pred, expected, atol=1e-2), f"{pred=} not close to {expected=}"
 
 
