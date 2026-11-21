@@ -49,17 +49,7 @@ def _assign_order_batch(positions_abs_2d):
     return out
 
 
-def _round_significant(x, digits=12):
-    """Round to ``digits`` significant digits; zeros and non-finite values are kept."""
-    out = x.copy()
-    ok = np.isfinite(x) & (x != 0)
-    exp = np.clip(np.floor(np.log10(np.abs(x[ok]))), -290, None)
-    factor = 10.0 ** (digits - 1 - exp)
-    out[ok] = np.round(x[ok] * factor) / factor
-    return out
-
-
-def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=None):
+def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=256):
     """Build k-NN hyperedges from candidate shapelet coordinates.
 
     Parameters
@@ -68,8 +58,10 @@ def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=None):
         Shapelet coordinate matrix of shape (n_cases, length).
     valid_k : tuple or list of int
         Candidate neighborhood sizes k.
-    chunk_size : int, optional
-        Ignored, kept for backward compatibility.
+    chunk_size : int or None, default=256
+        Number of rows to compute distances for at a time to avoid
+        materializing the full dense distance matrix. If None, all rows
+        are processed in a single block.
 
     Returns
     -------
@@ -80,17 +72,40 @@ def _knn_hyperedges(cleaned_sub, valid_k, chunk_size=None):
     if len(valid_k) == 0 or n == 0:
         return []
 
-    dist_mat = euclidean_distances(cleaned_sub)
-    np.fill_diagonal(dist_mat, -np.inf)
+    if chunk_size is None:
+        effective_chunk_size = max(n, 1)
+    elif (
+        isinstance(chunk_size, bool)
+        or not isinstance(chunk_size, (int, np.integer))
+        or chunk_size <= 0
+    ):
+        raise ValueError(
+            f"chunk_size must be a positive integer or None, but got {chunk_size!r}"
+        )
+    else:
+        effective_chunk_size = int(chunk_size)
+
+    max_k = min(n, max(valid_k))
     edges_by_k = [[] for _ in valid_k]
-    for i in range(n):
-        # Distances are rounded to 12 significant digits so that last-bit differences
-        # of the matrix product (different between CPUs) become exact ties, which the
-        # stable sort resolves by index order. This is not part of the reference
-        # algorithm.
-        order = np.argsort(_round_significant(dist_mat[i]), kind="stable")
+
+    # Ties between equal distances follow numpy's default argsort, as in the
+    # reference implementation. numpy does not define an order for exact ties,
+    # so tied cases can differ between numpy versions and CPUs. Rows are
+    # processed in blocks so that the full n x n distance matrix is never held
+    # in memory; block-wise BLAS products can differ in the last bits from one
+    # full-matrix call.
+    for start in range(0, n, effective_chunk_size):
+        stop = min(start + effective_chunk_size, n)
+        dist = euclidean_distances(cleaned_sub[start:stop], cleaned_sub)
+        block_len = stop - start
+        r_idx = np.arange(block_len)
+        dist[r_idx, start + r_idx] = -np.inf
+
+        order = np.argsort(dist, axis=1)[:, :max_k]
         for j, k in enumerate(valid_k):
-            edges_by_k[j].append(order[:k].copy())
+            k_eff = min(k, n)
+            for r in range(block_len):
+                edges_by_k[j].append(order[r, :k_eff].copy())
 
     return [edge for edges in edges_by_k for edge in edges]
 

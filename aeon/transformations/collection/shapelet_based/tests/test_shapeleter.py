@@ -15,7 +15,6 @@ from aeon.transformations.collection.shapelet_based._shapeleter import (
     _jaccard_similar_neighbors,
     _knn_hyperedges,
     _optimize_position_encoding_np,
-    _round_significant,
     _series_transform,
     _sk_lda_divides_by_n_minus_classes,
     _sk_lda_pair_fit,
@@ -945,7 +944,7 @@ def test_jaccard_similar_neighbors_matches_dense(threshold):
 
 
 def _ref_knn_hyperedges_full_matrix(cleaned_sub, valid_k):
-    """Compute reference full-matrix k-NN hyperedges."""
+    """Compute reference full-matrix k-NN hyperedges with default argsort."""
     from sklearn.metrics.pairwise import euclidean_distances
 
     n = cleaned_sub.shape[0]
@@ -961,9 +960,9 @@ def _ref_knn_hyperedges_full_matrix(cleaned_sub, valid_k):
     return [edge for edges in edges_by_k for edge in edges]
 
 
-@pytest.mark.parametrize("n", [50, 150])
+@pytest.mark.parametrize("n", [50, 300])
 @pytest.mark.parametrize("seed", [0, 1])
-@pytest.mark.parametrize("chunk_size", [1, 16, 10000])
+@pytest.mark.parametrize("chunk_size", [1, 7, 64, 10000, None])
 def test_knn_hyperedges_row_blocked_matches_full_matrix(n, seed, chunk_size):
     """Row-blocked k-NN must match full-matrix reference on tie-free continuous data."""
     from sklearn.metrics.pairwise import euclidean_distances
@@ -998,6 +997,13 @@ def test_knn_hyperedges_edge_cases():
     for i in range(len(out_large)):
         for j in range(i + 1, len(out_large)):
             assert not np.shares_memory(out_large[i], out_large[j])
+        assert not np.shares_memory(out_large[i], sub)
+
+    for invalid_chunk in [0, -5, "10", 3.5, False]:
+        with pytest.raises(
+            ValueError, match="chunk_size must be a positive integer or None"
+        ):
+            _knn_hyperedges(sub, [3], chunk_size=invalid_chunk)
 
 
 def test_knn_hyperedges_duplicates_valid_and_repeatable():
@@ -1013,19 +1019,3 @@ def test_knn_hyperedges_duplicates_valid_and_repeatable():
         assert e1[0] in range(n)
         assert len(np.unique(e1)) == len(e1)
         assert e1.min() >= 0 and e1.max() < n
-
-
-@pytest.mark.parametrize("exponent", [-3, 0, 3, 6, 9])
-def test_round_significant_collapses_last_bit_differences(exponent):
-    """Test that last-bit differences across scales collapse to exact equality."""
-    a = np.array([4.53, 1.2345678, 7.0]) * 10.0**exponent
-    b = np.nextafter(a, np.inf)
-    assert not np.array_equal(a, b)
-    np.testing.assert_array_equal(_round_significant(a), _round_significant(b))
-
-
-def test_round_significant_keeps_zero_and_non_finite():
-    """Test that zero and non-finite values are preserved without modification."""
-    x = np.array([0.0, -np.inf, np.inf, 2.5])
-    out = _round_significant(x)
-    assert out[0] == 0.0 and out[1] == -np.inf and out[2] == np.inf and out[3] == 2.5
