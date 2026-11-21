@@ -1,12 +1,15 @@
 """Validation and checking functions for time series."""
 
 __all__ = [
+    "check_lapack_svd_safe",
     "check_n_jobs",
 ]
 
 import os
 
 import numpy as np
+
+_LAPACK_OVERFLOW_TEXT = "integer overflow in LAPACK"
 
 
 def check_n_jobs(n_jobs: int) -> int:
@@ -46,6 +49,48 @@ def check_n_jobs(n_jobs: int) -> int:
         return max(1, os.cpu_count() + 1 + n_jobs)
     else:
         return n_jobs
+
+
+def check_lapack_svd_safe(
+    error: ValueError, n_samples: int, n_features: int, estimator_name: str
+) -> None:
+    """Raise an informative error if ``error`` is a LAPACK integer overflow.
+
+    Parameters
+    ----------
+    error : ValueError
+        The error caught while fitting.
+    n_samples : int
+        Number of rows in the matrix passed to the estimator.
+    n_features : int
+        Number of columns in the matrix passed to the estimator.
+    estimator_name : str
+        Name of the calling estimator, used in the error message.
+
+    Raises
+    ------
+    ValueError
+        If ``error`` reports a LAPACK integer overflow. The original error
+        is chained as the cause.
+
+    Examples
+    --------
+    >>> from aeon.utils.validation import check_lapack_svd_safe
+    >>> try:
+    ...     raise ValueError("an unrelated error")
+    ... except ValueError as error:
+    ...     check_lapack_svd_safe(error, 100, 10, "MyEstimator")  # does nothing
+    """
+    if _LAPACK_OVERFLOW_TEXT not in str(error):
+        return
+
+    raise ValueError(
+        f"{estimator_name} could not fit its default estimator on the transformed "
+        f"feature matrix ({n_samples} samples and {n_features} features) due to a "
+        "LAPACK integer overflow. Use an estimator that does not rely on SVD, "
+        "such as sklearn.linear_model.RidgeClassifier(solver='lsqr'). "
+        f"Original error: {error}"
+    ) from error
 
 
 def _is_float_or_int_dtype(dtype):
