@@ -142,6 +142,7 @@ Shapelet-based
     :template: class.rst
 
     RDSTClassifier
+    ShapeleterClassifier
     SASTClassifier
     RSASTClassifier
     ShapeletTransformClassifier
