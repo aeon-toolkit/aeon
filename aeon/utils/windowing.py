@@ -106,6 +106,7 @@ def sliding_windows(
         windows = windows.reshape((n_timepoints - (window_size - 1), -1))
         windows = windows[::stride, :]
     else:
+        windows = windows.transpose(0, 2, 1)
         windows = windows.reshape((-1, n_timepoints - (window_size - 1)))
         windows = windows[:, ::stride]
 
