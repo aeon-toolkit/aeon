@@ -151,12 +151,16 @@ class MultiRocketHydraClassifier(BaseClassifier):
             self.random_state,
         )
 
-        if _using_default_estimator:
-            n_samples, n_features = Xt.shape
-            check_lapack_svd_safe(n_samples, n_features, "MultiRocketHydraClassifier")
-
         self.classifier = self.estimator_
-        self.classifier.fit(Xt, y)
+        try:
+            self.classifier.fit(Xt, y)
+        except ValueError as error:
+            if _using_default_estimator:
+                n_samples, n_features = Xt.shape
+                check_lapack_svd_safe(
+                    error, n_samples, n_features, "MultiRocketHydraClassifier"
+                )
+            raise
 
         return self
 

@@ -157,11 +157,13 @@ class RocketClassifier(BaseClassifier):
         X_t = self._transformer.fit_transform(X)
         X_t = self._scaler.fit_transform(X_t)
 
-        if _using_default_estimator:
-            n_samples, n_features = X_t.shape
-            check_lapack_svd_safe(n_samples, n_features, "RocketClassifier")
-
-        self.estimator_.fit(X_t, y)
+        try:
+            self.estimator_.fit(X_t, y)
+        except ValueError as error:
+            if _using_default_estimator:
+                n_samples, n_features = X_t.shape
+                check_lapack_svd_safe(error, n_samples, n_features, "RocketClassifier")
+            raise
 
         self.pipeline_ = make_pipeline(
             self._transformer,

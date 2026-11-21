@@ -1,12 +1,26 @@
 """RDST tests."""
 
-from unittest.mock import patch
-
 import numpy as np
+import pytest
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import RidgeClassifier, RidgeClassifierCV
 
 from aeon.classification.shapelet_based import RDSTClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
+
+LAPACK_ERROR = (
+    "Indexing a matrix of 3365692186 elements would incur an integer overflow in "
+    "LAPACK. Try using numpy.linalg.svd instead."
+)
+
+
+def _failing_fit(error):
+    """Return a replacement ``fit`` method that raises ``error``."""
+
+    def fit(self, *args, **kwargs):
+        raise error
+
+    return fit
 
 
 def test_predict_proba():
@@ -35,31 +49,38 @@ def test_rdst_estimator_attribute_lifecycle():
     assert not hasattr(model, "_estimator")
 
 
-def test_rdst_calls_lapack_check_with_default_estimator():
-    """RDSTClassifier should call check_lapack_svd_safe when estimator is None."""
+def test_rdst_lapack_overflow_gives_informative_error(monkeypatch):
+    """The default estimator failing with a LAPACK overflow should be explained."""
     X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12)
-    clf = RDSTClassifier(max_shapelets=5)
+    error = ValueError(LAPACK_ERROR)
+    monkeypatch.setattr(RidgeClassifierCV, "fit", _failing_fit(error))
 
-    with patch(
-        "aeon.classification.shapelet_based._rdst.check_lapack_svd_safe"
-    ) as mock_check:
-        clf.fit(X, y)
+    with pytest.raises(ValueError, match="RDSTClassifier could not fit") as exc_info:
+        RDSTClassifier(max_shapelets=5).fit(X, y)
 
-    mock_check.assert_called_once()
-    args, _ = mock_check.call_args
-    assert args[2] == "RDSTClassifier"
+    assert "10 samples" in str(exc_info.value)
+    assert exc_info.value.__cause__ is error
 
 
-def test_rdst_skips_lapack_check_with_custom_estimator():
-    """RDSTClassifier should not call check_lapack_svd_safe with a custom estimator."""
-    from sklearn.linear_model import RidgeClassifier
-
+def test_rdst_other_value_errors_are_not_changed(monkeypatch):
+    """Errors from the default estimator that are not LAPACK overflows pass through."""
     X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12)
-    clf = RDSTClassifier(max_shapelets=5, estimator=RidgeClassifier())
+    error = ValueError("an unrelated problem")
+    monkeypatch.setattr(RidgeClassifierCV, "fit", _failing_fit(error))
 
-    with patch(
-        "aeon.classification.shapelet_based._rdst.check_lapack_svd_safe"
-    ) as mock_check:
-        clf.fit(X, y)
+    with pytest.raises(ValueError) as exc_info:
+        RDSTClassifier(max_shapelets=5).fit(X, y)
 
-    mock_check.assert_not_called()
+    assert exc_info.value is error
+
+
+def test_rdst_custom_estimator_errors_are_not_changed(monkeypatch):
+    """A custom estimator is the user's choice, so its errors are left as they are."""
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12)
+    error = ValueError(LAPACK_ERROR)
+    monkeypatch.setattr(RidgeClassifier, "fit", _failing_fit(error))
+
+    with pytest.raises(ValueError) as exc_info:
+        RDSTClassifier(max_shapelets=5, estimator=RidgeClassifier()).fit(X, y)
+
+    assert exc_info.value is error

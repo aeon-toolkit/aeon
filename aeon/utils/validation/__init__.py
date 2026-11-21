@@ -9,6 +9,8 @@ import os
 
 import numpy as np
 
+_LAPACK_OVERFLOW_TEXT = "integer overflow in LAPACK"
+
 
 def check_n_jobs(n_jobs: int) -> int:
     """Check `n_jobs` parameter according to the scikit-learn convention.
@@ -49,39 +51,46 @@ def check_n_jobs(n_jobs: int) -> int:
         return n_jobs
 
 
-def check_lapack_svd_safe(n_samples: int, n_features: int, estimator_name: str) -> None:
-    """Raise an informative error if a matrix is too large for LAPACK SVD.
-
-    Matrices with more than ``2**31 - 1`` elements may overflow 32-bit integer
-    indexing used internally by LAPACK during SVD-based operations.
+def check_lapack_svd_safe(
+    error: ValueError, n_samples: int, n_features: int, estimator_name: str
+) -> None:
+    """Raise an informative error if ``error`` is a LAPACK integer overflow.
 
     Parameters
     ----------
+    error : ValueError
+        The error caught while fitting.
     n_samples : int
-        Number of rows in the matrix.
+        Number of rows in the matrix passed to the estimator.
     n_features : int
-        Number of columns in the matrix.
+        Number of columns in the matrix passed to the estimator.
     estimator_name : str
         Name of the calling estimator, used in the error message.
 
     Raises
     ------
     ValueError
-        If ``n_samples * n_features`` exceeds the 32-bit LAPACK indexing limit.
-    """
-    n_elements = int(n_samples) * int(n_features)
-    limit = np.iinfo(np.int32).max
+        If ``error`` reports a LAPACK integer overflow. The original error
+        is chained as the cause.
 
-    if n_elements > limit:
-        raise ValueError(
-            f"{estimator_name} cannot process this data because the "
-            f"transformed feature matrix has {n_samples} samples and "
-            f"{n_features} features ({n_elements} elements), exceeding "
-            f"the {limit} element limit for 32-bit LAPACK indexing during "
-            "SVD-based operations. This limitation is independent of "
-            "available RAM. Use an estimator or solver that does not rely "
-            "on the affected SVD-based operation."
-        )
+    Examples
+    --------
+    >>> from aeon.utils.validation import check_lapack_svd_safe
+    >>> try:
+    ...     raise ValueError("an unrelated error")
+    ... except ValueError as error:
+    ...     check_lapack_svd_safe(error, 100, 10, "MyEstimator")  # does nothing
+    """
+    if _LAPACK_OVERFLOW_TEXT not in str(error):
+        return
+
+    raise ValueError(
+        f"{estimator_name} could not fit its default estimator on the transformed "
+        f"feature matrix ({n_samples} samples and {n_features} features) due to a "
+        "LAPACK integer overflow. Use an estimator that does not rely on SVD, "
+        "such as sklearn.linear_model.RidgeClassifier(solver='lsqr'). "
+        f"Original error: {error}"
+    ) from error
 
 
 def _is_float_or_int_dtype(dtype):

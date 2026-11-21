@@ -1,42 +1,34 @@
 """Tests for check_lapack_svd_safe."""
 
-import numpy as np
 import pytest
 
 from aeon.utils.validation import check_lapack_svd_safe
 
-
-def test_check_lapack_svd_safe_under_limit():
-    """Matrices under the 32-bit LAPACK element limit should not raise."""
-    limit = np.iinfo(np.int32).max
-    n_samples = 1000
-    n_features = limit // n_samples - 1
-
-    check_lapack_svd_safe(n_samples, n_features, "TestEstimator")
-
-
-def test_check_lapack_svd_safe_at_limit():
-    """Exactly at the limit should not raise."""
-    limit = np.iinfo(np.int32).max
-    n_samples = 1
-    n_features = limit
-
-    check_lapack_svd_safe(n_samples, n_features, "TestEstimator")
+SCIPY_LAPACK_ERRORS = [
+    "Indexing a matrix of 3365692186 elements would incur an integer overflow in "
+    "LAPACK. Try using numpy.linalg.svd instead.",
+    "Indexing a matrix of 2500000000 elements would incur an in integer overflow in "
+    "LAPACK. Instead, either use using numpy.linalg.svd or buildSciPy with ILP64 "
+    "support.",
+]
 
 
-def test_check_lapack_svd_safe_over_limit():
-    """Matrices exceeding the limit should raise an informative ValueError."""
-    n_samples = 112_186
-    n_features = 30_000
+@pytest.mark.parametrize("message", SCIPY_LAPACK_ERRORS)
+def test_check_lapack_svd_safe_raises_informative_error(message):
+    """A LAPACK overflow error should be re-raised with an aeon-level message."""
+    error = ValueError(message)
 
-    with pytest.raises(ValueError, match="TestEstimator"):
-        check_lapack_svd_safe(n_samples, n_features, "TestEstimator")
+    with pytest.raises(ValueError, match="TestEstimator") as exc_info:
+        check_lapack_svd_safe(error, 112_186, 30_000, "TestEstimator")
+
+    assert "112186 samples and 30000 features" in str(exc_info.value)
+    # The original SciPy message is kept, and the original error is chained.
+    assert message in str(exc_info.value)
+    assert exc_info.value.__cause__ is error
 
 
-def test_check_lapack_svd_safe_message_mentions_element_count():
-    """The raised error should surface sample/feature/element counts."""
-    n_samples = 200_000
-    n_features = 20_000
+def test_check_lapack_svd_safe_ignores_other_errors():
+    """Errors that are not a LAPACK overflow should be left for the caller."""
+    error = ValueError("something else went wrong")
 
-    with pytest.raises(ValueError, match=str(n_samples * n_features)):
-        check_lapack_svd_safe(n_samples, n_features, "TestEstimator")
+    assert check_lapack_svd_safe(error, 10, 5, "TestEstimator") is None
