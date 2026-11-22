@@ -203,6 +203,20 @@ def _n_windows(n: int, ws: int, stride: int) -> int:
     return int(np.floor((n - ws) / stride) + 1)
 
 
+def _reference_windows(X: np.ndarray, ws: int, stride: int) -> np.ndarray:
+    """Create windows with loops, to compare with the vectorised implementation.
+
+    X has the shape (n_timepoints, n_channels). Each row of the result is one window,
+    with the values of the channels stacked one after the other.
+    """
+    return np.array(
+        [
+            np.concatenate([X[start : start + ws, c] for c in range(X.shape[1])])
+            for start in range(0, X.shape[0] - ws + 1, stride)
+        ]
+    )
+
+
 @pytest.mark.parametrize("ws", [1, 2, 3, 4, 5])
 @pytest.mark.parametrize("stride", [1, 2, 3, 4, 5])
 def test_sliding_windows_univariate(ws, stride):
@@ -235,6 +249,33 @@ def test_sliding_windows_multivariate_axis(ws, stride):
     assert windows.shape[0] == ws * _MULTIVARIATE_DATA.shape[1]
     assert windows.shape[1] == _n_windows(_MULTIVARIATE_DATA.shape[0], ws, stride)
     assert padding == _padding(_MULTIVARIATE_DATA.shape[0], ws, stride)
+
+
+@pytest.mark.parametrize("ws", [1, 2, 3, 4, 5])
+@pytest.mark.parametrize("stride", [1, 2, 3, 4, 5])
+def test_sliding_windows_univariate_values(ws, stride):
+    """Test that the windows of univariate data contain the correct values."""
+    X = np.arange(10)
+    expected = _reference_windows(X.reshape(-1, 1), ws, stride)
+    for axis in (0, 1):
+        windows, _ = sliding_windows(X, window_size=ws, stride=stride, axis=axis)
+        np.testing.assert_array_equal(windows, expected)
+
+
+@pytest.mark.parametrize("n_channels", [1, 2, 3])
+@pytest.mark.parametrize("ws", [1, 2, 3, 4, 5])
+@pytest.mark.parametrize("stride", [1, 2, 3, 4, 5])
+@pytest.mark.parametrize("axis", [0, 1])
+def test_sliding_windows_multivariate_values(n_channels, ws, stride, axis):
+    """Test that the windows of 2D data contain the correct values for both axes."""
+    X = np.arange(10)[:, None] + 100 * np.arange(n_channels)
+    expected = _reference_windows(X, ws, stride)
+    if axis == 0:
+        windows, _ = sliding_windows(X, window_size=ws, stride=stride, axis=0)
+        np.testing.assert_array_equal(windows, expected)
+    else:
+        windows, _ = sliding_windows(X.T, window_size=ws, stride=stride, axis=1)
+        np.testing.assert_array_equal(windows, expected.T)
 
 
 @pytest.mark.parametrize("force", [True, False])
