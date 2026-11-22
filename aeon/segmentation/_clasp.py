@@ -206,11 +206,14 @@ class ClaSPSegmenter(BaseSegmenter):
     >>> dominant_period_size = find_dominant_window_sizes(X)
     >>> clasp = ClaSPSegmenter(dominant_period_size, n_cps=1)
     >>> found_cps = clasp.fit_predict(X)
-    >>> profiles = clasp.profiles
-    >>> scores = clasp.scores
+    >>> found_cps, profiles, scores = clasp.predict_scores(X)
     """
 
-    _tags = {"capability:multithreading": True, "fit_is_empty": True}
+    _tags = {
+        "capability:multithreading": True,
+        "fit_is_empty": True,
+        "capability:predict_scores": True,
+    }
 
     def __init__(
         self,
@@ -225,6 +228,16 @@ class ClaSPSegmenter(BaseSegmenter):
         self.n_jobs = n_jobs
         super().__init__(axis=1, n_segments=n_cps + 1)
 
+    def _compute_clasp(self, X: np.ndarray):
+        """Run ClaSP without mutating estimator state."""
+        X = X.squeeze()
+        if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
+            warnings.warn(
+                "Period-Length is larger than size of the time series", stacklevel=1
+            )
+            return [], [], []
+        return self._run_clasp(X)
+
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
 
@@ -238,41 +251,29 @@ class ClaSPSegmenter(BaseSegmenter):
         list
             List of change points found in X.
         """
+        found_cps, _, _ = self._predict_scores(X)
+        return found_cps
+
+    def _predict_scores(self, X: np.ndarray):
+        """Return change points, profiles, and scores in ClaSP's profile.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            1D time series to be segmented.
+
+        Returns
+        -------
+        tuple
+            Tuple containing ``(found_cps, profiles, scores)`` for sequence X.
+        """
         X = X.squeeze()
         if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
                 "Period-Length is larger than size of the time series", stacklevel=1
             )
-
-            self.found_cps, self.profiles, self.scores = [], [], []
-        else:
-            self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-            return self.found_cps
-
-    def predict_scores(self, X):
-        """Return scores in ClaSP's profile for each annotation.
-
-        Parameters
-        ----------
-        np.ndarray
-            1D time series to be segmented.
-
-        Returns
-        -------
-        np.ndarray
-            Scores for sequence X
-        """
-        self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-        return self.scores
-
-    def get_fitted_params(self):
-        """Get fitted parameters.
-
-        Returns
-        -------
-        fitted_params : dict
-        """
-        return {"profiles": self.profiles, "scores": self.scores}
+            return [], [], []
+        return self._run_clasp(X)
 
     def _run_clasp(self, X):
         n_jobs = check_n_jobs(self.n_jobs)
@@ -283,14 +284,14 @@ class ClaSPSegmenter(BaseSegmenter):
             n_jobs=n_jobs,
         ).fit(X)
 
-        self.found_cps, self.profiles, self.scores = _segmentation(
+        found_cps, profiles, scores = _segmentation(
             X,
             clasp_transformer,
             n_change_points=self.n_cps,
             exclusion_radius=self.exclusion_radius,
         )
 
-        return self.found_cps, self.profiles, self.scores
+        return found_cps, profiles, scores
 
     def _get_interval_series(self, X, found_cps):
         """Get the segmentation results based on the found change points.

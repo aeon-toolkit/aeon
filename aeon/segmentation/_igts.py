@@ -17,6 +17,7 @@ References
 
 """
 
+import copy
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -361,8 +362,8 @@ class InformationGainSegmenter(BaseSegmenter):
             The numerical values represent distinct segment labels for each of the
             data points.
         """
-        change_points_ = self._igts.find_change_points(X)
-        # self.intermediate_results_ = self._igts.intermediate_results_
+        igts = copy.deepcopy(self._igts)
+        change_points_ = igts.find_change_points(X)
         return self.to_clusters(change_points_[1:-1], X.shape[0])
 
     def __repr__(self) -> str:

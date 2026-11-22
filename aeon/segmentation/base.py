@@ -69,6 +69,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         "fit_is_empty": True,
         "requires_y": False,
         "returns_dense": True,
+        "capability:predict_scores": False,
     }
 
     @abstractmethod
@@ -156,6 +157,33 @@ class BaseSegmenter(BaseSeriesEstimator):
         X = self._preprocess_series(X, axis, False)
         return self._predict(X)
 
+    @final
+    def predict_scores(self, X, axis=None):
+        """Return per-timepoint segmentation scores for X.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Time series to segment.
+        axis : int, default=None
+            The axis of the time series (0 or 1). If None, uses self.axis.
+
+        Returns
+        -------
+        scores
+            Segmentation scores (or tuple of results) returned by _predict_scores.
+        """
+        if not self.get_tag("capability:predict_scores"):
+            raise NotImplementedError(
+                f"{type(self).__name__} does not implement predict_scores"
+            )
+        if not self.get_tag("fit_is_empty"):
+            self._check_is_fitted()
+        if axis is None:
+            axis = self.axis
+        X = self._preprocess_series(X, axis, False)
+        return self._predict_scores(X)
+
     def fit_predict(self, X, y=None, axis=1):
         """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
@@ -171,6 +199,11 @@ class BaseSegmenter(BaseSeriesEstimator):
     def _predict(self, X) -> np.ndarray:
         """Create and return a segmentation of X."""
         ...
+
+    def _predict_scores(self, X):
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement _predict_scores"
+        )
 
     def _check_y(self, y: VALID_SERIES_INPUT_TYPES):
         """Check y specific to segmentation.

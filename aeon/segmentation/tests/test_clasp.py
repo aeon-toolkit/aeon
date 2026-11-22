@@ -19,7 +19,9 @@ def test_clasp_sparse():
     clasp = ClaSPSegmenter(period_size, n_cps=1)
     clasp.fit(ts)
     found_cps = clasp.predict(ts)
-    scores = clasp.predict_scores(ts)
+    score_cps, profiles, scores = clasp.predict_scores(ts)
 
     assert len(found_cps) == 1 and found_cps[0] == 893
+    assert len(score_cps) == 1 and score_cps[0] == 893
+    assert len(profiles) == 1
     assert len(scores) == 1 and scores[0] > 0.74
