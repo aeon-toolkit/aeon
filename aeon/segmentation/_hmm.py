@@ -380,7 +380,7 @@ class HMMSegmenter(BaseSegmenter):
 
         self.trans_prob = trans_prob
         self.trans_id = trans_id
-        return self._hmm_viterbi_label(num_obs, states, self.trans_prob, self.trans_id)
+        return self._hmm_viterbi_label(num_obs, states, trans_prob, trans_id)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

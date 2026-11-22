@@ -228,16 +228,6 @@ class ClaSPSegmenter(BaseSegmenter):
         self.n_jobs = n_jobs
         super().__init__(axis=1, n_segments=n_cps + 1)
 
-    def _compute_clasp(self, X: np.ndarray):
-        """Run ClaSP without mutating estimator state."""
-        X = X.squeeze()
-        if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
-            warnings.warn(
-                "Period-Length is larger than size of the time series", stacklevel=1
-            )
-            return [], [], []
-        return self._run_clasp(X)
-
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
 

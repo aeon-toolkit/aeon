@@ -37,6 +37,8 @@ class FLUSSSegmenter(BaseSegmenter):
     >>> from aeon.segmentation import FLUSSSegmenter
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
+    >>> fluss = FLUSSSegmenter(period_length=10, n_regimes=2)  # doctest: +SKIP
+    >>> found_cps = fluss.fit_predict(X)  # doctest: +SKIP
     >>> found_cps, profile, scores = fluss.predict_scores(X)  # doctest: +SKIP
     """
 
