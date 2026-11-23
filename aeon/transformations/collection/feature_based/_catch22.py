@@ -348,7 +348,7 @@ class Catch22(BaseCollectionTransformer):
         # whole batch (all cases share a length) instead of once per case. The
         # result is bit-identical: a 1D FFT equals the matching row of the
         # batched FFT, and the subtracted mean uses the same numba mean().
-        fft_cache = self._welch_fft_cache(X, f_idx, n_cases)
+        fft_cache = self._spectrum_fft_cache(X, f_idx, n_cases)
         # The autocorrelation features (2, 3, 8, 10, 12) all need the
         # normalised autocorrelation of the series. Compute it for the whole
         # batch with two batched np.fft calls instead of a hand-written
@@ -370,7 +370,7 @@ class Catch22(BaseCollectionTransformer):
             # call from Python costs several microseconds of dispatcher
             # overhead, which dominates short interval series; calling the
             # same compiled kernels from compiled code is nearly free. The
-            # welch/autocorrelation caches above are guaranteed non-None
+            # FFT/autocorrelation caches above are guaranteed non-None
             # whenever their features are present and unmasked, so the
             # kernel has no per-series fallbacks.
             n_channels = X.shape[1]
@@ -600,13 +600,13 @@ class Catch22(BaseCollectionTransformer):
 
         return c22
 
-    def _welch_fft_cache(self, X, f_idx, n_cases):
-        """Batch the welch-feature FFT across all cases when it will be used.
+    def _spectrum_fft_cache(self, X, f_idx, n_cases):
+        """Batch the power-spectrum features' FFT across all cases when it will be used.
 
         Returns an array of shape (n_cases, n_channels, nfft) with the FFT of each
-        mean-centred series, or None if the welch features (15/20) are absent, the
+        mean-centred series, or None if the spectral features (15/20) are absent, the
         input is not an equal-length 3D array, or attribute-skipping means neither
-        welch feature will be computed. Matches the per-case computation exactly.
+        spectral feature will be computed. Matches the per-case computation exactly.
         """
         if (15 not in f_idx and 20 not in f_idx) or not (
             isinstance(X, np.ndarray) and X.ndim == 3
@@ -616,7 +616,7 @@ class Catch22(BaseCollectionTransformer):
         n_channels = X.shape[1]
 
         # Respect the transform_features skip mask set for efficient predictions:
-        # if no welch output is going to be produced, don't build the cache.
+        # if no spectral output is going to be produced, don't build the cache.
         tf = getattr(self, "_transform_features", None)
         if tf is not None and len(tf) == len(f_idx) * n_channels:
             will_run = False
