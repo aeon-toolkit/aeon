@@ -270,9 +270,9 @@ class GlobalNormalizer(CollectionInverseTransformerMixin, BaseCollectionTransfor
         elif X.ndim == 3:
             ax = (0, 2)
 
-        self._mean = np.nanmean(X, axis=ax)
-        self._std = np.nanstd(X, axis=ax)
-        self._std = np.where(self._std == 0, 1, self._std)
+        self.mean_ = np.nanmean(X, axis=ax)
+        self.std_ = np.nanstd(X, axis=ax)
+        self.std_ = np.where(self.std_ == 0, 1, self.std_)
 
     def _transform(self, X, y=None):
         """
@@ -291,11 +291,11 @@ class GlobalNormalizer(CollectionInverseTransformerMixin, BaseCollectionTransfor
         if isinstance(X, list):
             return [self._transform(x_i) for x_i in X]
         if X.ndim == 2:
-            m = self._mean.reshape((-1, 1))
-            s = self._std.reshape((-1, 1))
+            m = self.mean_.reshape((-1, 1))
+            s = self.std_.reshape((-1, 1))
         elif X.ndim == 3:
-            m = self._mean.reshape((1, -1, 1))
-            s = self._std.reshape((1, -1, 1))
+            m = self.mean_.reshape((1, -1, 1))
+            s = self.std_.reshape((1, -1, 1))
         return (X - m) / s * self.std + self.mean
 
     def _inverse_transform(self, X, y=None):
@@ -314,11 +314,13 @@ class GlobalNormalizer(CollectionInverseTransformerMixin, BaseCollectionTransfor
         if isinstance(X, list):
             return [self._inverse_transform(x_i) for x_i in X]
         if X.ndim == 2:
-            m = self._mean.reshape((-1, 1))
-            s = self._std.reshape((-1, 1))
+            m = self.mean_.reshape((-1, 1))
+            s = self.std_.reshape((-1, 1))
         elif X.ndim == 3:
-            m = self._mean.reshape((1, -1, 1))
-            s = self._std.reshape((1, -1, 1))
+            m = self.mean_.reshape((1, -1, 1))
+            s = self.std_.reshape((1, -1, 1))
+        if self.std == 0:
+            return (X - self.mean) * s + m
         return (X - self.mean) / self.std * s + m
 
 
@@ -372,11 +374,11 @@ class GlobalMinMaxScaler(CollectionInverseTransformerMixin, BaseCollectionTransf
         elif X.ndim == 3:
             ax = (0, 2)
 
-        self._min = np.nanmin(X, axis=ax)
-        self._max = np.nanmax(X, axis=ax)
+        self.min_ = np.nanmin(X, axis=ax)
+        self.max_ = np.nanmax(X, axis=ax)
         # prevent division by zero in case of constant series
-        delta = self._max - self._min
-        self._max = np.where(delta == 0, self._min + 1, self._max)
+        delta = self.max_ - self.min_
+        self.max_ = np.where(delta == 0, self.min_ + 1, self.max_)
 
     def _transform(self, X, y=None):
         """
@@ -394,11 +396,11 @@ class GlobalMinMaxScaler(CollectionInverseTransformerMixin, BaseCollectionTransf
         if isinstance(X, list):
             return [self._transform(x_i) for x_i in X]
         if X.ndim == 2:
-            m = self._min.reshape((-1, 1))
-            M = self._max.reshape((-1, 1))
+            m = self.min_.reshape((-1, 1))
+            M = self.max_.reshape((-1, 1))
         elif X.ndim == 3:
-            m = self._min.reshape((1, -1, 1))
-            M = self._max.reshape((1, -1, 1))
+            m = self.min_.reshape((1, -1, 1))
+            M = self.max_.reshape((1, -1, 1))
         return (X - m) / (M - m) * (self.max - self.min) + self.min
 
     def _inverse_transform(self, X, y=None):
@@ -417,11 +419,11 @@ class GlobalMinMaxScaler(CollectionInverseTransformerMixin, BaseCollectionTransf
         if isinstance(X, list):
             return [self._inverse_transform(x_i) for x_i in X]
         if X.ndim == 2:
-            m = self._min.reshape((-1, 1))
-            M = self._max.reshape((-1, 1))
+            m = self.min_.reshape((-1, 1))
+            M = self.max_.reshape((-1, 1))
         elif X.ndim == 3:
-            m = self._min.reshape((1, -1, 1))
-            M = self._max.reshape((1, -1, 1))
+            m = self.min_.reshape((1, -1, 1))
+            M = self.max_.reshape((1, -1, 1))
         X = (X - self.min) / (self.max - self.min)
         return X * (M - m) + m
 
@@ -468,7 +470,7 @@ class GlobalCenterer(CollectionInverseTransformerMixin, BaseCollectionTransforme
         elif X.ndim == 3:
             ax = (0, 2)
 
-        self._mean = np.nanmean(X, axis=ax, keepdims=True)
+        self.mean_ = np.nanmean(X, axis=ax, keepdims=True)
 
     def _transform(self, X, y=None):
         """
@@ -486,9 +488,9 @@ class GlobalCenterer(CollectionInverseTransformerMixin, BaseCollectionTransforme
         if isinstance(X, list):
             return [self._transform(x_i) for x_i in X]
         if X.ndim == 2:
-            m = self._mean.reshape((-1, 1))
+            m = self.mean_.reshape((-1, 1))
         elif X.ndim == 3:
-            m = self._mean.reshape((1, -1, 1))
+            m = self.mean_.reshape((1, -1, 1))
         return X - m + self.mean
 
     def _inverse_transform(self, X, y=None):
@@ -507,7 +509,7 @@ class GlobalCenterer(CollectionInverseTransformerMixin, BaseCollectionTransforme
         if isinstance(X, list):
             return [self._inverse_transform(x_i) for x_i in X]
         if X.ndim == 2:
-            m = self._mean.reshape((-1, 1))
+            m = self.mean_.reshape((-1, 1))
         elif X.ndim == 3:
-            m = self._mean.reshape((1, -1, 1))
+            m = self.mean_.reshape((1, -1, 1))
         return X + m - self.mean
