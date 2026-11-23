@@ -18,6 +18,7 @@ contains algorithms and tools for time series segmentation.
     FLUSSSegmenter
     InformationGainSegmenter
     GreedyGaussianSegmenter
+    PELTSegmenter
     EAggloSegmenter
     HMMSegmenter
     HidalgoSegmenter
