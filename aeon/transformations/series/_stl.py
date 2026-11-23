@@ -243,12 +243,28 @@ def _seasonal_smoothing_nb(
             padded[1 + t] = sub_sm[t]
         # extrapolate the subseries to positions 0 and k + 1 with local regression
         padded[0] = _est_point_nb(
-            sub, k, seasonal_win, seasonal_deg, 0, 1, min(seasonal_win, k),
-            use_rw, sub_rw, sub_sm[0],
+            sub,
+            k,
+            seasonal_win,
+            seasonal_deg,
+            0,
+            1,
+            min(seasonal_win, k),
+            use_rw,
+            sub_rw,
+            sub_sm[0],
         )
         padded[k + 1] = _est_point_nb(
-            sub, k, seasonal_win, seasonal_deg, k + 1, max(1, k - seasonal_win + 1), k,
-            use_rw, sub_rw, sub_sm[k - 1],
+            sub,
+            k,
+            seasonal_win,
+            seasonal_deg,
+            k + 1,
+            max(1, k - seasonal_win + 1),
+            k,
+            use_rw,
+            sub_rw,
+            sub_sm[k - 1],
         )
 
         # place into season_pad at stride 'period'
