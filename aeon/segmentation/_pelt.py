@@ -173,16 +173,20 @@ class PELTSegmenter(BaseSegmenter):
         Penalty added for each additional changepoint.
 
         - ``"bic"`` : Bayesian Information Criterion. Under Killick et al.
-          (2012, Section 2.1) [1]_, each changepoint introduces :math:`p = 2`
-          parameters per channel (the changepoint location and the segment parameter).
-          For ``cost="l2"``, the penalty is scaled by the channel noise variance
-          :math:`\hat{\sigma}^2_c` estimated via the MAD of first differences:
-          :math:`\beta = 2 \sum_c \hat{\sigma}^2_c \log(n)`.
-          For ``cost="normal"``, both mean and variance are estimated per segment,
-          yielding :math:`\beta = 2 \cdot n\_channels \log(n)`.
+          (2012, Section 2.1) [1]_, the changepoint location is shared across
+          channels and counts once towards the parameter count :math:`p`:
+          For ``cost="l2"``, :math:`p = d + 1` (:math:`d` segment means plus
+          1 location). Scaled by the channel noise variances
+          :math:`\hat{\sigma}^2_c` (estimated via the MAD of first differences):
+          :math:`\beta = (\sum_c \hat{\sigma}^2_c + \bar{\sigma}^2) \log(n)`
+          where :math:`\bar{\sigma}^2 = \frac{1}{d} \sum_c \hat{\sigma}^2_c`.
+          For ``cost="normal"``, :math:`p = 2d + 1` (:math:`d` means,
+          :math:`d` variances, plus 1 location) in log-likelihood units:
+          :math:`\beta = (2d + 1) \log(n)`.
         - ``"aic"`` : Akaike Information Criterion:
-          For ``cost="l2"``, :math:`\beta = 4 \sum_c \hat{\sigma}^2_c`.
-          For ``cost="normal"``, :math:`\beta = 4 \cdot n\_channels`.
+          For ``cost="l2"``,
+          :math:`\beta = 2 (\sum_c \hat{\sigma}^2_c + \bar{\sigma}^2)`.
+          For ``cost="normal"``, :math:`\beta = 2 (2d + 1)`.
         - ``float`` or ``int`` : Manual penalty value (must be finite and >= 0).
         - ``None`` : No penalty (equivalent to 0).
 
@@ -388,7 +392,7 @@ class PELTSegmenter(BaseSegmenter):
 
         if self.cost == "l2":
             if data is not None and n_timepoints > 1:
-                total_var = 0.0
+                sum_var = 0.0
                 for c in range(n_channels):
                     diff = np.diff(data[c])
                     mad = float(np.median(np.abs(diff - np.median(diff))))
@@ -397,18 +401,20 @@ class PELTSegmenter(BaseSegmenter):
                     if var_c <= 0.0:
                         chan_var = float(np.var(data[c]))
                         var_c = max(1e-8 * chan_var, 1e-8)
-                    total_var += var_c
+                    sum_var += var_c
             else:
-                total_var = float(n_channels)
+                sum_var = float(n_channels)
 
-            # p = 2 parameters per changepoint per channel (Killick et al. 2012)
-            p = 2.0 * total_var
+            mean_var = sum_var / n_channels
+            # p = d + 1 (d segment means + 1 changepoint location)
+            # scaled by noise variance: beta_l2 = sum_c sigma2_c + mean_c sigma2_c
+            scaled_p = sum_var + mean_var
             if self.penalty == "bic":
-                return float(p * np.log(n_timepoints))
-            return float(2.0 * p)
+                return float(scaled_p * np.log(n_timepoints))
+            return float(2.0 * scaled_p)
         else:
-            # For normal cost, p = 2 * n_channels (mean and variance per channel)
-            p = 2.0 * n_channels
+            # p = 2d + 1 (d means + d variances + 1 changepoint location)
+            p = 2.0 * n_channels + 1.0
             if self.penalty == "bic":
                 return float(p * np.log(n_timepoints))
             return float(2.0 * p)

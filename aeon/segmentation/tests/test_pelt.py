@@ -154,22 +154,91 @@ def test_pelt_aic_penalty():
     )
 
     pelt_norm_aic = PELTSegmenter(cost="normal", penalty="aic", min_size=10)
-    pelt_norm_manual = PELTSegmenter(cost="normal", penalty=4.0, min_size=10)
+    pelt_norm_manual = PELTSegmenter(cost="normal", penalty=6.0, min_size=10)
     np.testing.assert_array_equal(
         pelt_norm_aic.fit_predict(series), pelt_norm_manual.fit_predict(series)
     )
 
 
+@pytest.mark.parametrize("d", [2, 3, 5])
+def test_pelt_penalty_multivariate_param_count(d):
+    """Verify multivariate parameter count scaling for L2 and normal costs."""
+    rng = np.random.default_rng(42)
+    n_timepoints = 100
+    channel = rng.normal(size=n_timepoints)
+    data_1 = channel[np.newaxis, :]
+    data_d = np.tile(channel, (d, 1))
+
+    # L2 cost: p = d + 1, so beta_d / beta_1 == (d + 1) / 2
+    pelt_l2 = PELTSegmenter(cost="l2", penalty="bic")
+    beta_l2_1 = pelt_l2._compute_penalty(n_timepoints, 1, data_1)
+    beta_l2_d = pelt_l2._compute_penalty(n_timepoints, d, data_d)
+    np.testing.assert_allclose(beta_l2_d / beta_l2_1, (d + 1) / 2.0)
+
+    # Normal cost: p = 2d + 1, so beta_d / beta_1 == (2d + 1) / 3
+    pelt_norm = PELTSegmenter(cost="normal", penalty="bic")
+    beta_norm_1 = pelt_norm._compute_penalty(n_timepoints, 1, data_1)
+    beta_norm_d = pelt_norm._compute_penalty(n_timepoints, d, data_d)
+    np.testing.assert_allclose(beta_norm_d / beta_norm_1, (2 * d + 1) / 3.0)
+
+
+def test_pelt_penalty_multivariate_exact_formula():
+    """Verify exact formula for multivariate penalty at d=3."""
+    rng = np.random.default_rng(123)
+    n_timepoints = 120
+    d = 3
+    data = rng.normal(size=(d, n_timepoints)) * np.array([[1.0], [2.0], [0.5]])
+
+    # Independently compute channel noise variances via MAD of first differences
+    variances = []
+    for c in range(d):
+        diff = np.diff(data[c])
+        mad = float(np.median(np.abs(diff - np.median(diff))))
+        sigma = 1.4826 * mad / np.sqrt(2.0)
+        variances.append(sigma**2)
+
+    sum_var = sum(variances)
+    mean_var = sum_var / d
+    scaled_p_l2 = sum_var + mean_var
+
+    expected_l2_bic = scaled_p_l2 * np.log(n_timepoints)
+    expected_l2_aic = 2.0 * scaled_p_l2
+
+    expected_norm_bic = (2 * d + 1) * np.log(n_timepoints)
+    expected_norm_aic = 2.0 * (2 * d + 1)
+
+    pelt_l2_bic = PELTSegmenter(cost="l2", penalty="bic")
+    np.testing.assert_allclose(
+        pelt_l2_bic._compute_penalty(n_timepoints, d, data), expected_l2_bic
+    )
+
+    pelt_l2_aic = PELTSegmenter(cost="l2", penalty="aic")
+    np.testing.assert_allclose(
+        pelt_l2_aic._compute_penalty(n_timepoints, d, data), expected_l2_aic
+    )
+
+    pelt_norm_bic = PELTSegmenter(cost="normal", penalty="bic")
+    np.testing.assert_allclose(
+        pelt_norm_bic._compute_penalty(n_timepoints, d, data), expected_norm_bic
+    )
+
+    pelt_norm_aic = PELTSegmenter(cost="normal", penalty="aic")
+    np.testing.assert_allclose(
+        pelt_norm_aic._compute_penalty(n_timepoints, d, data), expected_norm_aic
+    )
+
+
 @pytest.mark.parametrize("cost", ["l2", "normal"])
+@pytest.mark.parametrize("penalty", ["bic", "aic"])
 @pytest.mark.parametrize("scale", [0.01, 1.0, 100.0, 1e-5])
-def test_pelt_scale_invariance(cost, scale):
+def test_pelt_scale_invariance(cost, penalty, scale):
     """PELT changepoints are invariant to data scaling across orders of magnitude."""
     shift = "mean" if cost == "l2" else "variance"
     min_size = 2 if cost == "l2" else 10
     base_series = make_example_segment_series(
         n_timepoints=300, shift_type=shift, random_state=42
     )
-    pelt = PELTSegmenter(cost=cost, penalty="bic", min_size=min_size)
+    pelt = PELTSegmenter(cost=cost, penalty=penalty, min_size=min_size)
     cps_base = pelt.fit_predict(base_series)
     cps_scaled = pelt.fit_predict(base_series * scale)
     np.testing.assert_array_equal(cps_scaled, cps_base)
@@ -360,3 +429,15 @@ def test_pelt_against_brute_force(cost, min_size, jump, axis):
                 f"min_size={min_size}, jump={jump}, axis={axis}"
             ),
         )
+
+
+def test_pelt_penalty_data_none_fallback():
+    """Without data, L2 assumes unit variance: p = d + 1."""
+    d = 2
+    pelt_bic = PELTSegmenter(cost="l2", penalty="bic")
+    pelt_aic = PELTSegmenter(cost="l2", penalty="aic")
+    np.testing.assert_allclose(
+        pelt_bic._compute_penalty(100, d, None), (d + 1) * np.log(100)
+    )
+    np.testing.assert_allclose(pelt_bic._compute_penalty(1, d, None), 0.0)
+    np.testing.assert_allclose(pelt_aic._compute_penalty(100, d, None), 2.0 * (d + 1))
