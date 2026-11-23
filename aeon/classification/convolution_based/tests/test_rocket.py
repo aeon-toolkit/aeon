@@ -7,20 +7,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
-
-LAPACK_ERROR = (
-    "Indexing a matrix of 3365692186 elements would incur an integer overflow in "
-    "LAPACK. Try using numpy.linalg.svd instead."
-)
-
-
-def _failing_fit(error):
-    """Return a replacement ``fit`` method that raises ``error``."""
-
-    def fit(self, *args, **kwargs):
-        raise error
-
-    return fit
+from aeon.testing.utils._lapack import LAPACK_ERROR, _failing_fit
 
 
 def test_rocket_lapack_overflow_gives_informative_error(monkeypatch):

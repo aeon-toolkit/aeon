@@ -5,26 +5,13 @@ from sklearn.linear_model import RidgeClassifier, RidgeClassifierCV
 
 from aeon.classification.convolution_based import MultiRocketHydraClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.utils._lapack import LAPACK_ERROR, _failing_fit
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 pytestmark = pytest.mark.skipif(
     not _check_soft_dependencies("torch", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-
-LAPACK_ERROR = (
-    "Indexing a matrix of 3365692186 elements would incur an integer overflow in "
-    "LAPACK. Try using numpy.linalg.svd instead."
-)
-
-
-def _failing_fit(error):
-    """Return a replacement ``fit`` method that raises ``error``."""
-
-    def fit(self, *args, **kwargs):
-        raise error
-
-    return fit
 
 
 def test_mrhydra_lapack_overflow_gives_informative_error(monkeypatch):
