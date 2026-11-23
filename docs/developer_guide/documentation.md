@@ -12,8 +12,9 @@ More detailed information on `aeon`'s documentation format is provided below.
 `aeon` uses the `numpydoc` Sphinx extension and follows [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
 
 To ensure docstrings meet expectations, `aeon` uses a combination of validations built
-into `numpydoc` and `pydocstyle` `pre-commit` checks (set to the NumPy convention) and
-automated testing of docstring examples to ensure the code runs without error.
+into `numpydoc` and `ruff` `pre-commit` checks (including NumPy-convention docstring
+rules), as well as automated testing of docstring examples to ensure the code runs
+without error.
 
 Beyond basic NumPy docstring formatting conventions, developers should aim to:
 
@@ -162,55 +163,45 @@ Here are a few examples of `aeon` code with good documentation.
 
 ## Documentation build
 
-We use [sphinx](https://www.sphinx-doc.org/) to build our documentation and
-[readthedocs](https://readthedocs.org/projects/aeon-toolkit/) to host it. You can find
-our latest documentation [here](https://www.aeon-toolkit.org/en/latest/).
+We use [Sphinx](https://www.sphinx-doc.org/) to build our documentation and
+[Read the Docs](https://readthedocs.org/projects/aeon-toolkit/) to host it. You can find
+the latest documentation [here](https://www.aeon-toolkit.org/en/latest/).
 
-The source files can be found in [`docs/`](https://github.com/aeon-toolkit/aeon/tree/main/docs/).
-The main configuration file for sphinx is [`conf.py`](https://github.com/aeon-toolkit/aeon/blob/main/docs/conf.py)
+The source files are in [`docs/`](https://github.com/aeon-toolkit/aeon/tree/main/docs/).
+The main configuration file is [`conf.py`](https://github.com/aeon-toolkit/aeon/blob/main/docs/conf.py),
 and the main page is [`index.md`](https://github.com/aeon-toolkit/aeon/blob/main/docs/index.md).
-To add new pages, you need to add a new `.md` (or `.rst`, but preferably Markdown)
-file and include it in a `toctree`  to include it in the sidebar.
+To add a page, create a `.md` (preferred) or `.rst` file and add it to a toctree.
 
-To build the documentation locally, you need to install a few extra dependencies
-listed in [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml).
+### Install documentation dependencies
 
-1. To install documentation dependencies from the root directory, run:
+From the repository root, install the documentation dependencies into your active Python
+environment:
 
-```powershell
-pip install --editable .[docs]
+```shell
+python -m pip install -e ".[docs]"
 ```
 
-2. Swap to the documentation directory:
+On Linux and macOS, install
+[Pandoc](https://pandoc.org/installing.html) if it is not already available.
 
-```powershell
-cd docs
+### Build the documentation
+
+From the repository root, build the HTML documentation with Sphinx:
+
+```shell
+python -m sphinx -b html docs docs/_build/html
 ```
 
-> **Note:** If you are using Linux or MacOS, you'll have to install [**Pandoc**](https://pandoc.org/) as a dependency. Install it using the following command:
->
-> If you're using any Debian based system, you can use the following command to install Pandoc:
-> ```bash
-> sudo apt install pandoc
-> ```
->
-> If you're using MacOS, you can use the following command to install Pandoc:
-> ```bash
-> brew install pandoc
-> ```
->
-> For all other operating systems, please checkout the [Pandoc installation guide](https://pandoc.org/installing.html).
->
+The generated site is in `docs/_build/html`. Re-run the command after editing the
+documentation to regenerate it.
 
-3. To build the website locally, run:
+### Check documentation links
 
-```powershell
-make html
+To check links from the repository root, run:
+
+```shell
+python -m sphinx -b linkcheck docs docs/_build/linkcheck
 ```
-For Windows, instead use:
 
-```powershell
-make.bat html
-```
-This will generate HTML documentation in `docs/_build/html`. Repeat step 3 to
-regenerate the files if you make any changes.
+The link-check report is written to `docs/_build/linkcheck`. Link checking may need
+network access for external URLs, so transient failures from external sites can occur.
