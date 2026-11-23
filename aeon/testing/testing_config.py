@@ -51,7 +51,6 @@ EXCLUDED_TESTS = {
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
-    "HMMSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
@@ -109,11 +108,11 @@ def _get_pr_subsample_index(python_minor, os_str):
     Map the Python versions used in the PR pytest matrix to distinct indices.
     """
     i = python_minor
-    if i == 12:
+    if i == 11:
         i = 0
     elif i == 13:
         i = 1
-    elif i == 14:
+    elif i == 15:
         i = 2
 
     if os_str == "Linux":

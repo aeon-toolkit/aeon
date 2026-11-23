@@ -193,7 +193,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macos-15, windows-2022 ]
-        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14", "3.15" ]
 
     steps:
       - name: Checkout
@@ -213,9 +213,15 @@ jobs:
 
       - name: Set swap space
         if: runner.os == 'Linux'
-        uses: pierotofy/set-swap-space@v1.0
-        with:
-          swap-size-gb: 12
+        run: |
+          sudo swapoff /swapfile 2>/dev/null || true
+          sudo rm -f /swapfile
+          sudo fallocate -l 12G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+          swapon --show
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
