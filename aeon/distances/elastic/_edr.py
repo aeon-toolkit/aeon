@@ -189,16 +189,16 @@ def edr_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> edr_cost_matrix(x, y)
-    array([[0., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
-           [1., 0., 1., 2., 2., 2., 2., 2., 2., 2.],
-           [1., 1., 0., 1., 2., 3., 3., 3., 3., 3.],
-           [1., 2., 1., 0., 1., 2., 3., 4., 4., 4.],
-           [1., 2., 2., 1., 0., 1., 2., 3., 4., 5.],
-           [1., 2., 3., 2., 1., 0., 1., 2., 3., 4.],
-           [1., 2., 3., 3., 2., 1., 0., 1., 2., 3.],
-           [1., 2., 3., 4., 3., 2., 1., 0., 1., 2.],
-           [1., 2., 3., 4., 4., 3., 2., 1., 0., 1.],
-           [1., 2., 3., 4., 5., 4., 3., 2., 1., 0.]])
+    array([[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.],
+           [1., 0., 1., 2., 3., 4., 5., 6., 7., 8.],
+           [2., 1., 0., 1., 2., 3., 4., 5., 6., 7.],
+           [3., 2., 1., 0., 1., 2., 3., 4., 5., 6.],
+           [4., 3., 2., 1., 0., 1., 2., 3., 4., 5.],
+           [5., 4., 3., 2., 1., 0., 1., 2., 3., 4.],
+           [6., 5., 4., 3., 2., 1., 0., 1., 2., 3.],
+           [7., 6., 5., 4., 3., 2., 1., 0., 1., 2.],
+           [8., 7., 6., 5., 4., 3., 2., 1., 0., 1.],
+           [9., 8., 7., 6., 5., 4., 3., 2., 1., 0.]])
     """
     if window is not None or itakura_max_slope is not None:
         with objmode():
@@ -230,7 +230,7 @@ def _edr_distance(
 
     This is optimized for memory usage by using a two-row buffer (O(M) space)
     instead of allocating the full O(NM) cost matrix. The buffers are sized by
-    ``y`` (no swap) so the asymmetric EDR boundary is reproduced exactly.
+    ``y`` (no swap).
     """
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -240,17 +240,16 @@ def _edr_distance(
     prev = np.full(y_size + 1, np.inf)
     curr = np.full(y_size + 1, np.inf)
 
-    # Row 0 boundary (matches _edr_cost_matrix exactly, including the j == 0 case
-    # that reads bounding_matrix[0, -1]).
-    for j in range(y_size):
-        if bounding_matrix[0, j - 1]:
-            prev[j] = 0
+    # Row 0 boundary: deleting the first j points of y costs j.
     prev[0] = 0
+    for j in range(1, y_size + 1):
+        if bounding_matrix[0, j - 1]:
+            prev[j] = j
 
     for i in range(1, x_size + 1):
-        # Column 0 boundary: 0 if in bounds, else inf.
+        # Column 0 boundary: deleting the first i points of x costs i.
         if bounding_matrix[i - 1, 0]:
-            curr[0] = 0
+            curr[0] = i
         else:
             curr[0] = np.inf
         for j in range(1, y_size + 1):
@@ -283,13 +282,11 @@ def _edr_distance_unbounded(
     if epsilon is None:
         epsilon = float(max(np.std(x), np.std(y))) / 4
 
-    # Keep y as the row width to preserve EDR's asymmetric legacy boundary.
-    prev = np.zeros(y_size + 1)
-    prev[y_size] = np.inf
+    prev = np.arange(y_size + 1, dtype=np.float64)
     curr = np.empty(y_size + 1)
 
     for i in range(1, x_size + 1):
-        curr[0] = 0.0
+        curr[0] = i
         for j in range(1, y_size + 1):
             if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) < epsilon:
                 cost = 0
@@ -321,10 +318,10 @@ def _edr_cost_matrix(
 
     for i in range(1, x_size + 1):
         if bounding_matrix[i - 1, 0]:
-            cost_matrix[i, 0] = 0
-    for j in range(y_size):
+            cost_matrix[i, 0] = i
+    for j in range(1, y_size + 1):
         if bounding_matrix[0, j - 1]:
-            cost_matrix[0, j] = 0
+            cost_matrix[0, j] = j
     cost_matrix[0, 0] = 0
 
     for i in range(1, x_size + 1):
@@ -424,9 +421,9 @@ def edr_pairwise_distance(
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
     >>> edr_pairwise_distance(X)
-    array([[0.  , 0.75, 0.6 ],
-           [0.75, 0.  , 0.8 ],
-           [0.6 , 0.8 , 0.  ]])
+    array([[0., 1., 1.],
+           [1., 0., 1.],
+           [1., 1., 0.]])
     """
     if window is not None or itakura_max_slope is not None:
         _warn_bounding_deprecated(stacklevel=4)
