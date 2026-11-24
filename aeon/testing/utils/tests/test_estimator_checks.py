@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from sklearn.neighbors import KDTree, NearestNeighbors
 
 from aeon.testing.mock_estimators import MockClassifier, MockClassifierPredictProba
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
@@ -11,6 +12,7 @@ from aeon.testing.utils.estimator_checks import (
     _changed_state,
     _get_tag,
     _holds_deep_learning_state,
+    _holds_sklearn_neighbors_state,
     _run_estimator_method,
     _snapshot_state,
 )
@@ -164,6 +166,25 @@ def test_holds_deep_learning_state_ignores_ordinary_values():
     assert not _holds_deep_learning_state(MockClassifier())
 
 
+def test_holds_sklearn_neighbors_state_finds_nested_trees():
+    """Test that fitted neighbour trees held inside a container are found."""
+    bagger = NearestNeighbors(n_neighbors=1, algorithm="kd_tree").fit(np.zeros((3, 2)))
+
+    assert _holds_sklearn_neighbors_state(KDTree(np.zeros((3, 2))))
+    assert _holds_sklearn_neighbors_state(bagger)
+    # i.e. ROCKAD's list_baggers_
+    assert _holds_sklearn_neighbors_state([bagger])
+
+
+def test_holds_sklearn_neighbors_state_ignores_ordinary_values():
+    """Test that values without a neighbour tree are not treated as opaque."""
+    assert not _holds_sklearn_neighbors_state("foo")
+    assert not _holds_sklearn_neighbors_state(42)
+    assert not _holds_sklearn_neighbors_state(np.zeros(3))
+    assert not _holds_sklearn_neighbors_state({"values": [1, 2]})
+    assert not _holds_sklearn_neighbors_state(MockClassifier())
+
+
 def test_snapshot_state_detects_nested_mutation():
     """Test that hashes detect mutation inside a top-level attribute."""
     estimator = MockClassifier()
@@ -236,6 +257,29 @@ def test_snapshot_state_deep_learning_state_ignored_for_other_estimators():
     before = _snapshot_state(estimator)
 
     assert before["model_"][0] == "hash"
+
+
+def test_snapshot_state_uses_identity_for_neighbors_state():
+    """Test that neighbour trees use identity, for any estimator, not just one tag."""
+    bagger = NearestNeighbors(n_neighbors=1, algorithm="kd_tree").fit(np.zeros((3, 2)))
+    estimator = MockClassifier()
+    estimator.list_baggers_ = [bagger]
+    estimator.state = {"values": [1, 2]}
+
+    before = _snapshot_state(estimator)
+
+    assert before["list_baggers_"] == ("identity", estimator.list_baggers_)
+    assert before["state"][0] == "hash"
+
+    # querying records counters on the fitted tree, which is not a state change
+    bagger.kneighbors(np.zeros((1, 2)))
+
+    assert _changed_state(before, estimator) == set()
+
+    # every attribute which is not a neighbour tree is still checked
+    estimator.state["values"].append(3)
+
+    assert _changed_state(before, estimator) == {"state"}
 
 
 def test_changed_state_detects_added_and_removed_attributes():
