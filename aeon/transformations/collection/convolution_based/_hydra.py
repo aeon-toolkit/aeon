@@ -132,7 +132,7 @@ class HydraTransformer(BaseCollectionTransformer):
         )
 
     def _transform(self, X, y=None):
-        transformed = self._hydra(torch.tensor(X).float())
+        transformed = self._hydra.batch(torch.tensor(X).float())
         if (self.output_type == "numpy") or (self.output_type == "dataframe"):
             transformed = transformed.detach().numpy()
         if self.output_type == "dataframe":
