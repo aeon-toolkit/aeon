@@ -37,6 +37,7 @@ __all__ = ["BaseAeonEstimator"]
 import inspect
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from weakref import WeakKeyDictionary
 
 from sklearn import clone
 from sklearn.base import BaseEstimator
@@ -44,6 +45,9 @@ from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
 
 from aeon.utils.validation._dependencies import _check_estimator_deps
+
+# Merged class tags per estimator class, see _get_class_tags_cached.
+_CLASS_TAGS_CACHE = WeakKeyDictionary()
 
 
 class BaseAeonEstimator(BaseEstimator, ABC):
@@ -199,17 +203,27 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             These are not overridden by dynamic tags set by ``set_tags`` or class
             ``__init__`` calls.
         """
-        collected_tags = dict()
+        return deepcopy(cls._get_class_tags_cached())
 
-        # We exclude the last two parent classes: sklearn.base.BaseEstimator and
-        # the basic Python object.
-        for parent_class in reversed(inspect.getmro(cls)[:-2]):
-            # Need the if here because classes might not have non-default tags
-            if hasattr(parent_class, "_tags"):
-                more_tags = parent_class._tags
-                collected_tags.update(more_tags)
+    @classmethod
+    def _get_class_tags_cached(cls):
+        """Return the merged class tags, computed once per class.
 
-        return deepcopy(collected_tags)
+        Class tags are class attributes and are not changed at run time (dynamic
+        tags go to ``_tags_dynamic``), so the merged dict is cached per class. The
+        returned dict is shared and must not be modified; public methods copy it.
+        """
+        collected_tags = _CLASS_TAGS_CACHE.get(cls)
+        if collected_tags is None:
+            collected_tags = dict()
+            # We exclude the last two parent classes: sklearn.base.BaseEstimator
+            # and the basic Python object.
+            for parent_class in reversed(inspect.getmro(cls)[:-2]):
+                # Need the if here because classes might not have non-default tags
+                if hasattr(parent_class, "_tags"):
+                    collected_tags.update(parent_class._tags)
+            _CLASS_TAGS_CACHE[cls] = collected_tags
+        return collected_tags
 
     @classmethod
     def get_class_tag(
@@ -249,14 +263,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         >>> DummyClassifier.get_class_tag("capability:multivariate")
         True
         """
-        collected_tags = cls.get_class_tags()
+        collected_tags = cls._get_class_tags_cached()
 
-        tag_value = collected_tags.get(tag_name, tag_value_default)
-
-        if raise_error and tag_name not in collected_tags.keys():
+        if tag_name in collected_tags:
+            return deepcopy(collected_tags[tag_name])
+        if raise_error:
             raise ValueError(f"Tag with name {tag_name} could not be found.")
-
-        return tag_value
+        return tag_value_default
 
     def get_tags(self):
         """
@@ -271,7 +284,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             Collected from ``_tags`` class attribute via nested inheritance and
             then any overridden and new tags from ``__init__`` or ``set_tags``.
         """
-        collected_tags = self.get_class_tags()
+        collected_tags = dict(self._get_class_tags_cached())
         collected_tags.update(self._tags_dynamic)
         return deepcopy(collected_tags)
 
@@ -310,14 +323,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         >>> d.get_tag("capability:multivariate")
         True
         """
-        collected_tags = self.get_tags()
-
-        tag_value = collected_tags.get(tag_name, tag_value_default)
-
-        if raise_error and tag_name not in collected_tags.keys():
+        if tag_name in self._tags_dynamic:
+            return deepcopy(self._tags_dynamic[tag_name])
+        collected_tags = self._get_class_tags_cached()
+        if tag_name in collected_tags:
+            return deepcopy(collected_tags[tag_name])
+        if raise_error:
             raise ValueError(f"Tag with name {tag_name} could not be found.")
-
-        return tag_value
+        return tag_value_default
 
     def set_tags(self, **tag_dict):
         """
