@@ -33,7 +33,7 @@ class SASTClassifier(BaseClassifier):
         the number of reference time series to select per class
     random_state : int, default = None
         the random_state of the random generator
-    estimator : sklearn compatible classifier, default = None
+    classifier : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
         Number of threads to use for the transform.
