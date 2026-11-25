@@ -42,7 +42,6 @@ def test_nbeats_network_build_and_shapes(
     input_layer, output_layer = nbeats_network.build_network(input_shape)
 
     assert hasattr(input_layer, "shape"), "Input layer should have a shape attribute"
-    assert len(output_layer) == 2, "Output should contain backcast and forecast"
     assert input_layer.dtype == tf.float32
 
     model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
@@ -50,16 +49,11 @@ def test_nbeats_network_build_and_shapes(
     expected_input_shape = (None, input_shape[0])
     assert input_layer.shape == expected_input_shape
 
-    backcast_output, forecast_output = output_layer
-    assert backcast_output.shape == (None, input_shape[0])
-    assert forecast_output.shape == (None, horizon)
+    assert output_layer.shape == (None, horizon)
 
     batch_size = 4
     dummy_input = np.random.randn(batch_size, input_shape[0])
-    backcast, forecast = model(dummy_input)
+    forecast = model(dummy_input)
 
-    assert backcast.shape == (batch_size, input_shape[0])
     assert forecast.shape == (batch_size, horizon)
-
-    assert not tf.reduce_any(tf.math.is_nan(backcast))
     assert not tf.reduce_any(tf.math.is_nan(forecast))
