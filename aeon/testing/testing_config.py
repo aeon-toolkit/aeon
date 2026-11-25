@@ -48,7 +48,6 @@ EXCLUDED_TESTS = {
     ],
     "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
     "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
-    # missed in legacy testing, changes state in predict/transform
     # Unknown issue not producing the same results
     "RISTRegressor": ["check_regressor_against_expected_results"],
     # Requires y to be passed in inverse_transform,
@@ -104,11 +103,11 @@ def _get_pr_subsample_index(python_minor, os_str):
     Map the Python versions used in the PR pytest matrix to distinct indices.
     """
     i = python_minor
-    if i == 12:
+    if i == 11:
         i = 0
     elif i == 13:
         i = 1
-    elif i == 14:
+    elif i == 15:
         i = 2
 
     if os_str == "Linux":

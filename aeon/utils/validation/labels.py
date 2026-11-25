@@ -35,7 +35,7 @@ def check_classification_y(y, allow_single_class=False):
         raise TypeError(
             f"y must be a np.array or a pd.Series, but found type: {type(y)}"
         )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
+    if isinstance(y, np.ndarray) and y.ndim != 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
     if len(y) == 0:
         raise ValueError("y must not be empty.")
@@ -82,7 +82,7 @@ def check_regression_y(y):
         raise TypeError(
             f"y must be a np.array or a pd.Series, but found type: {type(y)}"
         )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
+    if isinstance(y, np.ndarray) and y.ndim != 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
     if len(y) == 0:
         raise ValueError("y must not be empty.")
@@ -135,7 +135,7 @@ def check_anomaly_detection_y(y):
         raise TypeError(
             f"y must be a np.array or a pd.Series, but found type: {type(y)}"
         )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
+    if isinstance(y, np.ndarray) and y.ndim != 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
     if len(y) == 0:
         raise ValueError("y must not be empty.")

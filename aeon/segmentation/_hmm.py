@@ -93,23 +93,6 @@ class HMMSegmenter(BaseSegmenter):
         Probability over the hidden state identity of the first state. If the
         __init__ param of same name was passed it will take on that value.
         Otherwise it is set to be uniform over all hidden states.
-    num_states : int
-        The number of hidden states.  Set to be the length of the emission_funcs
-        parameter which was passed.
-    states : list
-        A list of integers from 0 to num_states-1.  Integer labels for the hidden
-        states.
-    num_obs : int
-        The length of the observations data.  Extracted from data.
-    trans_prob : 2D np.ndarray, shape = [num_observations, num_hidden_states]
-        Shape [num observations, num hidden states]. The max probability that that
-        observation is assigned to that hidden state.
-        Calculated in _calculate_trans_mat and assigned in _predict.
-    trans_id : 2D np.ndarray, shape = [num_observations, num_hidden_states]
-        Shape [num observations, num hidden states]. The state id of the state
-        proceeding the observation is assigned to that hidden state in the most
-        likely path where that occurs. Calculated in _calculate_trans_mat and
-        assigned in _predict.
 
     Examples
     --------
@@ -378,8 +361,6 @@ class HMMSegmenter(BaseSegmenter):
             num_states,
         )
 
-        self.trans_prob = trans_prob
-        self.trans_id = trans_id
         return self._hmm_viterbi_label(num_obs, states, trans_prob, trans_id)
 
     @classmethod
