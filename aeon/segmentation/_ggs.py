@@ -34,9 +34,9 @@ References
     https://doi.org/10.1007/s11634-018-0335-0
 """
 
+import copy
 import logging
 import math
-import copy
 from dataclasses import dataclass, field
 
 import numpy as np
