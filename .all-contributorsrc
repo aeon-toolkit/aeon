@@ -3067,6 +3067,62 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "watzal",
+      "name": "Vatsal Lakhmani",
+      "avatar_url": "https://avatars.githubusercontent.com/u/189278132?v=4",
+      "profile": "https://github.com/watzal",
+      "contributions": [
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "mmporong",
+      "name": "Lim Jooyoung",
+      "avatar_url": "https://avatars.githubusercontent.com/u/74720422?v=4",
+      "profile": "http://mmporong.github.io/robotics-garden",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Vinayak19112003",
+      "name": "Vinayak Deshmuk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/118991845?v=4",
+      "profile": "https://github.com/Vinayak19112003",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Ayushagrawal-cse",
+      "name": "Ayush Agrawal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/191835489?v=4",
+      "profile": "https://github.com/Ayushagrawal-cse",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "hakarrr",
+      "name": "generaltony007",
+      "avatar_url": "https://avatars.githubusercontent.com/u/191973953?v=4",
+      "profile": "https://github.com/hakarrr",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "prabhushreyas",
+      "name": "shreyasprabhu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/229901292?v=4",
+      "profile": "https://github.com/prabhushreyas",
+      "contributions": [
+        "code",
+        "test"
+      ]
     }
   ],
   "commitType": "docs"

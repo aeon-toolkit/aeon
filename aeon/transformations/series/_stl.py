@@ -36,13 +36,13 @@ def _moving_average_nb(x, win, out_len):
 
 
 @njit(cache=True, nogil=True, fastmath=True)
-def _est_point_nb(y, n, win_len, deg, xs, nleft, nright, use_rw, rw):
+def _est_point_nb(y, n, win_len, deg, xs, nleft, nright, use_rw, rw, fallback):
     """Local LOESS estimate at integer position xs (1-based)."""
     h = max(xs - nleft, nright - xs)
     if win_len > n:
         h += (win_len - n) // 2
     if h <= 0:
-        return np.nan
+        return fallback
 
     h9 = 0.999 * h
     h1 = 0.001 * h
@@ -63,7 +63,7 @@ def _est_point_nb(y, n, win_len, deg, xs, nleft, nright, use_rw, rw):
             a += wb
 
     if a <= 0.0:
-        return np.nan
+        return fallback
 
     # normalize
     for jj in range(m):
@@ -92,6 +92,24 @@ def _est_point_nb(y, n, win_len, deg, xs, nleft, nright, use_rw, rw):
 
 
 @njit(cache=True, nogil=True, fastmath=True)
+def _interpolate_knots_nb(ys, n, newjump):
+    """Linearly interpolate between knots spaced ``newjump`` apart.
+
+    Knots are at 0, newjump, 2 * newjump, ... and at n - 1. The last segment is
+    shorter when n - 1 is not a multiple of newjump, so every point is set.
+    """
+    i0 = 0
+    while i0 < n - 1:
+        i1 = min(i0 + newjump, n - 1)
+        v0 = ys[i0]
+        v1 = ys[i1]
+        step = (v1 - v0) / (i1 - i0)
+        for j in range(i0 + 1, i1):
+            ys[j] = v0 + step * (j - i0)
+        i0 = i1
+
+
+@njit(cache=True, nogil=True, fastmath=True)
 def _ess_nb(y, win_len, deg, jump, use_rw, rw, ys):
     """Efficient LOESS smoother with optional knot interpolation (Numba)."""
     n = y.shape[0]
@@ -106,8 +124,9 @@ def _ess_nb(y, win_len, deg, jump, use_rw, rw, ys):
         last_x = 1
         xk = 1
         while xk <= n:
-            val = _est_point_nb(y, n, win_len, deg, xk, 1, n, use_rw, rw)
-            ys[xk - 1] = y[xk - 1] if np.isnan(val) else val
+            ys[xk - 1] = _est_point_nb(
+                y, n, win_len, deg, xk, 1, n, use_rw, rw, y[xk - 1]
+            )
             last_x = xk
             xk += newjump
 
@@ -116,21 +135,10 @@ def _ess_nb(y, win_len, deg, jump, use_rw, rw, ys):
 
         # ensure endpoint at n
         if last_x != n:
-            val = _est_point_nb(y, n, win_len, deg, n, 1, n, use_rw, rw)
-            ys[n - 1] = y[n - 1] if np.isnan(val) else val
+            ys[n - 1] = _est_point_nb(y, n, win_len, deg, n, 1, n, use_rw, rw, y[n - 1])
 
         # linear interpolation between knots
-        i0 = 0
-        while i0 < (n - newjump):
-            i1 = i0 + newjump
-            v0 = ys[i0]
-            v1 = ys[i1]
-            step = (v1 - v0) / newjump
-            j = i0
-            while j < i1:
-                ys[j] = v0 + step * (j - i0)
-                j += 1
-            i0 = i1
+        _interpolate_knots_nb(ys, n, newjump)
 
         # tail (already set ys[n-1])
         return
@@ -143,8 +151,9 @@ def _ess_nb(y, win_len, deg, jump, use_rw, rw, ys):
             if (i + 1) > nsh and nright != n:
                 nleft += 1
                 nright += 1
-            val = _est_point_nb(y, n, win_len, deg, i + 1, nleft, nright, use_rw, rw)
-            ys[i] = y[i] if np.isnan(val) else val
+            ys[i] = _est_point_nb(
+                y, n, win_len, deg, i + 1, nleft, nright, use_rw, rw, y[i]
+            )
         return
 
     # knot interpolation for jump > 1
@@ -164,27 +173,19 @@ def _ess_nb(y, win_len, deg, jump, use_rw, rw, ys):
         else:
             nleft = xk - nsh + 1
             nright = xk - nsh + win_len
-        val = _est_point_nb(y, n, win_len, deg, xk, nleft, nright, use_rw, rw)
-        ys[xk - 1] = y[xk - 1] if np.isnan(val) else val
+        ys[xk - 1] = _est_point_nb(
+            y, n, win_len, deg, xk, nleft, nright, use_rw, rw, y[xk - 1]
+        )
         last_knot = xk
         xk += newjump
 
     if last_knot != n:
-        val = _est_point_nb(y, n, win_len, deg, n, n - win_len + 1, n, use_rw, rw)
-        ys[n - 1] = y[n - 1] if np.isnan(val) else val
+        ys[n - 1] = _est_point_nb(
+            y, n, win_len, deg, n, n - win_len + 1, n, use_rw, rw, y[n - 1]
+        )
 
     # interpolate between consecutive knots
-    i0 = 0
-    while i0 < (n - newjump):
-        i1 = i0 + newjump
-        v0 = ys[i0]
-        v1 = ys[i1]
-        step = (v1 - v0) / newjump
-        j = i0
-        while j < i1:
-            ys[j] = v0 + step * (j - i0)
-            j += 1
-        i0 = i1
+    _interpolate_knots_nb(ys, n, newjump)
 
     # tail already set at ys[n-1]
 
