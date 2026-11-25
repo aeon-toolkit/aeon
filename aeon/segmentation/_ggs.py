@@ -36,6 +36,7 @@ References
 
 import logging
 import math
+import copy
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -502,7 +503,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        change_points_ = self.ggs.find_change_points(X)
+        change_points_ = copy.deepcopy(self.ggs).find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
         for i, (start, stop) in enumerate(zip(change_points_[:-1], change_points_[1:])):
