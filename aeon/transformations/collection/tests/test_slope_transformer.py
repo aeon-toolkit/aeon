@@ -5,6 +5,7 @@ import math
 import numpy as np
 import pytest
 
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import SlopeTransformer
 
 
@@ -24,15 +25,16 @@ def test_bad_input_args(bad_num_intervals):
             SlopeTransformer(n_intervals=bad_num_intervals).fit(X).transform(X)
 
 
-def test_output_of_transformer():
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def test_output_of_transformer(dtype):
     """Check the transformer has changed the data correctly."""
-    X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
+    X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]], dtype=dtype)
     s = SlopeTransformer(n_intervals=2).fit(X)
     res = s.transform(X)
     orig = np.array([[[(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10]]])
     np.testing.assert_array_almost_equal(res, orig, decimal=5)
 
-    X = np.array([[[-5, 2.5, 1, 3, 10, -1.5, 6, 12, -3, 0.2]]])
+    X = np.array([[[-5, 2.5, 1, 3, 10, -1.5, 6, 12, -3, 0.2]]], dtype=dtype)
     s = s.fit(X)
     res = s.transform(X)
     orig = np.array(
@@ -75,3 +77,53 @@ def test_slope_performs_correcly_along_each_dim():
         ]
     )
     np.testing.assert_array_almost_equal(res, orig, decimal=5)
+
+
+@pytest.mark.parametrize(
+    "dtype",
+    ["int16", "int32", "int64", "float32", "float64"],
+)
+def test_slope_preserves_float_precision(dtype):
+    """Check that Slope preserved float32 and promotes proper dtype output."""
+    X = make_example_3d_numpy(
+        n_cases=2,
+        n_channels=1,
+        n_timepoints=8,
+        return_y=False,
+        random_state=0,
+    ).astype(dtype)
+
+    Xt = SlopeTransformer(n_intervals=2).fit_transform(X)
+
+    expected_dtype = np.float32 if dtype == "float32" else np.float64
+    assert Xt.dtype == expected_dtype
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+@pytest.mark.parametrize("slope", [1e-4, -1e-4, 1.0, -1.0, 1e9, -1e9])
+@pytest.mark.parametrize("n_intervals", [1, 2])
+def test_slope_linear_values(dtype, slope, n_intervals):
+    """Check signed slopes remain accurate without cancellation or overflow."""
+    X = (np.arange(1, 9, dtype=dtype) * slope)[None, None, :]
+
+    Xt = SlopeTransformer(n_intervals=n_intervals).fit_transform(X)
+
+    assert Xt.shape == (1, 1, n_intervals)
+    assert Xt.dtype == dtype
+    assert np.all(np.isfinite(Xt))
+    assert np.all(np.sign(Xt) == np.sign(slope))
+    # Account for floating-point rounding in the mean and variance.
+    rtol = 5e-7 if dtype == np.float32 else 1e-14
+    np.testing.assert_allclose(Xt, slope, rtol=rtol, atol=0)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+@pytest.mark.parametrize("series", [[3], [3, 3, 3, 3], [1, -1, -1, 1]])
+def test_slope_zero_correlation(dtype, series):
+    """Preserve zero gradients for singleton, constant and uncorrelated series."""
+    X = np.array(series, dtype=dtype)[None, None, :]
+
+    Xt = SlopeTransformer(n_intervals=1).fit_transform(X)
+
+    assert Xt.dtype == dtype
+    np.testing.assert_array_equal(Xt, np.zeros((1, 1, 1), dtype=dtype))

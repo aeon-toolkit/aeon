@@ -62,17 +62,21 @@ class SlopeTransformer(BaseCollectionTransformer):
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape
         self._check_parameters(n_timepoints)
-        full_data = []
+
+        dtype = np.float32 if X.dtype == np.float32 else np.float64
+        X = X.astype(dtype, copy=False)
+
+        Xt = np.empty(
+            (n_cases, n_channels, self.n_intervals),
+            dtype=X.dtype,
+        )
+
         for i in range(n_cases):
-            case_data = []
             for j in range(n_channels):
                 splits = split_series(X[i][j], self.n_intervals)
-                # Calculate gradients
-                res = [self._get_gradient(x) for x in splits]
-                case_data.append(res)
-            full_data.append(np.asarray(case_data))
+                Xt[i, j] = [self._get_gradient(split) for split in splits]
 
-        return np.array(full_data)
+        return Xt
 
     def _get_gradient(self, Y):
         """Get gradient of lines.
@@ -92,7 +96,11 @@ class SlopeTransformer(BaseCollectionTransformer):
         m : an int corresponding to the gradient of the best fit line.
         """
         # Create an array that contains 1,2,3,...,len(Y) for the x coordinates.
-        X = np.arange(1, len(Y) + 1)
+        X = np.arange(
+            1,
+            len(Y) + 1,
+            dtype=Y.dtype,
+        )
 
         # Calculate the mean of both arrays
         meanX = np.mean(X)
@@ -105,17 +113,19 @@ class SlopeTransformer(BaseCollectionTransformer):
         xminXbar = (X - meanX) ** 2
 
         # Sum them to produce w.
-        w = np.sum(yminYbar) - np.sum(xminXbar)
+        w = float(np.sum(yminYbar)) - float(np.sum(xminXbar))
 
         # Sum (xi-mean(x))*(yi-mean(y)) and multiply by 2 to calculate r
-        r = 2 * np.sum((X - meanX) * (Y - meanY))
+        r = 2 * float(np.sum((X - meanX) * (Y - meanY)))
 
         if r == 0:
             # remove nans
             m = 0
         else:
-            # Gradient is defined as (w+sqrt(w^2+r^2))/r
-            m = (w + math.sqrt(w**2 + r**2)) / r
+            # Use scalar double precision and hypot to avoid squaring overflow.
+            # Rationalize the numerator when w < 0 to avoid cancellation.
+            hypotenuse = math.hypot(w, r)
+            m = r / (hypotenuse - w) if w < 0 else (w + hypotenuse) / r
 
         return m
 
