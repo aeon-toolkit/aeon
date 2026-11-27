@@ -189,31 +189,6 @@ def test_nbeats_insufficient_data():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
 )
-@pytest.mark.parametrize("backcast_loss_weight", [0.0, 0.5, 1.0])
-def test_nbeats_backcast_loss_weight(backcast_loss_weight):
-    """Test NBeatsForecaster with different backcast loss weights."""
-    y = load_airline()
-
-    forecaster = NBeatsForecaster(
-        horizon=3,
-        window=10,
-        n_epochs=2,
-        batch_size=16,
-        backcast_loss_weight=backcast_loss_weight,
-        verbose=0,
-    )
-
-    forecaster.fit(y)
-    predictions = forecaster.predict(y)
-
-    assert predictions is not None
-    assert len(predictions) == 3
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow"], severity="none"),
-    reason="Tensorflow soft dependency unavailable.",
-)
 def test_nbeats_save_options_and_forecast_paths():
     """Save flags, input validation, and series-to-series input variants."""
     import os

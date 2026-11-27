@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import warnings
+
 __maintainer__ = ["lucifer4073"]
 
 __all__ = ["NBeatsForecaster"]
@@ -33,7 +35,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         Lookback window size.
     horizon : int, default=1
         Number of steps to forecast. Fixed at construction time.
-    backcast_loss_weight : float, default=0.5
+    backcast_loss_weight : float, default="deprecated"
         Loss weight for the backcast head relative to the forecast head (1.0).
     batch_size : int, default=32
     n_epochs : int, default=100
@@ -57,13 +59,13 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     stacks : list of str or None, default=None
         Stack types: "trend", "seasonality", or "generic".
         Defaults to ["trend", "seasonality"].
-    num_blocks_per_stack : int, default=2
-    units : int, default=30
+    num_blocks_per_stack : int, default=3
+    units : int, default=256
     num_trend_coefficients : int, default=3
-    num_seasonal_coefficients : int, default=5
-    num_generic_coefficients : int, default=7
+    num_seasonal_coefficients : int, default=1
+    num_generic_coefficients : int, default="deprecated"
     share_weights : bool, default=True
-    share_coefficients : bool, default=True
+    share_coefficients : bool, default="deprecated"
 
     References
     ----------
@@ -96,7 +98,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         self,
         window,
         horizon=1,
-        backcast_loss_weight=0.5,
+        backcast_loss_weight="deprecated",
         batch_size=32,
         n_epochs=100,
         verbose=0,
@@ -114,17 +116,20 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         init_file_name="init_model",
         file_path="./",
         stacks=None,
-        num_blocks_per_stack=2,
-        units=30,
+        num_blocks_per_stack=3,
+        units=256,
         num_trend_coefficients=3,
-        num_seasonal_coefficients=5,
-        num_generic_coefficients=7,
+        num_seasonal_coefficients=1,
+        num_generic_coefficients="deprecated",
         share_weights=True,
-        share_coefficients=True,
+        share_coefficients="deprecated",
     ):
         self.window = window
         self.horizon = horizon
         self.backcast_loss_weight = backcast_loss_weight
+        if backcast_loss_weight != "deprecated":
+            warn = "The 'backcast_loss_weight' parameter will be removed in v1.7.0."
+            warnings.warn(warn, FutureWarning)
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.verbose = verbose
@@ -198,13 +203,11 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             share_coefficients=self.share_coefficients,
         )
 
-        input_layer, (backcast_output, forecast_output) = network.build_network(
-            input_shape=input_shape
-        )
+        input_layer, output = network.build_network(input_shape=input_shape)
 
         model = tf.keras.Model(
             inputs=input_layer,
-            outputs={"forecast": forecast_output, "backcast": backcast_output},
+            outputs=output,
         )
 
         self.optimizer_ = (
@@ -212,10 +215,9 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         )
 
         model.compile(
-            loss={"forecast": self.loss, "backcast": self.loss},
-            loss_weights={"forecast": 1.0, "backcast": self.backcast_loss_weight},
+            loss=self.loss,
             optimizer=self.optimizer_,
-            metrics={"forecast": self._metrics},
+            metrics=self._metrics,
         )
 
         return model
@@ -259,9 +261,6 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             series_1d[self.window :], window_shape=self.horizon
         )[:num_sequences]  # (num_sequences, horizon)
 
-        # Backcast target is the input window itself (reconstruction objective)
-        y_train_dict = {"forecast": y_forecast, "backcast": X_train}
-
         self.training_model_ = self.build_model(input_shape=(self.window, 1))
 
         if self.save_init_model:
@@ -280,7 +279,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
 
         self.history = self.training_model_.fit(
             X_train,
-            y_train_dict,
+            y_forecast,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -373,7 +372,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         while steps_remaining > 0:
             x_input = window_data.reshape(1, self.window)
             pred = self.model_.predict(x_input, verbose=0)
-            forecast_step = pred["forecast"][0]
+            forecast_step = pred[0]
 
             if steps_remaining >= self.horizon:
                 collected.append(forecast_step)
