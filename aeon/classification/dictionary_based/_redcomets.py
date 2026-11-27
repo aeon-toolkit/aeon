@@ -192,7 +192,7 @@ class REDCOMETS(BaseClassifier):
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
-        X = Normalizer().fit_transform(X).squeeze(1)
+        X = Normalizer().transform(X)  # .squeeze(1)
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -413,7 +413,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = Normalizer().fit_transform(X).squeeze(1)
+        X = Normalizer().transform(X)
 
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
@@ -456,7 +456,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = Normalizer().fit_transform(X)
+        X = Normalizer().transform(X)
 
         ensemble_pred_mats = None
 
