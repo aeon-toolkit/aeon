@@ -21,13 +21,19 @@ def _yield_series_anomaly_detection_checks(
 
     # test class instances
     for i, estimator in enumerate(estimator_instances):
+        methods = ["predict"]
+        if "_fit_predict" in estimator_class.__dict__:
+            methods.append("fit_predict")
+
         # test all data types
         for datatype in datatypes[i]:
-            yield partial(
-                check_series_anomaly_detector_output,
-                estimator=estimator,
-                datatype=datatype,
-            )
+            for method in methods:
+                yield partial(
+                    check_series_anomaly_detector_output,
+                    estimator=estimator,
+                    datatype=datatype,
+                    method=method,
+                )
 
 
 def check_series_anomaly_detector_overrides_and_tags(estimator_class):
@@ -40,19 +46,22 @@ def check_series_anomaly_detector_overrides_and_tags(estimator_class):
         assert all([t in VALID_SERIES_INNER_TYPES for t in X_inner_type])
 
 
-def check_series_anomaly_detector_output(estimator, datatype):
-    """Test the series anomaly detector output on valid data."""
+def check_series_anomaly_detector_output(estimator, datatype, method):
+    """Test series anomaly detector predict and fit_predict output on valid data."""
     estimator = _clone_estimator(estimator)
+    X_train, y_train = FULL_TEST_DATA_DICT[datatype]["train"]
 
-    estimator.fit(
-        FULL_TEST_DATA_DICT[datatype]["train"][0],
-        FULL_TEST_DATA_DICT[datatype]["train"][1],
-    )
+    if method == "fit_predict":
+        X = X_train
+        y_pred = estimator.fit_predict(X, y_train)
+    else:
+        estimator.fit(X_train, y_train)
+        X = FULL_TEST_DATA_DICT[datatype]["test"][0]
+        y_pred = estimator.predict(X)
 
-    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
     assert isinstance(y_pred, np.ndarray)
     # series need n_timepoints predictions
-    assert len(y_pred) == FULL_TEST_DATA_DICT[datatype]["test"][0].shape[1]
+    assert len(y_pred) == X.shape[1]
 
     out_type = estimator.get_tag("anomaly_output_type")
     if out_type == "anomaly_scores":

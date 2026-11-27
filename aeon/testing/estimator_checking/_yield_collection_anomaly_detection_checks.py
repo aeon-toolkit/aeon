@@ -23,11 +23,13 @@ def _yield_collection_anomaly_detection_checks(
     for i, estimator in enumerate(estimator_instances):
         # test all data types
         for datatype in datatypes[i]:
-            yield partial(
-                check_collection_anomaly_detector_output,
-                estimator=estimator,
-                datatype=datatype,
-            )
+            for method in ["predict", "fit_predict"]:
+                yield partial(
+                    check_collection_anomaly_detector_output,
+                    estimator=estimator,
+                    datatype=datatype,
+                    method=method,
+                )
 
 
 def check_collection_detector_overrides_and_tags(estimator_class):
@@ -48,19 +50,22 @@ def check_collection_detector_overrides_and_tags(estimator_class):
             assert any([t in valid_unequal_types for t in X_inner_type])
 
 
-def check_collection_anomaly_detector_output(estimator, datatype):
-    """Test the collection anomaly detector output on valid data."""
+def check_collection_anomaly_detector_output(estimator, datatype, method):
+    """Test collection anomaly detector predict and fit_predict output on valid data."""
     estimator = _clone_estimator(estimator)
+    X_train, y_train = FULL_TEST_DATA_DICT[datatype]["train"]
 
-    estimator.fit(
-        FULL_TEST_DATA_DICT[datatype]["train"][0],
-        FULL_TEST_DATA_DICT[datatype]["train"][1],
-    )
+    if method == "fit_predict":
+        X = X_train
+        y_pred = estimator.fit_predict(X, y_train)
+    else:
+        estimator.fit(X_train, y_train)
+        X = FULL_TEST_DATA_DICT[datatype]["test"][0]
+        y_pred = estimator.predict(X)
 
-    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
     assert isinstance(y_pred, np.ndarray)
     # collections need n_cases predictions
-    assert len(y_pred) == get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    assert len(y_pred) == get_n_cases(X)
 
     out_type = estimator.get_tag("anomaly_output_type")
     if out_type == "anomaly_scores":
@@ -79,12 +84,3 @@ def check_collection_anomaly_detector_output(estimator, datatype):
         )
     else:
         raise ValueError(f"Unknown anomaly output type: {out_type}")
-
-    # Test fit_predict method
-    estimator_fp = _clone_estimator(estimator)
-    y_pred_fp = estimator_fp.fit_predict(
-        FULL_TEST_DATA_DICT[datatype]["train"][0],
-        FULL_TEST_DATA_DICT[datatype]["train"][1],
-    )
-    assert isinstance(y_pred_fp, np.ndarray)
-    assert len(y_pred_fp) == get_n_cases(FULL_TEST_DATA_DICT[datatype]["train"][0])
