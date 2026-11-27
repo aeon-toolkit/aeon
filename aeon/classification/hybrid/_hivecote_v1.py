@@ -88,8 +88,8 @@ class HIVECOTEV1(_BaseHIVECOTE):
     Notes
     -----
     For the Java version, see
-    `https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/hybrids/HIVE_COTE.java`_.
+    `tsml-java <https://github.com/time-series-machine-learning/tsml-java/blob/master/
+    src/main/java/tsml/classifiers/hybrids/HIVE_COTE.java>`_.
 
     References
     ----------
@@ -133,20 +133,7 @@ class HIVECOTEV1(_BaseHIVECOTE):
     _DEFAULT_MAX_ENSEMBLE_SIZE = 50
 
     def _fit(self, X, y):
-        """Fit HIVE-COTE 1.0 to training data.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The training data.
-        y : array-like, shape = [n_cases]
-            The class labels.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-        """
+        """Set up the HIVE-COTE 1.0 components, then fit the ensemble."""
         if self.stc_params is None:
             self._stc_params = {"n_shapelet_samples": self._DEFAULT_N_SHAPELETS}
         else:
