@@ -13,7 +13,7 @@ from aeon.classification import BaseClassifier
 from aeon.classification.convolution_based._hydra import _SparseScaler
 from aeon.transformations.collection.convolution_based import MultiRocket
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
-from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation import check_lapack_svd_safe, check_n_jobs
 
 
 class MultiRocketHydraClassifier(BaseClassifier):
@@ -52,7 +52,6 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-
     estimator : sklearn compatible classifier or None, default=None
         Classifier fitted on the transformed and scaled features. If None, uses
         RidgeClassifierCV with alphas=np.logspace(-3, 3, 10). The supplied
@@ -141,16 +140,27 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
+        _using_default_estimator = self.estimator is None
+
         self.estimator_ = _clone_estimator(
             RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
-            if self.estimator is None
+            if _using_default_estimator
             else self.estimator,
             self.random_state,
         )
+
         self.classifier = self.estimator_
-        self.classifier.fit(Xt, y)
+        try:
+            self.classifier.fit(Xt, y)
+        except ValueError as error:
+            if _using_default_estimator:
+                n_samples, n_features = Xt.shape
+                check_lapack_svd_safe(
+                    error, n_samples, n_features, "MultiRocketHydraClassifier"
+                )
+            raise
 
         return self
 

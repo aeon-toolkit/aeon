@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based import Rocket
-from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation import check_lapack_svd_safe, check_n_jobs
 
 
 class RocketClassifier(BaseClassifier):
@@ -140,23 +140,36 @@ class RocketClassifier(BaseClassifier):
             random_state=self.random_state,
         )
         self._scaler = StandardScaler(with_mean=False)
+
+        _using_default_estimator = self.estimator is None
+
         self.estimator_ = _clone_estimator(
             (
                 RidgeClassifierCV(
                     alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
                 )
-                if self.estimator is None
+                if _using_default_estimator
                 else self.estimator
             ),
             self.random_state,
         )
+
+        X_t = self._transformer.fit_transform(X)
+        X_t = self._scaler.fit_transform(X_t)
+
+        try:
+            self.estimator_.fit(X_t, y)
+        except ValueError as error:
+            if _using_default_estimator:
+                n_samples, n_features = X_t.shape
+                check_lapack_svd_safe(error, n_samples, n_features, "RocketClassifier")
+            raise
 
         self.pipeline_ = make_pipeline(
             self._transformer,
             self._scaler,
             self.estimator_,
         )
-        self.pipeline_.fit(X, y)
 
         return self
 
