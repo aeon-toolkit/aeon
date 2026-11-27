@@ -30,26 +30,29 @@ class Catch22Classifier(BaseClassifier):
         list of names or indices for multiple features. If "all", all features are
         extracted. Valid features are as follows:
             ["DN_HistogramMode_5", "DN_HistogramMode_10",
-            "SB_BinaryStats_diff_longstretch0", "DN_OutlierInclude_p_001_mdrmd",
-            "DN_OutlierInclude_n_001_mdrmd", "CO_f1ecac", "CO_FirstMin_ac",
-            "SP_Summaries_welch_rect_area_5_1", "SP_Summaries_welch_rect_centroid",
-            "FC_LocalSimple_mean3_stderr", "CO_trev_1_num", "CO_HistogramAMI_even_2_5",
-            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "MD_hrv_classic_pnn40",
-            "SB_BinaryStats_mean_longstretch1", "SB_MotifThree_quantile_hh",
-            "FC_LocalSimple_mean1_tauresrat", "CO_Embed2_Dist_tau_d_expfit_meandiff",
-            "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
-            "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
-            "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
+            "CO_FirstCrossing_acf_1e_pointOfCrossing", "CO_FirstMin_ac",
+            "CO_HistogramAMI_even_5bin_ami2", "CO_trev_1_num", "MD_pNN_pnn40",
+            "SB_BinaryStats_mean_longstretch1",
+            "SB_TransitionMatrix_quantile_3_ac_sumdiagcov",
+            "PD_PeriodicityWang_th0_01", "CO_Embed2_Dist_tau_d_expfit_meandiff",
+            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "FC_LocalSimple_mean1_taurat",
+            "DN_OutlierInclude_p_001_mdrmd", "DN_OutlierInclude_n_001_mdrmd",
+            "SP_Summaries_fft_area_5_1", "SB_BinaryStats_diff_longstretch0",
+            "SB_MotifThree_quantile_hh", "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
+            "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1", "SP_Summaries_fft_wq_50",
+            "FC_LocalSimple_mean3_stde"]
+        The short names and the deprecated catch22 v0.x names listed in Catch22 are
+        also accepted.
     catch24 : bool, default=True
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
-    outlier_norm : bool, optional, default=False
-        If True, each time series is normalized during the computation of the two
-        outlier Catch22 features, which can take a while to process for large values
-        as it depends on the max value in the time series. Note that this parameter
-        did not exist in the original publication/implementation as they used time
-        series that were already normalized.
+    outlier_norm : bool, default=True
+        If True, each time series is z-normalised during the computation of the two
+        outlier Catch22 features. Has no effect if ``normalise`` is True.
+    normalise : bool, default=False
+        If True, each time series is z-normalised before the Catch22 features are
+        computed, as catch22 recommends. See Catch22 for the features this affects.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     estimator : sklearn classifier, default=None
@@ -123,7 +126,7 @@ class Catch22Classifier(BaseClassifier):
     >>> clf.fit(X, y)
     Catch22Classifier(...)
     >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    array([0, 0, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
@@ -139,6 +142,7 @@ class Catch22Classifier(BaseClassifier):
         features="all",
         catch24=True,
         outlier_norm=True,
+        normalise=False,
         replace_nans=True,
         estimator=None,
         random_state=None,
@@ -149,6 +153,7 @@ class Catch22Classifier(BaseClassifier):
         self.features = features
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
+        self.normalise = normalise
         self.replace_nans = replace_nans
         self.estimator = estimator
         self.random_state = random_state
@@ -181,6 +186,7 @@ class Catch22Classifier(BaseClassifier):
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
+            normalise=self.normalise,
             replace_nans=self.replace_nans,
             n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
