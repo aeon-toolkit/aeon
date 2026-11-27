@@ -16,6 +16,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from numba import njit, types
 from numba.typed import Dict
+from scipy.linalg import solve
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -44,7 +45,7 @@ def _kernel_ridge_preds(x_hist, y_hist, candidates):
     gamma = 1.0 / xs.shape[1]
     k = xs @ xs.T * gamma + 1.0
     k.flat[:: k.shape[0] + 1] += 1.0  # alpha = 1 regularisation
-    dual = np.linalg.solve(k, y_hist)
+    dual = solve(k, y_hist, assume_a="pos")
     return (cs @ xs.T * gamma + 1.0) @ dual
 
 

@@ -30,10 +30,29 @@ runs:
         max_attempts: 3
         command: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
+    - name: Install numba dev build (Windows ARM64)
+      if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 30
+        max_attempts: 3
+        command: python -m pip install --pre --extra-index-url https://pypi.anaconda.org/numba/label/dev/simple numba
+
     - name: Install dependencies
+      if: ${{ runner.os != 'Windows' || runner.arch != 'ARM64' }}
       uses: nick-fields/retry@v3
       with:
         timeout_minutes: 30
         max_attempts: 3
         command: >
           python -m pip install .[all_extras${{ inputs.additional_extras != '' && ',' || '' }}${{ inputs.additional_extras }}]
+
+    # not all soft dependencies (e.g. ruptures, roughpy, pycatch22) have Windows ARM64 wheels
+    - name: Install dependencies without all_extras (Windows ARM64)
+      if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 30
+        max_attempts: 3
+        command: >
+          python -m pip install .${{ inputs.additional_extras != '' && format('[{0}]', inputs.additional_extras) || '' }}
