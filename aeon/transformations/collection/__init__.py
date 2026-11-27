@@ -10,6 +10,9 @@ __all__ = [
     "Centerer",
     "DownsampleTransformer",
     "DWTTransformer",
+    "GlobalCenterer",
+    "GlobalMinMaxScaler",
+    "GlobalNormalizer",
     "HOG1DTransformer",
     "MinMaxScaler",
     "Normalizer",
@@ -28,7 +31,14 @@ from aeon.transformations.collection._hog1d import HOG1DTransformer
 from aeon.transformations.collection._impute import SimpleImputer
 from aeon.transformations.collection._periodogram import PeriodogramTransformer
 from aeon.transformations.collection._reduce import Tabularizer
-from aeon.transformations.collection._rescale import Centerer, MinMaxScaler, Normalizer
+from aeon.transformations.collection._rescale import (
+    Centerer,
+    GlobalCenterer,
+    GlobalMinMaxScaler,
+    GlobalNormalizer,
+    MinMaxScaler,
+    Normalizer,
+)
 from aeon.transformations.collection._series_broadcaster import (
     SeriesToCollectionBroadcaster,
 )
