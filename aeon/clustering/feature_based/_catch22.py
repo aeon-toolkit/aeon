@@ -46,12 +46,12 @@ class Catch22Clusterer(BaseClusterer):
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
-        outlier_norm : bool, optional, default=False
-            If True, each time series is normalized during the computation of the two
-            outlier Catch22 features, which can take a while to process for large values
-            as it depends on the max value in the timseries. Note that this parameter
-            did not exist in the original publication/implementation as they used
-            time series that were already normalized.
+    outlier_norm : bool, default=True
+        If True, each time series is z-normalised during the computation of the two
+        outlier Catch22 features. Has no effect if ``normalise`` is True.
+    normalise : bool, default=False
+        If True, each time series is z-normalised before the Catch22 features are
+        computed, as catch22 recommends. See Catch22 for the features this affects.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     estimator : sklearn clusterer, default=None
@@ -113,6 +113,7 @@ class Catch22Clusterer(BaseClusterer):
         features="all",
         catch24=True,
         outlier_norm=True,
+        normalise=False,
         replace_nans=True,
         estimator=None,
         random_state=None,
@@ -122,6 +123,7 @@ class Catch22Clusterer(BaseClusterer):
         self.features = features
         self.catch24 = catch24
         self.outlier_norm = outlier_norm
+        self.normalise = normalise
         self.replace_nans = replace_nans
         self.estimator = estimator
         self.random_state = random_state
@@ -155,6 +157,7 @@ class Catch22Clusterer(BaseClusterer):
             features=self.features,
             catch24=self.catch24,
             outlier_norm=self.outlier_norm,
+            normalise=self.normalise,
             replace_nans=self.replace_nans,
             n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,

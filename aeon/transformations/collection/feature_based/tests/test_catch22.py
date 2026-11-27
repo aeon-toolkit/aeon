@@ -7,6 +7,7 @@ from numpy import testing
 from aeon.datasets import load_basic_motions
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
 
 
 def test_catch22_on_basic_motions():
@@ -48,8 +49,8 @@ def test_catch22_short_on_basic_motions():
 
 
 # Short, full and catch22 v0.x names as listed in catch22 v1.0's featureList.txt,
-# written out here rather than taken from the module so that a mismatch in its
-# lists is caught.
+# in aeon's feature order, written out here rather than taken from the module so
+# that a mismatch in its lists is caught.
 CATCH22_NAMES = [
     ("mode_5", "DN_HistogramMode_5", "DN_HistogramMode_5"),
     ("mode_10", "DN_HistogramMode_10", "DN_HistogramMode_10"),
@@ -124,11 +125,19 @@ def test_catch22_names_cover_all_features():
 
 @pytest.mark.parametrize("short_name, full_name, legacy_name", CATCH22_NAMES)
 def test_catch22_names_select_matching_feature(short_name, full_name, legacy_name):
-    """Test that the short, full and catch22 v0.x names select the same feature."""
+    """Test that the short, full and catch22 v0.x names select the same feature.
+
+    The feature is also its columns of the full transform, which computes every
+    intermediate that features share rather than only those it needs.
+    """
     X = make_example_3d_numpy(
-        n_cases=4, n_channels=1, n_timepoints=50, random_state=0, return_y=False
+        n_cases=4, n_channels=2, n_timepoints=100, random_state=0, return_y=False
     )
     expected = Catch22(features=full_name).fit_transform(X)
+    column = [names[0] for names in CATCH22_NAMES].index(short_name)
+    testing.assert_array_equal(
+        expected, Catch22().fit_transform(X)[:, [column, column + 22]]
+    )
     testing.assert_array_equal(Catch22(features=short_name).fit_transform(X), expected)
     if legacy_name == full_name:
         return
@@ -177,10 +186,11 @@ def test_catch22_matches_catch22_v1_reference():
     The reference values are from pycatch22 1.0.2 (catch22 v1.1.0 C code, the
     same values as v1.0), whose features are all computed on z-normalised series.
     The last series is too short for the fluctuation analysis features, which are
-    masked.
+    masked. The series are z-normalised as catch22 does, so they are not normalised
+    again for the outlier features.
     """
     series = _reference_series()
-    Xt = Catch22().fit_transform([s.reshape(1, -1) for s in series])
+    Xt = Catch22(outlier_norm=False).fit_transform([s.reshape(1, -1) for s in series])
     testing.assert_allclose(Xt, catch22_v1_reference, rtol=1e-6, atol=1e-9)
 
 
@@ -192,6 +202,135 @@ def test_catch22_masks_constant_series():
     testing.assert_array_equal(Xt[:, 22:], [[2.5, 0.0], [2.5, 0.0]])
     Xt = Catch22(mask_nans=False).fit_transform(X)
     assert np.isnan(Xt).all()
+    Xt = Catch22(normalise=True).fit_transform(X)
+    testing.assert_allclose(Xt[0], catch22_v1_constant_mask, rtol=1e-12)
+
+
+@pytest.mark.parametrize("as_list", [False, True])
+def test_catch22_normalise_computes_features_on_normalised_series(as_list):
+    """Test that normalise computes the 22 features on the z-normalised series.
+
+    catch24's mean and standard deviation stay those of the series as given.
+    """
+    X = 37.5 * make_example_3d_numpy(
+        n_cases=4, n_channels=2, n_timepoints=100, random_state=0, return_y=False
+    )
+    X = X + 1000.0
+    if as_list:
+        X_in, X_norm = list(X), [z_normalise_series_2d(x) for x in X]
+    else:
+        X_in, X_norm = X, z_normalise_series_3d(X)
+    Xt = Catch22(normalise=True, catch24=True).fit_transform(X_in)
+    expected = Catch22(outlier_norm=False).fit_transform(X_norm)
+    testing.assert_array_equal(Xt[:, np.r_[0:22, 24:46]], expected)
+    testing.assert_allclose(Xt[:, [22, 46]], X.mean(axis=2), rtol=1e-12)
+    testing.assert_allclose(Xt[:, [23, 47]], X.std(axis=2, ddof=1), rtol=1e-12)
+
+
+def test_catch22_normalise_is_scale_invariant():
+    """Test that normalised features do not depend on the scale of the series.
+
+    Scaling by a power of two is exact, so the features agree to within rounding,
+    also at a scale where the sums of squares of the values would overflow (whose
+    sums are computed separately, so can round differently).
+    """
+    X = np.cumsum(np.random.default_rng(0).standard_normal((5, 2, 120)), axis=2)
+    Xt = Catch22(normalise=True).fit_transform(X)
+    for scale in (2.0**-20, 2.0**600):
+        Xt_scaled = Catch22(normalise=True).fit_transform(X * scale)
+        testing.assert_allclose(Xt_scaled, Xt, rtol=1e-12, atol=1e-12)
+
+
+def test_catch22_outlier_norm_matches_normalise():
+    """Test that the outlier features are those of the normalised series."""
+    X = 37.5 * make_example_3d_numpy(
+        n_cases=4, n_channels=2, n_timepoints=100, random_state=0, return_y=False
+    )
+    features = ["outlier_timing_pos", "outlier_timing_neg"]
+    testing.assert_array_equal(
+        Catch22(features=features).fit_transform(X + 1000.0),
+        Catch22(features=features, normalise=True).fit_transform(X + 1000.0),
+    )
+
+
+def test_catch22_autocorrelation_features_at_extreme_scales():
+    """Test that the autocorrelation features do not depend on the series' scale.
+
+    At scales around 1e-200 the autocorrelation's sums of products underflow
+    unless the series is rescaled first.
+    """
+    X = np.cumsum(np.random.default_rng(0).standard_normal((5, 1, 100)), axis=2)
+    features = ["acf_timescale", "acf_first_min", "whiten_timescale"]
+    # the batched (3D) and per-series (list) paths, each against itself
+    for to_input in (np.asarray, list):
+        c22 = Catch22(features=features)
+        Xt = c22.fit_transform(to_input(X))
+        for scale in (2.0**-660, 2.0**600):
+            testing.assert_array_equal(c22.fit_transform(to_input(X * scale)), Xt)
+
+
+def test_catch22_periodicity_short_series():
+    """Test that periodicity is 0 for a series too short to have a peak."""
+    X = np.array([[[0.0, 1.0]], [[3.0, -1.0]]])
+    Xt = Catch22(features=["periodicity"], mask_nans=False).fit_transform(X)
+    testing.assert_array_equal(Xt, [[0.0], [0.0]])
+
+
+def test_catch22_multivariate_matches_each_channel():
+    """Test that each channel's features are those of the channel on its own.
+
+    Equal-length collections compute the FFTs of all channels at once.
+    """
+    X = make_example_3d_numpy(
+        n_cases=4, n_channels=3, n_timepoints=65, random_state=0, return_y=False
+    )
+    Xt = Catch22().fit_transform(X)
+    for channel in range(3):
+        testing.assert_allclose(
+            Xt[:, 22 * channel : 22 * (channel + 1)],
+            Catch22().fit_transform(X[:, channel : channel + 1]),
+            rtol=1e-9,
+            atol=1e-12,
+        )
+
+
+def test_catch22_unequal_length_matches_equal_length():
+    """Test that the features of a series do not depend on the collection's lengths.
+
+    Equal-length collections share FFTs, autocorrelations and low-pass filters,
+    while unequal-length collections are computed one series at a time. The
+    periods make transition_variance downsample the series by different factors.
+    """
+    rng = np.random.default_rng(0)
+    t = np.arange(400)
+    X = np.stack(
+        [
+            np.sin(2 * np.pi * t / period) + 0.1 * rng.standard_normal(400)
+            for period in (8, 12, 16, 20, 40)
+        ]
+    )[:, np.newaxis]
+    Xt = Catch22().fit_transform([*X, rng.standard_normal((1, 30))])
+    testing.assert_allclose(Xt[:5], Catch22().fit_transform(X), rtol=1e-9, atol=1e-12)
+
+
+def test_catch22_transform_features_mask():
+    """Test that features left out by ``_transform_features`` are 0.
+
+    Interval forests set ``_transform_features`` to compute only the features their
+    trees use, by channel and feature.
+    """
+    X = make_example_3d_numpy(
+        n_cases=4, n_channels=3, n_timepoints=100, random_state=0, return_y=False
+    )
+    keep = np.ones(66, dtype=bool)
+    keep[1::2] = False
+    c22 = Catch22().fit(X)
+    c22._transform_features = keep.tolist()
+    Xt = c22.transform(X)
+    testing.assert_allclose(
+        Xt[:, keep], Catch22().fit_transform(X)[:, keep], rtol=1e-9, atol=1e-12
+    )
+    testing.assert_array_equal(Xt[:, ~keep], 0)
 
 
 feature_names = [
@@ -528,7 +667,7 @@ catch22_basic_motions_data = np.array(
             3.0,
             0.8642,
             -0.11,
-            -0.805,
+            -0.81,
             1.7181,
             7.0,
             1.8243,
@@ -551,7 +690,7 @@ catch22_basic_motions_data = np.array(
             0.0159,
             5.0,
             0.2054,
-            -0.16,
+            -0.15,
             0.01,
             32.285,
             7.0,
@@ -618,7 +757,7 @@ catch22_basic_motions_data = np.array(
             3.0,
             0.2651,
             0.06,
-            -0.2,
+            -0.235,
             7.1407,
             6.0,
             2.0299,
@@ -639,7 +778,7 @@ catch22_basic_motions_data = np.array(
             0.0213,
             2.0,
             0.4887,
-            0.19,
+            0.2,
             0.3,
             1.6007,
             4.0,
@@ -707,7 +846,7 @@ catch22_basic_motions_data = np.array(
             0.5267,
             3.0,
             0.9647,
-            -0.23,
+            -0.14,
             -0.01,
             0.1288,
             7.0,
@@ -953,7 +1092,7 @@ catch22_basic_motions_data = np.array(
             0.0967,
             2.0,
             0.4906,
-            0.03,
+            0.025,
             -0.14,
             0.501,
             6.0,
@@ -998,7 +1137,7 @@ catch22_basic_motions_data = np.array(
             3.0,
             0.5777,
             -0.13,
-            0.3,
+            0.29,
             0.3096,
             5.0,
             1.9083,
@@ -1042,7 +1181,7 @@ catch22_basic_motions_data = np.array(
             4.0,
             0.9445,
             0.11,
-            0.22,
+            0.285,
             0.2719,
             9.0,
             1.7748,
