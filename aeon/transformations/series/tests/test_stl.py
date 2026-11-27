@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.transformations.series._stl import STLSeriesTransformer
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def _synthetic_series(n=240, period=12, trend_slope=0.01, noise=0.0, seed=0):
@@ -64,6 +65,8 @@ def test_parameter_validation():
             y
         )  # low_pass <= period
     with pytest.raises(ValueError):
+        STLSeriesTransformer(period=12, low_pass_jump=0).fit_transform(y)
+    with pytest.raises(ValueError):
         STLSeriesTransformer(period=12, output="foo").fit_transform(y)
 
 
@@ -117,3 +120,60 @@ def test_robust_with_outlier_block_returns_finite_output():
         period=12, seasonal=11, robust=True, output="all"
     ).fit_transform(y)
     assert np.all(np.isfinite(out))
+
+
+def test_straight_line_trend_exact():
+    """Regression test for #3994: trend of straight line should match line exactly."""
+    params = dict(period=4, seasonal=7, trend=9, low_pass=5)
+    y = np.arange(48, dtype=float)
+
+    decomp = STLSeriesTransformer(
+        **params, inner_iter=1, outer_iter=0, output="all"
+    ).fit_transform(y)
+    np.testing.assert_allclose(decomp[:, 0], 0.0, atol=1e-10)
+    np.testing.assert_allclose(decomp[:, 1], y, atol=1e-10)
+
+
+@pytest.mark.parametrize(
+    "kwargs", [{"low_pass": 21}, {"low_pass_deg": 0}, {"low_pass_jump": 3}]
+)
+def test_low_pass_parameters_affect_output(kwargs):
+    """Regression test for #3994: changing low_pass parameters must affect output."""
+    n_timepoints = 48
+    period = 4
+    z, _, _ = _synthetic_series(n=n_timepoints, period=period, noise=0.1, seed=0)
+
+    base = STLSeriesTransformer(period=period, output="seasonal").fit_transform(z)
+    modified = STLSeriesTransformer(
+        period=period, output="seasonal", **kwargs
+    ).fit_transform(z)
+    assert not np.allclose(np.ravel(base), np.ravel(modified))
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency statsmodels is not available",
+)
+@pytest.mark.parametrize(
+    "extra_params",
+    [
+        {},
+        {"low_pass_deg": 0, "low_pass_jump": 2},
+    ],
+)
+def test_matches_statsmodels_stl(extra_params):
+    """Regression test for #3994: verify close agreement with statsmodels STL."""
+    from statsmodels.tsa.seasonal import STL
+
+    n_timepoints = 48
+    period = 4
+    z, _, _ = _synthetic_series(n=n_timepoints, period=period, noise=0.1, seed=42)
+
+    params = dict(period=period, seasonal=7, trend=9, low_pass=5, **extra_params)
+    aeon_res = STLSeriesTransformer(
+        **params, inner_iter=2, outer_iter=0, output="all"
+    ).fit_transform(z)
+    sm_res = STL(z, **params).fit(inner_iter=2, outer_iter=0)
+
+    np.testing.assert_allclose(aeon_res[:, 0], sm_res.seasonal, atol=1e-10)
+    np.testing.assert_allclose(aeon_res[:, 1], sm_res.trend, atol=1e-10)
