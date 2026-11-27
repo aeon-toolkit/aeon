@@ -331,7 +331,7 @@ def test_dotm_seasonal_rolling_predict_matches_iterative_forecast():
     context = _Y_MULT.copy()
     rolled = np.empty(h, dtype=np.float64)
     for step in range(h):
-        rolled[step] = f.predict(context)
+        rolled[step] = f.predict(context).item()
         context = np.append(context, rolled[step])
 
     np.testing.assert_allclose(rolled, iterative, rtol=1e-10, atol=1e-10)

@@ -185,7 +185,7 @@ def test_autoets_predict_matches_wrapped_predict():
     b = forecaster.wrapped_model_.predict(y_pos)
 
     assert isinstance(a, float)
-    assert isinstance(b, float)
+    assert b.shape == (1,)
     assert np.isfinite(a) and np.isfinite(b)
     assert np.isclose(a, b)
 

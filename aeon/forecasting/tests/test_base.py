@@ -37,15 +37,64 @@ class _NoHorizonForecaster(BaseForecaster, DirectForecastingMixin):
 class _SeriesToSeriesForecaster(BaseForecaster, SeriesToSeriesForecastingMixin):
     """Series-to-series forecasting test double."""
 
-    _tags = {"fit_is_empty": True}
+    _tags = {"fit_is_empty": True, "capability:multivariate": True}
 
     def _predict(self, y, exog=None):
-        """Predict a constant value."""
-        return 0.0
+        """Predict a fixed-length series."""
+        return self._series_to_series_forecast(y, self.horizon, exog)
 
     def _series_to_series_forecast(self, y, prediction_horizon, exog=None):
         """Return a fixed-length forecast."""
-        return np.arange(prediction_horizon, dtype=float)
+        n_channels = y.shape[0] if y.ndim > 1 else 1
+        return np.tile(np.arange(prediction_horizon, dtype=float), (n_channels, 1))
+
+
+class _ChannelNaiveForecaster(NaiveForecaster):
+    """Apply the real naive predictor per channel to test base-class shapes."""
+
+    _tags = {"capability:multivariate": True}
+
+    def _predict(self, y, exog=None):
+        return np.array(
+            [super(_ChannelNaiveForecaster, self)._predict(row) for row in y]
+        )
+
+
+@pytest.mark.parametrize("n_channels", [1, 2])
+@pytest.mark.parametrize("axis", [0, 1])
+def test_point_forecast_output_axes(n_channels, axis):
+    """Point forecasts retain time last, independently of input orientation."""
+    n_timepoints, horizon = 4, 3
+    scales = np.arange(1, n_channels + 1, dtype=float)[:, None]
+    y = scales * np.arange(1, n_timepoints + 1, dtype=float)
+    expected = scales * (n_timepoints + horizon)
+    if n_channels == 1:
+        expected = expected[0]
+    model = _ChannelNaiveForecaster(strategy="drift", horizon=horizon)
+    y_input = y.T if axis == 0 else y
+
+    np.testing.assert_array_equal(model.forecast(y_input, axis=axis), expected)
+    model.fit(y_input, axis=axis)
+    np.testing.assert_array_equal(model.predict(y_input, axis=axis), expected)
+
+
+@pytest.mark.parametrize("method", ["direct_forecast", "iterative_forecast"])
+@pytest.mark.parametrize("n_channels", [1, 2])
+@pytest.mark.parametrize("prediction_horizon", [1, 3])
+def test_multi_step_forecast_preserves_channels(method, n_channels, prediction_horizon):
+    """Multi-step strategies extend each channel without mixing its history."""
+    n_timepoints = 4
+    scales = np.arange(1, n_channels + 1, dtype=float)[:, None]
+    y = scales * np.arange(1, n_timepoints + 1, dtype=float)
+    expected = scales * np.arange(
+        n_timepoints + 1, n_timepoints + prediction_horizon + 1, dtype=float
+    )
+    if n_channels == 1:
+        expected = expected[0]
+    model = _ChannelNaiveForecaster(strategy="drift")
+
+    prediction = getattr(model, method)(y, prediction_horizon)
+    np.testing.assert_array_equal(prediction, expected)
 
 
 def test_base_forecaster():
@@ -291,7 +340,8 @@ def test_output_equivalence():
     p2 = f.fit(y).predict(y)
     p3 = f.iterative_forecast(y, 1)
     p4 = f.direct_forecast(y, 1)
-    assert np.allclose(p1, p2, p3[0], p4[0])
+    for prediction in (p2, p3, p4):
+        np.testing.assert_allclose(p1, prediction)
 
 
 def test_direct_forecast_with_exog():
@@ -318,12 +368,19 @@ def test_fit_is_empty():
     assert forecaster.is_fitted
 
 
-def test_series_to_series_forecast():
-    """Test series-to-series forecasting validation and dispatch."""
-    y = np.arange(10, dtype=float)
-    f = _SeriesToSeriesForecaster(horizon=1, axis=1)
+@pytest.mark.parametrize("n_channels", [1, 2])
+@pytest.mark.parametrize("horizon", [1, 3])
+def test_series_to_series_forecast(n_channels, horizon):
+    """Series forecasts retain channel and time axes, including singleton time."""
+    y = np.ones((n_channels, 10))
+    f = _SeriesToSeriesForecaster(horizon=horizon, axis=1)
+    expected = np.tile(np.arange(horizon, dtype=float), (n_channels, 1))
+    if n_channels == 1:
+        expected = expected[0]
 
-    np.testing.assert_array_equal(f.series_to_series_forecast(y, 3), [0.0, 1.0, 2.0])
+    np.testing.assert_array_equal(f.forecast(y), expected)
+    np.testing.assert_array_equal(f.predict(y), expected)
+    np.testing.assert_array_equal(f.series_to_series_forecast(y, horizon), expected)
 
     with pytest.raises(ValueError, match="must be greater than or equal to 1"):
         f.series_to_series_forecast(y, 0)

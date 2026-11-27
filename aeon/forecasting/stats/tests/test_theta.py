@@ -6,17 +6,15 @@ import pytest
 from aeon.forecasting.stats import Theta
 
 
-def test_fit_sets_attributes_and_predict_scalar():
-    """Fit sets a_, b_, alpha_, forecast_, and _predict returns a scalar."""
+def test_fit_sets_attributes_and_predicts_stored_forecast():
+    """Fit sets attributes and predict returns the stored one-step forecast."""
     y = np.array([1.0, 1.2, 1.4, 1.6, 1.8])
     f = Theta(theta=2.0, weight=0.5).fit(y)
     assert hasattr(f, "a_") and isinstance(f.a_, float)
     assert hasattr(f, "b_") and isinstance(f.b_, float)
     assert hasattr(f, "alpha_") and 0.0 < f.alpha_ <= 1.0
     assert hasattr(f, "forecast_") and np.isscalar(f.forecast_)
-    # _predict uses stored one-step forecast
-    p = f.predict(y)
-    assert np.isscalar(p)
+    np.testing.assert_array_equal(f.predict(y), [f.forecast_])
 
 
 def test_constant_series_forecast_is_constant_for_any_weight():
