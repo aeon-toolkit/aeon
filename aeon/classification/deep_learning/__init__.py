@@ -2,6 +2,7 @@
 
 __all__ = [
     "BaseDeepClassifier",
+    "DeepClassifier",
     "TimeCNNClassifier",
     "EncoderClassifier",
     "FCNClassifier",
@@ -14,6 +15,7 @@ __all__ = [
     "DisjointCNNClassifier",
 ]
 from aeon.classification.deep_learning._cnn import TimeCNNClassifier
+from aeon.classification.deep_learning._deep_classifier import DeepClassifier
 from aeon.classification.deep_learning._disjoint_cnn import DisjointCNNClassifier
 from aeon.classification.deep_learning._encoder import EncoderClassifier
 from aeon.classification.deep_learning._fcn import FCNClassifier

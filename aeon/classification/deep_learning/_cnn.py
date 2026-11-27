@@ -3,18 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TimeCNNClassifier"]
 
-import gc
-import os
-import time
-from copy import deepcopy
-
-from sklearn.utils import check_random_state
-
-from aeon.classification.deep_learning.base import BaseDeepClassifier
+from aeon.classification.deep_learning._deep_classifier import DeepClassifier
 from aeon.networks import TimeCNNNetwork
 
 
-class TimeCNNClassifier(BaseDeepClassifier):
+class TimeCNNClassifier(DeepClassifier):
     """
     Time Convolutional Neural Network (CNN).
 
@@ -158,189 +151,49 @@ class TimeCNNClassifier(BaseDeepClassifier):
         self.activation = activation
         self.use_bias = use_bias
 
-        self.n_epochs = n_epochs
-        self.callbacks = callbacks
-        self.file_path = file_path
-        self.save_best_model = save_best_model
-        self.save_last_model = save_last_model
-        self.save_init_model = save_init_model
-        self.best_file_name = best_file_name
-        self.init_file_name = init_file_name
-        self.verbose = verbose
-        self.loss = loss
-        self.metrics = metrics
-        self.optimizer = optimizer
-
-        self.history = None
+        network = TimeCNNNetwork(
+            n_layers=n_layers,
+            kernel_size=kernel_size,
+            n_filters=n_filters,
+            avg_pool_size=avg_pool_size,
+            activation=activation,
+            padding=padding,
+            strides=strides,
+            strides_pooling=strides_pooling,
+            dilation_rate=dilation_rate,
+            use_bias=use_bias,
+        )
 
         super().__init__(
+            network=network,
+            n_epochs=n_epochs,
             batch_size=batch_size,
+            loss=loss,
+            optimizer=optimizer,
+            metrics=metrics,
+            # sigmoid used in inner layers seems bad, and
+            # output activation should be softmax for classification
+            # implemented the same way as in the old code, but is this correct ?
+            output_activation=activation,
+            verbose=verbose,
             random_state=random_state,
+            callbacks=callbacks,
+            use_mini_batch_size=False,
+            file_path=file_path,
+            save_best_model=save_best_model,
+            save_last_model=save_last_model,
+            save_init_model=save_init_model,
+            best_file_name=best_file_name,
             last_file_name=last_file_name,
+            init_file_name=init_file_name,
         )
-
-        self._network = TimeCNNNetwork(
-            n_layers=self.n_layers,
-            kernel_size=self.kernel_size,
-            n_filters=self.n_filters,
-            avg_pool_size=self.avg_pool_size,
-            activation=self.activation,
-            padding=self.padding,
-            strides=self.strides,
-            strides_pooling=self.strides_pooling,
-            dilation_rate=self.dilation_rate,
-            use_bias=self.use_bias,
-        )
-
-    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
-        """Construct a compiled, un-trained, keras model that is ready for training.
-
-        In aeon, time series are stored in numpy arrays of shape (d, m), where d
-        is the number of channels, m is the series length. Keras/tensorflow assume
-        data is in shape (m, d). This method also assumes (m, d). Transpose should
-        happen in fit.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer, should be (m, d)
-        n_classes : int
-            The number of classes, which becomes the size of the output layer
-
-        Returns
-        -------
-        output : a compiled Keras Model
-        """
-        import numpy as np
-        import tensorflow as tf
-
-        if isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
-            self._metrics = self.metrics
-
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
-        tf.keras.utils.set_random_seed(self.random_state_)
-        input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
-
-        output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation=self.activation
-        )(output_layer)
-
-        self.optimizer_ = (
-            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
-        )
-
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-        model.compile(
-            loss=self.loss,
-            optimizer=self.optimizer_,
-            metrics=self._metrics,
-        )
-
-        return model
-
-    def _fit(self, X, y):
-        """Fit the classifier on the training set (X, y).
-
-        Parameters
-        ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints)
-        y : np.ndarray
-            The training data class labels of shape (n_cases,).
-
-
-        Returns
-        -------
-        self : object
-        """
-        import tensorflow as tf
-
-        y_onehot = self.convert_y_to_keras(y)
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-
-        self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
-
-        if self.save_init_model:
-            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
-
-        if self.verbose:
-            self.training_model_.summary()
-
-        self.file_name_ = (
-            self.best_file_name if self.save_best_model else str(time.time_ns())
-        )
-
-        if self.callbacks is None:
-            self.callbacks_ = [
-                tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="loss",
-                    save_best_only=True,
-                ),
-            ]
-        else:
-            self.callbacks_ = self._get_model_checkpoint_callback(
-                callbacks=self.callbacks,
-                file_path=self.file_path,
-                file_name=self.file_name_,
-            )
-
-        self.history = self.training_model_.fit(
-            X,
-            y_onehot,
-            batch_size=self.batch_size,
-            epochs=self.n_epochs,
-            verbose=self.verbose,
-            callbacks=self.callbacks_,
-        )
-
-        try:
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
-            )
-            if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".keras")
-        except FileNotFoundError:
-            self.model_ = deepcopy(self.training_model_)
-
-        if self.save_last_model:
-            self.save_last_model_to_file(file_path=self.file_path)
-
-        gc.collect()
-        return self
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default = "default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return "default" set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-        """
-        param1 = {
-            "n_epochs": 10,
-            "batch_size": 4,
-            "avg_pool_size": 4,
-        }
-
-        test_params = [param1]
-
-        return test_params
+        return [
+            {
+                "n_epochs": 10,
+                "batch_size": 4,
+                "avg_pool_size": 4,
+            }
+        ]
