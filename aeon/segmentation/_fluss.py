@@ -39,13 +39,13 @@ class FLUSSSegmenter(BaseSegmenter):
     >>> X, true_period_size, cps = load_gun_point_segmentation()
     >>> fluss = FLUSSSegmenter(period_length=10, n_regimes=2)  # doctest: +SKIP
     >>> found_cps = fluss.fit_predict(X)  # doctest: +SKIP
-    >>> profiles = fluss.profiles  # doctest: +SKIP
-    >>> scores = fluss.scores  # doctest: +SKIP
+    >>> found_cps, profile, scores = fluss.predict_scores(X)  # doctest: +SKIP
     """
 
     _tags = {
         "fit_is_empty": True,
         "python_dependencies": "stumpy",
+        "capability:predict_scores": True,
     }
 
     def __init__(
@@ -66,56 +66,44 @@ class FLUSSSegmenter(BaseSegmenter):
 
         Returns
         -------
-        list
-            List of change points found in X.
+        np.ndarray
+            Array of change points found in X.
+        """
+        found_cps, _, _ = self._predict_scores(X)
+        return found_cps
+
+    def _predict_scores(self, X: np.ndarray):
+        """Return change points, arc curve profile, and scores for X.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            1D time series to be segmented.
+
+        Returns
+        -------
+        tuple of (np.ndarray, np.ndarray, np.ndarray)
+            Tuple containing ``(found_cps, profile, scores)`` for sequence X.
         """
         if self.n_regimes < 2:
             raise ValueError(
                 "The number of regimes must be set to an integer greater than 1"
             )
-
         X = X.squeeze()
-        self.found_cps, self.profiles, self.scores = self._run_fluss(X)
-        return self.found_cps
-
-    def predict_scores(self, X):
-        """Return scores in FLUSS's profile for each annotation.
-
-        Parameters
-        ----------
-        np.ndarray
-            1D time series to be segmented.
-
-        Returns
-        -------
-        np.ndarray
-            Scores for sequence X
-        """
-        self.found_cps, self.profiles, self.scores = self._run_fluss(X)
-        return self.scores
-
-    def get_fitted_params(self):
-        """Get fitted parameters.
-
-        Returns
-        -------
-        fitted_params : dict
-        """
-        return {"profile": self.profile}
+        return self._run_fluss(X)
 
     def _run_fluss(self, X):
         import stumpy
 
         mp = stumpy.stump(X, m=self.period_length)
-        self.profile, self.found_cps = stumpy.fluss(
+        profile, found_cps = stumpy.fluss(
             mp[:, 1],
             L=self.period_length,
             excl_factor=self.exclusion_factor,
             n_regimes=self.n_regimes,
         )
-        self.scores = self.profile[self.found_cps]
-
-        return self.found_cps, self.profile, self.scores
+        scores = profile[found_cps]
+        return found_cps, profile, scores
 
     def _get_interval_series(self, X, found_cps):
         """Get the segmentation results based on the found change points.

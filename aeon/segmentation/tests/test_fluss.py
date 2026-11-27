@@ -25,7 +25,9 @@ def test_fluss_sparse():
     # compute a FLUSS segmentation
     fluss = FLUSSSegmenter(period_size, n_regimes=2)
     found_cps = fluss.fit_predict(ts)
-    scores = fluss.predict_scores(ts)
+    score_cps, profile, scores = fluss.predict_scores(ts)
 
     assert len(found_cps) == 1 and found_cps[0] == 889
+    assert len(score_cps) == 1 and score_cps[0] == 889
+    assert len(profile) == 1866
     assert len(scores) == 1 and 0.53 > scores[0] > 0.52

@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from aeon.segmentation.base import BaseSegmenter
 from aeon.testing.mock_estimators import MockSegmenter, MockSegmenterRequiresY
@@ -82,3 +83,31 @@ def test_check_y_wrong(y_wrong):
     """Test the _check_y method with incorrect input."""
     with pytest.raises(ValueError, match="Error in input type for y"):
         BaseSegmenter._check_y(None, y_wrong)
+
+
+def test_predict_scores_not_implemented():
+    """Test BaseSegmenter raises NotImplementedError when capability is False."""
+    seg = MockSegmenter()
+    X = np.random.default_rng(0).random(20)
+    with pytest.raises(NotImplementedError, match="does not implement predict_scores"):
+        seg.predict_scores(X)
+
+
+def test_predict_scores_implemented():
+    """Test BaseSegmenter delegates to _predict_scores when capability is True."""
+
+    class _ScoreSegmenter(MockSegmenter):
+        _tags = {"capability:predict_scores": True}
+
+        def _predict_scores(self, X):
+            return np.zeros(X.squeeze().shape[0])
+
+    seg = _ScoreSegmenter()
+    X = np.random.default_rng(0).random(20)
+    with pytest.raises(NotFittedError):
+        seg.predict_scores(X)
+
+    seg.fit(X)
+    scores = seg.predict_scores(X)
+    assert isinstance(scores, np.ndarray)
+    assert len(scores) == len(X)

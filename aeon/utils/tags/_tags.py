@@ -148,6 +148,14 @@ ESTIMATOR_TAGS = {
         "clusterer is transductive: only ``fit(X)``/``labels_`` and "
         "``fit_predict(X)`` are supported, and ``predict`` raises an error.",
     },
+    "capability:predict_scores": {
+        "class": ["segmenter"],
+        "type": "bool",
+        "description": (
+            "Does the segmenter implement predict_scores to return "
+            "per-timepoint segmentation scores?"
+        ),
+    },
     # other
     "returns_dense": {
         "class": "segmenter",
