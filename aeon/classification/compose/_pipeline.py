@@ -42,7 +42,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         the str is used to name the transformer.
         The objects are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
-    estimator : aeon or sklearn classifier
+    classifier : aeon or sklearn classifier
         A classifier to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
