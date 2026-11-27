@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.testing.data_generation import make_example_2d_numpy_series
 from aeon.utils.numba.general import (
@@ -131,53 +131,6 @@ def test_z_normalise_series_3d_values_unchanged(dtype):
     result = z_normalise_series_3d(X)
     expected = (X - X.mean(axis=-1, keepdims=True)) / X.std(axis=-1, keepdims=True)
     assert_array_almost_equal(result, expected, decimal=5)
-
-
-def test_z_normalise_series_extreme_scales():
-    """Test z-normalisation where the sums of squares, or the sum, would overflow.
-
-    Scaling by a power of two is exact, so the result is the same as unscaled, to
-    within the rounding of sums that are computed in a different place.
-    """
-    x = np.random.default_rng(0).standard_normal(100)
-    expected = z_normalise_series(x)
-    for scale in (2.0**600, 2.0**1020):
-        X = x * scale
-        for result in (
-            z_normalise_series(X),
-            z_normalise_series_with_mean(X, X.mean()),
-            z_normalise_series_2d(X[np.newaxis])[0],
-            z_normalise_series_3d(X[np.newaxis, np.newaxis])[0, 0],
-        ):
-            assert_allclose(result, expected, rtol=1e-14, atol=1e-14)
-
-
-@pytest.mark.parametrize("value", [2.0, 0.1, 1e9 + 0.3, -3e100, 5.221421e24])
-@pytest.mark.parametrize("length", [3, 7, 12, 50])
-def test_z_normalise_series_constant_far_from_zero(value, length):
-    """Test that a constant series normalises to zeros wherever its mean rounds.
-
-    The mean of a constant series can differ from its value by rounding, which is
-    large far from zero.
-    """
-    a = np.full(length, value)
-    assert_array_equal(z_normalise_series(a), 0)
-    assert_array_equal(z_normalise_series_with_mean(a, a.mean()), 0)
-    assert_array_equal(z_normalise_series_3d(a[np.newaxis, np.newaxis]), 0)
-
-
-def test_z_normalise_series_near_constant_far_from_zero():
-    """Test a series whose variation is a few units in the last place of its mean.
-
-    One subtraction of the mean leaves its rounding error, which can exceed the
-    variation, so the result must be centred again.
-    """
-    rng = np.random.default_rng(0)
-    for _ in range(10):
-        ulps = rng.integers(0, 6, size=200).astype(float)
-        x = 1e10 + ulps * np.spacing(1e10)
-        expected = (ulps - ulps.mean()) / ulps.std()
-        assert_allclose(z_normalise_series(x), expected, rtol=1e-9, atol=1e-9)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

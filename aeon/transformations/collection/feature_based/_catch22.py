@@ -15,11 +15,7 @@ from joblib import Parallel, delayed
 from numba import njit
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils.numba.general import (
-    _pow2_scale,
-    z_normalise_series_2d,
-    z_normalise_series_3d,
-)
+from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
 from aeon.utils.numba.stats import mean, numba_max, numba_min
 from aeon.utils.validation import check_n_jobs
 
@@ -2063,6 +2059,16 @@ def _normalise(X):
     if isinstance(X, np.ndarray) and X.ndim == 3:
         return z_normalise_series_3d(X)
     return [z_normalise_series_2d(x) for x in X]
+
+
+@njit(fastmath=_FASTMATH, cache=True)
+def _pow2_scale(max_abs):
+    # the power of two that brings max_abs into [0.5, 1), which scales a series
+    # exactly; 1 for 0, inf and NaN
+    if max_abs == 0 or not np.isfinite(max_abs):
+        return 1.0
+    e = math.frexp(max_abs)[1]
+    return math.ldexp(1.0, min(max(-e, -1022), 1023))
 
 
 def _pow2_scales(max_abs):

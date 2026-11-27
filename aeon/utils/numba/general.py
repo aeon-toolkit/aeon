@@ -28,8 +28,6 @@ __all__ = [
 ]
 
 
-import math
-
 import numpy as np
 from numba import njit, prange
 from numpy.random._generator import Generator
@@ -37,11 +35,6 @@ from numpy.random._generator import Generator
 import aeon.utils.numba.stats as stats
 
 AEON_NUMBA_STD_THRESHOLD = 1e-8
-
-# numba's fastmath without its no-NaN and no-inf assumptions, for functions that
-# check for overflow (with them, numba may drop the checks)
-_FINITE_FASTMATH = {"reassoc", "contract", "arcp", "nsz", "afn"}
-_EPS = np.finfo(np.float64).eps
 
 
 @njit(fastmath=True, cache=True)
@@ -188,85 +181,6 @@ def _z_normalise_inplace(arr: np.ndarray, series_mean: float, series_std: float)
         arr /= series_std
 
 
-@njit(fastmath=_FINITE_FASTMATH, cache=True, nogil=True)
-def _pow2_scale(max_abs: float) -> float:
-    """Return the power of two that brings ``max_abs`` into [0.5, 1).
-
-    Multiplying by a power of two is exact, so it rescales a series without rounding.
-    Returns 1 for 0, inf and NaN.
-    """
-    if max_abs == 0 or not np.isfinite(max_abs):
-        return 1.0
-    e = math.frexp(max_abs)[1]
-    return math.ldexp(1.0, min(max(-e, -1022), 1023))
-
-
-@njit(fastmath=True, cache=True, nogil=True)
-def _z_normalise_checked(arr: np.ndarray, series_mean: float, series_std: float):
-    """Z-normalise a float copy of a series in place, as ``_z_normalise_inplace``.
-
-    ``series_mean`` and ``series_std`` are the series' mean and standard deviation from
-    ``aeon.utils.numba.stats``. Ordinary series are normalised with them by
-    ``_z_normalise_inplace``, as before. Two cases where they are inaccurate are
-    recomputed:
-
-    - The sum of squares overflows for values beyond about 1e154, and the sum itself
-      near the largest float, which gave a standard deviation of inf and all zeros.
-      The series is first scaled by a power of two, which is exact.
-    - When the standard deviation is within rounding of the mean, e.g. for a constant
-      series far from zero, the mean's rounding error can exceed the variation of the
-      series. Subtracting it once left large residuals, which were returned undivided
-      below the threshold or divided into values of 1. The series is centred a second
-      time, and a constant series normalises to zeros.
-    """
-    if _stats_unreliable(arr.shape[0], series_mean, series_std):
-        _z_normalise_recomputed(arr, series_mean, series_std)
-    else:
-        _z_normalise_inplace(arr, series_mean, series_std)
-
-
-@njit(fastmath=_FINITE_FASTMATH, cache=True, nogil=True)
-def _stats_unreliable(n: int, series_mean: float, series_std: float) -> bool:
-    """Return whether a series' mean or std overflowed, or is within rounding."""
-    if not (np.isfinite(series_mean) and np.isfinite(series_std)):
-        return True
-    return series_std <= n * _EPS * abs(series_mean)
-
-
-@njit(fastmath=_FINITE_FASTMATH, cache=True, nogil=True)
-def _z_normalise_recomputed(arr: np.ndarray, series_mean: float, series_std: float):
-    """Z-normalise a series with unreliable statistics, see _z_normalise_checked."""
-    n = arr.shape[0]
-    if not (np.isfinite(series_mean) and np.isfinite(series_std)):
-        max_abs = 0.0
-        for i in range(n):
-            if abs(arr[i]) > max_abs:
-                max_abs = abs(arr[i])
-        scale = _pow2_scale(max_abs)
-        if scale == 1.0:
-            # inf or NaN values, which stay inf or NaN
-            _z_normalise_inplace(arr, series_mean, series_std)
-            return
-        arr *= scale
-        scaled_mean = stats.mean(arr)
-        scaled_std = stats.std(arr)
-        arr -= scaled_mean
-        if scaled_std / scale > AEON_NUMBA_STD_THRESHOLD:
-            arr /= scaled_std
-        else:
-            arr /= scale
-        return
-    # the standard deviation is within rounding of the mean
-    arr -= series_mean
-    if arr.min() == arr.max():
-        arr[:] = 0
-        return
-    arr -= stats.mean(arr)
-    centred_std = stats.std(arr)
-    if centred_std > AEON_NUMBA_STD_THRESHOLD:
-        arr /= centred_std
-
-
 @njit(fastmath=True, cache=True)
 def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array with mean.
@@ -292,7 +206,7 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     >>> X_norm = z_normalise_series_with_mean(X, mean(X))
     """
     arr = _as_normalised_float(X)
-    _z_normalise_checked(arr, series_mean, stats.std(X))
+    _z_normalise_inplace(arr, series_mean, stats.std(X))
     return arr
 
 
@@ -318,7 +232,7 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
     >>> X_norm = z_normalise_series(X)
     """
     arr = _as_normalised_float(X)
-    _z_normalise_checked(arr, stats.mean(X), stats.std(X))
+    _z_normalise_inplace(arr, stats.mean(X), stats.std(X))
     return arr
 
 
@@ -371,7 +285,7 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     """
     arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
-        _z_normalise_checked(arr[i], stats.mean(X[i]), stats.std(X[i]))
+        _z_normalise_inplace(arr[i], stats.mean(X[i]), stats.std(X[i]))
     return arr
 
 
@@ -429,7 +343,7 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     arr = _as_normalised_float(X)
     for i in range(X.shape[0]):
         for j in range(X.shape[1]):
-            _z_normalise_checked(arr[i, j], stats.mean(X[i, j]), stats.std(X[i, j]))
+            _z_normalise_inplace(arr[i, j], stats.mean(X[i, j]), stats.std(X[i, j]))
     return arr
 
 
