@@ -59,7 +59,7 @@ class RandomSegmenter(BaseSegmenter):
         rng = random.Random()
         rng.seed(self.random_state)
 
-        points = rng.sample(range(0, length), self.n_segments - 1)
+        points = rng.sample(range(1, length), self.n_segments - 1)
         self.breakpoints_ = sorted(points)
         return self
 
