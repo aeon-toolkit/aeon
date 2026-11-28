@@ -390,9 +390,9 @@ class ShapeletVisualizer:
         if self.normalise:
             X_means, X_stds = sliding_mean_std_one_series(X, self.length, self.dilation)
             X_subs = normalise_subsequences(X_subs, X_means, X_stds)
-            _values = (self.values - self.values.mean(axis=-1)) / self.values.std(
-                axis=1
-            )
+            _values = (
+                self.values - self.values.mean(axis=-1, keepdims=True)
+            ) / self.values.std(axis=-1, keepdims=True)
         else:
             _values = self.values
         c = compute_shapelet_dist_vector(X_subs, _values)

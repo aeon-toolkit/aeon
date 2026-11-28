@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 from sklearn.exceptions import NotFittedError
 
 from aeon.classification.shapelet_based import (
@@ -95,6 +95,60 @@ def test_ShapeletVisualizer_plot_distance_vector():
     plt.gcf().canvas.draw_idle()
     assert isinstance(fig, plt.Figure)
     plt.close()
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+@pytest.mark.parametrize("n_channels", [1, 2, 4])
+@pytest.mark.parametrize("normalise", [False, True])
+@pytest.mark.parametrize("existing_ax", [False, True])
+def test_ShapeletVisualizer_distance_vector_channel_normalisation(
+    n_channels, normalise, existing_ax
+):
+    """Check plotted distances against independently normalised channels."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+
+    random_state = np.random.RandomState(42)
+    length, dilation = 4, 2
+    values = random_state.normal(size=(n_channels, length))
+    X = random_state.normal(size=(n_channels, 10))
+    scales = np.arange(1, n_channels + 1)[:, np.newaxis] + 1
+    offsets = np.arange(n_channels)[:, np.newaxis] + 3
+    X[:, 1 : 1 + length * dilation : dilation] = values * scales + offsets
+
+    def normalise_channels(array):
+        if not normalise:
+            return array
+        return np.stack([(row - row.mean()) / row.std() for row in array])
+
+    reference = normalise_channels(values)
+    expected = [
+        np.linalg.norm(
+            normalise_channels(X[:, start : start + length * dilation : dilation])
+            - reference
+        )
+        for start in range(X.shape[1] - (length - 1) * dilation)
+    ]
+    visualizer = ShapeletVisualizer(values, normalise=normalise, dilation=dilation)
+    fig, ax = plt.subplots() if existing_ax else (None, None)
+    try:
+        result = visualizer.plot_distance_vector(
+            X, ax=ax, show_legend=False, show_threshold=False
+        )
+        if existing_ax:
+            assert result is ax
+        else:
+            fig = result
+            ax = fig.axes[0]
+        assert_allclose(ax.lines[0].get_ydata(), expected, atol=1e-12)
+    finally:
+        if fig is not None:
+            plt.close(fig)
 
 
 @pytest.mark.skipif(
